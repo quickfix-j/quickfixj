@@ -68,7 +68,7 @@ public class InitiateMessageStep implements TestStep {
                 }
             }
             String beginString = message.substring(2, 9);
-            boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX41) >= 0;
+            boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
             message = matcher.replaceFirst(FieldValueConverter.UtcTimestampConverter
                     .convert(new Date(System.currentTimeMillis()+(offset*1000)), includeMillis));
             matcher = TIME_PATTERN.matcher(message);

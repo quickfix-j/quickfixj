@@ -92,7 +92,7 @@ public class ThreadedSocketAcceptor implements Acceptor {
 
             for (Iterator i = settings.sectionIterator(); i.hasNext();) {
                 Object sectionKey = i.next();
-                if (sectionKey instanceof SessionID) {
+                if (sectionKey != SessionSettings.DEFAULT_SESSION_ID) {
                     final SessionID sessionID = (SessionID) sectionKey;
                     int port = 0;
                     try {

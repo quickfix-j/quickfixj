@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.extensions.TestSetup;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
@@ -103,34 +104,19 @@ public class AcceptanceTestSuite extends TestSuite {
     public AcceptanceTestSuite() {
         //addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix41"));
-        //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix43"));
-        addTests(new File(acceptanceTestBaseDir + "server/fix44"));
-        //addTest("fix43/14b_RequiredFieldMissing.def");
-        //addTest("fix41/ReverseRouteWithEmptyRoutingTags.def");
-        //addTest("fix40/RejectResentMessage.def");
-        //addTest("fix40/2r_UnregisteredMsgType.def");
-        //addTest("fix40/14a_BadField.def");
-        //addTest("fix42/21_RepeatingGroupSpecifierWithValueOfZero.def");
-        //addTest("fix42/2e_PossDupAlreadyReceived.def");
-        //addTest("fix42/14b_RequiredFieldMissing.def");
-        //addTest("fix41/10_MsgSeqNumEqual.def");
-        //addTest("fix42/10_MsgSeqNumGreater.def");
-        //addTest("fix42/2d_GarbledMessage.def");
-        //addTest("fix42/3c_GarbledMessage.def");
-        //addTest("fix40/2m_BodyLengthValueNotCorrect.def");
-        //addTest("fix42/1d_InvalidLogonLengthInvalid.def");
+        //addTests(new File(acceptanceTestBaseDir + "server/fix44"));
+        //addTest("fix43/21_RepeatingGroupSpecifierWithValueOfZero.def");
+        //addTest("fix44/21_RepeatingGroupSpecifierWithValueOfZero.def");
+        //addTest("fix44/RejectMessageResent.def");
     }
 
-    private void addTest(String name) {
+    protected void addTest(String name) {
         addTests(new File(acceptanceTestBaseDir + "server/" + name));
     }
 
-    public static Test suite() {
-        return new AcceptanceTestSuite();
-    }
-
-    private void addTests(File directory) {
+    protected void addTests(File directory) {
         if (!directory.isDirectory()) {
             addTest(new AcceptanceTest(directory.getPath()));
         } else {
@@ -150,5 +136,24 @@ public class AcceptanceTestSuite extends TestSuite {
                 System.err.println("directory does not exist: " + directory.getPath());
             }
         }
+    }
+
+    public static Test suite() {
+        return new TestSetup(new AcceptanceTestSuite()) {
+            private Thread serverThread;
+            
+            protected void setUp() throws Exception {
+                super.setUp();
+                ATServer server = new ATServer();
+                serverThread = new Thread(server, "ATServer");
+                serverThread.start();
+                Thread.sleep(5000);
+            }
+            
+            protected void tearDown() throws Exception {
+                serverThread.interrupt();
+                super.tearDown();
+            }
+        };
     }
 }

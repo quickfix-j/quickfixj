@@ -16,7 +16,7 @@ import java.util.HashSet;
 import quickfix.*;
 import quickfix.field.*;
 
-class at_messagecracker extends quickfix.MessageCracker {
+class ATMessageCracker extends quickfix.MessageCracker {
 
     private HashSet orderIDs = new HashSet();
 

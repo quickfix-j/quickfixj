@@ -78,6 +78,7 @@ public class ExpectMessageStep implements TestStep {
             Assert.assertTrue("missing expected field: " + key, actualFields.containsKey(key));
         }
         Iterator timeFieldItr = timeFields.iterator();
+        // TODO review date length test issues
         boolean dateLengthMismatch = false;
         while (timeFieldItr.hasNext()) {
             String key = (String) timeFieldItr.next();
@@ -90,7 +91,7 @@ public class ExpectMessageStep implements TestStep {
 //                        .get(key)).length(), ((String) actualFields.get(key)).length());
             }
         }
-        if (!dateLengthMismatch) {
+        if (expectedFields.get("9") != null && !dateLengthMismatch) {
             Assert.assertEquals("field 9 not equal: ", expectedFields.get("9"), actualFields.get("9"));
         }
     }

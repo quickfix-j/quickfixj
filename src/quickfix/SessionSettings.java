@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 public class SessionSettings {
+    public static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");;
     private static final String SESSION_SECTION_NAME = "session";
     private static final String DEFAULT_SECTION_NAME = "default";
     public static final String SCREEN_LOG_INCOMING = "ScreenLogIncoming";
@@ -71,10 +72,11 @@ public class SessionSettings {
     public static final String MILLISECONDS_IN_TIMESTAMP = "MillisecondsInTimeStamp";
 
     public SessionSettings() {
-
+        sections.put(DEFAULT_SESSION_ID, new Properties());
     }
 
     public SessionSettings(String filename) throws ConfigError {
+        this();
         InputStream in = getClass().getClassLoader().getResourceAsStream(filename);
         if (in == null) {
             try {
@@ -87,6 +89,7 @@ public class SessionSettings {
     }
 
     public SessionSettings(InputStream stream) throws ConfigError {
+        this();
         load(stream);
     }
 
@@ -117,7 +120,7 @@ public class SessionSettings {
     private Properties getOrCreateSessionProperties(SessionID sessionID) {
         Properties p = (Properties) sections.get(sessionID);
         if (p == null) {
-            p = new Properties((Properties)sections.get(DEFAULT_SECTION_NAME));
+            p = new Properties((Properties)sections.get(DEFAULT_SESSION_ID));
             sections.put(sessionID, p);
         }
         return p;
@@ -177,10 +180,10 @@ public class SessionSettings {
                     storeSection(currentSectionId, currentSection);
                     if (token.getValue().equalsIgnoreCase(DEFAULT_SECTION_NAME)) {
                         currentSectionId = DEFAULT_SECTION_NAME;
-                        currentSection = getDefaultSection();
+                        currentSection = getSessionProperties(DEFAULT_SESSION_ID);
                     } else if (token.getValue().equalsIgnoreCase(SESSION_SECTION_NAME)) {
                         currentSectionId = SESSION_SECTION_NAME;
-                        currentSection = new Properties(getDefaultSection());
+                        currentSection = new Properties(getSessionProperties(DEFAULT_SESSION_ID));
                     }
                 } else if (token.getType() == Tokenizer.ID_TOKEN) {
                     Tokenizer.Token valueToken = tokenizer.getToken(inputStream);
@@ -210,14 +213,14 @@ public class SessionSettings {
         }
     }
 
-    public Properties getDefaultSection() {
-        Properties section = (Properties) sections.get(DEFAULT_SECTION_NAME);
-        if (section == null) {
-            section = new Properties();
-            sections.put(DEFAULT_SECTION_NAME, section);
-        }
-        return section;
-    }
+//    public Properties getDefaultSection() {
+//        Properties section = (Properties) sections.get(DEFAULT_SECTION_NAME);
+//        if (section == null) {
+//            section = new Properties();
+//            sections.put(DEFAULT_SECTION_NAME, section);
+//        }
+//        return section;
+//    }
 
     public String toString() {
         return sections.toString();

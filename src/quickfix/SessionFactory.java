@@ -87,8 +87,9 @@ public class SessionFactory {
             Date endTime = FieldValueConverter.UtcTimeOnlyConverter.convert(settings.getString(
                     sessionID, SessionSettings.END_TIME));
 
-            int startDay = getDay(settings, sessionID, SessionSettings.START_DAY);
-            int endDay = getDay(settings, sessionID, SessionSettings.END_DAY);
+            // TODO use meaningful constants for start/end day
+            int startDay = getDay(settings, sessionID, SessionSettings.START_DAY, 2);
+            int endDay = getDay(settings, sessionID, SessionSettings.END_DAY, 6);
 
             if (startDay >= 0 && endDay < 0) {
                 throw new ConfigError("StartDay used without EndDay");
@@ -134,8 +135,11 @@ public class SessionFactory {
         }
     }
 
-    private int getDay(SessionSettings settings, SessionID sessionID, String key)
+    private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
             throws ConfigError {
+        if (!settings.isSetting(sessionID, key)) {
+            return defaultValue;
+        }
         String value = settings.getString(sessionID, key);
         if (value.length() >= 2) {
             String abbr = value.substring(0, 2);

@@ -15,8 +15,8 @@ package quickfix.test.acceptance;
 import quickfix.*;
 import quickfix.field.*;
 
-public class at_application implements Application {
-    private at_messagecracker cracker = new at_messagecracker();
+public class ATApplication implements Application {
+    private ATMessageCracker cracker = new ATMessageCracker();
 
     public void onCreate(SessionID sessionID) {
         Session session = Session.lookupSession(sessionID);

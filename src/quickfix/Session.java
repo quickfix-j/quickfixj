@@ -156,7 +156,9 @@ public class Session {
     }
 
     private void insertSendingTime(Message.Header header) {
-        header.setUtcTimeStamp(SendingTime.FIELD, new Date(), millisecondsInTimeStamp);
+        boolean includeMillis = sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
+                && millisecondsInTimeStamp;
+        header.setUtcTimeStamp(SendingTime.FIELD, new Date(), includeMillis);
     }
 
     public void logout() {
@@ -480,7 +482,8 @@ public class Session {
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
 
-        // TODO Why is PossDupFlag needed here? It doesn't appear to be used in the C++ code.
+        // TODO Why is PossDupFlag needed here? It doesn't appear to be used in
+        // the C++ code.
         // PossDupFlag possDupFlag( false );
         boolean possDupFlag = false;
 
@@ -1042,6 +1045,8 @@ public class Session {
     }
 
     private boolean send(Message message) {
+        message.getHeader().removeField(PossDupFlag.FIELD);
+        message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
     }
 
@@ -1087,5 +1092,9 @@ public class Session {
 
     public void setMillisecondsInTimestamp(boolean flag) {
         millisecondsInTimeStamp = flag;
+    }
+
+    public SessionID getSessionID() {
+        return sessionID;
     }
 }
