@@ -401,7 +401,7 @@ public class DataDictionary {
             if (fieldType == FieldType.String) {
                 // String
             } else if (fieldType == FieldType.Char) {
-                if (version.compareTo(FixVersions.BEGINSTRING_FIX40) > 0) {
+                if (version.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
                     FieldValueConverter.CharConverter.convert(field.getValue());
                 } else {
                     // String, for older FIX versions

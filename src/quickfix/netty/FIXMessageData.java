@@ -80,6 +80,7 @@ public class FIXMessageData implements Message {
     private int state = SEEKING_HEADER;
     private int bodyLength = 0;
     private int messageStartPosition;
+    private int bodyStartPosition;
     private int position;
     private String message;
 
@@ -132,6 +133,7 @@ public class FIXMessageData implements Message {
                         handleError(buffer, "Error in message length", false);
                         break;
                     }
+                    bodyStartPosition = position;
                     state = READING_BODY;
                     log.debug("reading body, length = " + bodyLength);
                 }
@@ -175,7 +177,12 @@ public class FIXMessageData implements Message {
 
     private void handleError(ByteBuffer buffer, String text, boolean disconnect)
             throws MessageParseException {
-        int nextHeader = indexOf(buffer, messageStartPosition + 1, headerBytes);
+        // TODO allow configurable recovery position
+        //int newOffset = messageStartPosition + 1;
+        // Following recovery position is compatible with QuickFIX C++
+        // but drops messages unnecessarily in corruption scenarios.
+        int newOffset = bodyStartPosition + bodyLength;
+        int nextHeader = indexOf(buffer, newOffset, headerBytes);
         if (nextHeader != -1) {
             buffer.position(nextHeader);
         } else {
