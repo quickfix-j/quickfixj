@@ -65,8 +65,8 @@ public class SessionFactory {
                 dataDictionary = (DataDictionary) dictionaryCache.get(path);
                 if (dataDictionary == null) {
                     try {
-                        // TODO cache the data dictionaries
                         dataDictionary = new DataDictionary(new FileInputStream(path));
+                        dictionaryCache.put(path, dataDictionary);
                     } catch (FileNotFoundException e) {
                         throw new ConfigError(e.getMessage());
                     }

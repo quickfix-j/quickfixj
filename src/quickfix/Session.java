@@ -633,6 +633,7 @@ public class Session {
             }
 
             if (!validLogonState(msgType)) {
+                // TODO replace runtime exceptions
                 throw new RuntimeException("Logon state is not valid for message");
             }
 
@@ -850,14 +851,12 @@ public class Session {
         String senderCompID = logon.getHeader().getString(SenderCompID.FIELD);
         String targetCompID = logon.getHeader().getString(TargetCompID.FIELD);
 
-        boolean verified = verify(logon, false, true);
+        if (!verify(logon, false, true)) {
+            return;
+        }
 
         if (isCorrectCompID(senderCompID, targetCompID)) {
             state.setLogonReceived(true);
-        }
-
-        if (!verified) {
-            return;
         }
 
         if (!state.isInitiator()) {

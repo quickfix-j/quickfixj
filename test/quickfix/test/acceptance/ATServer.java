@@ -1,19 +1,35 @@
 package quickfix.test.acceptance;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 
-import quickfix.Acceptor;
+import quickfix.AbstractSocketAcceptor;
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
+import quickfix.FixVersions;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
+import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
     private final Logger log = Logger.getLogger(ATServer.class);
+    private final CountDownLatch initializationLatch = new CountDownLatch(1);
+    private final Set fixVersions;
 
     public static void main(String[] args) throws Exception {
         new ATServer().run();
+    }
+
+    public ATServer() {
+        fixVersions = new HashSet();
+        //fixVersions.add(FixVersions.BEGINSTRING_FIX40);
+        //fixVersions.add(FixVersions.BEGINSTRING_FIX41);
+        //fixVersions.add(FixVersions.BEGINSTRING_FIX42);
+        fixVersions.add(FixVersions.BEGINSTRING_FIX43);
+        //fixVersions.add(FixVersions.BEGINSTRING_FIX44);
     }
 
     public void run() {
@@ -30,32 +46,44 @@ public class ATServer implements Runnable {
 
             SessionID sessionID;
 
-//            sessionID = new SessionID("FIX.4.0", "ISLD", "TW");
-//            settings.setString(sessionID, "BeginString", "FIX.4.0");
-//            settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX40.xml");
-//
-//            sessionID = new SessionID("FIX.4.1", "ISLD", "TW");
-//            settings.setString(sessionID, "BeginString", "FIX.4.1");
-//            settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX41.xml");
+            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX40)) {
+                sessionID = new SessionID("FIX.4.0", "ISLD", "TW");
+                settings.setString(sessionID, "BeginString", "FIX.4.0");
+                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX40.xml");
+            }
 
-            sessionID = new SessionID("FIX.4.2", "ISLD", "TW");
-            settings.setString(sessionID, "BeginString", "FIX.4.2");
-            settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX42.xml");
+            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX41)) {
+                sessionID = new SessionID("FIX.4.1", "ISLD", "TW");
+                settings.setString(sessionID, "BeginString", "FIX.4.1");
+                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX41.xml");
+            }
             
-//            sessionID = new SessionID("FIX.4.3", "ISLD", "TW");
-//            settings.setString(sessionID, "BeginString", "FIX.4.3");
-//            settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX43.xml");
-//
-//            sessionID = new SessionID("FIX.4.4", "ISLD", "TW");
-//            settings.setString(sessionID, "BeginString", "FIX.4.4");
-//            settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX44.xml");
+            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX42)) {
+                sessionID = new SessionID("FIX.4.2", "ISLD", "TW");
+                settings.setString(sessionID, "BeginString", "FIX.4.2");
+                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX42.xml");
+            }
+            
+            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX43)) {
+                sessionID = new SessionID("FIX.4.3", "ISLD", "TW");
+                settings.setString(sessionID, "BeginString", "FIX.4.3");
+                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX43.xml");
+            }
+            
+            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX44)) {
+                sessionID = new SessionID("FIX.4.4", "ISLD", "TW");
+                settings.setString(sessionID, "BeginString", "FIX.4.4");
+                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX44.xml");
+            }
 
             ATApplication application = new ATApplication();
             FileStoreFactory factory = new FileStoreFactory(settings);
-            Acceptor acceptor = new SocketAcceptor(application, factory, settings,
+            AbstractSocketAcceptor acceptor = new SocketAcceptor(application, factory, settings,
                     new DefaultMessageFactory());
+            acceptor.setLogonPollingTimeout(1000);
             acceptor.start();
-
+            acceptor.waitForInitialization();
+            initializationLatch.countDown();
             synchronized (application) {
                 try {
                     application.wait();
@@ -66,5 +94,9 @@ public class ATServer implements Runnable {
         } catch (Throwable e) {
             log.error("error in AT server", e);
         }
+    }
+
+    public void waitForInitialization() throws InterruptedException {
+        initializationLatch.await();
     }
 }

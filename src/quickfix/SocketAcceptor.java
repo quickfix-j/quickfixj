@@ -19,25 +19,95 @@
 
 package quickfix;
 
-public class SocketAcceptor extends ThreadedSocketAcceptor {
+import net.gleamynode.netty2.Message;
+import net.gleamynode.netty2.Session;
 
-    public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
-            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
-        super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
-                messageFactory);
-        // This exception is thrown for compatibility reasons
-        if (settings == null) {
-            throw new ConfigError("no settings");
-        }
-    }
+import org.apache.commons.logging.Log;
+
+import quickfix.Application;
+import quickfix.ConfigError;
+import quickfix.LogFactory;
+import quickfix.MessageFactory;
+import quickfix.MessageStoreFactory;
+import quickfix.SessionSettings;
+import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
+import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
+
+public class SocketAcceptor extends AbstractSocketAcceptor {
+    private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
+    private BlockingQueue messageQueue;
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
             throws ConfigError {
         super(application, messageStoreFactory, settings, logFactory, messageFactory);
-        // This exception is thrown for compatibility reasons
-        if (settings == null) {
-            throw new ConfigError("no settings");
+    }
+
+    public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
+            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
+        super(application, messageStoreFactory, settings, messageFactory);
+    }
+
+    protected void onInitialize(boolean handleMessageInCaller) {
+        if (handleMessageInCaller) {
+            messageQueue = new LinkedBlockingQueue();
+        }
+    }
+
+    protected void onBlock() {
+        while (!isStopRequested()) {
+            try {
+                ((MessageEvent) messageQueue.take()).process();
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+    }
+
+    protected void onStart() {
+        // empty
+    }
+
+    protected boolean onPoll() {
+        if (isStopRequested()) {
+            // TODO wait for logout
+            return false;
+        }
+
+        if (messageQueue.peek() != null) {
+            ((MessageEvent) messageQueue.poll()).process();
+        }
+
+        return true;
+    }
+
+    protected void onStop() {
+        // empty
+    }
+
+    protected void onMessage(Session nettySession, Message message) {
+        if (messageQueue != null) {
+            messageQueue.add(new MessageEvent(nettySession, message));
+        } else {
+            processMessage(nettySession, message);
+        }
+    }
+
+    /**
+     * This class is used to defer message processing to the thread calling
+     * block or poll.
+     */
+    private class MessageEvent {
+        private Session session;
+        private Message message;
+
+        public MessageEvent(Session session, Message message) {
+            this.session = session;
+            this.message = message;
+        }
+
+        public void process() {
+            processMessage(session, message);
         }
     }
 }

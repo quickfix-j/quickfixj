@@ -40,6 +40,8 @@ public class ExpectDisconnectStep implements TestStep {
         }
         if (socket.getInputStream().read() != -1) {
             Assert.fail("client not disconnected");
+        } else {
+            log.debug("client "+clientId+" disconnected");
         }
     }
     

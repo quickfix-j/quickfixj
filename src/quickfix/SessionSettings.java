@@ -324,17 +324,8 @@ public class SessionSettings {
         }
     }
 
-    //    public static void main(String[] args) {
-    //        try {
-    //            ByteArrayInputStream in = new ByteArrayInputStream(
-    //                    ("[default] x=y.foo:bar\n# abc\nay=bx [SESSION] "
-    //                            + "BeginString=FIX.4.2 SenderCompID=TW TargetCompID=CLIENT1 Foo=../foo")
-    //                            .getBytes());
-    //            SessionSettings settings = new SessionSettings(in);
-    //            System.out.println(settings);
-    //        } catch (Exception e) {
-    //            // TODO Auto-generated catch block
-    //            e.printStackTrace();
-    //        }
-    //    }
+    public boolean isSectionKey(SessionID sessionID) {
+        return sections.containsKey(sessionID);
+    }
+
 }
