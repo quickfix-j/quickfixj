@@ -30,18 +30,18 @@ public class Group extends FieldMap {
     }
 
     public Group(Group group) {
-        this(group.getField(), group.getDelimeter(), group.getFieldOrder());
+        this(group.getFieldTag(), group.getDelimeter(), group.getFieldOrder());
         setFields(group);
-    }
-    
-    private int getDelimeter() {
-        return delim;
     }
     
     public Group(int field, int delim, int[] order) {
         super(order);
         this.field = field;
         this.delim = delim;
+    }
+    
+    private int getDelimeter() {
+        return delim;
     }
 
     public void addGroup(Group group) {
@@ -52,7 +52,7 @@ public class Group extends FieldMap {
         throw new UnsupportedOperationException();
     }
 
-    public int getField() {
+    public int getFieldTag() {
         return field;
     }
 }

@@ -475,8 +475,10 @@ public class Session {
 
     public void generateReject(Message message, int err, int field) throws IOException,
             FieldNotFound {
+        String reason = SessionRejectReasonText.getMessage(err);
         if (!state.isLogonReceived()) {
-            throw new SessionException("Tried to send a reject while not logged on");
+            throw new SessionException("Tried to send a reject while not logged on: " + reason
+                    + " (field " + field + ")");
         }
 
         String beginString = sessionID.getBeginString();
@@ -512,7 +514,6 @@ public class Session {
             state.incrNextTargetMsgSeqNum();
         }
 
-        String reason = SessionRejectReasonText.getMessage(err);
         if (reason != null && (field != 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             populateRejectReason(reject, field, reason);
             state.logEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);

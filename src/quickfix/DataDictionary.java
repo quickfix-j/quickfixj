@@ -58,6 +58,10 @@ public class DataDictionary {
         public Exception(Throwable cause) {
             super(cause);
         }
+        
+        public Exception(String message) {
+            super(message);
+        }
     }
 
     public DataDictionary(String url) {
@@ -157,7 +161,11 @@ public class DataDictionary {
     }
 
     private Message getMessage(String msgType) {
-        return (Message) messages.get(msgType);
+        Message message = (Message) messages.get(msgType);
+        if (message == null) {
+            throw new DataDictionary.Exception("unknown message type: "+msgType);
+        }
+        return message;
     }
 
     public boolean isHeaderField(int field) {

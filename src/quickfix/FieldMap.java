@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import quickfix.field.BeginString;
@@ -377,6 +378,16 @@ public abstract class FieldMap {
                 buffer.append('\001');
             }
         }
+        // TODO test group rendering
+        for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            List groups = (List)entry.getValue();
+            buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
+            for (int i = 0; i < groups.size(); i++) {
+                FieldMap groupFields = (FieldMap)groups.get(i);
+                groupFields.calculateString(buffer, preFields, postFields);
+            }
+        }
         if (postFields != null) {
             for (int i = 0; i < postFields.length; i++) {
                 Field field = getField(postFields[i], null);
@@ -408,6 +419,8 @@ public abstract class FieldMap {
             result += field.getLength();
         }
 
+        // TODO handle group field in length calculation
+        
         Iterator iterator = groups.values().iterator();
         while (iterator.hasNext()) {
             List groupList = (List)iterator.next();
@@ -417,13 +430,6 @@ public abstract class FieldMap {
             }
         }
         
-        //      Groups::const_iterator j;
-        //      for ( j = m_groups.begin(); j != m_groups.end(); ++j )
-        //      {
-        //        std::vector < FieldMap* > ::const_iterator k;
-        //        for ( k = j->second.begin(); k != j->second.end(); ++k )
-        //          result += ( *k ) ->calculateLength();
-        //      }
         return result;
 
     }
@@ -439,6 +445,8 @@ public abstract class FieldMap {
             result += field.getTotal();
         }
 
+        // TODO handle groups in checksum calculation
+        
         //      Groups::const_iterator j;
         //      for ( j = m_groups.begin(); j != m_groups.end(); ++j )
         //      {
@@ -458,7 +466,7 @@ public abstract class FieldMap {
     }
     
     public void addGroup(Group group) {
-        getGroups(group.getField()).add(new Group(group));
+        getGroups(group.getFieldTag()).add(new Group(group));
     }
 
     /*package*/ List getGroups(int field) {
@@ -471,9 +479,9 @@ public abstract class FieldMap {
     }
 
     public Group getGroup(int num, Group group) throws FieldNotFound {
-        List groupList = getGroups(group.getField());
+        List groupList = getGroups(group.getFieldTag());
         if (num > groupList.size()) {
-            throw new FieldNotFound(group.getField() + ", index=" + num);
+            throw new FieldNotFound(group.getFieldTag() + ", index=" + num);
         }
         group.setFields((Group) groupList.get(num - 1));
         return group;

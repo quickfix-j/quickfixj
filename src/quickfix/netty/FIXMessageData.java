@@ -60,13 +60,12 @@ public class FIXMessageData implements Message {
             return new FIXMessageData();
         }
     };
-    
+
     /**
-     * Message factory for parsing FIX message data. It's threadsafe so it
-     * can be reused by multiple FIXMessageData objects.
+     * Message factory for parsing FIX message data. It's threadsafe so it can
+     * be reused by multiple FIXMessageData objects.
      */
     private static DefaultMessageFactory messageFactory = new DefaultMessageFactory();
-
 
     // Parsing states
     private static final int SEEKING_HEADER = 1;
@@ -80,6 +79,8 @@ public class FIXMessageData implements Message {
 
     private int state = SEEKING_HEADER;
     private int bodyLength = 0;
+    private int messageStartPosition;
+    private int position;
     private String message;
 
     public FIXMessageData() {
@@ -111,24 +112,23 @@ public class FIXMessageData implements Message {
                     }
                     i++;
                 }
-                
+
                 if (!foundHeader) {
                     return false;
                 }
 
-                buffer.position(i).mark();
-                log.debug("found header, set mark");
-                
-                buffer.position(i + headerBytes.length); // skip header
+                messageStartPosition = i;
+                log.debug("found header");
+                position = i + headerBytes.length;
                 state = PARSING_LENGTH;
             }
             if (state == PARSING_LENGTH) {
                 bodyLength = 0;
-                byte ch = buffer.get();
+                byte ch = buffer.get(position++);
                 while (Character.isDigit((char) ch)) {
                     bodyLength = bodyLength * 10 + (ch - '0');
                     if (buffer.hasRemaining()) {
-                        ch = buffer.get();
+                        ch = buffer.get(position++);
                     } else {
                         return false;
                     }
@@ -137,29 +137,29 @@ public class FIXMessageData implements Message {
                     throw new MessageParseException("Error in message length");
                 }
                 state = READING_BODY;
-                log.debug("message body length: "+bodyLength);
+                log.debug("reading body, length = " + bodyLength);
             }
             if (state == READING_BODY) {
-                if (buffer.remaining() < bodyLength) {
+                if ((buffer.limit() - position) < bodyLength) {
                     return false;
                 }
-                buffer.position(buffer.position() + bodyLength);
+                position += bodyLength;
                 state = PARSING_CHECKSUM;
             }
             if (state == PARSING_CHECKSUM) {
-                if (startsWith(buffer, 0, checksumBytes)) {
+                if (startsWith(buffer, position, checksumBytes)) {
                     log.debug("parsing checksum");
-                    buffer.position(buffer.position() + checksumBytes.length);
+                    position += checksumBytes.length;
                 } else {
                     log.error("did not find checksum field, bad length?");
                 }
-                int messageEndPosition = buffer.position();
-                buffer.reset();
-                byte[] data = new byte[messageEndPosition - buffer.position()];
+                byte[] data = new byte[position - messageStartPosition];
                 buffer.get(data);
                 message = new String(data);
                 if (log.isTraceEnabled()) {
-                    log.trace("extracted message: " + message + ", remaining=" + buffer.remaining());
+                    log
+                            .trace("extracted message: " + message + ", remaining="
+                                    + buffer.remaining());
                 }
                 return true;
             }
@@ -205,7 +205,7 @@ public class FIXMessageData implements Message {
     public boolean isLogon() {
         return message.indexOf("\00135=A\001") != -1;
     }
-    
+
     public String toString() {
         return message;
     }
