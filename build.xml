@@ -1,0 +1,157 @@
+<project name="quickfix-java" basedir="." default="test">
+	<target name="init">
+		<property file="build.properties" />
+	</target>
+
+	<target name="dist" description="Build the QuickFix/Java distribution">
+		<mkdir dir="ant" />
+		<tar destfile="ant/quickfixj.tar">
+			<tarfileset dir=".">
+				<exclude name="ant/**/*" />
+				<exclude name="data/**/*" />
+				<exclude name="classes/**/*" />
+			</tarfileset>
+		</tar>
+		<gzip src="ant/quickfixj.tar" destfile="ant/quickfixj.tar.gz" />
+		<delete file="ant/quickfixj.tar" />
+	</target>
+
+	<target name="compile"
+	        depends="compile.product,compile.tests"
+	        description="compile sources and tests" />
+
+	<target name="compile.product" depends="init,generate.code">
+		<mkdir dir="build/ant/classes/product" />
+		<javac destdir="build/ant/classes/product"
+		       debug="on"
+		       classpathref="classpath"
+		       memoryMaximumSize="128m"
+		       fork="yes">
+			<src path="src-generated" />
+			<src path="src" />
+		</javac>
+	</target>
+
+	<target name="check.generated.uptodate">
+		<!-- This is a bit brute force right now. We could break it out so
+			that the update is performed in a more focussed way (specific
+			FIX version) -->
+		<condition property="generated.uptodate">
+			<and>
+				<uptodate targetfile="src-generated/quickfix/fix40/Message.java">
+					<srcfiles dir="src/quickfix/codegen"
+					          includes="FIX40.xml,*.xsl" />
+				</uptodate>
+				<uptodate targetfile="src-generated/quickfix/fix41/Message.java">
+					<srcfiles dir="src/quickfix/codegen"
+					          includes="FIX41.xml,*.xsl" />
+				</uptodate>
+				<uptodate targetfile="src-generated/quickfix/fix42/Message.java">
+					<srcfiles dir="src/quickfix/codegen"
+					          includes="FIX42.xml,*.xsl" />
+				</uptodate>
+				<uptodate targetfile="src-generated/quickfix/fix43/Message.java">
+					<srcfiles dir="src/quickfix/codegen"
+					          includes="FIX43.xml,*.xsl" />
+				</uptodate>
+				<uptodate targetfile="src-generated/quickfix/fix44/Message.java">
+					<srcfiles dir="src/quickfix/codegen"
+					          includes="FIX44.xml,*.xsl" />
+				</uptodate>
+			</and>
+		</condition>
+	</target>
+
+	<target name="generate.code"
+	        unless="generated.uptodate"
+	        depends="check.generated.uptodate">
+		<mkdir dir="build/ant/classes/product" />
+		<javac srcdir="src/quickfix/codegen"
+		       includes="JavaCodeGenerator.java"
+		       destdir="build/ant/classes/product"
+		       classpathref="classpath" />
+		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
+			<arg value="src/quickfix/codegen" />
+			<arg value="src-generated" />
+			<classpath>
+				<pathelement location="cfg" />
+				<pathelement location="build/ant/classes/product" />
+				<fileset dir=".">
+					<include name="lib/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+
+	<target name="compile.tests" depends="compile.product">
+		<mkdir dir="build/ant/classes/test" />
+		<javac destdir="build/ant/classes/test"
+		       debug="on"
+		       srcdir="test"
+		       classpathref="classpath" />
+		<copy file="test/quickfix/FIX44_test.xml"
+			      todir="build/ant/classes/test/quickfix" />
+	</target>
+
+	<path id="classpath">
+		<pathelement location="build/ant/classes/product" />
+		<fileset dir=".">
+			<include name="lib/*.jar" />
+		</fileset>
+	</path>
+
+	<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask"/>
+
+	<target name="test" description="Run the tests" depends="compile">
+		<junit printsummary="true" showoutput="true">
+			<formatter type="plain" usefile="false" />
+			<classpath>
+				<path refid="classpath"/>
+				<pathelement location="build/ant/classes/test"/>
+			</classpath>
+			<batchtest>
+				<fileset dir="test">
+					<include name="quickfix/Test*e.java" />
+					<include name="quickfix/test/DataDictionary.java"/>
+					<include name="quickfix/test/FieldTest.java"/>
+					<include name="quickfix/test/MessageTest.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="clean" description="Remove build and distribution files">
+		<delete dir="build" />
+		<delete dir="src-generated/quickfix*" />
+	</target>
+
+	<!--
+	<target name="ordermatcher"
+	        description="Run the Order Matcher"
+	        depends="compile">
+		<java classname="quickfix.examples.ordermatch.Main">
+			<arg value="test/quickfix/examples/ordermatch/ordermatch.cfg" />
+			<classpath>
+				<pathelement location="ant/classes" />
+				<fileset dir=".">
+					<include name="ant/classes" />
+					<include name="lib/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+
+	<target name="banzai" description="Run Banzai" depends="compile">
+		<java classname="quickfix.examples.banzai.Banzai" fork="yes">
+			<arg value="cfg/banzai.cfg" />
+			<classpath>
+				<pathelement location="ant/classes" />
+				<fileset dir=".">
+					<include name="lib/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+	-->
+
+</project>

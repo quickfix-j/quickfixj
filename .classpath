@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src-generated"/>
+	<classpathentry kind="src" path="cfg"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-3.0.9-stable-bin.jar"/>
+	<classpathentry sourcepath="lib/junit-3.8.1-src.jar" kind="lib" path="lib/junit__V3.8.1.jar"/>
+	<classpathentry sourcepath="C:/java/tl-netty2-1.8.0/src/main" kind="lib" path="lib/tl-netty2-1.8.0.jar"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>
