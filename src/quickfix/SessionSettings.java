@@ -131,7 +131,11 @@ public class SessionSettings {
     }
 
     public boolean getBool(SessionID sessionID, String key) throws ConfigError {
-        return Boolean.valueOf(getString(sessionID, key)).booleanValue();
+        try {
+            return FieldValueConverter.BooleanConverter.convert(getString(sessionID, key));
+        } catch (FieldConvertError e) {
+            throw new ConfigError(e);
+        }
     }
 
     public void setString(SessionID sessionID, String key, String value) {
@@ -149,7 +153,8 @@ public class SessionSettings {
     }
 
     public void setBool(SessionID sessionID, String key, boolean value) {
-        getOrCreateSessionProperties(sessionID).setProperty(key, Boolean.toString(value));
+        getOrCreateSessionProperties(sessionID).setProperty(key, 
+                FieldValueConverter.BooleanConverter.convert(value));
 
     }
 

@@ -12,7 +12,7 @@ import quickfix.MessageCracker;
 import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
-import quickfix.SessionNotFoundException;
+import quickfix.SessionNotFound;
 import quickfix.UnsupportedMessageType;
 import quickfix.field.*;
 import quickfix.field.SenderCompID;
@@ -83,7 +83,7 @@ public class Application extends MessageCracker implements quickfix.Application 
 
         try {
             Session.sendToTarget(fixOrder, senderCompId, targetCompId);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
             e.printStackTrace();
         }
 
@@ -137,7 +137,7 @@ public class Application extends MessageCracker implements quickfix.Application 
 
         try {
             Session.sendToTarget(fixOrder, senderCompId, targetCompId);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
         }
     }
 

@@ -26,7 +26,7 @@ import quickfix.IncorrectTagValue;
 import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
-import quickfix.SessionNotFoundException;
+import quickfix.SessionNotFound;
 import quickfix.UnsupportedMessageType;
 import quickfix.field.AvgPx;
 import quickfix.field.ClOrdID;
@@ -105,7 +105,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         try {
             Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
         }
     }
 
@@ -139,7 +139,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         try {
             Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
         }
     }
 
@@ -175,7 +175,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         try {
             Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
         }
     }
 
@@ -212,7 +212,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         try {
             Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
         }
     }
 
@@ -249,7 +249,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         try {
             Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
         }
     }
 

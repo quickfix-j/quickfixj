@@ -139,19 +139,19 @@ public class SessionFactory {
         String value = settings.getString(sessionID, key);
         if (value.length() >= 2) {
             String abbr = value.substring(0, 2);
-            if (abbr == "su")
+            if (abbr.equals("su"))
                 return 1;
-            if (abbr == "mo")
+            if (abbr.equals("mo"))
                 return 2;
-            if (abbr == "tu")
+            if (abbr.equals("tu"))
                 return 3;
-            if (abbr == "we")
+            if (abbr.equals("we"))
                 return 4;
-            if (abbr == "th")
+            if (abbr.equals("th"))
                 return 5;
-            if (abbr == "fr")
+            if (abbr.equals("fr"))
                 return 6;
-            if (abbr == "sa")
+            if (abbr.equals("sa"))
                 return 7;
         }
         throw new ConfigError("invalid format for day (use su,mo,tu,we,th,fr,sa): '" + value + "'");

@@ -107,38 +107,38 @@ public class Session {
                 .getUtcCalendar(state.getCreationTime()));
     }
 
-    public static boolean sendToTarget(Message message) throws SessionNotFoundException {
+    public static boolean sendToTarget(Message message) throws SessionNotFound {
         return sendToTarget(message, "");
     }
 
-    public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFoundException {
+    public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFound {
         try {
             String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
             String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
             return sendToTarget(message, senderCompID, targetCompID, qualifier);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
             throw e;
         } catch (FieldNotFound e) {
-            throw new SessionNotFoundException("missing sender or target company ID");
+            throw new SessionNotFound("missing sender or target company ID");
         }
     }
 
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID)
-            throws SessionNotFoundException {
+            throws SessionNotFound {
         return sendToTarget(message, senderCompID, targetCompID, "");
     }
 
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-            String qualifier) throws SessionNotFoundException {
+            String qualifier) throws SessionNotFound {
         return sendToTarget(message, new SessionID(FixVersions.BEGINSTRING_FIX42, senderCompID,
                 targetCompID, qualifier));
     }
 
-    public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFoundException {
+    public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFound {
         message.setSessionID(sessionID);
         Session session = lookupSession(sessionID);
         if (session == null) {
-            throw new SessionNotFoundException();
+            throw new SessionNotFound();
         }
         return session.send(message);
     }
@@ -247,7 +247,9 @@ public class Session {
                 throw new UnsupportedVersion();
             }
 
-            dataDictionary.validate(message);
+            if (dataDictionary != null) {
+                dataDictionary.validate(message);
+            }
 
             if (msgType.equals(MsgType.LOGON)) {
                 nextLogon(message);

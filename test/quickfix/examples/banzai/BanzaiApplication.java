@@ -35,7 +35,7 @@ import quickfix.Message;
 import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
-import quickfix.SessionNotFoundException;
+import quickfix.SessionNotFound;
 import quickfix.UnsupportedMessageType;
 import quickfix.field.AvgPx;
 import quickfix.field.ClOrdID;
@@ -232,7 +232,7 @@ public class BanzaiApplication implements Application {
     private void send(quickfix.Message message, SessionID sessionID) {
         try {
             Session.sendToTarget(message, sessionID);
-        } catch(SessionNotFoundException e) {
+        } catch(SessionNotFound e) {
             System.out.println(e);
         }
     }
