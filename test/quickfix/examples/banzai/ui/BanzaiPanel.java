@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -19,30 +19,31 @@
 
 package quickfix.examples.banzai.ui;
 
-import org.apache.log4j.Category;
-import org.apache.log4j.PatternLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import quickfix.examples.banzai.BanzaiApplication;
 import quickfix.examples.banzai.ExecutionTableModel;
 import quickfix.examples.banzai.Order;
 import quickfix.examples.banzai.OrderTableModel;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Observer;
-import java.util.Observable;
-
 /**
  *  Main content panel
  */
 public class BanzaiPanel extends JPanel
     implements Observer, ActionListener {
-
-    private static Category log =
-        Category.getInstance(BanzaiPanel.class.getName());
 
     private OrderEntryPanel orderEntryPanel = null;
     private OrderPanel orderPanel = null;

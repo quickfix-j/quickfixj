@@ -40,7 +40,8 @@
  <xsl:if test="@name=$fieldName">
 package quickfix.field;
 import quickfix.<xsl:call-template name="get-field-type"/>Field;
-import java.util.Date; 
+<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY' or @type='UTCDATE' or @type='UTCDATEONLY'">
+import java.util.Date;</xsl:if>
 
 public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get-field-type"/>Field 
 { 

@@ -100,8 +100,10 @@
 		</fileset>
 	</path>
 
+	<!--
 	<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask"/>
-
+	-->
+	
 	<target name="test" description="Run the tests" depends="compile">
 		<junit printsummary="true" showoutput="true">
 			<formatter type="plain" usefile="false" />

@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -19,15 +19,18 @@
 
 package quickfix.examples.banzai.ui;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+
 import org.apache.log4j.Category;
 
 import quickfix.examples.banzai.BanzaiApplication;
 import quickfix.examples.banzai.OrderTableModel;
-
-import javax.swing.*;
-import javax.swing.table.TableModel;
-import java.awt.*;
-import java.util.ArrayList;
 
 /**
  *  Contains the Order table.

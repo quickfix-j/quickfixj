@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -19,25 +19,18 @@
 
 package quickfix.examples.banzai.ui;
 
-import org.apache.log4j.Category;
+import java.awt.BorderLayout;
+
+import javax.swing.JFrame;
 
 import quickfix.examples.banzai.BanzaiApplication;
 import quickfix.examples.banzai.ExecutionTableModel;
 import quickfix.examples.banzai.OrderTableModel;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
 /**
  *  Main application window
  */
 public class BanzaiFrame extends JFrame {
-
-    /** enable logging for this class */
-    private static Category log = Category.getInstance
-                                  (BanzaiFrame.class.getName());
 
     public BanzaiFrame(OrderTableModel orderTableModel,
                        ExecutionTableModel executionTableModel,

@@ -96,7 +96,7 @@ public class JavaCodeGenerator {
             try {
                 for (int i = 0; i < messageNames.size(); i++) {
                     String messageName = (String) messageNames.get(i);
-                    //if (!messageName.endsWith("NewOrderSingle")) continue;
+                    //if (!messageName.equals("DerivativeSecurityListRequest")) continue;
                     log.debug("message (FIX 4." + fixVersion + "): " + messageName);
                     generateCodeFile(document, specificationDir + "/MessageSubclass.xsl",
                             "messageName", messageName, outputBaseDir + "/quickfix/fix4"
@@ -146,7 +146,6 @@ public class JavaCodeGenerator {
         }
         DOMSource source = new DOMSource(document);
         StreamResult result = new StreamResult(new FileOutputStream(outputFile));
-        //StreamResult result = new StreamResult(System.out);
         transformer.transform(source, result);
     }
 

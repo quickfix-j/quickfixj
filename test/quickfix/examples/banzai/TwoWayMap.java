@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -19,7 +19,6 @@
 
 package quickfix.examples.banzai;
 
-import java.util.Map;
 import java.util.HashMap;
 
 public class TwoWayMap {
