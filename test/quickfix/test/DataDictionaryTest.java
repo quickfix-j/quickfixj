@@ -1,9 +1,7 @@
 package quickfix.test;
 
-import quickfix.DataDictionary;
-import quickfix.field.*;
-import quickfix.fix42.*;
 import junit.framework.TestCase;
+import quickfix.DataDictionary;
 
 public class DataDictionaryTest extends TestCase {
     

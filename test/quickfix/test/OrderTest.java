@@ -1,14 +1,28 @@
 package quickfix.test;
 
-import junit.framework.TestCase;
-import org.apache.log4j.Category;
-import java.io.File;
 import java.io.FileInputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import quickfix.*;
-import quickfix.field.*;
+
+import junit.framework.TestCase;
+
+import org.apache.log4j.Category;
+
+import quickfix.DefaultMessageFactory;
+import quickfix.Initiator;
+import quickfix.MemoryStoreFactory;
+import quickfix.Message;
+import quickfix.MessageFactory;
+import quickfix.MessageStoreFactory;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
+import quickfix.SessionSettings;
+import quickfix.SocketInitiator;
+import quickfix.field.ClOrdID;
+import quickfix.field.HandlInst;
+import quickfix.field.OrdType;
+import quickfix.field.Side;
+import quickfix.field.Symbol;
+import quickfix.field.TransactTime;
 import quickfix.fix42.NewOrderSingle;
 
 public class OrderTest extends TestCase {

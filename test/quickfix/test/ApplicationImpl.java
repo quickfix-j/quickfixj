@@ -1,9 +1,10 @@
 package quickfix.test;
 
-import quickfix.Application;
-import quickfix.SessionID;
-import quickfix.Message;
 import org.apache.log4j.Category;
+
+import quickfix.Application;
+import quickfix.Message;
+import quickfix.SessionID;
 
 public class ApplicationImpl implements Application {
     private static Category category = Category.getInstance

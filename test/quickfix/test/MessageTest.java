@@ -1,15 +1,17 @@
 package quickfix.test;
 
-import quickfix.Message;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
+import junit.framework.TestCase;
 import quickfix.FieldNotFound;
 import quickfix.InvalidMessage;
+import quickfix.Message;
 import quickfix.StringField;
-import quickfix.field.*;
-import quickfix.fix42.*;
-import junit.framework.TestCase;
-import java.util.Date;
-import java.util.Calendar;
-import java.util.TimeZone;
+import quickfix.field.AllocAccount;
+import quickfix.field.AllocShares;
+import quickfix.fix42.NewOrderSingle;
 
 public class MessageTest extends TestCase {
     public MessageTest(String name) {

@@ -1,9 +1,7 @@
 package quickfix.test;
 
 import junit.framework.TestCase;
-import org.apache.log4j.Category;
 import quickfix.fix42.Heartbeat;
-import quickfix.fix42.Message;
 
 public class PerformanceTest extends TestCase {
 

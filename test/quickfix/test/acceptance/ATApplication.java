@@ -12,8 +12,16 @@ package quickfix.test.acceptance;
  * of this licensing are * not clear to you. *
  ******************************************************************************/
 
-import quickfix.*;
-import quickfix.field.*;
+import quickfix.Application;
+import quickfix.DoNotSend;
+import quickfix.FieldNotFound;
+import quickfix.IncorrectDataFormat;
+import quickfix.IncorrectTagValue;
+import quickfix.Message;
+import quickfix.RejectLogon;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.UnsupportedMessageType;
 
 public class ATApplication implements Application {
     private ATMessageCracker cracker = new ATMessageCracker();
