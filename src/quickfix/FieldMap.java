@@ -38,8 +38,7 @@ public abstract class FieldMap {
 
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        //fields = new TreeMap(new FieldOrderComparator());
-        fields = new TreeMap(/*new FieldOrderComparator()*/);
+        fields = new TreeMap(new FieldOrderComparator());
     }
 
     protected FieldMap() {

@@ -46,8 +46,7 @@
   <xsl:if test="@name=$messageName">
 package quickfix.fix<xsl:value-of select="/fix/@major"/><xsl:value-of select="/fix/@minor"/>;
 import quickfix.FieldNotFound;
-import quickfix.field.*;
-import quickfix.Group;
+import quickfix.field.*;<xsl:call-template name="extra-imports"/>
 
 public class <xsl:value-of select="@name"/> extends Message
 {
@@ -76,6 +75,44 @@ public class <xsl:value-of select="@name"/> extends Message
   </xsl:if>
   </xsl:template>
 
+  <!-- *********************************************************************
+ 	Determine extra imports
+ 	  - Group-related import
+  *********************************************************************** -->
+
+  <xsl:template name="extra-imports">
+    <xsl:variable name="groups" select="group"/>
+    <xsl:choose>
+      <xsl:when test="count($groups) > 0">
+import quickfix.Group;</xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="extra-imports-component">
+          <xsl:with-param name="components" select="component"/>
+  	      <xsl:with-param name="position" select="1"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+    
+  <xsl:template name="extra-imports-component">
+    <xsl:param name="components"/>
+    <xsl:param name="position"/>
+    <xsl:if test="$position &lt;= count($components)">
+      <xsl:variable name="name" select="$components[$position]/@name"/>
+   	  <xsl:variable name="group" select="/fix/components/component[@name=$name]/group[1]"/>
+      <xsl:choose>
+        <xsl:when test="$group">
+import quickfix.Group;</xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="extra-imports-component">
+            <xsl:with-param name="components" select="$components"/>
+            <xsl:with-param name="position" select="$position + 1"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:if>
+  </xsl:template>
+  
   <!-- *********************************************************************
  	FIX repeating group generation template.
  		- Find first field (for constructor)

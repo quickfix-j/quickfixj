@@ -84,6 +84,7 @@ public class JavaCodeGenerator {
                     }
                 }
             } catch (Exception e) {
+                // TODO
                 e.printStackTrace();
             }
         }
@@ -96,13 +97,14 @@ public class JavaCodeGenerator {
             try {
                 for (int i = 0; i < messageNames.size(); i++) {
                     String messageName = (String) messageNames.get(i);
-                    //if (!messageName.equals("DerivativeSecurityListRequest")) continue;
+                    //if (!messageName.equals("Advertisement")) continue;
                     log.debug("message (FIX 4." + fixVersion + "): " + messageName);
                     generateCodeFile(document, specificationDir + "/MessageSubclass.xsl",
                             "messageName", messageName, outputBaseDir + "/quickfix/fix4"
                                     + fixVersion + "/" + messageName + ".java");
                 }
             } catch (Exception e) {
+                // TODO
                 e.printStackTrace();
             }
         }
