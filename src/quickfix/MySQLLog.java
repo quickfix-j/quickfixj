@@ -29,7 +29,6 @@ public class MySQLLog extends JdbcLog {
         super(settings, sessionID);
     }
 
-    
     public Connection connect(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError {
         return JdbcUtil.openMySQLConnection(settings, sessionID);

@@ -19,9 +19,17 @@
 
 package quickfix;
 
+import java.io.IOException;
+
 public class MemoryStoreFactory implements MessageStoreFactory {
 
 	public MessageStore create(SessionID sessionID) {
-		return new MemoryStore();
+		try {
+            return new MemoryStore();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
 	}
 }

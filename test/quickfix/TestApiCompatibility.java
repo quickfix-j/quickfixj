@@ -10,6 +10,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -24,12 +25,17 @@ import quickfix.test.acceptance.TestContext;
 
 public class TestApiCompatibility {
 
+    // TODO need to copy quickfix JNI jar into quickfixj for
+    // testing purposes.
+
     private static class ApiTest implements Test {
         private final Class jniClass;
+        private final IgnoredItems ignoredItems;
         private Class javaClass;
 
-        public ApiTest(Class jniClass) throws ClassNotFoundException {
+        public ApiTest(Class jniClass, IgnoredItems ignoredItems) throws ClassNotFoundException {
             this.jniClass = jniClass;
+            this.ignoredItems = ignoredItems;
         }
 
         public String toString() {
@@ -46,6 +52,8 @@ public class TestApiCompatibility {
             try {
                 try {
                     javaClass = Class.forName(jniClass.getName());
+                    Assert.assertEquals("different class modifiers: " + jniClass.getName(),
+                            jniClass.getModifiers(), javaClass.getModifiers());
                 } catch (ClassNotFoundException e) {
                     Assert.fail("class not found: " + e.getMessage());
                 }
@@ -71,10 +79,12 @@ public class TestApiCompatibility {
             List jniInheritedClasses = getInheritedClasses(jniClass);
             List javaInheritedClasses = getInheritedClasses(javaClass);
             for (int i = 0; i < jniInheritedClasses.size(); i++) {
-                Assert.assertTrue("missing interface: class=" + jniClass.getName()
-                        + ", interface/superclass="
-                        + ((Class) jniInheritedClasses.get(i)).getName(), javaInheritedClasses
-                        .contains(translatedClass((Class) jniInheritedClasses.get(i))));
+                if (!ignoredItems.isIgnoredClass(((Class) jniInheritedClasses.get(i)))) {
+                    Assert.assertTrue("missing interface: class=" + jniClass.getName()
+                            + ", interface/superclass="
+                            + ((Class) jniInheritedClasses.get(i)).getName(), javaInheritedClasses
+                            .contains(translatedClass((Class) jniInheritedClasses.get(i))));
+                }
             }
         }
 
@@ -96,18 +106,20 @@ public class TestApiCompatibility {
         private void assertCompatibleConstructors() {
             Constructor[] constructors = jniClass.getDeclaredConstructors();
             for (int i = 0; i < constructors.length; i++) {
-                if ((constructors[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
-                    Constructor c = null;
-                    try {
-                        c = javaClass
-                                .getDeclaredConstructor(translateParameterTypes(constructors[i]
-                                        .getParameterTypes()));
-                    } catch (SecurityException e) {
-                        Assert.fail(e.getMessage());
-                    } catch (NoSuchMethodException e) {
-                        Assert.fail("missing ctor: " + e.getMessage());
-                    } catch (ClassNotFoundException e) {
-                        Assert.fail(e.getMessage());
+                if (!ignoredItems.isIgnoredConstructor(constructors[i])) {
+                    if ((constructors[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
+                        Constructor c = null;
+                        try {
+                            c = javaClass
+                                    .getDeclaredConstructor(translateParameterTypes(constructors[i]
+                                            .getParameterTypes()));
+                        } catch (SecurityException e) {
+                            Assert.fail(e.getMessage());
+                        } catch (NoSuchMethodException e) {
+                            Assert.fail("missing ctor: " + e.getMessage());
+                        } catch (ClassNotFoundException e) {
+                            Assert.fail(e.getMessage());
+                        }
                     }
                 }
             }
@@ -214,13 +226,45 @@ public class TestApiCompatibility {
         }
     }
 
+    private static class IgnoredItems {
+        private final ClassLoader jniClassLoader;
+        private HashSet ignoredClasses = new HashSet();
+        private HashSet ignoredConstructors = new HashSet();
+
+        public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,
+                SecurityException, NoSuchMethodException {
+            this.jniClassLoader = jniClassLoader;
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppLog"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppMessageStore"));
+            ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
+            ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { int.class });
+            ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { int.class });
+            ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", null);
+            ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", new Class[] { int.class });
+
+        }
+
+        private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args) throws ClassNotFoundException, NoSuchMethodException {
+            Class c = jniClassLoader.loadClass(classname);
+            ignoredConstructors.add(c.getConstructor(args));
+        }
+
+        public boolean isIgnoredClass(Class jniClass) {
+            return ignoredClasses.contains(jniClass);
+        }
+
+        public boolean isIgnoredConstructor(Constructor jniConstructor) {
+            return ignoredConstructors.contains(jniConstructor);
+        }
+    }
+
     public static Test suite() {
         TestSuite suite = new TestSuite();
-
         try {
             String jarPath = "../quickfix_cvs/lib/quickfix.jar";
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
+            IgnoredItems ignoredItems = new IgnoredItems(jniClassLoader);
             JarFile jar = new JarFile(new File(jarPath), false, ZipFile.OPEN_READ);
             Enumeration entries = jar.entries();
             while (entries.hasMoreElements()) {
@@ -231,7 +275,10 @@ public class TestApiCompatibility {
                 if (directory.equals("quickfix") && !name.equals("")) {
                     String classname = path.substring(0, path.lastIndexOf(".class")).replace('/',
                             '.');
-                    suite.addTest(new ApiTest(jniClassLoader.loadClass(classname)));
+                    Class jniClass = jniClassLoader.loadClass(classname);
+                    if (!ignoredItems.isIgnoredClass(jniClass)) {
+                        suite.addTest(new ApiTest(jniClass, ignoredItems));
+                    }
                 }
             }
         } catch (Exception e) {

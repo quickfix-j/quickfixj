@@ -20,12 +20,14 @@
 package quickfix;
 
 /**
- * Base class for FIX message fields.
+ * Base class for FIX message fields. This class should be
+ * abstract but that would break compatibility with the QF JNI
+ * classes.
  * 
  * @author sbate
  *  
  */
-public abstract class Field {
+public /*abstract*/ class Field {
     private int tag;
     private Object object;
     private boolean isCalculated = false;

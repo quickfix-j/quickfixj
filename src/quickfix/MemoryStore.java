@@ -32,7 +32,7 @@ public class MemoryStore implements MessageStore {
 	private int nextTargetMsgSeqNum;
 	private Calendar creationTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
-	public MemoryStore() {
+	public MemoryStore() throws IOException {
 	    reset();
 	}
 	
@@ -46,46 +46,51 @@ public class MemoryStore implements MessageStore {
 		}
 	}
 
-	public Date getCreationTime() {
+	public Date getCreationTime() throws IOException {
 		return creationTime.getTime();
 	}
 
-    public void setCreationTime(Calendar creationTime) {
+    /*package*/ void setCreationTime(Calendar creationTime) {
         this.creationTime = creationTime;
     }
     
-	public int getNextSenderMsgSeqNum() {
+	public int getNextSenderMsgSeqNum() throws IOException {
 		return nextSenderMsgSeqNum;
 	}
 
-	public int getNextTargetMsgSeqNum() {
+	public int getNextTargetMsgSeqNum() throws IOException {
 		return nextTargetMsgSeqNum;
 	}
 
-	public void incrNextSenderMsgSeqNum() {
+	public void incrNextSenderMsgSeqNum() throws IOException {
 		setNextSenderMsgSeqNum(getNextSenderMsgSeqNum()+1);
 	}
 
-	public void incrNextTargetMsgSeqNum() {
+	public void incrNextTargetMsgSeqNum() throws IOException {
 		setNextTargetMsgSeqNum(getNextTargetMsgSeqNum()+1);
 	}
 
-	public void reset() {
+	public void reset() throws IOException {
 		setNextSenderMsgSeqNum(1);
 		setNextTargetMsgSeqNum(1);
 		messages.clear();
 		creationTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 	}
 
-	public boolean set(int sequence, String message) {
+	public boolean set(int sequence, String message) throws IOException {
 		return messages.put(new Integer(sequence), message) == null;
 	}
+	
+    public boolean get(int sequence, String message) throws IOException {
+        // TODO implement get
+        throw new UnsupportedOperationException("not yet implemented");
+    }
 
-	public void setNextSenderMsgSeqNum(int next) {
+	public void setNextSenderMsgSeqNum(int next) throws IOException {
 		nextSenderMsgSeqNum = next;
 	}
 
-	public void setNextTargetMsgSeqNum(int next) {
+	public void setNextTargetMsgSeqNum(int next) throws IOException {
 		nextTargetMsgSeqNum = next;
 	}
 }

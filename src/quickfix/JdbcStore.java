@@ -46,7 +46,7 @@ public class JdbcStore implements MessageStore {
         return JdbcUtil.openConnection(settings, sessionID);
     }
 
-    private void loadCache() throws SQLException {
+    private void loadCache() throws SQLException, IOException {
         PreparedStatement query = connection
                 .prepareStatement("SELECT creation_time, incoming_seqnum, "
                         + "outgoing_seqnum FROM sessions WHERE beginstring=? and  "
@@ -184,6 +184,11 @@ public class JdbcStore implements MessageStore {
         return true;
     }
 
+    public boolean get(int sequence, String message) throws IOException {
+        // TODO implement get
+        throw new UnsupportedOperationException("not yet implemented");
+    }
+    
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
         storeSequenceNumber(next, "outgoing_seqnum");
