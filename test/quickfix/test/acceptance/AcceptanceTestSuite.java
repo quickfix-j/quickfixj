@@ -102,18 +102,23 @@ public class AcceptanceTestSuite extends TestSuite {
 
     public AcceptanceTestSuite() {
         //addTests(new File(acceptanceTestBaseDir + "server/fix40"));
+        //addTests(new File(acceptanceTestBaseDir + "server/fix41"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
-        addTest("fix40/RejectResentMessage.def");
+        //addTests(new File(acceptanceTestBaseDir + "server/fix43"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix44"));
+        //addTest("fix43/14b_RequiredFieldMissing.def");
+        //addTest("fix41/ReverseRouteWithEmptyRoutingTags.def");
+        //addTest("fix40/RejectResentMessage.def");
         //addTest("fix40/2r_UnregisteredMsgType.def");
         //addTest("fix40/14a_BadField.def");
         //addTest("fix42/21_RepeatingGroupSpecifierWithValueOfZero.def");
         //addTest("fix42/2e_PossDupAlreadyReceived.def");
         //addTest("fix42/14b_RequiredFieldMissing.def");
-        //addTest("fix40/10_MsgSeqNumEqual.def");
+        //addTest("fix41/10_MsgSeqNumEqual.def");
         //addTest("fix42/10_MsgSeqNumGreater.def");
         //addTest("fix42/2d_GarbledMessage.def");
         //addTest("fix42/3c_GarbledMessage.def");
-        //addTest("fix42/2m_BodyLengthValueNotCorrect.def");
+        //addTest("fix40/2m_BodyLengthValueNotCorrect.def");
         //addTest("fix42/1d_InvalidLogonLengthInvalid.def");
     }
 

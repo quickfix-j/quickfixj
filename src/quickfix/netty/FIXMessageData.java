@@ -178,10 +178,10 @@ public class FIXMessageData implements Message {
     private void handleError(ByteBuffer buffer, String text, boolean disconnect)
             throws MessageParseException {
         // TODO allow configurable recovery position
-        //int newOffset = messageStartPosition + 1;
+        int newOffset = messageStartPosition + 1;
         // Following recovery position is compatible with QuickFIX C++
         // but drops messages unnecessarily in corruption scenarios.
-        int newOffset = bodyStartPosition + bodyLength;
+        //int newOffset = bodyStartPosition + bodyLength;
         int nextHeader = indexOf(buffer, newOffset, headerBytes);
         if (nextHeader != -1) {
             buffer.position(nextHeader);

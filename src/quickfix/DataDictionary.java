@@ -460,9 +460,15 @@ public class DataDictionary {
     private void checkRequiredFields(FieldMap fieldMap, List requiredElements)
             throws quickfix.FieldNotFound {
         for (int i = 0; i < requiredElements.size(); i++) {
-            int tag = ((Integer) ((Field) requiredElements.get(i)).getKey()).intValue();
-            if (!fieldMap.isSetField(tag)) {
-                throw new quickfix.FieldNotFound(tag);
+            Object element = requiredElements.get(i);
+            if (element instanceof Field) {
+	            int tag = ((Integer) ((Field) element).getKey()).intValue();
+	            if (!fieldMap.isSetField(tag)) {
+	                throw new quickfix.FieldNotFound(tag);
+	            }
+            } else if (element instanceof Component) {
+                ComponentSchema schema = ((Component)element).getSchema();
+                checkRequiredFields(fieldMap, schema.getRequiredElements());
             }
         }
     }
@@ -671,6 +677,10 @@ public class DataDictionary {
 
         public boolean isElementInContainer(Class elementClass, Object key) {
             return schema.isElementInContainer(elementClass, key);
+        }
+        
+        private ComponentSchema getSchema() {
+            return schema;
         }
     }
 
