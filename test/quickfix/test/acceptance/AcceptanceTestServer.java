@@ -41,21 +41,23 @@ public class AcceptanceTestServer {
     public static void main(String[] args) {
 
         try {
-            SessionSettings settings = new SessionSettings();
+//            SessionSettings settings = new SessionSettings();
+//            SessionID sessionId = new SessionID("FIX.4.2", "ISLD", "TW");
+//            settings.setString(sessionId, SessionSettings.CONNECTION_TYPE, "acceptor");
+//            settings.setString(sessionId, SessionSettings.START_TIME, "00:00:00");
+//            settings.setString(sessionId, SessionSettings.END_TIME, "23:59:59");
+//            settings.setString(sessionId, SessionSettings.START_DAY, "mo");
+//            settings.setString(sessionId, SessionSettings.END_DAY, "fr");
+//            settings.setString(sessionId, SessionSettings.FILE_STORE_PATH, "data/server");
+//            settings.setString(sessionId, SessionSettings.DATA_DICTIONARY, "test/FIX42.xml");
+//            settings.setString(sessionId, SessionSettings.BEGINSTRING, "FIX.4.2");
+//            settings.setLong(sessionId, SessionSettings.SOCKET_ACCEPT_PORT, 9877);
+//            settings.setBool(sessionId, SessionSettings.CHECK_LATENCY, true);
+//            settings.setLong(sessionId, SessionSettings.MAX_LATENCY, 60);
 
             SessionID sessionId = new SessionID("FIX.4.2", "ISLD", "TW");
-            settings.setString(sessionId, SessionSettings.CONNECTION_TYPE, "acceptor");
-            settings.setString(sessionId, SessionSettings.START_TIME, "00:00:00");
-            settings.setString(sessionId, SessionSettings.END_TIME, "23:59:59");
-            settings.setString(sessionId, SessionSettings.START_DAY, "mo");
-            settings.setString(sessionId, SessionSettings.END_DAY, "fr");
-            settings.setString(sessionId, SessionSettings.FILE_STORE_PATH, "data/server");
-            settings.setString(sessionId, SessionSettings.DATA_DICTIONARY, "test/FIX42.xml");
-            settings.setString(sessionId, SessionSettings.BEGINSTRING, "FIX.4.2");
-            settings.setLong(sessionId, SessionSettings.SOCKET_ACCEPT_PORT, 9877);
-            settings.setBool(sessionId, SessionSettings.CHECK_LATENCY, true);
-            settings.setLong(sessionId, SessionSettings.MAX_LATENCY, 60);
-
+            SessionSettings settings = new SessionSettings(args[0]);
+            
             FileStoreFactory storeFactory = new FileStoreFactory(settings);
             LogFactory logFactory = new ScreenLogFactory(settings);
             SocketAcceptor acceptor = new SocketAcceptor(new AcceptanceTestApplication(),

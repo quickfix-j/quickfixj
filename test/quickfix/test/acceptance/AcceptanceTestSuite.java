@@ -18,6 +18,8 @@ import junit.framework.TestSuite;
 
 public class AcceptanceTestSuite extends TestSuite {
 
+    private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";
+
     private final class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -97,14 +99,15 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        addTests(new File("../quickfix_cvs/test/definitions/server/fix42"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        //addTest("10_MsgSeqNumEqual.def");
         //addTest("2m_BodyLengthValueNotCorrect.def");
     }
 
     private void addTest(String name) {
-        addTests(new File("../quickfix_cvs/test/definitions/server/fix42/"+name));
+        addTests(new File(acceptanceTestBaseDir + "server/fix42/" + name));
     }
-    
+
     public static Test suite() {
         return new AcceptanceTestSuite();
     }

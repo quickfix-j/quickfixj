@@ -68,12 +68,12 @@ public class OrderTest extends TestCase {
     }
 
     public void testOrderSend() throws Exception {
-        SessionNotFoundException exception = null;
+        SessionNotFound exception = null;
         NewOrderSingle order = new NewOrderSingle();
         try {
             Session.sendToTarget(order);
         }
-        catch(SessionNotFoundException e) {
+        catch(SessionNotFound e) {
             exception = e;
         }
         assertNotNull("no exception thrown", exception);
@@ -95,7 +95,7 @@ public class OrderTest extends TestCase {
                        message instanceof NewOrderSingle);
             assertTrue(Session.sendToTarget(order, sessionID));
         }
-        catch(SessionNotFoundException e) {
+        catch(SessionNotFound e) {
             exception = e;
         }
         assertNull("exception thrown", exception);
