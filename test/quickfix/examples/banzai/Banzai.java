@@ -58,12 +58,12 @@ public class Banzai {
         }
     }
 
-    public Banzai() throws Exception {
+    public Banzai(String[] args) throws Exception {
         OrderTableModel orderTableModel = new OrderTableModel();
         ExecutionTableModel executionTableModel = new ExecutionTableModel();
 
         BanzaiApplication application = new BanzaiApplication(orderTableModel, executionTableModel);
-        SessionSettings settings = new SessionSettings(new FileInputStream("cfg/banzai.cfg"));
+        SessionSettings settings = new SessionSettings(new FileInputStream(args[0]));
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
         LogFactory logFactory = new ScreenLogFactory(true, true, true);
         MessageFactory messageFactory = new DefaultMessageFactory();
@@ -89,7 +89,7 @@ public class Banzai {
     }
 
     public static void main(String args[]) throws Exception {
-        Banzai banzai = new Banzai();
+        Banzai banzai = new Banzai(args);
         banzai.start();
         while (!stop) {
             Thread.sleep(1000);

@@ -43,7 +43,13 @@ public class SessionFactory {
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
-            String connectionType = settings.getString(sessionID, SessionSettings.CONNECTION_TYPE);
+            String connectionType;
+            if (settings.isSetting(sessionID, SessionSettings.CONNECTION_TYPE)) {
+                connectionType = settings.getString(sessionID, SessionSettings.CONNECTION_TYPE);
+            } else {
+                connectionType = "initiator";
+            }
+            
             if (!connectionType.equals("acceptor") && !connectionType.equals("initiator")) {
                 throw new ConfigError("Invalid ConnectionType");
             }

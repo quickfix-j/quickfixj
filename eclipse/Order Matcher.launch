@@ -2,6 +2,6 @@
 <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="quickfix.examples.ordermatch.Main"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="test/quickfix/examples/ordermatch/ordermatch.cfg"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="quickfix_java"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="quickfixj"/>
 <booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
 </launchConfiguration>

@@ -5,13 +5,13 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import quickfix.AbstractSocketAcceptor;
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
 import quickfix.FixVersions;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
+import quickfix.netty.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
@@ -27,8 +27,8 @@ public class ATServer implements Runnable {
         fixVersions = new HashSet();
         //fixVersions.add(FixVersions.BEGINSTRING_FIX40);
         //fixVersions.add(FixVersions.BEGINSTRING_FIX41);
-        //fixVersions.add(FixVersions.BEGINSTRING_FIX42);
-        fixVersions.add(FixVersions.BEGINSTRING_FIX43);
+        fixVersions.add(FixVersions.BEGINSTRING_FIX42);
+        //fixVersions.add(FixVersions.BEGINSTRING_FIX43);
         //fixVersions.add(FixVersions.BEGINSTRING_FIX44);
     }
 

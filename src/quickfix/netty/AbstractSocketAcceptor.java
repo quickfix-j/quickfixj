@@ -1,16 +1,23 @@
-/*******************************************************************************
- * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
- * file is part of the QuickFIX FIX Engine * * This file may be distributed
- * under the terms of the quickfixengine.org * license as defined by
- * quickfixengine.org and appearing in the file * LICENSE included in the
- * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
- * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
- * licensing information. * * Contact ask@quickfixengine.org if any conditions
- * of this licensing are * not clear to you. *
- ******************************************************************************/
+/****************************************************************************
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+**
+** This file is part of the QuickFIX FIX Engine
+**
+** This file may be distributed under the terms of the quickfixengine.org
+** license as defined by quickfixengine.org and appearing in the file
+** LICENSE included in the packaging of this file.
+**
+** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+**
+** See http://www.quickfixengine.org/LICENSE for licensing information.
+**
+** Contact ask@quickfixengine.org if any conditions of this licensing are
+** not clear to you.
+**
+****************************************************************************/
 
-package quickfix;
+package quickfix.netty;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,11 +34,26 @@ import net.gleamynode.netty2.SessionServer;
 
 import org.apache.commons.logging.Log;
 
-import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
-
+import quickfix.Acceptor;
+import quickfix.Application;
+import quickfix.ConfigError;
+import quickfix.DataDictionary;
+import quickfix.FieldConvertError;
+import quickfix.FieldValueConverter;
+import quickfix.InvalidMessage;
+import quickfix.LogFactory;
+import quickfix.LogUtil;
+import quickfix.MessageFactory;
+import quickfix.MessageStoreFactory;
+import quickfix.Responder;
+import quickfix.RuntimeError;
+import quickfix.ScreenLogFactory;
+import quickfix.SessionFactory;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgType;
-import quickfix.netty.FIXMessageData;
+import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public abstract class AbstractSocketAcceptor implements Acceptor {
     private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
@@ -133,10 +155,10 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             }
 
             onInitialize(handleMessageInCaller);
+            
+            EventDispatcher eventDispatcher = new LowLatencyEventDispatcher();
             ioProcessor = new IoProcessor();
             ioProcessor.setThreadNamePrefix(DEFAULT_IO_THREAD_PREFIX);
-            EventDispatcher eventDispatcher = new LowLatencyEventDispatcher();
-
             ioProcessor.setThreadPoolSize(1);
             ioProcessor.start();
 
@@ -147,7 +169,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             nettySessionServer.setIoProcessor(ioProcessor);
             nettySessionServer.setEventDispatcher(eventDispatcher);
             nettySessionServer.setMessageRecognizer(FIXMessageData.RECOGNIZER);
-            nettySessionServer.addSessionListener(new NettySessionListener());
+            nettySessionServer.addSessionListener(new AcceptorSessionListener());
             nettySessionServer.setBindAddress(new InetSocketAddress(acceptPort));
             nettySessionServer.setThreadName(DEFAULT_SESSION_SERVER_NAME);
             nettySessionServer.start();
@@ -178,7 +200,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         return (quickfix.Session) quickfixSessionForNettySession.get(nettySession);
     }
 
-    private class NettySessionListener implements SessionListener {
+    private class AcceptorSessionListener implements SessionListener {
 
         public void connectionEstablished(Session nettySession) {
             logDebug(nettySession, null, "connection established");

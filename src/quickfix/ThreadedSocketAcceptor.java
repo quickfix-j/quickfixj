@@ -26,6 +26,8 @@ import net.gleamynode.netty2.Session;
 
 import org.apache.commons.logging.Log;
 
+import quickfix.netty.AbstractSocketAcceptor;
+
 import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 

@@ -30,6 +30,7 @@ import quickfix.LogFactory;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.SessionSettings;
+import quickfix.netty.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
@@ -87,6 +88,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     protected void onMessage(Session nettySession, Message message) {
         if (messageQueue != null) {
+            // TODO find a way to not create an object here
             messageQueue.add(new MessageEvent(nettySession, message));
         } else {
             processMessage(nettySession, message);

@@ -105,11 +105,11 @@ public class AcceptanceTestSuite extends TestSuite {
     public AcceptanceTestSuite() {
         //addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix41"));
-        //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix43"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix44"));
         
-        addTest("fix43/21_RepeatingGroupSpecifierWithValueOfZero.def");
+        //addTest("fix43/21_RepeatingGroupSpecifierWithValueOfZero.def");
         //addTest("fix44/21_RepeatingGroupSpecifierWithValueOfZero.def");
         //addTest("fix44/RejectMessageResent.def");
         //addTest("fix42/SimpleLogon.def");
