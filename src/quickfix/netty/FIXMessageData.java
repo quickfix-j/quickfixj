@@ -119,6 +119,7 @@ public class FIXMessageData implements Message {
 
                 messageStartPosition = i;
                 log.debug("found header");
+                
                 position = i + headerBytes.length;
                 state = PARSING_LENGTH;
             }
@@ -151,7 +152,7 @@ public class FIXMessageData implements Message {
                     log.debug("parsing checksum");
                     position += checksumBytes.length;
                 } else {
-                    log.error("did not find checksum field, bad length?");
+                    throw new MessageParseException("did not find checksum field, bad length?");
                 }
                 byte[] data = new byte[position - messageStartPosition];
                 buffer.get(data);

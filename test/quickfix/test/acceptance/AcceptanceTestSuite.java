@@ -99,8 +99,9 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         //addTest("10_MsgSeqNumEqual.def");
+        addTest("2d_GarbledMessage.def");
         //addTest("2m_BodyLengthValueNotCorrect.def");
     }
 

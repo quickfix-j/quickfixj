@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import net.gleamynode.netty2.IoProcessor;
 import net.gleamynode.netty2.Message;
+import net.gleamynode.netty2.MessageParseException;
 import net.gleamynode.netty2.OrderedEventDispatcher;
 import net.gleamynode.netty2.Session;
 import net.gleamynode.netty2.SessionServer;
@@ -190,8 +191,11 @@ public class ThreadedSocketAcceptor implements Acceptor {
                     }
                 }
                 quickFixSession.next(fixMessage);
+            } catch (MessageParseException e) {
+                quickFixSession.getLog().onEvent("message framing error: "+e.getMessage());
+            } catch (InvalidMessage e) {
+                quickFixSession.getLog().onEvent("invalid message: "+e.getMessage());
             } catch (Throwable e) {
-                e.printStackTrace();
                 quickfix.Log sessionLog = quickFixSession.getLog();
                 LogUtil.logThrowable(sessionLog, "error while receiving message", e);
                 if (fixMessageData.isLogon()) {
