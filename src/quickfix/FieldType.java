@@ -64,6 +64,7 @@ public class FieldType {
     public final static FieldType UtcDateOnly = new FieldType("UTCDATEONLY");
     public final static FieldType UtcDate = new FieldType("UTCDATEONLY");
     public final static FieldType UtcTimeOnly = new FieldType("UTCTIMEONLY");
+    public final static FieldType Time = new FieldType("TIME");
     public final static FieldType NumInGroup = new FieldType("NUMINGROUP");
     public final static FieldType Percentage = new FieldType("PERCENTAGE");
     public final static FieldType SeqNum = new FieldType("SEQNUM");

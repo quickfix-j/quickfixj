@@ -1,21 +1,14 @@
-/****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+/*******************************************************************************
+ * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
+ * file is part of the QuickFIX FIX Engine * * This file may be distributed
+ * under the terms of the quickfixengine.org * license as defined by
+ * quickfixengine.org and appearing in the file * LICENSE included in the
+ * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
+ * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
+ * licensing information. * * Contact ask@quickfixengine.org if any conditions
+ * of this licensing are * not clear to you. *
+ ******************************************************************************/
 
 package quickfix;
 
@@ -26,6 +19,7 @@ import java.util.HashMap;
 
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
+import quickfix.field.BusinessRejectReason;
 import quickfix.field.EncryptMethod;
 import quickfix.field.EndSeqNo;
 import quickfix.field.GapFillFlag;
@@ -46,6 +40,7 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 
 public class Session {
+    private static final int BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE = 3;
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -279,6 +274,12 @@ public class Session {
             generateReject(message, SessionRejectReason.INVALID_MSGTYPE, 0);
         } catch (InvalidMessage e) {
             state.logEvent("Skipping invalid message: " + e.getMessage());
+        } catch (UnsupportedMessageType e) {
+            if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+                generateBusinessReject(message, BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE);
+            } else {
+                generateReject(message, "Unsupported message type");
+            }
         } catch (UnsupportedVersion e) {
             String msgType = message.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGOUT)) {
@@ -473,7 +474,34 @@ public class Session {
 
     }
 
-    public void generateReject(Message message, int err, int field) throws IOException,
+    private void generateReject(Message message, String str) throws FieldNotFound, IOException {
+        String beginString = sessionID.getBeginString();
+        Message reject = messageFactory.create(beginString, MsgType.REJECT);
+        reject.reverseRoute(message.getHeader());
+        initializeHeader(reject.getHeader());
+
+        // TODO Why is PossDupFlag needed here? It doesn't appear to be used in the C++ code.
+        // PossDupFlag possDupFlag( false );
+        boolean possDupFlag = false;
+
+        String msgType = message.getHeader().getString(MsgType.FIELD);
+        String msgSeqNum = message.getHeader().getString(MsgSeqNum.FIELD);
+        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+            reject.setString(RefMsgType.FIELD, msgType);
+        }
+        reject.setString(RefSeqNum.FIELD, msgSeqNum);
+
+        if (msgType != MsgType.LOGON && msgType != MsgType.SEQUENCE_RESET && !possDupFlag) {
+            state.incrNextTargetMsgSeqNum();
+        }
+
+        reject.setString(Text.FIELD, str);
+        sendRaw(reject, 0);
+        state.getLog().onEvent("Rejecting Message: " + msgSeqNum);
+
+    }
+
+    private void generateReject(Message message, int err, int field) throws IOException,
             FieldNotFound {
         String reason = SessionRejectReasonText.getMessage(err);
         if (!state.isLogonReceived()) {
@@ -482,7 +510,6 @@ public class Session {
         }
 
         String beginString = sessionID.getBeginString();
-
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         int msgSeqNum;
         String msgType;
@@ -535,8 +562,26 @@ public class Session {
             reject.setInt(RefTagID.FIELD, field);
             reject.setString(Text.FIELD, reason);
         } else {
-            reject.setString(Text.FIELD, "(" + field + ")");
+            reject.setString(Text.FIELD, reason + " (" + field + ")");
         }
+    }
+
+    private void generateBusinessReject(Message message, int err) throws FieldNotFound, IOException {
+        Message reject = messageFactory.create(sessionID.getBeginString(),
+                MsgType.BUSINESS_MESSAGE_REJECT);
+        initializeHeader(reject.getHeader());
+        String msgType = message.getHeader().getString(MsgType.FIELD);
+        String msgSeqNum = message.getHeader().getString(MsgSeqNum.FIELD);
+        reject.setString(RefMsgType.FIELD, msgType);
+        reject.setString(RefSeqNum.FIELD, msgSeqNum);
+        reject.setInt(BusinessRejectReason.FIELD, err);
+        state.incrNextTargetMsgSeqNum();
+
+        if (err == BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE) {
+            reject.setString(Text.FIELD, "Unsupported Message Type");
+        }
+        sendRaw(reject, 0);
+        state.getLog().onEvent("Rejecting Message: " + msgSeqNum);
     }
 
     private void nextTestRequest(Message testRequest) throws FieldNotFound, RejectLogon,
@@ -870,7 +915,8 @@ public class Session {
                     break;
                 }
             }
-            Message message = messageFactory.create(dataDictionary.getVersion(), msg.substring(typeStart, typeEnd));
+            Message message = messageFactory.create(dataDictionary.getVersion(), msg.substring(
+                    typeStart, typeEnd));
             message.fromString(msg, dataDictionary, false);
             next(message);
         } catch (InvalidMessage e) {
@@ -990,7 +1036,7 @@ public class Session {
             state.logEvent("Error Reading/Writing in MessageStore");
             return false;
         } catch (FieldNotFound e) {
-            state.logEvent("Error accessing message fields");
+            LogUtil.logThrowable(state.getLog(), "Error accessing message fields", e);
             return false;
         }
     }

@@ -13,6 +13,7 @@ import junit.framework.TestResult;
 import org.apache.log4j.Logger;
 
 import quickfix.FieldValueConverter;
+import quickfix.FixVersions;
 
 public class InitiateMessageStep implements TestStep {
     private Logger log = Logger.getLogger(getClass());
@@ -66,8 +67,10 @@ public class InitiateMessageStep implements TestStep {
                     offset *= -1;
                 }
             }
+            String beginString = message.substring(2, 9);
+            boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
             message = matcher.replaceFirst(FieldValueConverter.UtcTimestampConverter
-                    .convert(new Date(System.currentTimeMillis()+(offset*1000)), true));
+                    .convert(new Date(System.currentTimeMillis()+(offset*1000)), includeMillis));
             matcher = TIME_PATTERN.matcher(message);
         }
         return message;

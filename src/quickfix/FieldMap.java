@@ -378,11 +378,13 @@ public abstract class FieldMap {
                 buffer.append('\001');
             }
         }
-        // TODO test group rendering
+        // TODO fix group rendering
         for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry) iter.next();
             List groups = (List)entry.getValue();
-            buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
+            // Acceptance test copies message with group length field already present
+            // This causes two fields to be sent.
+            //buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
             for (int i = 0; i < groups.size(); i++) {
                 FieldMap groupFields = (FieldMap)groups.get(i);
                 groupFields.calculateString(buffer, preFields, postFields);

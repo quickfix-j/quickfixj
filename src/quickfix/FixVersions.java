@@ -20,7 +20,9 @@
 package quickfix;
 
 public interface FixVersions {
+    public static final String BEGINSTRING_FIX40 = "FIX.4.0";
     public static final String BEGINSTRING_FIX41 = "FIX.4.1";
     public static final String BEGINSTRING_FIX42 = "FIX.4.2";
+    public static final String BEGINSTRING_FIX43 = "FIX.4.3";
     public static final String BEGINSTRING_FIX44 = "FIX.4.4";
 }

@@ -103,18 +103,22 @@ public class AcceptanceTestSuite extends TestSuite {
     public AcceptanceTestSuite() {
         //addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
-        addTest("2r_UnregisteredMsgType.def");
-        //addTest("14b_RequiredFieldMissing.def");
-        //addTest("10_MsgSeqNumEqual.def");
-        //addTest("10_MsgSeqNumGreater.def");
-        //addTest("2d_GarbledMessage.def");
-        //addTest("3c_GarbledMessage.def");
-        //addTest("2m_BodyLengthValueNotCorrect.def");
-        //addTest("1d_InvalidLogonLengthInvalid.def");
+        addTest("fix40/RejectResentMessage.def");
+        //addTest("fix40/2r_UnregisteredMsgType.def");
+        //addTest("fix40/14a_BadField.def");
+        //addTest("fix42/21_RepeatingGroupSpecifierWithValueOfZero.def");
+        //addTest("fix42/2e_PossDupAlreadyReceived.def");
+        //addTest("fix42/14b_RequiredFieldMissing.def");
+        //addTest("fix40/10_MsgSeqNumEqual.def");
+        //addTest("fix42/10_MsgSeqNumGreater.def");
+        //addTest("fix42/2d_GarbledMessage.def");
+        //addTest("fix42/3c_GarbledMessage.def");
+        //addTest("fix42/2m_BodyLengthValueNotCorrect.def");
+        //addTest("fix42/1d_InvalidLogonLengthInvalid.def");
     }
 
     private void addTest(String name) {
-        addTests(new File(acceptanceTestBaseDir + "server/fix42/" + name));
+        addTests(new File(acceptanceTestBaseDir + "server/" + name));
     }
 
     public static Test suite() {

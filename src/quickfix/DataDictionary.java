@@ -1,21 +1,14 @@
-/****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+/*******************************************************************************
+ * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
+ * file is part of the QuickFIX FIX Engine * * This file may be distributed
+ * under the terms of the quickfixengine.org * license as defined by
+ * quickfixengine.org and appearing in the file * LICENSE included in the
+ * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
+ * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
+ * licensing information. * * Contact ask@quickfixengine.org if any conditions
+ * of this licensing are * not clear to you. *
+ ******************************************************************************/
 
 package quickfix;
 
@@ -58,7 +51,7 @@ public class DataDictionary {
         public Exception(Throwable cause) {
             super(cause);
         }
-        
+
         public Exception(String message) {
             super(message);
         }
@@ -163,7 +156,7 @@ public class DataDictionary {
     private Message getMessage(String msgType) {
         Message message = (Message) messages.get(msgType);
         if (message == null) {
-            throw new DataDictionary.Exception("unknown message type: "+msgType);
+            throw new DataDictionary.Exception("unknown message type: " + msgType);
         }
         return message;
     }
@@ -408,7 +401,11 @@ public class DataDictionary {
             if (fieldType == FieldType.String) {
                 // String
             } else if (fieldType == FieldType.Char) {
-                FieldValueConverter.CharConverter.convert(field.getValue());
+                if (version.compareTo(FixVersions.BEGINSTRING_FIX40) > 0) {
+                    FieldValueConverter.CharConverter.convert(field.getValue());
+                } else {
+                    // String, for older FIX versions
+                }
             } else if (fieldType == FieldType.Price) {
                 FieldValueConverter.DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Int) {
@@ -423,8 +420,6 @@ public class DataDictionary {
                 // String
             } else if (fieldType == FieldType.Exchange) {
                 // String
-            } else if (fieldType == FieldType.UtcTimeStamp) {
-                FieldValueConverter.UtcTimestampConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Boolean) {
                 FieldValueConverter.BooleanConverter.convert(field.getValue());
             } else if (fieldType == FieldType.LocalMktDate) {
@@ -443,6 +438,8 @@ public class DataDictionary {
                 FieldValueConverter.UtcDateOnlyConverter.convert(field.getValue());
             } else if (fieldType == FieldType.UtcTimeOnly) {
                 FieldValueConverter.UtcTimeOnlyConverter.convert(field.getValue());
+            } else if (fieldType == FieldType.UtcTimeStamp || fieldType == FieldType.Time) {
+                FieldValueConverter.UtcTimestampConverter.convert(field.getValue());
             } else if (fieldType == FieldType.NumInGroup) {
                 FieldValueConverter.IntConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Percentage) {
@@ -689,7 +686,8 @@ public class DataDictionary {
                 if (parentNodeName.equals("fields")) {
                     String name = getAttributeValue(nodes.item(i), "name");
                     int number = Integer.parseInt(getAttributeValue(nodes.item(i), "number"));
-                    FieldType type = FieldType.fromName(version, getAttributeValue(nodes.item(i), "type"));
+                    FieldType type = FieldType.fromName(version, getAttributeValue(nodes.item(i),
+                            "type"));
                     FieldSchema schema = new FieldSchema(name, type, number);
                     fieldSchemaByName.put(schema.getName(), schema);
                     fieldSchemaByTag.put(new Integer(schema.getNumber()), schema);

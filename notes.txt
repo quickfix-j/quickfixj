@@ -1,7 +1,5 @@
 To do:
-* Add data field processing
 * Implement block/poll in socket acceptor
-* Review session initiator
 
 * Run acceptance tests for all FIX version and client
 
