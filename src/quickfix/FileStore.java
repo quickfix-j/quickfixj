@@ -105,7 +105,7 @@ public class FileStore implements MessageStore {
             sessionFile.seek(0);
             sessionFile.read(data);
             try {
-                Date date = FieldValueConverter.UtcTimestampConverter.convert(new String(data), false);
+                Date date = FieldValueConverter.UtcTimestampConverter.convert(new String(data));
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 c.setTime(date);
                 cache.setCreationTime(c);

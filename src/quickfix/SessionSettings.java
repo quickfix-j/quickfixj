@@ -50,6 +50,7 @@ public class SessionSettings {
     public static final String SOCKET_REUSE_ADDRESS = "SocketReuseAddress";
     public static final String SOCKET_CONNECT_HOST = "SocketConnectHost";
     public static final String SOCKET_CONNECT_PORT = "SocketConnectPort";
+    public static final String SOCKET_NODELAY = "SocketNodelay";
     public static final String RECONNECT_INTERVAL = "ReconnectInterval";
     public static final String VALIDATE_FIELDS_OUT_OF_ORDER = "ValidateFieldsOutOfOrder";
     public static final String VALIDATE_FIELDS_HAVE_VALUES = "ValidateFieldsHaveValues";
@@ -160,7 +161,8 @@ public class SessionSettings {
 
     private HashMap sections = new HashMap();
 
-    Iterator sectionIterator() {
+    // TODO should this be less-than-public?
+    public Iterator sectionIterator() {
         return sections.keySet().iterator();
     }
 

@@ -424,7 +424,7 @@ public class DataDictionary {
             } else if (fieldType == FieldType.Exchange) {
                 // String
             } else if (fieldType == FieldType.UtcTimeStamp) {
-                FieldValueConverter.UtcTimestampConverter.convert(field.getValue(), false);
+                FieldValueConverter.UtcTimestampConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Boolean) {
                 FieldValueConverter.BooleanConverter.convert(field.getValue());
             } else if (fieldType == FieldType.LocalMktDate) {

@@ -128,7 +128,7 @@ public abstract class FieldValueConverter {
             return includeMillis ? formats.utcTimestampFormatMillis : formats.utcTimestampFormat;
         }
 
-        public static Date convert(String value, boolean calculateDays) throws FieldConvertError {
+        public static Date convert(String value) throws FieldConvertError {
             Date d = null;
             try {
                 d = getFormatter(true).parse(value);
@@ -139,7 +139,6 @@ public abstract class FieldValueConverter {
                     throw new FieldConvertError("invalid UTC timestamp value: " + value);
                 }
             }
-            // TODO - Find out what calculateDays is supposed to do...
             return d;
         }
 

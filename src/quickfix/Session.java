@@ -763,7 +763,7 @@ public class Session {
         sendRaw(logon, 0);
     }
 
-    synchronized void disconnect() throws IOException {
+    public synchronized void disconnect() throws IOException {
         if (responder != null) {
             if (!state.isLogoutSent()) {
                 state.logEvent("Dropped Connection");

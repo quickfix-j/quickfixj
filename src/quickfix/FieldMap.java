@@ -183,7 +183,7 @@ public abstract class FieldMap {
     public Date getUtcTimeStamp(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcTimestampConverter.convert(value, false);
+            return FieldValueConverter.UtcTimestampConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -303,7 +303,7 @@ public abstract class FieldMap {
         try {
             String value = getField(field.getField()).getValue();
             // TODO - Determine how to use calculate days...
-            field.setObject(FieldValueConverter.UtcTimestampConverter.convert(value, false));
+            field.setObject(FieldValueConverter.UtcTimestampConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {

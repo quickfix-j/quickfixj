@@ -129,6 +129,7 @@ public class ThreadedSocketAcceptor implements Acceptor {
                 session.logout();
             }
         }
+        // TODO wait up to 5 seconds for all sessions to be logged outc
     }
 
     private final class NettySessionResponder extends AbstractSessionListener {
