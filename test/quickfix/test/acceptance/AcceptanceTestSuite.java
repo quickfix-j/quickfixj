@@ -70,7 +70,9 @@ public class AcceptanceTestSuite extends TestSuite {
                 in = new BufferedReader(new FileReader(filename));
                 String line = in.readLine();
                 while (line != null) {
-                    if (line.startsWith("I")) {
+                    if (line.matches("^.*#")) {
+                        continue;
+                    } else if (line.startsWith("I")) {
                         steps.add(new InitiateMessageStep(line));
                     } else if (line.startsWith("E")) {
                         steps.add(new ExpectMessageStep(line));
@@ -99,10 +101,12 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         //addTest("10_MsgSeqNumEqual.def");
-        addTest("2d_GarbledMessage.def");
+        //addTest("2d_GarbledMessage.def");
+        //addTest("3c_GarbledMessage.def");
         //addTest("2m_BodyLengthValueNotCorrect.def");
+        //addTest("1d_InvalidLogonLengthInvalid.def");
     }
 
     private void addTest(String name) {

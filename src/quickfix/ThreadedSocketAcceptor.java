@@ -192,8 +192,6 @@ public class ThreadedSocketAcceptor implements Acceptor {
                     }
                 }
                 quickFixSession.next(fixMessage);
-            } catch (MessageParseException e) {
-                quickFixSession.getLog().onEvent("message framing error: "+e.getMessage());
             } catch (InvalidMessage e) {
                 quickFixSession.getLog().onEvent("invalid message: "+e.getMessage());
             } catch (Throwable e) {

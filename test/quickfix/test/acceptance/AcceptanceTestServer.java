@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import quickfix.Application;
 import quickfix.DefaultMessageFactory;
 import quickfix.DoNotSend;
@@ -34,28 +37,12 @@ import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
 import quickfix.field.Text;
 import quickfix.field.TransactTime;
-import quickfix.fix42.BusinessMessageReject;
-import quickfix.fix42.SecurityDefinition;
 
 public class AcceptanceTestServer {
     public static void main(String[] args) {
 
         try {
-//            SessionSettings settings = new SessionSettings();
-//            SessionID sessionId = new SessionID("FIX.4.2", "ISLD", "TW");
-//            settings.setString(sessionId, SessionSettings.CONNECTION_TYPE, "acceptor");
-//            settings.setString(sessionId, SessionSettings.START_TIME, "00:00:00");
-//            settings.setString(sessionId, SessionSettings.END_TIME, "23:59:59");
-//            settings.setString(sessionId, SessionSettings.START_DAY, "mo");
-//            settings.setString(sessionId, SessionSettings.END_DAY, "fr");
-//            settings.setString(sessionId, SessionSettings.FILE_STORE_PATH, "data/server");
-//            settings.setString(sessionId, SessionSettings.DATA_DICTIONARY, "test/FIX42.xml");
-//            settings.setString(sessionId, SessionSettings.BEGINSTRING, "FIX.4.2");
-//            settings.setLong(sessionId, SessionSettings.SOCKET_ACCEPT_PORT, 9877);
-//            settings.setBool(sessionId, SessionSettings.CHECK_LATENCY, true);
-//            settings.setLong(sessionId, SessionSettings.MAX_LATENCY, 60);
-
-            SessionID sessionId = new SessionID("FIX.4.2", "ISLD", "TW");
+            Logger.getRootLogger().setLevel(Level.DEBUG);
             SessionSettings settings = new SessionSettings(args[0]);
             
             FileStoreFactory storeFactory = new FileStoreFactory(settings);
