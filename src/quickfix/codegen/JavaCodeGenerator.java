@@ -1,4 +1,25 @@
+/****************************************************************************
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
+
 package quickfix.codegen;
+
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,6 +46,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ * Generates Message and Field related code for the various FIX versions.
+ * 
+ * @author sbate
+ *  
+ */
 public class JavaCodeGenerator {
     private Log log = LogFactory.getLog(getClass());
     private String outputBaseDir;
@@ -35,15 +62,21 @@ public class JavaCodeGenerator {
         this.outputBaseDir = outputBaseDir;
     }
 
-    public void generateMessageBaseClasses() throws Exception {
+    private void generateMessageBaseClasses() throws TransformerConfigurationException,
+            FileNotFoundException, ParserConfigurationException, SAXException, IOException,
+            TransformerFactoryConfigurationError, TransformerException {
         generateClassCodeForVersions("Message");
     }
 
-    public void generateMessageFactoryClasses() throws Exception {
+    private void generateMessageFactoryClasses() throws TransformerConfigurationException,
+            FileNotFoundException, ParserConfigurationException, SAXException, IOException,
+            TransformerFactoryConfigurationError, TransformerException {
         generateClassCodeForVersions("MessageFactory");
     }
 
-    public void generateMessageCrackerClasses() throws Exception {
+    private void generateMessageCrackerClasses() throws TransformerConfigurationException,
+            FileNotFoundException, ParserConfigurationException, SAXException, IOException,
+            TransformerFactoryConfigurationError, TransformerException {
         generateClassCodeForVersions("MessageCracker");
     }
 
@@ -68,7 +101,7 @@ public class JavaCodeGenerator {
         return document;
     }
 
-    public void generateFieldClasses() throws ParserConfigurationException, SAXException,
+    private void generateFieldClasses() throws ParserConfigurationException, SAXException,
             IOException {
         for (int fixMinorVersion = 4; fixMinorVersion >= 0; fixMinorVersion--) {
             Document document = getSpecification(fixMinorVersion);
@@ -90,22 +123,19 @@ public class JavaCodeGenerator {
         }
     }
 
-    public void generateMessageSubclasses() throws Exception {
+    private void generateMessageSubclasses() throws ParserConfigurationException, SAXException,
+            IOException, TransformerConfigurationException, FileNotFoundException,
+            TransformerFactoryConfigurationError, TransformerException {
         for (int fixVersion = 0; fixVersion < 5; fixVersion++) {
             Document document = getSpecification(fixVersion);
             List messageNames = getNames(document.getDocumentElement(), "messages/message");
-            try {
-                for (int i = 0; i < messageNames.size(); i++) {
-                    String messageName = (String) messageNames.get(i);
-                    //if (!messageName.equals("Advertisement")) continue;
-                    log.debug("message (FIX 4." + fixVersion + "): " + messageName);
-                    generateCodeFile(document, specificationDir + "/MessageSubclass.xsl",
-                            "messageName", messageName, outputBaseDir + "/quickfix/fix4"
-                                    + fixVersion + "/" + messageName + ".java");
-                }
-            } catch (Exception e) {
-                // TODO
-                e.printStackTrace();
+            for (int i = 0; i < messageNames.size(); i++) {
+                String messageName = (String) messageNames.get(i);
+                //if (!messageName.equals("Advertisement")) continue;
+                log.debug("message (FIX 4." + fixVersion + "): " + messageName);
+                generateCodeFile(document, specificationDir + "/MessageSubclass.xsl",
+                        "messageName", messageName, outputBaseDir + "/quickfix/fix4" + fixVersion
+                                + "/" + messageName + ".java");
             }
         }
     }
@@ -151,6 +181,23 @@ public class JavaCodeGenerator {
         transformer.transform(source, result);
     }
 
+    /*
+     * Generate the Message and Field related source code.
+     */
+    public void generate() {
+        try {
+            generateFieldClasses();
+            generateMessageBaseClasses();
+            generateMessageFactoryClasses();
+            generateMessageCrackerClasses();
+            generateMessageSubclasses();
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CodeGenerationException(e);
+        }
+    }
+
     public static void main(String[] args) {
         try {
             if (args.length == 0) {
@@ -159,15 +206,10 @@ public class JavaCodeGenerator {
                 return;
             }
             JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(args[0], args[1]);
-            javaCodeGenerator.generateFieldClasses();
-            javaCodeGenerator.generateMessageBaseClasses();
-            javaCodeGenerator.generateMessageFactoryClasses();
-            javaCodeGenerator.generateMessageCrackerClasses();
-            javaCodeGenerator.generateMessageSubclasses();
+            javaCodeGenerator.generate();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LogFactory.getLog(JavaCodeGenerator.class).error("error during code generation", e);
+            System.exit(1);
         }
     }
-
 }

@@ -103,15 +103,10 @@ public class ThreadedSocketInitiator implements Initiator {
                     } catch (FieldConvertError e) {
                         throw (ConfigError) new ConfigError(e.getMessage()).initCause(e);
                     }
-                    // TODO configure reconnect interval
 
                     DataDictionary dataDictionary = new DataDictionary(new FileInputStream(settings
                             .getString(sessionID, SessionSettings.DATA_DICTIONARY)));
                     SessionSchedule sessionSchedule = null;
-                    //                    if (settings.isSetting(sessionID,
-                    // SessionSettings.START_TIME)) {
-                    //                        
-                    //                    }
 
                     int heartbeatInterval = 30;
                     if (settings.isSetting(sessionID, SessionSettings.HEARTBTINT)) {
@@ -119,7 +114,6 @@ public class ThreadedSocketInitiator implements Initiator {
                                 SessionSettings.HEARTBTINT);
                     }
 
-                    // TODO configure heart beats
                     MessageRecognizer recognizer = FIXMessageData.RECOGNIZER;
                     Session nettySession = new Session(ioProcessor, new InetSocketAddress(host,
                             port), recognizer, eventDispatcher);
@@ -157,11 +151,11 @@ public class ThreadedSocketInitiator implements Initiator {
     }
 
     public void block() throws ConfigError, RuntimeError {
-        // TODO Auto-generated method stub
+        // TODO Implement block
     }
 
     public boolean poll() throws ConfigError, RuntimeError {
-        // TODO Auto-generated method stub
+        // TODO Implement poll
         return false;
     }
 

@@ -55,49 +55,4 @@ public class Group extends FieldMap {
     public int getField() {
         return field;
     }
-    
-//    public native void setString(int field, String value);
-//    public native void setBoolean(int field, boolean value);
-//    public native void setChar(int field, char value);
-//    public native void setInt(int field, int value);
-//    public native void setDouble(int field, double value);
-//    public native void setUtcTimeStamp(int field, Date value);
-//    public native void setUtcTimeOnly(int field, Date value);
-//    public native void setUtcDateOnly(int field, Date value);
-//
-//    public native String getString(int field) throws FieldNotFound;
-//    public native boolean getBoolean(int field) throws FieldNotFound;
-//    public native char getChar(int field) throws FieldNotFound;
-//    public native int getInt(int field) throws FieldNotFound;
-//    public native double getDouble(int field) throws FieldNotFound;
-//    public native Date getUtcTimeStamp(int field) throws FieldNotFound;
-//    public native Date getUtcTimeOnly(int field) throws FieldNotFound;
-//    public native Date getUtcDateOnly(int field) throws FieldNotFound;
-
-    // TODO
-    public class Iterator implements java.util.Iterator {
-
-        public Iterator( Group aGroup ) {
-            //group = aGroup;
-            //groupIteratorCreate( this );
-        }
-
-        public boolean hasNext() {
-            //return groupIteratorHasNext( this );
-            return false;
-        }
-
-        public Object next() {
-            //return groupIteratorNext( this );
-            return null;
-        }
-
-        public void remove() {
-            throw new java.lang.UnsupportedOperationException();
-        }
-    }
-//
-//    private native Iterator groupIteratorCreate( Iterator i );
-//    private native boolean groupIteratorHasNext( Iterator i );
-//    private native Object groupIteratorNext( Iterator i );
 }

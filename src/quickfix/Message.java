@@ -238,15 +238,6 @@ public class Message extends FieldMap {
     }
 
     public class Header extends FieldMap {
-        public Header() {
-            // TODO remove this constructor after code generator has been
-        }
-
-        public Header(Message ignored) {
-            // TODO remove this constructor after code generator has been
-            // converted
-        }
-
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, new int[] { BeginString.FIELD, BodyLength.FIELD,
                     MsgType.FIELD }, postFields);
@@ -254,15 +245,6 @@ public class Message extends FieldMap {
     }
 
     public class Trailer extends FieldMap {
-        public Trailer() {
-            // TODO remove this constructor after code generator has been
-        }
-
-        public Trailer(Message ignored) {
-            // TODO remove this constructor after code generator has been
-            // converted
-        }
-
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
