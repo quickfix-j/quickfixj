@@ -357,9 +357,9 @@ public abstract class FieldMap {
         return fields.values().iterator();
     }
 
-    protected void initializeFrom(FieldMap target) {
-        target.fields.clear();
-        target.fields.putAll(fields);
+    protected void initializeFrom(FieldMap source) {
+        fields.clear();
+        fields.putAll(source.fields);
     }
 
     void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {

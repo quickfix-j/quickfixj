@@ -861,7 +861,18 @@ public class Session {
     private void next(String msg) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            next(new Message(msg, dataDictionary));
+            // TODO review the C++ implementation of next(msg)
+            // TODO move message type extraction to Message
+            int typeStart = msg.indexOf("\00135=") + 4;
+            int typeEnd;
+            for (typeEnd = typeStart; typeEnd < msg.length(); typeEnd++) {
+                if (msg.charAt(typeEnd) == '\001') {
+                    break;
+                }
+            }
+            Message message = messageFactory.create(dataDictionary.getVersion(), msg.substring(typeStart, typeEnd));
+            message.fromString(msg, dataDictionary, false);
+            next(message);
         } catch (InvalidMessage e) {
             String message = e.getMessage();
             state.logEvent(message);

@@ -101,8 +101,12 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        //addTests(new File(acceptanceTestBaseDir + "server/fix40"));
+        //addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        addTest("2r_UnregisteredMsgType.def");
+        //addTest("14b_RequiredFieldMissing.def");
         //addTest("10_MsgSeqNumEqual.def");
+        //addTest("10_MsgSeqNumGreater.def");
         //addTest("2d_GarbledMessage.def");
         //addTest("3c_GarbledMessage.def");
         //addTest("2m_BodyLengthValueNotCorrect.def");

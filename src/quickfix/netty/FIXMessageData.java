@@ -177,7 +177,6 @@ public class FIXMessageData implements Message {
             throws MessageParseException {
         int nextHeader = indexOf(buffer, messageStartPosition + 1, headerBytes);
         if (nextHeader != -1) {
-            System.out.println("*** setting buffer position = " + nextHeader);
             buffer.position(nextHeader);
         } else {
             buffer.position(buffer.limit());

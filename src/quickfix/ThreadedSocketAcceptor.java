@@ -201,7 +201,7 @@ public class ThreadedSocketAcceptor implements Acceptor {
                     try {
                         quickFixSession.disconnect();
                     } catch (IOException e1) {
-                        LogUtil.logThrowable(sessionLog, "error during disconnect", e);
+                        LogUtil.logThrowable(sessionLog, "error during disconnect after logon error", e);
                     }
                 }
             }

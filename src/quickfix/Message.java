@@ -107,14 +107,24 @@ public class Message extends FieldMap {
     }
 
     public Object clone() {
-        Message message = new Message();
-        return cloneTo(message);
+        try {
+            Message message = (Message)getClass().newInstance();
+            return cloneTo(message);
+        } catch (InstantiationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private Object cloneTo(Message message) {
-        initializeFrom(this);
-        header.initializeFrom(this.getHeader());
-        header.initializeFrom(this.getTrailer());
+        message.initializeFrom(this);
+        message.header.initializeFrom(this.getHeader());
+        message.trailer.initializeFrom(this.getTrailer());
         return message;
     }
 

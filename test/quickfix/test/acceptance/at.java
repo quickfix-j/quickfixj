@@ -24,10 +24,6 @@ import java.io.FileInputStream;
 
 public class at {
 
-    static {
-        System.loadLibrary("quickfix_jni");
-    }
-
     public static void main(String[] args) throws Exception {
         String file = new String();
         boolean threaded = false;
