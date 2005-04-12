@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import quickfix.DataDictionary;
 import quickfix.DefaultMessageFactory;
 import quickfix.InvalidMessage;
+import quickfix.Session;
 
 /**
  * When reading, this class identifies a FIX message and extracts it. When
@@ -41,6 +42,7 @@ import quickfix.InvalidMessage;
  *  
  */
 public class FIXMessageData implements Message {
+    private Session session;
     private Log log = LogFactory.getLog(getClass());
 
     /**
@@ -247,6 +249,14 @@ public class FIXMessageData implements Message {
         return message.indexOf("\00135=A\001") != -1;
     }
 
+    public Session getSession() {
+        return session;
+    }
+    
+    public void setSession(Session session) {
+        this.session = session;
+    }
+    
     public String toString() {
         return message;
     }

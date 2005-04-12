@@ -148,7 +148,7 @@ public class DataDictionary {
     }
 
     public boolean isMsgField(String msgType, int field) {
-        Message message = getMessage(msgType);
+        Message message = (Message) messages.get(msgType);
         return message != null ? message.isElementInContainer(Field.class, new Integer(field))
                 : false;
     }

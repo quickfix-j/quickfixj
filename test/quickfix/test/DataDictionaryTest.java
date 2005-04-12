@@ -13,7 +13,7 @@ public class DataDictionaryTest extends TestCase {
 
     public void setUp() throws Exception {
         if (testObject == null) {
-            testObject = new DataDictionary("file:../quickfix_cvs/spec/FIX42.xml");
+            testObject = new DataDictionary("file:src/quickfix/codegen/FIX42.xml");
         }
     }
 
