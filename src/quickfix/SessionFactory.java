@@ -93,9 +93,8 @@ public class SessionFactory {
             Date endTime = FieldValueConverter.UtcTimeOnlyConverter.convert(settings.getString(
                     sessionID, SessionSettings.END_TIME));
 
-            // TODO use meaningful constants for start/end day
-            int startDay = getDay(settings, sessionID, SessionSettings.START_DAY, 2);
-            int endDay = getDay(settings, sessionID, SessionSettings.END_DAY, 6);
+            int startDay = getDay(settings, sessionID, SessionSettings.START_DAY, -1);
+            int endDay = getDay(settings, sessionID, SessionSettings.END_DAY, -1);
 
             if (startDay >= 0 && endDay < 0) {
                 throw new ConfigError("StartDay used without EndDay");
@@ -107,6 +106,9 @@ public class SessionFactory {
             int heartbeatInterval = 0;
             if (connectionType.equals("initiator")) {
                 heartbeatInterval = (int) settings.getLong(sessionID, SessionSettings.HEARTBTINT);
+                if ( heartbeatInterval <= 0 ) { 
+                    throw new ConfigError( "Heartbeat must be greater than zero" );
+                }
             }
 
             Session session = new Session(application, messageStoryFactory, sessionID,

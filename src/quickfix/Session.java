@@ -224,7 +224,7 @@ public class Session {
         return state.getMessageStore();
     }
 
-    public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
+    public synchronized void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
         state.setConnected(true);
 
@@ -424,7 +424,7 @@ public class Session {
         if (!state.isLogoutSent()) {
             state.logEvent("Received logout request");
             generateLogout();
-            state.logEvent("Sending logout response");
+            state.logEvent("Sent logout response");
         } else {
             state.logEvent("Received logout response");
         }
@@ -733,15 +733,16 @@ public class Session {
         return verify(message, true, true);
     }
 
-    public void next() throws IOException {
+    public synchronized void next() throws IOException {
         if (!enabled) {
-            if (!isLoggedOn()) {
-                if (!state.isLogonSent()) {
+            if (isLoggedOn()) {
+                if (!state.isLogoutSent()) {
                     state.logEvent("Initiated logout request");
                     generateLogout();
                 }
-            } else
+            } else {
                 return;
+            }
         }
 
         if (!checkSessionTime(new Date())) {
@@ -820,10 +821,10 @@ public class Session {
                 state.logEvent("Disconnecting");
             }
 
-            if (responder != null) {
+            //if (responder != null) {
                 responder.disconnect();
-                responder = null;
-            }
+            //    responder = null;
+            //}
         }
 
         if (state.isLogonReceived() || state.isLogonSent()) {
@@ -1095,5 +1096,9 @@ public class Session {
 
     public SessionID getSessionID() {
         return sessionID;
+    }
+    
+    public boolean isSessionTime() {
+        return sessionSchedule.isSessionTime();
     }
 }

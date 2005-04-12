@@ -25,8 +25,8 @@ public class TestSessionSettings extends TestCase {
         data += "TestLong2=abcd\n";
         data += "TestDouble=12.34\n";
         data += "TestDouble2=abcd\n";
-        data += "TestBoolTrue=true\n";
-        data += "TestBoolFalse=false\n";
+        data += "TestBoolTrue=Y\n";
+        data += "TestBoolFalse=N\n";
         data += "\n";
         data += "[SESSION]\n";
         data += "BeginString=FIX.4.2\n";

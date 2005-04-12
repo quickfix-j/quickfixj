@@ -13,7 +13,6 @@
 package quickfix;
 
 import net.gleamynode.netty2.Message;
-import net.gleamynode.netty2.Session;
 
 import org.apache.commons.logging.Log;
 
@@ -24,7 +23,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
 public class SocketInitiator extends AbstractSocketInitiator {
     private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
-    private BlockingQueue messageQueue;
+    private BlockingQueue eventQueue;
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
@@ -48,14 +47,20 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     protected void onInitialize(boolean handleMessageInCaller) {
         if (handleMessageInCaller) {
-            messageQueue = new LinkedBlockingQueue();
+            eventQueue = new LinkedBlockingQueue();
         }
     }
 
     protected void onBlock() {
         while (!isStopRequested()) {
             try {
-                ((MessageEvent) messageQueue.take()).process();
+                Object event = eventQueue.take();
+                System.err.println(Thread.currentThread() + ": processing "+event);
+                if (event instanceof Message) {
+                    processMessage((Message) event);
+                } else if (event instanceof Session) {
+                    processTimerEvent((Session) event);
+                }
             } catch (InterruptedException e) {
                 return;
             }
@@ -68,12 +73,16 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     protected boolean onPoll() {
         if (isStopRequested()) {
-            // TODO wait for logout
-            return false;
+            if (!isLoggedOn()) {
+                return false;
+            }
+            if (System.currentTimeMillis() - getStopRequestTimestamp() > 5000L) {
+                return false;
+            }
         }
 
-        if (messageQueue.peek() != null) {
-            ((MessageEvent) messageQueue.poll()).process();
+        if (eventQueue.peek() != null) {
+            processMessage((Message) eventQueue.poll());
         }
 
         return true;
@@ -83,36 +92,25 @@ public class SocketInitiator extends AbstractSocketInitiator {
         // empty
     }
 
-    protected void onMessage(Session nettySession, Message message) {
-        if (messageQueue != null) {
-            // TODO find a way to not create an object here
-            messageQueue.add(new MessageEvent(nettySession, message));
+    protected void onMessage(Message message) {
+        if (eventQueue != null) {
+            eventQueue.add(message);
         } else {
-            processMessage(nettySession, message);
+            processMessage(message);
         }
     }
 
-    /**
-     * This class is used to defer message processing to the thread calling
-     * block or poll.
-     */
-    private class MessageEvent {
-        private Session session;
-        private Message message;
-
-        public MessageEvent(Session session, Message message) {
-            this.session = session;
-            this.message = message;
-        }
-
-        public void process() {
-            processMessage(session, message);
+    protected void onTimerEvent(Session quickfixSession) {
+        if (eventQueue != null) {
+            eventQueue.add(quickfixSession);
+        } else {
+            processTimerEvent(quickfixSession);
         }
     }
 
     public static void main(String[] args) {
         try {
-            SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings sessionSettings = new SessionSettings();
             sessionSettings.setString(sessionID, SessionSettings.BEGINSTRING,
                     FixVersions.BEGINSTRING_FIX42);
@@ -120,32 +118,42 @@ public class SocketInitiator extends AbstractSocketInitiator {
                     "src/quickfix/codegen/FIX42.xml");
             sessionSettings.setString(sessionID, SessionSettings.START_TIME, "00:00:00");
             sessionSettings.setString(sessionID, SessionSettings.END_TIME, "00:00:00");
-            // TODO heartbeat interval should be optional
-            sessionSettings.setString(sessionID, SessionSettings.HEARTBTINT, "20"); 
+            sessionSettings.setString(sessionID, SessionSettings.HEARTBTINT, "20");
             sessionSettings.setString(sessionID, SessionSettings.CONNECTION_TYPE, "initiator");
             sessionSettings.setString(sessionID, SessionSettings.SOCKET_CONNECT_HOST, "localhost");
             sessionSettings.setLong(sessionID, SessionSettings.SOCKET_CONNECT_PORT, 9877);
+            sessionSettings.setLong(sessionID, SessionSettings.RECONNECT_INTERVAL, 2);
 
             SocketInitiator socketInitiator = new SocketInitiator(new ATApplication() {
                 public void toAdmin(quickfix.Message message, SessionID sessionID) {
-                    // TODO Auto-generated method stub
                     super.toAdmin(message, sessionID);
-                    System.err.println("toAdmin: "+message);
+                    System.err.println("toAdmin: " + message);
                 }
 
                 public void fromAdmin(quickfix.Message message, SessionID sessionID)
                         throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-                    // TODO Auto-generated method stub
                     super.fromAdmin(message, sessionID);
-                    System.err.println("fromAdmin: "+message);
+                    System.err.println("fromAdmin: " + message);
                 }
             }, new MemoryStoreFactory(), sessionSettings, new ScreenLogFactory(true, true, true),
                     new DefaultMessageFactory());
-            socketInitiator.start();
-            quickfix.Session.lookupSession(sessionID).logon();
-            //socketInitiator.
+            // new Thread(new Runnable() {
+            // public void run() {
+            // try {
+            // Thread.sleep(10000);
+            // System.err.println("LOGGING OUT");
+            // quickfix.Session session =
+            // quickfix.Session.lookupSession(sessionID);
+            // session.logout();
+            // session.next();
+            // } catch (Exception e) {
+            // e.printStackTrace();
+            // }
+            // }
+            // }).start();
+            // socketInitiator.start();
+            socketInitiator.block();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
