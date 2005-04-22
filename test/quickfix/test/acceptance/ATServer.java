@@ -25,11 +25,11 @@ public class ATServer implements Runnable {
 
     public ATServer() {
         fixVersions = new HashSet();
-        //fixVersions.add(FixVersions.BEGINSTRING_FIX40);
-        //fixVersions.add(FixVersions.BEGINSTRING_FIX41);
+        fixVersions.add(FixVersions.BEGINSTRING_FIX40);
+        fixVersions.add(FixVersions.BEGINSTRING_FIX41);
         fixVersions.add(FixVersions.BEGINSTRING_FIX42);
-        //fixVersions.add(FixVersions.BEGINSTRING_FIX43);
-        //fixVersions.add(FixVersions.BEGINSTRING_FIX44);
+        fixVersions.add(FixVersions.BEGINSTRING_FIX43);
+        fixVersions.add(FixVersions.BEGINSTRING_FIX44);
     }
 
     public void run() {

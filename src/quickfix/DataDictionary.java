@@ -503,6 +503,8 @@ public class DataDictionary {
         public Field getFirstField();
 
         public boolean isElementInContainer(Class elementClass, Object key);
+
+        public MessageElement getElement(Class elementClass, Object key);
     }
 
     private class AbstractMessageElementContainer implements MessageElementContainer {
@@ -547,8 +549,23 @@ public class DataDictionary {
         }
 
         public MessageElement getElement(Class elementClass, Object key) {
+            MessageElement element = null;
             Map elementsOfClass = (Map) elementMap.get(elementClass);
-            return (MessageElement) elementsOfClass.get(key);
+            if (elementsOfClass != null) {
+                element = (MessageElement) elementsOfClass.get(key);
+	            if (element == null) {
+	                elementsOfClass = (Map) elementMap.get(Component.class);
+	                Iterator components = elementsOfClass.values().iterator();
+	                while (components.hasNext()) {
+	                    Component c = (Component)components.next();
+	                    element = c.getElement(elementClass, key);
+	                    if (element != null) {
+	                        break;
+	                    }
+	                }
+	            }
+            }
+            return element;
         }
 
         public boolean isElementRequired(Class elementClass, Object key) {
@@ -681,6 +698,10 @@ public class DataDictionary {
         
         private ComponentSchema getSchema() {
             return schema;
+        }
+        
+        public MessageElement getElement(Class elementClass, Object key) {
+            return schema.getElement(elementClass, key);
         }
     }
 

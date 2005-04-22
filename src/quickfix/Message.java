@@ -397,6 +397,7 @@ public class Message extends FieldMap {
             }
             if (dd != null && dd.isGroup(msgType, tag)) {
                 DataDictionary.RepeatingGroup rg = dd.getGroup(msgType, tag);
+                System.err.println("msgtype="+msgType+",tag="+tag+",rg="+rg);
                 int groupField = tag;
                 int firstField = ((Integer) rg.getFirstField().getKey()).intValue();
                 Group group = null;
