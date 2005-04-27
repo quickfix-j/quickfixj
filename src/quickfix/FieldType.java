@@ -22,16 +22,23 @@ package quickfix;
 import java.util.HashMap;
 
 public class FieldType {
+    private int ordinal;
     private String name;
+    private static int ordinalCounter = 0;
     private static HashMap values = new HashMap();
 
     private FieldType(String name) {
         this.name = name;
+        ordinal = ordinalCounter++;
         values.put(name, this);
     }
 
     public String getName() {
         return name;
+    }
+
+    public int getOrdinal() {
+        return ordinal;
     }
 
     public static FieldType fromName(String fixVersion, String name) {

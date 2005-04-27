@@ -24,13 +24,13 @@ import java.sql.SQLException;
 
 public class MySQLLog extends JdbcLog {
     public MySQLLog(SessionSettings settings, SessionID sessionID) throws SQLException,
-            ClassNotFoundException, ConfigError {
+            ClassNotFoundException, ConfigError, FieldConvertError {
         // TODO not sure all these exceptions should be exposed
         super(settings, sessionID);
     }
 
     public Connection connect(SessionSettings settings, SessionID sessionID) throws SQLException,
-            ClassNotFoundException, ConfigError {
+            ClassNotFoundException, ConfigError, FieldConvertError {
         return JdbcUtil.openMySQLConnection(settings, sessionID);
     }
 }

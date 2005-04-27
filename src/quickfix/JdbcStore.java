@@ -42,7 +42,7 @@ public class JdbcStore implements MessageStore {
     }
 
     protected Connection connect(SessionSettings settings, SessionID sessionID)
-            throws ClassNotFoundException, ConfigError, SQLException {
+            throws ClassNotFoundException, ConfigError, FieldConvertError, SQLException {
         return JdbcUtil.openConnection(settings, sessionID);
     }
 

@@ -28,7 +28,7 @@ public class MySQLStore extends JdbcStore {
     }
 
     protected Connection connect(SessionSettings settings, SessionID sessionID)
-            throws ClassNotFoundException, ConfigError, SQLException {
+            throws ClassNotFoundException, ConfigError, FieldConvertError, SQLException {
         return JdbcUtil.openMySQLConnection(settings, sessionID);
     }
 }

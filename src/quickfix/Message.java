@@ -160,15 +160,20 @@ public class Message extends FieldMap {
                 .calculateTotal()) % 256);
     }
 
-    public String toXML() throws FieldNotFound {
+    public String toXML() {
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                     .newDocument();
             Element message = document.createElement("message");
             document.appendChild(message);
-            toXMLFields(message, "header", this.header);
-            toXMLFields(message, "body", this);
-            toXMLFields(message, "trailer", this.trailer);
+            try {
+                toXMLFields(message, "header", this.header);
+                toXMLFields(message, "body", this);
+                toXMLFields(message, "trailer", this.trailer);
+            } catch (FieldNotFound e1) {
+                // TODO Original toXML doesn't declare any exceptions
+                throw new RuntimeException(e1);
+            }
             DOMSource domSource = new DOMSource(document);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             StreamResult streamResult = new StreamResult(out);
@@ -397,7 +402,6 @@ public class Message extends FieldMap {
             }
             if (dd != null && dd.isGroup(msgType, tag)) {
                 DataDictionary.RepeatingGroup rg = dd.getGroup(msgType, tag);
-                System.err.println("msgtype="+msgType+",tag="+tag+",rg="+rg);
                 int groupField = tag;
                 int firstField = ((Integer) rg.getFirstField().getKey()).intValue();
                 Group group = null;

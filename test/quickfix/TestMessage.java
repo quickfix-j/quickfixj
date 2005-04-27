@@ -17,6 +17,18 @@ import quickfix.fix44.Logon.NoMsgTypes;
 
 public class TestMessage extends TestCase {
 
+//    public void testGroupLength() throws Exception {
+//        Message message = new Message();
+//        Logon.NoMsgTypes noMsgTypes = new Logon.NoMsgTypes();
+//        noMsgTypes.set(new RefMsgType("D"));
+//        noMsgTypes.set(new MsgDirection('R'));
+//        message.addGroup(noMsgTypes);
+//        assertEquals(18, message.calculateLength());
+//        StringBuffer sb = new StringBuffer();
+//        message.calculateString(sb, null, null);
+//        assertEquals("384=1\001372=D\001385=R\001", sb.toString());
+//    }
+    
     public void testParsing() throws Exception {
         // checksum is not verified in these tests
         // TODO parse repeating groups

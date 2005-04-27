@@ -39,12 +39,11 @@ public abstract class FieldMap {
 
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        fields = new TreeMap(new FieldOrderComparator());
+        fields = new TreeMap(fieldOrder != null ? new FieldOrderComparator() : null);
     }
 
     protected FieldMap() {
-        fieldOrder = null;
-        fields = new TreeMap();
+        this(null);
     }
 
     protected int[] getFieldOrder() {
@@ -382,6 +381,10 @@ public abstract class FieldMap {
         for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry) iter.next();
             List groups = (List)entry.getValue();
+            IntField groupField = new IntField(((Integer)entry.getKey()).intValue());
+            groupField.setValue(groups.size());
+            groupField.toString(buffer);
+            buffer.append('\001');
             // Acceptance test copies message with group length field already present
             // This causes two fields to be sent.
             //buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
@@ -421,11 +424,13 @@ public abstract class FieldMap {
             result += field.getLength();
         }
 
-        // TODO handle group field in length calculation
-        
-        Iterator iterator = groups.values().iterator();
+        Iterator iterator = groups.entrySet().iterator();
         while (iterator.hasNext()) {
-            List groupList = (List)iterator.next();
+            Map.Entry entry = (Map.Entry)iterator.next();
+            List groupList = (List)entry.getValue();
+//            IntField groupField = new IntField(((Integer)entry.getKey()).intValue());
+//            groupField.setValue(groupList.size());
+//            result += groupField.getLength();
             for (int i = 0; i < groupList.size(); i++) {
                 Group group = (Group)groupList.get(i);
                 result += group.calculateLength();

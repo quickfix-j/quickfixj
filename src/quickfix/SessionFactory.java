@@ -144,7 +144,7 @@ public class SessionFactory {
     }
 
     private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
-            throws ConfigError {
+            throws ConfigError, FieldConvertError {
         if (!settings.isSetting(sessionID, key)) {
             return defaultValue;
         }

@@ -71,17 +71,16 @@ public class DataDictionary {
         load(inputStream);
     }
 
-    //
-    //    protected class FieldNotFound extends RuntimeException {
-    //        public FieldNotFound(int tag) {
-    //            super("tag=" + tag);
-    //        }
-    //
-    //        public FieldNotFound(String message) {
-    //            super(message);
-    //        }
-    //    }
-
+    public DataDictionary(DataDictionary dataDictionary) {
+        // TODO API check into usage of data dictionary copy
+        throw new UnsupportedOperationException();
+    }
+    
+    public DataDictionary() {
+        // TODO API check into usage of data dictionary default constructor
+        throw new UnsupportedOperationException();
+    }
+   
     private FieldSchema getFieldSchema(String name) {
         return (FieldSchema) fieldSchemaByName.get(name);
     }
@@ -307,11 +306,16 @@ public class DataDictionary {
                 .getElement(RepeatingGroup.class, new Integer(field));
     }
 
-    public FieldType getFieldType(int field) {
+    public FieldType getFieldTypeEnum(int field) {
         FieldSchema fieldSchema = getFieldSchema(field);
         return fieldSchema != null ? fieldSchema.getType() : null;
     }
 
+    public int getFieldType(int field) {
+        FieldType fieldTypeEnum = getFieldTypeEnum(field);
+        return fieldTypeEnum != null ? fieldTypeEnum.getOrdinal() : 0;
+    }
+    
     public void validate(quickfix.Message message) throws quickfix.FieldNotFound, InvalidMessage {
         String beginString = message.getHeader().getString(BeginString.FIELD);
         String msgType = message.getHeader().getString(MsgType.FIELD);
@@ -397,7 +401,7 @@ public class DataDictionary {
 
     private void checkValidFormat(StringField field) {
         try {
-            FieldType fieldType = getFieldType(field.getTag());
+            FieldType fieldType = getFieldTypeEnum(field.getTag());
             if (fieldType == FieldType.String) {
                 // String
             } else if (fieldType == FieldType.Char) {
@@ -768,7 +772,7 @@ public class DataDictionary {
     }
 
     public boolean isDataField(int tag) {
-        return getFieldType(tag) == FieldType.Data;
+        return getFieldTypeEnum(tag) == FieldType.Data;
     }
 
     public void setCheckFieldsHaveValues(boolean doCheckFieldsHaveValues) {

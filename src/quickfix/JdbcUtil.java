@@ -25,7 +25,7 @@ import java.sql.SQLException;
 
 public class JdbcUtil {
     public static Connection openConnection(SessionSettings settings, SessionID sessionID)
-            throws SQLException, ClassNotFoundException, ConfigError {
+            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
         Class.forName(settings.getString(sessionID, SessionSettings.JDBC_STORE_DRIVER));
         return DriverManager.getConnection(settings.getString(sessionID,
                 SessionSettings.JDBC_STORE_URL), settings.getString(sessionID,
@@ -34,7 +34,7 @@ public class JdbcUtil {
     }
     
     public static Connection openMySQLConnection(SessionSettings settings, SessionID sessionID)
-            throws SQLException, ClassNotFoundException, ConfigError {
+            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
         settings.setString(sessionID, SessionSettings.JDBC_STORE_DRIVER, "com.mysql.jdbc.Driver");
         settings.setString(sessionID, SessionSettings.JDBC_STORE_URL, "jdbc:mysql://"
                 + settings.getString(sessionID, SessionSettings.MYSQL_STORE_HOST) + ":"

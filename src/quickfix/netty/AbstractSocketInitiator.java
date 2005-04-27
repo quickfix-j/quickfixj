@@ -179,12 +179,14 @@ public abstract class AbstractSocketInitiator implements Initiator {
             if (sessionConnections.size() == 0) {
                 throw new ConfigError("no initiators in settings");
             }
+        } catch (FieldConvertError e) {
+            throw new ConfigError(e);
         } catch (IOException e) {
             throw new RuntimeError(e);
         }
     }
 
-    private boolean isInitiatorSession(Object sectionKey) throws ConfigError {
+    private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
         return sectionKey != SessionSettings.DEFAULT_SESSION_ID
                 && (!settings.isSetting((SessionID) sectionKey, SessionSettings.CONNECTION_TYPE) || settings
                         .getString((SessionID) sectionKey, SessionSettings.CONNECTION_TYPE).equals(

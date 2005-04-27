@@ -111,7 +111,7 @@ public class TestApiCompatibility {
                         Constructor c = null;
                         try {
                             c = javaClass
-                                    .getDeclaredConstructor(translateParameterTypes(constructors[i]
+                                    .getDeclaredConstructor(translateClassArray(constructors[i]
                                             .getParameterTypes()));
                         } catch (SecurityException e) {
                             Assert.fail(e.getMessage());
@@ -132,7 +132,7 @@ public class TestApiCompatibility {
                     Method m = null;
                     try {
                         m = javaClass.getMethod(methods[i].getName(),
-                                translateParameterTypes(methods[i].getParameterTypes()));
+                                translateClassArray(methods[i].getParameterTypes()));
                     } catch (SecurityException e) {
                         Assert.fail(e.getMessage());
                     } catch (NoSuchMethodException e) {
@@ -194,21 +194,23 @@ public class TestApiCompatibility {
             }
         }
 
-        private Class[] translateParameterTypes(Class[] parameterTypes)
-                throws ClassNotFoundException {
-            Class[] types = new Class[parameterTypes.length];
-            for (int i = 0; i < types.length; i++) {
-                types[i] = translatedClass(parameterTypes[i]);
-            }
-            return types;
-        }
-
         private List translateClassList(List jniClasses) throws ClassNotFoundException {
             ArrayList classes = new ArrayList();
             for (int i = 0; i < jniClasses.size(); i++) {
                 classes.add(translatedClass((Class) jniClasses.get(i)));
             }
             return classes;
+        }
+
+        private Class[] translateClassArray(Class[] classArray) throws ClassNotFoundException {
+            if (classArray == null) {
+                return null;
+            }
+            Class[] types = new Class[classArray.length];
+            for (int i = 0; i < types.length; i++) {
+                types[i] = translatedClass(classArray[i]);
+            }
+            return types;
         }
 
         private Class translatedClass(Class jniType) throws ClassNotFoundException {
@@ -234,19 +236,43 @@ public class TestApiCompatibility {
         public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,
                 SecurityException, NoSuchMethodException {
             this.jniClassLoader = jniClassLoader;
+            ignoreConstructor(jniClassLoader, "quickfix.Message",
+                    new Class[] { Message.Header.class, Message.Trailer.class });
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppLog"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppMessageStore"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Iterator"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header$Iterator"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { int.class });
             ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { int.class });
             ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", null);
             ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", new Class[] { int.class });
+            ignoreConstructor(jniClassLoader, "quickfix.Message$Header",
+                    new Class[] { Message.class, Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer",
+                    new Class[] { Message.class, Message.class });
 
         }
 
-        private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args) throws ClassNotFoundException, NoSuchMethodException {
+        private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)
+                throws ClassNotFoundException, NoSuchMethodException {
             Class c = jniClassLoader.loadClass(classname);
-            ignoredConstructors.add(c.getConstructor(args));
+            if (args != null) {
+                Class[] jniClasses = new Class[args.length];
+                for (int i = 0; i < args.length; i++) {
+                    Package pkg = args[i].getPackage();
+                    if (pkg != null && pkg.getName().startsWith("quickfix")) {
+                        jniClasses[i] = jniClassLoader.loadClass(args[i].getName());
+                    } else {
+                        jniClasses[i] = args[i];
+                    }
+                }
+                args = jniClasses;
+            }
+            ignoredConstructors.add(c.getDeclaredConstructor(args));
         }
 
         public boolean isIgnoredClass(Class jniClass) {
@@ -261,7 +287,7 @@ public class TestApiCompatibility {
     public static Test suite() {
         TestSuite suite = new TestSuite();
         try {
-            String jarPath = "../quickfix_cvs/lib/quickfix.jar";
+            String jarPath = "../quickfix_cpp/lib/quickfix.jar";
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
             IgnoredItems ignoredItems = new IgnoredItems(jniClassLoader);

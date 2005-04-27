@@ -20,7 +20,7 @@
 package quickfix;
 
 public class Group extends FieldMap {
-    private int field;
+    private IntField field;
     private int delim;
     
     public Group() { }
@@ -36,7 +36,7 @@ public class Group extends FieldMap {
     
     public Group(int field, int delim, int[] order) {
         super(order);
-        this.field = field;
+        this.field = new IntField(field);
         this.delim = delim;
     }
     
@@ -45,14 +45,16 @@ public class Group extends FieldMap {
     }
 
     public void addGroup(Group group) {
+        // TODO review why this is unsupported
         throw new UnsupportedOperationException();
     }
     
-    public Group getGroup(int num, Group group) /*throws FieldNotFound*/ {
+    public Group getGroup(int num, Group group) throws FieldNotFound {
+        // TODO review why this is unsupported
         throw new UnsupportedOperationException();
     }
 
     public int getFieldTag() {
-        return field;
+        return field.getTag();
     }
 }

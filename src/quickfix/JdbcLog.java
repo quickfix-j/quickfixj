@@ -29,13 +29,13 @@ public class JdbcLog implements Log {
     private SessionID sessionID;
 
     public JdbcLog(SessionSettings settings, SessionID sessionID) throws SQLException,
-            ClassNotFoundException, ConfigError {
+            ClassNotFoundException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
         connection = connect(settings, sessionID);
     }
 
     protected Connection connect(SessionSettings settings, SessionID sessionID2) throws SQLException,
-            ClassNotFoundException, ConfigError {
+            ClassNotFoundException, ConfigError, FieldConvertError {
         return JdbcUtil.openConnection(settings, sessionID);
     }
 

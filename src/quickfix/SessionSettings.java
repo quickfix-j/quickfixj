@@ -93,7 +93,7 @@ public class SessionSettings {
         load(stream);
     }
 
-    public String getString(SessionID sessionID, String key) throws ConfigError {
+    public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         String value = getSessionProperties(sessionID).getProperty(key);
         if (value == null) {
             throw new ConfigError("missing setting: "+key);
@@ -134,7 +134,7 @@ public class SessionSettings {
         }
     }
 
-    public boolean getBool(SessionID sessionID, String key) throws ConfigError {
+    public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
             return FieldValueConverter.BooleanConverter.convert(getString(sessionID, key));
         } catch (FieldConvertError e) {
