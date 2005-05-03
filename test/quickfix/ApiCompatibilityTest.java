@@ -23,7 +23,7 @@ import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import quickfix.test.acceptance.TestContext;
 
-public class TestApiCompatibility {
+public class ApiCompatibilityTest {
 
     // TODO need to copy quickfix JNI jar into quickfixj for
     // testing purposes.

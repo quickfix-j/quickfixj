@@ -17,7 +17,6 @@ import net.gleamynode.netty2.Message;
 import org.apache.commons.logging.Log;
 
 import quickfix.netty.AbstractSocketInitiator;
-import quickfix.test.acceptance.ATApplication;
 import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
@@ -107,54 +106,54 @@ public class SocketInitiator extends AbstractSocketInitiator {
             processTimerEvent(quickfixSession);
         }
     }
-
-    public static void main(String[] args) {
-        try {
-            final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-            SessionSettings sessionSettings = new SessionSettings();
-            sessionSettings.setString(sessionID, SessionSettings.BEGINSTRING,
-                    FixVersions.BEGINSTRING_FIX42);
-            sessionSettings.setString(sessionID, SessionSettings.DATA_DICTIONARY,
-                    "src/quickfix/codegen/FIX42.xml");
-            sessionSettings.setString(sessionID, SessionSettings.START_TIME, "00:00:00");
-            sessionSettings.setString(sessionID, SessionSettings.END_TIME, "00:00:00");
-            sessionSettings.setString(sessionID, SessionSettings.HEARTBTINT, "20");
-            sessionSettings.setString(sessionID, SessionSettings.CONNECTION_TYPE, "initiator");
-            sessionSettings.setString(sessionID, SessionSettings.SOCKET_CONNECT_HOST, "localhost");
-            sessionSettings.setLong(sessionID, SessionSettings.SOCKET_CONNECT_PORT, 9877);
-            sessionSettings.setLong(sessionID, SessionSettings.RECONNECT_INTERVAL, 2);
-
-            SocketInitiator socketInitiator = new SocketInitiator(new ATApplication() {
-                public void toAdmin(quickfix.Message message, SessionID sessionID) {
-                    super.toAdmin(message, sessionID);
-                    System.err.println("toAdmin: " + message);
-                }
-
-                public void fromAdmin(quickfix.Message message, SessionID sessionID)
-                        throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-                    super.fromAdmin(message, sessionID);
-                    System.err.println("fromAdmin: " + message);
-                }
-            }, new MemoryStoreFactory(), sessionSettings, new ScreenLogFactory(true, true, true),
-                    new DefaultMessageFactory());
-            // new Thread(new Runnable() {
-            // public void run() {
-            // try {
-            // Thread.sleep(10000);
-            // System.err.println("LOGGING OUT");
-            // quickfix.Session session =
-            // quickfix.Session.lookupSession(sessionID);
-            // session.logout();
-            // session.next();
-            // } catch (Exception e) {
-            // e.printStackTrace();
-            // }
-            // }
-            // }).start();
-            // socketInitiator.start();
-            socketInitiator.block();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//
+//    public static void main(String[] args) {
+//        try {
+//            final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+//            SessionSettings sessionSettings = new SessionSettings();
+//            sessionSettings.setString(sessionID, SessionSettings.BEGINSTRING,
+//                    FixVersions.BEGINSTRING_FIX42);
+//            sessionSettings.setString(sessionID, SessionSettings.DATA_DICTIONARY,
+//                    "src/quickfix/codegen/FIX42.xml");
+//            sessionSettings.setString(sessionID, SessionSettings.START_TIME, "00:00:00");
+//            sessionSettings.setString(sessionID, SessionSettings.END_TIME, "00:00:00");
+//            sessionSettings.setString(sessionID, SessionSettings.HEARTBTINT, "20");
+//            sessionSettings.setString(sessionID, SessionSettings.CONNECTION_TYPE, "initiator");
+//            sessionSettings.setString(sessionID, SessionSettings.SOCKET_CONNECT_HOST, "localhost");
+//            sessionSettings.setLong(sessionID, SessionSettings.SOCKET_CONNECT_PORT, 9877);
+//            sessionSettings.setLong(sessionID, SessionSettings.RECONNECT_INTERVAL, 2);
+//
+//            SocketInitiator socketInitiator = new SocketInitiator(new ATApplication() {
+//                public void toAdmin(quickfix.Message message, SessionID sessionID) {
+//                    super.toAdmin(message, sessionID);
+//                    System.err.println("toAdmin: " + message);
+//                }
+//
+//                public void fromAdmin(quickfix.Message message, SessionID sessionID)
+//                        throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+//                    super.fromAdmin(message, sessionID);
+//                    System.err.println("fromAdmin: " + message);
+//                }
+//            }, new MemoryStoreFactory(), sessionSettings, new ScreenLogFactory(true, true, true),
+//                    new DefaultMessageFactory());
+//            // new Thread(new Runnable() {
+//            // public void run() {
+//            // try {
+//            // Thread.sleep(10000);
+//            // System.err.println("LOGGING OUT");
+//            // quickfix.Session session =
+//            // quickfix.Session.lookupSession(sessionID);
+//            // session.logout();
+//            // session.next();
+//            // } catch (Exception e) {
+//            // e.printStackTrace();
+//            // }
+//            // }
+//            // }).start();
+//            // socketInitiator.start();
+//            socketInitiator.block();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

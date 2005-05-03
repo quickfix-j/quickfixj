@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 
+import quickfix.field.converter.BooleanConverter;
+
 public class SessionSettings {
     public static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");;
     private static final String SESSION_SECTION_NAME = "session";
@@ -136,7 +138,7 @@ public class SessionSettings {
 
     public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
-            return FieldValueConverter.BooleanConverter.convert(getString(sessionID, key));
+            return BooleanConverter.convert(getString(sessionID, key));
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
         }
@@ -158,7 +160,7 @@ public class SessionSettings {
 
     public void setBool(SessionID sessionID, String key, boolean value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, 
-                FieldValueConverter.BooleanConverter.convert(value));
+                BooleanConverter.convert(value));
 
     }
 

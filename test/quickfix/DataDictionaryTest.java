@@ -2,9 +2,9 @@ package quickfix;
 
 import junit.framework.TestCase;
 
-public class TestDataDictionary extends TestCase {
+public class DataDictionaryTest extends TestCase {
 
-    public TestDataDictionary(String arg0) {
+    public DataDictionaryTest(String arg0) {
         super(arg0);
     }
 
@@ -45,7 +45,7 @@ public class TestDataDictionary extends TestCase {
 
     public static DataDictionary getDictionary() {
         if (testDataDictionary == null) {
-            testDataDictionary = new DataDictionary(TestDataDictionary.class.getClassLoader()
+            testDataDictionary = new DataDictionary(DataDictionaryTest.class.getClassLoader()
                     .getResourceAsStream("quickfix/FIX44_test.xml"));
 //            testDataDictionary = new DataDictionary(TestDataDictionary.class.getClassLoader()
 //                    .getResourceAsStream("quickfix/codegen/FIX44.xml"));

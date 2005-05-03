@@ -126,4 +126,10 @@ public /*abstract*/ class Field {
         
         isCalculated = true;
     }
+
+    public void setTag(int tag) {
+        this.tag = tag;
+        isCalculated = false;
+        calculate();
+    }
 }

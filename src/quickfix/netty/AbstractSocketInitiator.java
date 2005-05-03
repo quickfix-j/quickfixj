@@ -40,7 +40,6 @@ import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
 import quickfix.FieldConvertError;
-import quickfix.FieldValueConverter;
 import quickfix.Initiator;
 import quickfix.InvalidMessage;
 import quickfix.LogFactory;
@@ -53,6 +52,7 @@ import quickfix.ScreenLogFactory;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.field.converter.IntConverter;
 
 public abstract class AbstractSocketInitiator implements Initiator {
     private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
@@ -195,7 +195,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
     private int getIntSetting(String key) throws ConfigError {
         try {
-            return FieldValueConverter.IntConverter.convert(settings.getString(
+            return IntConverter.convert(settings.getString(
                     SessionSettings.DEFAULT_SESSION_ID, key));
         } catch (FieldConvertError e) {
             throw (ConfigError) new ConfigError(e.getMessage()).fillInStackTrace();

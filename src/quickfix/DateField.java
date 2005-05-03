@@ -28,7 +28,7 @@ public class DateField extends Field {
     private static Calendar calendar;
 
     static {
-        timezone = TimeZone.getTimeZone("GMT+0");
+        timezone = TimeZone.getTimeZone("UTC");
     }
 
     protected DateField(int field) {

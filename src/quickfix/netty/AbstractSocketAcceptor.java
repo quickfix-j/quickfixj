@@ -39,7 +39,6 @@ import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
 import quickfix.FieldConvertError;
-import quickfix.FieldValueConverter;
 import quickfix.InvalidMessage;
 import quickfix.LogFactory;
 import quickfix.LogUtil;
@@ -53,6 +52,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgType;
+import quickfix.field.converter.IntConverter;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public abstract class AbstractSocketAcceptor implements Acceptor {
@@ -187,7 +187,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     private int getIntSetting(String key) throws ConfigError {
         try {
             // TODO add ability to bind a specific network card
-            return FieldValueConverter.IntConverter.convert(settings.getString(
+            return IntConverter.convert(settings.getString(
                     SessionSettings.DEFAULT_SESSION_ID, key));
         } catch (FieldConvertError e) {
             throw (ConfigError) new ConfigError(e.getMessage()).fillInStackTrace();

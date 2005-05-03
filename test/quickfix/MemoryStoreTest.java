@@ -1,7 +1,7 @@
 package quickfix;
 
-public class TestMemoryStore extends AbstractMessageStoreTestCase {
-	public TestMemoryStore(String name) {
+public class MemoryStoreTest extends AbstractMessageStoreTest {
+	public MemoryStoreTest(String name) {
 		super(name);
 	}
 

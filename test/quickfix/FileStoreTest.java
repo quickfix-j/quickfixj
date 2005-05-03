@@ -1,7 +1,7 @@
 package quickfix;
 
-public class TestFileStore extends AbstractMessageStoreTestCase {
-    public TestFileStore(String name) {
+public class FileStoreTest extends AbstractMessageStoreTest {
+    public FileStoreTest(String name) {
         super(name);
     }
 
@@ -12,7 +12,7 @@ public class TestFileStore extends AbstractMessageStoreTestCase {
     }
 
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
-        SessionSettings settings = new SessionSettings("tests.cfg");
+        SessionSettings settings = new SessionSettings(getConfigurationFileName());
         // Initialize the session settings from the defaults
         settings.setString(getSessionID(), SessionSettings.FILE_STORE_PATH, settings.getString(
                 SessionSettings.DEFAULT_SESSION_ID, SessionSettings.FILE_STORE_PATH));

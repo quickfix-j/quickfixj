@@ -31,6 +31,13 @@ import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.SessionRejectReason;
+import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DoubleConverter;
+import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.UtcDateOnlyConverter;
+import quickfix.field.converter.UtcTimeOnlyConverter;
+import quickfix.field.converter.UtcTimestampConverter;
 
 public abstract class FieldMap {
     private final int[] fieldOrder;
@@ -82,22 +89,22 @@ public abstract class FieldMap {
     }
 
     public void setBoolean(int field, boolean value) {
-        String s = FieldValueConverter.BooleanConverter.convert(value);
+        String s = BooleanConverter.convert(value);
         setField(new StringField(field, s));
     }
 
     public void setChar(int field, char value) {
-        String s = FieldValueConverter.CharConverter.convert(value);
+        String s = CharConverter.convert(value);
         setField(new StringField(field, s));
     }
 
     public void setInt(int field, int value) {
-        String s = FieldValueConverter.IntConverter.convert(value);
+        String s = IntConverter.convert(value);
         setField(new StringField(field, s));
     }
 
     public void setDouble(int field, double value) {
-        String s = FieldValueConverter.DoubleConverter.convert(value);
+        String s = DoubleConverter.convert(value);
         setField(new StringField(field, s));
     }
 
@@ -106,7 +113,7 @@ public abstract class FieldMap {
     }
 
     public void setUtcTimeStamp(int field, Date value, boolean includeMilliseconds) {
-        String s = FieldValueConverter.UtcTimestampConverter.convert(value, includeMilliseconds);
+        String s = UtcTimestampConverter.convert(value, includeMilliseconds);
         setField(new StringField(field, s));
     }
 
@@ -114,12 +121,12 @@ public abstract class FieldMap {
         setUtcTimeOnly(field, value, false);
     }
     public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) {
-        String s = FieldValueConverter.UtcTimeOnlyConverter.convert(value, includeMillseconds);
+        String s = UtcTimeOnlyConverter.convert(value, includeMillseconds);
         setField(new StringField(field, s));
     }
 
     public void setUtcDateOnly(int field, Date value) {
-        String s = FieldValueConverter.UtcDateOnlyConverter.convert(value, true);
+        String s = UtcDateOnlyConverter.convert(value);
         setField(new StringField(field, s));
     }
 
@@ -146,7 +153,7 @@ public abstract class FieldMap {
     public boolean getBoolean(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.BooleanConverter.convert(value);
+            return BooleanConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -155,7 +162,7 @@ public abstract class FieldMap {
     public char getChar(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.CharConverter.convert(value);
+            return CharConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -164,7 +171,7 @@ public abstract class FieldMap {
     public int getInt(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.IntConverter.convert(value);
+            return IntConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -173,7 +180,7 @@ public abstract class FieldMap {
     public double getDouble(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.DoubleConverter.convert(value);
+            return DoubleConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -182,7 +189,7 @@ public abstract class FieldMap {
     public Date getUtcTimeStamp(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcTimestampConverter.convert(value);
+            return UtcTimestampConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -191,7 +198,7 @@ public abstract class FieldMap {
     public Date getUtcTimeOnly(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcTimeOnlyConverter.convert(value);
+            return UtcTimeOnlyConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -200,7 +207,7 @@ public abstract class FieldMap {
     public Date getUtcDateOnly(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcDateOnlyConverter.convert(value);
+            return UtcDateOnlyConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -253,7 +260,7 @@ public abstract class FieldMap {
     public BooleanField getField(BooleanField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Boolean(FieldValueConverter.BooleanConverter.convert(value)));
+            field.setObject(new Boolean(BooleanConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -265,7 +272,7 @@ public abstract class FieldMap {
     public CharField getField(CharField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Character(FieldValueConverter.CharConverter.convert(value)));
+            field.setObject(new Character(CharConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -277,7 +284,7 @@ public abstract class FieldMap {
     public IntField getField(IntField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Integer(FieldValueConverter.IntConverter.convert(value)));
+            field.setObject(new Integer(IntConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -289,7 +296,7 @@ public abstract class FieldMap {
     public DoubleField getField(DoubleField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Double(FieldValueConverter.DoubleConverter.convert(value)));
+            field.setObject(new Double(DoubleConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -302,7 +309,7 @@ public abstract class FieldMap {
         try {
             String value = getField(field.getField()).getValue();
             // TODO - Determine how to use calculate days...
-            field.setObject(FieldValueConverter.UtcTimestampConverter.convert(value));
+            field.setObject(UtcTimestampConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -314,7 +321,7 @@ public abstract class FieldMap {
     public UtcTimeOnlyField getField(UtcTimeOnlyField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(FieldValueConverter.UtcTimeOnlyConverter.convert(value));
+            field.setObject(UtcTimeOnlyConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -326,7 +333,7 @@ public abstract class FieldMap {
     public UtcDateOnlyField getField(UtcDateOnlyField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(FieldValueConverter.UtcDateOnlyConverter.convert(value));
+            field.setObject(UtcDateOnlyConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {

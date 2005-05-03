@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
 public class FileStore implements MessageStore {
     private MemoryStore cache = new MemoryStore();
     private RandomAccessFile msgFile;
@@ -105,7 +107,7 @@ public class FileStore implements MessageStore {
             sessionFile.seek(0);
             sessionFile.read(data);
             try {
-                Date date = FieldValueConverter.UtcTimestampConverter.convert(new String(data));
+                Date date = UtcTimestampConverter.convert(new String(data));
                 Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 c.setTime(date);
                 cache.setCreationTime(c);
@@ -246,7 +248,7 @@ public class FileStore implements MessageStore {
 
     private void storeSessionTimeStamp() throws IOException {
         sessionFile.seek(0);
-        String formattedTime = FieldValueConverter.UtcTimestampConverter.convert(new Date(), false);
+        String formattedTime = UtcTimestampConverter.convert(new Date(), false);
         sessionFile.write(formattedTime.getBytes());
     }
 

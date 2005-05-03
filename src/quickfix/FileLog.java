@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
 public class FileLog implements Log {
     private SessionID sessionID;
     private String incomingFileName;
@@ -81,7 +83,7 @@ public class FileLog implements Log {
 
     public void onEvent(String message) {
         try {
-            String formattedTime = FieldValueConverter.UtcTimestampConverter.convert(new Date(),
+            String formattedTime = UtcTimestampConverter.convert(new Date(),
                     false);
             events.write(formattedTime.getBytes());
             events.write(": ".getBytes());

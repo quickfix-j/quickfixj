@@ -79,7 +79,7 @@ public class Session {
             if (logFactory != null) {
                 state.setLog(log);
             }
-            if (!checkSessionTime(new Date())) {
+            if (!checkSessionTime(new Date(SystemTime.get()))) {
                 reset();
             }
             sessions.put(sessionID, this);

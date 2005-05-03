@@ -7,8 +7,8 @@ import java.sql.SQLException;
 
 import junit.framework.TestCase;
 
-public class TestMySQLLog extends TestCase {
-    public TestMySQLLog(String name) {
+public class MySQLLogTest extends TestCase {
+    public MySQLLogTest(String name) {
         super(name);
     }
 
@@ -64,5 +64,21 @@ public class TestMySQLLog extends TestCase {
                 ps.close();
             }
         }
+    }
+    
+    protected String getConfigurationFileName() {
+        return "tests.cfg";
+    }
+    
+    private String getBaseDirectory() {
+        String base = System.getProperty("base.directory");
+        if (base != null) {
+            if (!base.endsWith("/")) {
+                base += "/";
+            }
+        } else {
+            base = "";
+        }
+        return base;
     }
 }

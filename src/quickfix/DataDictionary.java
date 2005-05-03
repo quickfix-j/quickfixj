@@ -34,6 +34,13 @@ import org.xml.sax.SAXException;
 import quickfix.field.BeginString;
 import quickfix.field.MsgType;
 import quickfix.field.SessionRejectReason;
+import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DoubleConverter;
+import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.UtcDateOnlyConverter;
+import quickfix.field.converter.UtcTimeOnlyConverter;
+import quickfix.field.converter.UtcTimestampConverter;
 
 public class DataDictionary {
     private HashMap fieldSchemaByName = new HashMap();
@@ -375,7 +382,7 @@ public class DataDictionary {
                 }
                 if (isGroup(msgType, tag)) {
                     try {
-                        if (map.getGroupCount(tag) != FieldValueConverter.IntConverter
+                        if (map.getGroupCount(tag) != IntConverter
                                 .convert(field.getValue())) {
                             throw new FieldException(
                                     SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
@@ -406,18 +413,18 @@ public class DataDictionary {
                 // String
             } else if (fieldType == FieldType.Char) {
                 if (version.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
-                    FieldValueConverter.CharConverter.convert(field.getValue());
+                    CharConverter.convert(field.getValue());
                 } else {
                     // String, for older FIX versions
                 }
             } else if (fieldType == FieldType.Price) {
-                FieldValueConverter.DoubleConverter.convert(field.getValue());
+                DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Int) {
-                FieldValueConverter.IntConverter.convert(field.getValue());
+                IntConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Amt) {
-                FieldValueConverter.DoubleConverter.convert(field.getValue());
+                DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Qty) {
-                FieldValueConverter.DoubleConverter.convert(field.getValue());
+                DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Qty) {
                 // String
             } else if (fieldType == FieldType.MultipleValueString) {
@@ -425,33 +432,33 @@ public class DataDictionary {
             } else if (fieldType == FieldType.Exchange) {
                 // String
             } else if (fieldType == FieldType.Boolean) {
-                FieldValueConverter.BooleanConverter.convert(field.getValue());
+                BooleanConverter.convert(field.getValue());
             } else if (fieldType == FieldType.LocalMktDate) {
                 // String
             } else if (fieldType == FieldType.Data) {
                 // String
             } else if (fieldType == FieldType.Float) {
-                FieldValueConverter.DoubleConverter.convert(field.getValue());
+                DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.PriceOffset) {
-                FieldValueConverter.DoubleConverter.convert(field.getValue());
+                DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.MonthYear) {
                 // String
             } else if (fieldType == FieldType.DayOfMonth) {
                 // String
             } else if (fieldType == FieldType.UtcDate) {
-                FieldValueConverter.UtcDateOnlyConverter.convert(field.getValue());
+                UtcDateOnlyConverter.convert(field.getValue());
             } else if (fieldType == FieldType.UtcTimeOnly) {
-                FieldValueConverter.UtcTimeOnlyConverter.convert(field.getValue());
+                UtcTimeOnlyConverter.convert(field.getValue());
             } else if (fieldType == FieldType.UtcTimeStamp || fieldType == FieldType.Time) {
-                FieldValueConverter.UtcTimestampConverter.convert(field.getValue());
+                UtcTimestampConverter.convert(field.getValue());
             } else if (fieldType == FieldType.NumInGroup) {
-                FieldValueConverter.IntConverter.convert(field.getValue());
+                IntConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Percentage) {
-                FieldValueConverter.DoubleConverter.convert(field.getValue());
+                DoubleConverter.convert(field.getValue());
             } else if (fieldType == FieldType.SeqNum) {
-                FieldValueConverter.IntConverter.convert(field.getValue());
+                IntConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Length) {
-                FieldValueConverter.IntConverter.convert(field.getValue());
+                IntConverter.convert(field.getValue());
             } else if (fieldType == FieldType.Country) {
                 // String
             }

@@ -7,9 +7,9 @@ import java.util.Iterator;
 
 import junit.framework.TestCase;
 
-public class TestSessionSettings extends TestCase {
+public class SessionSettingsTest extends TestCase {
 
-    public TestSessionSettings(String name) {
+    public SessionSettingsTest(String name) {
         super(name);
     }
 

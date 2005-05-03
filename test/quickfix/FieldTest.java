@@ -1,0 +1,153 @@
+package quickfix;
+
+import java.util.Date;
+
+import junit.framework.TestCase;
+import quickfix.field.Side;
+
+public class FieldTest extends TestCase {
+
+    public FieldTest(String name) {
+        super(name);
+    }
+
+    public void setUp() throws Exception {
+    }
+
+    public void tearDown() throws Exception {
+    }
+
+    public void testMessageSetGetString() {
+        Side side1 = new Side(Side.BUY);
+        Side side2 = new Side(Side.BUY);
+        assertEquals(side1, side2);
+
+        side2 = new Side();
+        side2.setValue(Side.BUY);
+        assertEquals(side1, side2);
+    }
+
+    public void testFieldCalculations() {
+        Field object = new Field(12, "VALUE");
+        object.setObject("VALUE");
+        assertEquals("12=VALUE", object.toString());
+        assertEquals(542, object.getTotal());
+        assertEquals(9, object.getLength());
+        object.setObject("VALUF");
+        assertEquals("12=VALUF", object.toString());
+        assertEquals(543, object.getTotal());
+        assertEquals(9, object.getLength());
+        object.setTag(13);
+        assertEquals("13=VALUF", object.toString());
+        assertEquals(544, object.getTotal());
+        assertEquals(9, object.getLength());
+    }
+
+    public void testDateField() {
+        DateField field = new DateField(11);
+        Date date = new Date();
+        field.setValue(date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+        field = new DateField(11, date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+    }
+
+    public void testUtcDateOnlyField() {
+        UtcDateOnlyField field = new UtcDateOnlyField(11);
+        Date date = new Date();
+        field.setValue(date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+        field = new UtcDateOnlyField(11, date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+    }
+
+    public void testUtcTimeOnlyField() {
+        UtcTimeOnlyField field = new UtcTimeOnlyField(11);
+        Date date = new Date();
+        field.setValue(date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+        field = new UtcTimeOnlyField(11, date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+    }
+ 
+    public void testUtcTimeStampField() {
+        UtcTimeStampField field = new UtcTimeStampField(11);
+        Date date = new Date();
+        field.setValue(date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+        field = new UtcTimeStampField(11, date);
+        assertEquals(11, field.getTag());
+        assertEquals(date, field.getValue());
+    }
+
+    public void testBooleanField() {
+        BooleanField field = new BooleanField(11);
+        field.setValue(true);
+        assertEquals(11, field.getTag());
+        assertEquals(true, field.getValue());
+        field.setValue(Boolean.FALSE);
+        assertEquals(11, field.getTag());
+        assertEquals(false, field.getValue());
+        field = new BooleanField(22, true);
+        assertEquals(22, field.getTag());
+        assertEquals(true, field.getValue());
+        field = new BooleanField(33, Boolean.TRUE);
+        assertEquals(33, field.getTag());
+        assertEquals(true, field.getValue());
+    }
+
+    public void testDoubleField() {
+        DoubleField field = new DoubleField(11);
+        field.setValue(12.3);
+        assertEquals(11, field.getTag());
+        assertEquals(12.3, field.getValue(), 0);
+        field.setValue(new Double(23.4));
+        assertEquals(11, field.getTag());
+        assertEquals(23.4, field.getValue(), 0);
+        field = new DoubleField(22, 34.5);
+        assertEquals(22, field.getTag());
+        assertEquals(34.5, field.getValue(), 0);
+        field = new DoubleField(33, new Double(45.6));
+        assertEquals(33, field.getTag());
+        assertEquals(45.6, field.getValue(), 0);
+    }
+
+    public void testCharField() {
+        CharField field = new CharField(11);
+        field.setValue('x');
+        assertEquals(11, field.getTag());
+        assertEquals('x', field.getValue());
+        field.setValue(new Character('X'));
+        assertEquals(11, field.getTag());
+        assertEquals('X', field.getValue());
+        field = new CharField(22, 'a');
+        assertEquals(22, field.getTag());
+        assertEquals('a', field.getValue());
+        field = new CharField(33, new Character('A'));
+        assertEquals(33, field.getTag());
+        assertEquals('A', field.getValue());
+    }
+
+    public void testIntField() {
+        IntField field = new IntField(11);
+        field.setValue(12);
+        assertEquals(11, field.getTag());
+        assertEquals(12, field.getValue());
+        field.setValue(new Integer(23));
+        assertEquals(11, field.getTag());
+        assertEquals(23, field.getValue());
+        field = new IntField(22, 23);
+        assertEquals(22, field.getTag());
+        assertEquals(23, field.getValue());
+        field = new IntField(33, new Integer(44));
+        assertEquals(33, field.getTag());
+        assertEquals(44, field.getValue());
+    }
+}

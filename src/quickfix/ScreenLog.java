@@ -22,6 +22,8 @@ package quickfix;
 import java.io.PrintStream;
 import java.util.Date;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
 public class ScreenLog implements Log {
     private PrintStream out;
     private SessionID sessionID;
@@ -60,7 +62,12 @@ public class ScreenLog implements Log {
     }
 
     private void log(String message, String type) {
-        out.println("<" + FieldValueConverter.UtcTimestampConverter.convert(new Date(), false)
+        out.println("<" + UtcTimestampConverter.convert(new Date(), false)
                 + ", " + sessionID + ", " + type + "> (" + message + ")");
+    }
+    
+    // For Testing
+    void setOut(PrintStream out) {
+        this.out = out;
     }
 }

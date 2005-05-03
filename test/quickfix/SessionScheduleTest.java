@@ -6,7 +6,7 @@ import java.util.TimeZone;
 
 import junit.framework.TestCase;
 
-public class TestSessionSchedule extends TestCase {
+public class SessionScheduleTest extends TestCase {
     private MockSystemTimeSource mockSystemTimeSource;
 
     protected void setUp() throws Exception {

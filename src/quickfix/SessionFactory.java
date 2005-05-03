@@ -25,6 +25,8 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
+import quickfix.field.converter.UtcTimeOnlyConverter;
+
 /**
  * @author sbate
  */
@@ -88,9 +90,9 @@ public class SessionFactory {
                 }
             }
 
-            Date startTime = FieldValueConverter.UtcTimeOnlyConverter.convert(settings.getString(
+            Date startTime = UtcTimeOnlyConverter.convert(settings.getString(
                     sessionID, SessionSettings.START_TIME));
-            Date endTime = FieldValueConverter.UtcTimeOnlyConverter.convert(settings.getString(
+            Date endTime = UtcTimeOnlyConverter.convert(settings.getString(
                     sessionID, SessionSettings.END_TIME));
 
             int startDay = getDay(settings, sessionID, SessionSettings.START_DAY, -1);

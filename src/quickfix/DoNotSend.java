@@ -19,6 +19,10 @@
 
 package quickfix;
 
+/**
+ * Applications can throw this exception to abort the sending or resending
+ * of a message.
+ */
 public class DoNotSend extends Exception {
 
     public DoNotSend() {

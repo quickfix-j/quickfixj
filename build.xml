@@ -4,8 +4,8 @@
 	</target>
 
 	<target name="dist" description="Build the QuickFix/Java distribution">
-		<mkdir dir="ant" />
-		<tar destfile="ant/quickfixj.tar">
+		<mkdir dir="build/ant" />
+		<tar destfile="build/ant/quickfixj.tar">
 			<tarfileset dir=".">
 				<exclude name="ant/**/*" />
 				<exclude name="data/**/*" />
@@ -14,6 +14,13 @@
 		</tar>
 		<gzip src="ant/quickfixj.tar" destfile="ant/quickfixj.tar.gz" />
 		<delete file="ant/quickfixj.tar" />
+	</target>
+
+	<target name="jar" description="Build the QuickFix/J JAR file">
+		<mkdir dir="build/ant" />
+		<jar destfile="build/ant/quickfixj.jar">
+			<fileset dir="build/ant/classes/product"/>
+		</jar>
 	</target>
 
 	<target name="compile"
@@ -64,10 +71,11 @@
 
 	<target name="generate.code"
 	        unless="generated.uptodate"
-	        depends="check.generated.uptodate">
+	        depends="check.generated.uptodate"
+			description="generate FIX message code">
 		<mkdir dir="build/ant/classes/product" />
 		<javac srcdir="src/quickfix/codegen"
-		       includes="JavaCodeGenerator.java"
+		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
 		       destdir="build/ant/classes/product"
 		       classpathref="classpath" />
 		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
@@ -123,8 +131,7 @@
 	</target>
 
 	<target name="clean" description="Remove build and distribution files">
-		<delete dir="build" />
-		<delete dir="src-generated/quickfix*" />
+		<delete dir="build/ant" />
 	</target>
 
 	<!--
@@ -155,5 +162,85 @@
 		</java>
 	</target>
 	-->
+
+	<!-- Emma Coverage Targets -->
+
+	<target name="emma.init">
+		<property name="coverage.dir" value="coverage" />
+		<path id="emma.lib">
+			<fileset dir="." includes="lib/emma*.jar" />
+		</path>
+		<taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+		<taskdef name="junit"
+		         classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" />
+	</target>
+
+	<target name="emma.all"
+	        depends="emma.clean,emma.instrument,emma.test-unit,emma.report" />
+
+	<target name="emma.instrument" depends="emma.init">
+		<emma>
+			<instr mode="copy"
+			       instrpath="classes"
+			       outdir="${coverage.dir}/classes"
+			       metadatafile="${coverage.dir}/coverage.em"
+			       merge="no">
+				<filter includes="quickfix.*"
+				        excludes="*Test,*Test$*,quickfix.fix*,quickfix.examples*,quickfix.test*" />
+			</instr>
+		</emma>
+	</target>
+
+	<target name="emma.test-unit" depends="emma.init">
+		<junit printsummary="true" showoutput="true" fork="yes">
+			<jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.ec" />
+			<formatter type="plain" usefile="false" />
+			<classpath>
+				<fileset dir=".">
+					<include name="lib/*.jar" />
+				</fileset>
+				<path refid="emma.lib" />
+				<pathelement location="${coverage.dir}/classes" />
+				<pathelement location="classes" />
+			</classpath>
+			<batchtest>
+				<fileset dir="test">
+					<exclude name="quickfix/Abstract*" />
+					<exclude name="quickfix/Api*Test.java" />
+					<include name="quickfix/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="emma.test-acceptance" depends="emma.init">
+		<junit printsummary="true" showoutput="true" fork="yes">
+			<jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.ec" />
+			<formatter type="plain" usefile="false" />
+			<classpath>
+				<fileset dir=".">
+					<include name="lib/*.jar" />
+				</fileset>
+				<path refid="emma.lib" />
+				<pathelement location="${coverage.dir}/classes" />
+				<pathelement location="classes" />
+			</classpath>
+			<test name="quickfix.test.acceptance.AcceptanceTestSuite" />
+		</junit>
+	</target>
+
+	<target name="emma.report" depends="emma.init">
+		<delete dir="${coverage.dir}/_files" />
+		<emma>
+			<report sourcepath="src">
+				<infileset dir="${coverage.dir}" includes="*.em, *.ec" />
+				<html outfile="${coverage.dir}" />
+			</report>
+		</emma>
+	</target>
+
+	<target name="emma.clean" depends="emma.init">
+		<delete dir="${coverage.dir}" />
+	</target>
 
 </project>

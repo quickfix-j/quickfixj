@@ -57,19 +57,19 @@ public class ATServer implements Runnable {
                 settings.setString(sessionID, "BeginString", "FIX.4.1");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX41.xml");
             }
-            
+
             if (fixVersions.contains(FixVersions.BEGINSTRING_FIX42)) {
                 sessionID = new SessionID("FIX.4.2", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.2");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX42.xml");
             }
-            
+
             if (fixVersions.contains(FixVersions.BEGINSTRING_FIX43)) {
                 sessionID = new SessionID("FIX.4.3", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.3");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX43.xml");
             }
-            
+
             if (fixVersions.contains(FixVersions.BEGINSTRING_FIX44)) {
                 sessionID = new SessionID("FIX.4.4", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.4");
