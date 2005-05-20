@@ -183,25 +183,65 @@
 	</target>
 
 	
-	<!-- Testing -->
+	<!-- Testing : we assume that junit.jar and the optional Junit ANT task are available in the class path or %ANT_HOME%/lib -->
 
-	<!--
-	<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask"/>
-	-->
-	
-	<target name="test" description="Run the tests" depends="compile">
+	<target name="test" description="Run ALL the tests" depends="compile, test.netty, test.unit, test.acceptance">
+	</target>
+
+	<target name="test.netty" description="Run the Netty related tests" depends="compile">
 		<junit printsummary="true" showoutput="true">
 			<formatter type="plain" usefile="false" />
+			
 			<classpath>
-				<path refid="classpath"/>
+				<path refid="classpath.product"/>
+				<path refid="classpath.lib"/>
 				<pathelement location="${classes_test.dir}"/>
 			</classpath>
+	
 			<batchtest>
 				<fileset dir="${src_test.dir}">
-					<include name="quickfix/Test*e.java" />
-					<include name="quickfix/test/DataDictionary.java"/>
-					<include name="quickfix/test/FieldTest.java"/>
-					<include name="quickfix/test/MessageTest.java"/>
+					<include name="quickfix/netty/TestFixMessageData.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+	
+	<target name="test.unit" description="Run the QuickfixJ related tests" depends="compile">
+		<junit printsummary="true" showoutput="true">
+			<formatter type="plain" usefile="false" />
+			
+			<classpath>
+				<path refid="classpath.product"/>
+				<path refid="classpath.lib"/>
+				<pathelement location="${classes_test.dir}"/>
+			</classpath>
+			
+			<batchtest>
+				<fileset dir="${src_test.dir}">
+					<include name="quickfix/*Test.java" />
+					<exclude name="**/MySQLLogTest.java"/>
+					<exclude name="**/MySQLStoreTest.java"/>
+					<exclude name="**/AbstractMessageStoreTest.java"/>
+					<exclude name="**/ApiCompatibilityTest.java"/>
+				</fileset>
+			</batchtest>
+			
+		</junit>
+	</target>
+
+	<target name="test.acceptance" description="Run the FIX acceptance tests" depends="compile">
+		<junit printsummary="true" showoutput="true">
+			<formatter type="plain" usefile="false" />
+			
+			<classpath>
+				<path refid="classpath.product"/>
+				<path refid="classpath.lib"/>
+				<pathelement location="${classes_test.dir}"/>
+			</classpath>
+
+			<batchtest>
+				<fileset dir="${src_test.dir}">
+					<include name="quickfix/test/acceptance/AcceptanceTestSuite.java" />
 				</fileset>
 			</batchtest>
 		</junit>

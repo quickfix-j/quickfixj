@@ -11,6 +11,7 @@ import java.util.List;
 import junit.extensions.TestSetup;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
@@ -26,13 +27,14 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
-    public static class AcceptanceTest implements Test {
+    public static class AcceptanceTest extends TestCase {
         private final String filename;
         private final String testname;
 
         public AcceptanceTest(String filename) {
             this.filename = filename;
             testname = filename.substring(filename.lastIndexOf(File.separatorChar + "fix") + 1);
+            setName(testname);
         }
 
         public int countTestCases() {
