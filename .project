@@ -11,13 +11,12 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>com.ibm.sse.model.structuredbuilder</name>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
 			<arguments>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
-			<name>com.ibm.etools.validation.validationbuilder</name>
-			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/Message Code Generator.launch</value>
+				</dictionary>
 			</arguments>
 		</buildCommand>
 	</buildSpec>

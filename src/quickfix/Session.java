@@ -476,7 +476,7 @@ public class Session {
 
     }
 
-    private void generateReject(Message message, String str) throws FieldNotFound, IOException {
+    public void generateReject(Message message, String str) throws FieldNotFound, IOException {
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         reject.reverseRoute(message.getHeader());
@@ -680,7 +680,7 @@ public class Session {
                     + " but received " + msgSeqNum;
             generateLogout(text);
             // Internal exception, causes disconnect
-            // We may want to modify this to an app-specific exception (?)
+            // TODO We may want to modify this to an app-specific exception (?)
             throw new RuntimeException(text);
         }
 

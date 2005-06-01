@@ -40,6 +40,7 @@ import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
 import quickfix.FieldConvertError;
+import quickfix.FieldNotFound;
 import quickfix.Initiator;
 import quickfix.InvalidMessage;
 import quickfix.LogFactory;
@@ -65,7 +66,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
     private final LogFactory logFactory;
     private final SessionFactory sessionFactory;
     private boolean firstPoll = true;
-    private SessionServer nettySessionServer;
     private Thread quickFixThread;
     private IoProcessor ioProcessor;
     private ArrayList sessionConnections = new ArrayList();
@@ -129,12 +129,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
             }
         }
-        // wait for logouts
-        // sync with initialization
+        // TODO wait for logouts
+        // TODO sync with initialization
         // quickFixThread.interrupt();
         onStop();
         ioProcessor.stop();
-        nettySessionServer.stop();
         stopRequestTimestamp = System.currentTimeMillis();
         isStopRequested = true;
     }
@@ -231,6 +230,14 @@ public abstract class AbstractSocketInitiator implements Initiator {
             quickfixSession.getState().logIncoming(fixMessageData.toString());
             DataDictionary dataDictionary = quickfixSession.getDataDictionary();
             quickfix.Message fixMessage = fixMessageData.parse(dataDictionary);
+            if (!fixMessage.hasValidStructure()) {
+                try {
+                    quickfixSession.generateReject(fixMessage, "invalid message format");
+                } catch (Exception e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+            }
             try {
                 quickfixSession.next(fixMessage);
             } catch (Throwable e) {
@@ -246,7 +253,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
 
         } catch (InvalidMessage e) {
-            // TODO Auto-generated catch block
+            // TODO Handle Invalid Message During Parsing
+            // Generate a session-level reject for the message
+            // The problem here is that the fixMessage was not parsed.
+            //quickfixSession.generateReject(fixMessage, "invalid message format");
             e.printStackTrace();
         }
     }

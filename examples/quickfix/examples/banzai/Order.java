@@ -59,7 +59,7 @@ public class Order implements Cloneable {
     }
 
     public String generateID() {
-        return new Integer(nextID++).toString();
+        return new Long(System.currentTimeMillis()+(nextID++)).toString();
     }
     public SessionID getSessionID() {
         return sessionID;

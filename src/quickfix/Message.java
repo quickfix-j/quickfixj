@@ -321,9 +321,13 @@ public class Message extends FieldMap {
         this.messageData = messageData;
         this.dd = dd;
         this.doValidation = doValidation;
-        parseHeader();
-        parseBody();
-        parseTrailer();
+        try {
+            parseHeader();
+            parseBody();
+            parseTrailer();
+        } catch (InvalidMessage e) {
+            isValidStructure = false;
+        }
         if (doValidation) {
             validate(messageData);
         }
@@ -505,11 +509,11 @@ public class Message extends FieldMap {
         pushedBackField = field;
     }
 
-    public StringField extractField() throws InvalidMessage {
+    private StringField extractField() throws InvalidMessage {
         return extractField(null);
     }
 
-    public StringField extractField(Group group) throws InvalidMessage {
+    private StringField extractField(Group group) throws InvalidMessage {
         if (pushedBackField != null) {
             StringField f = pushedBackField;
             pushedBackField = null;
@@ -525,7 +529,7 @@ public class Message extends FieldMap {
             throw new InvalidMessage("Equal sign not found in field");
         }
 
-        int tag;
+        int tag = -1;
         try {
             tag = Integer.parseInt(messageData.substring(position, equalsOffset));
         } catch (NumberFormatException e) {

@@ -43,25 +43,14 @@ import quickfix.examples.banzai.ui.BanzaiFrame;
 public class Banzai {
 
     /** enable logging for this class */
-    private static Category log = Category.getInstance(Banzai.class.getName());
+    private static Category log = Category.getInstance(Banzai.class);
+    private static Banzai banzai;
     private Initiator initiator = null;
     private JFrame frame = null;
-    private static boolean stop = false;
-
-    static {
-        //        System.loadLibrary("quickfix_jni");
-
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        } catch (Exception e) {
-            log.info(e);
-        }
-    }
 
     public Banzai(String[] args) throws Exception {
         OrderTableModel orderTableModel = new OrderTableModel();
         ExecutionTableModel executionTableModel = new ExecutionTableModel();
-
         BanzaiApplication application = new BanzaiApplication(orderTableModel, executionTableModel);
         SessionSettings settings = new SessionSettings(new FileInputStream(args[0]));
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
@@ -75,25 +64,45 @@ public class Banzai {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void start() throws Exception {
-        initiator.start();
+    public void logon() {
+        try {
+            initiator.start();
+        } catch (Exception e) {
+            log.error("error starting initiator", e);
+        }
+    }
+
+    public void logout() {
+        initiator.stop();
     }
 
     public void stop() {
-        stop = true;
-        initiator.stop();
+        synchronized (banzai) {
+            banzai.notify();
+        }
     }
 
     public JFrame getFrame() {
         return frame;
     }
 
-    public static void main(String args[]) throws Exception {
-        Banzai banzai = new Banzai(args);
-        banzai.start();
-        while (!stop) {
-            Thread.sleep(1000);
-        }
-        banzai.stop();
+    public static Banzai get() {
+        return banzai;
     }
+
+    public static void main(String args[]) throws Exception {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            log.info(e);
+        }
+        banzai = new Banzai(args);
+        if (!System.getProperties().containsKey("openfix")) {
+            banzai.logon();
+        }
+        synchronized (banzai) {
+            banzai.wait();
+        }
+    }
+
 }
