@@ -25,9 +25,6 @@ import quickfix.test.acceptance.TestContext;
 
 public class ApiCompatibilityTest {
 
-    // TODO need to copy quickfix JNI jar into quickfixj for
-    // testing purposes.
-
     private static class ApiTest implements Test {
         private final Class jniClass;
         private final IgnoredItems ignoredItems;

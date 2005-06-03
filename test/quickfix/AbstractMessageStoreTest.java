@@ -59,11 +59,9 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertTrue("set failed", store.set(111, "message2"));
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
-        //assertTrue("set shouldn't succeed", !store.set(120, "message3"));
 
         ArrayList messages = new ArrayList();
         store.get(100, 115, messages);
-        // TODO: How are missing sequences handled, if at all?
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "message2", messages.get(0));
         assertEquals("wrong message", "message1", messages.get(1));

@@ -633,8 +633,7 @@ public class Session {
             }
 
             if (!validLogonState(msgType)) {
-                // TODO replace runtime exceptions
-                throw new RuntimeException("Logon state is not valid for message");
+                throw new SessionException("Logon state is not valid for message");
             }
 
             if (!isGoodTime(sendingTime)) {
@@ -909,8 +908,7 @@ public class Session {
     private void next(String msg) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            // TODO review the C++ implementation of next(msg)
-            // TODO move message type extraction to Message
+            // TODO CLEANUP move message type extraction to Message
             int typeStart = msg.indexOf("\00135=") + 4;
             int typeEnd;
             for (typeEnd = typeStart; typeEnd < msg.length(); typeEnd++) {
@@ -1077,7 +1075,6 @@ public class Session {
         this.resetOnDisconnect = flag;
     }
 
-    // TODO - double check whether this accessor is needed
     public SessionState getState() {
         return state;
     }

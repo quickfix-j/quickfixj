@@ -111,10 +111,6 @@ class SessionSchedule {
         time1 = (Calendar)time1.clone(); time1.add(Calendar.DATE, -1 * time1Range);
         time2 = (Calendar)time2.clone(); time2.add(Calendar.DATE, -1 * time2Range);
 
-        // TODO find out why times are adjusted to local timezone
-        //time1.setTimeZone(TimeZone.getDefault());
-        //time2.setTimeZone(TimeZone.getDefault());
-        
         return time1.get(Calendar.YEAR) == time2.get(Calendar.YEAR)
                 && time1.get(Calendar.DAY_OF_YEAR) == time2.get(Calendar.DAY_OF_YEAR);
     }

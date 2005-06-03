@@ -186,7 +186,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     
     private int getIntSetting(String key) throws ConfigError {
         try {
-            // TODO add ability to bind a specific network card
+            // TODO FEATURE add ability to bind a specific network card
             return IntConverter.convert(settings.getString(
                     SessionSettings.DEFAULT_SESSION_ID, key));
         } catch (FieldConvertError e) {
@@ -216,8 +216,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
                     quickfixSessionForNettySession.remove(nettySession);
                     quickfixSession.disconnect();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    exceptionCaught(nettySession, e);
                 }
             }
         }
@@ -230,8 +229,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
                 try {
                     quickfixSession.next();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    exceptionCaught(nettySession, e);
                 }
             } else {
                 logDebug(nettySession, null, "connection idle, no QF session");
@@ -289,7 +287,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         }
         if (quickfixSession == null) {
             logError(nettySession, null, "invalid QF session ID", null);
-            // TODO review disconnect
             nettySession.close();
             return null;
         }
@@ -362,8 +359,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             }
 
         } catch (InvalidMessage e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LogUtil.logThrowable(quickfixSession.getLog(), "error during disconnect", e);
         }
     }
 
@@ -377,7 +373,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         }
 
         public boolean send(String data) {
-            // TODO - pool the FIXMessageData objects
+            // TODO PERFORMANCE pool the FIXMessageData objects
             nettySession.write(new FIXMessageData(data));
             return true;
         }

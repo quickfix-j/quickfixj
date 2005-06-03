@@ -20,7 +20,7 @@ public class DoubleConverter {
     }
     
     public static String convert(double d) {
-        // TODO This can be optimized!
+        // TODO PERFORMANCE This can be optimized!
         synchronized (doubleFormat) {
             return doubleFormat.format(d);
         }

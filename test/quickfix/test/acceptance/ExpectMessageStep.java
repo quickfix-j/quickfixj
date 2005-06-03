@@ -78,7 +78,7 @@ public class ExpectMessageStep implements TestStep {
             Assert.assertTrue("missing expected field: " + key, actualFields.containsKey(key));
         }
         Iterator timeFieldItr = timeFields.iterator();
-        // TODO review date length test issues
+        // TODO TEST review date length test issues
         boolean dateLengthMismatch = false;
         while (timeFieldItr.hasNext()) {
             String key = (String) timeFieldItr.next();

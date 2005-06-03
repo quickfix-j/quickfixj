@@ -116,8 +116,7 @@ public class JavaCodeGenerator {
                     }
                 }
             } catch (Exception e) {
-                // TODO
-                e.printStackTrace();
+                log.error("error while generating field classes", e);
             }
         }
     }

@@ -24,7 +24,7 @@ import quickfix.fix44.Logon.NoMsgTypes;
 
 public class MessageTest extends TestCase {
 
-    // TODO
+    // TODO TEST fix this test
     //    public void testGroupLength() throws Exception {
     //        Message message = new Message();
     //        Logon.NoMsgTypes noMsgTypes = new Logon.NoMsgTypes();
@@ -39,8 +39,8 @@ public class MessageTest extends TestCase {
 
     public void testParsing() throws Exception {
         // checksum is not verified in these tests
-        // TODO parse repeating groups
-        // TODO parse nested repeating groups
+        // TODO TEST parse repeating groups
+        // TODO TEST parse nested repeating groups
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=96\001",
                 DataDictionaryTest.getDictionary());
@@ -62,8 +62,8 @@ public class MessageTest extends TestCase {
 
     public void testParsing2() throws Exception {
         // checksum is not verified in these tests
-        // TODO parse repeating groups
-        // TODO parse nested repeating groups
+        // TODO TEST parse repeating groups
+        // TODO TEST parse nested repeating groups
         String data = "8=FIX.4.2\0019=76\001";
         data += "35=6\001";
         data += "23=IDENTIFIER\001";

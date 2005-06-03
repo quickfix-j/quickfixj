@@ -308,7 +308,6 @@ public abstract class FieldMap {
     public UtcTimeStampField getField(UtcTimeStampField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            // TODO - Determine how to use calculate days...
             field.setObject(UtcTimestampConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());

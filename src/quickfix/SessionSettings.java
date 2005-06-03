@@ -166,7 +166,7 @@ public class SessionSettings {
 
     private HashMap sections = new HashMap();
 
-    // TODO should this be less-than-public?
+    // TODO CLEANUP should this be less-than-public?
     public Iterator sectionIterator() {
         return sections.keySet().iterator();
     }
@@ -300,7 +300,7 @@ public class SessionSettings {
                 } while ("\r\n".indexOf(ch) == -1);
                 return getToken(inputStream);
             }
-            // TODO is this an error?
+            // TODO QUESTION is this an error?
             return null;
         }
 

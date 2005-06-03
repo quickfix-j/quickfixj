@@ -58,7 +58,7 @@ public class FIXMessageData implements Message {
          * @see net.gleamynode.netty2.MessageRecognizer#recognize(java.nio.ByteBuffer)
          */
         public Message recognize(ByteBuffer buffer) throws MessageParseException {
-            // TODO Use an object pool for FIXMessageData?
+            // TODO PERFORMANCE Use an object pool for FIXMessageData?
             return indexOf(buffer, 0, headerBytes) != -1 ? new FIXMessageData() : null;
         }
     };
@@ -107,7 +107,7 @@ public class FIXMessageData implements Message {
                         break;
                     }
 
-                    // TODO this can be optimized in recognizer
+                    // TODO PERFORMANCE this can be optimized in recognizer
                     messageStartPosition = indexOf(buffer, buffer.position(), headerBytes);
 
                     if (messageStartPosition == -1) {
@@ -179,7 +179,7 @@ public class FIXMessageData implements Message {
 
     private void handleError(ByteBuffer buffer, String text, boolean disconnect)
             throws MessageParseException {
-        // TODO allow configurable recovery position
+        // TODO FEATURE allow configurable recovery position
         //int newOffset = messageStartPosition + 1;
         // Following recovery position is compatible with QuickFIX C++
         // but drops messages unnecessarily in corruption scenarios.
@@ -211,8 +211,6 @@ public class FIXMessageData implements Message {
     private static boolean startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
         for (int dataOffset = 0, bufferLimit = buffer.limit() - data.length + 1; dataOffset < data.length
                 && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
-            //System.err.println((offset + j) + " ch=" + (char)
-            // buffer.get(offset + j));
             if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
                 return false;
             }
@@ -241,7 +239,7 @@ public class FIXMessageData implements Message {
     }
 
     private boolean isLogon(ByteBuffer buffer, int position) {
-        // TODO logon bytes should be constant
+        // TODO CLEANUP logon bytes should be constant
         return indexOf(buffer, position, "\00135=A\001".getBytes()) != -1;
     }
 

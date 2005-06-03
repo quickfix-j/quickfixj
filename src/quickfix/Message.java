@@ -1,21 +1,14 @@
-/****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+/*******************************************************************************
+ * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
+ * file is part of the QuickFIX FIX Engine * * This file may be distributed
+ * under the terms of the quickfixengine.org * license as defined by
+ * quickfixengine.org and appearing in the file * LICENSE included in the
+ * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
+ * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
+ * licensing information. * * Contact ask@quickfixengine.org if any conditions
+ * of this licensing are * not clear to you. *
+ ******************************************************************************/
 
 package quickfix;
 
@@ -108,16 +101,12 @@ public class Message extends FieldMap {
 
     public Object clone() {
         try {
-            Message message = (Message)getClass().newInstance();
+            Message message = (Message) getClass().newInstance();
             return cloneTo(message);
         } catch (InstantiationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -166,14 +155,9 @@ public class Message extends FieldMap {
                     .newDocument();
             Element message = document.createElement("message");
             document.appendChild(message);
-            try {
-                toXMLFields(message, "header", this.header);
-                toXMLFields(message, "body", this);
-                toXMLFields(message, "trailer", this.trailer);
-            } catch (FieldNotFound e1) {
-                // TODO Original toXML doesn't declare any exceptions
-                throw new RuntimeException(e1);
-            }
+            toXMLFields(message, "header", this.header);
+            toXMLFields(message, "body", this);
+            toXMLFields(message, "trailer", this.trailer);
             DOMSource domSource = new DOMSource(document);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             StreamResult streamResult = new StreamResult(out);
@@ -184,20 +168,9 @@ public class Message extends FieldMap {
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.transform(domSource, streamResult);
             return out.toString();
-        } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (FactoryConfigurationError e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (TransformerConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (TransformerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        throw new UnsupportedOperationException();
     }
 
     public void toXMLFields(Element message, String section, FieldMap fieldMap)
@@ -343,8 +316,8 @@ public class Message extends FieldMap {
             }
             int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
-                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData) + ", Received CheckSum="
-                        + checkSum);
+                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData)
+                        + ", Received CheckSum=" + checkSum);
             }
         } catch (FieldNotFound e) {
             throw new InvalidMessage("Field not found: " + e.field);
@@ -418,8 +391,8 @@ public class Message extends FieldMap {
                         }
                         group = new Group(groupField, firstField);
                         group.setField(field);
-                    } else if (rg
-                            .isElementInContainer(DataDictionary.Field.class, new Integer(field.getTag()))) {
+                    } else if (rg.isElementInContainer(DataDictionary.Field.class, new Integer(
+                            field.getTag()))) {
                         group.setField(field);
                     } else {
                         if (group != null) {

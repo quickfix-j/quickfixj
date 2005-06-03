@@ -253,8 +253,8 @@ public class FileStore implements MessageStore {
     }
 
     private void storeSequenceNumbers() throws IOException {
-        // TODO This should use a more efficient byte buffer
-        // TODO Use Javolution fast object pooling and primitive formatters
+        // TODO PERFORMANCE This should use a more efficient byte buffer
+        // TODO PERFORMANCE Use Javolution fast object pooling and primitive formatters
         seqNumFile.seek(0);
         StringBuffer sb = new StringBuffer();
         sb.append(Integer.toString(cache.getNextSenderMsgSeqNum())).append(" : ").append(

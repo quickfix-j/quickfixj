@@ -25,7 +25,6 @@ import java.sql.SQLException;
 public class MySQLLog extends JdbcLog {
     public MySQLLog(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
-        // TODO not sure all these exceptions should be exposed
         super(settings, sessionID);
     }
 
