@@ -9,6 +9,11 @@ import junit.framework.TestCase;
 
 public class LogUtilTest extends TestCase {
 
+    protected void setUp() throws Exception {
+        super.setUp();
+        SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
+    }
+    
     public void testLogThrowable() {
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         LogFactory mockLogFactory = createLogFactory(data);

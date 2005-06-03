@@ -13,7 +13,12 @@ public class FileLogTest extends TestCase {
     public FileLogTest(String name) {
         super(name);
     }
-
+    
+    protected void setUp() throws Exception {
+        super.setUp();
+        SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
+    }
+   
     public void testLog() throws Exception {
         long systemTime = SystemTime.get();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
