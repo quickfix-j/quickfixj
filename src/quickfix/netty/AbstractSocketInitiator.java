@@ -40,7 +40,6 @@ import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
 import quickfix.FieldConvertError;
-import quickfix.FieldNotFound;
 import quickfix.Initiator;
 import quickfix.InvalidMessage;
 import quickfix.LogFactory;
@@ -53,37 +52,37 @@ import quickfix.ScreenLogFactory;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
-import quickfix.field.converter.IntConverter;
 
 public abstract class AbstractSocketInitiator implements Initiator {
-    private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
+    protected Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
     private static final String DEFAULT_IO_THREAD_PREFIX = "quickfix-io";
     private boolean isStopRequested;
-    private final Application application;
+    protected final Application application;
     private final SessionSettings settings;
-    private final MessageStoreFactory messageStoreFactory;
-    private final MessageFactory messageFactory;
-    private final LogFactory logFactory;
+    protected final MessageStoreFactory messageStoreFactory;
+    protected final MessageFactory messageFactory;
+    protected final LogFactory logFactory;
     private final SessionFactory sessionFactory;
     private boolean firstPoll = true;
-    private Thread quickFixThread;
+    private SessionServer nettySessionServer;
+    protected Thread quickFixThread;
     private IoProcessor ioProcessor;
     private ArrayList sessionConnections = new ArrayList();
-    private HashMap quickfixSessions = new HashMap();
+    protected HashMap quickfixSessions = new HashMap();
     private LowLatencyEventDispatcher eventDispatcher;
     private Timer timer = new Timer();
     private long stopRequestTimestamp;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            MessageFactory messageFactory) throws ConfigError {
+            MessageFactory messageFactory) {
         this(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
     }
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+            LogFactory logFactory, MessageFactory messageFactory) {
         this.application = application;
         this.settings = settings;
         this.messageStoreFactory = messageStoreFactory;
@@ -129,11 +128,12 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
             }
         }
-        // TODO wait for logouts
-        // TODO sync with initialization
+        // wait for logouts
+        // sync with initialization
         // quickFixThread.interrupt();
         onStop();
         ioProcessor.stop();
+        nettySessionServer.stop();
         stopRequestTimestamp = System.currentTimeMillis();
         isStopRequested = true;
     }
@@ -167,7 +167,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             for (Iterator i = settings.sectionIterator(); i.hasNext();) {
                 Object sectionKey = i.next();
-                // TODO add ability to bind a specific network card
+                // TODO FEATURE add ability to bind a specific network card
                 // TODO add iterator for non-default session - and/or for
                 // connector/acceptor sessions
                 // TODO protect session connection creation with try block
@@ -192,34 +192,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
                                 "initiator"));
     }
 
-    private int getIntSetting(String key) throws ConfigError {
-        try {
-            return IntConverter.convert(settings.getString(
-                    SessionSettings.DEFAULT_SESSION_ID, key));
-        } catch (FieldConvertError e) {
-            throw (ConfigError) new ConfigError(e.getMessage()).fillInStackTrace();
-        }
-    }
-
-    private String getLogSuffix(Session nettySession, SessionID sessionID) {
-        return ": " + (sessionID != null ? (": sessionID=" + sessionID.toString() + ", ") : "")
-                + "socket=" + nettySession.getSocketAddressString();
-    }
-
-    private void logError(Session nettySession, SessionID sessionID, String message, Throwable t) {
-        log.error(message + getLogSuffix(nettySession, sessionID), t);
-    }
-
-    private void logDebug(Session nettySession, SessionID sessionID, String message) {
-        log.debug(message + getLogSuffix(nettySession, sessionID));
-    }
-
     protected void processTimerEvent(quickfix.Session quickfixSession) {
         try {
             quickfixSession.next();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LogUtil.logThrowable(quickfixSession.getLog(), "error while processing timer event", e);
         }
     }
 
@@ -230,14 +207,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
             quickfixSession.getState().logIncoming(fixMessageData.toString());
             DataDictionary dataDictionary = quickfixSession.getDataDictionary();
             quickfix.Message fixMessage = fixMessageData.parse(dataDictionary);
-            if (!fixMessage.hasValidStructure()) {
-                try {
-                    quickfixSession.generateReject(fixMessage, "invalid message format");
-                } catch (Exception e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
-            }
             try {
                 quickfixSession.next(fixMessage);
             } catch (Throwable e) {
@@ -257,14 +226,15 @@ public abstract class AbstractSocketInitiator implements Initiator {
             // Generate a session-level reject for the message
             // The problem here is that the fixMessage was not parsed.
             //quickfixSession.generateReject(fixMessage, "invalid message format");
-            e.printStackTrace();
+            LogUtil.logThrowable(quickfixSession.getLog(), "error during disconnect", e);
         }
     }
 
     protected boolean isLoggedOn() {
         synchronized (sessionConnections) {
             for (int i = 0; i < sessionConnections.size(); i++) {
-                if (((SessionConnection) sessionConnections.get(i)).getQuickFixSession().isLoggedOn()) {
+                if (((SessionConnection) sessionConnections.get(i)).getQuickFixSession()
+                        .isLoggedOn()) {
                     return true;
                 }
             }
@@ -385,8 +355,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
                         responderDisconnected = false;
                     }
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    exceptionCaught(session, e);
                 }
             }
 
@@ -422,14 +391,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see net.gleamynode.netty2.SessionListener#sessionIdle(net.gleamynode.netty2.Session)
              */
             public void sessionIdle(Session nettySession) {
-                // if (quickfixSession.isLoggedOn()) {
-                // try {
-                // // Heartbeat processing
-                // quickfixSession.next();
-                // } catch (IOException e) {
-                // exceptionCaught(nettySession, e);
-                // }
-                // }
             }
 
             /*
@@ -439,8 +400,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              *      java.lang.Throwable)
              */
             public void exceptionCaught(Session session, Throwable cause) {
-                // TODO
-                cause.printStackTrace();
+                LogUtil.logThrowable(quickfixSession.getLog(), "error in initiator", cause);
             }
         }
 
