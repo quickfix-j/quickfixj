@@ -19,6 +19,7 @@ import java.util.zip.ZipFile;
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import quickfix.test.acceptance.TestContext;
@@ -226,13 +227,11 @@ public class ApiCompatibilityTest {
     }
 
     private static class IgnoredItems {
-        private final ClassLoader jniClassLoader;
         private HashSet ignoredClasses = new HashSet();
         private HashSet ignoredConstructors = new HashSet();
 
         public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,
                 SecurityException, NoSuchMethodException {
-            this.jniClassLoader = jniClassLoader;
             ignoreConstructor(jniClassLoader, "quickfix.Message",
                     new Class[] { Message.Header.class, Message.Trailer.class });
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppLog"));
@@ -282,8 +281,13 @@ public class ApiCompatibilityTest {
     }
 
     public static Test suite() {
-        TestSuite suite = new TestSuite();
+        TestSuite suite = new TestSuite() {
+            public String toString() {
+                return ApiCompatibilityTest.class.getName();
+            }
+        };
         try {
+            // TODO Move copy of JNI library into QuickFIX/J repository
             String jarPath = "../quickfix_cpp/lib/quickfix.jar";
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
@@ -305,10 +309,25 @@ public class ApiCompatibilityTest {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            suite.addTest(new FailureTestCase("testInitializationFailure", e));
         }
 
         return suite;
     }
-
+    
+    /**
+     * This class is used as a JUnit trick for getting a test failure when
+     * the API test suite initialization fails.
+     */
+    protected static class FailureTestCase extends TestCase {
+        private final Throwable cause;
+        
+        public FailureTestCase(String test, Throwable e) {
+            super(test);
+            this.cause = e;
+        }
+        public void testInitializationFailure() {
+            throw new RuntimeException("error during initialization, see cause below", cause);
+        }
+    }
 }
