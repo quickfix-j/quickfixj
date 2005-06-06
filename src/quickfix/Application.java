@@ -21,27 +21,60 @@ package quickfix;
 
 public interface Application {
 
-    /// Notification of a session being created
+    /**
+     * Notification of a session being created
+     */ 
     void onCreate(SessionID sessionId);
 
-    /// Notification of a session succefully logging on
+    /**
+     * Notification of a session successfully logging on
+     * @param sessionId QuickFIX session ID
+     */
     void onLogon(SessionID sessionId);
 
-    /// Notification of a session logging off or disconnecting
+    /**
+     * Notification of a session logging off or disconnecting
+     * @param sessionId QuickFIX session ID
+     */
     void onLogout(SessionID sessionId);
 
-    /// Notification of admin message being sent to target
+    /**
+     * Notification of admin message being sent to target
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
+     */
     void toAdmin(Message message, SessionID sessionId);
 
-    /// Notification of app message being sent to target
-    void toApp(Message message, SessionID sessionId)
-    throws DoNotSend;
-
-    /// Notification of admin message being received from target
+    /**
+     * Notification of admin message being received from target
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
+     * @throws FieldNotFound
+     * @throws IncorrectDataFormat
+     * @throws IncorrectTagValue
+     * @throws RejectLogon
+     */
     void fromAdmin(Message message, SessionID sessionId)
     throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon;
 
-    /// Notification of app message being received from target
+    /**
+     * Notification of app message being sent to target
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
+     * @throws DoNotSend -- This exception aborts message transmission
+     */
+    void toApp(Message message, SessionID sessionId)
+    throws DoNotSend;
+
+    /**
+     * Notification of app message being received from target
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
+     * @throws FieldNotFound
+     * @throws IncorrectDataFormat
+     * @throws IncorrectTagValue
+     * @throws UnsupportedMessageType
+     */
     void fromApp(Message message, SessionID sessionId)
     throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType;
 }
