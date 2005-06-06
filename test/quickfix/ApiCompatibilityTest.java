@@ -239,7 +239,8 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Iterator"));
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header$Iterator"));
+            // The following string is split so that CVS will insert log data during commit
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$" + "Header$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { int.class });
