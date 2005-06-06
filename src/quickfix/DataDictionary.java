@@ -79,12 +79,12 @@ public class DataDictionary {
     }
 
     public DataDictionary(DataDictionary dataDictionary) {
-        // TODO API check into usage of data dictionary copy
+        // TODO QUESTION check into usage of data dictionary copy
         throw new UnsupportedOperationException();
     }
     
     public DataDictionary() {
-        // TODO API check into usage of data dictionary default constructor
+        // TODO QUESTION check into usage of data dictionary default constructor
         throw new UnsupportedOperationException();
     }
    
@@ -654,7 +654,7 @@ public class DataDictionary {
                 } else if (node.getNodeName().equals("component")) {
                     String name = getAttributeValue(e, "name");
                     ComponentSchema schema = getComponentSchema(name);
-                    // TODO Handle error
+                    // TODO Handle data dictionary error
                     if (schema == null) {
                         throw new RuntimeException("no schema for component: " + name);
                     }

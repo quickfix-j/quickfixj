@@ -482,7 +482,7 @@ public class Session {
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
 
-        // TODO Why is PossDupFlag needed here? It doesn't appear to be used in
+        // TODO QUESTION Why is PossDupFlag needed here? It doesn't appear to be used in
         // the C++ code.
         // PossDupFlag possDupFlag( false );
         boolean possDupFlag = false;
@@ -678,9 +678,7 @@ public class Session {
             String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
                     + " but received " + msgSeqNum;
             generateLogout(text);
-            // Internal exception, causes disconnect
-            // TODO We may want to modify this to an app-specific exception (?)
-            throw new RuntimeException(text);
+            throw new SessionException(text);
         }
 
         return doPossDup(msg);

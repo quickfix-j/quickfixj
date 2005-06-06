@@ -32,7 +32,6 @@ import net.gleamynode.netty2.LowLatencyEventDispatcher;
 import net.gleamynode.netty2.Message;
 import net.gleamynode.netty2.Session;
 import net.gleamynode.netty2.SessionListener;
-import net.gleamynode.netty2.SessionServer;
 
 import org.apache.commons.logging.Log;
 
@@ -64,7 +63,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected final LogFactory logFactory;
     private final SessionFactory sessionFactory;
     private boolean firstPoll = true;
-    private SessionServer nettySessionServer;
     protected Thread quickFixThread;
     private IoProcessor ioProcessor;
     private ArrayList sessionConnections = new ArrayList();
@@ -128,12 +126,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
             }
         }
-        // wait for logouts
+        // TODO wait for logouts
         // sync with initialization
         // quickFixThread.interrupt();
         onStop();
         ioProcessor.stop();
-        nettySessionServer.stop();
         stopRequestTimestamp = System.currentTimeMillis();
         isStopRequested = true;
     }
@@ -168,11 +165,13 @@ public abstract class AbstractSocketInitiator implements Initiator {
             for (Iterator i = settings.sectionIterator(); i.hasNext();) {
                 Object sectionKey = i.next();
                 // TODO FEATURE add ability to bind a specific network card
-                // TODO add iterator for non-default session - and/or for
-                // connector/acceptor sessions
-                // TODO protect session connection creation with try block
+                // TODO CLEANUP add iterator for non-default sessions
                 if (isInitiatorSession(sectionKey)) {
-                    sessionConnections.add(new SessionConnection(settings, (SessionID) sectionKey));
+                    try {
+                        sessionConnections.add(new SessionConnection(settings, (SessionID) sectionKey));
+                    } catch (Throwable e) {
+                        log.error("error during session connection creation", e);
+                    }
                 }
             }
             if (sessionConnections.size() == 0) {
@@ -331,12 +330,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see net.gleamynode.netty2.SessionListener#connectionEstablished(net.gleamynode.netty2.Session)
              */
             public void connectionEstablished(Session nettySession) {
-                System.err.println("connection established: " + nettySession);
+                log.debug("connection established: " + nettySession);
                 try {
                     quickfixSession.next();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    exceptionCaught(nettySession, e);
                 }
             }
 
@@ -346,10 +344,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see net.gleamynode.netty2.SessionListener#connectionClosed(net.gleamynode.netty2.Session)
              */
             public void connectionClosed(Session session) {
-                System.err.println("connection closed: " + nettySession);
+                log.debug("connection closed: " + nettySession);
                 try {
                     if (!responderDisconnected) {
-                        System.err.println("unsolicited disconnect");
+                        log.debug("unsolicited disconnect");
                         quickfixSession.disconnect();
                     } else {
                         responderDisconnected = false;
@@ -366,7 +364,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              *      net.gleamynode.netty2.Message)
              */
             public void messageSent(Session session, Message message) {
-                // TODO add log entry
+                quickfixSession.getLog().onOutgoing(message.toString());
             }
 
             /*
@@ -421,7 +419,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see quickfix.Responder#disconnect()
              */
             public void disconnect() {
-                System.err.println("responder: disconnect");
+                log.debug("responder: disconnect");
                 responderDisconnected = true;
                 nettySession.close();
 

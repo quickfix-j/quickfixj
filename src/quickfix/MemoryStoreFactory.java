@@ -27,9 +27,7 @@ public class MemoryStoreFactory implements MessageStoreFactory {
 		try {
             return new MemoryStore();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
+            throw new RuntimeError(e);
         }
 	}
 }

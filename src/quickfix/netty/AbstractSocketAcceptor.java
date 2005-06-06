@@ -60,11 +60,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     private static final String DEFAULT_SESSION_SERVER_NAME = "quickfix-acceptor";
     private static final String DEFAULT_IO_THREAD_PREFIX = "quickfix-io";
     private boolean isStopRequested;
-    private final Application application;
     private final SessionSettings settings;
-    private final MessageStoreFactory messageStoreFactory;
-    private final MessageFactory messageFactory;
-    private final LogFactory logFactory;
     private final SessionFactory sessionFactory;
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private long logonPollingTimeout = 5000;
@@ -80,11 +76,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
-        this.application = application;
         this.settings = settings;
-        this.messageStoreFactory = messageStoreFactory;
-        this.logFactory = logFactory;
-        this.messageFactory = messageFactory;
         sessionFactory = new SessionFactory(application, messageStoreFactory, logFactory);
     }
 
@@ -113,7 +105,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         return onPoll();
     }
 
-    private Thread quickFixThread;
     private IoProcessor ioProcessor;
 
     public void start() throws ConfigError, RuntimeError {
@@ -340,8 +331,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
                         }
                     }
                     quickfixSessionForNettySession.put(nettySession, quickfixSession);
-                    ResponderAdapter responderAdapter = new ResponderAdapter(nettySession,
-                            quickfixSession);
+                    ResponderAdapter responderAdapter = new ResponderAdapter(nettySession);
                     quickfixSession.setResponder(responderAdapter);
                     logDebug(nettySession, quickfixSession.getSessionID(), "session bound");
                 }
@@ -365,11 +355,9 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
     private final class ResponderAdapter implements Responder {
         private final Session nettySession;
-        private quickfix.Session quickfixSession;
 
-        private ResponderAdapter(Session nettySession, quickfix.Session quickfixSession) {
+        private ResponderAdapter(Session nettySession) {
             this.nettySession = nettySession;
-            this.quickfixSession = quickfixSession;
         }
 
         public boolean send(String data) {

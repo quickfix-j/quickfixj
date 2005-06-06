@@ -109,10 +109,9 @@ public class FIXMessageData implements Message {
 
                     // TODO PERFORMANCE this can be optimized in recognizer
                     messageStartPosition = indexOf(buffer, buffer.position(), headerBytes);
-
                     if (messageStartPosition == -1) {
-                        // TODO this is actually an error
-                        break;
+                        throw new MessageParseException("inconsistent header recognization"
+                                + " between message recognizer and parser");
                     }
 
                     log.debug("found header");
@@ -192,8 +191,7 @@ public class FIXMessageData implements Message {
         }
         position = 0;
         state = SEEKING_HEADER;
-        // TODO log in session log, if possible
-        log.error(text);
+        session.getLog().onEvent(text);
         if (disconnect) {
             throw new MessageParseException(text + " (during logon)");
         }
@@ -250,11 +248,11 @@ public class FIXMessageData implements Message {
     public Session getSession() {
         return session;
     }
-    
+
     public void setSession(Session session) {
         this.session = session;
     }
-    
+
     public String toString() {
         return message;
     }

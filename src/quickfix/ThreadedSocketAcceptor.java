@@ -88,7 +88,6 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     private class Worker extends Thread {
         private final BlockingQueue messageQueue = new LinkedBlockingQueue();
         private final Session nettySession;
-        private SessionID sessionID;
 
         public Worker(Session nettySession) {
             super("quickfix-session-"+nettySession.getSocketAddressString());

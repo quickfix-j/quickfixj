@@ -30,8 +30,7 @@ public class FileLogFactory implements LogFactory {
 		try {
             return new FileLog(settings.getString(sessionID, SessionSettings.FILE_LOG_PATH), sessionID);
         } catch (Exception e) {
-            // TODO should we use a quickfix exception here?
-            throw new RuntimeException("error creating file log", e);
+            throw new RuntimeError(e);
         }
 	}
 }

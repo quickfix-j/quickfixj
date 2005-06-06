@@ -35,8 +35,7 @@ public class JdbcLogFactory implements LogFactory {
         try {
             return new JdbcLog(settings, sessionID);
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
+            throw new RuntimeError(e);
         }
     }
 }

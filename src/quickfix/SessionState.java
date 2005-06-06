@@ -268,8 +268,7 @@ public class SessionState {
         try {
             messageStore.reset();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new RuntimeError(e);
         }
     }
 }

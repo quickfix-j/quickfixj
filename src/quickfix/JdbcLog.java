@@ -64,8 +64,7 @@ public class JdbcLog implements Log {
             insert.setString(6, value);
             insert.execute();
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new RuntimeError(e);
         }
     }
 }

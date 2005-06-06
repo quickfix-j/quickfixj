@@ -56,11 +56,9 @@ public class ScreenLogFactory implements LogFactory {
 
             return new ScreenLog(incoming, outgoing, events, sessionID, System.out);
         } catch (FieldConvertError e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
+            throw new RuntimeError(e);
         } catch (ConfigError e) {
-            // TODO Auto-generated catch block
-            throw new RuntimeException(e);
+            throw new RuntimeError(e);
         }
     }
 }

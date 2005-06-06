@@ -130,7 +130,7 @@ public class BanzaiApplication implements Application {
                         sendBusinessReject(message, BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, "Conditionally required field missing");                        
                     }
                     else if (message.getHeader().isSetField(DeliverToCompID.FIELD)) {
-                        // TODO Move this into session implementation
+                        // TODO CLEANUP Move this into session implementation
                         // This is here to support OpenFIX certification
                         sendSessionReject(message, SessionRejectReason.COMPID_PROBLEM);
                     } else if (message.getHeader().getField(msgType).valueEquals("8")) {
