@@ -304,6 +304,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             quickfixSession.getState().logIncoming(fixMessageData.toString());
 
             DataDictionary dataDictionary = quickfixSession.getDataDictionary();
+            fixMessageData.setSession(quickfixSession);
             quickfix.Message fixMessage = fixMessageData.parse(dataDictionary);
             //onMessage(nettySession, quickfixSession, fixMessage);
 

@@ -191,7 +191,11 @@ public class FIXMessageData implements Message {
         }
         position = 0;
         state = SEEKING_HEADER;
-        session.getLog().onEvent(text);
+        if (session != null) {
+            session.getLog().onEvent(text);
+        } else {
+            log.error(text);
+        }
         if (disconnect) {
             throw new MessageParseException(text + " (during logon)");
         }
