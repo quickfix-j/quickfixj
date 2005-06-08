@@ -13,15 +13,11 @@
 package quickfix;
 
 import net.gleamynode.netty2.Message;
-
-import org.apache.commons.logging.Log;
-
 import quickfix.netty.AbstractSocketInitiator;
 import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
 public class SocketInitiator extends AbstractSocketInitiator {
-    private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
     private BlockingQueue eventQueue;
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,

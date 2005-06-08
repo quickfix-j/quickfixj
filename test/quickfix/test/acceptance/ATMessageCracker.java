@@ -24,8 +24,7 @@ class ATMessageCracker extends quickfix.MessageCracker {
         orderIDs.clear();
     }
 
-    public void process(Message message, SessionID sessionID) throws FieldNotFound,
-            UnsupportedMessageType, IncorrectTagValue {
+    public void process(Message message, SessionID sessionID) throws FieldNotFound {
         quickfix.Message echo = (quickfix.Message) message.clone();
         PossResend possResend = new PossResend(false);
         if (message.getHeader().isSetField(possResend))

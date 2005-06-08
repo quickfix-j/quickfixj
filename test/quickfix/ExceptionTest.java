@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 public class ExceptionTest extends TestCase {
 
     public void testDoNotSend() {
-        DoNotSend e = new DoNotSend();
+        new DoNotSend();
     }
     
     public void testIncorrectDataFormat() {
@@ -21,24 +21,24 @@ public class ExceptionTest extends TestCase {
     }
 
     public void testRejectLogon() {
-        RejectLogon e = new RejectLogon();
+        new RejectLogon();
     }
 
     public void testRuntimeError() {
-        RuntimeError e = new RuntimeError();
-        e = new RuntimeError("test");
-        e = new RuntimeError(new Exception());
+        new RuntimeError();
+        new RuntimeError("test");
+        new RuntimeError(new Exception());
     }
     
     
     public void testSessionNotFound() {
-        SessionNotFound e = new SessionNotFound();
-        e = new SessionNotFound("test");
+        new SessionNotFound();
+        new SessionNotFound("test");
     }
     
     public void testSessionException() {
-        SessionException e = new SessionException();
-        e = new SessionException("test");
-        e = new SessionException(new Exception());
+        new SessionException();
+        new SessionException("test");
+        new SessionException(new Exception());
     }
 }

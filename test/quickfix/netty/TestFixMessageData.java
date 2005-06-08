@@ -90,9 +90,8 @@ public class TestFixMessageData extends TestCase {
         buffer.put(badMessage.getBytes());
         buffer.flip();
 
-        boolean done;
         try {
-            done = data.read(buffer);
+            data.read(buffer);
             fail("no exception");
         } catch (MessageParseException e) {
             // expected

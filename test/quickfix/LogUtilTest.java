@@ -24,7 +24,7 @@ public class LogUtilTest extends TestCase {
     }
     
     private void createSessionAndGenerateException(LogFactory mockLogFactory) {
-        Session session = new Session(null, new MessageStoreFactory() {
+        new Session(null, new MessageStoreFactory() {
             public MessageStore create(SessionID sessionID) {
                 try {
                     return new MemoryStore() {

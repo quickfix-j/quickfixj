@@ -21,21 +21,11 @@ package quickfix;
 
 import net.gleamynode.netty2.Message;
 import net.gleamynode.netty2.Session;
-
-import org.apache.commons.logging.Log;
-
-import quickfix.Application;
-import quickfix.ConfigError;
-import quickfix.LogFactory;
-import quickfix.MessageFactory;
-import quickfix.MessageStoreFactory;
-import quickfix.SessionSettings;
 import quickfix.netty.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
 public class SocketAcceptor extends AbstractSocketAcceptor {
-    private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
     private BlockingQueue messageQueue;
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,

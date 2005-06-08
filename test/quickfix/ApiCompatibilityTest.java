@@ -22,7 +22,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
-import quickfix.test.acceptance.TestContext;
 
 public class ApiCompatibilityTest {
 
@@ -31,7 +30,7 @@ public class ApiCompatibilityTest {
         private final IgnoredItems ignoredItems;
         private Class javaClass;
 
-        public ApiTest(Class jniClass, IgnoredItems ignoredItems) throws ClassNotFoundException {
+        public ApiTest(Class jniClass, IgnoredItems ignoredItems) {
             this.jniClass = jniClass;
             this.ignoredItems = ignoredItems;
         }
@@ -46,7 +45,6 @@ public class ApiCompatibilityTest {
 
         public void run(TestResult result) {
             result.startTest(this);
-            TestContext context = null;
             try {
                 try {
                     javaClass = Class.forName(jniClass.getName());
@@ -73,7 +71,7 @@ public class ApiCompatibilityTest {
             assertCompatibleInheritance();
         }
 
-        private void assertCompatibleInheritance() throws ClassNotFoundException {
+        private void assertCompatibleInheritance() {
             List jniInheritedClasses = getInheritedClasses(jniClass);
             List javaInheritedClasses = getInheritedClasses(javaClass);
             for (int i = 0; i < jniInheritedClasses.size(); i++) {
@@ -106,24 +104,20 @@ public class ApiCompatibilityTest {
             for (int i = 0; i < constructors.length; i++) {
                 if (!ignoredItems.isIgnoredConstructor(constructors[i])) {
                     if ((constructors[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
-                        Constructor c = null;
                         try {
-                            c = javaClass
-                                    .getDeclaredConstructor(translateClassArray(constructors[i]
-                                            .getParameterTypes()));
+                            javaClass.getDeclaredConstructor(translateClassArray(constructors[i]
+                                    .getParameterTypes()));
                         } catch (SecurityException e) {
                             Assert.fail(e.getMessage());
                         } catch (NoSuchMethodException e) {
                             Assert.fail("missing ctor: " + e.getMessage());
-                        } catch (ClassNotFoundException e) {
-                            Assert.fail(e.getMessage());
                         }
                     }
                 }
             }
         }
 
-        private void assertCompatibleMethods() throws ClassNotFoundException {
+        private void assertCompatibleMethods() {
             Method[] methods = jniClass.getMethods();
             for (int i = 0; i < methods.length; i++) {
                 if ((methods[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
@@ -135,8 +129,6 @@ public class ApiCompatibilityTest {
                         Assert.fail(e.getMessage());
                     } catch (NoSuchMethodException e) {
                         Assert.fail("missing method: " + e.getMessage());
-                    } catch (ClassNotFoundException e) {
-                        Assert.fail(e.getMessage());
                     }
                     List jniExceptionTypes = Arrays.asList(methods[i].getExceptionTypes());
                     List javaExceptionTypes = Arrays.asList(m.getExceptionTypes());
@@ -149,7 +141,7 @@ public class ApiCompatibilityTest {
         }
 
         private void assertNoExtraExceptions(Method jniMethod, List jniExceptionTypes,
-                List javaExceptionTypes) throws ClassNotFoundException {
+                List javaExceptionTypes) {
             // original list is unmodifiable
             javaExceptionTypes = new ArrayList(javaExceptionTypes);
             javaExceptionTypes.removeAll(translateClassList(jniExceptionTypes));
@@ -159,7 +151,7 @@ public class ApiCompatibilityTest {
         }
 
         private void assertExceptionsExist(Method jniMethod, List jniExceptionTypes,
-                List javaExceptionTypes) throws ClassNotFoundException {
+                List javaExceptionTypes) {
             for (int j = 0; j < jniExceptionTypes.size(); j++) {
                 boolean foundException = false;
                 for (int k = 0; k < javaExceptionTypes.size(); k++) {
@@ -192,7 +184,7 @@ public class ApiCompatibilityTest {
             }
         }
 
-        private List translateClassList(List jniClasses) throws ClassNotFoundException {
+        private List translateClassList(List jniClasses) {
             ArrayList classes = new ArrayList();
             for (int i = 0; i < jniClasses.size(); i++) {
                 classes.add(translatedClass((Class) jniClasses.get(i)));
@@ -200,7 +192,7 @@ public class ApiCompatibilityTest {
             return classes;
         }
 
-        private Class[] translateClassArray(Class[] classArray) throws ClassNotFoundException {
+        private Class[] translateClassArray(Class[] classArray) {
             if (classArray == null) {
                 return null;
             }
@@ -211,7 +203,7 @@ public class ApiCompatibilityTest {
             return types;
         }
 
-        private Class translatedClass(Class jniType) throws ClassNotFoundException {
+        private Class translatedClass(Class jniType) {
             Package pkg = jniType.getPackage();
             if (pkg == null || pkg.getName().startsWith("java.")) {
                 return jniType;
@@ -232,14 +224,15 @@ public class ApiCompatibilityTest {
 
         public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,
                 SecurityException, NoSuchMethodException {
-            ignoreConstructor(jniClassLoader, "quickfix.Message",
-                    new Class[] { Message.Header.class, Message.Trailer.class });
+            ignoreConstructor(jniClassLoader, "quickfix.Message", new Class[] {
+                    Message.Header.class, Message.Trailer.class });
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppLog"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppMessageStore"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Iterator"));
-            // The following string is split so that CVS will insert log data during commit
+            // The following string is split so that CVS will insert log data
+            // during commit
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$" + "Header$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
@@ -247,10 +240,10 @@ public class ApiCompatibilityTest {
             ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { int.class });
             ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", null);
             ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", new Class[] { int.class });
-            ignoreConstructor(jniClassLoader, "quickfix.Message$Header",
-                    new Class[] { Message.class, Message.class });
-            ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer",
-                    new Class[] { Message.class, Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.Message$Header", new Class[] {
+                    Message.class, Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
+                    Message.class, Message.class });
 
         }
 
@@ -315,18 +308,19 @@ public class ApiCompatibilityTest {
 
         return suite;
     }
-    
+
     /**
-     * This class is used as a JUnit trick for getting a test failure when
-     * the API test suite initialization fails.
+     * This class is used as a JUnit trick for getting a test failure when the
+     * API test suite initialization fails.
      */
     protected static class FailureTestCase extends TestCase {
         private final Throwable cause;
-        
+
         public FailureTestCase(String test, Throwable e) {
             super(test);
             this.cause = e;
         }
+
         public void testInitializationFailure() {
             throw new RuntimeException("error during initialization, see cause below", cause);
         }

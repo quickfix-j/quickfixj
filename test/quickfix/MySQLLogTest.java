@@ -69,16 +69,4 @@ public class MySQLLogTest extends TestCase {
     protected String getConfigurationFileName() {
         return "tests.cfg";
     }
-    
-    private String getBaseDirectory() {
-        String base = System.getProperty("base.directory");
-        if (base != null) {
-            if (!base.endsWith("/")) {
-                base += "/";
-            }
-        } else {
-            base = "";
-        }
-        return base;
-    }
 }
