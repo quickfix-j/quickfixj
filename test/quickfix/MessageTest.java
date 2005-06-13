@@ -124,8 +124,8 @@ public class MessageTest extends TestCase {
 
     public void testHeaderOutOfOrder() throws Exception {
         try {
-            new Message("1=FIX.4.2");
-            fail("no exception thrown");
+            Message message = new Message("1=FIX.4.2");
+            assertFalse(message.hasValidStructure());
         } catch (InvalidMessage e) {
             // expected
         }

@@ -367,6 +367,12 @@ public abstract class FieldMap {
         fields.putAll(source.fields);
     }
 
+    // Patch from David VINCENT
+    private boolean isGroupField(int field) {
+        return groups.get(new Integer(field)) != null;
+    }
+    // End Patch from David VINCENT
+    
     void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {
         if (preFields != null) {
             for (int i = 0; i < preFields.length; i++) {
@@ -377,25 +383,28 @@ public abstract class FieldMap {
         }
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
+            // Patch from David VINCENT
             if (!isOrderedField(field.getField(), preFields)
-                    && !isOrderedField(field.getField(), postFields)) {
+                    && !isOrderedField(field.getField(), postFields) 
+                        && !isGroupField(field.getField())) {
+             // End Patch from David VINCENT
                 field.toString(buffer);
                 buffer.append('\001');
             }
         }
-        // TODO fix group rendering
+        // TODO fix group rendering -- Should ok now ( David VINCENT)
         for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry) iter.next();
-            List groups = (List)entry.getValue();
+            List mygroups = (List)entry.getValue();
             IntField groupField = new IntField(((Integer)entry.getKey()).intValue());
-            groupField.setValue(groups.size());
+            groupField.setValue(mygroups.size());
             groupField.toString(buffer);
             buffer.append('\001');
             // Acceptance test copies message with group length field already present
             // This causes two fields to be sent.
             //buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
-            for (int i = 0; i < groups.size(); i++) {
-                FieldMap groupFields = (FieldMap)groups.get(i);
+            for (int i = 0; i < mygroups.size(); i++) {
+                FieldMap groupFields = (FieldMap)mygroups.get(i);
                 groupFields.calculateString(buffer, preFields, postFields);
             }
         }
