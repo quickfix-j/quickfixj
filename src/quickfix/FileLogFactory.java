@@ -19,9 +19,19 @@
 
 package quickfix;
 
+/**
+ * Factory for creating file-based loggers. See SessionSettings for
+ * configuration.
+ * 
+ * @see quickfix.SessionSettings
+ */
 public class FileLogFactory implements LogFactory {
     private SessionSettings settings;
     
+    /**
+     * Create the factory with configuration in session settings.
+     * @param settings
+     */
     public FileLogFactory(SessionSettings settings) {
         this.settings = settings;
     }
