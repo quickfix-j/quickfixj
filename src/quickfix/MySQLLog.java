@@ -22,6 +22,12 @@ package quickfix;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * MySQL log implementation. SHOULD ONLY BE CREATED USING A FACTORY.
+ * 
+ * @see quickfix.JdbcLogFactory
+ * @see quickfix.MySQLLogFactory
+ */
 public class MySQLLog extends JdbcLog {
     public MySQLLog(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {

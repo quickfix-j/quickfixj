@@ -28,6 +28,11 @@ import java.util.Date;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
+/**
+ * File log implementation. SHOULD ONLY BE CREATED USING A FACTORY.
+ * 
+ * @see quickfix.FileLogFactory
+ */
 public class FileLog implements Log {
     private SessionID sessionID;
     private String incomingFileName;
@@ -38,7 +43,7 @@ public class FileLog implements Log {
     private OutputStream outgoing;
     private OutputStream events;
 
-    public FileLog(String path, SessionID sessionID) throws FileNotFoundException {
+    FileLog(String path, SessionID sessionID) throws FileNotFoundException {
         String sessionName = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
         this.sessionID = sessionID;
@@ -95,15 +100,15 @@ public class FileLog implements Log {
         }
     }
 
-    public String getEventFileName() {
+    String getEventFileName() {
         return eventFileName;
     }
 
-    public String getIncomingFileName() {
+    String getIncomingFileName() {
         return incomingFileName;
     }
 
-    public String getOutgoingFileName() {
+    String getOutgoingFileName() {
         return outgoingFileName;
     }
 }

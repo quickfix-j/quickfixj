@@ -21,7 +21,7 @@ package quickfix;
 
 import java.io.File;
 
-public class FileUtil {
+class FileUtil {
     public static String fileAppendPath(String pathPrefix, String pathSuffix) {
         return pathPrefix
                 + (pathPrefix.endsWith(File.separator) ? "" : File.separator)

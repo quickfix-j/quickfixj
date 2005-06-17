@@ -22,7 +22,7 @@ package quickfix;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-public class SystemTime {
+class SystemTime {
     private static SystemTimeSource systemTimeSource = new SystemTimeSource() {
         public long getTime() {
             return System.currentTimeMillis();

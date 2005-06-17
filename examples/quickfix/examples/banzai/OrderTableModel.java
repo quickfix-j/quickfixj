@@ -41,7 +41,6 @@ public class OrderTableModel extends AbstractTableModel {
     private HashMap idToOrder;
 
     private String[] headers;
-    private Class[] classes;
 
     public OrderTableModel() {
         rowToOrder = new HashMap();

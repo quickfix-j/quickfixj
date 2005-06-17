@@ -19,21 +19,20 @@
 
 package quickfix.examples.banzai.ui;
 
-import org.apache.log4j.Category;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 import quickfix.examples.banzai.ExecutionTableModel;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  *  Contains the executions panel
  */
 public class ExecutionPanel extends JPanel {
-
-    /** enable logging for this class */
-    private static Category log
-    = Category.getInstance(ExecutionPanel.class.getName());
 
     public ExecutionPanel(ExecutionTableModel executionTableModel) {
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));

@@ -24,7 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-public class JdbcLog implements Log {
+class JdbcLog implements Log {
     private Connection connection;
     private SessionID sessionID;
 

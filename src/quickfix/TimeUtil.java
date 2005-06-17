@@ -23,7 +23,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class TimeUtil {
+class TimeUtil {
     private static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
 
     public static Calendar getUtcCalendar() {

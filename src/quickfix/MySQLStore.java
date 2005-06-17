@@ -22,8 +22,14 @@ package quickfix;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * MySQL message store implementation. SHOULD ONLY BE CREATED USING A FACTORY.
+ * 
+ * @see quickfix.JdbcStoreFactory
+ * @see quickfix.MySQLStoreFactory
+ */
 public class MySQLStore extends JdbcStore {
-    public MySQLStore(SessionSettings settings, SessionID sessionID) throws Exception {
+    MySQLStore(SessionSettings settings, SessionID sessionID) throws Exception {
         super(settings, sessionID);
     }
 

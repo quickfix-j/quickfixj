@@ -21,7 +21,7 @@ package quickfix;
 
 import java.util.HashMap;
 
-public class FieldType {
+class FieldType {
     private int ordinal;
     private String name;
     private static int ordinalCounter = 0;

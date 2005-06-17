@@ -30,6 +30,11 @@ import java.util.TimeZone;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
+/**
+ * File store implementation. SHOULD ONLY BE CREATED USING A FACTORY.
+ * 
+ * @see quickfix.FileStoreFactory
+ */
 public class FileStore implements MessageStore {
     private MemoryStore cache = new MemoryStore();
     private RandomAccessFile msgFile;
@@ -41,7 +46,7 @@ public class FileStore implements MessageStore {
     private String seqNumFileName;
     private String sessionFileName;
 
-    public FileStore(String path, SessionID sessionID) throws IOException {
+    FileStore(String path, SessionID sessionID) throws IOException {
         if (path == null) {
             path = ".";
         }

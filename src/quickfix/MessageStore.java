@@ -23,8 +23,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.io.IOException;
 
+/**
+ * Used by a Session to store and retrieve messages for resend purposes.
+ * 
+ * @see quickfix.Session
+ */
 public interface MessageStore {
-
+    // TODO DOCS Add Javadocs
     boolean set(int sequence, String message )
     throws IOException;
     boolean get(int sequence, String message )

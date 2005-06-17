@@ -36,7 +36,6 @@ public class ExecutionTableModel extends AbstractTableModel {
     private HashMap exchangeIdToExecution;
 
     private String[] headers;
-    private Class[] classes;
 
     public ExecutionTableModel() {
         rowToExecution = new HashMap();

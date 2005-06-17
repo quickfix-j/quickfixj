@@ -23,7 +23,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class JdbcUtil {
+class JdbcUtil {
     public static Connection openConnection(SessionSettings settings, SessionID sessionID)
             throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
         Class.forName(settings.getString(sessionID, SessionSettings.JDBC_STORE_DRIVER));

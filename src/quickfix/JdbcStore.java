@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class JdbcStore implements MessageStore {
+class JdbcStore implements MessageStore {
     private MemoryStore cache = new MemoryStore();
     private Connection connection;
     private SessionID sessionID;

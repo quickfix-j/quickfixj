@@ -22,7 +22,7 @@ package quickfix;
 import quickfix.field.*;
 
 public class MessageCracker extends quickfix.fix44.MessageCracker {
-
+// TODO DOCS Add Javadoc for message cracker
     public void crack( quickfix.Message message, SessionID sessionID )
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
 

@@ -27,8 +27,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import org.apache.log4j.Category;
-
 import quickfix.examples.banzai.BanzaiApplication;
 import quickfix.examples.banzai.OrderTableModel;
 
@@ -36,9 +34,6 @@ import quickfix.examples.banzai.OrderTableModel;
  *  Contains the Order table.
  */
 public class OrderPanel extends JPanel {
-
-    private static Category log =
-        Category.getInstance(OrderPanel.class.getName());
 
     private JTable orderTable = null;
 

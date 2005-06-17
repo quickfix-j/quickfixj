@@ -19,6 +19,9 @@
 
 package quickfix;
 
+/**
+ * Constants containing the BeginString field values for various FIX versions.
+ */
 public interface FixVersions {
     public static final String BEGINSTRING_FIX40 = "FIX.4.0";
     public static final String BEGINSTRING_FIX41 = "FIX.4.1";

@@ -28,7 +28,8 @@ import java.util.Map;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 
 /**
- * @author sbate
+ * Factory for creating sessions. Used by the communications code (acceptors, initiators)
+ * for creating sessions.
  */
 public class SessionFactory {
     private static Map dictionaryCache = new Hashtable(); // synchronized

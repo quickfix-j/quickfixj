@@ -23,7 +23,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * @author sbate
+ * Utilities for logging session-related events.
  *
  */
 public class LogUtil {
@@ -42,6 +42,13 @@ public class LogUtil {
         log.onEvent(stringWriter.toString());
     }
     
+    /*
+     * Logs a throwable as a session event, including the stack trace.
+     * 
+     * @param sessionID the session ID
+     * @param message the error message
+     * @param the exception to log
+     */
     public static void logThrowable(SessionID sessionID, String message, Throwable t) {
         Session session = Session.lookupSession(sessionID);
         logThrowable(session.getLog(), message, t);

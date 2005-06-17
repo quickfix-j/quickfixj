@@ -363,4 +363,15 @@
 		<delete dir="${coverage.dir}" />
 	</target>
 
+	<target name="javadoc" depends="">
+		<javadoc sourcepath="src;src-generated" 
+			packagenames="quickfix,quickfix.netty,quickfix.field.converter,quickfix.codegen" 
+			destdir="docs/javadoc" protected="yes" maxmemory="256m" >
+			<classpath>
+				<fileset dir=".">
+					<include name="lib/*.jar" />
+				</fileset>
+ 			</classpath>
+		</javadoc>
+	</target>
 </project>
