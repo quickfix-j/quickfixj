@@ -27,7 +27,8 @@ import java.util.HashMap;
 import java.util.TimeZone;
 
 /**
- * In-memory message store implementation. SHOULD ONLY BE CREATED USING A
+ * In-memory message store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
+ * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
  * FACTORY.
  * 
  * @see quickfix.MemoryStoreFactory

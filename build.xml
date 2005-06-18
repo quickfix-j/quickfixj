@@ -365,13 +365,18 @@
 
 	<target name="javadoc" depends="">
 		<javadoc sourcepath="src;src-generated" 
-			packagenames="quickfix,quickfix.netty,quickfix.field.converter,quickfix.codegen" 
-			destdir="docs/javadoc" protected="yes" maxmemory="256m" >
+			overview="docs/javadoc_overview.html" stylesheetfile="docs/javadoc.css"
+			destdir="docs/javadoc" protected="yes" maxmemory="256m" breakiterator="yes">
 			<classpath>
 				<fileset dir=".">
 					<include name="lib/*.jar" />
 				</fileset>
  			</classpath>
+			<package name="quickfix"/>
+			<package name="quickfix.netty"/>
+			<package name="quickfix.field.converter"/>
+			<package name="quickfix.codegen"/>
+			<!-- <package name="quickfix.*"/> -->
 		</javadoc>
 	</target>
 </project>

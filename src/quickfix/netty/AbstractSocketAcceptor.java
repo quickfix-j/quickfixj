@@ -68,14 +68,14 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            MessageFactory messageFactory) throws ConfigError {
+            MessageFactory messageFactory) {
         this(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
     }
 
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+            LogFactory logFactory, MessageFactory messageFactory) {
         this.settings = settings;
         sessionFactory = new SessionFactory(application, messageStoreFactory, logFactory);
     }
@@ -153,7 +153,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             ioProcessor.setThreadPoolSize(1);
             ioProcessor.start();
 
-            int acceptPort = getIntSetting(SessionSettings.SOCKET_ACCEPT_PORT);
+            int acceptPort = getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT);
 
             // Create Netty session server
             nettySessionServer = new SessionServer();

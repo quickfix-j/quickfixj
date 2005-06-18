@@ -392,7 +392,7 @@ public abstract class FieldMap {
                 buffer.append('\001');
             }
         }
-        // TODO fix group rendering -- Should ok now ( David VINCENT)
+        
         for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry) iter.next();
             List mygroups = (List)entry.getValue();
@@ -467,15 +467,6 @@ public abstract class FieldMap {
             result += field.getTotal();
         }
 
-        // TODO handle groups in checksum calculation
-        
-        //      Groups::const_iterator j;
-        //      for ( j = m_groups.begin(); j != m_groups.end(); ++j )
-        //      {
-        //        std::vector < FieldMap* > ::const_iterator k;
-        //        for ( k = j->second.begin(); k != j->second.end(); ++k )
-        //          result += ( *k ) ->calculateTotal();
-        //      }
         return result;
     }
 

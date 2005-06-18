@@ -25,6 +25,11 @@ package quickfix;
 public interface Acceptor {
 
     /**
+     * Acceptor setting specifying port for accepting FIX client connections.
+     */
+    public static final String SETTING_SOCKET_ACCEPT_PORT = "SocketAcceptPort";
+
+    /**
      * Start accepting connections. Returns immediately. See implementations of
      * this interface potential threading issues.
      * 

@@ -25,9 +25,9 @@ public class ScreenLogTest extends TestCase {
         ByteArrayOutputStream data = new ByteArrayOutputStream();
 
         SessionSettings sessionSettings = new SessionSettings();
-        sessionSettings.setBool(sessionID, SessionSettings.SCREEN_LOG_EVENTS, true);
-        sessionSettings.setBool(sessionID, SessionSettings.SCREEN_LOG_INCOMING, true);
-        sessionSettings.setBool(sessionID, SessionSettings.SCREEN_LOG_OUTGOING, true);
+        sessionSettings.setBool(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS, true);
+        sessionSettings.setBool(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING, true);
+        sessionSettings.setBool(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING, true);
         
         ScreenLogFactory factory = new ScreenLogFactory(sessionSettings);
         ScreenLog log = (ScreenLog)factory.create(sessionID);

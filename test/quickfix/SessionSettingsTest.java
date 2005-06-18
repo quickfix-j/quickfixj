@@ -48,9 +48,9 @@ public class SessionSettingsTest extends TestCase {
         SessionID sessionID3 = new SessionID("FIX.4.2", "FOO", "BAR");
 
         assertEquals("wrong setting", "acceptor", settings.getString(sessionID1,
-                SessionSettings.CONNECTION_TYPE));
+                SessionFactory.SETTING_CONNECTION_TYPE));
         assertEquals("wrong setting", "00:00:00", settings.getString(sessionID2,
-                SessionSettings.END_TIME));
+                Session.SETTING_END_TIME));
         assertEquals("wrong setting", "CLIENT1", settings.getString(sessionID1,
                 SessionSettings.TARGETCOMPID));
         assertEquals("wrong setting", "CLIENT2", settings.getString(sessionID2,

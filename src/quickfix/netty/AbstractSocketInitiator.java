@@ -186,8 +186,8 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
         return sectionKey != SessionSettings.DEFAULT_SESSION_ID
-                && (!settings.isSetting((SessionID) sectionKey, SessionSettings.CONNECTION_TYPE) || settings
-                        .getString((SessionID) sectionKey, SessionSettings.CONNECTION_TYPE).equals(
+                && (!settings.isSetting((SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE) || settings
+                        .getString((SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE).equals(
                                 "initiator"));
     }
 
@@ -254,10 +254,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
         private long reconnectInterval;
 
         public SessionConnection(SessionSettings settings, SessionID sessionID) throws ConfigError {
-            if (settings.isSetting(sessionID, SessionSettings.RECONNECT_INTERVAL)) {
+            if (settings.isSetting(sessionID, Initiator.SETTING_RECONNECT_INTERVAL)) {
                 try {
                     reconnectInterval = settings.getLong(sessionID,
-                            SessionSettings.RECONNECT_INTERVAL) * 1000L;
+                            Initiator.SETTING_RECONNECT_INTERVAL) * 1000L;
                 } catch (ConfigError e) {
                     throw e;
                 } catch (FieldConvertError e) {
@@ -272,9 +272,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             for (int index = 0;; index++) {
                 try {
-                    String hostKey = SessionSettings.SOCKET_CONNECT_HOST
+                    String hostKey = Initiator.SETTING_SOCKET_CONNECT_HOST
                             + (index == 0 ? "" : Integer.toString(index));
-                    String portKey = SessionSettings.SOCKET_CONNECT_PORT
+                    String portKey = Initiator.SETTING_SOCKET_CONNECT_PORT
                             + (index == 0 ? "" : Integer.toString(index));
                     if (settings.isSetting(sessionID, hostKey)
                             && settings.isSetting(sessionID, portKey)) {

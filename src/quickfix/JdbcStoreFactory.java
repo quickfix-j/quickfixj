@@ -19,14 +19,24 @@
 
 package quickfix;
 
-
+/**
+ * Creates a generic JDBC message store.
+ */
 public class JdbcStoreFactory implements MessageStoreFactory {
     private final SessionSettings settings;
     
+    /**
+     * Create a factory using session settings.
+     */
     public JdbcStoreFactory(SessionSettings settings) {
         this.settings = settings;
     }
-    
+
+    /**
+     * Create a JDBC message store.
+     * 
+     * @param sessionID the sessionID for the message store.
+     */
 	public MessageStore create(SessionID sessionID) {
 		try {
             return new JdbcStore(settings, sessionID);
@@ -35,6 +45,13 @@ public class JdbcStoreFactory implements MessageStoreFactory {
         }
 	}
 	
+	/**
+	 * Used to support the MySQL-specific class (JNI compatibility)
+	 * 
+	 * @return the session settings
+	 * 
+	 * @see quickfix.MySQLStoreFactory
+	 */
     protected SessionSettings getSettings() {
         return settings;
     }

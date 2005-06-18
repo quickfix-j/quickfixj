@@ -1,21 +1,21 @@
 /****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
@@ -31,7 +31,9 @@ import java.util.TimeZone;
 import quickfix.field.converter.UtcTimestampConverter;
 
 /**
- * File store implementation. SHOULD ONLY BE CREATED USING A FACTORY.
+ * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
+ * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
+ * FACTORY.
  * 
  * @see quickfix.FileStoreFactory
  */
@@ -240,7 +242,7 @@ public class FileStore implements MessageStore {
         // TODO implement get
         throw new UnsupportedOperationException("not yet implemented");
     }
-    
+
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
         storeSequenceNumbers();
@@ -259,7 +261,8 @@ public class FileStore implements MessageStore {
 
     private void storeSequenceNumbers() throws IOException {
         // TODO PERFORMANCE This should use a more efficient byte buffer
-        // TODO PERFORMANCE Use Javolution fast object pooling and primitive formatters
+        // TODO PERFORMANCE Use Javolution fast object pooling and primitive
+        // formatters
         seqNumFile.seek(0);
         StringBuffer sb = new StringBuffer();
         sb.append(Integer.toString(cache.getNextSenderMsgSeqNum())).append(" : ").append(

@@ -27,7 +27,7 @@ public class FileLogTest extends TestCase {
 
         File path = File.createTempFile("test", "");
         SessionSettings settings = new SessionSettings();
-        settings.setString(sessionID, SessionSettings.FILE_LOG_PATH, path.getParentFile().getAbsolutePath());
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile().getAbsolutePath());
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog)factory.create(sessionID);
 

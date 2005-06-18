@@ -12,8 +12,13 @@
 
 package quickfix;
 
+/**
+ * Identifier for a session. Only supports a company ID (target, sender)
+ * and a session qualifier. Sessions are also identified by FIX version so
+ * that it's possible to have multiple sessions to the same counterparty
+ * but using different FIX versions (and/or session qualifiers). 
+ */
 public class SessionID {
-    // TODO DOCS Add javadocs, document session qualifier
     private String beginString;
     private String senderCompID;
     private String targetCompID;
@@ -45,6 +50,11 @@ public class SessionID {
         return targetCompID;
     }
 
+    /**
+     * Session qualifier can be used to identify different sessions
+     * for the same target company ID.
+     * @return the session qualifier
+     */
     public String getSessionQualifier() {
         return sessionQualifier;
     }

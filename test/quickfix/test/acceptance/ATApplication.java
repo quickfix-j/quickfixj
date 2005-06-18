@@ -27,12 +27,6 @@ public class ATApplication implements Application {
     private ATMessageCracker cracker = new ATMessageCracker();
 
     public void onCreate(SessionID sessionID) {
-        Session session = Session.lookupSession(sessionID);
-        try {
-            if (session != null)
-                session.reset();
-        } catch (java.io.IOException ioe) {
-        }
     }
 
     public void onLogon(SessionID sessionID) {

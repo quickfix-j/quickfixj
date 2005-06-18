@@ -31,6 +31,37 @@ public class ScreenLogFactory implements LogFactory {
     private boolean incoming;
     private boolean outgoing;
     private boolean events;
+    
+    /**
+     * <p>Enables incoming message logging.</p>
+     * 
+     * <p>
+     * Valid values: "Y" or "N"<br/>
+     * Default Value: "N"
+     * </p>
+     * 
+     */
+    public static final String SETTING_LOG_INCOMING = "ScreenLogIncoming";
+    /**
+     * <p>Enables outgoing message logging.</p>
+     * 
+     * <p>
+     * Valid values: "Y" or "N"<br/>
+     * Default Value: "N"
+     * </p>
+     * 
+     */
+    public static final String SETTING_LOG_OUTGOING = "ScreenLogOutgoing";
+    /**
+     * <p>Enables session event logging.</p>
+     * 
+     * <p>
+     * Valid values: "Y" or "N"<br/>
+     * Default Value: "N"
+     * </p>
+     * 
+     */
+    public static final String SETTING_LOG_EVENTS = "ScreenLogEvents";
 
     /**
      * Create factory using configuration in session settings.
@@ -64,18 +95,18 @@ public class ScreenLogFactory implements LogFactory {
         try {
             boolean incoming = this.incoming;
             if (settings != null
-                    && settings.isSetting(sessionID, SessionSettings.SCREEN_LOG_INCOMING)) {
-                incoming = settings.getBool(sessionID, SessionSettings.SCREEN_LOG_INCOMING);
+                    && settings.isSetting(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING)) {
+                incoming = settings.getBool(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING);
             }
             boolean outgoing = this.outgoing;
             if (settings != null
-                    && settings.isSetting(sessionID, SessionSettings.SCREEN_LOG_OUTGOING)) {
-                outgoing = settings.getBool(sessionID, SessionSettings.SCREEN_LOG_OUTGOING);
+                    && settings.isSetting(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING)) {
+                outgoing = settings.getBool(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING);
             }
             boolean events = this.events;
             if (settings != null
-                    && settings.isSetting(sessionID, SessionSettings.SCREEN_LOG_EVENTS)) {
-                events = settings.getBool(sessionID, SessionSettings.SCREEN_LOG_EVENTS);
+                    && settings.isSetting(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS)) {
+                events = settings.getBool(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS);
             }
 
             return new ScreenLog(incoming, outgoing, events, sessionID, System.out);

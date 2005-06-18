@@ -25,11 +25,16 @@ import java.util.Date;
 import quickfix.field.converter.UtcTimestampConverter;
 
 /**
- * Screen log implementation. SHOULD ONLY BE CREATED USING A FACTORY.
+ * Screen log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
+ * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
+ * FACTORY.
  * 
  * @see quickfix.ScreenLogFactory
  */
 public class ScreenLog implements Log {
+    private static final String EVENT_CATEGORY = "event";
+    private static final String OUTGOING_CATEGORY = "outgoing";
+    private static final String INCOMING_CATEGORY = "incoming";
     private PrintStream out;
     private SessionID sessionID;
     private boolean incoming;
@@ -47,21 +52,21 @@ public class ScreenLog implements Log {
 
     public void onIncoming(String message) {
         if (incoming) {
-            log(message, "incoming");
+            log(message, INCOMING_CATEGORY);
         }
 
     }
 
     public void onOutgoing(String message) {
         if (outgoing) {
-            log(message, "outgoing");
+            log(message, OUTGOING_CATEGORY);
         }
 
     }
 
     public void onEvent(String message) {
         if (events) {
-            log(message, "event");
+            log(message, EVENT_CATEGORY);
         }
 
     }

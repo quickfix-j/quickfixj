@@ -26,8 +26,6 @@ import net.gleamynode.netty2.SessionListener;
 /**
  * Default implementation for Netty SessionListener
  * 
- * @author sbate
- * 
  * @see net.gleamynode.netty2.SessionListener
  */
 public abstract class AbstractSessionListener implements SessionListener {

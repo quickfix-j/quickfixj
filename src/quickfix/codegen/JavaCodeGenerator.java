@@ -48,14 +48,17 @@ import org.xml.sax.SAXException;
 /**
  * Generates Message and Field related code for the various FIX versions.
  * 
- * @author sbate
- *  
  */
 public class JavaCodeGenerator {
     private Log log = LogFactory.getLog(getClass());
     private String outputBaseDir;
     private String specificationDir;
 
+    /**
+     * Constructs a message code generator.
+     * @param specificationDir where the specification are located.
+     * @param outputBaseDir directory where the output should be generated
+     */
     public JavaCodeGenerator(String specificationDir, String outputBaseDir) {
         this.specificationDir = specificationDir;
         this.outputBaseDir = outputBaseDir;

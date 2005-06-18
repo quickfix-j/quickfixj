@@ -19,23 +19,40 @@
 
 package quickfix;
 
-
+/**
+ * Creates a generic JDBC logger.
+ */
 public class JdbcLogFactory implements LogFactory {
     private SessionSettings settings;
     
-    public JdbcLogFactory(SessionSettings settings) {
-        this.settings = settings;
-    }
-    
-    protected SessionSettings getSettings() {
-        return settings;
-    }
-    
+    /**
+     * Create a JDBC logger.
+     * 
+     * @param sessionID the sessionID for the message store.
+     */
     public Log create(SessionID sessionID) {
         try {
             return new JdbcLog(settings, sessionID);
         } catch (Exception e) {
             throw new RuntimeError(e);
         }
+    }
+
+    /**
+     * Create a factory using session settings.
+     */
+    public JdbcLogFactory(SessionSettings settings) {
+        this.settings = settings;
+    }
+    
+	/**
+	 * Used to support the MySQL-specific class (JNI compatibility)
+	 * 
+	 * @return the session settings
+	 * 
+	 * @see quickfix.MySQLLogFactory
+	 */
+    protected SessionSettings getSettings() {
+        return settings;
     }
 }

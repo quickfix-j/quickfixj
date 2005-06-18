@@ -21,8 +21,16 @@ package quickfix;
 
 import quickfix.field.*;
 
+/**
+ * Helper class for delegating message types for various FIX versions
+ * to type-safe onMessage methods.
+ */
 public class MessageCracker extends quickfix.fix44.MessageCracker {
-// TODO DOCS Add Javadoc for message cracker
+
+    /**
+     * Process ("crack") a FIX message and call the type-safe onMessage
+     * method for that message type and FIX version.
+     */
     public void crack( quickfix.Message message, SessionID sessionID )
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
 

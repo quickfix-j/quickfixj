@@ -40,6 +40,94 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 
 public class Session {
+    // TODO review session thread safety
+
+    /**
+     * Session setting for heartbeat interval (in seconds).
+     */
+    public static final String SETTING_HEARTBTINT = "HeartBtInt";
+
+    /**
+     * Session setting for enabling message latency checks. Values are "Y" or
+     * "N".
+     */
+    public static final String SETTING_CHECK_LATENCY = "CheckLatency";
+
+    /**
+     * Session setting for maximum message latency (in seconds).
+     */
+    public static final String SETTING_MAX_LATENCY = "MaxLatency";
+
+    /**
+     * Session scheduling setting to specify first day of trading week.
+     */
+    public static final String SETTING_START_DAY = "StartDay";
+
+    /**
+     * Session scheduling setting to specify last day of trading week.
+     */
+    public static final String SETTING_END_DAY = "EndDay";
+
+    /**
+     * Session scheduling setting to specify starting time of the trading day.
+     */
+    public static final String SETTING_START_TIME = "StartTime";
+
+    /**
+     * Session scheduling setting to specify end time of the trading day.
+     */
+    public static final String SETTING_END_TIME = "EndTime";
+
+    /**
+     * Session setting to indicate whether a data dictionary should be used. If
+     * a data dictionary is not used then message validation is not possble.
+     */
+    public static final String SETTING_USE_DATA_DICTIONARY = "UseDataDictionary";
+
+    /**
+     * Session setting specifying the path to the data dictionary to use for
+     * this session. This setting supports the possibility of a custom data
+     * dictionary for each session. Normally, the default data dictionary for a
+     * specific FIX version will be specified.
+     */
+    public static final String SETTING_DATA_DICTIONARY = "DataDictionary";
+
+    /**
+     * Session validation setting for enabling whether field ordering is
+     * validated. Values are "Y" or "N". Default is "Y".
+     */
+    public static final String SETTING_VALIDATE_FIELDS_OUT_OF_ORDER = "ValidateFieldsOutOfOrder";
+
+    /**
+     * Session validation setting for enabling whether field values are
+     * validated. Empty fields values are not allowed. Values are "Y" or "N".
+     * Default is "Y".
+     */
+    public static final String SETTING_VALIDATE_FIELDS_HAVE_VALUES = "ValidateFieldsHaveValues";
+
+    /**
+     * Session setting for logon timeout (in seconds).
+     */
+    public static final String SETTING_LOGON_TIMEOUT = "LogonTimeout";
+
+    /**
+     * Session setting for doing an automatic sequence number reset on logout.
+     * Valid values are "Y" or "N". Default is "N".
+     */
+    public static final String SETTING_RESET_ON_LOGOUT = "ResetOnLogout";
+
+    /**
+     * Session setting for doing an automatic sequence number reset on
+     * disconnect. Valid values are "Y" or "N". Default is "N".
+     */
+    public static final String SETTING_RESET_ON_DISCONNECT = "ResetOnDisconnect";
+
+    /**
+     * Session setting to enable milliseconds in message timestamps. Valid
+     * values are "Y" or "N". Default is "Y". Only valid for FIX version >= 4.2.
+     */
+    public static final String SETTING_MILLISECONDS_IN_TIMESTAMP = "MillisecondsInTimeStamp";
+
     private static final int BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE = 3;
     private Application application;
     private Responder responder;
@@ -48,7 +136,6 @@ public class Session {
     private SessionSchedule sessionSchedule;
     private MessageFactory messageFactory;
     private SessionState state = new SessionState();
-
     private static HashMap sessions = new HashMap();
     private boolean enabled;
     private boolean checkLatency;
@@ -90,6 +177,13 @@ public class Session {
         }
     }
 
+    /**
+     * Registers a responder with the session. This is used by the acceptor and
+     * initiator implementations.
+     * 
+     * @param responder
+     *            a responder implementation
+     */
     public void setResponder(Responder responder) {
         this.responder = responder;
     }
@@ -102,10 +196,35 @@ public class Session {
                 .getUtcCalendar(state.getCreationTime()));
     }
 
+    /**
+     * Send a message to the session specified in the message's target
+     * identifiers.
+     * 
+     * @param message
+     *            a FIX message
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message) throws SessionNotFound {
         return sendToTarget(message, "");
     }
 
+    // TODO QUESTION How is session qualifier used?
+
+    /**
+     * Send a message to the session specified in the message's target
+     * identifiers. The session qualifier is used to distinguish sessions with
+     * the same target identifiers.
+     * 
+     * @param message
+     *            a FIX message
+     * @param qualifier
+     *            a session qualifier
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFound {
         try {
             String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
@@ -118,17 +237,61 @@ public class Session {
         }
     }
 
+    /**
+     * Send a message to the session specified by the provided target company
+     * ID. The sender company ID is provided as an argument rather than from the
+     * message.
+     * 
+     * @param message
+     *            a FIX message
+     * @param senderCompID
+     *            the sender's company ID
+     * @param targetCompID
+     *            the target's company ID
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID)
             throws SessionNotFound {
         return sendToTarget(message, senderCompID, targetCompID, "");
     }
 
+    /**
+     * Send a message to the session specified by the provided target company
+     * ID. The sender company ID is provided as an argument rather than from the
+     * message. The session qualifier is used to distinguish sessions with the
+     * same target identifiers.
+     * 
+     * @param message
+     *            a FIX message
+     * @param senderCompID
+     *            the sender's company ID
+     * @param targetCompID
+     *            the target's company ID
+     * @param qualifier
+     *            a session qualifier
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
             String qualifier) throws SessionNotFound {
         return sendToTarget(message, new SessionID(FixVersions.BEGINSTRING_FIX42, senderCompID,
                 targetCompID, qualifier));
     }
 
+    /**
+     * Send a message to the session specified by the provided session ID.
+     * 
+     * @param message
+     *            a FIX message
+     * @param sessionID
+     *            the target SessionID
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFound {
         message.setSessionID(sessionID);
         Session session = lookupSession(sessionID);
@@ -138,10 +301,21 @@ public class Session {
         return session.send(message);
     }
 
+    /**
+     * Locates a session specified by the provided session ID.
+     * 
+     * @param sessionID
+     *            the session ID
+     * @return the session, if found, or null otherwise
+     */
     public static Session lookupSession(SessionID sessionID) {
         return (Session) sessions.get(sessionID);
     }
 
+    /**
+     * This method can be used to manually logon to a FIX session.
+     *  
+     */
     public void logon() {
         enabled = true;
     }
@@ -161,43 +335,98 @@ public class Session {
         header.setUtcTimeStamp(SendingTime.FIELD, new Date(), includeMillis);
     }
 
+    /**
+     * This method can be used to manually logout of a FIX session.
+     */
     public void logout() {
         enabled = false;
     }
 
+    /**
+     * Used internally by initiator implementation.
+     * 
+     * @return true if session is enabled, false otherwise.
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Predicate indicatign whether a logon message has been sent.
+     * 
+     * @return true if logon message was sent, false otherwise.
+     */
     public boolean sentLogon() {
         return state.isLogonSent();
     }
 
-    public boolean sentLogout() {
-        return state.isLogoutSent();
-    }
-
+    /**
+     * Predicate indicatign whether a logon message has been received.
+     * 
+     * @return true if logon message was received, false otherwise.
+     */
     public boolean receivedLogon() {
         return state.isLogonReceived();
+    }
+
+    /**
+     * Predicate indicatign whether a logout message has been sent.
+     * 
+     * @return true if logout message was sent, false otherwise.
+     */
+    public boolean sentLogout() {
+        return state.isLogoutSent();
     }
 
     public boolean isLoggedOn() {
         return sentLogon() && receivedLogon();
     }
 
+    /**
+     * Disconnects session and resets session state.
+     * 
+     * @throws IOException
+     *             IO error
+     * @see #disconnect()
+     * @see SessionState#reset()
+     */
     public void reset() throws IOException {
         disconnect();
         state.reset();
     }
 
+    /**
+     * Set the next outgoing message sequence number. This method is not
+     * synchronized.
+     * 
+     * @param num
+     *            next outgoing sequence number
+     * @throws IOException
+     *             IO error
+     */
     public void setNextSenderMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextSenderMsgSeqNum(num);
     }
 
+    /**
+     * Set the next expected target message sequence number. This method is not
+     * synchronized.
+     * 
+     * @param num
+     *            next expected target sequence number
+     * @throws IOException
+     *             IO error
+     */
     public void setNextTargetMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextTargetMsgSeqNum(num);
     }
 
+    /**
+     * Retrieves the expected sender sequence number. This method is not
+     * synchronized.
+     * 
+     * @return next expected sender sequence number
+     */
     public int getExpectedSenderNum() {
         try {
             return state.getMessageStore().getNextSenderMsgSeqNum();
@@ -207,6 +436,12 @@ public class Session {
         }
     }
 
+    /**
+     * Retrieves the expected target sequence number. This method is not
+     * synchronized.
+     * 
+     * @return next expected target sequence number
+     */
     public int getExpectedTargetNum() {
         try {
             return state.getMessageStore().getNextTargetMsgSeqNum();
@@ -224,8 +459,9 @@ public class Session {
         return state.getMessageStore();
     }
 
-    public synchronized void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
-            IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
+    public synchronized void next(Message message) throws FieldNotFound, RejectLogon,
+            IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException,
+            InvalidMessage {
         state.setConnected(true);
 
         Date now = new Date();
@@ -276,6 +512,11 @@ public class Session {
             generateReject(message, SessionRejectReason.INVALID_MSGTYPE, 0);
         } catch (InvalidMessage e) {
             state.logEvent("Skipping invalid message: " + e.getMessage());
+        } catch (RejectLogon e) {
+            // TODO need a test for this
+            String rejectMessage = e.getMessage() != null ? (": " + e.getMessage()) : "";
+            state.getLog().onEvent("Logon rejected" + rejectMessage);
+            disconnect();
         } catch (UnsupportedMessageType e) {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
                 generateBusinessReject(message, BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE);
@@ -482,7 +723,8 @@ public class Session {
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
 
-        // TODO QUESTION Why is PossDupFlag needed here? It doesn't appear to be used in
+        // TODO QUESTION Why is PossDupFlag needed here? It doesn't appear to be
+        // used in
         // the C++ code.
         // PossDupFlag possDupFlag( false );
         boolean possDupFlag = false;
@@ -730,6 +972,13 @@ public class Session {
         return verify(message, true, true);
     }
 
+    /**
+     * Called from the timer-related code in the acceptor/initiator
+     * implementations. This is not typically called from application code.
+     * 
+     * @throws IOException
+     *             IO error
+     */
     public synchronized void next() throws IOException {
         if (!enabled) {
             if (isLoggedOn()) {
@@ -810,6 +1059,12 @@ public class Session {
         sendRaw(logon, 0);
     }
 
+    /**
+     * Logs out from session and closes the network connection.
+     * 
+     * @throws IOException
+     *             IO error
+     */
     public synchronized void disconnect() throws IOException {
         if (responder != null) {
             if (!state.isLogoutSent()) {
@@ -818,10 +1073,7 @@ public class Session {
                 state.logEvent("Disconnecting");
             }
 
-            //if (responder != null) {
-                responder.disconnect();
-            //    responder = null;
-            //}
+            responder.disconnect();
         }
 
         if (state.isLogonReceived() || state.isLogonSent()) {
@@ -858,7 +1110,6 @@ public class Session {
         }
 
         if (!state.isInitiator()) {
-            //int interval = logon.getInt(HeartBtInt.FIELD);
             state.logEvent("Received logon request");
             generateLogon(logon);
             state.logEvent("Responding to logon request");
@@ -1092,7 +1343,13 @@ public class Session {
     public SessionID getSessionID() {
         return sessionID;
     }
-    
+
+    /**
+     * Predicate for determining if the session should be active at the current
+     * time.
+     * 
+     * @return true if session should be active, false otherwise.
+     */
     public boolean isSessionTime() {
         return sessionSchedule.isSessionTime();
     }

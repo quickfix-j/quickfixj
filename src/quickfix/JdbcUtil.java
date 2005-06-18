@@ -26,24 +26,24 @@ import java.sql.SQLException;
 class JdbcUtil {
     public static Connection openConnection(SessionSettings settings, SessionID sessionID)
             throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
-        Class.forName(settings.getString(sessionID, SessionSettings.JDBC_STORE_DRIVER));
+        Class.forName(settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER));
         return DriverManager.getConnection(settings.getString(sessionID,
-                SessionSettings.JDBC_STORE_URL), settings.getString(sessionID,
-                SessionSettings.JDBC_STORE_USER), settings.getString(sessionID,
-                SessionSettings.JDBC_STORE_PASSWORD));
+                JdbcSetting.SETTING_JDBC_CONNECTION_URL), settings.getString(sessionID,
+                JdbcSetting.SETTING_JDBC_USER), settings.getString(sessionID,
+                JdbcSetting.SETTING_JDBC_PASSWORD));
     }
     
     public static Connection openMySQLConnection(SessionSettings settings, SessionID sessionID)
             throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
-        settings.setString(sessionID, SessionSettings.JDBC_STORE_DRIVER, "com.mysql.jdbc.Driver");
-        settings.setString(sessionID, SessionSettings.JDBC_STORE_URL, "jdbc:mysql://"
-                + settings.getString(sessionID, SessionSettings.MYSQL_STORE_HOST) + ":"
-                + settings.getString(sessionID, SessionSettings.MYSQL_STORE_PORT) + "/"
-                + settings.getString(sessionID, SessionSettings.MYSQL_STORE_DATABASE));
-        settings.setString(sessionID, SessionSettings.JDBC_STORE_USER, settings.getString(
-                sessionID, SessionSettings.MYSQL_STORE_USER));
-        settings.setString(sessionID, SessionSettings.JDBC_STORE_PASSWORD, settings.getString(
-                sessionID, SessionSettings.MYSQL_STORE_PASSWORD));
+        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER, "com.mysql.jdbc.Driver");
+        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_URL, "jdbc:mysql://"
+                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_STORE_HOST) + ":"
+                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_STORE_PORT) + "/"
+                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_STORE_DATABASE));
+        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_USER, settings.getString(
+                sessionID, MySQLSetting.SETTING_MYSQL_STORE_USER));
+        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_PASSWORD, settings.getString(
+                sessionID, MySQLSetting.SETTING_MYSQL_STORE_PASSWORD));
         return openConnection(settings, sessionID);
     }
 }

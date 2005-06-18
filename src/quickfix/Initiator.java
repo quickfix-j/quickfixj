@@ -21,9 +21,32 @@ package quickfix;
 
 /**
  * Establishes sessions with FIX servers and manages the associated sessions.
- * 
+ *  
  */
 public interface Initiator {
+    /**
+     * Initiator setting for connection host. Only valid when session connection
+     * type is "initiator".
+     * 
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    public static final String SETTING_SOCKET_CONNECT_HOST = "SocketConnectHost";
+
+    /**
+     * Initiator setting for connection port. Only valid when session connection
+     * type is "initiator".
+     * 
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    public static final String SETTING_SOCKET_CONNECT_PORT = "SocketConnectPort";
+
+    /**
+     * Initiator setting for reconnect interval in seconds. Only valid when
+     * session connection type is "initiator".
+     * 
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    public static final String SETTING_RECONNECT_INTERVAL = "ReconnectInterval";
 
     /**
      * Establish sessions. Returns immediately. See implementations of this

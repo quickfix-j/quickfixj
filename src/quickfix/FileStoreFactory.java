@@ -19,17 +19,33 @@
 
 package quickfix;
 
-
+/**
+ * Creates a message store that stores messages in a file.
+ */
 public class FileStoreFactory implements MessageStoreFactory {
+    /**
+     * File path for writing the message store.
+     */
+    public static final String SETTING_FILE_STORE_PATH = "FileStorePath";
+
     private final SessionSettings settings;
-    
+        
+    /**
+     * Create the factory with configuration in session settings.
+     * @param settings
+     */
     public FileStoreFactory(SessionSettings settings) {
         this.settings = settings;
     }
     
+    /**
+     * Creates a file-based message store.
+     * 
+     * @param sessionID session ID for the message store.
+     */
 	public MessageStore create(SessionID sessionID) {
 		try {
-            return new FileStore(settings.getString(sessionID, SessionSettings.FILE_STORE_PATH), sessionID);
+            return new FileStore(settings.getString(sessionID, FileStoreFactory.SETTING_FILE_STORE_PATH), sessionID);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
