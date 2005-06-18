@@ -37,9 +37,6 @@ import quickfix.Session;
  * When reading, this class identifies a FIX message and extracts it. When
  * writing, it puts the message into a buffer that the Netty NIO threads will
  * write to the output stream.
- * 
- * @author sbate
- *  
  */
 public class FIXMessageData implements Message {
     private Session session;
@@ -232,12 +229,22 @@ public class FIXMessageData implements Message {
 
     public quickfix.Message parse(DataDictionary dataDictionary) throws InvalidMessage {
         String beginString = message.substring(2, 9);
-        int messageTypeOffset = message.indexOf("35=") + 3;
-        // TODO Must handle multicharacter message types
-        String messageType = message.substring(messageTypeOffset, messageTypeOffset + 1);
+        String messageType = getMessageType();
         quickfix.Message message = messageFactory.create(beginString, messageType);
         message.fromString(this.message, dataDictionary, true);
         return message;
+    }
+
+    private String getMessageType() throws InvalidMessage {
+        int messageTypeStart = message.indexOf("35=") + 3;
+        int messageTypeEnd = messageTypeStart + 1;
+        while (message.charAt(messageTypeEnd) != '\001') {
+            messageTypeEnd++;
+            if (messageTypeEnd >= message.length()) {
+                throw new InvalidMessage("couldn't extract message type");
+            }
+        }
+        return message.substring(messageTypeStart, messageTypeEnd);
     }
 
     private boolean isLogon(ByteBuffer buffer, int position) {
