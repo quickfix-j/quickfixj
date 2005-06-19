@@ -3,7 +3,7 @@
 	<!-- Locations definitions -->
 	<property name="root.dir" value="${basedir}"/>
 	
-	<property name="build_output.dir" value="${root.dir}/build/ant"/>
+	<property name="build_output.dir" value="${root.dir}/build/binaries"/>
 
 	<property name="src_product.dir" value="${root.dir}/src"/>
 	<property name="src_product_generated.dir" value="${root.dir}/src-generated"/>
@@ -14,6 +14,10 @@
 	
 	<property name="src_test.dir" value="${root.dir}/test"/>
 	<property name="classes_test.dir" value="${build_output.dir}/classes/test"/>
+	
+	<property name="test.output.dir" value="${root.dir}/build/testoutput"/>
+	
+	<property name="coverage.output.dir" value="${root.dir}/build/coverageoutput"/>
 
 	<!-- Config -->
 	<property name="cfg.dir" value="${root.dir}/cfg"/>
@@ -37,6 +41,12 @@
 	<path id="classpath.lib">
 		<fileset dir="${lib.dir}">
 			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="emma.lib">
+		<fileset dir="${lib.dir}">
+			<include name="emma*.jar" />
 		</fileset>
 	</path>
 
@@ -185,12 +195,26 @@
 	
 	<!-- Testing : we assume that junit.jar and the optional Junit ANT task are available in the class path or %ANT_HOME%/lib -->
 
-	<target name="test" description="Run ALL the tests" depends="compile, test.netty, test.unit, test.acceptance">
+	<target name="test" description="Run ALL the tests" depends="compile, test.cleanreport, test.netty, test.unit, test.acceptance, test.report">
+	</target>
+	
+	<target name="test.cleanreport" description="Clean test reports">
+		<delete dir="${test.output.dir}" failonerror="false"/>
+		<mkdir dir="${test.output.dir}"/>
+	</target>
+
+	<target name="test.report">
+		<junitreport todir="${test.output.dir}">
+			<fileset dir="${test.output.dir}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${test.output.dir}/reports"/>
+		</junitreport>
 	</target>
 
 	<target name="test.netty" description="Run the Netty related tests" depends="compile">
-		<junit printsummary="true" showoutput="true">
-			<formatter type="plain" usefile="false" />
+		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
+			<formatter type="xml" usefile="true" />
 			
 			<classpath>
 				<path refid="classpath.product"/>
@@ -198,7 +222,7 @@
 				<pathelement location="${classes_test.dir}"/>
 			</classpath>
 	
-			<batchtest>
+			<batchtest todir="${test.output.dir}">
 				<fileset dir="${src_test.dir}">
 					<include name="quickfix/netty/TestFixMessageData.java" />
 				</fileset>
@@ -207,8 +231,8 @@
 	</target>
 	
 	<target name="test.unit" description="Run the QuickfixJ related tests" depends="compile">
-		<junit printsummary="true" showoutput="true">
-			<formatter type="plain" usefile="false" />
+		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
+			<formatter type="xml" usefile="true" />
 			
 			<classpath>
 				<path refid="classpath.product"/>
@@ -216,7 +240,7 @@
 				<pathelement location="${classes_test.dir}"/>
 			</classpath>
 			
-			<batchtest>
+			<batchtest todir="${test.output.dir}">
 				<fileset dir="${src_test.dir}">
 					<include name="quickfix/*Test.java" />
 					<exclude name="**/MySQLLogTest.java"/>
@@ -230,8 +254,8 @@
 	</target>
 
 	<target name="test.acceptance" description="Run the FIX acceptance tests" depends="compile">
-		<junit printsummary="true" showoutput="true">
-			<formatter type="plain" usefile="false" />
+		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
+			<formatter type="xml" usefile="true" />
 			
 			<classpath>
 				<path refid="classpath.product"/>
@@ -239,7 +263,7 @@
 				<pathelement location="${classes_test.dir}"/>
 			</classpath>
 
-			<batchtest>
+			<batchtest todir="${test.output.dir}">
 				<fileset dir="${src_test.dir}">
 					<include name="quickfix/test/acceptance/AcceptanceTestSuite.java" />
 				</fileset>
@@ -286,13 +310,8 @@
 	<!-- Emma Coverage Targets -->
 
 	<target name="emma.init">
-		<property name="coverage.dir" value="coverage" />
-		<path id="emma.lib">
-			<fileset dir="." includes="lib/emma*.jar" />
-		</path>
 		<taskdef resource="emma_ant.properties" classpathref="emma.lib" />
-		<taskdef name="junit"
-		         classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" />
+		<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" />
 	</target>
 
 	<target name="emma.all"
@@ -301,9 +320,9 @@
 	<target name="emma.instrument" depends="emma.init">
 		<emma>
 			<instr mode="copy"
-			       instrpath="classes"
-			       outdir="${coverage.dir}/classes"
-			       metadatafile="${coverage.dir}/coverage.em"
+			       instrpath="${classes_product.dir}"
+			       outdir="${coverage.output.dir}/classes"
+			       metadatafile="${coverage.output.dir}/coverage.em"
 			       merge="no">
 				<filter includes="quickfix.*"
 				        excludes="*Test,*Test$*,quickfix.fix*,quickfix.examples*,quickfix.test*" />
@@ -313,21 +332,22 @@
 
 	<target name="emma.test-unit" depends="emma.init">
 		<junit printsummary="true" showoutput="true" fork="yes">
-			<jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.ec" />
+			<jvmarg value="-Demma.coverage.out.file=${coverage.output.dir}/coverage.ec" />
 			<formatter type="plain" usefile="false" />
 			<classpath>
-				<fileset dir=".">
-					<include name="lib/*.jar" />
-				</fileset>
-				<path refid="emma.lib" />
-				<pathelement location="${coverage.dir}/classes" />
-				<pathelement location="classes" />
+				<path refid="emma.lib" />  <!-- Is redundant with classpath.lib - Not a pb for now -->
+				<path refid="classpath.lib" />
+				<pathelement location="${coverage.output.dir}/classes" />
+				<pathelement location="${classes_product.dir}" />
+				<pathelement location="${classes_test.dir}" />
 			</classpath>
 			<batchtest>
 				<fileset dir="${src_test.dir}">
-					<exclude name="quickfix/Abstract*" />
-					<exclude name="quickfix/Api*Test.java" />
 					<include name="quickfix/*Test.java" />
+					<exclude name="**/MySQLLogTest.java"/>
+					<exclude name="**/MySQLStoreTest.java"/>
+					<exclude name="**/AbstractMessageStoreTest.java"/>
+					<exclude name="**/ApiCompatibilityTest.java"/>
 				</fileset>
 			</batchtest>
 		</junit>
@@ -335,32 +355,32 @@
 
 	<target name="emma.test-acceptance" depends="emma.init">
 		<junit printsummary="true" showoutput="true" fork="yes">
-			<jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.ec" />
+			<jvmarg value="-Demma.coverage.out.file=${coverage.output.dir}/coverage.ec" />
 			<formatter type="plain" usefile="false" />
 			<classpath>
-				<fileset dir=".">
-					<include name="lib/*.jar" />
-				</fileset>
-				<path refid="emma.lib" />
-				<pathelement location="${coverage.dir}/classes" />
-				<pathelement location="classes" />
+				<path refid="emma.lib" /> <!-- Is redundant with classpath.lib - Not a pb for now -->
+				<path refid="classpath.lib" />
+				<pathelement location="${coverage.output.dir}/classes" />
+				<pathelement location="${classes_product.dir}" />
+				<pathelement location="${classes_test.dir}" />
 			</classpath>
 			<test name="quickfix.test.acceptance.AcceptanceTestSuite" />
 		</junit>
 	</target>
 
 	<target name="emma.report" depends="emma.init">
-		<delete dir="${coverage.dir}/_files" />
+		<delete dir="${coverage.output.dir}/_files" />
 		<emma>
 			<report sourcepath="src">
-				<infileset dir="${coverage.dir}" includes="*.em, *.ec" />
-				<html outfile="${coverage.dir}" />
+				<infileset dir="${coverage.output.dir}" includes="*.em, *.ec" />
+				<html outfile="${coverage.output.dir}/reports/index.html" />
 			</report>
 		</emma>
+		<delete dir="${coverage.output.dir}/classes" />
 	</target>
 
 	<target name="emma.clean" depends="emma.init">
-		<delete dir="${coverage.dir}" />
+		<delete dir="${coverage.output.dir}" />
 	</target>
 
 	<target name="javadoc" depends="">
