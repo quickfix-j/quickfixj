@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -39,7 +40,7 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
-public abstract class FieldMap {
+public abstract class FieldMap implements Serializable{
     private final int[] fieldOrder;
     private final TreeMap fields;
     private final TreeMap groups = new TreeMap();
@@ -57,7 +58,7 @@ public abstract class FieldMap {
         return fieldOrder;
     }
 
-    private class FieldOrderComparator implements Comparator {
+    private class FieldOrderComparator implements Comparator, Serializable {
 
         public int compare(Object o1, Object o2) {
             Integer tag1 = (Integer) o1;

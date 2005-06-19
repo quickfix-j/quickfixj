@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import java.io.Serializable;
+
 /**
  * Base class for FIX message fields. This class should be
  * abstract but that would break compatibility with the QF JNI
@@ -27,7 +29,7 @@ package quickfix;
  * @author sbate
  *  
  */
-public /*abstract*/ class Field {
+public /*abstract*/ class Field implements Serializable{
     private int tag;
     private Object object;
     private boolean isCalculated = false;
