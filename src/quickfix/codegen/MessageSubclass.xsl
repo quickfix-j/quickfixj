@@ -35,6 +35,8 @@
   </xsl:template>
 
   <xsl:param name="messageName">PLACEHOLDER</xsl:param>
+
+  <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param>
  
   <!-- *********************************************************************
  	Main message generation template. This template generates a default
@@ -50,6 +52,9 @@ import quickfix.field.*;<xsl:call-template name="extra-imports"/>
 
 public class <xsl:value-of select="@name"/> extends Message
 {
+
+  static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+
   public <xsl:value-of select="@name"/>()
   {
     super();
