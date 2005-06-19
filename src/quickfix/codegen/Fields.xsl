@@ -36,6 +36,8 @@
 
  <xsl:param name="fieldName">PLACEHOLDER</xsl:param>
  
+ <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param> 
+ 
  <xsl:template match="fix/fields/field">
  <xsl:if test="@name=$fieldName">
 package quickfix.field;
@@ -45,6 +47,8 @@ import java.util.Date;</xsl:if>
 
 public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get-field-type"/>Field 
 { 
+  static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+
   public static final int FIELD = <xsl:value-of select="@number"/>; 
   <xsl:call-template name="values"/>
   public <xsl:value-of select="@name"/>() 
