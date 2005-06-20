@@ -44,22 +44,6 @@ public interface MessageStore {
      */
     boolean set(int sequence, String message) throws IOException;
 
-    // TODO get operation in MessageStore is a problem for Java
-    
-    /**
-     * Get a message with the specified sequence number. (Currently not
-     * implemented).
-     * 
-     * @param sequence
-     *            the sequence number
-     * @param message
-     *            should be the returned message (this is a problem)
-     * @return true if successful, false otherwise)
-     * @throws IOException
-     *             IO error
-     */
-    boolean get(int sequence, String message) throws IOException;
-
     /**
      * Get messages within sequence number range (inclusive). Used for message
      * resend requests.

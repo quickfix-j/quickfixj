@@ -513,7 +513,7 @@ public class Session {
         } catch (InvalidMessage e) {
             state.logEvent("Skipping invalid message: " + e.getMessage());
         } catch (RejectLogon e) {
-            // TODO need a test for this
+            // TODO TEST need a test for RejectLogon exception
             String rejectMessage = e.getMessage() != null ? (": " + e.getMessage()) : "";
             state.getLog().onEvent("Logon rejected" + rejectMessage);
             disconnect();

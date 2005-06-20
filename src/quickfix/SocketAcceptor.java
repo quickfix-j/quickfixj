@@ -61,7 +61,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     protected boolean onPoll() {
         if (isStopRequested()) {
-            // TODO wait for logout
+            // TODO wait for logouts
             return false;
         }
 

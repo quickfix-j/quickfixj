@@ -100,7 +100,7 @@ public class SessionFactory {
                 }
             }
 
-            // TODO check into session setting for validating user defined fields
+            // TODO FEATURE C++ Validate user defined field tag range between 5000 and 9999 inclusive.
             
             Date startTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
                     Session.SETTING_START_TIME));

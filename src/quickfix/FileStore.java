@@ -238,11 +238,6 @@ public class FileStore implements MessageStore {
         return true;
     }
 
-    public boolean get(int sequence, String message) throws IOException {
-        // TODO implement get
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
         storeSequenceNumbers();

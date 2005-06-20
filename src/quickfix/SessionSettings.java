@@ -57,8 +57,11 @@ public class SessionSettings {
     private static final String SESSION_SECTION_NAME = "session";
     private static final String DEFAULT_SECTION_NAME = "default";
 
-    // TODO Find out if these socket options are needed and when.
+    // SOCKET_REUSE_ADDRESS not needed for Java
+    // see java.net.SocketOptions
     //public static final String SOCKET_REUSE_ADDRESS = "SocketReuseAddress";
+
+    // TODO CLEANUP determine is NODELAY is needed
     //public static final String SOCKET_NODELAY = "SocketNodelay";
 
     //public static final String BEGINSTRING = "BeginString";

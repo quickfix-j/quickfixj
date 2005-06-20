@@ -87,11 +87,6 @@ public class MemoryStore implements MessageStore {
         return messages.put(new Integer(sequence), message) == null;
     }
 
-    public boolean get(int sequence, String message) throws IOException {
-        // TODO implement get
-        throw new UnsupportedOperationException("not yet implemented");
-    }
-
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         nextSenderMsgSeqNum = next;
     }

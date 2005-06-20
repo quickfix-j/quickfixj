@@ -52,7 +52,8 @@ public class SessionID {
 
     /**
      * Session qualifier can be used to identify different sessions
-     * for the same target company ID.
+     * for the same target company ID. Session qualifiers can only me used
+     * with initiated sessions. They cannot be used with accepted sessions.
      * @return the session qualifier
      */
     public String getSessionQualifier() {
