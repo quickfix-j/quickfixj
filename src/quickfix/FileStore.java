@@ -210,6 +210,16 @@ public class FileStore implements MessageStore {
         }
     }
 
+    /**
+     * This method is here for JNI API consistency but it's not 
+     * implemented. Use get(int, int, Collection) with the same 
+     * start and end sequence.
+     * 
+     */
+    public boolean get(int sequence, String message)throws IOException {
+        throw new UnsupportedOperationException("not supported");
+    }
+    
     private String getMessage(int i) throws IOException {
         long[] offsetAndSize = (long[]) messageIndex.get(new Integer(i));
         String message = null;
