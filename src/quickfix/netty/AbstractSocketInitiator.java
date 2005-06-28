@@ -174,6 +174,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
                     }
                 }
             }
+            // TODO Review error handling and reporting in initiator (and acceptor)
             if (sessionConnections.size() == 0) {
                 throw new ConfigError("no initiators in settings");
             }
