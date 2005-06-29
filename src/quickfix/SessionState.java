@@ -47,7 +47,8 @@ public class SessionState {
     private long heartbeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
     private HashMap messageQueue = new HashMap();
-
+    private int[] resendRange = new int[]{ 0, 0 };
+    
     public boolean isConnected() {
         return connected;
     }
@@ -275,5 +276,18 @@ public class SessionState {
         } catch (IOException e) {
             throw new RuntimeError(e);
         }
+    }
+
+    public void setResendRange(int low, int high) {
+        resendRange[0] = low;
+        resendRange[1] = high;
+    }
+    
+    public boolean isResendRequested() {
+        return !(resendRange[0] == 0 && resendRange[1] == 0);
+    }
+
+    public int[] getResendRange() {
+        return resendRange;
     }
 }

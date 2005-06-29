@@ -571,7 +571,7 @@ public class DataDictionary {
             if (element instanceof Field) {
                 int tag = ((Integer) ((Field) element).getKey()).intValue();
                 if (!fieldMap.isSetField(tag)) {
-                    throw new quickfix.FieldNotFound(tag);
+                    throw new RequiredTagMissing(tag);
                 }
             } else if (element instanceof Component) {
                 ComponentSchema schema = ((Component) element).getSchema();

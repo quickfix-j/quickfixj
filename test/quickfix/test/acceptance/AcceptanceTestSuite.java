@@ -64,7 +64,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
         private List load(String filename) throws IOException {
             ArrayList steps = new ArrayList();
-            System.out.println("load: " + filename);
+            System.out.println("load test: " + filename);
             BufferedReader in = null;
             try {
                 in = new BufferedReader(new FileReader(filename));
@@ -101,19 +101,17 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
+//        ExpectMessageStep.TIMEOUT = 100000;
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
         addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         addTests(new File(acceptanceTestBaseDir + "server/fix43"));
         addTests(new File(acceptanceTestBaseDir + "server/fix44"));
         
-        //addTest("fix40/10_MsgSeqNumEqual.def");
-        //addTest("fix43/21_RepeatingGroupSpecifierWithValueOfZero.def");
-        //addTest("fix44/21_RepeatingGroupSpecifierWithValueOfZero.def");
-        //addTest("fix44/14b_RequiredFieldMissing.def");
-        //addTest("fix44/RejectResentMessage.def");
-        //addTest("fix42/SimpleLogon.def");
-        //addTest("fix42/AlreadyLoggedOn.def");
+        //addTest("fix42/14b_RequiredFieldMissing.def");
+        //addTest("fix42/2m_BodyLengthValueNotCorrect.def");
+        //addTest("fix42/2r_UnregisteredMsgType.def");
+        //addTest("fix42/4a_NoDataSentDuringHeartBtInt.def");
     }
 
     protected void addTest(String name) {
@@ -143,12 +141,13 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public static Test suite() {
-        return new TestSetup(new AcceptanceTestSuite()) {
+        final AcceptanceTestSuite acceptanceTestSuite = new AcceptanceTestSuite();
+        return new TestSetup(acceptanceTestSuite) {
             private Thread serverThread;
             
             protected void setUp() throws Exception {
                 super.setUp();
-                ATServer server = new ATServer();
+                ATServer server = new ATServer(acceptanceTestSuite);
                 serverThread = new Thread(server, "ATServer");
                 serverThread.start();
                 server.waitForInitialization();

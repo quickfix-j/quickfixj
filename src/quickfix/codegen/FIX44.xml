@@ -4391,6 +4391,13 @@
       <value enum="7" description="DUPLICATE_OF_A_VERBALLY_COMMUNICATED_ORDER" />
       <value enum="8" description="STALE_ORDER" />
       <value enum="9" description="TRADE_ALONG_REQUIRED" />
+      <value enum="10" description="INVALID_INVESTOR_ID" />
+      <value enum="11" description="UNSUPPORTED_ORDER_CHARACTERISTIC" />
+      <value enum="12" description="SURVEILLENCE_OPTION" />
+      <value enum="13" description="INCORRECT_QUANTITY" />
+      <value enum="14" description="INCORRECT_ALLOCATED_QUANTITY" />
+      <value enum="15" description="UNKNOWN_ACCOUNT" />
+      <value enum="99" description="OTHER" />
     </field>
     <field number="104" name="IOIQualifier" type="CHAR">
       <value enum="A" description="ALL_OR_NONE" />
@@ -5107,10 +5114,10 @@
     <field number="345" name="TradSesEndTime" type="UTCTIMESTAMP" />
     <field number="346" name="NumberOfOrders" type="INT" />
     <field number="347" name="MessageEncoding" type="STRING">
-      <value enum="ISO_2022_JP" description="ISO_2022_JP" />
-      <value enum="EUC_JP" description="EUC_JP" />
+      <value enum="ISO-2022-JP" description="ISO_2022_JP" />
+      <value enum="EUC-JP" description="EUC_JP" />
       <value enum="SHIFT_JIS" description="SHIFT_JIS" />
-      <value enum="UTF_8" description="UTF_8" />
+      <value enum="UTF-8" description="UTF_8" />
     </field>
     <field number="348" name="EncodedIssuerLen" type="LENGTH" />
     <field number="349" name="EncodedIssuer" type="DATA" />

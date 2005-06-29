@@ -1,13 +1,16 @@
 package quickfix.test.acceptance;
 
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+
+import junit.framework.TestSuite;
 
 import org.apache.log4j.Logger;
 
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
-import quickfix.FixVersions;
+import quickfix.MemoryStoreFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
@@ -19,17 +22,13 @@ public class ATServer implements Runnable {
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Set fixVersions;
 
-    public static void main(String[] args) throws Exception {
-        new ATServer().run();
-    }
-
-    public ATServer() {
+    public ATServer(TestSuite suite) {
         fixVersions = new HashSet();
-        fixVersions.add(FixVersions.BEGINSTRING_FIX40);
-        fixVersions.add(FixVersions.BEGINSTRING_FIX41);
-        fixVersions.add(FixVersions.BEGINSTRING_FIX42);
-        fixVersions.add(FixVersions.BEGINSTRING_FIX43);
-        fixVersions.add(FixVersions.BEGINSTRING_FIX44);
+        Enumeration e = suite.tests();
+        while (e.hasMoreElements()) {
+            fixVersions.add(e.nextElement().toString().substring(0,5));
+        }
+        log.info("creating sessions for "+fixVersions);
     }
 
     public void run() {
@@ -46,31 +45,31 @@ public class ATServer implements Runnable {
 
             SessionID sessionID;
 
-            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX40)) {
+            if (fixVersions.contains("fix40")) {
                 sessionID = new SessionID("FIX.4.0", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.0");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX40.xml");
             }
 
-            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX41)) {
+            if (fixVersions.contains("fix41")) {
                 sessionID = new SessionID("FIX.4.1", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.1");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX41.xml");
             }
 
-            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX42)) {
+            if (fixVersions.contains("fix42")) {
                 sessionID = new SessionID("FIX.4.2", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.2");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX42.xml");
             }
 
-            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX43)) {
+            if (fixVersions.contains("fix43")) {
                 sessionID = new SessionID("FIX.4.3", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.3");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX43.xml");
             }
 
-            if (fixVersions.contains(FixVersions.BEGINSTRING_FIX44)) {
+            if (fixVersions.contains("fix44")) {
                 sessionID = new SessionID("FIX.4.4", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.4");
                 settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX44.xml");
@@ -78,6 +77,7 @@ public class ATServer implements Runnable {
 
             ATApplication application = new ATApplication();
             FileStoreFactory factory = new FileStoreFactory(settings);
+            //MemoryStoreFactory factory = new MemoryStoreFactory();
             AbstractSocketAcceptor acceptor = new SocketAcceptor(application, factory, settings,
                     new DefaultMessageFactory());
             acceptor.setLogonPollingTimeout(1000);

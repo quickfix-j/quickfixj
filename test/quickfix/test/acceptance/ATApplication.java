@@ -12,6 +12,8 @@ package quickfix.test.acceptance;
  * of this licensing are * not clear to you. *
  ******************************************************************************/
 
+import java.io.IOException;
+
 import quickfix.Application;
 import quickfix.DoNotSend;
 import quickfix.FieldNotFound;
@@ -27,6 +29,11 @@ public class ATApplication implements Application {
     private ATMessageCracker cracker = new ATMessageCracker();
 
     public void onCreate(SessionID sessionID) {
+        try {
+            Session.lookupSession(sessionID).reset();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void onLogon(SessionID sessionID) {

@@ -6,3 +6,4 @@ coverage
 files*
 
 .settings
+serialized.dat

@@ -13,6 +13,7 @@ import junit.framework.TestResult;
 import org.apache.log4j.Logger;
 
 public class ExpectMessageStep implements TestStep {
+    public static int TIMEOUT = 10000;
     private Logger log = Logger.getLogger(getClass());
     private final String data;
     private final Map expectedFields;
@@ -42,7 +43,7 @@ public class ExpectMessageStep implements TestStep {
 
     public void run(TestResult result, final TestContext context) throws InterruptedException {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
-        CharSequence message = context.getNextMessage(clientId, 10000);
+        CharSequence message = context.getNextMessage(clientId, TIMEOUT);
         if (message == null) {
             Assert.fail("message timeout: expected=" + expectedFields);
         }

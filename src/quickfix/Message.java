@@ -214,11 +214,19 @@ public class Message extends FieldMap {
     }
 
     public boolean isAdmin() {
-        throw new UnsupportedOperationException();
+        if (header.isSetField(MsgType.FIELD)) {
+            try {
+                String msgType = header.getString(MsgType.FIELD);
+                return msgType.length() > 1 && "0A12345".indexOf(msgType.charAt(0)) != -1;
+            } catch (FieldNotFound e) {
+                // shouldn't happen
+            }
+        }
+        return false;
     }
 
     public boolean isApp() {
-        throw new UnsupportedOperationException();
+        return !isAdmin();
     }
 
     public class Header extends FieldMap {
@@ -232,10 +240,6 @@ public class Message extends FieldMap {
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
-    }
-
-    public static boolean isAdminMsgType(String msgType) {
-        return msgType.length() == 1 && "0A12345".indexOf(msgType) != -1;
     }
 
     public void reverseRoute(Header header) throws FieldNotFound {
