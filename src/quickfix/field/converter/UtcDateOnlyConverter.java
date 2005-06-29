@@ -1,9 +1,11 @@
 package quickfix.field.converter;
 
 import java.text.DateFormat;
+import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import quickfix.FieldConvertError;
@@ -23,6 +25,7 @@ public class UtcDateOnlyConverter {
         if (format == null) {
             format = new SimpleDateFormat("yyyyMMdd");
             format.setTimeZone(TimeZone.getTimeZone("UTC"));
+            format.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
             utcDateFormat.set(format);
         }
         return format;

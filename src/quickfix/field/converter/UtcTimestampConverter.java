@@ -1,9 +1,11 @@
 package quickfix.field.converter;
 
 import java.text.DateFormat;
+import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import quickfix.FieldConvertError;
@@ -18,7 +20,9 @@ public class UtcTimestampConverter {
 
         public UtcTimestampFormats() {
             utcTimestampFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            utcTimestampFormat.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
             utcTimestampFormatMillis.setTimeZone(TimeZone.getTimeZone("UTC"));
+            utcTimestampFormatMillis.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
         }
     }
 
