@@ -63,6 +63,9 @@ public class DataDictionary {
     private String version;
     private boolean doCheckFieldsOutofOrder = true;
     private boolean doCheckFieldsHaveValues = true;
+    private boolean doCheckUserDefinedFields;
+    private static final int USER_DEFINED_TAG_MIN = 5000;
+    //private static final int USER_DEFINED_TAG_MAX = 9999;
 
     /**
      * Data dictionary-related exception.
@@ -468,7 +471,7 @@ public class DataDictionary {
                 checkEnumValue(field);
             }
 
-            if (!isField(tag)) {
+            if (shouldCheckTag(tag) && !isField(tag)) {
                 throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, tag);
             }
 
@@ -1048,4 +1051,14 @@ public class DataDictionary {
     private class ComponentSchema extends AbstractMessageElementContainer {
 
     }
+
+    void setCheckUserDefinedFields(boolean flag) {
+        doCheckUserDefinedFields = flag;
+    }
+    
+    private boolean shouldCheckTag( int tag )
+    {
+      return doCheckUserDefinedFields || tag < USER_DEFINED_TAG_MIN;
+    }
+
 }
