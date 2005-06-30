@@ -129,7 +129,17 @@ public class Session {
      */
     public static final String SETTING_MILLISECONDS_IN_TIMESTAMP = "MillisecondsInTimeStamp";
 
-    private static final int BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE = 3;
+    /**
+     * Controls validation of user-defined fields.
+     */
+    public static final String SETTING_VALIDATE_USER_DEFINED_FIELDS = "ValidateUserDefinedFields";
+
+    /**
+     * Session setting that causes the session to reset sequence numbers when initiating
+     * a logon (>= FIX 4.2).
+     */
+    public static final String SETTING_RESET_WHEN_INITIATING_LOGON = "SendResetSeqNumFlag";
+
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -539,7 +549,7 @@ public class Session {
             disconnect();
         } catch (UnsupportedMessageType e) {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
-                generateBusinessReject(message, BUSINESS_REJECT_UNSUPPORTED_MSG_TYPE);
+                generateBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE);
             } else {
                 generateReject(message, "Unsupported message type");
             }
@@ -1405,5 +1415,9 @@ public class Session {
      */
     public boolean isSessionTime() {
         return sessionSchedule.isSessionTime();
+    }
+
+    void setResetWhenInitiatingLogon(boolean flag) {
+        resetWhenInitiatingLogon = flag;
     }
 }

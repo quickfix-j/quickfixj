@@ -124,7 +124,7 @@ public class SessionSettings {
     public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         String value = getSessionProperties(sessionID).getProperty(key);
         if (value == null) {
-            throw new ConfigError("missing setting: " + key);
+            throw new ConfigError(key + " not defined");
         }
         return value;
     }
@@ -132,7 +132,7 @@ public class SessionSettings {
     private Properties getSessionProperties(SessionID sessionID) throws ConfigError {
         Properties p = (Properties) sections.get(sessionID);
         if (p == null) {
-            throw new ConfigError("unknown session: " + sessionID);
+            throw new ConfigError("Session not found");
         }
         return p;
     }
@@ -323,6 +323,10 @@ public class SessionSettings {
      */
     public boolean isSetting(SessionID sessionID, String key) {
         return getOrCreateSessionProperties(sessionID).getProperty(key) != null;
+    }
+
+    void removeSetting(SessionID sessionID, String key) {
+        getOrCreateSessionProperties(sessionID).remove(key);
     }
 
     private static class Tokenizer {

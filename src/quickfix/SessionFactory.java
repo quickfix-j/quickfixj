@@ -38,8 +38,15 @@ public class SessionFactory {
      */
     public static final String SETTING_CONNECTION_TYPE = "ConnectionType";
 
-    private static final String ACCEPTOR_CONNECTION_TYPE = "acceptor";
-    private static final String INITIATOR_CONNECTION_TYPE = "initiator";
+    /**
+     * Instructs the connection-related code to continue if there is an error
+     * creating or initializing a session. In other words, one bad session won't
+     * stop the initialization of other sessions.
+     */
+    public static final String SETTING_CONTINUE_INIT_ON_ERROR = "ContinueInitializationOnError";
+
+    public static final String ACCEPTOR_CONNECTION_TYPE = "acceptor";
+    public static final String INITIATOR_CONNECTION_TYPE = "initiator";
     private static Map dictionaryCache = new Hashtable(); // synchronized
     private Application application;
     private MessageStoreFactory messageStoryFactory;
@@ -52,14 +59,18 @@ public class SessionFactory {
         this.logFactory = logFactory;
     }
 
+    // TODO Support user-defined fields setting
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
-            String connectionType;
+            String connectionType = null;
+            
             if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
                 connectionType = settings.getString(sessionID,
                         SessionFactory.SETTING_CONNECTION_TYPE);
-            } else {
-                connectionType = INITIATOR_CONNECTION_TYPE;
+            }
+
+            if (connectionType == null) {
+                throw new ConfigError("Missing ConnectionType");
             }
 
             if (!connectionType.equals(ACCEPTOR_CONNECTION_TYPE)
@@ -74,7 +85,8 @@ public class SessionFactory {
 
             boolean useDataDictionary = true;
             if (settings.isSetting(sessionID, Session.SETTING_USE_DATA_DICTIONARY)) {
-                useDataDictionary = settings.getBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY);
+                useDataDictionary = settings
+                        .getBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY);
             }
 
             DataDictionary dataDictionary = null;
@@ -94,14 +106,23 @@ public class SessionFactory {
                     dataDictionary.setCheckFieldsOutofOrder(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
                 }
+                
                 if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES)) {
                     dataDictionary.setCheckFieldsHaveValues(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES));
                 }
+                
+                if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {
+                    dataDictionary.setCheckUserDefinedFields(settings.getBool(sessionID,
+                            Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
+                }
+                
+                
             }
 
-            // TODO FEATURE C++ Validate user defined field tag range between 5000 and 9999 inclusive.
-            
+            // TODO C++ Validate user defined field tag range between
+            // 5000 and 9999 inclusive.
+
             Date startTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
                     Session.SETTING_START_TIME));
             Date endTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
@@ -114,7 +135,7 @@ public class SessionFactory {
                 throw new ConfigError("StartDay used without EndDay");
             }
             if (endDay >= 0 && startDay < 0) {
-                throw new ConfigError("EndDay used with StartDay");
+                throw new ConfigError("EndDay used without StartDay");
             }
 
             int heartbeatInterval = 0;
@@ -132,19 +153,29 @@ public class SessionFactory {
             if (settings.isSetting(sessionID, Session.SETTING_CHECK_LATENCY)) {
                 session.setCheckLatency(settings.getBool(sessionID, Session.SETTING_CHECK_LATENCY));
             }
+            
             if (settings.isSetting(sessionID, Session.SETTING_MAX_LATENCY)) {
-                session.setMaxLatency((int) settings.getLong(sessionID, Session.SETTING_MAX_LATENCY));
+                session.setMaxLatency((int) settings
+                        .getLong(sessionID, Session.SETTING_MAX_LATENCY));
             }
+            
             if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_LOGOUT)) {
-                session.setResetOnLogout(settings.getBool(sessionID, Session.SETTING_RESET_ON_LOGOUT));
+                session.setResetOnLogout(settings.getBool(sessionID,
+                        Session.SETTING_RESET_ON_LOGOUT));
             }
+            
             if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_DISCONNECT)) {
                 session.setResetOnDisconnect(settings.getBool(sessionID,
                         Session.SETTING_RESET_ON_DISCONNECT));
             }
+            
             if (settings.isSetting(sessionID, Session.SETTING_MILLISECONDS_IN_TIMESTAMP)) {
                 session.setMillisecondsInTimestamp(settings.getBool(sessionID,
                         Session.SETTING_MILLISECONDS_IN_TIMESTAMP));
+            }
+            
+            if (settings.isSetting(sessionID, Session.SETTING_RESET_WHEN_INITIATING_LOGON)) {
+                session.setResetWhenInitiatingLogon(true);
             }
 
             return session;
