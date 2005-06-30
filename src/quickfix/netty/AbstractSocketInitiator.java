@@ -1,21 +1,14 @@
-/****************************************************************************
- ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
- **
- ** This file is part of the QuickFIX FIX Engine
- **
- ** This file may be distributed under the terms of the quickfixengine.org
- ** license as defined by quickfixengine.org and appearing in the file
- ** LICENSE included in the packaging of this file.
- **
- ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- **
- ** See http://www.quickfixengine.org/LICENSE for licensing information.
- **
- ** Contact ask@quickfixengine.org if any conditions of this licensing are
- ** not clear to you.
- **
- ****************************************************************************/
+/*******************************************************************************
+ * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
+ * file is part of the QuickFIX FIX Engine * * This file may be distributed
+ * under the terms of the quickfixengine.org * license as defined by
+ * quickfixengine.org and appearing in the file * LICENSE included in the
+ * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
+ * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
+ * licensing information. * * Contact ask@quickfixengine.org if any conditions
+ * of this licensing are * not clear to you. *
+ ******************************************************************************/
 
 package quickfix.netty;
 
@@ -153,6 +146,13 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
     private void initialize(boolean handleMessageInCaller) throws ConfigError {
         try {
+            boolean continueInitOnError = false;
+            if (settings.isSetting(SessionSettings.DEFAULT_SESSION_ID,
+                    SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
+                continueInitOnError = settings.getBool(SessionSettings.DEFAULT_SESSION_ID,
+                        SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
+            }
+
             onInitialize(handleMessageInCaller);
             eventDispatcher = new LowLatencyEventDispatcher();
             ioProcessor = new IoProcessor();
@@ -168,13 +168,19 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 // TODO CLEANUP add iterator for non-default sessions
                 if (isInitiatorSession(sectionKey)) {
                     try {
-                        sessionConnections.add(new SessionConnection(settings, (SessionID) sectionKey));
+                        sessionConnections.add(new SessionConnection(settings,
+                                (SessionID) sectionKey));
                     } catch (Throwable e) {
-                        log.error("error during session connection creation", e);
+                        if (continueInitOnError) {
+                            log.error("error during session initialization, continuing...", e);
+                        } else {
+                            throw new RuntimeError("error during session initialization", e);
+                        }
                     }
                 }
             }
-            // TODO Review error handling and reporting in initiator (and acceptor)
+            // TODO Review error handling and reporting in initiator (and
+            // acceptor)
             if (sessionConnections.size() == 0) {
                 throw new ConfigError("no initiators in settings");
             }
@@ -187,9 +193,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
         return sectionKey != SessionSettings.DEFAULT_SESSION_ID
-                && (!settings.isSetting((SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE) || settings
-                        .getString((SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE).equals(
-                                "initiator"));
+                && (!settings.isSetting((SessionID) sectionKey,
+                        SessionFactory.SETTING_CONNECTION_TYPE) || settings.getString(
+                        (SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE).equals(
+                        "initiator"));
     }
 
     protected void processTimerEvent(quickfix.Session quickfixSession) {
@@ -225,7 +232,8 @@ public abstract class AbstractSocketInitiator implements Initiator {
             // TODO Handle Invalid Message During Parsing
             // Generate a session-level reject for the message
             // The problem here is that the fixMessage was not parsed.
-            //quickfixSession.generateReject(fixMessage, "invalid message format");
+            //quickfixSession.generateReject(fixMessage, "invalid message
+            // format");
             LogUtil.logThrowable(quickfixSession.getLog(), "error during disconnect", e);
         }
     }
