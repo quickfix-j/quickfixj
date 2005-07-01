@@ -231,7 +231,7 @@ public class FIXMessageData implements Message {
         String beginString = message.substring(2, 9);
         String messageType = getMessageType();
         quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(this.message, dataDictionary, true);
+        message.fromString(this.message, dataDictionary, dataDictionary != null);
         return message;
     }
 
