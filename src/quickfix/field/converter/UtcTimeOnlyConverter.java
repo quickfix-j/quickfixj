@@ -1,55 +1,37 @@
 package quickfix.field.converter;
 
 import java.text.DateFormat;
-import java.text.DateFormatSymbols;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import quickfix.FieldConvertError;
 
-public class UtcTimeOnlyConverter {
+public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static class UtcTimeFormats {
-        public SimpleDateFormat utcTimeFormat = new SimpleDateFormat("HH:mm:ss");
-        public SimpleDateFormat utcTimeFormatMillis = new SimpleDateFormat("HH:mm:ss.SSS");
-
-        public UtcTimeFormats() {
-            utcTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            utcTimeFormat.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
-            utcTimeFormatMillis.setTimeZone(TimeZone.getTimeZone("UTC"));
-            utcTimeFormatMillis.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
-        }
-    }
-
-    private static ThreadLocal utcTimeFormats = new ThreadLocal();
+    private static ThreadLocal utcTimeConverter = new ThreadLocal();
+    private DateFormat utcTimeFormat = createDateFormat("HH:mm:ss");
+    private DateFormat utcTimeFormatMillis = createDateFormat("HH:mm:ss.SSS");
 
     public static String convert(Date d, boolean includeMilliseconds) {
         return getFormatter(includeMilliseconds).format(d);
     }
 
     private static DateFormat getFormatter(boolean includeMillis) {
-        UtcTimeFormats formats = (UtcTimeFormats) utcTimeFormats.get();
-        if (formats == null) {
-            formats = new UtcTimeFormats();
-            utcTimeFormats.set(formats);
+        UtcTimeOnlyConverter converter = (UtcTimeOnlyConverter) utcTimeConverter.get();
+        if (converter == null) {
+            converter = new UtcTimeOnlyConverter();
+            utcTimeConverter.set(converter);
         }
-        return includeMillis ? formats.utcTimeFormatMillis : formats.utcTimeFormat;
+        return includeMillis ? converter.utcTimeFormatMillis : converter.utcTimeFormat;
     }
 
     public static Date convert(String value) throws FieldConvertError {
         Date d = null;
         try {
-            d = getFormatter(true).parse(value);
+            d = getFormatter(value.length() == 12).parse(value);
         } catch (ParseException e) {
-            try {
-                d = getFormatter(false).parse(value);
-            } catch (ParseException e1) {
-                throw new FieldConvertError("invalid UTC time value: " + value);
-            }
+            throwFieldConvertError(value, "time");
         }
         return d;
     }
