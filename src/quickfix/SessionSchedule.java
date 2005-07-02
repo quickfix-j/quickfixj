@@ -28,11 +28,21 @@ import java.util.TimeZone;
  * Corresponds to SessionTime in C++ code
  */
 class SessionSchedule {
+    private static final long ONE_DAY_IN_MILLIS = 86400000L;
     private Calendar startTime;
     private Calendar endTime;
     private int startDay;
     private int endDay;
-
+    
+    //
+    // These are cached calendars. Creating calendars to do session time calculations
+    // on every message was too expensive. This is a performance optimization.
+    // It assumes that there is a separate SessionTime object for each session and
+    // that the session is accessing it in a single thread.
+    //
+    private Calendar calendar1 = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
+    private Calendar calendar2 = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
+    
     SessionSchedule(Date startTime, Date endTime, int startDay, int endDay) {
         this.startTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         this.startTime.setTime(startTime);
@@ -43,97 +53,85 @@ class SessionSchedule {
         if (startDay > 0 && endDay > 0 && startDay == endDay && endTime.after(startTime)) {
             endTime = startTime;
         }
-    }
-
-    private boolean isSessionTime(Calendar start, Calendar end, Calendar time) {
-        Calendar timeOnly = getTimeOnly(time);
-        return start.before(end) ? ((timeOnly.after(start) || timeOnly.equals(start)) && (timeOnly
-                .before(end) || timeOnly.equals(end))) : ((timeOnly.after(start) || timeOnly
-                .equals(start)) || (timeOnly.before(end) || timeOnly.equals(end)));
+        calendar1.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     }
 
-    private Calendar getTimeOnly(Calendar time) {
-        Calendar timeOnly = new GregorianCalendar(1970, 0, 1, time.get(Calendar.HOUR_OF_DAY), time
-                .get(Calendar.MINUTE), time.get(Calendar.SECOND));
-        timeOnly.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return timeOnly;
+    private boolean isDailySessionTime(Calendar timestamp) {
+        Calendar timeOnly = getTimeOnly(timestamp, calendar1);
+        return startTime.before(endTime) ? ((timeOnly.after(startTime) || timeOnly.equals(startTime)) && (timeOnly
+                .before(endTime) || timeOnly.equals(endTime))) : ((timeOnly.after(startTime) || timeOnly
+                .equals(startTime)) || (timeOnly.before(endTime) || timeOnly.equals(endTime)));
+
     }
 
-    private boolean isSameSession(Calendar start, Calendar end, Calendar time1, Calendar time2) {
-        if (!isSessionTime(start, end, time1) || !isSessionTime(start, end, time2)) {
+    private boolean isSameDailySession(Calendar timestamp1, Calendar timestamp2) {
+        if (!isDailySessionTime(timestamp1) || !isDailySessionTime(timestamp2)) {
             return false;
         }
 
-        if (time1.equals(time2)) {
+        if (timestamp1.equals(timestamp2)) {
             return true;
         }
 
-        Calendar time1Date = getDateOnly(time1);
-        Calendar time2Date = getDateOnly(time2);
+        Calendar date1 = getDateOnly(timestamp1, calendar1);
+        Calendar date2 = getDateOnly(timestamp2, calendar2);
 
-        if (start.before(end) || start.equals(end)) {
-            return time1Date.equals(time2Date);
-        } else if (start.after(end)) {
-            return Math.abs(time1Date.getTimeInMillis() - time2Date.getTimeInMillis()) < 86400000L;
+        if (startTime.before(endTime) || startTime.equals(endTime)) {
+            return date1.equals(date2);
+        } else if (startTime.after(endTime)) {
+            return Math.abs(date1.getTimeInMillis() - date2.getTimeInMillis()) < ONE_DAY_IN_MILLIS;
         }
+        
         return false;
     }
 
-    private boolean isSameSession(Calendar startTime, Calendar endTime, int startDay, int endDay,
-            Calendar time1, Calendar time2) {
-        if (!isSessionTime(startTime, endTime, startDay, endDay, time1) || 
-                !isSessionTime(startTime, endTime, startDay, endDay, time2)) {
+    private boolean isSameWeeklySession(Calendar timestamp1, Calendar timestamp2) {
+        if (!isWeeklySessionTime(timestamp1) || 
+                !isWeeklySessionTime(timestamp2)) {
             return false;
         }
 
-        if (time1.equals(time2)) {
+        if (timestamp1.equals(timestamp2)) {
             return true;
         }
 
-        int time1Range = time1.get(Calendar.DAY_OF_WEEK) - startDay;
-        int time2Range = time2.get(Calendar.DAY_OF_WEEK) - startDay;
+        int time1Range = timestamp1.get(Calendar.DAY_OF_WEEK) - startDay;
+        int time2Range = timestamp2.get(Calendar.DAY_OF_WEEK) - startDay;
 
         if (time1Range == 0) {
-            Calendar timeOnly = getTimeOnly(time1);
+            Calendar timeOnly = getTimeOnly(timestamp1, calendar1);
             if (timeOnly.before(startTime)) {
                 time1Range = 7;
             }
         }
 
         if (time2Range == 0) {
-            Calendar timeOnly = getTimeOnly(time2);
+            Calendar timeOnly = getTimeOnly(timestamp2, calendar2);
             if (timeOnly.before(startTime)) {
                 time2Range = 7;
             }
         }
 
-        time1 = (Calendar)time1.clone(); time1.add(Calendar.DATE, -1 * time1Range);
-        time2 = (Calendar)time2.clone(); time2.add(Calendar.DATE, -1 * time2Range);
+        timestamp1 = (Calendar)timestamp1.clone(); timestamp1.add(Calendar.DATE, -1 * time1Range);
+        timestamp2 = (Calendar)timestamp2.clone(); timestamp2.add(Calendar.DATE, -1 * time2Range);
 
-        return time1.get(Calendar.YEAR) == time2.get(Calendar.YEAR)
-                && time1.get(Calendar.DAY_OF_YEAR) == time2.get(Calendar.DAY_OF_YEAR);
-    }
-
-    private Calendar getDateOnly(Calendar time) {
-        Calendar date = new GregorianCalendar(time.get(Calendar.YEAR), time.get(Calendar.MONTH),
-                time.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-        date.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return date;
+        return timestamp1.get(Calendar.YEAR) == timestamp2.get(Calendar.YEAR)
+                && timestamp1.get(Calendar.DAY_OF_YEAR) == timestamp2.get(Calendar.DAY_OF_YEAR);
     }
 
     public boolean isSessionTime() {
-        Calendar now = SystemTime.getUtc();
+        Calendar now = SystemTime.getUtcCalendar();
         if (startDay < 0 && endDay < 0) {
-            return isSessionTime(startTime, endTime, now);
+            return isDailySessionTime(now);
         }
-        return isSessionTime(startTime, endTime, startDay, endDay, now);
+        return isWeeklySessionTime(now);
     }
 
-    private boolean isSessionTime(Calendar startTime, Calendar endTime, int startDay, int endDay,
-            Calendar time) {
-        int currentDay = time.get(Calendar.DAY_OF_WEEK);
-        Calendar currentTime = getTimeOnly(time);
+    private boolean isWeeklySessionTime(Calendar timestamp) {
+        int currentDay = timestamp.get(Calendar.DAY_OF_WEEK);
+        Calendar currentTime = getTimeOnly(timestamp, calendar1);
 
         if (startDay == endDay) {
             if (currentTime.before(startTime) && currentTime.after(endTime)) {
@@ -162,8 +160,24 @@ class SessionSchedule {
 
     public boolean isSameSession(Calendar time1, Calendar time2) {
         if (startDay < 0 && endDay < 0) {
-            return isSameSession(startTime, endTime, time1, time2);
+            return isSameDailySession(time1, time2);
         }
-        return isSameSession(startTime, endTime, startDay, endDay, time1, time2);
+        return isSameWeeklySession(time1, time2);
+    }
+
+    private Calendar getTimeOnly(Calendar timestampIn, Calendar timeOnlyOut) {
+        timeOnlyOut.set(1970, 0, 1);
+        timeOnlyOut.set(Calendar.HOUR_OF_DAY, timestampIn.get(Calendar.HOUR_OF_DAY));
+        timeOnlyOut.set(Calendar.MINUTE, timestampIn.get(Calendar.MINUTE));
+        timeOnlyOut.set(Calendar.SECOND, timestampIn.get(Calendar.SECOND));
+        return timeOnlyOut;
+    }
+
+    private Calendar getDateOnly(Calendar timestampIn, Calendar dateOnlyOut) {
+        dateOnlyOut.set(Calendar.HOUR_OF_DAY, 0);
+        dateOnlyOut.set(Calendar.MINUTE, 0);
+        dateOnlyOut.set(Calendar.SECOND, 0);
+        dateOnlyOut.set(timestampIn.get(Calendar.YEAR), timestampIn.get(Calendar.MONTH), timestampIn.get(Calendar.DAY_OF_MONTH));
+        return dateOnlyOut;
     }
 }
