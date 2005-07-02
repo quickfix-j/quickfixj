@@ -56,7 +56,7 @@ class JdbcLog implements Log {
             PreparedStatement insert = connection.prepareStatement("INSERT INTO " + tableName
                     + " (time, beginstring, sendercompid, targetcompid, session_qualifier, text) "
                     + "VALUES (?,?,?,?,?,?)");
-            insert.setTimestamp(1, new Timestamp(TimeUtil.getUtcCalendar().getTimeInMillis()));
+            insert.setTimestamp(1, new Timestamp(SystemTime.getUtcCalendar().getTimeInMillis()));
             insert.setString(2, sessionID.getBeginString());
             insert.setString(3, sessionID.getSenderCompID());
             insert.setString(4, sessionID.getTargetCompID());

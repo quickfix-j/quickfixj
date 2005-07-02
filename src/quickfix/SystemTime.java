@@ -20,27 +20,40 @@
 package quickfix;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 class SystemTime {
+    public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
+
     private static SystemTimeSource systemTimeSource = new SystemTimeSource() {
         public long getTime() {
             return System.currentTimeMillis();
         }
     };
-    private static TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
-    
-    public static long get() {
+
+    public static long currentTimeMillis() {
         return systemTimeSource.getTime();
     }
 
+    public static Date getDate() {
+        return new Date(currentTimeMillis());
+    }
+    
     public static void setTimeSource(SystemTimeSource systemTimeSource) {
         SystemTime.systemTimeSource = systemTimeSource;
     }
 
-    public static Calendar getUtc() {
-        Calendar c = Calendar.getInstance(utcTimeZone);
-        c.setTimeInMillis(get());
+    public static Calendar getUtcCalendar() {
+        Calendar c = Calendar.getInstance(SystemTime.UTC_TIMEZONE);
+        c.setTimeInMillis(currentTimeMillis());
         return c;
     }
+    
+    public static Calendar getUtcCalendar(Date date) {
+        Calendar c = getUtcCalendar();
+        c.setTime(date);
+        return c;
+    }
+
 }

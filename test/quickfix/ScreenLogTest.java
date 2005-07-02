@@ -19,7 +19,7 @@ public class ScreenLogTest extends TestCase {
     }
    
     public void testScreenLog() {
-        long systemTime = SystemTime.get();
+        long systemTime = SystemTime.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "SENDER", "TARGET");
         ByteArrayOutputStream data = new ByteArrayOutputStream();

@@ -20,7 +20,7 @@ public class FileLogTest extends TestCase {
     }
    
     public void testLog() throws Exception {
-        long systemTime = SystemTime.get();
+        long systemTime = SystemTime.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis());
