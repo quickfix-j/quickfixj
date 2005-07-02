@@ -179,7 +179,7 @@ public class Session {
             if (logFactory != null) {
                 state.setLog(log);
             }
-            if (!checkSessionTime(new Date(SystemTime.get()))) {
+            if (!checkSessionTime()) {
                 reset();
             }
             sessions.put(sessionID, this);
@@ -201,12 +201,31 @@ public class Session {
         this.responder = responder;
     }
 
+    private boolean checkSessionTime() throws IOException {
+        return checkSessionTime(SystemTime.getDate());
+    }
+    
+    //
+    // The session time checks were causing performance problems
+    // so we are caching the last session time check result and
+    // only recalculating it if it's been at least 1 second since
+    // the last check
+    //
+    private long lastSessionTimeCheck = 0;
+    private boolean lastSessionTimeResult = false;
+    
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
             return true;
         }
-        return sessionSchedule.isSameSession(TimeUtil.getUtcCalendar(date), TimeUtil
-                .getUtcCalendar(state.getCreationTime()));
+        if ((date.getTime() - lastSessionTimeCheck) > 1000L) {
+            lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date), SystemTime
+                    .getUtcCalendar(state.getCreationTime()));
+            lastSessionTimeCheck = date.getTime();
+            return lastSessionTimeResult;
+        } else {
+            return lastSessionTimeResult;
+        }
     }
 
     /**
@@ -290,8 +309,14 @@ public class Session {
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
             String qualifier) throws SessionNotFound {
-        return sendToTarget(message, new SessionID(FixVersions.BEGINSTRING_FIX42, senderCompID,
-                targetCompID, qualifier));
+        try {
+            return sendToTarget(message, new SessionID(message.getHeader().getString(BeginString.FIELD), senderCompID,
+                    targetCompID, qualifier));
+        } catch (SessionNotFound e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SessionException(e);
+        }
     }
 
     /**
@@ -345,7 +370,7 @@ public class Session {
     private void insertSendingTime(Message.Header header) {
         boolean includeMillis = sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
                 && millisecondsInTimeStamp;
-        header.setUtcTimeStamp(SendingTime.FIELD, new Date(), includeMillis);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), includeMillis);
     }
 
     /**
@@ -483,8 +508,7 @@ public class Session {
             InvalidMessage {
         state.setConnected(true);
 
-        Date now = new Date();
-        if (!checkSessionTime(now)) {
+        if (!checkSessionTime()) {
             reset();
             return;
         }
@@ -664,7 +688,7 @@ public class Session {
                 MsgType.SEQUENCE_RESET);
         int newSeqNo = endSeqNo;
         sequenceReset.getHeader().setBoolean(PossDupFlag.FIELD, true);
-        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, new Date());
+        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, SystemTime.getDate());
         sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
         initializeHeader(sequenceReset.getHeader());
         sequenceReset.getHeader().setInt(MsgSeqNum.FIELD, beginSeqNo);
@@ -1029,7 +1053,7 @@ public class Session {
             }
         }
 
-        if (!checkSessionTime(new Date())) {
+        if (!checkSessionTime()) {
             reset();
             return;
         }
