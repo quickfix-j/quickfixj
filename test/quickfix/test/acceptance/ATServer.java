@@ -6,11 +6,12 @@ import java.util.Set;
 
 import junit.framework.TestSuite;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import quickfix.CommonsLogFactory;
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
-import quickfix.MemoryStoreFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
@@ -18,7 +19,7 @@ import quickfix.netty.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
-    private final Logger log = Logger.getLogger(ATServer.class);
+    private final Log log = LogFactory.getLog(ATServer.class);
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Set fixVersions;
 
@@ -42,6 +43,7 @@ public class ATServer implements Runnable {
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "TargetCompID", "TW");
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ResetOnDisconnect", "Y");
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "FileStorePath", "data/server");
+            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ValidateUserDefinedFields", "Y");
 
             SessionID sessionID;
 
@@ -79,7 +81,7 @@ public class ATServer implements Runnable {
             FileStoreFactory factory = new FileStoreFactory(settings);
             //MemoryStoreFactory factory = new MemoryStoreFactory();
             AbstractSocketAcceptor acceptor = new SocketAcceptor(application, factory, settings,
-                    new DefaultMessageFactory());
+                    new CommonsLogFactory(settings), new DefaultMessageFactory());
             acceptor.setLogonPollingTimeout(1000);
             acceptor.start();
             acceptor.waitForInitialization();

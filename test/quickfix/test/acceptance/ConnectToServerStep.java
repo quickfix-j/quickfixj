@@ -6,13 +6,14 @@ import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
-
 import junit.framework.Assert;
 import junit.framework.TestResult;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class ConnectToServerStep implements TestStep {
-    private Logger log = Logger.getLogger(getClass());
+    private Log log = LogFactory.getLog(getClass());
     private static final Pattern CONNECT_PATTERN = Pattern.compile("i(\\d+)*,?CONNECT");
     private String command;
     private int clientId = 0;

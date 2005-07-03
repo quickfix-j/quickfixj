@@ -10,11 +10,12 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 import junit.framework.TestResult;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class ExpectMessageStep implements TestStep {
     public static int TIMEOUT = 10000;
-    private Logger log = Logger.getLogger(getClass());
+    private Log log = LogFactory.getLog(getClass());
     private final String data;
     private final Map expectedFields;
     private static final Pattern headerPattern = Pattern.compile("^E(\\d+),.*");

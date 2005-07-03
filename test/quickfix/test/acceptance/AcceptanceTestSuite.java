@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import junit.extensions.TestSetup;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
@@ -16,9 +19,9 @@ import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
 public class AcceptanceTestSuite extends TestSuite {
-
+    private static Log log = LogFactory.getLog(AcceptanceTestSuite.class);
     private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";
-
+    
     private final class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -64,7 +67,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
         private List load(String filename) throws IOException {
             ArrayList steps = new ArrayList();
-            System.out.println("load test: " + filename);
+            log.info("load test: " + filename);
             BufferedReader in = null;
             try {
                 in = new BufferedReader(new FileReader(filename));

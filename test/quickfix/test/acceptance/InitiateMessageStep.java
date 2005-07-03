@@ -10,13 +10,14 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 import junit.framework.TestResult;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import quickfix.FixVersions;
 import quickfix.field.converter.UtcTimestampConverter;
 
 public class InitiateMessageStep implements TestStep {
-    private Logger log = Logger.getLogger(getClass());
+    private Log log = LogFactory.getLog(getClass());
     private final String data;
     private int clientId = 0;
     private static final Pattern MESSAGE_PATTERN = Pattern.compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*)");
