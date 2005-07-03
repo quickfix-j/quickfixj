@@ -24,7 +24,7 @@ import java.io.FileInputStream;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
-import org.apache.log4j.Category;
+import org.apache.commons.logging.Log;
 
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
@@ -43,7 +43,7 @@ import quickfix.examples.banzai.ui.BanzaiFrame;
 public class Banzai {
 
     /** enable logging for this class */
-    private static Category log = Category.getInstance(Banzai.class);
+    private static Log log = org.apache.commons.logging.LogFactory.getLog(Banzai.class);
     private static Banzai banzai;
     private Initiator initiator = null;
     private JFrame frame = null;
