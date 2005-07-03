@@ -63,6 +63,9 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
     private static void verifyFormat(String value) throws FieldConvertError {
         String type = "timestamp";
+        if (value.length() != 17 && value.length() != 21) {
+            throwFieldConvertError(value, type);
+        }
         assertDigitSequence(value, 0, 8, type);
         assertSeparator(value, 8, '-', type);
         assertDigitSequence(value, 9, 11, type);
