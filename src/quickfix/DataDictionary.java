@@ -471,24 +471,26 @@ public class DataDictionary {
                 checkEnumValue(field);
             }
 
-            if (shouldCheckTag(tag) && !isField(tag)) {
-                throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, tag);
-            }
-
-            if (!isHeaderField(tag) && !isTrailerField(tag)) {
-                if (!isMsgField(msgType, tag)) {
-                    throw new FieldException(
-                            SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, tag);
+            if (shouldCheckTag(tag)) {
+                if (!isField(tag)) {
+                    throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, tag);
                 }
-                if (isGroup(msgType, tag)) {
-                    try {
-                        if (map.getGroupCount(tag) != IntConverter.convert(field.getValue())) {
-                            throw new FieldException(
-                                    SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
-                                    tag);
+
+                if (!isHeaderField(tag) && !isTrailerField(tag)) {
+                    if (!isMsgField(msgType, tag)) {
+                        throw new FieldException(
+                                SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, tag);
+                    }
+                    if (isGroup(msgType, tag)) {
+                        try {
+                            if (map.getGroupCount(tag) != IntConverter.convert(field.getValue())) {
+                                throw new FieldException(
+                                        SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
+                                        tag);
+                            }
+                        } catch (FieldConvertError e) {
+                            throw new InvalidMessage(e.getMessage());
                         }
-                    } catch (FieldConvertError e) {
-                        throw new InvalidMessage(e.getMessage());
                     }
                 }
             }
@@ -1058,7 +1060,7 @@ public class DataDictionary {
     
     private boolean shouldCheckTag( int tag )
     {
-      return doCheckUserDefinedFields || tag < USER_DEFINED_TAG_MIN;
+        return doCheckUserDefinedFields || tag < USER_DEFINED_TAG_MIN;
     }
 
 }
