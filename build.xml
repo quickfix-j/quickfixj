@@ -42,6 +42,8 @@
 		<fileset dir="${lib.dir}">
 			<include name="*.jar" />
 		</fileset>
+		<!-- For log4j properties -->
+		<pathelement location="cfg"/>
 	</path>
 
 	<path id="emma.lib">
@@ -212,7 +214,7 @@
 		</junitreport>
 	</target>
 
-	<target name="test.netty" description="Run the Netty related tests" depends="compile">
+	<target name="test.netty" description="Run the Netty related tests" depends="compile,test.cleanreport">
 		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
 			<formatter type="xml" usefile="true" />
 			
@@ -230,7 +232,7 @@
 		</junit>
 	</target>
 	
-	<target name="test.unit" description="Run the QuickfixJ related tests" depends="compile">
+	<target name="test.unit" description="Run the QuickfixJ related tests" depends="compile,test.cleanreport">
 		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
 			<formatter type="xml" usefile="true" />
 			
@@ -253,7 +255,7 @@
 		</junit>
 	</target>
 
-	<target name="test.acceptance" description="Run the FIX acceptance tests" depends="compile">
+	<target name="test.acceptance" description="Run the FIX acceptance tests" depends="compile,test.cleanreport">
 		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
 			<formatter type="xml" usefile="true" />
 			
