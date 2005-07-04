@@ -113,13 +113,4 @@ public class CommonsLogTest extends TestCase {
         }
         
     }
-    
-    private String readLog(String path) throws IOException {
-        File file = new File(path);
-        FileInputStream in = new FileInputStream(file);
-        byte[] data = new byte[(int) file.length()];
-        in.read(data);
-        return new String(data);
-
-    }
 }

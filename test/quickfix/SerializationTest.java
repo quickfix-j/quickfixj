@@ -164,7 +164,7 @@ public class SerializationTest extends TestCase {
         private static final int MAX_GROUP_ELTS = 1;
 
         public void assertSerialization(String msgClassName) {
-            Message sourceMsg = (Message) messageFromClassNameWithDefaultValues(msgClassName, MAX_GROUP_ELTS);
+            Message sourceMsg = messageFromClassNameWithDefaultValues(msgClassName, MAX_GROUP_ELTS);
             String sourceFIXString = sourceMsg.toString();
             
             Message serializedMsg = (Message) buildSerializedObject(sourceMsg);
