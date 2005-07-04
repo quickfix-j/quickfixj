@@ -4,6 +4,6 @@ ant
 build
 coverage
 files*
-
+junit*.properties
 .settings
 serialized.dat
