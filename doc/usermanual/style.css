@@ -1,0 +1,42 @@
+body {
+	font-family: sans-serif;
+}
+
+h1 {
+	font-size: 1.2em;
+}
+
+h2 {
+	font-size: 1.1em;
+	padding-left: 0.5em;
+
+}
+
+blockquote {
+	font-size: 0.9em;
+	padding: 0.5em;
+	background: #f0f0f0;
+	border: thin outset #CCCCCC;
+
+}
+
+#title {
+	font-size: 1.5em;
+	color: #0000FF;
+	font-weight: bold;
+}
+
+dt {
+	font-weight: bold;
+	margin-left: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+dd {
+	margin-bottom: 0.5em;
+}
+
+li {
+	margin-bottom: 0.5em;
+}
+

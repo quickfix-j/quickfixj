@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Untitled Document</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1 id="title">Building QuickFIX/J</h1>
+<h2><a name="dependencies"></a>Dependencies</h2>
+<p>TODO JAR file dependencies</p>
+<h2><a name="build"></a>Building QuickFIX/J</h2>
+<p>TODO Ant script descriptions</p>
+<h2><a name="mysql"></a>Generating the MySQL Database</h2>
+<p>TODO Support for other databases</p>
+<h2><a name="testing"></a>Testing QuickFIX/J</h2>
+<p>TODO Unit test descriptions</p>
+<h3>Acceptance Tests</h3>
+<p>TODO Acceptance Test Descriptions</p>
+<p> QuickFIX also has a scriptable test runner that comes with a series of automated
+  acceptance test. The basic tests that come with QuickFIX are based off of the <a href="http://www.fixprotocol.org/ORGANIZATIONS/928202077/FIX_TestCase_SessionLevel20010710.doc"> FIX
+  Session-level Test Cases and Expected Behaviors</a> document produced by the
+  FIX protocol organization. These tests verify that QuickFIX adheres to the
+  FIX specifications. The automated nature of these tests guarantees that future
+releases of QuickFIX will not break any current functionality. </p>
+<p> Perhaps even more importantly is how these test are used to drive the development
+  of QuickFIX. Before a line of code is written in support of a protocol feature,
+  one of these tests is written. This test first approach sets up a goal for
+  developers who will have objective verification that they correctly implemented
+  the standard. </p>
+<p> Below is an example of a test script that tests the engines behavior when
+  it receives a NewSeqNo value that is less than the expected MsgSeqNum. </p>
+<pre>
+  <b>iCONNECT
+  I8=FIX.4.235=A34=149=TW52=<time>56=ISLD98=0108=30
+  E8=FIX.4.29=5735=A34=149=ISLD52=00000000-00:00:0056=TW98=0108=3010=0</b>
+
+  # sequence reset without gap fill flag (default to N)
+  <b>I8=FIX.4.235=434=049=TW52=<time>56=ISLD36=1
+  E8=FIX.4.29=11235=334=249=ISLD52=00000000-00:00:0056=TW45=058=Value is incorrect (out of range) for this tag372=4373=510=0
+
+  I8=FIX.4.235=134=249=TW52=<time>56=ISLD112=HELLO
+  E8=FIX.4.29=5535=034=349=ISLD52=00000000-00:00:0056=TW112=HELLO10=0</b>
+
+  # sequence reset without gap fill flag (default to N)
+  <b>I8=FIX.4.235=434=049=TW52=<time>56=ISLD36=1123=N
+  E8=FIX.4.29=11235=334=449=ISLD52=00000000-00:00:0056=TW45=058=Value is incorrect (out of range) for this tag372=4373=510=0
+
+  I8=FIX.4.235=134=349=TW52=<time>56=ISLD112=HELLO
+  E8=FIX.4.29=5535=034=549=ISLD52=00000000-00:00:0056=TW112=HELLO10=0
+  iDISCONNECT</b>
+
+  </pre>
+In these script there are two types of commands, action commands and messages
+commands. Action commands begin with lowercase letters while message command
+begin with uppercase letters.
+<h2>Action Commands</h2>
+<b>i&lt;ACTION&gt;</b> - initiates an action<br>
+<b>e&lt;ACTION&gt;</b> - expect (wait for) an action<br>
+<br>
+Supported actions are:<br>
+<br>
+<b>iCONNECT</b> - initiate connection to a FIX acceptor<br>
+<b>eCONNECT</b> - expect a connection from a FIX initiator<br>
+<b>iDISCONNECT</b> - initiate a disconnect<br>
+<b>eDISCONNECT</b> - expect a disconnect<br>
+<br>
+<h2>Message Commands</h2>
+<b>I&lt;MESSAGE&gt;</b> - initiate (send) a message<br>
+<b>E&lt;MESSAGE&gt;</b> - expect (wait for) a message<br>
+<br>
+<p> When using the <b>I</b> command, you do not need to add the <i>Length(9)</i> or
+  the <i>CheckSum(10)</i> fields, they will be added for you with the correct
+  values in the appropriate locations. The only time you would add these fields
+  is if you intentionally wish to make them incorrect. </p>
+<p> The <b>I</b> command also provides a TIME macros for fields. By setting a
+  field equal to &lt;TIME&gt;, the current system time will be placed in the
+  field. (i.e. 52=<time>). You can also use offsets such as 52=&lt;TIME-120> or
+  52=&lt;TIME+15> in order to set the time plus or minus some seconds from the
+  current time. </p>
+<p>The <b>E</b> command verifies that you have received the correct message.
+  This command will compare the values of each field to make sure they are correct.
+  Some fields cannot be verified deterministically before run-time such as the
+  SendingTime and CheckSum fields. These fields can be added to the <i>fields.fmt</i> file
+  where a regular expression can be defined to at least verify the field is in
+  the correct format. For example: </p>
+10=\d{3}, checksum must be exactly three digits<br>
+52=\d{8}-\d{2}:\d{2}:\d{2}, sending time must be in the form of DDDDDDDD-DD:DD:DD
+where D is a digit.
+</body>
+</html>

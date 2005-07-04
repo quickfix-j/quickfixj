@@ -19,6 +19,8 @@
 	
 	<property name="coverage.output.dir" value="${root.dir}/build/coverageoutput"/>
 
+	<property name="doc.dir" value="doc"/>
+		
 	<!-- Config -->
 	<property name="cfg.dir" value="${root.dir}/cfg"/>
 
@@ -385,10 +387,10 @@
 		<delete dir="${coverage.output.dir}" />
 	</target>
 
-	<target name="javadoc" depends="">
+	<target name="javadoc" description="generate Javadocs">
 		<javadoc sourcepath="src;src-generated" 
-			overview="docs/javadoc_overview.html" stylesheetfile="docs/javadoc.css"
-			destdir="docs/javadoc" protected="yes" maxmemory="256m" breakiterator="yes">
+			overview="${doc.dir}/javadoc_overview.html" stylesheetfile="${doc.dir}/javadoc.css"
+			destdir="${doc.dir}/javadoc" protected="yes" maxmemory="256m" breakiterator="yes">
 			<classpath>
 				<fileset dir=".">
 					<include name="lib/*.jar" />

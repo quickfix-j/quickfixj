@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<title>Receiving Messages</title>
+<link href="../style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<H1 id="title">QuickFIX/J: Receiving Messages</H1>
+<p> Most of the messages you will be interested in looking at will be arriving
+  in your overloaded <B>fromApp</B> function of your application. You can get
+  fields out of messages with different degrees of type safety. The type in question
+  here is the FIX message type. When the application passes you a <B>Message</B> class,
+  the C++ type checker has no idea what specific FIX message it is, you must
+  determine that dynamically. There is, however, a way we can make C++ aware
+  of this type information. First we will cover how to dynamically retreive fields
+  from a message, then we will show you the prefered type safe way. Keep in mind
+  that all messages have a header and a trailer. If you want to see fields in
+  them, you must first call <B>getHeader()</B> or <B>getTrailer()</B> to get
+  access to them. Otherwise you use them just like the message. </p>
+<H2>Least Type Safe</H2>
+<p> This method of retreiving data from messages is <b>strongly discouraged</b> and
+  is generally only useful for writing more low level interfaces for other languages
+  and middleware. </p>
+<pre><code>
+import quickfix.*;
+
+public void fromApp(Message message, SessionID sessionID)
+  throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+
+  StringField field = new StringField(44);
+  message.getField(field);
+}    
+</code></pre>
+<H2>More Type Safe</H2>
+<p> A way to add some type safety to this is by using field classes that represent
+  all the FIX defined fields. This is sometimes useful in an application, but
+  is generally only used within code segments that need to be version independent
+  (meaning versions of FIX). For example, our Session class is implemented using
+  mostly these. It is generally not recomended for most applications. This will
+  also get fields as their appropriate type, not just as strings. </p>
+<pre>
+<code>
+import quickfix.*;
+import quickfix.field.*;
+
+public void fromApp(Message message, SessionID sessionID)
+  throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+
+  Price price = new Price();
+  message.getField(price);
+
+  ClOrdID = new ClOrdID();
+  message.getField(clOrdID);
+}
+	</code>
+</pre>
+<H2>Most Type Safe... DO THIS!</H2>
+<p> Here is the most type safe and <B>highly encouraged</B> method for retreiving
+  data from a message. QuickFIX has message classes that correlate to all the
+  messages defined in the spec. They are, just like the field classes, generated
+  directly off of the FIX specifications. To take advantage of this, you must
+  break the messages out with the supplied <B>MessageCracker</B>. Also notice
+  we are no longer using a generic <B>Message</B> class and we are now using <B>get</B> instead
+  of <B>getField</B>. Keep in mind you can still use <B>getField</B> as all of
+  these classes derive from <B>Message</B> </p>
+<pre><code>
+import quickfix.*;
+import quickfix.field.*;
+
+public void fromApp(Message message, SessionID sessionID)
+  throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+
+  crack(message, sessionID);
+}
+
+public void onMessage( quickfix.fix42.NewOrderSingle message, SessionID sessionID )
+  throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+
+  ClOrdID clOrdID = new ClOrdID();
+  message.get(clOrdID);
+
+  ClearingAccount clearingAccount = new ClearingAccount();
+  message.get(clearingAccount);
+}
+
+public void onMessage( quickfix.fix42.OrderCancelRequest message, SessionID sessionID )
+  throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+
+  ClOrdID clOrdID = new ClOrdID();
+  message.get(clOrdID);
+
+  // compile time error!! field not defined for OrderCancelRequest
+  ClearingAccount clearingAccount = new ClearingAccount();
+  message.get(clearingAccount);
+}    
+</code></pre>
+<p> In order to use this you must use the <B>MessageCracker</B> as a mixin to
+  your application. This will provide you with the <B>crack</B> function and
+  allow you to overload specific message functions. Any function you do not overload
+  will by default throw an <B>UnsupportedMessageType</B> exception</p>
+  <p>
+  Define your application like this: </p>
+<pre><code>
+import quickfix.Application;
+import quickfix.MessageCracker;
+
+public class MyApplication
+  extends MessageCracker implements quickfix.Application
+</code></pre>
+</head>
+<body>
+</body>
+</html>

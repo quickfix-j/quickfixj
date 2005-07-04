@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+  <head>
+    <title>Sending Messages</title>
+    <link href="../style.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+  <H1 id="title">QuickFIX/J: Sending Messages</H1>
+    <p>
+
+    Messages can be sent to a counter party with the static <B>Session::sendToTarget</B> methods.
+    This method has several signitures. They are:
+    </p>
+	<PRE><code>package quickfix;
+
+public static boolean sendToTarget(Message message)
+  throws SessionNotFound
+
+public static boolean sendToTarget(Message message, SessionID sessionID)
+  throws SessionNotFound
+
+public static boolean sendToTarget
+  (Message message, String senderCompID, String targetCompID)
+  throws SessionNotFound
+    </code></PRE>
+
+    <H1>Creating Messages</H1>
+    As for creating messages, just like reading them, there are several levels of type safety. And
+    just like before, the recommended usage is the type safe method.
+    </p>
+
+    <H2>Least Type Safe</H2>
+    <p>
+    Once again. This should only be used for low level interface to other languages and middleware.
+    <B>do not</B> use this for writing applications.
+    </p>
+
+    <PRE><code>import quickfix.*;
+
+public void sendOrderCancelRequest()
+{
+  Message message = new Message();
+  // BeginString
+  message.getHeader().setField(new StringField(8, "FIX.4.2"));
+  // SenderCompID
+  message.getHeader().setField(new StringField(49, "TW"));
+  // TargetCompID, with enumeration
+  message.getHeader().setField(new StringField(56, "TARGET"));
+  // MsgType
+  message.getHeader().setField(new CharField(35, 'F'));
+  // OrigClOrdID
+  message.setField(new StringField(41, "123"));
+  // ClOrdID
+  message.setField(new StringField(11, "321"));
+  // Symbol
+  message.setField(new StringField(55, "LNUX"));
+  // Side, with value enumeration
+  message.setField(new CharField(54, FIX::Side_BUY));
+  // Text
+  message.setField(new StringField(58, "Cancel My Order!"));
+
+  Session.sendToTarget(message);
+}    </code></PRE>
+  
+
+    <H2>More Type Safe</H2>
+
+    <p>
+    And here, by using field classes, we can clearify our code and add some type safety. Once again, this
+    is something you usually use for code that needs to work with multiple messages types or multiple
+    FIX versions.
+    </p>
+    <PRE><code>import quickfix.*;
+import quickfix.field.*;
+
+void sendOrderCancelRequest()
+{
+  Message message = new Message();
+  Header header = message.getHeader();
+
+  header.setField(new BeginString("FIX.4.2"));
+  header.setField(new SenderCompID(TW));
+  header.setField(new TargetCompID("TARGET"));
+  header.setField(new MsgType("D"));
+  message.setField(new OrigClOrdID("123"));
+  message.setField(new ClOrdID("321"));
+  message.setField(new Symbol("LNUX"));
+  message.setField(new Side(Side.BUY));
+  message.setField(new Text("Cancel My Order!"));
+
+  Session.sendToTarget(message);
+}    </code></PRE>
+
+	<H2>Most Type Safe... DO THIS!</H2>
+	<p>
+	Finally, the <B>highly recommended</B> method is to use the type safe message classes. This
+	should typically be the only way you should ever have to create messages. Here the constructor
+	takes in all the required fields and adds the correct <I>MsgType</I> and <I>BeginString</I> for you.
+	What's more, by using the <B>set</B> method instead of </B>setField</B>, the compiler will not let
+	you add a field that is not a part of a <I>OrderCancelRequest</I> based on the FIX4.1 specs. Keep in
+	mind you can still use <B>setField</B> if you want to force any field you want into the message.
+	</p>
+
+	<PRE><code>import quickfix.*;
+
+void sendOrderCancelRequest()
+{
+  quickfix.fix41.OrderCancelRequest message(
+	new OrigClOrdID("123"),
+	new ClOrdID("321"),
+	new Symbol("LNUX"),
+	new Side(Side.BUY));
+
+  message.set(new Text("Cancel My Order!"));
+
+  Session.sendToTarget(message, "TW", "TARGET");
+}    </code></PRE>
+  </body>
+</html>
