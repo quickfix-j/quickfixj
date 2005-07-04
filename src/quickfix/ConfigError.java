@@ -32,4 +32,8 @@ public class ConfigError extends Exception {
     public ConfigError(Throwable cause) {
         super(cause);
     }
+
+    public ConfigError(String string, Exception e) {
+        super(string, e);
+    }
 }
