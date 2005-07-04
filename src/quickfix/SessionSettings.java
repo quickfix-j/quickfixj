@@ -129,7 +129,7 @@ public class SessionSettings {
         return value;
     }
 
-    private Properties getSessionProperties(SessionID sessionID) throws ConfigError {
+    public Properties getSessionProperties(SessionID sessionID) throws ConfigError {
         Properties p = (Properties) sections.get(sessionID);
         if (p == null) {
             throw new ConfigError("Session not found");
@@ -325,7 +325,7 @@ public class SessionSettings {
         return getOrCreateSessionProperties(sessionID).getProperty(key) != null;
     }
 
-    void removeSetting(SessionID sessionID, String key) {
+    public void removeSetting(SessionID sessionID, String key) {
         getOrCreateSessionProperties(sessionID).remove(key);
     }
 
