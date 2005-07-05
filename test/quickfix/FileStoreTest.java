@@ -23,7 +23,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         return FileStore.class;
     }
 
-    public void testReset() throws Exception {
+    public void testCloseAndOpen() throws Exception {
         FileStore store = (FileStore) getStore();
         store.setNextSenderMsgSeqNum(123);
         store.setNextTargetMsgSeqNum(321);

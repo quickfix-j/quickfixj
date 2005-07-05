@@ -8,6 +8,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     private SessionID sessionID;
     private MessageStore store;
 
+    public AbstractMessageStoreTest() {
+        super();
+    }
+    
     public AbstractMessageStoreTest(String name) {
         super(name);
     }

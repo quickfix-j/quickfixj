@@ -24,7 +24,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TimeZone;
 
 /**
  * In-memory message store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
@@ -37,7 +36,7 @@ public class MemoryStore implements MessageStore {
     private HashMap messages = new HashMap();
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
-    private Calendar creationTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    private Calendar creationTime = SystemTime.getUtcCalendar();
 
     MemoryStore() throws IOException {
         reset();
@@ -90,7 +89,7 @@ public class MemoryStore implements MessageStore {
         setNextSenderMsgSeqNum(1);
         setNextTargetMsgSeqNum(1);
         messages.clear();
-        creationTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        creationTime = SystemTime.getUtcCalendar();
     }
 
     public boolean set(int sequence, String message) throws IOException {

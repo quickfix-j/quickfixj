@@ -26,7 +26,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TimeZone;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -115,7 +114,7 @@ public class FileStore implements MessageStore {
             sessionFile.read(data);
             try {
                 Date date = UtcTimestampConverter.convert(new String(data));
-                Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                Calendar c = SystemTime.getUtcCalendar();
                 c.setTime(date);
                 cache.setCreationTime(c);
             } catch (Exception e) {
