@@ -281,8 +281,7 @@ public class ApiCompatibilityTest {
             }
         };
         try {
-            // TODO Move copy of JNI library into QuickFIX/J repository
-            String jarPath = "../quickfix_cpp/lib/quickfix.jar";
+            String jarPath = "lib/quickfix-jni.jar";
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
             IgnoredItems ignoredItems = new IgnoredItems(jniClassLoader);
