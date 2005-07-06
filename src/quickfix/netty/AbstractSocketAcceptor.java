@@ -21,6 +21,7 @@ package quickfix.netty;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -59,6 +60,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
     private static final String DEFAULT_SESSION_SERVER_NAME = "quickfix-acceptor";
     private static final String DEFAULT_IO_THREAD_PREFIX = "quickfix-io";
+    private HashMap quickfixSessions = new HashMap();
     private boolean isStopRequested;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
@@ -115,15 +117,20 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected abstract void onStop();
 
     public final void stop() {
+        stop(false);
+    }
+
+    public final void stop(boolean force) {
+        // TODO complete the stop functionality
         // logout of sessions
         // wait for logouts
         // sync with initialization
         //quickFixThread.interrupt();
         ioProcessor.stop();
         nettySessionServer.stop();
-        isStopRequested = true;
+        isStopRequested = true;        
     }
-
+    
     protected boolean isStopRequested() {
         return isStopRequested;
     }
@@ -132,8 +139,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     // for the application thread to process.
 
     protected abstract void onInitialize(boolean isBlocking);
-
-    private HashMap quickfixSessions = new HashMap();
 
     private void initialize(boolean handleMessageInCaller) throws ConfigError {
         try {
@@ -412,4 +417,18 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         return messageData.substring(offset, i);
     }
 
+    public boolean isLoggedOn() {
+        Iterator sessionItr = quickfixSessions.values().iterator();
+        while (sessionItr.hasNext()) {
+            quickfix.Session s = (quickfix.Session)sessionItr.next();
+            if (s.isLoggedOn()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public ArrayList getSessions() {
+        return new ArrayList(quickfixSessions.values());
+    }
 }

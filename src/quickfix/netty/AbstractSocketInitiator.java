@@ -114,6 +114,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected abstract void onStop();
 
     public final void stop() {
+        stop(false);
+    }
+    
+    public final void stop(boolean force) {
         synchronized (sessionConnections) {
             for (int i = 0; i < sessionConnections.size(); i++) {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
@@ -236,18 +240,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
             // format");
             LogUtil.logThrowable(quickfixSession.getLog(), "error during disconnect", e);
         }
-    }
-
-    protected boolean isLoggedOn() {
-        synchronized (sessionConnections) {
-            for (int i = 0; i < sessionConnections.size(); i++) {
-                if (((SessionConnection) sessionConnections.get(i)).getQuickFixSession()
-                        .isLoggedOn()) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     protected long getStopRequestTimestamp() {
@@ -436,5 +428,20 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 nettySession = (Session) nettySessions.get(0);
             }
         }
+    }
+    
+    public boolean isLoggedOn() {
+        Iterator sessionItr = quickfixSessions.values().iterator();
+        while (sessionItr.hasNext()) {
+            quickfix.Session s = (quickfix.Session)sessionItr.next();
+            if (s.isLoggedOn()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public ArrayList getSessions() {
+        return new ArrayList(quickfixSessions.values());
     }
 }

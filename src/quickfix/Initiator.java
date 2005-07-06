@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import java.util.ArrayList;
+
 /**
  * Establishes sessions with FIX servers and manages the associated sessions.
  *  
@@ -66,6 +68,12 @@ public interface Initiator {
     void stop();
 
     /**
+     * Stops all sessions, optionally waiting for logout completion.
+     * @param force don't wait for logout before disconnect.
+     */
+    public void stop(boolean force);
+
+    /**
      * Establish connections. This method blocks until stop is called from
      * another thread.
      * 
@@ -86,5 +94,17 @@ public interface Initiator {
      *             Other unspecified error
      */
     boolean poll() throws ConfigError, RuntimeError;
+
+    /**
+     * Checks the logged on status of the session.
+     * @return true is any session is logged on, false otherwise.
+     */
+    boolean isLoggedOn();
+    
+    /**
+     * Returns the sessions managed by this initiator.
+     * @return
+     */
+    ArrayList getSessions();
 
 }
