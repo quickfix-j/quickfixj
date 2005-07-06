@@ -220,7 +220,7 @@ public class FileStore implements MessageStore {
     }
     
     private String getMessage(int i) throws IOException {
-        long[] offsetAndSize = (long[]) messageIndex.get(new Integer(i));
+        long[] offsetAndSize = (long[]) messageIndex.get(new Long(i));
         String message = null;
         if (offsetAndSize != null) {
             msgFile.seek(offsetAndSize[0]);
@@ -236,13 +236,18 @@ public class FileStore implements MessageStore {
         headerFile.seek(headerFile.length());
 
         long offset = msgFile.getFilePointer();
+        StringBuffer headerBuffer = new StringBuffer();
         if (offset > 0) {
-            headerFile.write(' ');
+            headerBuffer.append(' ');
         }
         int size = message.length();
-        messageIndex.put(new Integer(sequence), new long[] { offset, size });
-        headerFile.write((Integer.toString(sequence) + "," + Long.toString(offset) + "," + Integer
-                .toString(size)).getBytes());
+        messageIndex.put(new Long(sequence), new long[] { offset, size });
+        headerBuffer.append(sequence);
+        headerBuffer.append(",");
+        headerBuffer.append(offset);
+        headerBuffer.append(",");
+        headerBuffer.append(size);
+        headerFile.write(headerBuffer.toString().getBytes());
         msgFile.write(message.getBytes());
         return true;
     }
