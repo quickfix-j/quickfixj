@@ -1444,4 +1444,12 @@ public class Session {
     void setResetWhenInitiatingLogon(boolean flag) {
         resetWhenInitiatingLogon = flag;
     }
+
+    /**
+     * Returns the application instance for this session
+     * @return application instance
+     */
+    public Application getApplication() {
+        return application;
+    }
 }

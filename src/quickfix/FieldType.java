@@ -1,35 +1,44 @@
 /****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
-class FieldType {
+public class FieldType {
     private int ordinal;
     private String name;
-    private static int ordinalCounter = 0;
+    private Class javaType;
     private static HashMap values = new HashMap();
+    private static ArrayList ordinalToValue = new ArrayList();
 
     private FieldType(String name) {
+        this(name, String.class);
+    }
+
+    private FieldType(String name, Class javaType) {
+        this.javaType = javaType;
         this.name = name;
-        ordinal = ordinalCounter++;
+        ordinal = ordinalToValue.size();
+        ordinalToValue.add(this);
         values.put(name, this);
     }
 
@@ -41,41 +50,52 @@ class FieldType {
         return ordinal;
     }
 
+    public Class getJavaType() {
+        return javaType;
+    }
+    
+    public static FieldType fromOrdinal(int ordinal) {
+        if (ordinal < 0 || ordinal >= ordinalToValue.size()) {
+            throw new RuntimeError("invalid field type ordinal: " + ordinal);
+        }
+        return (FieldType) ordinalToValue.get(ordinal);
+    }
+
     public static FieldType fromName(String fixVersion, String name) {
         FieldType type = (FieldType) values.get(name);
         // TODO QUESTION review the spec about this Char->String conversion 
-//        if ( fixVersion.compareTo(FixVersions.BEGINSTRING_FIX42) == -1 && type == FieldType.Char ) {
-//            type = FieldType.String;
-//        }
+        //        if ( fixVersion.compareTo(FixVersions.BEGINSTRING_FIX42) == -1 && type == FieldType.Char ) {
+        //            type = FieldType.String;
+        //        }
         return type != null ? type : FieldType.Unknown;
     }
 
     public final static FieldType Unknown = new FieldType("UNKNOWN");
     public final static FieldType String = new FieldType("STRING");
     public final static FieldType Char = new FieldType("CHAR");
-    public final static FieldType Price = new FieldType("PRICE");
-    public final static FieldType Int = new FieldType("INT");
-    public final static FieldType Amt = new FieldType("AMT");
-    public final static FieldType Qty = new FieldType("QTY");
+    public final static FieldType Price = new FieldType("PRICE", Double.class);
+    public final static FieldType Int = new FieldType("INT", Integer.class);
+    public final static FieldType Amt = new FieldType("AMT", Double.class);
+    public final static FieldType Qty = new FieldType("QTY", Double.class);
     public final static FieldType Currency = new FieldType("CURRENCY");
     public final static FieldType MultipleValueString = new FieldType("MULTIPLEVALUESTRING");
     public final static FieldType Exchange = new FieldType("EXCHANGE");
-    public final static FieldType UtcTimeStamp = new FieldType("UTCTIMESTAMP");
-    public final static FieldType Boolean = new FieldType("BOOLEAN");
+    public final static FieldType UtcTimeStamp = new FieldType("UTCTIMESTAMP", Calendar.class);
+    public final static FieldType Boolean = new FieldType("BOOLEAN", Boolean.class);
     public final static FieldType LocalMktDate = new FieldType("LOCALMKTDATE");
     public final static FieldType Data = new FieldType("DATA");
-    public final static FieldType Float = new FieldType("FLOAT");
-    public final static FieldType PriceOffset = new FieldType("PRICEOFFSET");
+    public final static FieldType Float = new FieldType("FLOAT", Double.class);
+    public final static FieldType PriceOffset = new FieldType("PRICEOFFSET", Double.class);
     public final static FieldType MonthYear = new FieldType("MONTHYEAR");
-    public final static FieldType DayOfMonth = new FieldType("DAYOFMONTH");
-    public final static FieldType UtcDateOnly = new FieldType("UTCDATEONLY");
-    public final static FieldType UtcDate = new FieldType("UTCDATEONLY");
-    public final static FieldType UtcTimeOnly = new FieldType("UTCTIMEONLY");
+    public final static FieldType DayOfMonth = new FieldType("DAYOFMONTH", Integer.class);
+    public final static FieldType UtcDateOnly = new FieldType("UTCDATEONLY", Calendar.class);
+    public final static FieldType UtcDate = new FieldType("UTCDATEONLY", Calendar.class);
+    public final static FieldType UtcTimeOnly = new FieldType("UTCTIMEONLY", Calendar.class);
     public final static FieldType Time = new FieldType("TIME");
-    public final static FieldType NumInGroup = new FieldType("NUMINGROUP");
-    public final static FieldType Percentage = new FieldType("PERCENTAGE");
-    public final static FieldType SeqNum = new FieldType("SEQNUM");
-    public final static FieldType Length = new FieldType("LENGTH");
+    public final static FieldType NumInGroup = new FieldType("NUMINGROUP", Integer.class);
+    public final static FieldType Percentage = new FieldType("PERCENTAGE", Double.class);
+    public final static FieldType SeqNum = new FieldType("SEQNUM", Integer.class);
+    public final static FieldType Length = new FieldType("LENGTH", Integer.class);
     public final static FieldType Country = new FieldType("COUNTRY");
 
 }
