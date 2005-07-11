@@ -8,18 +8,99 @@
 
 <body>
 <h1 id="title">Building QuickFIX/J</h1>
-<h2><a name="dependencies"></a>Dependencies</h2>
-<p>TODO JAR file dependencies</p>
+<h2><a name="dependencies"></a>Runtime Dependencies</h2>
+<p>JMV compatible with Java 1.4.x or higher.</p>
+<p><strong>Required run-time libraries:</strong></p>
+<table cellspacing="0">
+  <tr>
+    <th>Library</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">quickfixj.jar</td>
+    <td>Main QuickFIX/J library</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">tl-netty2-1.8.0.jar</td>
+    <td>Socket handling (Java NIO)</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">commons-logging.jar</td>
+    <td>Generic ogging support (JDK logging, Log4J, ...)</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">backport-util-concurrent.jar</td>
+    <td>Java 5 Synchronization and threading library compatible with JDK 1.4.</td>
+  </tr>
+</table>
+<p><strong>Optional run-time libraries:</strong></p>
+<table cellspacing="0">
+  <tr>
+    <th>Library</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">log4j-1.2.4.jar</td>
+    <td>If Log4J logging is desired. The JDK logging is the default.</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">mysql-connector-java-3.0.9-stable-bin.jar </td>
+    <td>If MySQL message storage or logging is used or include the appropriate
+    JAR file for whatever other JDBC data you are using.</td>
+  </tr>
+</table>
 <h2><a name="build"></a>Building QuickFIX/J</h2>
-<p>TODO Ant script descriptions</p>
+<p><em>These instructions are for developers who don't want
+    to use the prebuilt binaries or are intending to modify and rebuild the QuickFIX/J
+    code.</em></p>
+<ol>
+  <li>Check out the code from CVS using anonymous access.
+      See the <a href="http://sourceforge.net/cvs/?group_id=37535">anonymous
+      CVS directions</a> at Source Forge for more details on access. You will
+      want to checkout the <strong>quickfixj</strong> module (notice the 'j'
+      at the end).</li>
+  <li>Change directory to the top-level directory of the checked out code. You
+    should see a build.xml file.</li>
+  <li>Run <strong>ant jar</strong> to build the QuickFIX/J and examples jar files.
+    This will also generate all the FIX message-related code for the various
+    FIX versions.</li>
+</ol>
+<p><strong>Eclipse IDE support:</strong></p>
+<p>The QuickFIX/J developers also use Eclipse to build the software. There is
+  a project definition in the top-level directory of the checked out CVS workspace.
+  In fact, if you are an experienced Eclipse developer you may want to check
+   out the project directly from Eclipse. There is an external builder for running
+  the Ant target to generate the message-related Java classes. If you are seeing
+  compile errors related to message classes, the builder may not have run for
+  some reason. If so, you can generate the classes by running the <strong>generate.code</strong>  target in the Ant build.xml file.</p>
 <h2><a name="mysql"></a>Generating the MySQL Database</h2>
-<p>TODO Support for other databases</p>
+<p> Everything needed to generate your MySQL database is in the src/sql directory.
+  Here, there are the script and batch files create_mysql.sh and create_mysql.bat.
+  These scripts will work on a newly installed mysql database with default permisions.
+  The scripts will try to generate the database using the root MySQL account
+  with no password. If you need to use a different account or need a password,
+  you will have to edit the script. To select a different user, simply change
+  'root' to another user. To add a password, use pass the -p option after the
+username.</p>
 <h2><a name="testing"></a>Testing QuickFIX/J</h2>
-<p>TODO Unit test descriptions</p>
+<p> The development of QuickFIX has been driven by a suite of functional acceptance
+  tests and unit tests. We have been working incrementally, functional test by
+  functional test, writing the unit tests before the code. If these tests pass,
+we're reasonably confident that the engine works as intended.</p>
+<p>The developer unit tests are written as JUnit tests and test the code directly.
+  The functional acceptance tests are scripted FIX messages that are
+  pumped
+  into a running FIX server. Most of these tests are based off of the FIX Session-level
+  Test Cases and Expected Behaviors document.</p>
+<p>The unit tests can be run by running the <strong>test.unit</strong> target
+  in the Ant build.xml file. If you are using Eclipse, you can right-click on
+  the quickfix package in the test subdirectory and select the &quot;Run as... -&gt;
+  JUnit Test&quot; option. This should locate all the unit tests in the package hierarchy
+  and run them in the integrated JUnit test runner.</p>
 <h3>Acceptance Tests</h3>
-<p>TODO Acceptance Test Descriptions</p>
-<p> QuickFIX also has a scriptable test runner that comes with a series of automated
-  acceptance test. The basic tests that come with QuickFIX are based off of the <a href="http://www.fixprotocol.org/ORGANIZATIONS/928202077/FIX_TestCase_SessionLevel20010710.doc"> FIX
+<p> QuickFIX/J also has a scriptable test runner that comes with a series of
+  automated acceptance test. The basic tests that come with QuickFIX are based
+  off of the <a href="http://www.fixprotocol.org/ORGANIZATIONS/928202077/FIX_TestCase_SessionLevel20010710.doc"> FIX
   Session-level Test Cases and Expected Behaviors</a> document produced by the
   FIX protocol organization. These tests verify that QuickFIX adheres to the
   FIX specifications. The automated nature of these tests guarantees that future
@@ -29,28 +110,34 @@ releases of QuickFIX will not break any current functionality. </p>
   one of these tests is written. This test first approach sets up a goal for
   developers who will have objective verification that they correctly implemented
   the standard. </p>
+<p>To run the acceptance tests, use the <strong>test.acceptance</strong> Ant
+  target. If you are using Eclipse, right-click on the <strong>quickfix.test.acceptance.AcceptanceTestSuite</strong>  class
+  and select the &quot;Run as... -&gt; JUnit Test&quot; option. This will start an acceptance
+  test program with an embedded QuickFIX/J server, load the AT definition files
+  and convert them to JUnit tests, and run those tests in the embedded JUnit
+  test view.</p>
+<p><strong>Writing your own Acceptance Test Scripts</strong></p>
 <p> Below is an example of a test script that tests the engines behavior when
   it receives a NewSeqNo value that is less than the expected MsgSeqNum. </p>
 <pre>
-  <b>iCONNECT
-  I8=FIX.4.235=A34=149=TW52=<time>56=ISLD98=0108=30
-  E8=FIX.4.29=5735=A34=149=ISLD52=00000000-00:00:0056=TW98=0108=3010=0</b>
+  iCONNECT
+  I8=FIX.4.235=A34=149=TW52=&lt;time&gt;56=ISLD98=0108=30
+  E8=FIX.4.29=5735=A34=149=ISLD52=00000000-00:00:0056=TW98=0108=3010=0
 
   # sequence reset without gap fill flag (default to N)
-  <b>I8=FIX.4.235=434=049=TW52=<time>56=ISLD36=1
+  I8=FIX.4.235=434=049=TW52=&lt;time&gt;56=ISLD36=1
   E8=FIX.4.29=11235=334=249=ISLD52=00000000-00:00:0056=TW45=058=Value is incorrect (out of range) for this tag372=4373=510=0
 
-  I8=FIX.4.235=134=249=TW52=<time>56=ISLD112=HELLO
-  E8=FIX.4.29=5535=034=349=ISLD52=00000000-00:00:0056=TW112=HELLO10=0</b>
+  I8=FIX.4.235=134=249=TW52=&lt;time&gt;56=ISLD112=HELLO
+  E8=FIX.4.29=5535=034=349=ISLD52=00000000-00:00:0056=TW112=HELLO10=0
 
   # sequence reset without gap fill flag (default to N)
-  <b>I8=FIX.4.235=434=049=TW52=<time>56=ISLD36=1123=N
+  I8=FIX.4.235=434=049=TW52=&lt;time&gt;56=ISLD36=1123=N
   E8=FIX.4.29=11235=334=449=ISLD52=00000000-00:00:0056=TW45=058=Value is incorrect (out of range) for this tag372=4373=510=0
 
-  I8=FIX.4.235=134=349=TW52=<time>56=ISLD112=HELLO
+  I8=FIX.4.235=134=349=TW52=&lt;time&gt;56=ISLD112=HELLO
   E8=FIX.4.29=5535=034=549=ISLD52=00000000-00:00:0056=TW112=HELLO10=0
-  iDISCONNECT</b>
-
+  iDISCONNECT
   </pre>
 In these script there are two types of commands, action commands and messages
 commands. Action commands begin with lowercase letters while message command
@@ -76,7 +163,7 @@ Supported actions are:<br>
   is if you intentionally wish to make them incorrect. </p>
 <p> The <b>I</b> command also provides a TIME macros for fields. By setting a
   field equal to &lt;TIME&gt;, the current system time will be placed in the
-  field. (i.e. 52=<time>). You can also use offsets such as 52=&lt;TIME-120> or
+  field. (i.e. 52=&lt;time&gt;). You can also use offsets such as 52=&lt;TIME-120> or
   52=&lt;TIME+15> in order to set the time plus or minus some seconds from the
   current time. </p>
 <p>The <b>E</b> command verifies that you have received the correct message.

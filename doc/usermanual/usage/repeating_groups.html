@@ -21,10 +21,13 @@
     never an inconsistancy between the number of entries in the field and in the message.
     </p>
 
-    <PRE><code>package quickfix;
+    <code>
+    <PRE>package quickfix;
+
 
 quickfix.fix42.MarketDataSnapshotFullRefresh message =
   new quickfix.fix42.MarketDataSnapshotFullRefresh(new Symbol("QF"));
+
 quickfix.fix42.MarketDataSnapshotFullRefresh.NoMDEntries group =
   new quickfix.fix42.MarketDataSnapshotFullRefresh.NoMDEntries();
 
@@ -38,7 +41,8 @@ group.set(new MDEntryType('1'));
 group.set(new MDEntryPx(12.32));
 group.set(new MDEntrySize(100));
 group.set(new OrderID("ORDERID"));
-message.addGroup(group);</code></PRE>
+message.addGroup(group);</PRE>
+    </code>
 
     <H2>Reading Messages With Repeating Groups</H2>
 
@@ -48,11 +52,12 @@ message.addGroup(group);</code></PRE>
     of groups. The message that was created above is now parsed back out below.
     </p>
 
-    <PRE><code>package quickfix;
+    <code>
+    <PRE>package quickfix;
+
 
 NoMDEntries noMDEntries = new NoMDEntries();
 message.get(noMDEntries);
-
 quickfix.fix42.MarketDataSnapshotFullRefresh.NoMDEntries group =
   new quickfix.fix42.MarketDataSnapshotFullRefresh.NoMDEntries();
 MDEntryType MDEntryType = new MDEntryType();
@@ -69,7 +74,8 @@ group.get(orderID);
 message.getGroup(2, group);
 group.get(MDEntryType);
 group.get(MDEntryPx);
-group.get(MDEntrySize);</code></PRE>
+group.get(MDEntrySize);</PRE>
+    </code>
 
   </body>
 </html>

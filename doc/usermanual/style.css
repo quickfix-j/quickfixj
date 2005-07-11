@@ -40,3 +40,33 @@ li {
 	margin-bottom: 0.5em;
 }
 
+code pre {
+ padding: 0.5em;
+ font-size: 1em;
+ background-color: #f0f0f0;
+ border: solid 1px #c0c0c0;
+}
+
+table {
+   border-collapse: collapse;
+}
+
+td, th {
+  border: solid 1px #c0c0c0;
+}
+
+td {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+th {
+  background-color: blue;
+  color: white;
+}
+
+td.subsection {
+  font-weight: bold;
+  background-color: #DDDDDD;
+}
+

@@ -16,29 +16,30 @@
   </p>
   <p>
 
-  Each of the sessions can have several settings associated with them. Some of these settings may
-  not be known at compile time and are therefore passed around in a class called SessionSettings
-  which acts as a data dictionary that can be queried.
-  </p>
+  Each of the sessions can have several settings associated with them. Some of
+    these settings may not be known at compile time and are therefore passed
+    around in a class called SessionSettings.</p>
   <p>
-  The SessionSettings class has the ability to pull settings out of any c++ stream such as a file
-  stream. You can also simply pass it a filename. If you decide to write your own  components,
-  (storage for a particular database, a new kind of connector etc...), you may also use this to
-  store settings.
-  </p>
+  The SessionSettings class has the ability to pull settings out of any input
+    stream such as a file stream. You can also simply pass it a filename. If
+    you decide to
+    write your own components,
+  (storage for a particular database, a new kind of connector etc...), you may
+    also use the session settings to store settings for your custom component.</p>
 
   <p>
-  A settings file is set up with two types of heading, a [DEFAULT] and a [SESSION] heading. [SESSION]
-  tells QuickFIX that a new Session is being defined. [DEFAULT] is a place that you can define settings
-  which will be associated with sessions that don't explicitly define them. QuickFIX itself will not
-  define any default settings for you. If you do not provide a setting that QuickFIX needs, it will
+  A settings file is set up with two types of heading, a [DEFAULT] and a [SESSION]
+    heading. [SESSION] tells QuickFIX that a new Session is being defined. [DEFAULT]
+    is a place that you can define settings
+  which will be inherited bysessions that don't explicitly define them.  If you
+    do not provide a setting
+    that QuickFIX needs, it will
   throw a ConfigError telling you what setting is missing or improperly formatted.
   </p>
   <p>
   These are the settings you can associate with a session based on the default
   components provided with QuickFIX, followed by an example.
-  </p>
-
+</p>
   <H2>QuickFIX Settings</H2>
   <UL>
     <LI><A HREF="#Session">Session</A></LI>
@@ -50,9 +51,9 @@
     <LI><A HREF="#Logging">Logging</A></LI>
     <LI><A HREF="#Sample Settings File">Sample Settings File</A></LI>
   </UL>
-  <TABLE BORDER=1 CELLSPACING=2 CELLPADDING=3 WIDTH="100%">
+  <TABLE class="settings" cellspacing="0">
   <tbody>
-  <TR ALIGN="left" VALIGN="middle">
+  <TR>
 
     <TH>ID</TH>
     <TH>Description</TH>
@@ -60,7 +61,7 @@
     <TH>Default</TH>
   </TR>
   <TR ALIGN="center" VALIGN="middle">
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Session">Session</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Session">Session</A></TD>
 
   </TR>
   <TR ALIGN="left" VALIGN="middle">
@@ -68,63 +69,63 @@
     <TD> Version of FIX this session should use </TD>
     <TD> FIX.4.4 <br> FIX.4.3 <br> FIX.4.2 <br> FIX.4.1 <br> FIX.4.0 </TD>
 
-    <TD> </TD>
+    <TD>&nbsp;</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SenderCompID</I> </TD>
     <TD> Your ID as associated with this FIX session </TD>
     <TD> case-sensitive alpha-numeric string </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>TargetCompID</I> </TD>
     <TD> counter parties ID as associated with this FIX session </TD>
     <TD> case-sensitive alpha-numeric string </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SessionQualifier</I> </TD>
     <TD> additional qualifier to disambiguate otherwise identical sessions </TD>
     <TD> case-sensitive alpha-numeric string </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ConnectionType</I> </TD>
     <TD> Defines if session will act as an acceptor or an initiator </TD>
     <TD> initiator <br> acceptor </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>StartTime</I> </TD>
     <TD> Time of day that this FIX session becomes activated </TD>
     <TD> time in the format of HH:MM:SS, time is represented in UTC </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EndTime</I> </TD>
     <TD> Time of day that this FIX session becomes deactivated </TD>
     <TD> time in the format of HH:MM:SS, time is represented in UTC </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>StartDay</I> </TD>
     <TD> For week long sessions, the starting day of week for the session. Use in combination with StartTime. </TD>
     <TD> Day of week in English using any abbreviation (i.e. mo, mon, mond, monda, monday are all valid) </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EndDay</I> </TD>
     <TD> For week long sessions, the ending day of week for the session. Use in combination with EndTime. </TD>
     <TD> Day of week in English using any abbreviation (i.e. mo, mon, mond, monda, monday are all valid) </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>MillisecondsInTimeStamp</I> </TD>
@@ -136,7 +137,7 @@
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Validation">Validation</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Validation">Validation</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>UseDataDictionary</I> </TD>
@@ -151,7 +152,8 @@
     <TD> XML definition file for validating incoming FIX messages. If no DataDictionary is supplied, only basic message validation will be done</TD>
     <TD> valid XML data dictionary file, QuickFIX comes with the following defaults in the spec directory<br><br>FIX44.xml <br> FIX43.xml <br>FIX42.xml <br>FIX41.xml <br>FIX40.xml </TD>
 
-    <TD> </TD>
+    <TD><p>&nbsp;</p>
+      </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ValidateFieldsOutOfOrder</I> </TD>
@@ -166,6 +168,15 @@
 
     <TD> Y<br>N</TD>
     <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ValidateUserDefinedFields</TD>
+    <TD>If set to N, user defined fields will not be rejected if they are not
+      defined in the data dictionary, or are present in messages they do not
+      belong to.</TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>CheckLatency</I> </TD>
@@ -184,7 +195,7 @@
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Initiator">Initiator</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Initiator">Initiator</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ReconnectInterval</I> </TD>
@@ -198,7 +209,7 @@
 
     <TD> Heartbeat interval in seconds. Only used for initiators. </TD>
     <TD> positive integer </TD>
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>LogonTimeout</I> </TD>
@@ -212,14 +223,14 @@
 
     <TD> Socket port for connecting to a session. Only used with a SocketInitiator </TD>
     <TD> positive integer </TD>
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketConnectHost</I> </TD>
 
     <TD> Host to connect to. Only used with a SocketInitiator </TD>
     <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketConnectPort&lt;n&gt;</I> </TD>
@@ -228,7 +239,7 @@
   	     positive integer. (i.e.) SocketConnectPort1, SocketConnectPort2... must be consecutive
              and have a matching SocketConnectHost[n]</TD>
     <TD> positive integer </TD>
-    <TD> </TD>
+    <TD>&nbsp; </TD>
     </TR>
   <TR ALIGN="left" VALIGN="middle">
 
@@ -238,11 +249,11 @@
          and have a matching SocketConnectPort[n]</TD>
     <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Acceptor">Acceptor</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Acceptor">Acceptor</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketAcceptPort</I> </TD>
@@ -250,28 +261,47 @@
     <TD> Socket port for listening to incomming connections, Only used with a SocketAcceptor </TD>
     <TD> positive integer, valid open socket port. Currently, this must be defined in the [DEFAULT]
          section.</TD>
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketReuseAddress</I> </TD>
 
     <TD> Indicates a socket should be created with SO_REUSADDR, Only used with a SocketAcceptor </TD>
     <TD> Y<br>N</TD>
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
 
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Storage">Storage</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Storage">Storage</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>FileStorePath</I> </TD>
     <TD> Directory to store sequence number and message files. Only used with FileStoreFactory. </TD>
     <TD> valid directory for storing files, must have write access </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcDriver</TD>
+    <TD>JDBC driver for JDBC logger. Also used for JDBC log.</TD>
+    <TD>Classname for the JDBC driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcURL</TD>
+    <TD>JDBC database URL. Also used for JDBC log.</TD>
+    <TD>Depends on the JDBC database driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcUser</TD>
+    <TD>JDBC user. Also used for JDBC log.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcPassword</TD>
+    <TD>JDBC password. Also used for JDBC log.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>MySQLStoreDatabase</I> </TD>
     <TD> Name of MySQL database to access for storing messages and session state. Only used with
          MySQLStoreFactory. </TD>
@@ -309,15 +339,54 @@
 
   <TR ALIGN="center" VALIGN="middle">
 
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Logging">Logging</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>CommonsLogEventCategory</TD>
+    <TD>Log category for logged events.</TD>
+    <TD>Depends on log engine.</TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>CommonsLogIncomingMessageCategory</TD>
+    <TD><p>Log category for incoming messages.</p>
+      </TD>
+    <TD>Depends on log engine.</TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>CommonsLogOutgoingMessageCategory</TD>
+    <TD>Log category for outgoing messages.</TD>
+    <TD>Depends on log engine.</TD>
+    <TD>&nbsp;</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>FileLogPath</I> </TD>
     <TD> Directory to store logs. Only used with FileLogFactory. </TD>
     <TD> valid directory for storing files, must have write access </TD>
 
-    <TD> </TD>
+    <TD>&nbsp; </TD>
   </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcDriver</TD>
+    <TD>JDBC driver for JDBC logger. Also used for JDBC message store.</TD>
+    <TD>Classname for the JDBC driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcURL</TD>
+    <TD>JDBC database URL. Also used for JDBC message store.</TD>
+    <TD>Depends on the JDBC database driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcUser</TD>
+    <TD>JDBC user. Also used for JDBC message store.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcPassword</TD>
+    <TD>JDBC password. Also used for JDBC message store.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>MySQLLogDatabase</I> </TD>
     <TD> Name of MySQL database to access for logging. Only used with
@@ -348,16 +417,33 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>MySQLLogPort</I> </TD>
-
     <TD> Port of MySQL database. Only used with MySQLLogFactory. </TD>
     <TD> positive integer </TD>
     <TD> standard MySQL port </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogEvents</TD>
+    <TD>Log events to screen.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogIncoming</TD>
+    <TD>Log incoming messages to screen.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogOutgoing</TD>
+    <TD>Log outgoing messages to screen.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
   </TR>
 
 
   <TR ALIGN="center" VALIGN="middle">
 
-    <TD COLSPAN="4" BGCOLOR="#DDDDDD"><A NAME="Miscellaneous">Miscellaneous</A></TD>
+    <TD COLSPAN="4" class="subsection"><A NAME="Miscellaneous">Miscellaneous</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnLogout</I> </TD>
@@ -373,6 +459,18 @@
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SendResetSeqNumFlag</TD>
+    <TD>Send a sequence number reset when initiating a logon.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ContinueInitializationOnError</TD>
+    <TD>Continue initializing sessions if an error occurs.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
   </tbody>
   </TABLE>
 
@@ -382,16 +480,18 @@
     Here is a typical settings file you might find in a firm that wants to connect to several ECNs.
   </p>
 
-  <B><CODE><PRE>
-  # default settings for sessions<B>
+  <CODE>
+  <PRE>
+  # default settings for sessions
   [DEFAULT]
   ConnectionType=initator
   ReconnectInterval=60
   SenderCompID=TW
 
-  </B># session definition<B>
+
+  # session definition
   [SESSION]
-  </B># inherit ConnectionType, ReconnectInterval and SenderCompID from default<B>
+  # inherit ConnectionType, ReconnectInterval and SenderCompID from default
 
   BeginString=FIX.4.1
   TargetCompID=ARCA
@@ -401,6 +501,7 @@
   SocketConnectPort=9823
   SocketConnectHost=123.123.123.123
   DataDictionary=somewhere/FIX41.xml
+
 
   [SESSION]
   BeginString=FIX.4.0
@@ -412,22 +513,24 @@
   SocketConnectHost=23.23.23.23
   DataDictionary=somewhere/FIX40.xml
 
+
   [SESSION]
   BeginString=FIX.4.2
   TargetCompID=INCA
   StartTime=12:30:00
   EndTime=21:30:00
-  </B># overide default setting for RecconnectInterval<B>
+  # overide default setting for RecconnectInterval
   ReconnectInterval=30
   HeartBtInt=30
   SocketConnectPort=6523
   SocketConnectHost=3.3.3.3
-  </B># (optional) alternate connection ports and hosts to cycle through on failover<B>
+  # (optional) alternate connection ports and hosts to cycle through on failover
   SocketConnectPort1=8392
   SocketConnectHost1=8.8.8.8
   SocketConnectPort2=2932
   SocketConnectHost2=12.12.12.12
   DataDictionary=somewhere/FIX42.xml
-  </PRE></CODE></B>
+</PRE>
+  </CODE>
   </head>
-</html>
+  </html>

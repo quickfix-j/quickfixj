@@ -9,21 +9,26 @@
   <H1 id="title">QuickFIX/J: Sending Messages</H1>
     <p>
 
-    Messages can be sent to a counter party with the static <B>Session::sendToTarget</B> methods.
-    This method has several signitures. They are:
+    Messages can be sent to a counter party with the static <B>Session sendToTarget</B> methods.
+    This method has several signatures. They are:
     </p>
-	<PRE><code>package quickfix;
+	<code>
+	<PRE>package quickfix;
+
 
 public static boolean sendToTarget(Message message)
   throws SessionNotFound
 
+
 public static boolean sendToTarget(Message message, SessionID sessionID)
   throws SessionNotFound
+
 
 public static boolean sendToTarget
   (Message message, String senderCompID, String targetCompID)
   throws SessionNotFound
-    </code></PRE>
+    </PRE>
+	</code>
 
     <H1>Creating Messages</H1>
     As for creating messages, just like reading them, there are several levels of type safety. And
@@ -36,32 +41,44 @@ public static boolean sendToTarget
     <B>do not</B> use this for writing applications.
     </p>
 
-    <PRE><code>import quickfix.*;
+    <code>
+    <PRE>import quickfix.*;
 
 public void sendOrderCancelRequest()
 {
   Message message = new Message();
+
+
   // BeginString
   message.getHeader().setField(new StringField(8, "FIX.4.2"));
+
   // SenderCompID
   message.getHeader().setField(new StringField(49, "TW"));
+
   // TargetCompID, with enumeration
   message.getHeader().setField(new StringField(56, "TARGET"));
+
   // MsgType
   message.getHeader().setField(new CharField(35, 'F'));
+
   // OrigClOrdID
   message.setField(new StringField(41, "123"));
+
   // ClOrdID
   message.setField(new StringField(11, "321"));
+
   // Symbol
   message.setField(new StringField(55, "LNUX"));
+
   // Side, with value enumeration
   message.setField(new CharField(54, FIX::Side_BUY));
+
   // Text
   message.setField(new StringField(58, "Cancel My Order!"));
 
   Session.sendToTarget(message);
-}    </code></PRE>
+}    </PRE>
+    </code>
   
 
     <H2>More Type Safe</H2>
@@ -71,7 +88,7 @@ public void sendOrderCancelRequest()
     is something you usually use for code that needs to work with multiple messages types or multiple
     FIX versions.
     </p>
-    <PRE><code>import quickfix.*;
+    <code><PRE>import quickfix.*;
 import quickfix.field.*;
 
 void sendOrderCancelRequest()
@@ -90,7 +107,7 @@ void sendOrderCancelRequest()
   message.setField(new Text("Cancel My Order!"));
 
   Session.sendToTarget(message);
-}    </code></PRE>
+}    </PRE></code>
 
 	<H2>Most Type Safe... DO THIS!</H2>
 	<p>
@@ -102,7 +119,7 @@ void sendOrderCancelRequest()
 	mind you can still use <B>setField</B> if you want to force any field you want into the message.
 	</p>
 
-	<PRE><code>import quickfix.*;
+	<code><PRE>import quickfix.*;
 
 void sendOrderCancelRequest()
 {
@@ -115,6 +132,6 @@ void sendOrderCancelRequest()
   message.set(new Text("Cancel My Order!"));
 
   Session.sendToTarget(message, "TW", "TARGET");
-}    </code></PRE>
+}    </PRE></code>
   </body>
 </html>

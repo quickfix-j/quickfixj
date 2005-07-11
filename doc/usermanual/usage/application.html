@@ -89,9 +89,11 @@ public interface Application {
   in this code fragment with a <i>SocketInitiator</i>. <i>ThreadedSocketInitiator</i> and <i>ThreadedSocketAcceptor</i> classes
   are also available. These will supply a thread to each session that is created.
   If you use these you must make sure your application is thread safe.</p>
-<CODE><pre>
+<CODE>
+<pre>
 import quickfix.*;
 import java.io.FileInputStream;
+
 
 public class MyClass {
 
@@ -111,6 +113,7 @@ public class MyClass {
     acceptor.stop();
   }
 }  
-</pre></CODE>
+</pre>
+</CODE>
 </BODY>
 </html>

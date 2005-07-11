@@ -13,18 +13,20 @@
     be used to set and get user defined fields? Well one answer would be to use the non-type safe
     set and get fields like so:
   </p>
-  <pre><code>message.setField(new StringField(6123), "value");
+  <code><pre>message.setField(new StringField(6123), "value");
 StringField field = message.getField(new StringField(6123));
-  </code></pre>
+  </pre></code>
 
   <p>
     But there is a better way. Instead of using this non type safe method, why not bring your own
     user defined fields into the type system? QuickFIX provides you with a set of macros to do just
   that. Now you can define your user defined fields in a separate file like this.</p>
-  <pre><code>
+  <code>
+  <pre>
 // MyStringField.java
 
 import quickfix.StringField;
+
 
 public class MyStringField extends StringField
 {
@@ -32,22 +34,24 @@ public class MyStringField extends StringField
   public MyStringField(String data) { super(6123, data); }
 }
 
+
 // MyPriceField.java
 
 import quickfix.DoubleField;
+
 
 public class MyPriceField extends DoubleField
 {
   public MyPriceField() { super(8756); }
   public MyPriceField(double data) { super(8756, data); }
 }
-  </code></pre>
+  </pre>
+  </code>
 
   <p>
-  User defined fields must be declared within the <B>FIX</B> namespace.
   Now, elsewhere in your application, you can write code like this:
   </p>
-  <pre><code>
+  <code><pre>
 MyStringField stringField = new MyStringField("string");
 MyPriceField priceField = new MyPriceField(14.54);
 
@@ -56,40 +60,7 @@ message.setField(priceField);
 
 message.getField(stringField);
 message.getField(priceField);
-  </code></pre>
-
-  <p>
-  Here is a list of macros that allow you to define fields of all supported FIX types, but keep
-  in mind you can write fields of wildly different types if you supply a new macro and convertor
-  that can convert your type to and from a string. Here is the list of macros:
-</p>
-  <p>TODO FIX THIS LIST</p>
-  <pre><code>
-  USER_DEFINE_STRING( NAME, NUM )
-  USER_DEFINE_CHAR( NAME, NUM )
-  USER_DEFINE_PRICE( NAME, NUM )
-  USER_DEFINE_INT( NAME, NUM )
-  USER_DEFINE_AMT( NAME, NUM )
-  USER_DEFINE_QTY( NAME, NUM )
-  USER_DEFINE_CURRENCY( NAME, NUM )
-  USER_DEFINE_MULTIPLEVALUESTRING( NAME, NUM )
-  USER_DEFINE_EXCHANGE( NAME, NUM )
-  USER_DEFINE_UTCTIMESTAMP( NAME, NUM )
-  USER_DEFINE_BOOLEAN( NAME, NUM )
-  USER_DEFINE_LOCALMKTDATE( NAME, NUM )
-  USER_DEFINE_DATA( NAME, NUM )
-  USER_DEFINE_FLOAT( NAME, NUM )
-  USER_DEFINE_PRICEOFFSET( NAME, NUM )
-  USER_DEFINE_MONTHYEAR( NAME, NUM )
-  USER_DEFINE_DAYOFMONTH( NAME, NUM )
-  USER_DEFINE_UTCDATE( NAME, NUM )
-  USER_DEFINE_UTCTIMEONLY( NAME, NUM )
-  USER_DEFINE_NUMINGROUP( NAME, NUM )
-  USER_DEFINE_SEQNUM( NAME, NUM )
-  USER_DEFINE_LENGTH( NAME, NUM )
-  USER_DEFINE_PERCENTAGE( NAME, NUM )
-  USER_DEFINE_COUNTRY( NAME, NUM )
-  </code></pre>
+</pre></code>
   </body>
 
 </html>
