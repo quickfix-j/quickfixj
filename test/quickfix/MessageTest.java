@@ -364,4 +364,32 @@ public class MessageTest extends TestCase {
             fail("exception thrown");
         }
     }
+    
+    public void testIsAdmin() {
+        Message message = new Message();
+        
+        message.getHeader().setString(MsgType.FIELD, MsgType.HEARTBEAT);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.LOGON);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.LOGOUT);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.SEQUENCE_RESET);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.RESEND_REQUEST);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.TEST_REQUEST);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.REJECT);
+        assertTrue(message.isAdmin());
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.ORDER_SINGLE);
+        assertFalse(message.isAdmin());
+    }
 }

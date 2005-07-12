@@ -104,17 +104,15 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-//        ExpectMessageStep.TIMEOUT = 100000;
+        ExpectMessageStep.TIMEOUT = 20000;
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
         addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         addTests(new File(acceptanceTestBaseDir + "server/fix43"));
         addTests(new File(acceptanceTestBaseDir + "server/fix44"));
         
-        //addTest("fix42/14b_RequiredFieldMissing.def");
-        //addTest("fix42/2m_BodyLengthValueNotCorrect.def");
-        //addTest("fix42/2r_UnregisteredMsgType.def");
-        //addTest("fix42/4a_NoDataSentDuringHeartBtInt.def");
+//        addTest("fix44/SessionReset.def");
+//        addTest("fix44/AlreadyLoggedOn.def");
     }
 
     protected void addTest(String name) {

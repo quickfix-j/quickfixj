@@ -22,8 +22,8 @@ package quickfix.netty;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import net.gleamynode.netty2.EventDispatcher;
 import net.gleamynode.netty2.IoProcessor;
@@ -54,19 +54,22 @@ import quickfix.SessionSettings;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgType;
 import quickfix.field.converter.IntConverter;
+import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public abstract class AbstractSocketAcceptor implements Acceptor {
-    private Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
+    private final Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
     private static final String DEFAULT_SESSION_SERVER_NAME = "quickfix-acceptor";
     private static final String DEFAULT_IO_THREAD_PREFIX = "quickfix-io";
-    private HashMap quickfixSessions = new HashMap();
+    private final CountDownLatch initializationLatch = new CountDownLatch(1);
+    private final Map quickfixSessionForNettySession = new ConcurrentHashMap();
+    private final Map quickfixSessions = new ConcurrentHashMap();
     private boolean isStopRequested;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
-    private final CountDownLatch initializationLatch = new CountDownLatch(1);
-    private long logonPollingTimeout = 5000;
-    private long logonPollingPeriod = 500;
+    private boolean firstPoll = true;
+    private SessionServer nettySessionServer;
+    private IoProcessor ioProcessor;
 
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -81,22 +84,24 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         this.settings = settings;
         sessionFactory = new SessionFactory(application, messageStoreFactory, logFactory);
     }
+    
+    protected abstract void onInitialize(boolean isBlocking);
 
     protected abstract void onBlock();
 
     protected abstract void onStart();
 
+    protected abstract void onMessage(Session nettySession, Message message);
+
+    protected abstract boolean onPoll();
+
+    protected abstract void onStop();
+
+
     public final void block() throws ConfigError, RuntimeError {
         initialize(true);
         onBlock();
     }
-
-    protected abstract void onMessage(Session nettySession, Message message);
-
-    private boolean firstPoll = true;
-    private SessionServer nettySessionServer;
-
-    protected abstract boolean onPoll();
 
     public final boolean poll() throws ConfigError, RuntimeError {
         if (firstPoll) {
@@ -107,14 +112,11 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         return onPoll();
     }
 
-    private IoProcessor ioProcessor;
 
     public void start() throws ConfigError, RuntimeError {
         initialize(false);
         onStart();
     }
-
-    protected abstract void onStop();
 
     public final void stop() {
         stop(false);
@@ -134,11 +136,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected boolean isStopRequested() {
         return isStopRequested;
     }
-
-    // Netty IO thread will place messages on a queue
-    // for the application thread to process.
-
-    protected abstract void onInitialize(boolean isBlocking);
 
     private void initialize(boolean handleMessageInCaller) throws ConfigError {
         try {
@@ -189,8 +186,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             throw (ConfigError) new ConfigError(e.getMessage()).fillInStackTrace();
         }
     }
-
-    private HashMap quickfixSessionForNettySession = new HashMap();
 
     private quickfix.Session getQuickFixSession(Session nettySession) {
         return (quickfix.Session) quickfixSessionForNettySession.get(nettySession);
@@ -277,24 +272,26 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected quickfix.Session getQuickFixSession(Session nettySession, Message message) {
         quickfix.Session quickfixSession = getQuickFixSession(nettySession);
         if (quickfixSession == null) {
-            // QF session not bound yet, extract Session ID from message
+            // No QF session for this Netty session, 
             SessionID sessionID = getSessionID(message, true);
             quickfixSession = (quickfix.Session) quickfixSessions.get(sessionID);
+            if (quickfixSession != null) {
+                ResponderAdapter r = (ResponderAdapter) quickfixSession.getResponder();
+                if (r != null) {
+                    // QF session is bound to another Netty session. Not allowed.
+                    logError(nettySession, sessionID,
+                            "session with multiple connections not allowed", null);
+                    nettySession.close();
+                    return null;
+                }
+            }
         }
         if (quickfixSession == null) {
-            logError(nettySession, null, "invalid QF session ID", null);
+            logError(nettySession, null, "unknown QF session ID", null);
             nettySession.close();
             return null;
         }
         return quickfixSession;
-    }
-
-    public void setLogonPollingTimeout(long logonPollingTimeout) {
-        this.logonPollingTimeout = logonPollingTimeout;
-    }
-
-    public void setLogonPollingPeriod(long logonPollingPeriod) {
-        this.logonPollingPeriod = logonPollingPeriod;
     }
 
     protected void processMessage(Session nettySession, Message message) {
@@ -307,26 +304,24 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         try {
             FIXMessageData fixMessageData = (FIXMessageData) message;
             quickfixSession.getState().logIncoming(fixMessageData.toString());
-
             DataDictionary dataDictionary = quickfixSession.getDataDictionary();
             fixMessageData.setSession(quickfixSession);
             quickfix.Message fixMessage = fixMessageData.parse(dataDictionary);
-            //onMessage(nettySession, quickfixSession, fixMessage);
 
             try {
                 if (fixMessage.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
-                    if (quickfixSession.isLoggedOn()) {
-                        for (long i = 0; i < logonPollingTimeout && quickfixSession.isLoggedOn(); i += logonPollingPeriod) {
-                            Thread.sleep(logonPollingPeriod);
-                        }
-                        if (quickfixSession.isLoggedOn()) {
-                            logError(nettySession, quickfixSession.getSessionID(),
-                                    "multiple logon, disconnecting client", null);
-                            nettySession.close();
-                            return;
-                        }
-
-                    }
+//                    if (quickfixSession.isLoggedOn()) {
+//                        // TODO Review this code in context of new logon with sequence reset feature.
+//                        for (long i = 0; i < logonPollingTimeout && quickfixSession.isLoggedOn(); i += logonPollingPeriod) {
+//                            Thread.sleep(logonPollingPeriod);
+//                        }
+//                        if (quickfixSession.isLoggedOn()) {
+//                            logError(nettySession, quickfixSession.getSessionID(),
+//                                    "multiple logon, disconnecting client", null);
+//                            nettySession.close();
+//                            return;
+//                        }
+//                    }
                     if (fixMessage.isSetField(HeartBtInt.FIELD)) {
                         int heartbeatInterval = fixMessage.getInt(HeartBtInt.FIELD);
                         nettySession.getConfig().setIdleTime(heartbeatInterval);
@@ -376,6 +371,10 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             logDebug(nettySession, null, "session unbound");
             quickfixSessionForNettySession.remove(nettySession);
             nettySession.close();
+        }
+        
+        public Session getNettySession() {
+            return nettySession;
         }
     }
 

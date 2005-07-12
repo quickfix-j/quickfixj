@@ -218,7 +218,7 @@ public class Message extends FieldMap {
         if (header.isSetField(MsgType.FIELD)) {
             try {
                 String msgType = header.getString(MsgType.FIELD);
-                return msgType.length() > 1 && "0A12345".indexOf(msgType.charAt(0)) != -1;
+                return msgType.length() >= 1 && "0A12345".indexOf(msgType.charAt(0)) != -1;
             } catch (FieldNotFound e) {
                 // shouldn't happen
             }

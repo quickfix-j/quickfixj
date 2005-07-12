@@ -82,7 +82,6 @@ public class ATServer implements Runnable {
             //MemoryStoreFactory factory = new MemoryStoreFactory();
             AbstractSocketAcceptor acceptor = new SocketAcceptor(application, factory, settings,
                     new CommonsLogFactory(settings), new DefaultMessageFactory());
-            acceptor.setLogonPollingTimeout(1000);
             acceptor.start();
             acceptor.waitForInitialization();
             initializationLatch.countDown();

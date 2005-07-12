@@ -48,6 +48,8 @@ public class SessionState {
     private int heartBeatInterval;
     private HashMap messageQueue = new HashMap();
     private int[] resendRange = new int[]{ 0, 0 };
+    private boolean resetSent;
+    private boolean resetReceived;
     
     public boolean isConnected() {
         return connected;
@@ -289,5 +291,21 @@ public class SessionState {
 
     public int[] getResendRange() {
         return resendRange;
+    }
+
+    public boolean isResetReceived() {
+        return resetReceived;
+    }
+
+    public void setResetReceived(boolean resetReceived) {
+        this.resetReceived = resetReceived;
+    }
+
+    public boolean isResetSent() {
+        return resetSent;
+    }
+
+    public void setResetSent(boolean resetSent) {
+        this.resetSent = resetSent;
     }
 }

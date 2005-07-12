@@ -200,6 +200,14 @@ public class Session {
     public void setResponder(Responder responder) {
         this.responder = responder;
     }
+    
+    /**
+     * This should not be used by end users.
+     * @return the Session's connection responder
+     */
+    public Responder getResponder() {
+        return responder;
+    }
 
     private boolean checkSessionTime() throws IOException {
         return checkSessionTime(SystemTime.getDate());
@@ -241,8 +249,6 @@ public class Session {
     public static boolean sendToTarget(Message message) throws SessionNotFound {
         return sendToTarget(message, "");
     }
-
-    // TODO QUESTION How is session qualifier used?
 
     /**
      * Send a message to the session specified in the message's target
@@ -1012,7 +1018,11 @@ public class Session {
         }
     }
 
-    private boolean validLogonState(String msgType) {
+    // This is public for AbstractSocketInitiator
+    public boolean validLogonState(String msgType) {
+        if (msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived()) {
+            return true;
+        }
         if (msgType.equals(MsgType.LOGON) && !state.isLogonReceived()
                 || !msgType.equals(MsgType.LOGON) && state.isLogonReceived()) {
             return true;
@@ -1134,6 +1144,7 @@ public class Session {
         if (responder != null) {
             state.logEvent("Disconnecting");
             responder.disconnect();
+            responder = null;
         }
 
         if (state.isLogonReceived() || state.isLogonSent()) {
@@ -1143,6 +1154,9 @@ public class Session {
         }
 
         state.setLogoutSent(false);
+        state.setResetReceived(false);
+        state.setResetSent(false);
+        
         state.clearQueue();
         if (resetOnDisconnect && state.isConnected()) {
             state.setConnected(false);
@@ -1154,21 +1168,24 @@ public class Session {
 
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (state.isLogonSendNeeded()) {
-            state.logEvent("Received logon response before sending request");
-            disconnect();
-            return;
-        }
-
         String senderCompID = logon.getHeader().getString(SenderCompID.FIELD);
         String targetCompID = logon.getHeader().getString(TargetCompID.FIELD);
 
         if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
-            boolean resetSeqNumFlag = logon.getBoolean(ResetSeqNumFlag.FIELD);
-            if (resetSeqNumFlag) {
-                state.logEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
+            state.setResetReceived(logon.getBoolean(ResetSeqNumFlag.FIELD));
+        }
+        
+        if (state.isResetReceived()) {
+            state.logEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
+            if (!state.isResetSent()) {
                 state.reset();
             }
+        }
+
+        if (state.isLogonSendNeeded() && !state.isResetReceived()) {
+            state.logEvent("Received logon response before sending request");
+            disconnect();
+            return;
         }
 
         if (!verify(logon, false, true)) {
@@ -1181,7 +1198,7 @@ public class Session {
             state.setLogonReceived(true);
         }
 
-        if (!state.isInitiator()) {
+        if (!state.isInitiator() || (state.isResetSent() && !state.isResetReceived())) {
             state.logEvent("Received logon request");
             generateLogon(logon);
             state.logEvent("Responding to logon request");
@@ -1189,6 +1206,9 @@ public class Session {
             state.logEvent("Received logon response");
         }
 
+        state.setResetSent(false);
+        state.setResetReceived(false);
+        
         int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
         if (isTargetTooHigh(sequence)) {
             doTargetTooHigh(logon);
@@ -1324,6 +1344,9 @@ public class Session {
     private void generateLogon(Message otherLogon) throws FieldNotFound {
         Message logon = messageFactory.create(sessionID.getBeginString(), MsgType.LOGON);
         logon.setInt(EncryptMethod.FIELD, 0);
+        if (state.isResetReceived()) {
+            logon.setBoolean(ResetSeqNumFlag.FIELD, true);
+        }
         logon.setInt(HeartBtInt.FIELD, otherLogon.getInt(HeartBtInt.FIELD));
         initializeHeader(logon.getHeader());
         sendRaw(logon, 0);
@@ -1344,11 +1367,25 @@ public class Session {
 
             String messageString = null;
 
-            if (msgType.length() == 1 && "0A12345".indexOf(msgType) != -1) {
+            if (message.isAdmin()) {
                 application.toAdmin(message, sessionID);
+
+                if (msgType.equals(MsgType.LOGON) && !state.isResetReceived()) {
+                    boolean resetSeqNumFlag = false;
+                    if (message.isSetField(ResetSeqNumFlag.FIELD)) {
+                        resetSeqNumFlag = message.getBoolean(ResetSeqNumFlag.FIELD);
+                    }
+                    if (resetSeqNumFlag) {
+                        state.reset();
+                        message.getHeader().setInt(MsgSeqNum.FIELD, getExpectedSenderNum());
+                    }
+                    state.setResetSent(resetSeqNumFlag);
+                }
+
                 messageString = message.toString();
-                if (msgType.equals("A") || msgType.equals("5") || msgType.equals("2")
-                        || msgType.equals("4") || isLoggedOn()) {
+                if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.LOGOUT)
+                        || msgType.equals(MsgType.RESEND_REQUEST)
+                        || msgType.equals(MsgType.SEQUENCE_RESET) || isLoggedOn()) {
                     result = send(messageString);
                 }
             } else {
