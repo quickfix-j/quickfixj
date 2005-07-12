@@ -567,6 +567,9 @@ public class Session {
                     disconnect();
                 }
             }
+        } catch (IncorrectTagValue e) {
+            // TODO QUESTION Why is incorrect tag value being rejected as incorrect tag number?
+            generateReject(message, SessionRejectReason.INVALID_TAG_NUMBER, e.field);
         } catch (InvalidMessageType e) {
             generateReject(message, SessionRejectReason.INVALID_MSGTYPE, 0);
         } catch (InvalidMessage e) {
