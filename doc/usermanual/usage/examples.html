@@ -8,16 +8,17 @@
 
   <body>
     <H1 id="title">QuickFIX/J: Example Applications</H1>
-  <p><font color="#FF0000">TODO DOCS Extend the examples text </font>    
-  <p>QuickFIX comes with several example applications. These application are in the <B>quickfix/examples</B>
-  directory. These applications are not meant to demonstrate good application design or meant
-  to be used in a real production system. They are merely provided as a tutorial on how to build an
-  application with QuickFIX.
-  <p><B>Banzai</B> is a Java GUI based
-  trading client. There is <B>executor</B>. Executor is a server that
-  simply fills every limit order that it receives. The ordermatch application
-  is a simple server for matching and executing limit orders.    
-    <p>
+    <p>QuickFIX comes with several example applications. These application are
+    in the <B>quickfix/examples</B>
+  directory are not meant to demonstrate good application design or meant
+  to be used in a real production system. They are merely provided as a tutorial
+    on how to build an application with QuickFIX.
+  <p><strong>Executor</strong> is a very simple order execution simulator. It only supports limit
+    orders and always fills them completely.
+  <p><B>Banzai</B> is a simple 
+  trading client. It can be used with the Executor to see a simple example of
+    using QuickFIX/J on both the buy and sell side of an order execution.
+  <p> <img src="banzai.png" width="600" height="400">  <p>
   Please study these examples to see a complete although minimal implementation of a FIX application.
   </p>
   </body>
