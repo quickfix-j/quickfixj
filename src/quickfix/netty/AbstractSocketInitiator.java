@@ -238,7 +238,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
             // The problem here is that the fixMessage was not parsed.
             //quickfixSession.generateReject(fixMessage, "invalid message
             // format");
-            LogUtil.logThrowable(quickfixSession.getLog(), "error during disconnect", e);
+            LogUtil.logThrowable(quickfixSession.getLog(), "error during message parsing", e);
         }
     }
 
@@ -265,7 +265,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
                     throw (ConfigError) new ConfigError(e.getMessage()).initCause(e);
                 }
             } else {
-                reconnectInterval = 30;
+                reconnectInterval = 30000L;
             }
 
             quickfixSession = sessionFactory.create(sessionID, settings);
