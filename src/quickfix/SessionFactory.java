@@ -59,7 +59,6 @@ public class SessionFactory {
         this.logFactory = logFactory;
     }
 
-    // TODO Support user-defined fields setting
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
             String connectionType = null;
@@ -119,9 +118,6 @@ public class SessionFactory {
                 
                 
             }
-
-            // TODO C++ Validate user defined field tag range between
-            // 5000 and 9999 inclusive.
 
             Date startTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
                     Session.SETTING_START_TIME));

@@ -1,21 +1,21 @@
 /****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix.netty;
 
@@ -64,6 +64,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Map quickfixSessionForNettySession = new ConcurrentHashMap();
     private final Map quickfixSessions = new ConcurrentHashMap();
+    private long stopRequestTime;
     private boolean isStopRequested;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
@@ -84,7 +85,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         this.settings = settings;
         sessionFactory = new SessionFactory(application, messageStoreFactory, logFactory);
     }
-    
+
     protected abstract void onInitialize(boolean isBlocking);
 
     protected abstract void onBlock();
@@ -96,7 +97,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected abstract boolean onPoll();
 
     protected abstract void onStop();
-
 
     public final void block() throws ConfigError, RuntimeError {
         initialize(true);
@@ -112,7 +112,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         return onPoll();
     }
 
-
     public void start() throws ConfigError, RuntimeError {
         initialize(false);
         onStart();
@@ -123,14 +122,33 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     }
 
     public final void stop(boolean force) {
-        // TODO complete the stop functionality
-        // logout of sessions
-        // wait for logouts
-        // sync with initialization
-        //quickFixThread.interrupt();
+        Iterator sessionItr = quickfixSessions.values().iterator();
+        while (sessionItr.hasNext()) {
+            quickfix.Session session = (quickfix.Session)sessionItr.next();
+            try {
+                session.logout();
+            } catch (Throwable e) {
+                logError(null, session.getSessionID(), "error during logout", e); 
+            }
+        }
+
+        if (!force) {
+            for ( int second = 1; second <= 10 && isLoggedOn(); ++second )
+                try {
+                    Thread.sleep( 1 );
+                } catch (InterruptedException e) {
+                    log.error(e);
+                }
+        }
+        
         ioProcessor.stop();
         nettySessionServer.stop();
-        isStopRequested = true;        
+        stopRequestTime = System.currentTimeMillis();
+        isStopRequested = true;
+    }
+
+    protected long getStopRequestTime() {
+        return stopRequestTime;
     }
     
     protected boolean isStopRequested() {
@@ -148,7 +166,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             }
 
             onInitialize(handleMessageInCaller);
-            
+
             EventDispatcher eventDispatcher = new LowLatencyEventDispatcher();
             ioProcessor = new IoProcessor();
             ioProcessor.setThreadNamePrefix(DEFAULT_IO_THREAD_PREFIX);
@@ -156,6 +174,15 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             ioProcessor.start();
 
             int acceptPort = getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT);
+            InetSocketAddress socketAddress;
+            if (settings.isSetting(SessionSettings.DEFAULT_SESSION_ID,
+                    SETTING_SOCKET_ACCEPT_ADDRESS)) {
+                socketAddress = new InetSocketAddress(settings.getString(
+                        SessionSettings.DEFAULT_SESSION_ID, SETTING_SOCKET_ACCEPT_ADDRESS),
+                        acceptPort);
+            } else {
+                socketAddress = new InetSocketAddress(acceptPort);
+            }
 
             // Create Netty session server
             nettySessionServer = new SessionServer();
@@ -163,11 +190,13 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             nettySessionServer.setEventDispatcher(eventDispatcher);
             nettySessionServer.setMessageRecognizer(FIXMessageData.RECOGNIZER);
             nettySessionServer.addSessionListener(new AcceptorSessionListener());
-            nettySessionServer.setBindAddress(new InetSocketAddress(acceptPort));
+            nettySessionServer.setBindAddress(socketAddress);
             nettySessionServer.setThreadName(DEFAULT_SESSION_SERVER_NAME);
             nettySessionServer.start();
             log.info("listening for connections on port " + acceptPort);
             initializationLatch.countDown();
+        } catch (FieldConvertError e) {
+            throw new ConfigError(e);
         } catch (IOException e) {
             throw new RuntimeError(e);
         }
@@ -176,12 +205,11 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     public void waitForInitialization() throws InterruptedException {
         initializationLatch.await();
     }
-    
+
     private int getIntSetting(String key) throws ConfigError {
         try {
-            // TODO FEATURE add ability to bind a specific network card
-            return IntConverter.convert(settings.getString(
-                    SessionSettings.DEFAULT_SESSION_ID, key));
+            return IntConverter
+                    .convert(settings.getString(SessionSettings.DEFAULT_SESSION_ID, key));
         } catch (FieldConvertError e) {
             throw (ConfigError) new ConfigError(e.getMessage()).fillInStackTrace();
         }
@@ -310,18 +338,6 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
             try {
                 if (fixMessage.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
-//                    if (quickfixSession.isLoggedOn()) {
-//                        // TODO Review this code in context of new logon with sequence reset feature.
-//                        for (long i = 0; i < logonPollingTimeout && quickfixSession.isLoggedOn(); i += logonPollingPeriod) {
-//                            Thread.sleep(logonPollingPeriod);
-//                        }
-//                        if (quickfixSession.isLoggedOn()) {
-//                            logError(nettySession, quickfixSession.getSessionID(),
-//                                    "multiple logon, disconnecting client", null);
-//                            nettySession.close();
-//                            return;
-//                        }
-//                    }
                     if (fixMessage.isSetField(HeartBtInt.FIELD)) {
                         int heartbeatInterval = fixMessage.getInt(HeartBtInt.FIELD);
                         nettySession.getConfig().setIdleTime(heartbeatInterval);
@@ -372,7 +388,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             quickfixSessionForNettySession.remove(nettySession);
             nettySession.close();
         }
-        
+
         public Session getNettySession() {
             return nettySession;
         }
@@ -419,14 +435,14 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     public boolean isLoggedOn() {
         Iterator sessionItr = quickfixSessions.values().iterator();
         while (sessionItr.hasNext()) {
-            quickfix.Session s = (quickfix.Session)sessionItr.next();
+            quickfix.Session s = (quickfix.Session) sessionItr.next();
             if (s.isLoggedOn()) {
                 return true;
             }
         }
         return false;
     }
-    
+
     public ArrayList getSessions() {
         return new ArrayList(quickfixSessions.values());
     }

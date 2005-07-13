@@ -23,12 +23,10 @@ class RequiredTagMissing extends FieldNotFound {
 
     public RequiredTagMissing(int field) {
         super(field);
-        // TODO Auto-generated constructor stub
     }
 
     public RequiredTagMissing(String s) {
         super(s);
-        // TODO Auto-generated constructor stub
     }
 
 }

@@ -129,7 +129,6 @@ public class Message extends FieldMap {
         return header.calculateLength() + calculateLength() + trailer.calculateLength();
     }
 
-    // TODO Check wither DecimalFormat is thread-safe
     private static DecimalFormat checksumFormat = new DecimalFormat("000");
 
     private int checkSum(String s) {

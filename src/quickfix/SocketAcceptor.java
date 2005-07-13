@@ -60,8 +60,13 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     protected boolean onPoll() {
-        if (isStopRequested()) {
-            // TODO wait for logouts
+        if (!isLoggedOn()) {
+            return false;
+        }
+        
+        // If there are still logged on sessions, but it's been more than
+        // 5 seconds from the stop request, then return false.
+        if (isStopRequested() && (System.currentTimeMillis() - getStopRequestTime()) > 5000L) {
             return false;
         }
 

@@ -264,11 +264,12 @@
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>SocketReuseAddress</I> </TD>
+    <TD> <I>SocketAcceptAddress</I></TD>
 
-    <TD> Indicates a socket should be created with SO_REUSADDR, Only used with a SocketAcceptor </TD>
-    <TD> Y<br>N</TD>
-    <TD>&nbsp; </TD>
+    <TD> Local IP address to for binding accept port.</TD>
+    <TD> A hostname or IP address parseable by java.net.InetAddress. Currently,
+      this must be defined in the [DEFAULT] section.</TD>
+    <TD>Accept connections on any network interface.</TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">

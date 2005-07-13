@@ -30,6 +30,11 @@ public interface Acceptor {
      * Acceptor setting specifying port for accepting FIX client connections.
      */
     public static final String SETTING_SOCKET_ACCEPT_PORT = "SocketAcceptPort";
+    
+    /**
+     * Acceptor setting specifying local IP interface address for accepting connections.
+     */
+    public static final String SETTING_SOCKET_ACCEPT_ADDRESS = "SocketAcceptAddress";
 
     /**
      * Start accepting connections. Returns immediately. See implementations of

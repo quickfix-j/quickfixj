@@ -648,7 +648,7 @@ public class DataDictionary {
                 } else if (node.getNodeName().equals("component")) {
                     String name = getAttributeValue(e, "name");
                     ComponentSchema schema = getComponentSchema(name);
-                    // TODO Handle data dictionary error
+                    // TODO CLEANUP Handle data dictionary error
                     if (schema == null) {
                         throw new RuntimeException("no schema for component: " + name);
                     }

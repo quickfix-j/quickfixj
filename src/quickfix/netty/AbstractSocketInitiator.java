@@ -116,16 +116,23 @@ public abstract class AbstractSocketInitiator implements Initiator {
     public final void stop() {
         stop(false);
     }
-    
+
     public final void stop(boolean force) {
         synchronized (sessionConnections) {
             for (int i = 0; i < sessionConnections.size(); i++) {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
             }
         }
-        // TODO wait for logouts
-        // sync with initialization
-        // quickFixThread.interrupt();
+
+        if (!force) {
+            for (int second = 1; second <= 10 && isLoggedOn(); ++second)
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    log.error(e);
+                }
+        }
+
         onStop();
         ioProcessor.stop();
         stopRequestTimestamp = System.currentTimeMillis();
@@ -168,7 +175,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             for (Iterator i = settings.sectionIterator(); i.hasNext();) {
                 Object sectionKey = i.next();
-                // TODO FEATURE add ability to bind a specific network card
                 // TODO CLEANUP add iterator for non-default sessions
                 if (isInitiatorSession(sectionKey)) {
                     try {
@@ -183,8 +189,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
                     }
                 }
             }
-            // TODO Review error handling and reporting in initiator (and
-            // acceptor)
             if (sessionConnections.size() == 0) {
                 throw new ConfigError("no initiators in settings");
             }
@@ -233,7 +237,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
 
         } catch (InvalidMessage e) {
-            // TODO Handle Invalid Message During Parsing
+            // TODO CLEANUP Handle Invalid Message During Parsing
             // Generate a session-level reject for the message
             // The problem here is that the fixMessage was not parsed.
             //quickfixSession.generateReject(fixMessage, "invalid message
@@ -429,18 +433,18 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
         }
     }
-    
+
     public boolean isLoggedOn() {
         Iterator sessionItr = quickfixSessions.values().iterator();
         while (sessionItr.hasNext()) {
-            quickfix.Session s = (quickfix.Session)sessionItr.next();
+            quickfix.Session s = (quickfix.Session) sessionItr.next();
             if (s.isLoggedOn()) {
                 return true;
             }
         }
         return false;
     }
-    
+
     public ArrayList getSessions() {
         return new ArrayList(quickfixSessions.values());
     }

@@ -41,8 +41,6 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 
 public class Session {
-    // TODO review session thread safety
-
     /**
      * Session setting for heartbeat interval (in seconds).
      */
