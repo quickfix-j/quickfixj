@@ -41,6 +41,15 @@ public class DataDictionaryTest extends TestCase {
         assertEquals("incorrect field name", "Account", dd.getFieldName(1));
     }
 
+    // QF C++ treats the string argument as a filename although it's
+    // named 'url'. QFJ string argument can be either but this test
+    // ensures the DD works correctly with a regular file path.
+    public void testDictionaryWithFilename() throws Exception {
+        DataDictionary dd = new DataDictionary("test/quickfix/FIX44_test.xml");
+        assertEquals("wrong field name", "Currency", dd.getFieldName(15));
+        // It worked!
+    }
+    
     private static DataDictionary testDataDictionary;
 
     public static DataDictionary getDictionary() {

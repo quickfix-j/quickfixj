@@ -19,8 +19,11 @@
 
 package quickfix;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,13 +91,20 @@ public class DataDictionary {
      *            the URL string
      */
     public DataDictionary(String url) {
+        InputStream inputStream;
         try {
-            load(new URL(url).openStream());
-        } catch (RuntimeException e) {
-            throw e;
-        } catch (java.lang.Exception e) {
+            inputStream = new URL(url).openStream();
+        } catch (MalformedURLException e) {
+            try {
+                inputStream = new FileInputStream(url);
+            } catch (FileNotFoundException fe) {
+                throw new DataDictionary.Exception(fe);
+            }
+        } catch (IOException e) {
             throw new DataDictionary.Exception(e);
         }
+        
+        load(inputStream);
     }
 
     /**
