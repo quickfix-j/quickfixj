@@ -102,7 +102,7 @@ public class SessionFactory {
                 }
 
                 if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
-                    dataDictionary.setCheckFieldsOutofOrder(settings.getBool(sessionID,
+                    dataDictionary.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
                 }
                 

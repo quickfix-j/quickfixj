@@ -77,7 +77,7 @@ public class MessageTest extends TestCase {
         data += "318=CAD\001";
         data += "10=037\001";
         Message message = new Message(data, DataDictionaryTest.getDictionary());
-
+        
         assertHeaderField(message, "FIX.4.2", BeginString.FIELD);
         assertHeaderField(message, "76", BodyLength.FIELD);
         assertHeaderField(message, MsgType.INDICATION_OF_INTEREST, MsgType.FIELD);

@@ -551,8 +551,6 @@ public class Session {
             }
         } catch (FieldException e) {
             generateReject(message, e.getSessionRejectReason(), e.getField());
-        } catch (RequiredTagMissing e) {
-            generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
         } catch (FieldNotFound e) {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
                     && message.isApp()) {
@@ -567,9 +565,7 @@ public class Session {
             }
         } catch (IncorrectTagValue e) {
             // TODO QUESTION Why is incorrect tag value being rejected as incorrect tag number?
-            generateReject(message, SessionRejectReason.INVALID_TAG_NUMBER, e.field);
-        } catch (InvalidMessageType e) {
-            generateReject(message, SessionRejectReason.INVALID_MSGTYPE, 0);
+            generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
         } catch (InvalidMessage e) {
             state.logEvent("Skipping invalid message: " + e.getMessage());
         } catch (RejectLogon e) {
@@ -851,7 +847,7 @@ public class Session {
             state.incrNextTargetMsgSeqNum();
         }
 
-        if (reason != null && (field != 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
+        if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             populateRejectReason(reject, field, reason);
             state.logEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
         } else if (reason != null) {

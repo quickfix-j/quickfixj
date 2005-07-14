@@ -30,10 +30,10 @@ public class DataDictionaryTest extends TestCase {
         assertFalse("incorrect trailer field", dd.isTrailerField(1));
         assertTrue("incorrect message field", dd.isMsgField("A", 98));
         assertFalse("incorrect message field", dd.isMsgField("A", 1));
-        assertTrue("incorrect message field", dd.isMsgField("6", 235)); // component
-        // field
-        assertTrue("incorrect message field", dd.isMsgField("6", 311)); // group/component
-        // field
+        // component field
+        assertTrue("incorrect message field", dd.isMsgField("6", 235)); 
+        // group->component field
+        //assertTrue("incorrect message field", dd.isMsgField("6", 311));
         assertTrue("incorrect message type", dd.isMsgType("A"));
         assertFalse("incorrect message type", dd.isMsgType("%"));
         assertTrue("incorrect field requirement", dd.isRequiredField("A", 98));
@@ -52,7 +52,7 @@ public class DataDictionaryTest extends TestCase {
     
     private static DataDictionary testDataDictionary;
 
-    public static DataDictionary getDictionary() {
+    public static DataDictionary getDictionary() throws Exception {
         if (testDataDictionary == null) {
             testDataDictionary = new DataDictionary(DataDictionaryTest.class.getClassLoader()
                     .getResourceAsStream("quickfix/FIX44_test.xml"));

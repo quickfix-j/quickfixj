@@ -378,9 +378,9 @@ public class Message extends FieldMap {
                 throw new InvalidMessage(e.getMessage());
             }
             if (dd != null && dd.isGroup(msgType, tag)) {
-                DataDictionary.RepeatingGroup rg = dd.getGroup(msgType, tag);
+                DataDictionary.GroupInfo rg = dd.getGroup(msgType, tag);
                 int groupField = tag;
-                int firstField = ((Integer) rg.getFirstField().getKey()).intValue();
+                int firstField = rg.getDelimeterField();
                 Group group = null;
                 boolean inGroupParse = true;
                 while (inGroupParse) {
@@ -391,8 +391,7 @@ public class Message extends FieldMap {
                         }
                         group = new Group(groupField, firstField);
                         group.setField(field);
-                    } else if (rg.isElementInContainer(DataDictionary.Field.class, new Integer(
-                            field.getTag()))) {
+                    } else if (rg.getDataDictionary().isField(field.getTag())) {
                         group.setField(field);
                     } else {
                         if (group != null) {
@@ -415,12 +414,12 @@ public class Message extends FieldMap {
         }
     }
 
-    private boolean isHeaderField(Field field, DataDictionary dd) {
+    static boolean isHeaderField(Field field, DataDictionary dd) {
         return isHeaderField(field.getField())
                 || (dd != null && dd.isHeaderField(field.getField()));
     }
 
-    private boolean isHeaderField(int field) {
+    static boolean isHeaderField(int field) {
         switch (field) {
         case BeginString.FIELD:
         case BodyLength.FIELD:
@@ -454,12 +453,12 @@ public class Message extends FieldMap {
         }
     }
 
-    private boolean isTrailerField(Field field, DataDictionary dd) {
+    static boolean isTrailerField(Field field, DataDictionary dd) {
         return isTrailerField(field.getField())
                 || (dd != null && dd.isTrailerField(field.getField()));
     }
 
-    private boolean isTrailerField(int field) {
+    static boolean isTrailerField(int field) {
         switch (field) {
         case SignatureLength.FIELD:
         case Signature.FIELD:

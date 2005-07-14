@@ -32,16 +32,17 @@ class FieldException extends RuntimeException {
         this.sessionRejectReason = sessionRejectReason;
         this.field = field;
     }
- 
+
     public FieldException(int sessionRejectReason, String msg, int field) {
         super(msg);
         this.sessionRejectReason = sessionRejectReason;
         this.field = field;
     }
-
+    
     public boolean isFieldSpecified() {
         return field != -1;
     }
+    
     public int getField() {
         return field;
     }

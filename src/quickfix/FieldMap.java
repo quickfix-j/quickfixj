@@ -444,9 +444,6 @@ public abstract class FieldMap implements Serializable{
         while (iterator.hasNext()) {
             Map.Entry entry = (Map.Entry)iterator.next();
             List groupList = (List)entry.getValue();
-//            IntField groupField = new IntField(((Integer)entry.getKey()).intValue());
-//            groupField.setValue(groupList.size());
-//            result += groupField.getLength();
             for (int i = 0; i < groupList.size(); i++) {
                 Group group = (Group)groupList.get(i);
                 result += group.calculateLength();
@@ -477,6 +474,10 @@ public abstract class FieldMap implements Serializable{
 
     public Iterator groupKeyIterator() {
         return groups.keySet().iterator();
+    }
+    
+    Map getGroups() {
+        return groups;
     }
     
     public void addGroup(Group group) {
