@@ -20,9 +20,20 @@ public class InitiateMessageStep implements TestStep {
     private Log log = LogFactory.getLog(getClass());
     private final String data;
     private int clientId = 0;
-    private static final Pattern MESSAGE_PATTERN = Pattern.compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*)");
+    private static final Pattern MESSAGE_PATTERN = Pattern
+            .compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*)");
     private static final Pattern TIME_PATTERN = Pattern.compile("<TIME([+-](\\d+))*>");
+    private static final Pattern HEARTBEAT_PATTERN = Pattern.compile("108=\\d+\001");
     private static final DecimalFormat CHECKSUM_FORMAT = new DecimalFormat("000");
+
+    private static int heartBeatOverride = -1;
+
+    static {
+        String hbi = System.getProperty("at.heartbeat");
+        if (hbi != null) {
+            heartBeatOverride = Integer.parseInt(hbi);
+        }
+    }
 
     public InitiateMessageStep(String data) {
         this.data = data;
@@ -32,13 +43,15 @@ public class InitiateMessageStep implements TestStep {
         Matcher messageStructureMatcher = MESSAGE_PATTERN.matcher(data);
         String message;
         if (messageStructureMatcher.matches()) {
-            if (messageStructureMatcher.group(1) != null && !messageStructureMatcher.group(1).equals("")) {
+            if (messageStructureMatcher.group(1) != null
+                    && !messageStructureMatcher.group(1).equals("")) {
                 clientId = Integer.parseInt(messageStructureMatcher.group(1).replaceAll(",", ""));
             } else {
                 clientId = 1;
             }
             String version = messageStructureMatcher.group(2);
             String messageTail = insertTimes(messageStructureMatcher.group(3));
+            messageTail = modifyHeartbeat(messageTail);
             message = version
                     + (!messageTail.startsWith("9=") ? "9=" + messageTail.length() + "\001" : "")
                     + messageTail;
@@ -58,6 +71,16 @@ public class InitiateMessageStep implements TestStep {
         }
     }
 
+    private String modifyHeartbeat(String messageTail) {
+        if (heartBeatOverride > 0 && messageTail.indexOf("35=A\001") != -1) {
+            Matcher matcher = HEARTBEAT_PATTERN.matcher(messageTail);
+            if (matcher.find()) {
+                return matcher.replaceFirst("108=" + heartBeatOverride + "\001");
+            }
+        }
+        return messageTail;
+    }
+
     private String insertTimes(String message) {
         Matcher matcher = TIME_PATTERN.matcher(message);
         while (matcher.find()) {
@@ -70,8 +93,9 @@ public class InitiateMessageStep implements TestStep {
             }
             String beginString = message.substring(2, 9);
             boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
-            message = matcher.replaceFirst(UtcTimestampConverter
-                    .convert(new Date(System.currentTimeMillis()+(offset*1000)), includeMillis));
+            message = matcher.replaceFirst(UtcTimestampConverter.convert(new Date(System
+                    .currentTimeMillis()
+                    + (offset * 1000)), includeMillis));
             matcher = TIME_PATTERN.matcher(message);
         }
         return message;
@@ -79,19 +103,19 @@ public class InitiateMessageStep implements TestStep {
 
     private int checksum(String message) {
         int sum = 0;
-        //int fieldOffset = 0;
+        // int fieldOffset = 0;
         int fieldSum = 0;
         for (int i = 0; i < message.length(); i++) {
             sum += message.charAt(i);
             fieldSum += message.charAt(i);
             if (message.charAt(i) == '\001') {
-                //System.out.println(message.substring(fieldOffset, i)+"
+                // System.out.println(message.substring(fieldOffset, i)+"
                 // "+fieldSum);
-                //fieldOffset = i + 1;
+                // fieldOffset = i + 1;
                 fieldSum = 0;
             }
         }
-        //System.out.println("sum="+sum);
+        // System.out.println("sum="+sum);
         return sum % 256;
     }
 

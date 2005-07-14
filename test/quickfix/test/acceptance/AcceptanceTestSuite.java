@@ -104,15 +104,18 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        ExpectMessageStep.TIMEOUT = 20000;
+        String timeout = System.getProperty("at.timeout");
+        if (timeout != null) {
+            ExpectMessageStep.TIMEOUT_IN_MS = Long.parseLong(timeout);
+        }
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
         addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         addTests(new File(acceptanceTestBaseDir + "server/fix43"));
         addTests(new File(acceptanceTestBaseDir + "server/fix44"));
         
-//        addTest("fix44/SessionReset.def");
-//        addTest("fix44/AlreadyLoggedOn.def");
+//        addTest("fix40/2q_MsgTypeNotValid.def");
+//      addTest("fix40/10_MsgSeqNumEqual.def");
     }
 
     protected void addTest(String name) {
