@@ -1,406 +1,303 @@
-<project name="quickfix-java" basedir="." default="test">
-
-	<!-- Locations definitions -->
-	<property name="root.dir" value="${basedir}"/>
-	
-	<property name="build_output.dir" value="${root.dir}/build/binaries"/>
-
-	<property name="src_product.dir" value="${root.dir}/src"/>
-	<property name="src_product_generated.dir" value="${root.dir}/src-generated"/>
-	<property name="classes_product.dir" value="${build_output.dir}/classes/product"/>
-	
-	<property name="src_examples.dir" value="${root.dir}/examples"/>
-	<property name="classes_examples.dir" value="${build_output.dir}/classes/examples"/>
-	
-	<property name="src_test.dir" value="${root.dir}/test"/>
-	<property name="classes_test.dir" value="${build_output.dir}/classes/test"/>
-	
-	<property name="test.output.dir" value="${root.dir}/build/testoutput"/>
-	
-	<property name="coverage.output.dir" value="${root.dir}/build/coverageoutput"/>
-
-	<property name="doc.dir" value="doc"/>
+<project name="quickfix-java" basedir="." default="jar">
+	<property name="output.dir" value="output"/>
+	<property name="ant.output.dir" value="output/ant"/>
+	<property name="eclipse.output.dir" value="${output.dir}/eclipse"/>
+	<property name="jar.output.dir" value="${ant.output.dir}/jars"/>
+	<property name="test.classes.dir" value="${ant.output.dir}/classes/test"/>
+	<property name="test.src.dir" value="test"/>
+	<property name="example.src.dir" value="examples"/>
+	<property name="product.classes.dir" value="${ant.output.dir}/classes/product"/>
+	<property name="product.src.dir" value="src"/>
+	<property name="product.generated.src.dir" value="${ant.output.dir}/src-generated"/>
+	<property name="specs.dir" value="etc"/>
+	<property name="cfg.dir" value="cfg"/>
+	<property name="lib.dir" value="lib"/>
+	<property name="java.debug" value="on"/>
+	<property name="quickfixj.jar" value="quickfixj.jar"/>
+	<property name="release.output.dir" value="${ant.output.dir}/release"/>
+	<property name="javadoc.input.dir" value="doc"/>
+	<property name="usermanual.dir" value="doc/usermanual"/>
+	<property name="javadoc.output.dir" value="${ant.output.dir}/javadoc"/>
+	<property name="test.report.dir" value="${ant.output.dir}/testreports"/>
+	<property name="junit.haltonfailure" value="yes"/>
 		
-	<!-- Config -->
-	<property name="cfg.dir" value="${root.dir}/cfg"/>
-
-	<!-- Lib -->
-	<property name="lib.dir" value="${root.dir}/lib"/>
-
-	<!-- Artefact definitions -->
-	<property name="quickfixj.tar" value="${build_output.dir}/quickfixj.tar"/>
-	<property name="quickfixj.tar.gz" value="${build_output.dir}/quickfixj.tar.gz"/>
-	
-	<property name="quickfixj.jar" value="${build_output.dir}/quickfixj.jar"/>
-	<property name="quickfixj-examples.jar" value="${build_output.dir}/quickfixj-examples.jar"/>
-	
-
-	<!-- Classpath definitions -->
-	<path id="classpath.product">
-		<pathelement location="${classes_product.dir}" />
-	</path>
-	
-	<path id="classpath.lib">
-		<fileset dir="${lib.dir}">
-			<include name="*.jar" />
-		</fileset>
-		<!-- For log4j properties -->
-		<pathelement location="cfg"/>
-	</path>
-
-	<path id="emma.lib">
-		<fileset dir="${lib.dir}">
-			<include name="emma*.jar" />
+	<path id="runtime.lib.classpath">
+		<fileset id="runtime.lib.fileset" dir="${lib.dir}">
+			<include name="commons-logging.jar" />
+			<include name="tl-netty2-1.8.0.jar" />
+			<include name="backport-util-concurrent.jar" />
 		</fileset>
 	</path>
 
-	<path id="classpath.examples">
-		<pathelement location="${quickfixj-examples.jar}" />
+	<path id="test.lib.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="junit__V3.8.1.jar" />
+		</fileset>
 	</path>
 
-	<!-- Distribution -->
-	<target name="dist" description="Generate the QuickFix/J distribution">
-		<mkdir dir="${build_output.dir}" />
-		
-		<tar destfile="${quickfixj.tar}">
-			<tarfileset dir="${root.dir}">
-				<exclude name="build/**/*" />
-				<exclude name="data/**/*" /> <!-- In case we already executed examples -->
-				<exclude name="classes/**/*" /> <!-- In case we already compiled from eclipse -->
-			</tarfileset>
-		</tar>
-		<gzip src="${quickfixj.tar}" destfile="${quickfixj.tar.gz}" />
-		<delete file="${quickfixj.tar}"/>
+	<path id="all.classpath">
+		<pathelement location="${product.classes.dir}"/>
+		<pathelement location="${test.classes.dir}"/>
+		<path refid="runtime.lib.classpath"/>
+		<path refid="test.lib.classpath"/>
+	</path>
+
+	<!-- Checkout CVS repository -->
+	<!-- TODO -->
+
+	<!-- Clean -->
+	<target name="clean" description="clean Ant output files">
+		<delete dir="${ant.output.dir}"/>
 	</target>
 
-	<!-- Cleaning build -->	
-	<target name="clean" description="Remove build and distribution files">
-		<delete dir="${build_output.dir}" />
-	</target>
-
-	<!-- Build release (compile and jar)-->	
-	<target name="build.release" description="Build the QuickFix/J release" depends="clean,compile,jar">
-	</target>
-
-	<!-- JAR -->	
-	<target name="jar" description="Build ALL the QuickFix/J JAR files" depends="jar.product, jar.examples">
-	</target>
-	
-	<target name="jar.product" description="Build the QuickFix/J core JAR files">
-		<mkdir dir="${build_output.dir}" />
-		<jar destfile="${quickfixj.jar}">
-			<fileset dir="${classes_product.dir}"/>
-		</jar>
-	</target>
-
-	<target name="jar.examples" description="Build the QuickFix/J examples JAR files">
-		<jar destfile="${quickfixj-examples.jar}">
-			<fileset dir="${classes_examples.dir}"/>
-		</jar>
-	</target>
-	
-	<!-- Compile -->	
-	<target name="compile"
-	        depends="compile.product, compile.tests, compile.examples"
-	        description="compile sources and tests" />
-
-	<target name="compile.init">
-		<property file="build.properties" />
-	</target>
-
-	<target name="compile.examples" depends="compile.product">
-		<mkdir dir="${classes_examples.dir}" />
-		<javac destdir="${classes_examples.dir}"
-		       debug="on"
-		       srcdir="${src_examples.dir}">
+	<!-- Code generation -->
+	<target name="generate.code"
+	        unless="generated.isuptodate"
+	        depends="check.generated.isuptodate"
+			description="generate FIX message code">
+		<mkdir dir="${product.classes.dir}" />
+		<javac srcdir="${specs.dir}"
+		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
+		       destdir="${product.classes.dir}"
+		       classpathref="runtime.lib.classpath" />
+		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
+			<arg value="${specs.dir}" />
+			<arg value="${product.generated.src.dir}" />
 			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.lib"/>
+				<pathelement location="${cfg.dir}"/>
+				<pathelement location="${product.classes.dir}"/>
+				<path refid="runtime.lib.classpath"/>
 			</classpath>
-		</javac>
+		</java>
 	</target>
 
-	<target name="compile.product" depends="compile.init,generate.code">
-		<mkdir dir="${classes_product.dir}" />
-		<javac destdir="${classes_product.dir}"
-		       debug="on"
-		       classpathref="classpath.lib"
-		       memoryMaximumSize="128m"
-		       fork="yes">
-			<src path="${src_product.dir}" />
-			<src path="${src_product_generated.dir}" />
-		</javac>
-	</target>
-
-	<target name="check.generated.uptodate">
+	<target name="check.generated.isuptodate">
 		<!-- This is a bit brute force right now. We could break it out so
 			that the update is performed in a more focussed way (specific
 			FIX version) -->
-		<condition property="generated.uptodate">
+		<condition property="generated.isuptodate">
 			<and>
-				<uptodate targetfile="${src_product_generated.dir}/quickfix/fix40/Message.java">
-					<srcfiles dir="${src_product.dir}/quickfix/codegen"
+				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix40/Message.java">
+					<srcfiles dir="${specs.dir}"
 					          includes="FIX40.xml,*.xsl" />
 				</uptodate>
-				<uptodate targetfile="${src_product_generated.dir}/quickfix/fix41/Message.java">
-					<srcfiles dir="${src_product.dir}/quickfix/codegen"
+				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix41/Message.java">
+					<srcfiles dir="${specs.dir}"
 					          includes="FIX41.xml,*.xsl" />
 				</uptodate>
-				<uptodate targetfile="${src_product_generated.dir}/quickfix/fix42/Message.java">
-					<srcfiles dir="${src_product.dir}/quickfix/codegen"
+				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix42/Message.java">
+					<srcfiles dir="${specs.dir}"
 					          includes="FIX42.xml,*.xsl" />
 				</uptodate>
-				<uptodate targetfile="${src_product_generated.dir}/quickfix/fix43/Message.java">
-					<srcfiles dir="${src_product.dir}/quickfix/codegen"
+				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix43/Message.java">
+					<srcfiles dir="${specs.dir}"
 					          includes="FIX43.xml,*.xsl" />
 				</uptodate>
 				<uptodate targetfile="${src_product_generated.dir}/quickfix/fix44/Message.java">
-					<srcfiles dir="${src_product.dir}/quickfix/codegen"
+					<srcfiles dir="${specs.dir}"
 					          includes="FIX44.xml,*.xsl" />
 				</uptodate>
 			</and>
 		</condition>
 	</target>
 
-	<target name="generate.code"
-	        unless="generated.uptodate"
-	        depends="check.generated.uptodate"
-			description="generate FIX message code">
-		<mkdir dir="${classes_product.dir}" />
-		<javac srcdir="${src_product.dir}/quickfix/codegen"
-		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
-		       destdir="${classes_product.dir}"
-		       classpathref="classpath.lib" />
-		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
-			<arg value="${src_product.dir}/quickfix/codegen" />
-			<arg value="${src_product_generated.dir}" />
-			<classpath>
-				<pathelement location="${cfg.dir}" />
-				<pathelement location="${classes_product.dir}" /> <!-- Because generator is compiled in the directory of the product classes -->
-				<path refid="classpath.lib"/>
-			</classpath>
-		</java>
+	<!-- Compile -->
+	<!-- TODO Add generate.code dependency -->
+	<target name="compile" description="compile sources and tests" >
+		<mkdir dir="${product.classes.dir}" />
+		<javac destdir="${product.classes.dir}"
+		       debug="${java.debug}"
+		       classpathref="all.classpath"
+		       memoryMaximumSize="128m"
+		       fork="yes">
+			<src path="${product.src.dir}" />
+			<src path="${product.generated.src.dir}" />
+		</javac>
+		<mkdir dir="${test.classes.dir}" />
+		<javac destdir="${test.classes.dir}"
+		       debug="${java.debug}"
+		       classpathref="all.classpath"
+		       srcdir="${test.src.dir}">
+		</javac>
+		<javac destdir="${product.classes.dir}"
+		       debug="${java.debug}"
+		       classpathref="all.classpath"
+		       srcdir="${example.src.dir}">
+		</javac>
 	</target>
 
-	<target name="compile.tests" depends="compile.product">
-		<mkdir dir="${classes_test.dir}" />
-		<javac destdir="${classes_test.dir}"
-		       debug="on"
-		       srcdir="${src_test.dir}">
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.lib"/>
-			</classpath>
-		</javac>			
-		<copy file="test/quickfix/FIX44_test.xml"
-			      todir="${classes_test.dir}/quickfix" />
+	<!-- Build JARs -->
+	<target name="jar" description="build jar files" depends="compile">
+		<mkdir dir="${jar.output.dir}" />
+		<jar destfile="${jar.output.dir}/${quickfixj.jar}">
+			<fileset dir="${product.classes.dir}"/>
+		</jar>
 	</target>
 
-	
+	<macrodef name="initdir">
+		<attribute name="dir"/>
+		<sequential>
+			<delete dir="@{dir}" failonerror="no"/>
+			<mkdir dir="@{dir}"/>
+		</sequential>
+	</macrodef>
+
+	<!-- Run tests -->
 	<!-- Testing : we assume that junit.jar and the optional Junit ANT task are available in the class path or %ANT_HOME%/lib -->
 
-	<target name="test" description="Run ALL the tests" depends="compile, test.cleanreport, test.netty, test.unit, test.acceptance, test.report">
-	</target>
+	<target name="test" description="run all tests" 
+		depends="compile, test.cleanreport, test.unit, test.acceptance, test.report"/>
 	
 	<target name="test.cleanreport" description="Clean test reports">
-		<delete dir="${test.output.dir}" failonerror="false"/>
-		<mkdir dir="${test.output.dir}"/>
+		<initdir dir="${test.report.dir}"/>
 	</target>
 
 	<target name="test.report">
-		<junitreport todir="${test.output.dir}">
-			<fileset dir="${test.output.dir}">
+		<junitreport todir="${test.report.dir}">
+			<fileset dir="${test.report.dir}">
 				<include name="TEST-*.xml"/>
 			</fileset>
-			<report format="frames" todir="${test.output.dir}/reports"/>
+			<report format="frames" todir="${test.report.dir}/reports"/>
 		</junitreport>
 	</target>
 
-	<target name="test.netty" description="Run the Netty related tests" depends="compile,test.cleanreport">
-		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
-			<formatter type="xml" usefile="true" />
-			
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.lib"/>
-				<pathelement location="${classes_test.dir}"/>
-			</classpath>
-	
-			<batchtest todir="${test.output.dir}">
-				<fileset dir="${src_test.dir}">
-					<include name="quickfix/netty/TestFixMessageData.java" />
-				</fileset>
-			</batchtest>
-		</junit>
-	</target>
-	
-	<target name="test.unit" description="Run the QuickfixJ related tests" depends="compile,test.cleanreport">
-		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
-			<formatter type="xml" usefile="true" />
-			
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.lib"/>
-				<pathelement location="${classes_test.dir}"/>
-			</classpath>
-			
-			<batchtest todir="${test.output.dir}">
-				<fileset dir="${src_test.dir}">
+	<target name="test.unit" description="run unit tests" depends="compile,test.cleanreport">
+		<copy todir="${test.classes.dir}">
+			<fileset dir="etc">
+				<include name="FIX*.xml"/>
+			</fileset>
+		</copy>
+		<junit fork="yes" dir="." 
+			tempdir="${output.dir}"
+			printsummary="true" 
+			showoutput="true"
+			haltonfailure="${junit.haltonfailure}">
+
+			<formatter type="xml" usefile="true"/>
+			<classpath refid="all.classpath"/>
+			<batchtest todir="${test.report.dir}">
+				<fileset dir="${test.src.dir}">
 					<include name="quickfix/*Test.java" />
+					<include name="quickfix/netty/*Test.java" />
 					<exclude name="**/MySQLLogTest.java"/>
 					<exclude name="**/MySQLStoreTest.java"/>
-					<exclude name="**/AbstractMessageStoreTest.java"/>
-					<exclude name="**/ApiCompatibilityTest.java"/>
+					<exclude name="**/Abstract*Test.java"/>
 				</fileset>
 			</batchtest>
-			
 		</junit>
 	</target>
 
-	<target name="test.acceptance" description="Run the FIX acceptance tests" depends="compile,test.cleanreport">
-		<junit fork="on" dir="${root.dir}" printsummary="true" showoutput="true">
-			<formatter type="xml" usefile="true" />
+	<target name="test.acceptance" description="run acceptance tests" depends="compile,test.cleanreport">
+		<junit fork="on" dir="." 
+			tempdir="${output.dir}"
+			printsummary="true" 
+			showoutput="true">
 			
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.lib"/>
-				<pathelement location="${classes_test.dir}"/>
-			</classpath>
-
-			<batchtest todir="${test.output.dir}">
-				<fileset dir="${src_test.dir}">
-					<include name="quickfix/test/acceptance/AcceptanceTestSuite.java" />
-				</fileset>
-			</batchtest>
+			<sysproperty key="at.timeout" value="60000"/>
+			<formatter type="xml" usefile="true" />
+			<classpath refid="all.classpath"/>
+			<test name="quickfix.test.acceptance.AcceptanceTestSuite"/>
 		</junit>
 	</target>
 	
-	<!-- Launchers -->
-	<target name="ordermatcher"
-	        description="Run the Order Matcher">
-		<java classname="quickfix.examples.ordermatch.Main" fork="yes">
-			<arg value="${src_examples.dir}/quickfix/examples/ordermatch/ordermatch.cfg" />
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.examples"/>
-				<path refid="classpath.lib"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="executor"
-	        description="Run the Executor">
-		<java classname="quickfix.examples.executor.Executor" fork="yes">
-			<arg value="${src_examples.dir}/quickfix/examples/executor/executor.cfg" />
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.examples"/>
-				<path refid="classpath.lib"/>
-			</classpath>
-		</java>
-	</target>
-
-	<target name="banzai" description="Run Banzai">
-		<java classname="quickfix.examples.banzai.Banzai" fork="yes">
-			<arg value="${src_examples.dir}/quickfix/examples/banzai/banzai.cfg" />
-			<classpath>
-				<path refid="classpath.product"/>
-				<path refid="classpath.examples"/>
-				<path refid="classpath.lib"/>
-			</classpath>
-		</java>
-	</target>
-
-	<!-- Emma Coverage Targets -->
-
-	<target name="emma.init">
-		<taskdef resource="emma_ant.properties" classpathref="emma.lib" />
-		<taskdef name="junit" classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask" />
-	</target>
-
-	<target name="emma.all"
-	        depends="emma.clean,emma.instrument,emma.test-unit,emma.report" />
-
-	<target name="emma.instrument" depends="emma.init">
-		<emma>
-			<instr mode="copy"
-			       instrpath="${classes_product.dir}"
-			       outdir="${coverage.output.dir}/classes"
-			       metadatafile="${coverage.output.dir}/coverage.em"
-			       merge="no">
-				<filter includes="quickfix.*"
-				        excludes="*Test,*Test$*,quickfix.fix*,quickfix.examples*,quickfix.test*" />
-			</instr>
-		</emma>
-	</target>
-
-	<target name="emma.test-unit" depends="emma.init">
-		<junit printsummary="true" showoutput="true" fork="yes">
-			<jvmarg value="-Demma.coverage.out.file=${coverage.output.dir}/coverage.ec" />
-			<formatter type="plain" usefile="false" />
-			<classpath>
-				<path refid="emma.lib" />  <!-- Is redundant with classpath.lib - Not a pb for now -->
-				<path refid="classpath.lib" />
-				<pathelement location="${coverage.output.dir}/classes" />
-				<pathelement location="${classes_product.dir}" />
-				<pathelement location="${classes_test.dir}" />
-			</classpath>
-			<batchtest>
-				<fileset dir="${src_test.dir}">
-					<include name="quickfix/*Test.java" />
-					<exclude name="**/MySQLLogTest.java"/>
-					<exclude name="**/MySQLStoreTest.java"/>
-					<exclude name="**/AbstractMessageStoreTest.java"/>
-					<exclude name="**/ApiCompatibilityTest.java"/>
-				</fileset>
-			</batchtest>
-		</junit>
-	</target>
-
-	<target name="emma.test-acceptance" depends="emma.init">
-		<junit printsummary="true" showoutput="true" fork="yes">
-			<jvmarg value="-Demma.coverage.out.file=${coverage.output.dir}/coverage.ec" />
-			<formatter type="plain" usefile="false" />
-			<classpath>
-				<path refid="emma.lib" /> <!-- Is redundant with classpath.lib - Not a pb for now -->
-				<path refid="classpath.lib" />
-				<pathelement location="${coverage.output.dir}/classes" />
-				<pathelement location="${classes_product.dir}" />
-				<pathelement location="${classes_test.dir}" />
-			</classpath>
-			<test name="quickfix.test.acceptance.AcceptanceTestSuite" />
-		</junit>
-	</target>
-
-	<target name="emma.report" depends="emma.init">
-		<delete dir="${coverage.output.dir}/_files" />
-		<emma>
-			<report sourcepath="src">
-				<infileset dir="${coverage.output.dir}" includes="*.em, *.ec" />
-				<html outfile="${coverage.output.dir}/reports/index.html" />
-			</report>
-		</emma>
-		<delete dir="${coverage.output.dir}/classes" />
-	</target>
-
-	<target name="emma.clean" depends="emma.init">
-		<delete dir="${coverage.output.dir}" />
-	</target>
-
+	<!-- Prepare documentation -->
 	<target name="javadoc" description="generate Javadocs">
-		<javadoc sourcepath="src;src-generated" 
-			overview="${doc.dir}/javadoc_overview.html" stylesheetfile="${doc.dir}/javadoc.css"
-			destdir="${doc.dir}/javadoc" protected="yes" maxmemory="256m" breakiterator="yes">
-			<classpath>
-				<fileset dir=".">
-					<include name="lib/*.jar" />
-				</fileset>
- 			</classpath>
+		<initdir dir="${javadoc.output.dir}"/>
+		<javadoc sourcepath="${product.src.dir};${product.generated.src.dir}" 
+			overview="${javadoc.input.dir}/javadoc_overview.html" 
+			stylesheetfile="${javadoc.input.dir}/javadoc.css"
+			destdir="${javadoc.output.dir}" 
+			protected="yes" 
+			maxmemory="256m" 
+			breakiterator="yes"
+			classpathref="all.classpath" >
 			<package name="quickfix"/>
 			<package name="quickfix.netty"/>
 			<package name="quickfix.field.converter"/>
 			<package name="quickfix.codegen"/>
-			<!-- <package name="quickfix.*"/> -->
+			<package name="quickfix.fields"/>
+			<package name="quickfix.fix*"/>
 		</javadoc>
 	</target>
+
+	<!-- Create release archives -->
+	<target name="release" description="build release files" depends="test,jar,javadoc">
+		<tstamp>
+			<format property="timestamp" pattern="yyyyMMddHHmmss" />
+		</tstamp>
+		<initdir dir="${release.output.dir}" />
+		<property name="release.prefix" value="quickfixj-${timestamp}" />
+
+		<!-- Source release staging -->
+		<property name="release.src.staging.dir" 
+			value="${release.output.dir}/src/${release.prefix}"/>
+		<mkdir dir="${release.src.staging.dir}" />
+		<copy todir="${release.src.staging.dir}"
+				includeEmptyDirs="false">
+			<fileset dir=".">
+				<exclude name="${output.dir}/**/*" />
+				<!-- TODO replace with variable -->
+				<exclude name="src-generated/**/*"/>
+			</fileset>
+		</copy>
+
+		<!-- Create source releases -->
+		<property name="release.src" 
+			value="${release.output.dir}/${release.prefix}-src" />
+
+		<property name="release.src.tar" value="${release.src}.tar" />
+		<tar destfile="${release.src.tar}.gz" 
+			longfile="gnu"
+			compression="gzip"
+			basedir="${release.src.staging.dir}"/>
+
+		<property name="release.src.zip" value="${release.src}.zip" />
+		<zip destfile="${release.src.zip}" 
+			basedir="${release.src.staging.dir}"/>
+
+		<!-- Binary release staging -->
+		<property name="release.bin.staging.dir" 
+			value="${release.output.dir}/bin/${release.prefix}"/>
+
+		<mkdir dir="${release.bin.staging.dir}" />
+		<copy todir="${release.bin.staging.dir}">
+			<fileset dir="${jar.output.dir}">
+				<include name="${quickfixj.jar}"/>
+			</fileset>
+			<fileset dir=".">
+				<include name="LICENSE"/>
+				<include name="sql/**/*"/>
+			</fileset>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/lib">
+			<fileset refid="runtime.lib.fileset"/>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/doc/api">
+			<fileset dir="${javadoc.output.dir}"/>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/doc/api">
+			<fileset dir="${javadoc.output.dir}"/>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/doc/usermanual">
+			<fileset dir="${usermanual.dir}"/>
+		</copy>
+
+		<!-- Create binary releases -->
+		<property name="release.bin"
+		          value="${release.output.dir}/${release.prefix}-bin" />
+
+		<property name="release.bin.tar" value="${release.bin}.tar" />
+		<tar destfile="${release.bin.tar}.gz"
+		     longfile="gnu"
+		     compression="gzip"
+		     basedir="${release.bin.staging.dir}" />
+
+		<property name="release.bin.zip" value="${release.bin}.zip" />
+		<zip destfile="${release.bin.zip}"			
+		     basedir="${release.bin.staging.dir}" />
+
+	</target>
+
+	<!-- FTP files to SourceForge -->
+
 </project>

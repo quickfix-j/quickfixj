@@ -19,12 +19,14 @@
 
 package quickfix.examples.banzai.ui;
 
-import quickfix.examples.banzai.Execution;
-import quickfix.examples.banzai.ExecutionTableModel;
+import java.awt.Color;
+import java.awt.Component;
 
-import javax.swing.table.*;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+
+import quickfix.examples.banzai.ExecutionTableModel;
 
 public class ExecutionTable extends JTable {
     public ExecutionTable(ExecutionTableModel executionTableModel) {
@@ -33,8 +35,8 @@ public class ExecutionTable extends JTable {
 
     public Component prepareRenderer(TableCellRenderer renderer,
                                      int row, int column) {
-        Execution execution = (Execution)((ExecutionTableModel)dataModel)
-                              .getExecution(row);
+//        Execution execution = (Execution)((ExecutionTableModel)dataModel)
+//                              .getExecution(row);
 
         DefaultTableCellRenderer r = (DefaultTableCellRenderer)renderer;
         r.setForeground(Color.black);

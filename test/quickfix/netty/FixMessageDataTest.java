@@ -7,7 +7,7 @@ import net.gleamynode.netty2.MessageParseException;
 
 import junit.framework.TestCase;
 
-public class TestFixMessageData extends TestCase {
+public class FixMessageDataTest extends TestCase {
     public void testPartialHeader() throws Exception {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         String data = "8=FIX.4.2";

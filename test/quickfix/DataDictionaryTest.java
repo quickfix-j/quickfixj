@@ -45,7 +45,7 @@ public class DataDictionaryTest extends TestCase {
     // named 'url'. QFJ string argument can be either but this test
     // ensures the DD works correctly with a regular file path.
     public void testDictionaryWithFilename() throws Exception {
-        DataDictionary dd = new DataDictionary("test/quickfix/FIX44_test.xml");
+        DataDictionary dd = new DataDictionary("etc/FIX40.xml");
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
         // It worked!
     }
@@ -55,9 +55,7 @@ public class DataDictionaryTest extends TestCase {
     public static DataDictionary getDictionary() throws Exception {
         if (testDataDictionary == null) {
             testDataDictionary = new DataDictionary(DataDictionaryTest.class.getClassLoader()
-                    .getResourceAsStream("quickfix/FIX44_test.xml"));
-//            testDataDictionary = new DataDictionary(TestDataDictionary.class.getClassLoader()
-//                    .getResourceAsStream("quickfix/codegen/FIX44.xml"));
+                    .getResourceAsStream("FIX44.xml"));
         }
         return testDataDictionary;
     }

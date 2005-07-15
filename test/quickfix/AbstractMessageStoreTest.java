@@ -72,6 +72,6 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     protected String getConfigurationFileName() {
-        return "tests.cfg";
+        return "test/test.cfg";
     }
 }

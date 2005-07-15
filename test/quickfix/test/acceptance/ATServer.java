@@ -42,7 +42,7 @@ public class ATServer implements Runnable {
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "SenderCompID", "ISLD");
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "TargetCompID", "TW");
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ResetOnDisconnect", "Y");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "FileStorePath", "data/server");
+            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "FileStorePath", "output/data/server");
             settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ValidateUserDefinedFields", "Y");
 
             SessionID sessionID;

@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="examples"/>
 	<classpathentry kind="src" path="src-generated"/>
-	<classpathentry kind="src" path="cfg"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
@@ -12,5 +11,6 @@
 	<classpathentry sourcepath="C:/java/tl-netty2-1.8.0/src/main" kind="lib" path="lib/tl-netty2-1.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/backport-util-concurrent.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.4.jar"/>
-	<classpathentry kind="output" path="classes"/>
+	<classpathentry kind="src" path="etc"/>
+	<classpathentry kind="output" path="output/eclipse/classes"/>
 </classpath>

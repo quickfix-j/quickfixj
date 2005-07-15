@@ -18,7 +18,7 @@ public class MySQLLogTest extends TestCase {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis(), "X");
 
-        SessionSettings settings = new SessionSettings("tests.cfg");
+        SessionSettings settings = new SessionSettings("test/test.cfg");
         MySQLLogFactory factory = new MySQLLogFactory(settings);
         Log log = factory.create(sessionID);
         assertEquals(MySQLLog.class, log.getClass());

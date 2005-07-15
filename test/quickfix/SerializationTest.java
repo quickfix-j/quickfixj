@@ -109,11 +109,11 @@ public class SerializationTest extends TestCase {
             // res = cl.newInstance();
             res = createMessageWithDefaultValues(cl, maxGroupElts);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         }
         return res;
     }
@@ -124,19 +124,19 @@ public class SerializationTest extends TestCase {
             Class cl = Class.forName(className);
             res = cl.newInstance();
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         }
         return res;
     }
 
     public Object buildSerializedObject(Object sourceMsg) {
         Object res = null;
-        final String fileName = "serialized.dat";
         try {
+            final String fileName = File.createTempFile("serializationTest", "dat").getPath();
             FileOutputStream out = new FileOutputStream(fileName);
             ObjectOutputStream outs = new ObjectOutputStream(out);
             outs.writeObject(sourceMsg);
@@ -147,9 +147,9 @@ public class SerializationTest extends TestCase {
             res = ins.readObject();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         }
         return res;
     }
@@ -215,15 +215,15 @@ public class SerializationTest extends TestCase {
                         args[0] = g;
                         addGroup.invoke(res, args);
                     } catch (SecurityException e) {
-                        e.printStackTrace();
+                        fail(e.getMessage());
                     } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
+                        fail(e.getMessage());
                     } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
+                        fail(e.getMessage());
                     } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                        fail(e.getMessage());
                     } catch (InvocationTargetException e) {
-                        e.printStackTrace();
+                        fail(e.getMessage());
                     }
                 }
             }
@@ -253,15 +253,15 @@ public class SerializationTest extends TestCase {
                     args[0] = f;
                     setter.invoke(res, args);
                 } catch (SecurityException e) {
-                    e.printStackTrace();
+                    fail(e.getMessage());
                 } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
+                    fail(e.getMessage());
                 } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
+                    fail(e.getMessage());
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    fail(e.getMessage());
                 } catch (InvocationTargetException e) {
-                    e.printStackTrace();
+                    fail(e.getMessage());
                 }
             }
         }

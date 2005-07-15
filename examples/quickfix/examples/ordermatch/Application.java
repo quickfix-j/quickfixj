@@ -22,8 +22,6 @@ import quickfix.field.ExecType;
 import quickfix.field.LastPx;
 import quickfix.field.LastShares;
 import quickfix.field.LeavesQty;
-import quickfix.field.MDReqID;
-import quickfix.field.MarketDepth;
 import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdStatus;
 import quickfix.field.OrdType;
@@ -180,12 +178,12 @@ public class Application extends MessageCracker implements quickfix.Application 
             UnsupportedMessageType, IncorrectTagValue {
         MarketDataRequest.NoRelatedSym noRelatedSyms = new MarketDataRequest.NoRelatedSym();
 
-        String mdReqId = message.getString(MDReqID.FIELD);
+        //String mdReqId = message.getString(MDReqID.FIELD);
         char subscriptionRequestType = message.getChar(SubscriptionRequestType.FIELD);
 
         if (subscriptionRequestType != SubscriptionRequestType.SNAPSHOT)
             throw new IncorrectTagValue(SubscriptionRequestType.FIELD);
-        int marketDepth = message.getInt(MarketDepth.FIELD);
+        //int marketDepth = message.getInt(MarketDepth.FIELD);
         int relatedSymbolCount = message.getInt(NoRelatedSym.FIELD);
 
         for (int i = 1; i <= relatedSymbolCount; ++i) {
