@@ -103,7 +103,7 @@ public interface Initiator {
     
     /**
      * Returns the sessions managed by this initiator.
-     * @return
+     * @return the sessions associated with this initiator
      */
     ArrayList getSessions();
 

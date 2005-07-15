@@ -91,7 +91,7 @@ public interface Acceptor {
     
     /**
      * Returns the sessions managed by this acceptor.
-     * @return
+     * @return the sessions associated with this acceptor
      */
     ArrayList getSessions();
     
