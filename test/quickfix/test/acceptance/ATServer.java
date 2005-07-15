@@ -50,31 +50,31 @@ public class ATServer implements Runnable {
             if (fixVersions.contains("fix40")) {
                 sessionID = new SessionID("FIX.4.0", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.0");
-                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX40.xml");
+                settings.setString(sessionID, "DataDictionary", "etc/FIX40.xml");
             }
 
             if (fixVersions.contains("fix41")) {
                 sessionID = new SessionID("FIX.4.1", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.1");
-                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX41.xml");
+                settings.setString(sessionID, "DataDictionary", "etc/FIX41.xml");
             }
 
             if (fixVersions.contains("fix42")) {
                 sessionID = new SessionID("FIX.4.2", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.2");
-                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX42.xml");
+                settings.setString(sessionID, "DataDictionary", "etc/FIX42.xml");
             }
 
             if (fixVersions.contains("fix43")) {
                 sessionID = new SessionID("FIX.4.3", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.3");
-                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX43.xml");
+                settings.setString(sessionID, "DataDictionary", "etc/FIX43.xml");
             }
 
             if (fixVersions.contains("fix44")) {
                 sessionID = new SessionID("FIX.4.4", "ISLD", "TW");
                 settings.setString(sessionID, "BeginString", "FIX.4.4");
-                settings.setString(sessionID, "DataDictionary", "src/quickfix/codegen/FIX44.xml");
+                settings.setString(sessionID, "DataDictionary", "etc/FIX44.xml");
             }
 
             ATApplication application = new ATApplication();
