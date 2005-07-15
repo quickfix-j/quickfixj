@@ -20,6 +20,7 @@
 package quickfix.examples.banzai;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -36,6 +37,7 @@ import quickfix.ScreenLogFactory;
 import quickfix.SessionSettings;
 import quickfix.SocketInitiator;
 import quickfix.examples.banzai.ui.BanzaiFrame;
+import quickfix.examples.executor.Executor;
 
 /**
  * Entry point for the Banzai application.
@@ -49,10 +51,21 @@ public class Banzai {
     private JFrame frame = null;
 
     public Banzai(String[] args) throws Exception {
+        InputStream inputStream = null; 
+        if (args.length == 0) {
+            inputStream = Executor.class.getResourceAsStream("banzai.cfg");
+        } else if (args.length == 1) {
+            inputStream = new FileInputStream(args[0]);
+        }
+        if (inputStream == null) {
+            System.out.println("usage: " + Executor.class.getName() + " [configFile].");
+            return;
+        }
+        SessionSettings settings = new SessionSettings(inputStream);
+
         OrderTableModel orderTableModel = new OrderTableModel();
         ExecutionTableModel executionTableModel = new ExecutionTableModel();
         BanzaiApplication application = new BanzaiApplication(orderTableModel, executionTableModel);
-        SessionSettings settings = new SessionSettings(new FileInputStream(args[0]));
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
         LogFactory logFactory = new ScreenLogFactory(true, true, true);
         MessageFactory messageFactory = new DefaultMessageFactory();

@@ -20,14 +20,21 @@
 package quickfix.examples.executor;
 import quickfix.*;
 import java.io.FileInputStream;
+import java.io.InputStream;
 
 public class Executor {
 
     private static Acceptor acceptor = null;
 
     public static void main(String args[]) throws Exception {
-        if(args.length != 1) {
-            System.out.println("usage: run_executor_java FILE.");
+        InputStream inputStream = null; 
+        if (args.length == 0) {
+            inputStream = Executor.class.getResourceAsStream("executor.cfg");
+        } else if (args.length == 1) {
+            inputStream = new FileInputStream(args[0]);
+        }
+        if (inputStream == null) {
+            System.out.println("usage: " + Executor.class.getName() + " [configFile].");
             return;
         }
 
@@ -35,7 +42,7 @@ public class Executor {
 
             Application application = new Application();
             SessionSettings settings =
-                new SessionSettings(new FileInputStream(args[0]));
+                new SessionSettings(inputStream);
             MessageStoreFactory messageStoreFactory =
                 new FileStoreFactory(settings);
             LogFactory logFactory = new ScreenLogFactory(true, true, true);
