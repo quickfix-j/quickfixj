@@ -37,7 +37,6 @@ import quickfix.ScreenLogFactory;
 import quickfix.SessionSettings;
 import quickfix.SocketInitiator;
 import quickfix.examples.banzai.ui.BanzaiFrame;
-import quickfix.examples.executor.Executor;
 
 /**
  * Entry point for the Banzai application.
@@ -53,12 +52,12 @@ public class Banzai {
     public Banzai(String[] args) throws Exception {
         InputStream inputStream = null; 
         if (args.length == 0) {
-            inputStream = Executor.class.getResourceAsStream("banzai.cfg");
+            inputStream = Banzai.class.getResourceAsStream("banzai.cfg");
         } else if (args.length == 1) {
             inputStream = new FileInputStream(args[0]);
         }
         if (inputStream == null) {
-            System.out.println("usage: " + Executor.class.getName() + " [configFile].");
+            System.out.println("usage: " + Banzai.class.getName() + " [configFile].");
             return;
         }
         SessionSettings settings = new SessionSettings(inputStream);

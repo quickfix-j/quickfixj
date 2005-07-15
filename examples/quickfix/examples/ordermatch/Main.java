@@ -2,6 +2,7 @@ package quickfix.examples.ordermatch;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import quickfix.DefaultMessageFactory;
@@ -13,14 +14,18 @@ import quickfix.SocketAcceptor;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.err.println("usage: java " + Main.class.getName() + " file");
-            return;
-        }
-
         try {
-            FileInputStream settingsFile = new FileInputStream(args[0]);
-            SessionSettings settings = new SessionSettings(settingsFile);
+            InputStream inputStream = null; 
+            if (args.length == 0) {
+                inputStream = OrderMatcher.class.getResourceAsStream("ordermatch.cfg");
+            } else if (args.length == 1) {
+                inputStream = new FileInputStream(args[0]);
+            }
+            if (inputStream == null) {
+                System.out.println("usage: " + OrderMatcher.class.getName() + " [configFile].");
+                return;
+            }
+            SessionSettings settings = new SessionSettings(inputStream);
 
             Application application = new Application();
             FileStoreFactory storeFactory = new FileStoreFactory(settings);
@@ -31,7 +36,7 @@ public class Main {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             acceptor.start();
             while (true) {
-                System.out.println("press <enter> to quit");
+                System.out.println("type #quit to quit");
                 String value = in.readLine();
                 if (value.equals("#symbols")) {
                     application.orderMatcher().display();
