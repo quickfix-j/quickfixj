@@ -10,7 +10,8 @@
 	<property name="product.src.dir" value="src"/>
 	<property name="product.generated.src.dir" value="${ant.output.dir}/src-generated"/>
 	<property name="specs.dir" value="etc"/>
-	<property name="cfg.dir" value="cfg"/>
+	<property name="xsl.dir" value="src/quickfix/codegen"/>
+	<property name="etc.dir" value="etc"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="java.debug" value="on"/>
 	<property name="quickfixj.jar" value="quickfixj.jar"/>
@@ -62,9 +63,10 @@
 		       classpathref="runtime.lib.classpath" />
 		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
 			<arg value="${specs.dir}" />
+			<arg value="${xsl.dir}" />
 			<arg value="${product.generated.src.dir}" />
 			<classpath>
-				<pathelement location="${cfg.dir}"/>
+				<pathelement location="${etc.dir}"/>
 				<pathelement location="${product.classes.dir}"/>
 				<path refid="runtime.lib.classpath"/>
 			</classpath>
@@ -78,24 +80,24 @@
 		<condition property="generated.isuptodate">
 			<and>
 				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix40/Message.java">
-					<srcfiles dir="${specs.dir}"
-					          includes="FIX40.xml,*.xsl" />
+					<srcfiles dir="${specs.dir}" includes="FIX40.xml"/>
+					<srcfiles dir="${xsl.dir}" includes="*.xsl"/>
 				</uptodate>
 				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix41/Message.java">
-					<srcfiles dir="${specs.dir}"
-					          includes="FIX41.xml,*.xsl" />
+					<srcfiles dir="${specs.dir}" includes="FIX41.xml"/>
+					<srcfiles dir="${xsl.dir}" includes="*.xsl"/>
 				</uptodate>
 				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix42/Message.java">
-					<srcfiles dir="${specs.dir}"
-					          includes="FIX42.xml,*.xsl" />
+					<srcfiles dir="${specs.dir}" includes="FIX42.xml"/>
+					<srcfiles dir="${xsl.dir}" includes="*.xsl"/>
 				</uptodate>
 				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix43/Message.java">
-					<srcfiles dir="${specs.dir}"
-					          includes="FIX43.xml,*.xsl" />
+					<srcfiles dir="${specs.dir}" includes="FIX43.xml"/>
+					<srcfiles dir="${xsl.dir}" includes="*.xsl"/>
 				</uptodate>
-				<uptodate targetfile="${src_product_generated.dir}/quickfix/fix44/Message.java">
-					<srcfiles dir="${specs.dir}"
-					          includes="FIX44.xml,*.xsl" />
+				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix44/Message.java">
+					<srcfiles dir="${specs.dir}" includes="FIX44.xml"/>
+					<srcfiles dir="${xsl.dir}" includes="*.xsl"/>
 				</uptodate>
 			</and>
 		</condition>

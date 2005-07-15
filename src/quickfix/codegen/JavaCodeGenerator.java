@@ -53,6 +53,7 @@ public class JavaCodeGenerator {
     private Log log = LogFactory.getLog(getClass());
     private String outputBaseDir;
     private String specificationDir;
+    private String xformDir;
     
     //  An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
@@ -67,10 +68,12 @@ public class JavaCodeGenerator {
     /**
      * Constructs a message code generator.
      * @param specificationDir where the specification are located.
+     * @param xformDir where the XSLT transformations are located
      * @param outputBaseDir directory where the output should be generated
      */
-    public JavaCodeGenerator(String specificationDir, String outputBaseDir) {
+    public JavaCodeGenerator(String specificationDir, String xformDir, String outputBaseDir) {
         this.specificationDir = specificationDir;
+        this.xformDir = xformDir;
         this.outputBaseDir = outputBaseDir;
     }
 
@@ -97,9 +100,9 @@ public class JavaCodeGenerator {
             TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
         for (int fixMinorVersion = 0; fixMinorVersion < 5; fixMinorVersion++) {
-            log.debug("generating " + className + " for FIX 4." + fixMinorVersion);
+            log.info("generating " + className + " for FIX 4." + fixMinorVersion);
             Document document = getSpecification(fixMinorVersion);
-            generateCodeFile(document, specificationDir + "/" + className + ".xsl", paramNames, paramValues,
+            generateCodeFile(document, xformDir + "/" + className + ".xsl", paramNames, paramValues,
                     outputBaseDir + "/quickfix/fix4" + fixMinorVersion + "/" + className + ".java");
         }
     }
@@ -123,8 +126,8 @@ public class JavaCodeGenerator {
                     String fieldName = (String) fieldNames.get(i);
                     String outputFile = outputBaseDir + "/quickfix/field/" + fieldName + ".java";
                     if (!new File(outputFile).exists()) {
-                        log.debug("field: " + fieldName);
-                        generateCodeFile(document, specificationDir + "/Fields.xsl", new String[] {"fieldName", XSLPARAM_SERIAL_UID},
+                        log.info("field: " + fieldName);
+                        generateCodeFile(document, xformDir + "/Fields.xsl", new String[] {"fieldName", XSLPARAM_SERIAL_UID},
                                 new String[] {fieldName, SERIAL_UID_STR}, outputFile);
                     }
                 }
@@ -143,8 +146,8 @@ public class JavaCodeGenerator {
             for (int i = 0; i < messageNames.size(); i++) {
                 String messageName = (String) messageNames.get(i);
                 //if (!messageName.equals("Advertisement")) continue;
-                log.debug("message (FIX 4." + fixVersion + "): " + messageName);
-                generateCodeFile(document, specificationDir + "/MessageSubclass.xsl",
+                log.info("message (FIX 4." + fixVersion + "): " + messageName);
+                generateCodeFile(document, xformDir + "/MessageSubclass.xsl",
                         new String[] {"messageName", XSLPARAM_SERIAL_UID}, new String[] {messageName, SERIAL_UID_STR}, outputBaseDir + "/quickfix/fix4" + fixVersion
                                 + "/" + messageName + ".java");
             }
@@ -214,12 +217,12 @@ public class JavaCodeGenerator {
 
     public static void main(String[] args) {
         try {
-            if (args.length == 0) {
+            if (args.length != 3) {
                 String classname = JavaCodeGenerator.class.getName();
-                System.err.println("usage: " + classname + " specDir outputBaseDir");
+                System.err.println("usage: " + classname + " specDir xformDir outputBaseDir");
                 return;
             }
-            JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(args[0], args[1]);
+            JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(args[0], args[1], args[2]);
             javaCodeGenerator.generate();
         } catch (Exception e) {
             LogFactory.getLog(JavaCodeGenerator.class).error("error during code generation", e);

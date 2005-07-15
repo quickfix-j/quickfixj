@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="examples"/>
-	<classpathentry kind="src" path="src-generated"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
@@ -12,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/backport-util-concurrent.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.4.jar"/>
 	<classpathentry kind="src" path="etc"/>
+	<classpathentry kind="src" path="src-generated"/>
 	<classpathentry kind="output" path="output/eclipse/classes"/>
 </classpath>
