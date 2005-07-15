@@ -161,7 +161,10 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
                 Object sectionKey = i.next();
                 if (sectionKey != SessionSettings.DEFAULT_SESSION_ID) {
                     SessionID sessionID = (SessionID) sectionKey;
-                    quickfixSessions.put(sessionID, sessionFactory.create(sessionID, settings));
+                    String connectionType = settings.getString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE);
+                    if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
+                        quickfixSessions.put(sessionID, sessionFactory.create(sessionID, settings));
+                    }
                 }
             }
 
