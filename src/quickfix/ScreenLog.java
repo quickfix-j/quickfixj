@@ -20,7 +20,6 @@
 package quickfix;
 
 import java.io.PrintStream;
-import java.util.Date;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -72,7 +71,7 @@ public class ScreenLog implements Log {
     }
 
     private void log(String message, String type) {
-        out.println("<" + UtcTimestampConverter.convert(new Date(), false) + ", " + sessionID
+        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), false) + ", " + sessionID
                 + ", " + type + "> (" + message + ")");
     }
 
