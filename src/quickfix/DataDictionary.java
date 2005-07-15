@@ -1,3 +1,22 @@
+/****************************************************************************
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
+
 package quickfix;
 
 import java.io.FileInputStream;
@@ -35,6 +54,10 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
+/**
+ * Provide the message metadata for various versions of FIX.
+ *
+ */
 public class DataDictionary {
     private static final int USER_DEFINED_TAG_MIN = 5000;
 
@@ -59,18 +82,33 @@ public class DataDictionary {
     private Map groups = new HashMap();
     private Map components = new HashMap();
 
-    public DataDictionary() {
+    private DataDictionary() {
     }
 
-    public DataDictionary(String url) throws ConfigError {
+    /**
+     * Initialize a data dictionary from a URL or a file path.
+     * @param location a URL or file system path
+     * @throws ConfigError
+     */
+    public DataDictionary(String location) throws ConfigError {
         this();
-        readFromURL(url);
+        readFromURL(location);
     }
 
+    /**
+     * Initialize a data dictionary from an input stream.
+     * @param in the input stream
+     * @throws ConfigError
+     */
     public DataDictionary(InputStream in) throws ConfigError {
         load(in);
     }
 
+    /**
+     * Copy a data dictionary.
+     * @param source the source dictionary that will be copied into
+     * this dictionary
+     */
     public DataDictionary(DataDictionary source) {
         copyFrom(source);
     }
@@ -80,6 +118,10 @@ public class DataDictionary {
         hasVersion = true;
     }
 
+    /**
+     * Get the FIX version associated with this dictionary.
+     * @return the FIX version
+     */
     public String getVersion() {
         return beginString;
     }
@@ -95,6 +137,11 @@ public class DataDictionary {
         fieldNames.put(new Integer(field), name);
     }
 
+    /**
+     * Get the field name for a specified tag.
+     * @param field the tag
+     * @return the field name
+     */
     public String getFieldName(int field) {
         return (String) fieldNames.get(new Integer(field));
     }
@@ -103,14 +150,30 @@ public class DataDictionary {
         valueNames.put(new IntStringPair(field, value), name);
     }
 
+    /**
+     * Get the value name, if any, for an enumerated field value.
+     * @param field the tag
+     * @param value the value
+     * @return the value's name
+     */
     public String getValueName(int field, String value) {
         return (String) valueNames.get(new IntStringPair(field, value));
     }
 
+    /**
+     * Predicate for determining if a tag is a defined field.
+     * @param field the tag
+     * @return true if the field is defined, false otherwise
+     */
     public boolean isField(int field) {
         return fields.contains(new Integer(field));
     }
 
+    /**
+     * Return the field type for a field.
+     * @param field the tag
+     * @return the field type
+     */
     public FieldType getFieldTypeEnum(int field) {
         return (FieldType) fieldTypes.get(new Integer(field));
     }
@@ -119,6 +182,12 @@ public class DataDictionary {
         messages.add(msgType);
     }
 
+    /**
+     * Predicate for determining if message type is valid for
+     * a specified FIX version.
+     * @param msgType the message type value
+     * @return true if the message type if defined, false otherwise
+     */
     public boolean isMsgType(String msgType) {
         return messages.contains(msgType);
     }
@@ -132,6 +201,12 @@ public class DataDictionary {
         fields.add(new Integer(field));
     }
 
+    /**
+     * Predicate for determining if a field is valid for a given message type.
+     * @param msgType the message type
+     * @param field the tag
+     * @return true if field is defined for message, false otherwise.
+     */
     public boolean isMsgField(String msgType, int field) {
         Set fields = (Set) messageFields.get(msgType);
         return fields != null & fields.contains(new Integer(field));
@@ -141,6 +216,11 @@ public class DataDictionary {
         headerFields.put(new Integer(field), required ? Boolean.TRUE : Boolean.FALSE);
     }
 
+    /**
+     * Predicate for determining if field is a header field.
+     * @param field the tag
+     * @return true if field is a header field, false otherwise.
+     */
     public boolean isHeaderField(int field) {
         return headerFields.containsKey(new Integer(field));
     }
@@ -150,6 +230,11 @@ public class DataDictionary {
 
     }
 
+    /**
+     * Predicate for determining if field is a trailer field.
+     * @param field the tag
+     * @return true if field is a trailer field, false otherwise.
+     */
     public boolean isTrailerField(int field) {
         return trailerFields.containsKey(new Integer(field));
     }
@@ -158,6 +243,12 @@ public class DataDictionary {
         fieldTypes.put(new Integer(field), fieldType);
     }
 
+    /**
+     * Get the field type for a field.
+     * @param field a tag
+     * @return the field type
+     * @see #getFieldTypeEnum
+     */
     public int getFieldType(int field) {
         return getFieldTypeEnum(field).getOrdinal();
     }
@@ -171,6 +262,12 @@ public class DataDictionary {
         fields.add(new Integer(field));
     }
 
+    /**
+     * Predicate for determining if a field is required for a message type
+     * @param msgType the message type
+     * @param field the tag
+     * @return true if field is required, false otherwise
+     */
     public boolean isRequiredField(String msgType, int field) {
         Set fields = (Set) requiredFields.get(msgType);
         return fields != null && fields.contains(new Integer(field));
@@ -186,11 +283,23 @@ public class DataDictionary {
         values.add(value);
     }
 
+    
+    /**
+     * Predicate for determining if a field has enumerated values.
+     * @param field the tag
+     * @return true if field is enumerated, false otherwise
+     */
     public boolean hasFieldValue(int field) {
         Set values = (Set) fieldValues.get(new Integer(field));
         return values != null && values.size() > 0;
     }
 
+    /**
+     * Predicate for determining if a field value is valid
+     * @param field the tag
+     * @param value a possible field value
+     * @return true if field value is valid, false otherwise
+     */
     public boolean isFieldValue(int field, String value) {
         Set validValues = (Set) fieldValues.get(new Integer(field));
         if (validValues == null || validValues.size() == 0) {
@@ -216,14 +325,32 @@ public class DataDictionary {
         groups.put(new IntStringPair(field, msg), new GroupInfo(delim, dataDictionary));
     }
 
+    /**
+     * Predicate for determining if a field is a group delimeter for a
+     * message type.
+     * @param msg the message type
+     * @param field the tag
+     * @return true if field starts a repeating group, false otherwise
+     */
     public boolean isGroup(String msg, int field) {
         return groups.containsKey(new IntStringPair(field, msg));
     }
 
+    /**
+     * Get repeating group metadata.
+     * @param msg the message type
+     * @param field the tag
+     * @return an object containing group-related metadata
+     */
     public GroupInfo getGroup(String msg, int field) {
         return (GroupInfo) groups.get(new IntStringPair(field, msg));
     }
 
+    /**
+     * Predicate for determining if a field is a FIX raw data field.
+     * @param field the tag
+     * @return true if field is a raw data field, false otherwise
+     */
     public boolean isDataField(int field) {
         return fieldTypes.get(new Integer(field)) == FieldType.Data;
     }
@@ -232,14 +359,27 @@ public class DataDictionary {
         return fieldTypes.get(new Integer(field)) == FieldType.MultipleValueString;
     }
 
+    /**
+     * Controls whether out of order fields are checked.
+     * @param flag true = checked, false = not checked
+     */
     public void setCheckFieldsOutOfOrder(boolean flag) {
         checkFieldsOutOfOrder = flag;
     }
 
+    /**
+     * Controls whether empty field values are checked.
+     * @param flag true = checked, false = not checked
+     */
     public void setCheckFieldsHaveValues(boolean flag) {
         checkFieldsHaveValues = flag;
     }
 
+
+    /**
+     * Controls whether user defined fields are checked.
+     * @param flag true = checked, false = not checked
+     */
     public void setCheckUserDefinedFields(boolean flag) {
         checkUserDefinedFields = flag;
     }
@@ -288,7 +428,7 @@ public class DataDictionary {
                 } catch (java.lang.Exception e) {
                     throw new RuntimeException(e);
                 }
-                copyCollection((Collection) copy, (Collection) value);
+                copyCollection(copy, (Collection) value);
                 value = copy;
             }
             lhs.put(entry.getKey(), value);
@@ -300,6 +440,12 @@ public class DataDictionary {
         lhs.addAll(rhs);
     }
 
+    /**
+     * Validate a mesasge.
+     * @param message the message
+     * @throws IncorrectTagValue if a field value is not valid
+     * @throws FieldNotFound if a field cannot be found
+     */
     public void validate(Message message) throws IncorrectTagValue, FieldNotFound {
         if (hasVersion && !getVersion().equals(message.getHeader().getString(BeginString.FIELD))) {
             throw new UnsupportedVersion();
@@ -452,7 +598,7 @@ public class DataDictionary {
     }
 
     // / Check if a field is in this message type.
-    void checkIsInMessage(Field field, String msgType) {
+    private void checkIsInMessage(Field field, String msgType) {
         if (!isMsgField(msgType, field.getField())) {
             throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE,
                     field.getField());
@@ -460,7 +606,7 @@ public class DataDictionary {
     }
 
     // / Check if group count matches number of groups in
-    void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
+    private void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
         int fieldNum = field.getField();
         if (isGroup(msgType, fieldNum)) {
             if (fieldMap.getGroupCount(fieldNum) != Integer.parseInt(field.getValue()))
