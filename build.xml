@@ -9,9 +9,11 @@
 	<property name="product.classes.dir" value="${ant.output.dir}/classes/product"/>
 	<property name="product.src.dir" value="src"/>
 	<property name="product.generated.src.dir" value="${ant.output.dir}/src-generated"/>
+	<property name="eclipse.generated.src.dir" value="src-generated"/>
 	<property name="specs.dir" value="etc"/>
 	<property name="xsl.dir" value="src/quickfix/codegen"/>
 	<property name="etc.dir" value="etc"/>
+	<property name="bin.dir" value="bin"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="java.debug" value="on"/>
 	<property name="quickfixj.jar" value="quickfixj.jar"/>
@@ -57,7 +59,7 @@
 	        depends="check.generated.isuptodate"
 			description="generate FIX message code">
 		<mkdir dir="${product.classes.dir}" />
-		<javac srcdir="${specs.dir}"
+		<javac srcdir="${product.src.dir}/quickfix/codegen"
 		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
 		       destdir="${product.classes.dir}"
 		       classpathref="runtime.lib.classpath" />
@@ -104,8 +106,7 @@
 	</target>
 
 	<!-- Compile -->
-	<!-- TODO Add generate.code dependency -->
-	<target name="compile" description="compile sources and tests" >
+	<target name="compile" description="compile sources and tests" depends="generate.code" >
 		<mkdir dir="${product.classes.dir}" />
 		<javac destdir="${product.classes.dir}"
 		       debug="${java.debug}"
@@ -115,6 +116,17 @@
 			<src path="${product.src.dir}" />
 			<src path="${product.generated.src.dir}" />
 		</javac>
+		<!-- Copy configuration files to classpath -->
+		<copy todir="${product.classes.dir}">
+			<fileset dir="${product.src.dir}">
+				<include name="**/*.cfg"/>
+			</fileset>
+		</copy>
+		<copy todir="${product.classes.dir}">
+			<fileset dir="${example.src.dir}">
+				<include name="**/*.cfg"/>
+			</fileset>
+		</copy>
 		<mkdir dir="${test.classes.dir}" />
 		<javac destdir="${test.classes.dir}"
 		       debug="${java.debug}"
@@ -190,7 +202,7 @@
 	</target>
 
 	<target name="test.acceptance" description="run acceptance tests" depends="compile,test.cleanreport">
-		<junit fork="on" dir="." 
+		<junit fork="yes" dir="." 
 			tempdir="${output.dir}"
 			printsummary="true" 
 			showoutput="true">
@@ -198,13 +210,14 @@
 			<sysproperty key="at.timeout" value="60000"/>
 			<formatter type="xml" usefile="true" />
 			<classpath refid="all.classpath"/>
-			<test name="quickfix.test.acceptance.AcceptanceTestSuite"/>
+			<test todir="${test.report.dir}" 
+				name="quickfix.test.acceptance.AcceptanceTestSuite"/>
 		</junit>
 	</target>
 	
 	<!-- Prepare documentation -->
 	<target name="javadoc" description="generate Javadocs">
-		<initdir dir="${javadoc.output.dir}"/>
+		<mkdir dir="${javadoc.output.dir}"/>
 		<javadoc sourcepath="${product.src.dir};${product.generated.src.dir}" 
 			overview="${javadoc.input.dir}/javadoc_overview.html" 
 			stylesheetfile="${javadoc.input.dir}/javadoc.css"
@@ -238,8 +251,7 @@
 				includeEmptyDirs="false">
 			<fileset dir=".">
 				<exclude name="${output.dir}/**/*" />
-				<!-- TODO replace with variable -->
-				<exclude name="src-generated/**/*"/>
+				<exclude name="${eclipse.generated.src.dir}/**/*"/>
 			</fileset>
 		</copy>
 
@@ -268,14 +280,13 @@
 			</fileset>
 			<fileset dir=".">
 				<include name="LICENSE"/>
-				<include name="sql/**/*"/>
+				<include name="${etc.dir}"/>
+				<exclude name="${etc.dir}/eclipse"/>
+				<include name="${bin.dir}"/>
 			</fileset>
 		</copy>
 		<copy todir="${release.bin.staging.dir}/lib">
 			<fileset refid="runtime.lib.fileset"/>
-		</copy>
-		<copy todir="${release.bin.staging.dir}/doc/api">
-			<fileset dir="${javadoc.output.dir}"/>
 		</copy>
 		<copy todir="${release.bin.staging.dir}/doc/api">
 			<fileset dir="${javadoc.output.dir}"/>
