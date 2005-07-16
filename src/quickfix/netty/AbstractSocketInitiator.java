@@ -369,7 +369,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              *      net.gleamynode.netty2.Message)
              */
             public void messageSent(Session session, Message message) {
-                quickfixSession.getLog().onOutgoing(message.toString());
+                //quickfixSession.getLog().onOutgoing(message.toString());
             }
 
             /*
