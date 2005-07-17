@@ -21,7 +21,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
     private BlockingQueue eventQueue;
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
-            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
+                SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
         // This exception is thrown for compatibility reasons
@@ -35,6 +35,13 @@ public class SocketInitiator extends AbstractSocketInitiator {
             throws ConfigError {
         super(application, messageStoreFactory, settings, logFactory, messageFactory);
         // This exception is thrown for compatibility reasons
+        if (settings == null) {
+            throw new ConfigError("no settings");
+        }
+    }
+
+    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+        super(sessionFactory, settings);
         if (settings == null) {
             throw new ConfigError("no settings");
         }

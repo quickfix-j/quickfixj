@@ -46,6 +46,10 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         super(application, messageStoreFactory, settings, messageFactory);
     }
 
+    public ThreadedSocketInitiator(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+        super(sessionFactory, settings);
+    }
+
     protected void onBlock() {
         synchronized (blockSync) {
             try {

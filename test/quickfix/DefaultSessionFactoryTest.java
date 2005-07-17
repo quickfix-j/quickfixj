@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 import quickfix.test.acceptance.ATApplication;
 import junit.framework.TestCase;
 
-public class SessionFactoryTest extends TestCase {
+public class DefaultSessionFactoryTest extends TestCase {
 
     private SessionID sessionID;
     private SessionSettings settings;
@@ -16,7 +16,7 @@ public class SessionFactoryTest extends TestCase {
         super.setUp();
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "FOO", "BAR");
         setUpDefaultSettings();
-        factory = new SessionFactory(new ATApplication(), new MemoryStoreFactory(),
+        factory = new DefaultSessionFactory(new ATApplication(), new MemoryStoreFactory(),
                 new ScreenLogFactory(true, true, true));
     }
 

@@ -38,6 +38,10 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
             SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, messageFactory);
     }
+    
+    public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) {
+        super(sessionFactory, settings);
+    }
 
     protected void onInitialize(boolean handleMessageInCaller) {
         if (handleMessageInCaller) {

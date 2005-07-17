@@ -41,6 +41,7 @@ import quickfix.MessageStoreFactory;
 import quickfix.Responder;
 import quickfix.RuntimeError;
 import quickfix.ScreenLogFactory;
+import quickfix.DefaultSessionFactory;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -49,11 +50,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
     private static final String DEFAULT_IO_THREAD_PREFIX = "quickfix-io";
     private boolean isStopRequested;
-    protected final Application application;
     private final SessionSettings settings;
-    protected final MessageStoreFactory messageStoreFactory;
-    protected final MessageFactory messageFactory;
-    protected final LogFactory logFactory;
     private final SessionFactory sessionFactory;
     private boolean firstPoll = true;
     protected Thread quickFixThread;
@@ -74,12 +71,13 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this.application = application;
+        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory), 
+                settings);
+    }
+
+    protected AbstractSocketInitiator(SessionFactory sessionFactory, SessionSettings settings) {
+        this.sessionFactory = sessionFactory;
         this.settings = settings;
-        this.messageStoreFactory = messageStoreFactory;
-        this.logFactory = logFactory;
-        this.messageFactory = messageFactory;
-        sessionFactory = new SessionFactory(application, messageStoreFactory, logFactory);
     }
 
     protected abstract void onBlock();

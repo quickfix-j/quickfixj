@@ -46,6 +46,10 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
             MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, messageFactory);
     }
+    
+    public ThreadedSocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) {
+        super(sessionFactory, settings);
+    }
 
     protected void onBlock() {
         synchronized (blockSync) {

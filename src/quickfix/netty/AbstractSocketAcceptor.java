@@ -48,6 +48,7 @@ import quickfix.MessageStoreFactory;
 import quickfix.Responder;
 import quickfix.RuntimeError;
 import quickfix.ScreenLogFactory;
+import quickfix.DefaultSessionFactory;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -82,10 +83,14 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this.settings = settings;
-        sessionFactory = new SessionFactory(application, messageStoreFactory, logFactory);
+        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory), settings);
     }
 
+    protected AbstractSocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) {
+        this.sessionFactory = sessionFactory;
+        this.settings = settings;
+    }
+    
     protected abstract void onInitialize(boolean isBlocking);
 
     protected abstract void onBlock();

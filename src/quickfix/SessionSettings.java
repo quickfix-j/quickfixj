@@ -46,7 +46,7 @@ import quickfix.field.converter.BooleanConverter;
  * @see quickfix.JdbcSetting
  * @see quickfix.MySQLSetting
  * @see quickfix.Session
- * @see quickfix.SessionFactory
+ * @see quickfix.DefaultSessionFactory
  */
 public class SessionSettings {
     /**
