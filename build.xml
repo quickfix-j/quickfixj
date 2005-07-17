@@ -167,6 +167,7 @@
 	</target>
 
 	<target name="test.report">
+		<delete dir="${test.report.dir}/reports"/>
 		<junitreport todir="${test.report.dir}">
 			<fileset dir="${test.report.dir}">
 				<include name="TEST-*.xml"/>
@@ -175,18 +176,18 @@
 		</junitreport>
 	</target>
 
-	<target name="test.unit" description="run unit tests" depends="compile,test.cleanreport">
+	<target name="test.unit" description="run unit tests" depends="compile">
 		<copy todir="${test.classes.dir}">
 			<fileset dir="etc">
 				<include name="FIX*.xml"/>
 			</fileset>
 		</copy>
-		<junit fork="yes" dir="." 
+		<junit 
+			fork="no"
 			tempdir="${output.dir}"
 			printsummary="true" 
-			showoutput="true"
+			showoutput="false"
 			haltonfailure="${junit.haltonfailure}">
-
 			<formatter type="xml" usefile="true"/>
 			<classpath refid="all.classpath"/>
 			<batchtest todir="${test.report.dir}">
@@ -201,18 +202,24 @@
 		</junit>
 	</target>
 
-	<target name="test.acceptance" description="run acceptance tests" depends="compile,test.cleanreport">
-		<junit fork="yes" dir="." 
+	<target name="test.acceptance" description="run acceptance tests" depends="compile">
+		<property name="atest.suite.class" value="quickfix.test.acceptance.AcceptanceTestSuite"/>
+		<junit fork="yes" forkMode="once" dir="." 
 			tempdir="${output.dir}"
 			printsummary="true" 
-			showoutput="true">
-			
+			showoutput="true">			
 			<sysproperty key="at.timeout" value="60000"/>
 			<formatter type="xml" usefile="true" />
 			<classpath refid="all.classpath"/>
 			<test todir="${test.report.dir}" 
-				name="quickfix.test.acceptance.AcceptanceTestSuite"/>
+				name="${atest.suite.class}"/>
 		</junit>
+		<!-- remove the logged output because it's too large for junitreport -->
+		<replaceregexp 
+			file="${test.report.dir}/TEST-${atest.suite.class}.xml"
+			flags="s" byline="false"
+			match="system-err>.*&lt;/system-err"
+			replace="system-err>&lt;![CDATA[]]>&lt;/system-err"/>
 	</target>
 	
 	<!-- Prepare documentation -->
@@ -263,11 +270,11 @@
 		<tar destfile="${release.src.tar}.gz" 
 			longfile="gnu"
 			compression="gzip"
-			basedir="${release.src.staging.dir}"/>
+			basedir="${release.src.staging.dir}/.."/>
 
 		<property name="release.src.zip" value="${release.src}.zip" />
 		<zip destfile="${release.src.zip}" 
-			basedir="${release.src.staging.dir}"/>
+			basedir="${release.src.staging.dir}/.."/>
 
 		<!-- Binary release staging -->
 		<property name="release.bin.staging.dir" 
@@ -303,11 +310,11 @@
 		<tar destfile="${release.bin.tar}.gz"
 		     longfile="gnu"
 		     compression="gzip"
-		     basedir="${release.bin.staging.dir}" />
+		     basedir="${release.bin.staging.dir}/.." />
 
 		<property name="release.bin.zip" value="${release.bin}.zip" />
 		<zip destfile="${release.bin.zip}"			
-		     basedir="${release.bin.staging.dir}" />
+		     basedir="${release.bin.staging.dir}/.." />
 
 	</target>
 
