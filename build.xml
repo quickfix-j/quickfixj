@@ -93,7 +93,7 @@
 			</classpath>
 		</java>
 	</target>
-	
+
 	<target name="check.generated.isuptodate">
 		<property name="product.generated.src.path"
 			value="${basedir}/${product.generated.src.dir}"/>
@@ -104,7 +104,7 @@
 				to="${product.generated.src.path}/quickfix/fix*/Message.java"/>
 		</uptodate>
 	</target>
-		
+
 	<!-- Compile -->
 	<target name="compile"
 	        description="compile sources and tests"
@@ -393,5 +393,17 @@
 	</target>
 
 	<!-- FTP files to SourceForge -->
-
+	<target name="scp.tosourceforge" description="SCP to SourceForge">
+		<input message="user" addproperty="scp.user"/>
+		<input message="password" addproperty="scp.password"/>
+		<property name="scp.dest" 
+			value="shell.sf.net:/home/groups/q/qu/quickfix/buildreport"/>
+		<scp todir="${scp.user}:${scp.password}@${scp.dest}"
+			trust="yes">
+			<fileset dir="${release.output.dir}">
+				<include name="*.zip"/>
+				<include name="*.tar.gz"/>
+			</fileset>
+		</scp>
+	</target>
 </project>
