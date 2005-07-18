@@ -24,7 +24,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Date;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -89,7 +88,7 @@ public class FileLog implements Log {
 
     public void onEvent(String message) {
         try {
-            String formattedTime = UtcTimestampConverter.convert(new Date(), false);
+            String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), false);
             events.write(formattedTime.getBytes());
             events.write(": ".getBytes());
             events.write(message.getBytes());

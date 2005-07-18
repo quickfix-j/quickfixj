@@ -264,7 +264,7 @@ public class FileStore implements MessageStore {
 
     private void storeSessionTimeStamp() throws IOException {
         sessionFile.seek(0);
-        String formattedTime = UtcTimestampConverter.convert(new Date(), false);
+        String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), false);
         sessionFile.write(formattedTime.getBytes());
     }
 
