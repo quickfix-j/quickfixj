@@ -93,37 +93,18 @@
 			</classpath>
 		</java>
 	</target>
-
+	
 	<target name="check.generated.isuptodate">
-		<!-- This is a bit brute force right now. We could break it out so
-			that the update is performed in a more focussed way (specific
-			FIX version) -->
-		<condition property="generated.isuptodate">
-			<and>
-				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix40/Message.java">
-					<srcfiles dir="${specs.dir}" includes="FIX40.xml" />
-					<srcfiles dir="${xsl.dir}" includes="*.xsl" />
-				</uptodate>
-				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix41/Message.java">
-					<srcfiles dir="${specs.dir}" includes="FIX41.xml" />
-					<srcfiles dir="${xsl.dir}" includes="*.xsl" />
-				</uptodate>
-				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix42/Message.java">
-					<srcfiles dir="${specs.dir}" includes="FIX42.xml" />
-					<srcfiles dir="${xsl.dir}" includes="*.xsl" />
-				</uptodate>
-				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix43/Message.java">
-					<srcfiles dir="${specs.dir}" includes="FIX43.xml" />
-					<srcfiles dir="${xsl.dir}" includes="*.xsl" />
-				</uptodate>
-				<uptodate targetfile="${product.generated.src.dir}/quickfix/fix44/Message.java">
-					<srcfiles dir="${specs.dir}" includes="FIX44.xml" />
-					<srcfiles dir="${xsl.dir}" includes="*.xsl" />
-				</uptodate>
-			</and>
-		</condition>
+		<property name="product.generated.src.path"
+			value="${basedir}/${product.generated.src.dir}"/>
+		<uptodate property="generated.isuptodate">
+			<srcfiles dir="${specs.dir}" includes="FIX4*.xml" />
+			<srcfiles dir="${xsl.dir}" includes="*.xsl" />
+			<globmapper from="FIX*.xml" 
+				to="${product.generated.src.path}/quickfix/fix*/Message.java"/>
+		</uptodate>
 	</target>
-
+		
 	<!-- Compile -->
 	<target name="compile"
 	        description="compile sources and tests"
@@ -267,7 +248,7 @@
 		<!-- touch timestamp only if tests passed -->
 		<touch file="${atest.timestamp}" />
 	</target>
-	
+
 	<target name="test.acceptance.junit"
 	        unless="atests.uptodate"
 	        depends="compile, test.init">
@@ -316,9 +297,9 @@
 		<uptodate property="javadoc.uptodate" targetfile="${javadoc.output.dir}/index.html">
 			<srcfiles dir="${product.src.dir}" includes="**/*.java"/>
 			<srcfiles dir="${example.src.dir}" includes="**/*.java"/>
-		</uptodate>	
+		</uptodate>
 	</target>
-	
+
 	<!-- Create release archives -->
 	<target name="release.timestamped"
 	        description="release files with timestamp for version"
