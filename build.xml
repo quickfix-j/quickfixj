@@ -64,6 +64,24 @@
 		</sequential>
 	</macrodef>
 
+	<macrodef name="convertUnixLineEndings">
+		<element name="files" implicit="true"/>
+		<sequential>
+			<replaceregexp flags="smg" match="\r$" replace="" byline="false">
+				<files/>
+			</replaceregexp>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="convertUnixScripts">
+		<attribute name="dir" />
+		<sequential>
+			<convertUnixLineEndings>
+				<fileset dir="@{dir}/bin" includes="*.sh" />
+			</convertUnixLineEndings>
+		</sequential>
+	</macrodef>
+
 	<!-- Checkout CVS repository -->
 	<!-- TODO -->
 
@@ -335,6 +353,7 @@
 				<exclude name="${eclipse.generated.src.dir}/**/*" />
 			</fileset>
 		</copy>
+		<convertUnixScripts dir="${release.src.staging.dir}"/>
 
 		<!-- Create source releases -->
 		<property name="release.src"
@@ -366,6 +385,7 @@
 				<include name="${bin.dir}/**/*" />
 			</fileset>
 		</copy>
+		<convertUnixScripts dir="${release.bin.staging.dir}"/>
 		<copy todir="${release.bin.staging.dir}/lib">
 			<fileset refid="runtime.lib.fileset" />
 		</copy>
