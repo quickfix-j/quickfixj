@@ -1,5 +1,6 @@
 package quickfix;
 
+import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +45,7 @@ public class DefaultSessionFactoryTest extends TestCase {
         settings.setBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY, true);
         settings.setString(sessionID, Session.SETTING_DATA_DICTIONARY, "xyz");
         createSessionAndAssertConfigError("no data dictionary exception",
-                ".*cannot find the file.*");
+                FileNotFoundException.class);
     }
 
     public void testIncorrectDayValues() throws Exception {
@@ -114,6 +115,16 @@ public class DefaultSessionFactoryTest extends TestCase {
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_END_TIME, "yy");
         createSessionAndAssertConfigError("no exception", "invalid UTC time value: yy");
+    }
+    
+    private void createSessionAndAssertConfigError(String message, Class exceptionClass) {
+        try {
+            factory.create(sessionID, settings);
+            fail(message);
+        } catch (ConfigError e) {
+            assertNotNull("no exception cause", e.getCause());
+            assertSame("wrong exception cause", exceptionClass, e.getCause().getClass());
+        }
     }
 
     private void createSessionAndAssertConfigError(String message, String pattern) {

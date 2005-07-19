@@ -82,7 +82,7 @@ public class DefaultSessionFactory implements SessionFactory {
                         dataDictionary = new DataDictionary(new FileInputStream(path));
                         dictionaryCache.put(path, dataDictionary);
                     } catch (FileNotFoundException e) {
-                        throw new ConfigError(e.getMessage());
+                        throw new ConfigError(e.getMessage(), e);
                     }
                 }
 
