@@ -33,8 +33,8 @@ import junit.framework.TestCase;
 
 public class SerializationTest extends TestCase {
 
-    private String srcDir = "src-generated";
-
+    private String[] srcDirs = new String[] { "src-generated", "output/ant/src-generated" };
+    private String srcDir;
     public SerializationTest(String name) {
         super(name);
     }
@@ -44,12 +44,27 @@ public class SerializationTest extends TestCase {
     }
 
     public void testSerialization() {
+        srcDir = findSrcDir();
         // Check messages
-        assertAllSerializations(srcDir, new MessageSerializationAssertion(), new JavaMessageFileFilter());
+        assertAllSerializations(srcDir, new MessageSerializationAssertion(),
+                new JavaMessageFileFilter());
         // Check fields
-        assertAllSerializations(srcDir, new FieldSerializationAssertion(), new JavaFieldFileFilter());
+        assertAllSerializations(srcDir, new FieldSerializationAssertion(),
+                new JavaFieldFileFilter());
     }
 
+    private String findSrcDir() {
+        // The srcDir might be the Eclipse and/or Ant srcDir. We'll
+        // take the first one we find.
+        for (int i = 0; i < srcDirs.length; i++) {
+            String srcDir = srcDirs[i];
+            if (new File(srcDir).exists()) {
+                return srcDir;
+            }
+        }
+        return null;
+    }
+        
     private final class JavaMessageFileFilter implements FileFilter {
         // We want to take ONLY messages into account
         public boolean accept(File file) {
@@ -75,7 +90,7 @@ public class SerializationTest extends TestCase {
         String res = file.getPath().substring(srcDir.length() + 1); // Extract
         // package
         res = res.substring(0, res.length() - 5); // Remove .java extension
-        res = res.replace('\\', '.'); // Replace \ by . to build package names
+        res = res.replace(File.separatorChar, '.'); // Replace \ by . to build package names
         return res;
     }
 
