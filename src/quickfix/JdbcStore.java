@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.io.IOException;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -144,7 +145,8 @@ class JdbcStore implements MessageStore {
             query.setInt(6, endSequence);
             ResultSet rs = query.executeQuery();
             while (rs.next()) {
-                messages.add(rs.getString(1));
+                Blob messageBlob = rs.getBlob(1);
+                messages.add(new String(messageBlob.getBytes(1, (int) messageBlob.length())));
             }
         } catch (SQLException e) {
             throw new IOException(e.getMessage());
