@@ -277,7 +277,8 @@
 		       printsummary="true"
 		       showoutput="true"
 		       errorproperty="atests.failed"
-		       failureproperty="atests.failed">
+		       failureproperty="atests.failed"
+			   maxmemory="512m">
 			<sysproperty key="at.timeout" value="60000" />
 			<formatter type="xml" usefile="true" />
 			<classpath refid="all.classpath" />
@@ -339,8 +340,18 @@
 		<property name="release.prefix" value="quickfixj-${version}" />
 	</target>
 
-	<target name="release.shared" depends="test,jar,javadoc">
+	<target name="check.tests" depends="test">
+		<condition property="tests.failed">
+			<or>
+				<isset property="utests.failed"/>
+				<isset property="atests.failed"/>
+			</or>
+		</condition>
+	</target>
 
+	<target name="release.shared"
+	        depends="check.tests,jar,javadoc"
+	        unless="tests.failed">
 		<initdir dir="${release.output.dir}" />
 
 		<!-- Source release staging -->
