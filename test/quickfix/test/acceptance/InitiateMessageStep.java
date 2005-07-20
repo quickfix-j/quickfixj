@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import junit.framework.Assert;
+import junit.framework.AssertionFailedError;
 import junit.framework.TestResult;
 
 import org.apache.commons.logging.Log;
@@ -67,7 +67,9 @@ public class InitiateMessageStep implements TestStep {
             clientOutputStream.write(message.getBytes());
             clientOutputStream.flush();
         } catch (IOException e) {
-            Assert.fail(e.getMessage());
+            AssertionFailedError error = new AssertionFailedError(message);
+            error.setStackTrace(e.getStackTrace());
+            throw error;
         }
     }
 
