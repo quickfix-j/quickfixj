@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -27,5 +27,13 @@ public class ConfigError extends Exception {
 
     public ConfigError(String message) {
         super(message);
+    }
+    
+    public ConfigError(Throwable cause) {
+        super(cause);
+    }
+
+    public ConfigError(String string, Exception e) {
+        super(string, e);
     }
 }

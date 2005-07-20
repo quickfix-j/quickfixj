@@ -1,21 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
- ******************************************************************************/
+/****************************************************************************
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
@@ -24,6 +24,10 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
+/**
+ * Used by the session communications code. Not intended to be used by
+ * applications.
+ */
 public class SessionState {
     private Log log;
     private boolean connected;
@@ -43,7 +47,10 @@ public class SessionState {
     private long heartbeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
     private HashMap messageQueue = new HashMap();
-
+    private int[] resendRange = new int[]{ 0, 0 };
+    private boolean resetSent;
+    private boolean resetReceived;
+    
     public boolean isConnected() {
         return connected;
     }
@@ -173,14 +180,15 @@ public class SessionState {
     public void clearTestRequestCounter() {
         testRequestCounter = 0;
     }
-    
+
     public void incrementTestRequestCounter() {
         testRequestCounter++;
     }
-    
+
     public boolean isTestRequestNeeded() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
-        return millisSinceLastReceivedTime >= (1.2 * (getTestRequestCounter() + 1)) * heartbeatMillis;
+        return millisSinceLastReceivedTime >= (1.2 * (getTestRequestCounter() + 1))
+                * heartbeatMillis;
     }
 
     private long timeSinceLastReceivedMessage() {
@@ -268,8 +276,36 @@ public class SessionState {
         try {
             messageStore.reset();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new RuntimeError(e);
         }
+    }
+
+    public void setResendRange(int low, int high) {
+        resendRange[0] = low;
+        resendRange[1] = high;
+    }
+    
+    public boolean isResendRequested() {
+        return !(resendRange[0] == 0 && resendRange[1] == 0);
+    }
+
+    public int[] getResendRange() {
+        return resendRange;
+    }
+
+    public boolean isResetReceived() {
+        return resetReceived;
+    }
+
+    public void setResetReceived(boolean resetReceived) {
+        this.resetReceived = resetReceived;
+    }
+
+    public boolean isResetSent() {
+        return resetSent;
+    }
+
+    public void setResetSent(boolean resetSent) {
+        this.resetSent = resetSent;
     }
 }

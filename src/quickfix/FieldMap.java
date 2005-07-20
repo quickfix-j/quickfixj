@@ -1,57 +1,64 @@
-/*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
- ******************************************************************************/
+/****************************************************************************
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+**
+** This file is part of the QuickFIX FIX Engine
+**
+** This file may be distributed under the terms of the quickfixengine.org
+** license as defined by quickfixengine.org and appearing in the file
+** LICENSE included in the packaging of this file.
+**
+** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+**
+** See http://www.quickfixengine.org/LICENSE for licensing information.
+**
+** Contact ask@quickfixengine.org if any conditions of this licensing are
+** not clear to you.
+**
+****************************************************************************/
 
 package quickfix;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.SessionRejectReason;
+import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DoubleConverter;
+import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.UtcDateOnlyConverter;
+import quickfix.field.converter.UtcTimeOnlyConverter;
+import quickfix.field.converter.UtcTimestampConverter;
 
-public abstract class FieldMap {
+public abstract class FieldMap implements Serializable{
     private final int[] fieldOrder;
     private final TreeMap fields;
     private final TreeMap groups = new TreeMap();
 
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        //fields = new TreeMap(new FieldOrderComparator());
-        fields = new TreeMap(/*new FieldOrderComparator()*/);
+        fields = new TreeMap(fieldOrder != null ? new FieldOrderComparator() : null);
     }
 
     protected FieldMap() {
-        fieldOrder = null;
-        fields = new TreeMap();
+        this(null);
     }
 
     protected int[] getFieldOrder() {
         return fieldOrder;
     }
 
-    private class FieldOrderComparator implements Comparator {
+    private class FieldOrderComparator implements Comparator, Serializable {
 
         public int compare(Object o1, Object o2) {
             Integer tag1 = (Integer) o1;
@@ -83,22 +90,22 @@ public abstract class FieldMap {
     }
 
     public void setBoolean(int field, boolean value) {
-        String s = FieldValueConverter.BooleanConverter.convert(value);
+        String s = BooleanConverter.convert(value);
         setField(new StringField(field, s));
     }
 
     public void setChar(int field, char value) {
-        String s = FieldValueConverter.CharConverter.convert(value);
+        String s = CharConverter.convert(value);
         setField(new StringField(field, s));
     }
 
     public void setInt(int field, int value) {
-        String s = FieldValueConverter.IntConverter.convert(value);
+        String s = IntConverter.convert(value);
         setField(new StringField(field, s));
     }
 
     public void setDouble(int field, double value) {
-        String s = FieldValueConverter.DoubleConverter.convert(value);
+        String s = DoubleConverter.convert(value);
         setField(new StringField(field, s));
     }
 
@@ -107,7 +114,7 @@ public abstract class FieldMap {
     }
 
     public void setUtcTimeStamp(int field, Date value, boolean includeMilliseconds) {
-        String s = FieldValueConverter.UtcTimestampConverter.convert(value, includeMilliseconds);
+        String s = UtcTimestampConverter.convert(value, includeMilliseconds);
         setField(new StringField(field, s));
     }
 
@@ -115,12 +122,12 @@ public abstract class FieldMap {
         setUtcTimeOnly(field, value, false);
     }
     public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) {
-        String s = FieldValueConverter.UtcTimeOnlyConverter.convert(value, includeMillseconds);
+        String s = UtcTimeOnlyConverter.convert(value, includeMillseconds);
         setField(new StringField(field, s));
     }
 
     public void setUtcDateOnly(int field, Date value) {
-        String s = FieldValueConverter.UtcDateOnlyConverter.convert(value, true);
+        String s = UtcDateOnlyConverter.convert(value);
         setField(new StringField(field, s));
     }
 
@@ -147,7 +154,7 @@ public abstract class FieldMap {
     public boolean getBoolean(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.BooleanConverter.convert(value);
+            return BooleanConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -156,7 +163,7 @@ public abstract class FieldMap {
     public char getChar(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.CharConverter.convert(value);
+            return CharConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -165,7 +172,7 @@ public abstract class FieldMap {
     public int getInt(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.IntConverter.convert(value);
+            return IntConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -174,7 +181,7 @@ public abstract class FieldMap {
     public double getDouble(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.DoubleConverter.convert(value);
+            return DoubleConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -183,7 +190,7 @@ public abstract class FieldMap {
     public Date getUtcTimeStamp(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcTimestampConverter.convert(value, false);
+            return UtcTimestampConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -192,7 +199,7 @@ public abstract class FieldMap {
     public Date getUtcTimeOnly(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcTimeOnlyConverter.convert(value);
+            return UtcTimeOnlyConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -201,7 +208,7 @@ public abstract class FieldMap {
     public Date getUtcDateOnly(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
-            return FieldValueConverter.UtcDateOnlyConverter.convert(value);
+            return UtcDateOnlyConverter.convert(value);
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -254,7 +261,7 @@ public abstract class FieldMap {
     public BooleanField getField(BooleanField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Boolean(FieldValueConverter.BooleanConverter.convert(value)));
+            field.setObject(new Boolean(BooleanConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -266,7 +273,7 @@ public abstract class FieldMap {
     public CharField getField(CharField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Character(FieldValueConverter.CharConverter.convert(value)));
+            field.setObject(new Character(CharConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -278,7 +285,7 @@ public abstract class FieldMap {
     public IntField getField(IntField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Integer(FieldValueConverter.IntConverter.convert(value)));
+            field.setObject(new Integer(IntConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -290,7 +297,7 @@ public abstract class FieldMap {
     public DoubleField getField(DoubleField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(new Double(FieldValueConverter.DoubleConverter.convert(value)));
+            field.setObject(new Double(DoubleConverter.convert(value)));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -302,8 +309,7 @@ public abstract class FieldMap {
     public UtcTimeStampField getField(UtcTimeStampField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            // TODO - Determine how to use calculate days...
-            field.setObject(FieldValueConverter.UtcTimestampConverter.convert(value, false));
+            field.setObject(UtcTimestampConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -315,7 +321,7 @@ public abstract class FieldMap {
     public UtcTimeOnlyField getField(UtcTimeOnlyField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(FieldValueConverter.UtcTimeOnlyConverter.convert(value));
+            field.setObject(UtcTimeOnlyConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -327,7 +333,7 @@ public abstract class FieldMap {
     public UtcDateOnlyField getField(UtcDateOnlyField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(FieldValueConverter.UtcDateOnlyConverter.convert(value));
+            field.setObject(UtcDateOnlyConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -357,11 +363,17 @@ public abstract class FieldMap {
         return fields.values().iterator();
     }
 
-    protected void initializeFrom(FieldMap target) {
-        target.fields.clear();
-        target.fields.putAll(fields);
+    protected void initializeFrom(FieldMap source) {
+        fields.clear();
+        fields.putAll(source.fields);
     }
 
+    // Patch from David VINCENT
+    private boolean isGroupField(int field) {
+        return groups.get(new Integer(field)) != null;
+    }
+    // End Patch from David VINCENT
+    
     void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {
         if (preFields != null) {
             for (int i = 0; i < preFields.length; i++) {
@@ -372,10 +384,29 @@ public abstract class FieldMap {
         }
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
+            // Patch from David VINCENT
             if (!isOrderedField(field.getField(), preFields)
-                    && !isOrderedField(field.getField(), postFields)) {
+                    && !isOrderedField(field.getField(), postFields) 
+                        && !isGroupField(field.getField())) {
+             // End Patch from David VINCENT
                 field.toString(buffer);
                 buffer.append('\001');
+            }
+        }
+        
+        for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            List mygroups = (List)entry.getValue();
+            IntField groupField = new IntField(((Integer)entry.getKey()).intValue());
+            groupField.setValue(mygroups.size());
+            groupField.toString(buffer);
+            buffer.append('\001');
+            // Acceptance test copies message with group length field already present
+            // This causes two fields to be sent.
+            //buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
+            for (int i = 0; i < mygroups.size(); i++) {
+                FieldMap groupFields = (FieldMap)mygroups.get(i);
+                groupFields.calculateString(buffer, preFields, postFields);
             }
         }
         if (postFields != null) {
@@ -409,22 +440,16 @@ public abstract class FieldMap {
             result += field.getLength();
         }
 
-        Iterator iterator = groups.values().iterator();
+        Iterator iterator = groups.entrySet().iterator();
         while (iterator.hasNext()) {
-            List groupList = (List)iterator.next();
+            Map.Entry entry = (Map.Entry)iterator.next();
+            List groupList = (List)entry.getValue();
             for (int i = 0; i < groupList.size(); i++) {
                 Group group = (Group)groupList.get(i);
                 result += group.calculateLength();
             }
         }
         
-        //      Groups::const_iterator j;
-        //      for ( j = m_groups.begin(); j != m_groups.end(); ++j )
-        //      {
-        //        std::vector < FieldMap* > ::const_iterator k;
-        //        for ( k = j->second.begin(); k != j->second.end(); ++k )
-        //          result += ( *k ) ->calculateLength();
-        //      }
         return result;
 
     }
@@ -440,13 +465,6 @@ public abstract class FieldMap {
             result += field.getTotal();
         }
 
-        //      Groups::const_iterator j;
-        //      for ( j = m_groups.begin(); j != m_groups.end(); ++j )
-        //      {
-        //        std::vector < FieldMap* > ::const_iterator k;
-        //        for ( k = j->second.begin(); k != j->second.end(); ++k )
-        //          result += ( *k ) ->calculateTotal();
-        //      }
         return result;
     }
 
@@ -458,8 +476,12 @@ public abstract class FieldMap {
         return groups.keySet().iterator();
     }
     
+    Map getGroups() {
+        return groups;
+    }
+    
     public void addGroup(Group group) {
-        getGroups(group.getField()).add(new Group(group));
+        getGroups(group.getFieldTag()).add(new Group(group));
     }
 
     /*package*/ List getGroups(int field) {
@@ -472,9 +494,9 @@ public abstract class FieldMap {
     }
 
     public Group getGroup(int num, Group group) throws FieldNotFound {
-        List groupList = getGroups(group.getField());
+        List groupList = getGroups(group.getFieldTag());
         if (num > groupList.size()) {
-            throw new FieldNotFound(group.getField() + ", index=" + num);
+            throw new FieldNotFound(group.getFieldTag() + ", index=" + num);
         }
         group.setFields((Group) groupList.get(num - 1));
         return group;

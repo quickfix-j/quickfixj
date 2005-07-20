@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -25,8 +25,6 @@ import net.gleamynode.netty2.SessionListener;
 
 /**
  * Default implementation for Netty SessionListener
- * 
- * @author sbate
  * 
  * @see net.gleamynode.netty2.SessionListener
  */

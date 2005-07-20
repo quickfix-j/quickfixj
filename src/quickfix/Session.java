@@ -1,20 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
+ * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
+ * file is part of the QuickFIX FIX Engine * * This file may be distributed
+ * under the terms of the quickfixengine.org * license as defined by
+ * quickfixengine.org and appearing in the file * LICENSE included in the
+ * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
+ * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
+ * licensing information. * * Contact ask@quickfixengine.org if any conditions
+ * of this licensing are * not clear to you. *
  ******************************************************************************/
 
 package quickfix;
@@ -26,6 +19,7 @@ import java.util.HashMap;
 
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
+import quickfix.field.BusinessRejectReason;
 import quickfix.field.EncryptMethod;
 import quickfix.field.EndSeqNo;
 import quickfix.field.GapFillFlag;
@@ -38,6 +32,7 @@ import quickfix.field.PossDupFlag;
 import quickfix.field.RefMsgType;
 import quickfix.field.RefSeqNum;
 import quickfix.field.RefTagID;
+import quickfix.field.ResetSeqNumFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionRejectReason;
@@ -46,6 +41,103 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 
 public class Session {
+    /**
+     * Session setting for heartbeat interval (in seconds).
+     */
+    public static final String SETTING_HEARTBTINT = "HeartBtInt";
+
+    /**
+     * Session setting for enabling message latency checks. Values are "Y" or
+     * "N".
+     */
+    public static final String SETTING_CHECK_LATENCY = "CheckLatency";
+
+    /**
+     * Session setting for maximum message latency (in seconds).
+     */
+    public static final String SETTING_MAX_LATENCY = "MaxLatency";
+
+    /**
+     * Session scheduling setting to specify first day of trading week.
+     */
+    public static final String SETTING_START_DAY = "StartDay";
+
+    /**
+     * Session scheduling setting to specify last day of trading week.
+     */
+    public static final String SETTING_END_DAY = "EndDay";
+
+    /**
+     * Session scheduling setting to specify starting time of the trading day.
+     */
+    public static final String SETTING_START_TIME = "StartTime";
+
+    /**
+     * Session scheduling setting to specify end time of the trading day.
+     */
+    public static final String SETTING_END_TIME = "EndTime";
+
+    /**
+     * Session setting to indicate whether a data dictionary should be used. If
+     * a data dictionary is not used then message validation is not possble.
+     */
+    public static final String SETTING_USE_DATA_DICTIONARY = "UseDataDictionary";
+
+    /**
+     * Session setting specifying the path to the data dictionary to use for
+     * this session. This setting supports the possibility of a custom data
+     * dictionary for each session. Normally, the default data dictionary for a
+     * specific FIX version will be specified.
+     */
+    public static final String SETTING_DATA_DICTIONARY = "DataDictionary";
+
+    /**
+     * Session validation setting for enabling whether field ordering is
+     * validated. Values are "Y" or "N". Default is "Y".
+     */
+    public static final String SETTING_VALIDATE_FIELDS_OUT_OF_ORDER = "ValidateFieldsOutOfOrder";
+
+    /**
+     * Session validation setting for enabling whether field values are
+     * validated. Empty fields values are not allowed. Values are "Y" or "N".
+     * Default is "Y".
+     */
+    public static final String SETTING_VALIDATE_FIELDS_HAVE_VALUES = "ValidateFieldsHaveValues";
+
+    /**
+     * Session setting for logon timeout (in seconds).
+     */
+    public static final String SETTING_LOGON_TIMEOUT = "LogonTimeout";
+
+    /**
+     * Session setting for doing an automatic sequence number reset on logout.
+     * Valid values are "Y" or "N". Default is "N".
+     */
+    public static final String SETTING_RESET_ON_LOGOUT = "ResetOnLogout";
+
+    /**
+     * Session setting for doing an automatic sequence number reset on
+     * disconnect. Valid values are "Y" or "N". Default is "N".
+     */
+    public static final String SETTING_RESET_ON_DISCONNECT = "ResetOnDisconnect";
+
+    /**
+     * Session setting to enable milliseconds in message timestamps. Valid
+     * values are "Y" or "N". Default is "Y". Only valid for FIX version >= 4.2.
+     */
+    public static final String SETTING_MILLISECONDS_IN_TIMESTAMP = "MillisecondsInTimeStamp";
+
+    /**
+     * Controls validation of user-defined fields.
+     */
+    public static final String SETTING_VALIDATE_USER_DEFINED_FIELDS = "ValidateUserDefinedFields";
+
+    /**
+     * Session setting that causes the session to reset sequence numbers when initiating
+     * a logon (>= FIX 4.2).
+     */
+    public static final String SETTING_RESET_WHEN_INITIATING_LOGON = "SendResetSeqNumFlag";
+
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -53,7 +145,6 @@ public class Session {
     private SessionSchedule sessionSchedule;
     private MessageFactory messageFactory;
     private SessionState state = new SessionState();
-
     private static HashMap sessions = new HashMap();
     private boolean enabled;
     private boolean checkLatency;
@@ -61,6 +152,7 @@ public class Session {
     private boolean resetOnLogout;
     private boolean resetOnDisconnect;
     private boolean millisecondsInTimeStamp;
+    private boolean resetWhenInitiatingLogon;
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
@@ -75,6 +167,7 @@ public class Session {
             maxLatency = 120;
             resetOnLogout = false;
             resetOnDisconnect = false;
+            resetWhenInitiatingLogon = false;
             millisecondsInTimeStamp = true;
             this.dataDictionary = dataDictionary;
             state.setHeartBeatInterval(heartbeatInterval);
@@ -84,7 +177,7 @@ public class Session {
             if (logFactory != null) {
                 state.setLog(log);
             }
-            if (!checkSessionTime(new Date())) {
+            if (!checkSessionTime()) {
                 reset();
             }
             sessions.put(sessionID, this);
@@ -95,58 +188,176 @@ public class Session {
         }
     }
 
+    /**
+     * Registers a responder with the session. This is used by the acceptor and
+     * initiator implementations.
+     * 
+     * @param responder
+     *            a responder implementation
+     */
     public void setResponder(Responder responder) {
         this.responder = responder;
     }
+    
+    /**
+     * This should not be used by end users.
+     * @return the Session's connection responder
+     */
+    public Responder getResponder() {
+        return responder;
+    }
 
+    private boolean checkSessionTime() throws IOException {
+        return checkSessionTime(SystemTime.getDate());
+    }
+    
+    //
+    // The session time checks were causing performance problems
+    // so we are caching the last session time check result and
+    // only recalculating it if it's been at least 1 second since
+    // the last check
+    //
+    private long lastSessionTimeCheck = 0;
+    private boolean lastSessionTimeResult = false;
+    
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
             return true;
         }
-        return sessionSchedule.isSameSession(TimeUtil.getUtcCalendar(date), TimeUtil
-                .getUtcCalendar(state.getCreationTime()));
+        if ((date.getTime() - lastSessionTimeCheck) > 1000L) {
+            lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date), SystemTime
+                    .getUtcCalendar(state.getCreationTime()));
+            lastSessionTimeCheck = date.getTime();
+            return lastSessionTimeResult;
+        } else {
+            return lastSessionTimeResult;
+        }
     }
 
-    public static boolean sendToTarget(Message message) throws SessionNotFoundException {
+    /**
+     * Send a message to the session specified in the message's target
+     * identifiers.
+     * 
+     * @param message
+     *            a FIX message
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
+    public static boolean sendToTarget(Message message) throws SessionNotFound {
         return sendToTarget(message, "");
     }
 
-    public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFoundException {
+    /**
+     * Send a message to the session specified in the message's target
+     * identifiers. The session qualifier is used to distinguish sessions with
+     * the same target identifiers.
+     * 
+     * @param message
+     *            a FIX message
+     * @param qualifier
+     *            a session qualifier
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
+    public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFound {
         try {
             String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
             String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
             return sendToTarget(message, senderCompID, targetCompID, qualifier);
-        } catch (SessionNotFoundException e) {
+        } catch (SessionNotFound e) {
             throw e;
         } catch (FieldNotFound e) {
-            throw new SessionNotFoundException("missing sender or target company ID");
+            throw new SessionNotFound("missing sender or target company ID");
         }
     }
 
+    /**
+     * Send a message to the session specified by the provided target company
+     * ID. The sender company ID is provided as an argument rather than from the
+     * message.
+     * 
+     * @param message
+     *            a FIX message
+     * @param senderCompID
+     *            the sender's company ID
+     * @param targetCompID
+     *            the target's company ID
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID)
-            throws SessionNotFoundException {
+            throws SessionNotFound {
         return sendToTarget(message, senderCompID, targetCompID, "");
     }
 
+    /**
+     * Send a message to the session specified by the provided target company
+     * ID. The sender company ID is provided as an argument rather than from the
+     * message. The session qualifier is used to distinguish sessions with the
+     * same target identifiers.
+     * 
+     * @param message
+     *            a FIX message
+     * @param senderCompID
+     *            the sender's company ID
+     * @param targetCompID
+     *            the target's company ID
+     * @param qualifier
+     *            a session qualifier
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-            String qualifier) throws SessionNotFoundException {
-        return sendToTarget(message, new SessionID(FixVersions.BEGINSTRING_FIX42, senderCompID,
-                targetCompID, qualifier));
+            String qualifier) throws SessionNotFound {
+        try {
+            return sendToTarget(message, new SessionID(message.getHeader().getString(BeginString.FIELD), senderCompID,
+                    targetCompID, qualifier));
+        } catch (SessionNotFound e) {
+            throw e;
+        } catch (Exception e) {
+            throw new SessionException(e);
+        }
     }
 
-    public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFoundException {
+    /**
+     * Send a message to the session specified by the provided session ID.
+     * 
+     * @param message
+     *            a FIX message
+     * @param sessionID
+     *            the target SessionID
+     * @return true is send was successful, false otherwise
+     * @throws SessionNotFound
+     *             if session could not be located
+     */
+    public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFound {
         message.setSessionID(sessionID);
         Session session = lookupSession(sessionID);
         if (session == null) {
-            throw new SessionNotFoundException();
+            throw new SessionNotFound();
         }
         return session.send(message);
     }
 
+    /**
+     * Locates a session specified by the provided session ID.
+     * 
+     * @param sessionID
+     *            the session ID
+     * @return the session, if found, or null otherwise
+     */
     public static Session lookupSession(SessionID sessionID) {
         return (Session) sessions.get(sessionID);
     }
 
+    /**
+     * This method can be used to manually logon to a FIX session.
+     * 
+     */
     public void logon() {
         enabled = true;
     }
@@ -161,46 +372,109 @@ public class Session {
     }
 
     private void insertSendingTime(Message.Header header) {
-        header.setUtcTimeStamp(SendingTime.FIELD, new Date(), millisecondsInTimeStamp);
+        boolean includeMillis = sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
+                && millisecondsInTimeStamp;
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), includeMillis);
     }
 
+    /**
+     * This method can be used to manually logout of a FIX session.
+     */
     public void logout() {
         enabled = false;
     }
 
+    /**
+     * Used internally by initiator implementation.
+     * 
+     * @return true if session is enabled, false otherwise.
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Predicate indicatign whether a logon message has been sent.
+     * 
+     * @return true if logon message was sent, false otherwise.
+     */
     public boolean sentLogon() {
         return state.isLogonSent();
     }
 
-    public boolean sentLogout() {
-        return state.isLogoutSent();
-    }
-
+    /**
+     * Predicate indicatign whether a logon message has been received.
+     * 
+     * @return true if logon message was received, false otherwise.
+     */
     public boolean receivedLogon() {
         return state.isLogonReceived();
+    }
+
+    /**
+     * Predicate indicatign whether a logout message has been sent.
+     * 
+     * @return true if logout message was sent, false otherwise.
+     */
+    public boolean sentLogout() {
+        return state.isLogoutSent();
     }
 
     public boolean isLoggedOn() {
         return sentLogon() && receivedLogon();
     }
 
+    private boolean isResetOnLogonRequested() {
+        return sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX41) >= 0
+                && (resetWhenInitiatingLogon || resetOnLogout || resetOnDisconnect)
+                && getExpectedSenderNum() == 1 && getExpectedTargetNum() == 1;
+    }
+
+    /**
+     * Disconnects session and resets session state.
+     * 
+     * @throws IOException
+     *             IO error
+     * @see #disconnect()
+     * @see SessionState#reset()
+     */
     public void reset() throws IOException {
         disconnect();
         state.reset();
     }
 
+    /**
+     * Set the next outgoing message sequence number. This method is not
+     * synchronized.
+     * 
+     * @param num
+     *            next outgoing sequence number
+     * @throws IOException
+     *             IO error
+     */
     public void setNextSenderMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextSenderMsgSeqNum(num);
     }
 
+    /**
+     * Set the next expected target message sequence number. This method is not
+     * synchronized.
+     * 
+     * @param num
+     *            next expected target sequence number
+     * @throws IOException
+     *             IO error
+     */
     public void setNextTargetMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextTargetMsgSeqNum(num);
     }
 
+    /**
+     * Retrieves the expected sender sequence number. This method is not
+     * synchronized.
+     * 
+     * @return next expected sender sequence number
+     */
     public int getExpectedSenderNum() {
         try {
             return state.getMessageStore().getNextSenderMsgSeqNum();
@@ -210,6 +484,12 @@ public class Session {
         }
     }
 
+    /**
+     * Retrieves the expected target sequence number. This method is not
+     * synchronized.
+     * 
+     * @return next expected target sequence number
+     */
     public int getExpectedTargetNum() {
         try {
             return state.getMessageStore().getNextTargetMsgSeqNum();
@@ -227,27 +507,27 @@ public class Session {
         return state.getMessageStore();
     }
 
-    public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
-            IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
+    public synchronized void next(Message message) throws FieldNotFound, RejectLogon,
+            IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException,
+            InvalidMessage {
         state.setConnected(true);
 
-        Date now = new Date();
-        if (!checkSessionTime(now)) {
+        if (!checkSessionTime()) {
             reset();
-            if (!checkSessionTime(now)) {
-                return;
-            }
+            return;
         }
 
+        String msgType = message.getHeader().getString(MsgType.FIELD);
         try {
-            String msgType = message.getHeader().getString(MsgType.FIELD);
             String beginString = message.getHeader().getString(BeginString.FIELD);
 
             if (!beginString.equals(sessionID.getBeginString())) {
                 throw new UnsupportedVersion();
             }
 
-            dataDictionary.validate(message);
+            if (dataDictionary != null) {
+                dataDictionary.validate(message);
+            }
 
             if (msgType.equals(MsgType.LOGON)) {
                 nextLogon(message);
@@ -256,7 +536,7 @@ public class Session {
             } else if (msgType.equals(MsgType.TEST_REQUEST)) {
                 nextTestRequest(message);
             } else if (msgType.equals(MsgType.SEQUENCE_RESET)) {
-                nextSequenceRequest(message);
+                nextSequenceReset(message);
             } else if (msgType.equals(MsgType.LOGOUT)) {
                 nextLogout(message);
             } else if (msgType.equals(MsgType.RESEND_REQUEST)) {
@@ -272,13 +552,35 @@ public class Session {
         } catch (FieldException e) {
             generateReject(message, e.getSessionRejectReason(), e.getField());
         } catch (FieldNotFound e) {
-            generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
-        } catch (InvalidMessageType e) {
-            generateReject(message, SessionRejectReason.INVALID_MSGTYPE, 0);
+            if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
+                    && message.isApp()) {
+                generateBusinessReject(message,
+                        BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING);
+            } else {
+                generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
+                if (msgType.equals(MsgType.LOGON)) {
+                    state.logEvent("Required field missing from logon");
+                    disconnect();
+                }
+            }
+        } catch (IncorrectTagValue e) {
+            // TODO QUESTION Why is incorrect tag value being rejected as incorrect tag number?
+            generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
         } catch (InvalidMessage e) {
             state.logEvent("Skipping invalid message: " + e.getMessage());
+        } catch (RejectLogon e) {
+            // TODO TEST need a test for RejectLogon exception
+            String rejectMessage = e.getMessage() != null ? (": " + e.getMessage()) : "";
+            state.getLog().onEvent("Logon rejected" + rejectMessage);
+            generateLogout(e.getMessage());
+            disconnect();
+        } catch (UnsupportedMessageType e) {
+            if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+                generateBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE);
+            } else {
+                generateReject(message, "Unsupported message type");
+            }
         } catch (UnsupportedVersion e) {
-            String msgType = message.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGOUT)) {
                 nextLogout(message);
             } else {
@@ -294,7 +596,9 @@ public class Session {
         }
 
         nextQueued();
-        next();
+        if (isLoggedOn()) {
+            next();
+        }
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -341,7 +645,7 @@ public class Session {
                 begin = current;
             }
 
-            if (Message.isAdminMsgType(msgType)) {
+            if (msgType.length() == 1 && "0A12345".indexOf(msgType) != -1) {
                 if (begin == 0) {
                     begin = msgSeqNum;
                 }
@@ -387,7 +691,7 @@ public class Session {
                 MsgType.SEQUENCE_RESET);
         int newSeqNo = endSeqNo;
         sequenceReset.getHeader().setBoolean(PossDupFlag.FIELD, true);
-        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, new Date());
+        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, SystemTime.getDate());
         sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
         initializeHeader(sequenceReset.getHeader());
         sequenceReset.getHeader().setInt(MsgSeqNum.FIELD, beginSeqNo);
@@ -419,7 +723,7 @@ public class Session {
         if (!state.isLogoutSent()) {
             state.logEvent("Received logout request");
             generateLogout();
-            state.logEvent("Sending logout response");
+            state.logEvent("Sent logout response");
         } else {
             state.logEvent("Received logout response");
         }
@@ -446,7 +750,7 @@ public class Session {
         state.setLogoutSent(true);
     }
 
-    private void nextSequenceRequest(Message sequenceReset) throws IOException, RejectLogon,
+    private void nextSequenceReset(Message sequenceReset) throws IOException, RejectLogon,
             FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         boolean isGapFill = false;
         if (sequenceReset.isSetField(GapFillFlag.FIELD)) {
@@ -463,43 +767,76 @@ public class Session {
             state.logEvent("Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
                     + newSequence);
 
-            if (newSequence > getExpectedTargetNum())
+            if (newSequence > getExpectedTargetNum()) {
                 state.setNextTargetMsgSeqNum(newSequence);
-            else if (newSequence < getExpectedTargetNum())
+            } else if (newSequence < getExpectedTargetNum()) {
                 generateReject(sequenceReset, 5, 0);
+            }
         }
-
     }
 
-    public void generateReject(Message message, int err, int field) throws IOException,
-            FieldNotFound {
-        if (!state.isLogonReceived()) {
-            throw new SessionException("Tried to send a reject while not logged on");
-        }
-
+    public void generateReject(Message message, String str) throws FieldNotFound, IOException {
         String beginString = sessionID.getBeginString();
-
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
-        int msgSeqNum;
-        String msgType;
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
 
-        msgSeqNum = 0;
-        msgType = null;
-        boolean possDupFlag = false;
+        String msgType = message.getHeader().getString(MsgType.FIELD);
+        String msgSeqNum = message.getHeader().getString(MsgSeqNum.FIELD);
+        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+            reject.setString(RefMsgType.FIELD, msgType);
+        }
+        reject.setString(RefSeqNum.FIELD, msgSeqNum);
 
-        msgType = message.getHeader().getString(MsgType.FIELD);
+        if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)) {
+            state.incrNextTargetMsgSeqNum();
+        }
+
+        reject.setString(Text.FIELD, str);
+        sendRaw(reject, 0);
+        state.getLog().onEvent("Message " + msgSeqNum + " Rejected: " + str);
+
+    }
+
+    private void generateReject(Message message, int err, int field) throws IOException,
+            FieldNotFound {
+        String reason = SessionRejectReasonText.getMessage(err);
+        if (!state.isLogonReceived()) {
+            String errorMessage = "Tried to send a reject while not logged on: " + reason
+                    + " (field " + field + ")";
+            // TODO TEST The C++ code doesn't throw an exception, but the AT
+            // expects a disconnect (???)
+            //    state.logEvent(errorMessage);
+            //    return;
+            throw new SessionException(errorMessage);
+
+        }
+
+        String beginString = sessionID.getBeginString();
+        Message reject = messageFactory.create(beginString, MsgType.REJECT);
+        reject.reverseRoute(message.getHeader());
+        initializeHeader(reject.getHeader());
+
+        String msgType = "";
+        if (message.getHeader().isSetField(MsgType.FIELD)) {
+            msgType = message.getHeader().getString(MsgType.FIELD);
+        }
+
+        int msgSeqNum = 0;
         if (message.getHeader().isSetField(MsgSeqNum.FIELD)) {
             msgSeqNum = message.getHeader().getInt(MsgSeqNum.FIELD);
+            reject.setInt(RefSeqNum.FIELD, msgSeqNum);
         }
+
+        boolean possDupFlag = false;
         if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
             possDupFlag = message.getHeader().getBoolean(PossDupFlag.FIELD);
         }
 
-        reject.setInt(RefSeqNum.FIELD, msgSeqNum);
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
-            reject.setString(RefMsgType.FIELD, msgType);
+            if (!msgType.equals("")) {
+                reject.setString(RefMsgType.FIELD, msgType);
+            }
             if ((beginString.equals(FixVersions.BEGINSTRING_FIX42) && err <= SessionRejectReason.INVALID_MSGTYPE)
                     || beginString.compareTo(FixVersions.BEGINSTRING_FIX42) > 0) {
                 reject.setInt(SessionRejectReason.FIELD, err);
@@ -510,8 +847,7 @@ public class Session {
             state.incrNextTargetMsgSeqNum();
         }
 
-        String reason = SessionRejectReasonText.getMessage(err);
-        if (reason != null && (field != 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
+        if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             populateRejectReason(reject, field, reason);
             state.logEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
         } else if (reason != null) {
@@ -532,8 +868,25 @@ public class Session {
             reject.setInt(RefTagID.FIELD, field);
             reject.setString(Text.FIELD, reason);
         } else {
-            reject.setString(Text.FIELD, "(" + field + ")");
+            reject.setString(Text.FIELD, reason + " (" + field + ")");
         }
+    }
+
+    private void generateBusinessReject(Message message, int err) throws FieldNotFound, IOException {
+        Message reject = messageFactory.create(sessionID.getBeginString(),
+                MsgType.BUSINESS_MESSAGE_REJECT);
+        initializeHeader(reject.getHeader());
+        String msgType = message.getHeader().getString(MsgType.FIELD);
+        String msgSeqNum = message.getHeader().getString(MsgSeqNum.FIELD);
+        reject.setString(RefMsgType.FIELD, msgType);
+        reject.setString(RefSeqNum.FIELD, msgSeqNum);
+        reject.setInt(BusinessRejectReason.FIELD, err);
+        state.incrNextTargetMsgSeqNum();
+
+        String reason = BusinessRejectReasonText.getMessage(err);
+        populateRejectReason(reject, reason);
+        sendRaw(reject, 0);
+        state.getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
     }
 
     private void nextTestRequest(Message testRequest) throws FieldNotFound, RejectLogon,
@@ -582,7 +935,7 @@ public class Session {
             }
 
             if (!validLogonState(msgType)) {
-                throw new RuntimeException("Logon state is not valid for message");
+                throw new SessionException("Logon state is not valid for message");
             }
 
             if (!isGoodTime(sendingTime)) {
@@ -593,6 +946,10 @@ public class Session {
                 doBadCompID(msg);
                 return false;
             }
+
+            state.setLastReceivedTime(System.currentTimeMillis());
+            state.clearTestRequestCounter();
+
             if (checkTooHigh && isTargetTooHigh(msgSeqNum)) {
                 doTargetTooHigh(msg);
                 return false;
@@ -601,8 +958,6 @@ public class Session {
                 return false;
             }
 
-            state.setLastReceivedTime(System.currentTimeMillis());
-            state.clearTestRequestCounter();
         } catch (FieldNotFound e) {
             throw e;
         } catch (Exception e) {
@@ -627,9 +982,7 @@ public class Session {
             String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
                     + " but received " + msgSeqNum;
             generateLogout(text);
-            // Internal exception, causes disconnect
-            // We may want to modify this to an app-specific exception (?)
-            throw new RuntimeException(text);
+            throw new SessionException(text);
         }
 
         return doPossDup(msg);
@@ -655,16 +1008,23 @@ public class Session {
     private void fromCallback(String msgType, Message msg, SessionID sessionID2)
             throws RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
             UnsupportedMessageType {
-        if (Message.isAdminMsgType(msgType)) {
+        if (msgType.length() == 1 && "0A12345".indexOf(msgType) != -1) {
             application.fromAdmin(msg, sessionID);
         } else {
             application.fromApp(msg, sessionID);
         }
     }
 
-    private boolean validLogonState(String msgType) {
+    // This is public for AbstractSocketInitiator
+    public boolean validLogonState(String msgType) {
+        if (msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived()) {
+            return true;
+        }
         if (msgType.equals(MsgType.LOGON) && !state.isLogonReceived()
                 || !msgType.equals(MsgType.LOGON) && state.isLogonReceived()) {
+            return true;
+        }
+        if (!msgType.equals(MsgType.LOGOUT) && state.isLogonSent()) {
             return true;
         }
         if (!msgType.equals(MsgType.LOGOUT) && state.isLogoutSent()) {
@@ -681,18 +1041,26 @@ public class Session {
         return verify(message, true, true);
     }
 
-    public void next() throws IOException {
+    /**
+     * Called from the timer-related code in the acceptor/initiator
+     * implementations. This is not typically called from application code.
+     * 
+     * @throws IOException
+     *             IO error
+     */
+    public synchronized void next() throws IOException {
         if (!enabled) {
-            if (!isLoggedOn()) {
-                if (!state.isLogonSent()) {
+            if (isLoggedOn()) {
+                if (!state.isLogoutSent()) {
                     state.logEvent("Initiated logout request");
                     generateLogout();
                 }
-            } else
+            } else {
                 return;
+            }
         }
 
-        if (!checkSessionTime(new Date())) {
+        if (!checkSessionTime()) {
             reset();
             return;
         }
@@ -753,6 +1121,9 @@ public class Session {
         Message logon = messageFactory.create(sessionID.getBeginString(), MsgType.LOGON);
         logon.setInt(EncryptMethod.FIELD, 0);
         logon.setInt(HeartBtInt.FIELD, state.getHeartBeatInterval());
+        if (isResetOnLogonRequested()) {
+            logon.setBoolean(ResetSeqNumFlag.FIELD, true);
+        }
         initializeHeader(logon.getHeader());
         state.setLastReceivedTime(System.currentTimeMillis());
         state.clearTestRequestCounter();
@@ -760,18 +1131,17 @@ public class Session {
         sendRaw(logon, 0);
     }
 
-    synchronized void disconnect() throws IOException {
+    /**
+     * Logs out from session and closes the network connection.
+     * 
+     * @throws IOException
+     *             IO error
+     */
+    public synchronized void disconnect() throws IOException {
         if (responder != null) {
-            if (!state.isLogoutSent()) {
-                state.logEvent("Dropped Connection");
-            } else {
-                state.logEvent("Disconnecting");
-            }
-
-            if (responder != null) {
-                responder.disconnect();
-                responder = null;
-            }
+            state.logEvent("Disconnecting");
+            responder.disconnect();
+            responder = null;
         }
 
         if (state.isLogonReceived() || state.isLogonSent()) {
@@ -781,36 +1151,51 @@ public class Session {
         }
 
         state.setLogoutSent(false);
+        state.setResetReceived(false);
+        state.setResetSent(false);
+        
         state.clearQueue();
         if (resetOnDisconnect && state.isConnected()) {
             state.setConnected(false);
             reset();
         }
+
+        state.setResendRange(0, 0);
     }
 
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (state.isLogonSendNeeded()) {
+        String senderCompID = logon.getHeader().getString(SenderCompID.FIELD);
+        String targetCompID = logon.getHeader().getString(TargetCompID.FIELD);
+
+        if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
+            state.setResetReceived(logon.getBoolean(ResetSeqNumFlag.FIELD));
+        }
+        
+        if (state.isResetReceived()) {
+            state.logEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
+            if (!state.isResetSent()) {
+                state.reset();
+            }
+        }
+
+        if (state.isLogonSendNeeded() && !state.isResetReceived()) {
             state.logEvent("Received logon response before sending request");
             disconnect();
             return;
         }
 
-        String senderCompID = logon.getHeader().getString(SenderCompID.FIELD);
-        String targetCompID = logon.getHeader().getString(TargetCompID.FIELD);
+        if (!verify(logon, false, true)) {
+            return;
+        }
 
-        boolean verified = verify(logon, false, true);
+        state.setLogonReceived(true);
 
         if (isCorrectCompID(senderCompID, targetCompID)) {
             state.setLogonReceived(true);
         }
 
-        if (!verified) {
-            return;
-        }
-
-        if (!state.isInitiator()) {
-            //int interval = logon.getInt(HeartBtInt.FIELD);
+        if (!state.isInitiator() || (state.isResetSent() && !state.isResetReceived())) {
             state.logEvent("Received logon request");
             generateLogon(logon);
             state.logEvent("Responding to logon request");
@@ -818,6 +1203,9 @@ public class Session {
             state.logEvent("Received logon response");
         }
 
+        state.setResetSent(false);
+        state.setResetReceived(false);
+        
         int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
         if (isTargetTooHigh(sequence)) {
             doTargetTooHigh(logon);
@@ -843,6 +1231,9 @@ public class Session {
         Message msg = state.dequeue(num);
 
         if (msg != null) {
+            if (state.isResendRequested()) {
+                state.setResendRange(0, 0);
+            }
             state.logEvent("Processing QUEUED message: " + num);
             String msgType = msg.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
@@ -858,7 +1249,18 @@ public class Session {
     private void next(String msg) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            next(new Message(msg, dataDictionary));
+            // TODO CLEANUP move message type extraction to Message
+            int typeStart = msg.indexOf("\00135=") + 4;
+            int typeEnd;
+            for (typeEnd = typeStart; typeEnd < msg.length(); typeEnd++) {
+                if (msg.charAt(typeEnd) == '\001') {
+                    break;
+                }
+            }
+            Message message = messageFactory.create(dataDictionary.getVersion(), msg.substring(
+                    typeStart, typeEnd));
+            message.fromString(msg, dataDictionary, false);
+            next(message);
         } catch (InvalidMessage e) {
             String message = e.getMessage();
             state.logEvent(message);
@@ -879,6 +1281,17 @@ public class Session {
                 "MsgSeqNum too high, expecting " + getExpectedTargetNum() + " but received "
                         + msgSeqNum);
         state.enqueue(msgSeqNum, msg);
+        
+        if (state.isResendRequested()) {
+            int[] range = state.getResendRange();
+
+            if (msgSeqNum > range[0] && (range[1] == 0 || msgSeqNum < range[1])) {
+                state.logEvent("Already sent ResendRequest FROM: " + range[0] + " TO: " + range[1]
+                        + ".  Not sending another.");
+                return;
+            }
+        }
+        
         generateResendRequest(beginString, msgSeqNum);
     }
 
@@ -897,6 +1310,7 @@ public class Session {
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
         state.getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
+        state.setResendRange( beginSeqNo, endSeqNo );
     }
 
     private boolean doPossDup(Message msg) throws FieldNotFound, IOException {
@@ -927,6 +1341,9 @@ public class Session {
     private void generateLogon(Message otherLogon) throws FieldNotFound {
         Message logon = messageFactory.create(sessionID.getBeginString(), MsgType.LOGON);
         logon.setInt(EncryptMethod.FIELD, 0);
+        if (state.isResetReceived()) {
+            logon.setBoolean(ResetSeqNumFlag.FIELD, true);
+        }
         logon.setInt(HeartBtInt.FIELD, otherLogon.getInt(HeartBtInt.FIELD));
         initializeHeader(logon.getHeader());
         sendRaw(logon, 0);
@@ -947,11 +1364,25 @@ public class Session {
 
             String messageString = null;
 
-            if (Message.isAdminMsgType(msgType)) {
+            if (message.isAdmin()) {
                 application.toAdmin(message, sessionID);
+
+                if (msgType.equals(MsgType.LOGON) && !state.isResetReceived()) {
+                    boolean resetSeqNumFlag = false;
+                    if (message.isSetField(ResetSeqNumFlag.FIELD)) {
+                        resetSeqNumFlag = message.getBoolean(ResetSeqNumFlag.FIELD);
+                    }
+                    if (resetSeqNumFlag) {
+                        state.reset();
+                        message.getHeader().setInt(MsgSeqNum.FIELD, getExpectedSenderNum());
+                    }
+                    state.setResetSent(resetSeqNumFlag);
+                }
+
                 messageString = message.toString();
-                if (msgType.equals("A") || msgType.equals("5") || msgType.equals("2")
-                        || msgType.equals("4") || isLoggedOn()) {
+                if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.LOGOUT)
+                        || msgType.equals(MsgType.RESEND_REQUEST)
+                        || msgType.equals(MsgType.SEQUENCE_RESET) || isLoggedOn()) {
                     result = send(messageString);
                 }
             } else {
@@ -976,12 +1407,14 @@ public class Session {
             state.logEvent("Error Reading/Writing in MessageStore");
             return false;
         } catch (FieldNotFound e) {
-            state.logEvent("Error accessing message fields");
+            LogUtil.logThrowable(state.getLog(), "Error accessing message fields", e);
             return false;
         }
     }
 
     private boolean send(Message message) {
+        message.getHeader().removeField(PossDupFlag.FIELD);
+        message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
     }
 
@@ -1012,7 +1445,6 @@ public class Session {
         this.resetOnDisconnect = flag;
     }
 
-    // TODO - double check whether this accessor is needed
     public SessionState getState() {
         return state;
     }
@@ -1027,5 +1459,31 @@ public class Session {
 
     public void setMillisecondsInTimestamp(boolean flag) {
         millisecondsInTimeStamp = flag;
+    }
+
+    public SessionID getSessionID() {
+        return sessionID;
+    }
+
+    /**
+     * Predicate for determining if the session should be active at the current
+     * time.
+     * 
+     * @return true if session should be active, false otherwise.
+     */
+    public boolean isSessionTime() {
+        return sessionSchedule.isSessionTime();
+    }
+
+    void setResetWhenInitiatingLogon(boolean flag) {
+        resetWhenInitiatingLogon = flag;
+    }
+
+    /**
+     * Returns the application instance for this session
+     * @return application instance
+     */
+    public Application getApplication() {
+        return application;
     }
 }

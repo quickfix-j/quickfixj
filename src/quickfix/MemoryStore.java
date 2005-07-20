@@ -1,21 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
- ******************************************************************************/
+/****************************************************************************
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
@@ -24,68 +24,83 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TimeZone;
 
+/**
+ * In-memory message store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
+ * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
+ * FACTORY.
+ * 
+ * @see quickfix.MemoryStoreFactory
+ */
 public class MemoryStore implements MessageStore {
-	private HashMap messages = new HashMap();
-	private int nextSenderMsgSeqNum;
-	private int nextTargetMsgSeqNum;
-	private Calendar creationTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    private HashMap messages = new HashMap();
+    private int nextSenderMsgSeqNum;
+    private int nextTargetMsgSeqNum;
+    private Calendar creationTime = SystemTime.getUtcCalendar();
 
-	public MemoryStore() {
-	    reset();
-	}
-	
-	public void get(int startSequence, int endSequence, Collection messages)
-			throws IOException {
-		for (int i = startSequence; i <= endSequence; i++) {
-			String message = (String)this.messages.get(new Integer(i));
-			if (message != null) {
-				messages.add(message);
-			}
-		}
-	}
+    MemoryStore() throws IOException {
+        reset();
+    }
 
-	public Date getCreationTime() {
-		return creationTime.getTime();
-	}
+    public void get(int startSequence, int endSequence, Collection messages) throws IOException {
+        for (int i = startSequence; i <= endSequence; i++) {
+            String message = (String) this.messages.get(new Integer(i));
+            if (message != null) {
+                messages.add(message);
+            }
+        }
+    }
 
-    public void setCreationTime(Calendar creationTime) {
+    /**
+     * This method is here for JNI API consistency but it's not 
+     * implemented. Use get(int, int, Collection) with the same 
+     * start and end sequence.
+     * 
+     */
+    public boolean get(int sequence, String message) throws IOException {
+        throw new UnsupportedOperationException("not supported");
+    }
+
+    public Date getCreationTime() throws IOException {
+        return creationTime.getTime();
+    }
+
+    /* package */void setCreationTime(Calendar creationTime) {
         this.creationTime = creationTime;
     }
-    
-	public int getNextSenderMsgSeqNum() {
-		return nextSenderMsgSeqNum;
-	}
 
-	public int getNextTargetMsgSeqNum() {
-		return nextTargetMsgSeqNum;
-	}
+    public int getNextSenderMsgSeqNum() throws IOException {
+        return nextSenderMsgSeqNum;
+    }
 
-	public void incrNextSenderMsgSeqNum() {
-		setNextSenderMsgSeqNum(getNextSenderMsgSeqNum()+1);
-	}
+    public int getNextTargetMsgSeqNum() throws IOException {
+        return nextTargetMsgSeqNum;
+    }
 
-	public void incrNextTargetMsgSeqNum() {
-		setNextTargetMsgSeqNum(getNextTargetMsgSeqNum()+1);
-	}
+    public void incrNextSenderMsgSeqNum() throws IOException {
+        setNextSenderMsgSeqNum(getNextSenderMsgSeqNum() + 1);
+    }
 
-	public void reset() {
-		setNextSenderMsgSeqNum(1);
-		setNextTargetMsgSeqNum(1);
-		messages.clear();
-		creationTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-	}
+    public void incrNextTargetMsgSeqNum() throws IOException {
+        setNextTargetMsgSeqNum(getNextTargetMsgSeqNum() + 1);
+    }
 
-	public boolean set(int sequence, String message) {
-		return messages.put(new Integer(sequence), message) == null;
-	}
+    public void reset() throws IOException {
+        setNextSenderMsgSeqNum(1);
+        setNextTargetMsgSeqNum(1);
+        messages.clear();
+        creationTime = SystemTime.getUtcCalendar();
+    }
 
-	public void setNextSenderMsgSeqNum(int next) {
-		nextSenderMsgSeqNum = next;
-	}
+    public boolean set(int sequence, String message) throws IOException {
+        return messages.put(new Integer(sequence), message) == null;
+    }
 
-	public void setNextTargetMsgSeqNum(int next) {
-		nextTargetMsgSeqNum = next;
-	}
+    public void setNextSenderMsgSeqNum(int next) throws IOException {
+        nextSenderMsgSeqNum = next;
+    }
+
+    public void setNextTargetMsgSeqNum(int next) throws IOException {
+        nextTargetMsgSeqNum = next;
+    }
 }

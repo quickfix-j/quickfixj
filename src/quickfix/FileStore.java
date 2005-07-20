@@ -1,21 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
- ******************************************************************************/
+/****************************************************************************
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
@@ -26,8 +26,16 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TimeZone;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
+/**
+ * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
+ * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
+ * FACTORY.
+ * 
+ * @see quickfix.FileStoreFactory
+ */
 public class FileStore implements MessageStore {
     private MemoryStore cache = new MemoryStore();
     private RandomAccessFile msgFile;
@@ -39,7 +47,7 @@ public class FileStore implements MessageStore {
     private String seqNumFileName;
     private String sessionFileName;
 
-    public FileStore(String path, SessionID sessionID) throws IOException {
+    FileStore(String path, SessionID sessionID) throws IOException {
         if (path == null) {
             path = ".";
         }
@@ -105,8 +113,8 @@ public class FileStore implements MessageStore {
             sessionFile.seek(0);
             sessionFile.read(data);
             try {
-                Date date = FieldValueConverter.UtcTimestampConverter.convert(new String(data), false);
-                Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                Date date = UtcTimestampConverter.convert(new String(data));
+                Calendar c = SystemTime.getUtcCalendar();
                 c.setTime(date);
                 cache.setCreationTime(c);
             } catch (Exception e) {
@@ -201,8 +209,18 @@ public class FileStore implements MessageStore {
         }
     }
 
+    /**
+     * This method is here for JNI API consistency but it's not 
+     * implemented. Use get(int, int, Collection) with the same 
+     * start and end sequence.
+     * 
+     */
+    public boolean get(int sequence, String message)throws IOException {
+        throw new UnsupportedOperationException("not supported");
+    }
+    
     private String getMessage(int i) throws IOException {
-        long[] offsetAndSize = (long[]) messageIndex.get(new Integer(i));
+        long[] offsetAndSize = (long[]) messageIndex.get(new Long(i));
         String message = null;
         if (offsetAndSize != null) {
             msgFile.seek(offsetAndSize[0]);
@@ -218,13 +236,18 @@ public class FileStore implements MessageStore {
         headerFile.seek(headerFile.length());
 
         long offset = msgFile.getFilePointer();
+        StringBuffer headerBuffer = new StringBuffer();
         if (offset > 0) {
-            headerFile.write(' ');
+            headerBuffer.append(' ');
         }
         int size = message.length();
-        messageIndex.put(new Integer(sequence), new long[] { offset, size });
-        headerFile.write((Integer.toString(sequence) + "," + Long.toString(offset) + "," + Integer
-                .toString(size)).getBytes());
+        messageIndex.put(new Long(sequence), new long[] { offset, size });
+        headerBuffer.append(sequence);
+        headerBuffer.append(",");
+        headerBuffer.append(offset);
+        headerBuffer.append(",");
+        headerBuffer.append(size);
+        headerFile.write(headerBuffer.toString().getBytes());
         msgFile.write(message.getBytes());
         return true;
     }
@@ -241,13 +264,14 @@ public class FileStore implements MessageStore {
 
     private void storeSessionTimeStamp() throws IOException {
         sessionFile.seek(0);
-        String formattedTime = FieldValueConverter.UtcTimestampConverter.convert(new Date(), false);
+        String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), false);
         sessionFile.write(formattedTime.getBytes());
     }
 
     private void storeSequenceNumbers() throws IOException {
-        // TODO This should use a more efficient byte buffer
-        // TODO Use Javolution fast object pooling and primitive formatters
+        // TODO PERFORMANCE This should use a more efficient byte buffer
+        // TODO PERFORMANCE Use Javolution fast object pooling and primitive
+        // formatters
         seqNumFile.seek(0);
         StringBuffer sb = new StringBuffer();
         sb.append(Integer.toString(cache.getNextSenderMsgSeqNum())).append(" : ").append(

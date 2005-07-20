@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>quickfix_java</name>
+	<name>quickfixj</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -11,8 +11,13 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>com.ibm.sse.model.structuredbuilder</name>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>auto,full,incremental,</triggers>
 			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/Generate QFJ Messages.launch</value>
+				</dictionary>
 			</arguments>
 		</buildCommand>
 	</buildSpec>
