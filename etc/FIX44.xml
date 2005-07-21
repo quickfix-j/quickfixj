@@ -4301,6 +4301,9 @@
       <value enum="0" description="NEW" />
       <value enum="1" description="REPLACE" />
       <value enum="2" description="CANCEL" />
+      <value enum="3" description="PRELIMINARY"/>
+      <value enum="4" description="CALCULATED"/>
+      <value enum="5" description="CALCULATED_WITHOUT_PRELIMINARY"/>
     </field>
     <field number="72" name="RefAllocID" type="STRING" />
     <field number="73" name="NoOrders" type="NUMINGROUP" />
