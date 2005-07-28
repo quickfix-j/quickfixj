@@ -26,9 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 /**
- * In-memory message store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
- * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
- * FACTORY.
+ * In-memory message store implementation.
  * 
  * @see quickfix.MemoryStoreFactory
  */
@@ -38,7 +36,7 @@ public class MemoryStore implements MessageStore {
     private int nextTargetMsgSeqNum;
     private Calendar creationTime = SystemTime.getUtcCalendar();
 
-    MemoryStore() throws IOException {
+    public MemoryStore() throws IOException {
         reset();
     }
 
