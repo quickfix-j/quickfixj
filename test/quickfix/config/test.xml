@@ -1,0 +1,34 @@
+<!-- test configuration -->
+<configuration>
+	<session name="default">
+		<ConnectionType>initiator</ConnectionType>
+		<HeartBtInt>30</HeartBtInt>
+		<FileStorePath>store</FileStorePath>
+		<StartTime>00:00:00</StartTime>
+		<EndTime>00:00:00</EndTime>
+		<UseDataDictionary>N</UseDataDictionary>
+		<SocketConnectHost>localhost</SocketConnectHost>
+		<SocketConnectPort>5001</SocketConnectPort>
+		<ReconnectInterval>1</ReconnectInterval>
+	</session>
+	
+	<session name="CLIENT1">
+		<BeginString>FIX.4.2</BeginString>
+		<SenderCompID>CLIENT1</SenderCompID>
+		<TargetCompID>TW</TargetCompID>
+		<FileStorePath>foo</FileStorePath>
+	</session>
+	
+	<session name="CLIENT2">
+		<BeginString>FIX.4.2</BeginString>
+		<SenderCompID>CLIENT2</SenderCompID>
+		<TargetCompID>TW</TargetCompID>
+	</session>
+	
+	<session name="CLIENT4">
+		<inherit>CLIENT1</inherit>
+		<SenderCompID>CLIENT4</SenderCompID>
+		<FileStorePath>xyz</FileStorePath>		
+	</session>
+	
+</configuration>
