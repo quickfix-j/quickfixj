@@ -28,7 +28,7 @@ public class SleepycatStore implements MessageStore {
     private final SessionID sessionID; // session key
     private SessionInfo info;
 
-    private String dbDir = "/cygwin/tmp"; // TODO change this!
+    private String dbDir = "/cygwin/tmp/foo"; // TODO change this!
     private String seqDbName = "seq";
     private String msgDbName = "outmsg";
 
@@ -130,8 +130,12 @@ public class SleepycatStore implements MessageStore {
         }
     }
 
-    public SleepycatStore(SessionID sessionID) throws IOException {
+    public SleepycatStore(SessionID sessionID, String databaseDir, String sequenceDbName,
+            String messageDbName) throws IOException {
         this.sessionID = sessionID;
+        dbDir = databaseDir;
+        seqDbName = sequenceDbName;
+        msgDbName = messageDbName;
         open();
     }
 
@@ -151,19 +155,17 @@ public class SleepycatStore implements MessageStore {
 
             loadSessionInfo();
         } catch (DatabaseException dbe) {
-            dbe.printStackTrace();
-            // Exception handling goes here
+            convertToIOExceptionAndRethrow(dbe);
         }
     }
 
-    void close() {
+    void close() throws IOException {
         try {
             messageDatabase.close();
             sequenceDatabase.close();
             environment.close();
         } catch (DatabaseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            convertToIOExceptionAndRethrow(e);
         }
     }
 
