@@ -42,7 +42,7 @@ import java.io.IOException;
  * 
  *  @see quickfix.Session
  */
-public interface SessionMBean extends StatisticsProvider {
+public interface SessionMBean {
     /**
      * Obtain the session ID as a string.
      * 
@@ -101,10 +101,16 @@ public interface SessionMBean extends StatisticsProvider {
      */
     void setNextTargetMsgSeqNum(int next);
 
-    // The message count methods are declared in the StatisticsProvider
-    // interface, However, the Java Bean Introspector appears to have problems
-    // finding these readonly properties without them being repeated here.
+    /**
+     * Get the number of incoming messages since the server was started.
+     * @return count of incoming messages
+     */
     int getIncomingMessageCount();
+    
+    /**
+     * Get the number of outgoing messages since the server was started.
+     * @return count of outgoing messages
+     */
     int getOutgoingMessageCount();
 
     /**
