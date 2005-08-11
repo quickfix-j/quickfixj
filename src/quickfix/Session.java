@@ -138,6 +138,11 @@ public class Session {
      */
     public static final String SETTING_RESET_WHEN_INITIATING_LOGON = "SendResetSeqNumFlag";
 
+    /**
+     * Session description. Used by external tools.
+     */
+    public static final String SETTING_DESCRIPTION = "Description";
+    
     private Application application;
     private Responder responder;
     private SessionID sessionID;

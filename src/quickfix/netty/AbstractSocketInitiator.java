@@ -429,6 +429,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 // Reset session/socket to primary socket for next attempt
                 nettySession = (Session) nettySessions.get(0);
             }
+            
+            public String getRemoteIPAddress() {
+                return nettySession.getSocketAddressString();
+            }
         }
     }
 

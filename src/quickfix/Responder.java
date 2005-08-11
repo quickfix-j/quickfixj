@@ -42,4 +42,10 @@ public interface Responder {
      *
      */
     void disconnect();
+
+    /**
+     * Provides remote IP address of the session connection, if any.
+     * @return remote IP address if connected, empty string if not.
+     */
+    String getRemoteIPAddress();
 }

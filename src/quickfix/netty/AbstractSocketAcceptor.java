@@ -397,6 +397,10 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             nettySession.close();
         }
 
+        public String getRemoteIPAddress() {
+            return nettySession.getSocketAddressString();
+        }
+        
         public Session getNettySession() {
             return nettySession;
         }

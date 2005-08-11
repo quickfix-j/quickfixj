@@ -75,31 +75,34 @@ public interface SessionMBean {
      * Get the next sender message sequence number. 
      * 
      * @return the next sender message sequence number
+     * @throws IOException 
      */
-    int getNextSenderMsgSeqNum();
+    int getNextSenderMsgSeqNum() throws IOException;
 
     /**
      * Set the next sender message sequence number. It's dangerous
      * to use this operation on an active session.
      * 
      * @param next next sender message sequence number
+     * @throws IOException 
      */
-    void setNextSenderMsgSeqNum(int next);
+    void setNextSenderMsgSeqNum(int next) throws IOException;
 
     /**
      * Get the next target message sequence number. 
      * 
      * @return next target message sequence number
      */
-    int getNextTargetMsgSeqNum();
+    int getNextTargetMsgSeqNum() throws IOException;
 
     /**
      * Set the next target message sequence number. It's dangerous
      * to use this operation on an active session.
      * 
      * @param next the next target message sequence number
+     * @throws IOException 
      */
-    void setNextTargetMsgSeqNum(int next);
+    void setNextTargetMsgSeqNum(int next) throws IOException;
 
     /**
      * Get the number of incoming messages since the server was started.
@@ -146,7 +149,7 @@ public interface SessionMBean {
      * 
      * @return the remote IP address
      */
-    String getRemoteIP();
+    String getRemoteIPAddress();
 
     /**
      * Returns the description of the session, obtained from it's
@@ -169,8 +172,9 @@ public interface SessionMBean {
 
     /**
      * Reset the session's sequence numbers and clear it's resend log.
+     * @throws IOException 
      */
-    void reset();
+    void reset() throws IOException;
 
     /**
      * Tell the session to logoff.
@@ -196,12 +200,4 @@ public interface SessionMBean {
      * @return true is reconnect is enabled, false otherwise.
      */
     boolean isReconnectEnabled();
-
-    /**
-     * Controls the reconnect behavior.
-     * 
-     * @param flag true allows reconnect, false does not.
-     */
-    void setReconnectEnabled(boolean flag);
-
 }
