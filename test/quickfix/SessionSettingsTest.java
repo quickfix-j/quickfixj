@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Properties;
 
 import junit.framework.TestCase;
 
@@ -14,34 +15,7 @@ public class SessionSettingsTest extends TestCase {
     }
 
     public void testSettings() throws Exception {
-        String data = new String();
-        data += "[DEFAULT]";
-        data += "ConnectionType=acceptor\n";
-        data += "SocketAcceptPort=5001\n";
-        data += "FileStorePath=store\n";
-        data += "StartTime=00:00:00\n";
-        data += "EndTime=00:00:00\n";
-        data += "TestLong=1234\n";
-        data += "TestLong2=abcd\n";
-        data += "TestDouble=12.34\n";
-        data += "TestDouble2=abcd\n";
-        data += "TestBoolTrue=Y\n";
-        data += "TestBoolFalse=N\n";
-        data += "\n";
-        data += "[SESSION]\n";
-        data += "BeginString=FIX.4.2\n";
-        data += "SenderCompID=TW\n";
-        data += "TargetCompID=CLIENT1\n";
-        data += "DataDictionary=../spec/FIX42.xml\n";
-        data += "\n";
-        data += "[SESSION]\n";
-        data += "BeginString=FIX.4.2\n";
-        data += "SenderCompID=TW\n";
-        data += "TargetCompID=CLIENT2\n";
-        data += "DataDictionary=../spec/FIX42.xml\n";
-        ByteArrayInputStream cfg = new ByteArrayInputStream(data.getBytes());
-
-        SessionSettings settings = new SessionSettings(cfg);
+        SessionSettings settings = setUpSession();
 
         SessionID sessionID1 = new SessionID("FIX.4.2", "TW", "CLIENT1");
         SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
@@ -97,8 +71,72 @@ public class SessionSettingsTest extends TestCase {
         assertNotNull(sectionIterator.next());
         assertNotNull(sectionIterator.next());
         assertNotNull(sectionIterator.next());
-        assertNotNull(sectionIterator.next());
         assertFalse(sectionIterator.hasNext());
+    }
+
+    private SessionSettings setUpSession() throws ConfigError {
+        String data = new String();
+        data += "[DEFAULT]";
+        data += "ConnectionType=acceptor\n";
+        data += "SocketAcceptPort=5001\n";
+        data += "FileStorePath=store\n";
+        data += "StartTime=00:00:00\n";
+        data += "EndTime=00:00:00\n";
+        data += "TestLong=1234\n";
+        data += "TestLong2=abcd\n";
+        data += "TestDouble=12.34\n";
+        data += "TestDouble2=abcd\n";
+        data += "TestBoolTrue=Y\n";
+        data += "TestBoolFalse=N\n";
+        data += "\n";
+        data += "[SESSION]\n";
+        data += "BeginString=FIX.4.2\n";
+        data += "SenderCompID=TW\n";
+        data += "TargetCompID=CLIENT1\n";
+        data += "DataDictionary=../spec/FIX42.xml\n";
+        data += "\n";
+        data += "[SESSION]\n";
+        data += "BeginString=FIX.4.2\n";
+        data += "SenderCompID=TW\n";
+        data += "TargetCompID=CLIENT2\n";
+        data += "DataDictionary=../spec/FIX42.xml\n";
+        ByteArrayInputStream cfg = new ByteArrayInputStream(data.getBytes());
+
+        SessionSettings settings = new SessionSettings(cfg);
+        return settings;
+    }
+    
+    public void testSessionKeyIterator() throws Exception {
+        SessionSettings settings = setUpSession();
+        Iterator itr = settings.sectionIterator();
+        while (itr.hasNext()) {
+            SessionID id = (SessionID)itr.next();
+            assertEquals("FIX", id.getBeginString().substring(0,3));
+            assertEquals("", id.getSessionQualifier());
+        }
+    }
+
+    public void testMethodsForDefaults() throws Exception {
+        SessionSettings settings = setUpSession();
+        assertEquals("acceptor", settings.getString("ConnectionType"));
+        assertEquals(1234, settings.getLong("TestLong"));
+        assertEquals(12.34, settings.getDouble("TestDouble"), 0);
+        assertEquals(true, settings.getBool("TestBoolTrue"));
+        assertTrue(settings.isSetting("ConnectionType"));
+        assertFalse(settings.isSetting("bogus"));
+    }
+
+    public void testDefaultsSet() throws Exception {
+        SessionSettings settings = setUpSession();
+        Properties defaults = new Properties();
+        defaults.put("foo", "mumble");
+        defaults.put("baz", "fargle");
+        defaults.put("FileStorePath", "bargle");
+        settings.set(defaults);
+        assertEquals("acceptor", settings.getString("ConnectionType"));
+        assertEquals("mumble", settings.getString("foo"));
+        assertEquals("fargle", settings.getString("baz"));
+        assertEquals("bargle", settings.getString("FileStorePath"));
     }
 
     public void testToString() {

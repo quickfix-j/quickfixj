@@ -14,8 +14,8 @@ public class FileStoreTest extends AbstractMessageStoreTest {
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
         SessionSettings settings = new SessionSettings(getConfigurationFileName());
         // Initialize the session settings from the defaults
-        settings.setString(getSessionID(), FileStoreFactory.SETTING_FILE_STORE_PATH, settings.getString(
-                SessionSettings.DEFAULT_SESSION_ID, FileStoreFactory.SETTING_FILE_STORE_PATH));
+        settings.setString(getSessionID(), FileStoreFactory.SETTING_FILE_STORE_PATH, settings
+                .getString(FileStoreFactory.SETTING_FILE_STORE_PATH));
         return new FileStoreFactory(settings);
     }
 

@@ -90,7 +90,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         this.sessionFactory = sessionFactory;
         this.settings = settings;
     }
-    
+
     protected abstract void onInitialize(boolean isBlocking);
 
     protected abstract void onBlock();
@@ -129,23 +129,23 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     public final void stop(boolean force) {
         Iterator sessionItr = quickfixSessions.values().iterator();
         while (sessionItr.hasNext()) {
-            quickfix.Session session = (quickfix.Session)sessionItr.next();
+            quickfix.Session session = (quickfix.Session) sessionItr.next();
             try {
                 session.logout();
             } catch (Throwable e) {
-                logError(null, session.getSessionID(), "error during logout", e); 
+                logError(null, session.getSessionID(), "error during logout", e);
             }
         }
 
         if (!force) {
-            for ( int second = 1; second <= 10 && isLoggedOn(); ++second )
+            for (int second = 1; second <= 10 && isLoggedOn(); ++second)
                 try {
-                    Thread.sleep( 1 );
+                    Thread.sleep(1);
                 } catch (InterruptedException e) {
                     log.error(e);
                 }
         }
-        
+
         ioProcessor.stop();
         nettySessionServer.stop();
         stopRequestTime = System.currentTimeMillis();
@@ -155,7 +155,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected long getStopRequestTime() {
         return stopRequestTime;
     }
-    
+
     protected boolean isStopRequested() {
         return isStopRequested;
     }
@@ -164,12 +164,11 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         try {
             for (Iterator i = settings.sectionIterator(); i.hasNext();) {
                 Object sectionKey = i.next();
-                if (sectionKey != SessionSettings.DEFAULT_SESSION_ID) {
-                    SessionID sessionID = (SessionID) sectionKey;
-                    String connectionType = settings.getString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE);
-                    if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-                        quickfixSessions.put(sessionID, sessionFactory.create(sessionID, settings));
-                    }
+                SessionID sessionID = (SessionID) sectionKey;
+                String connectionType = settings.getString(sessionID,
+                        SessionFactory.SETTING_CONNECTION_TYPE);
+                if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
+                    quickfixSessions.put(sessionID, sessionFactory.create(sessionID, settings));
                 }
             }
 
@@ -183,11 +182,9 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
             int acceptPort = getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT);
             InetSocketAddress socketAddress;
-            if (settings.isSetting(SessionSettings.DEFAULT_SESSION_ID,
-                    SETTING_SOCKET_ACCEPT_ADDRESS)) {
-                socketAddress = new InetSocketAddress(settings.getString(
-                        SessionSettings.DEFAULT_SESSION_ID, SETTING_SOCKET_ACCEPT_ADDRESS),
-                        acceptPort);
+            if (settings.isSetting(SETTING_SOCKET_ACCEPT_ADDRESS)) {
+                socketAddress = new InetSocketAddress(settings
+                        .getString(SETTING_SOCKET_ACCEPT_ADDRESS), acceptPort);
             } else {
                 socketAddress = new InetSocketAddress(acceptPort);
             }
@@ -216,8 +213,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
     private int getIntSetting(String key) throws ConfigError {
         try {
-            return IntConverter
-                    .convert(settings.getString(SessionSettings.DEFAULT_SESSION_ID, key));
+            return IntConverter.convert(settings.getString(key));
         } catch (FieldConvertError e) {
             throw (ConfigError) new ConfigError(e.getMessage()).fillInStackTrace();
         }

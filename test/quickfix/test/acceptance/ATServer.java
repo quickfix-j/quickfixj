@@ -1,6 +1,7 @@
 package quickfix.test.acceptance;
 
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,16 +36,18 @@ public class ATServer implements Runnable {
     public void run() {
         try {
             SessionSettings settings = new SessionSettings();
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ConnectionType", "acceptor");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "SocketAcceptPort", "9877");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "StartTime", "00:00:00");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "EndTime", "00:00:00");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "SenderCompID", "ISLD");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "TargetCompID", "TW");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ResetOnDisconnect", "Y");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "FileStorePath", "output/data/server");
-            settings.setString(SessionSettings.DEFAULT_SESSION_ID, "ValidateUserDefinedFields", "Y");
-
+            HashMap defaults = new HashMap();
+            defaults.put("ConnectionType", "acceptor");
+            defaults.put("SocketAcceptPort", "9877");
+            defaults.put("StartTime", "00:00:00");
+            defaults.put("EndTime", "00:00:00");
+            defaults.put("SenderCompID", "ISLD");
+            defaults.put("TargetCompID", "TW");
+            defaults.put("ResetOnDisconnect", "Y");
+            defaults.put("FileStorePath", "output/data/server");
+            defaults.put("ValidateUserDefinedFields", "Y");
+            settings.set(defaults);
+            
             SessionID sessionID;
 
             if (fixVersions.contains("fix40")) {

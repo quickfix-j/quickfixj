@@ -31,6 +31,9 @@ public class SessionID {
 
     public SessionID(String beginString, String senderCompID, String targetCompID,
             String sessionQualifier) {
+        if (sessionQualifier == null) {
+            sessionQualifier = "";
+        }
         create(beginString, senderCompID, targetCompID, sessionQualifier);
     }
 

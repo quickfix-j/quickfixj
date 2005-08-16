@@ -34,15 +34,12 @@ import org.apache.commons.configuration.MapConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import quickfix.ConfigError;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 public class CommonsConfigSettings {
-    private final Log logger = LogFactory.getLog(getClass());
     private static final String DEFAULT_SESSION_KEY = "default";
     private Set configuredSessionIDs = new HashSet();
     private final CompositeConfiguration configuration = new ExtendedCompositeConfiguration();
@@ -83,7 +80,6 @@ public class CommonsConfigSettings {
     }
 
     private void addJdbcSource(String filename) throws ConfigError {
-        URL resource = getResource(filename);
         try {
             Configuration c = new PropertiesConfiguration(getResource(filename));
             String dataSourceClass = c.getString("datasource.class");
@@ -254,7 +250,7 @@ public class CommonsConfigSettings {
     public List getSessionNames() {
         return configuration.getList("session");
     }
-    
+
     private final class ExtendedCompositeConfiguration extends CompositeConfiguration {
         // Workaround for bug in composite configuration
         public List getList(String key, List defaultValue) {
@@ -274,7 +270,7 @@ public class CommonsConfigSettings {
             }
         }
     }
-    
+
     private class QuickFixConfiguration extends MapConfiguration {
         public QuickFixConfiguration(URL filename) throws ConfigError {
             super(new HashMap());
@@ -287,9 +283,7 @@ public class CommonsConfigSettings {
                     Enumeration keys = p.keys();
                     while (keys.hasMoreElements()) {
                         String key = (String) keys.nextElement();
-                        String configKey = (sessionID != SessionSettings.DEFAULT_SESSION_ID ? sessionID
-                                .toString() : "default")
-                                + "." + key;
+                        String configKey = sessionID.toString() + "." + key;
                         addProperty(configKey, p.getProperty(key));
                     }
                     addProperty("session", sessionID.toString());
@@ -303,7 +297,7 @@ public class CommonsConfigSettings {
          * Bug Fix for MapConfiguration, which doesn't correctly handle multiple
          * valued properties.
          * 
-         * Commons Configuration 1.0 - Bugzilla 
+         * Commons Configuration 1.0 - Bugzilla
          */
         protected void addPropertyDirect(String key, Object obj) {
             Object currentValue = getProperty(key);

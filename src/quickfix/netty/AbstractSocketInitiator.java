@@ -71,8 +71,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory), 
-                settings);
+        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory), settings);
     }
 
     protected AbstractSocketInitiator(SessionFactory sessionFactory, SessionSettings settings) {
@@ -156,10 +155,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
     private void initialize(boolean handleMessageInCaller) throws ConfigError {
         try {
             boolean continueInitOnError = false;
-            if (settings.isSetting(SessionSettings.DEFAULT_SESSION_ID,
-                    SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
-                continueInitOnError = settings.getBool(SessionSettings.DEFAULT_SESSION_ID,
-                        SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
+            if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
+                continueInitOnError = settings
+                        .getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
             }
 
             onInitialize(handleMessageInCaller);
@@ -198,11 +196,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
-        return sectionKey != SessionSettings.DEFAULT_SESSION_ID
-                && (!settings.isSetting((SessionID) sectionKey,
+        return !settings.isSetting((SessionID) sectionKey,
                         SessionFactory.SETTING_CONNECTION_TYPE) || settings.getString(
                         (SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE).equals(
-                        "initiator"));
+                        "initiator");
     }
 
     protected void processTimerEvent(quickfix.Session quickfixSession) {

@@ -47,7 +47,7 @@ public class FileLog implements Log {
         String sessionName = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
         this.sessionID = sessionID;
-        if (sessionID.getSessionQualifier().length() > 0) {
+        if (sessionID.getSessionQualifier() != null && sessionID.getSessionQualifier().length() > 0) {
             sessionName += "-" + sessionID.getSessionQualifier();
         }
 

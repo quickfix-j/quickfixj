@@ -23,7 +23,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 
 import quickfix.field.converter.BooleanConverter;
@@ -49,10 +51,7 @@ import quickfix.field.converter.BooleanConverter;
  * @see quickfix.DefaultSessionFactory
  */
 public class SessionSettings {
-    /**
-     * Identifier for the default section of the session settings.
-     */
-    public static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
+    private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
 
     private static final String SESSION_SECTION_NAME = "session";
     private static final String DEFAULT_SECTION_NAME = "default";
@@ -64,8 +63,6 @@ public class SessionSettings {
     // TODO CLEANUP determine is NODELAY is needed
     //public static final String SOCKET_NODELAY = "SocketNodelay";
 
-    //public static final String BEGINSTRING = "BeginString";
-    //public static final String SENDERCOMPID = "SenderCompID";
     public static final String TARGETCOMPID = "TargetCompID";
     public static final String SESSION_QUALIFIER = "SessionQualifier";
 
@@ -108,6 +105,17 @@ public class SessionSettings {
     }
 
     /**
+     * Gets a string from the default section of the settings.
+     * @param key
+     * @return the default string value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public String getString(String key) throws ConfigError, FieldConvertError {
+        return getString(DEFAULT_SESSION_ID, key);
+    }
+
+    /**
      * Get a settings string.
      * 
      * @param sessionID
@@ -129,12 +137,30 @@ public class SessionSettings {
         return value;
     }
 
+    /**
+     * Return the settings for a session as a Properties object.
+     * @param sessionID
+     * @return the Properties object with the session settings
+     * @throws ConfigError
+     * @see java.util.Properties
+     */
     public Properties getSessionProperties(SessionID sessionID) throws ConfigError {
         Properties p = (Properties) sections.get(sessionID);
         if (p == null) {
             throw new ConfigError("Session not found");
         }
         return p;
+    }
+
+    /**
+     * Gets a long from the default section of settings.
+     * @param key
+     * @return the default value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public long getLong(String key) throws ConfigError, FieldConvertError {
+        return getLong(DEFAULT_SESSION_ID, key);
     }
 
     /**
@@ -169,6 +195,17 @@ public class SessionSettings {
     }
 
     /**
+     * Gets a double value from the default section of the settings.
+     * @param key
+     * @return the default value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public double getDouble(String key) throws ConfigError, FieldConvertError {
+        return getDouble(DEFAULT_SESSION_ID, key);
+    }
+
+    /**
      * Get a settings value as a double number.
      * 
      * @param sessionID
@@ -188,6 +225,17 @@ public class SessionSettings {
         } catch (NumberFormatException e) {
             throw new FieldConvertError(e.getMessage());
         }
+    }
+
+    /**
+     * Gets a boolean value from the default section of the settings.
+     * @param key
+     * @return the boolean value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public boolean getBool(String key) throws ConfigError, FieldConvertError {
+        return getBool(DEFAULT_SESSION_ID, key);
     }
 
     /**
@@ -258,7 +306,9 @@ public class SessionSettings {
     private HashMap sections = new HashMap();
 
     public Iterator sectionIterator() {
-        return sections.keySet().iterator();
+        HashSet nondefaultSessions = new HashSet(sections.keySet());
+        nondefaultSessions.remove(DEFAULT_SESSION_ID);
+        return nondefaultSessions.iterator();
     }
 
     private void load(InputStream inputStream) throws ConfigError {
@@ -298,21 +348,21 @@ public class SessionSettings {
             SessionID sessionId = new SessionID(currentSection.getProperty("BeginString"),
                     currentSection.getProperty("SenderCompID"), currentSection
                             .getProperty("TargetCompID"), currentSection
-                            .getProperty("SessionQualifier"));
+                            .getProperty("SessionQualifier", ""));
             sections.put(sessionId, currentSection);
             currentSectionId = null;
             currentSection = null;
         }
     }
 
-    //    public Properties getDefaultSection() {
-    //        Properties section = (Properties) sections.get(DEFAULT_SECTION_NAME);
-    //        if (section == null) {
-    //            section = new Properties();
-    //            sections.put(DEFAULT_SECTION_NAME, section);
-    //        }
-    //        return section;
-    //    }
+    /**
+     * Predicate for determining if a setting is in the default section.
+     * @param key
+     * @return true if setting is in the defaults, false otherwise
+     */
+    public boolean isSetting(String key) {
+        return isSetting(DEFAULT_SESSION_ID, key);
+    }
 
     /**
      * Predicate for determining if a setting exists.
@@ -421,5 +471,15 @@ public class SessionSettings {
                 } while (Character.isWhitespace(ch));
             }
         }
+    }
+
+    /**
+     * Adds defaults to the settings. Will not delete existing settings not overlapping
+     * with the new defaults, but will overwrite existing settings specified in this
+     * call.
+     * @param defaults
+     */
+    public void set(Map defaults) {
+        getOrCreateSessionProperties(DEFAULT_SESSION_ID).putAll(defaults);
     }
 }
