@@ -57,6 +57,11 @@ public abstract class FieldMap implements Serializable{
     protected int[] getFieldOrder() {
         return fieldOrder;
     }
+    
+    public void clear() {
+        fields.clear();
+        groups.clear();
+    }
 
     private class FieldOrderComparator implements Comparator, Serializable {
 
@@ -65,7 +70,13 @@ public abstract class FieldMap implements Serializable{
             Integer tag2 = (Integer) o2;
             int index1 = indexOf(tag1.intValue(), fieldOrder);
             int index2 = indexOf(tag2.intValue(), fieldOrder);
-            return index1 != index2 ? (index1 < index2 ? -1 : 1) : 0;
+            
+            if((index1 != Integer.MAX_VALUE) && (index2 != Integer.MAX_VALUE)) {
+                // We manage two odered fields
+                return index1 != index2 ? (index1 < index2 ? -1 : 1) : 0;
+            }else {
+                return -1;
+            }
         }
 
         private int indexOf(int tag, int[] order) {
@@ -218,7 +229,8 @@ public abstract class FieldMap implements Serializable{
         if (field.getValue() == null) {
             throw new NullPointerException("Null field values are not allowed.");
         }
-        fields.put(new Integer(field.getField()), field);
+        Integer key = new Integer(field.getField());
+        StringField replacedField = (StringField)fields.put(key, field);
     }
 
     public void setField(BooleanField field) {
@@ -482,6 +494,7 @@ public abstract class FieldMap implements Serializable{
     
     public void addGroup(Group group) {
         getGroups(group.getFieldTag()).add(new Group(group));
+        group.clear();
     }
 
     /*package*/ List getGroups(int field) {
