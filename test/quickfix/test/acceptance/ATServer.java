@@ -103,7 +103,7 @@ public class ATServer implements Runnable {
     public void acceptFixVersion(String beginString) {
         SessionID sessionID = new SessionID(beginString, "ISLD", "TW");
         settings.setString(sessionID, "BeginString", beginString);
-        settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replace(".", "")
+        settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replaceAll("\\.", "")
                 + ".xml");
     }
 

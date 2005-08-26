@@ -53,7 +53,7 @@ public class SessionInitiatorTest extends TestCase {
         settings.set(defaults);
         settings.setString(clientSessionID, "BeginString", FixVersions.BEGINSTRING_FIX42);
         settings.setString(clientSessionID, "DataDictionary", "etc/"
-                + FixVersions.BEGINSTRING_FIX42.replace(".", "") + ".xml");
+                + FixVersions.BEGINSTRING_FIX42.replaceAll("\\.", "") + ".xml");
         return settings;
     }
 
