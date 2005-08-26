@@ -160,15 +160,20 @@ public class MessageTest extends TestCase {
         numAllocs.set(new AllocShares(2020.20));
         message.addGroup(numAllocs);
 
-        StringField field = null;
-        java.util.Iterator i = numAllocs.iterator();
-        assertTrue(i.hasNext());
-        field = (StringField) i.next();
-        assertEquals("AllocACC2", field.getValue());
-        assertTrue(i.hasNext());
-        field = (StringField) i.next();
-        assertEquals("2020.2", field.getValue());
-        assertTrue(!i.hasNext());
+        //
+        // numAllocs is cleared in FieldMap now
+        //
+        assertFalse("group not cleared", numAllocs.iterator().hasNext());
+        
+//        StringField field = null;
+//        java.util.Iterator i = numAllocs.iterator();
+//        assertTrue(i.hasNext());
+//        field = (StringField) i.next();
+//        assertEquals("AllocACC2", field.getValue());
+//        assertTrue(i.hasNext());
+//        field = (StringField) i.next();
+//        assertEquals("2020.2", field.getValue());
+//        assertTrue(!i.hasNext());
 
         try {
             message.getGroup(1, numAllocs);

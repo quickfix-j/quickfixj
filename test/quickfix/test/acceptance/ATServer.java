@@ -13,29 +13,38 @@ import org.apache.commons.logging.LogFactory;
 import quickfix.CommonsLogFactory;
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
+import quickfix.FixVersions;
+import quickfix.MemoryStoreFactory;
+import quickfix.MessageStoreFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
-import quickfix.netty.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
     private final Log log = LogFactory.getLog(ATServer.class);
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
-    private final Set fixVersions;
+    private final Set fixVersions = new HashSet();
+    private final SessionSettings settings = new SessionSettings();
+    private boolean resetOnDisconnect;
+    private boolean usingMemoryStore;
+    private SocketAcceptor acceptor;
 
     public ATServer(TestSuite suite) {
-        fixVersions = new HashSet();
         Enumeration e = suite.tests();
         while (e.hasMoreElements()) {
-            fixVersions.add(e.nextElement().toString().substring(0,5));
+            fixVersions.add(e.nextElement().toString().substring(0, 5));
         }
-        log.info("creating sessions for "+fixVersions);
+        resetOnDisconnect = true;
+        log.info("creating sessions for " + fixVersions);
+    }
+
+    public ATServer() {
+        // empty
     }
 
     public void run() {
         try {
-            SessionSettings settings = new SessionSettings();
             HashMap defaults = new HashMap();
             defaults.put("ConnectionType", "acceptor");
             defaults.put("SocketAcceptPort", "9877");
@@ -43,47 +52,38 @@ public class ATServer implements Runnable {
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
-            defaults.put("ResetOnDisconnect", "Y");
+            if (resetOnDisconnect) {
+                defaults.put("ResetOnDisconnect", "Y");
+            }
             defaults.put("FileStorePath", "output/data/server");
             defaults.put("ValidateUserDefinedFields", "Y");
             settings.set(defaults);
-            
-            SessionID sessionID;
 
             if (fixVersions.contains("fix40")) {
-                sessionID = new SessionID("FIX.4.0", "ISLD", "TW");
-                settings.setString(sessionID, "BeginString", "FIX.4.0");
-                settings.setString(sessionID, "DataDictionary", "etc/FIX40.xml");
+                acceptFixVersion(FixVersions.BEGINSTRING_FIX40);
             }
 
             if (fixVersions.contains("fix41")) {
-                sessionID = new SessionID("FIX.4.1", "ISLD", "TW");
-                settings.setString(sessionID, "BeginString", "FIX.4.1");
-                settings.setString(sessionID, "DataDictionary", "etc/FIX41.xml");
+                acceptFixVersion(FixVersions.BEGINSTRING_FIX41);
             }
 
             if (fixVersions.contains("fix42")) {
-                sessionID = new SessionID("FIX.4.2", "ISLD", "TW");
-                settings.setString(sessionID, "BeginString", "FIX.4.2");
-                settings.setString(sessionID, "DataDictionary", "etc/FIX42.xml");
+                acceptFixVersion(FixVersions.BEGINSTRING_FIX42);
             }
 
             if (fixVersions.contains("fix43")) {
-                sessionID = new SessionID("FIX.4.3", "ISLD", "TW");
-                settings.setString(sessionID, "BeginString", "FIX.4.3");
-                settings.setString(sessionID, "DataDictionary", "etc/FIX43.xml");
+                acceptFixVersion(FixVersions.BEGINSTRING_FIX43);
             }
 
             if (fixVersions.contains("fix44")) {
-                sessionID = new SessionID("FIX.4.4", "ISLD", "TW");
-                settings.setString(sessionID, "BeginString", "FIX.4.4");
-                settings.setString(sessionID, "DataDictionary", "etc/FIX44.xml");
+                acceptFixVersion(FixVersions.BEGINSTRING_FIX44);
             }
 
             ATApplication application = new ATApplication();
-            FileStoreFactory factory = new FileStoreFactory(settings);
-            //MemoryStoreFactory factory = new MemoryStoreFactory();
-            AbstractSocketAcceptor acceptor = new SocketAcceptor(application, factory, settings,
+            MessageStoreFactory factory = usingMemoryStore
+                    ? (MessageStoreFactory) new MemoryStoreFactory()
+                    : new FileStoreFactory(settings);
+            acceptor = new SocketAcceptor(application, factory, settings,
                     new CommonsLogFactory(settings), new DefaultMessageFactory());
             acceptor.start();
             acceptor.waitForInitialization();
@@ -100,7 +100,32 @@ public class ATServer implements Runnable {
         }
     }
 
+    public void acceptFixVersion(String beginString) {
+        SessionID sessionID = new SessionID(beginString, "ISLD", "TW");
+        settings.setString(sessionID, "BeginString", beginString);
+        settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replace(".", "")
+                + ".xml");
+    }
+
     public void waitForInitialization() throws InterruptedException {
         initializationLatch.await();
+    }
+
+    public void stop() {
+        acceptor.stop();
+    }
+    
+    public void setUsingMemoryStore(boolean usingMemoryStore) {
+        this.usingMemoryStore = usingMemoryStore;
+    }
+
+    public void setResetOnDisconnect(boolean resetOnDisconnect) {
+        this.resetOnDisconnect = resetOnDisconnect;
+    }
+
+    public static void main(String[] args) {
+        ATServer server = new ATServer();
+        server.acceptFixVersion(FixVersions.BEGINSTRING_FIX42);
+        server.run();
     }
 }

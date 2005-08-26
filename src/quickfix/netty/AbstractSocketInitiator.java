@@ -170,12 +170,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
             timer.schedule(new SessionTimerTask(), 1000L, 1000L);
 
             for (Iterator i = settings.sectionIterator(); i.hasNext();) {
-                Object sectionKey = i.next();
-                // TODO CLEANUP add iterator for non-default sessions
+                SessionID sectionKey = (SessionID) i.next();
                 if (isInitiatorSession(sectionKey)) {
                     try {
-                        sessionConnections.add(new SessionConnection(settings,
-                                (SessionID) sectionKey));
+                        sessionConnections.add(new SessionConnection(settings, sectionKey));
                     } catch (Throwable e) {
                         if (continueInitOnError) {
                             log.error("error during session initialization, continuing...", e);
@@ -196,10 +194,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
-        return !settings.isSetting((SessionID) sectionKey,
-                        SessionFactory.SETTING_CONNECTION_TYPE) || settings.getString(
-                        (SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE).equals(
-                        "initiator");
+        return !settings.isSetting((SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE)
+                || settings.getString((SessionID) sectionKey,
+                        SessionFactory.SETTING_CONNECTION_TYPE).equals("initiator");
     }
 
     protected void processTimerEvent(quickfix.Session quickfixSession) {
@@ -268,7 +265,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
 
             quickfixSession = sessionFactory.create(sessionID, settings);
-            quickfixSession.setResponder(new QuickFixSessionResponder());
 
             for (int index = 0;; index++) {
                 try {
@@ -312,7 +308,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
                         .get((nettySessions.indexOf(nettySession) + 1) % nettySessions.size());
                 lastReconnectAttemptTime = System.currentTimeMillis();
                 nettySession.start();
-
+                return;
             }
             // Delegate timer event to base class to it can hand off the event
             // to the appropriate thread
@@ -330,8 +326,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see net.gleamynode.netty2.SessionListener#connectionEstablished(net.gleamynode.netty2.Session)
              */
             public void connectionEstablished(Session nettySession) {
-                log.debug("connection established: " + nettySession);
+                quickfixSession.getState().logEvent("connection established: " + nettySession);
                 try {
+                    quickfixSession.setResponder(new QuickFixSessionResponder());
                     quickfixSession.next();
                 } catch (IOException e) {
                     exceptionCaught(nettySession, e);
@@ -344,7 +341,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see net.gleamynode.netty2.SessionListener#connectionClosed(net.gleamynode.netty2.Session)
              */
             public void connectionClosed(Session session) {
-                log.debug("connection closed: " + nettySession);
+                quickfixSession.getState().logEvent("connection closed: " + nettySession);
                 try {
                     if (!responderDisconnected) {
                         log.debug("unsolicited disconnect");
@@ -409,6 +406,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see quickfix.Responder#send(java.lang.String)
              */
             public boolean send(String data) {
+                System.out.println("DEBUG "+nettySession+" "+data);
                 nettySession.write(new FIXMessageData(data));
                 return true;
             }

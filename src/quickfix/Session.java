@@ -203,7 +203,7 @@ public class Session {
     public void setResponder(Responder responder) {
         this.responder = responder;
     }
-    
+
     /**
      * This should not be used by end users.
      * @return the Session's connection responder
@@ -215,7 +215,7 @@ public class Session {
     private boolean checkSessionTime() throws IOException {
         return checkSessionTime(SystemTime.getDate());
     }
-    
+
     //
     // The session time checks were causing performance problems
     // so we are caching the last session time check result and
@@ -224,14 +224,14 @@ public class Session {
     //
     private long lastSessionTimeCheck = 0;
     private boolean lastSessionTimeResult = false;
-    
+
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
             return true;
         }
         if ((date.getTime() - lastSessionTimeCheck) > 1000L) {
-            lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date), SystemTime
-                    .getUtcCalendar(state.getCreationTime()));
+            lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date),
+                    SystemTime.getUtcCalendar(state.getCreationTime()));
             lastSessionTimeCheck = date.getTime();
             return lastSessionTimeResult;
         } else {
@@ -319,8 +319,8 @@ public class Session {
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
             String qualifier) throws SessionNotFound {
         try {
-            return sendToTarget(message, new SessionID(message.getHeader().getString(BeginString.FIELD), senderCompID,
-                    targetCompID, qualifier));
+            return sendToTarget(message, new SessionID(message.getHeader().getString(
+                    BeginString.FIELD), senderCompID, targetCompID, qualifier));
         } catch (SessionNotFound e) {
             throw e;
         } catch (Exception e) {
@@ -1158,7 +1158,7 @@ public class Session {
         state.setLogoutSent(false);
         state.setResetReceived(false);
         state.setResetSent(false);
-        
+
         state.clearQueue();
         if (resetOnDisconnect && state.isConnected()) {
             state.setConnected(false);
@@ -1176,7 +1176,7 @@ public class Session {
         if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
             state.setResetReceived(logon.getBoolean(ResetSeqNumFlag.FIELD));
         }
-        
+
         if (state.isResetReceived()) {
             state.logEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
             if (!state.isResetSent()) {
@@ -1210,7 +1210,7 @@ public class Session {
 
         state.setResetSent(false);
         state.setResetReceived(false);
-        
+
         int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
         if (isTargetTooHigh(sequence)) {
             doTargetTooHigh(logon);
@@ -1286,7 +1286,7 @@ public class Session {
                 "MsgSeqNum too high, expecting " + getExpectedTargetNum() + " but received "
                         + msgSeqNum);
         state.enqueue(msgSeqNum, msg);
-        
+
         if (state.isResendRequested()) {
             int[] range = state.getResendRange();
 
@@ -1296,7 +1296,7 @@ public class Session {
                 return;
             }
         }
-        
+
         generateResendRequest(beginString, msgSeqNum);
     }
 
@@ -1315,7 +1315,7 @@ public class Session {
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
         state.getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
-        state.setResendRange( beginSeqNo, endSeqNo );
+        state.setResendRange(beginSeqNo, endSeqNo);
     }
 
     private boolean doPossDup(Message msg) throws FieldNotFound, IOException {
@@ -1424,13 +1424,12 @@ public class Session {
     }
 
     private boolean send(String messageString) {
-        if (responder == null)
+        if (responder == null) {
+            state.logEvent("No responder, not sending message");
             return false;
-        state.logOutgoing(messageString);
-        if (responder != null) {
-            return responder.send(messageString);
         }
-        return false;
+        state.logOutgoing(messageString);
+        return responder.send(messageString);
     }
 
     private boolean isCorrectCompID(String senderCompID, String targetCompID) {

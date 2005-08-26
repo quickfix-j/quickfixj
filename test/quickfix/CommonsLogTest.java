@@ -5,6 +5,8 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import org.apache.commons.logging.LogFactory;
+
 import junit.framework.TestCase;
 
 public class CommonsLogTest extends TestCase {
@@ -15,6 +17,7 @@ public class CommonsLogTest extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
+        LogFactory.releaseAll();
         System.setProperty("org.apache.commons.logging.Log",
                 "org.apache.commons.logging.impl.Jdk14Logger");
     }
@@ -77,7 +80,7 @@ public class CommonsLogTest extends TestCase {
             }
         }
         assertNotNull(testHandler);
-        assertEquals(testHandler.records.size(), 1);
+        assertEquals(1, testHandler.records.size());
         LogRecord r = (LogRecord)testHandler.records.get(0);
         assertEquals(categoryName, r.getLoggerName());
         assertEquals(message, r.getMessage());
