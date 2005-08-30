@@ -1,115 +1,382 @@
-/****************************************************************************
- ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
- **
- ** This file is part of the QuickFIX FIX Engine
- **
- ** This file may be distributed under the terms of the quickfixengine.org
- ** license as defined by quickfixengine.org and appearing in the file
- ** LICENSE included in the packaging of this file.
- **
- ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- **
- ** See http://www.quickfixengine.org/LICENSE for licensing information.
- **
- ** Contact ask@quickfixengine.org if any conditions of this licensing are
- ** not clear to you.
- **
- ****************************************************************************/
+/*============================================================================
+ *
+ * Copyright (c) 2000-2005 Smart Trade Technologies. All Rights Reserved.
+ *
+ * This software is the proprietary information of Smart Trade Technologies
+ * Use is subject to license terms.
+ *
+ *============================================================================*/
 
 package quickfix;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 import junit.framework.TestCase;
-import quickfix.fix44.QuoteRequest;
+import quickfix.field.LegSymbol;
+import quickfix.field.OrderID;
+import quickfix.field.Symbol;
+import quickfix.fix44.Quote;
+import quickfix.netty.FIXMessageData;
 
 public class RepeatingGroupTest extends TestCase {
 
-    public RepeatingGroupTest(String name) {
-        super(name);
+    // In this testcase we use only FIX4.4 message, but we could use the others
+    // FIX version. Indeed the group
+    // management is independent from the version
+
+    // NON NESTED Groups
+    private Quote.NoLegs buildGroupWithStandardFields(String settingValue) {
+        Quote.NoLegs grp = new Quote.NoLegs();
+        grp.set(new LegSymbol(settingValue));
+        return grp;
     }
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    public void testSettingGettingGroupWithStandardFields() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
+
+        Quote.NoLegs grp = buildGroupWithStandardFields(settingValue);
+
+        LegSymbol accessorField = new LegSymbol();
+        LegSymbol gotField = (LegSymbol) grp.getField(accessorField);
+
+        // We assume that checksum equality s enough - DV
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotField.getValue());
     }
 
-    public void testAddingGroupsWithNonOrderedFields() {
-        QuoteRequest qr = new QuoteRequest();
-        QuoteRequest.NoRelatedSym.NoLegs grp = new QuoteRequest.NoRelatedSym.NoLegs();
-
-        grp.setField(new StringField(1, "a1"));
-        grp.setField(new StringField(2, "a2"));
-        grp.setField(new StringField(3, "a3"));
-
-        qr.addGroup(grp);
-
-        grp.setField(new StringField(1, "b1"));
-        grp.setField(new StringField(2, "b2"));
-        grp.setField(new StringField(3, "b3"));
-
-        qr.addGroup(grp);
-
-        String expectedString = "8=FIX.4.49=3535=R555=21=a12=a23=a31=b12=b23=b310=248";
-
-        assertEquals("Bad content of repeating groups ", expectedString, qr.toString());
+    private Quote.NoLegs buildGroupWithCustomFields(String settingValue) {
+        Quote.NoLegs grp = new Quote.NoLegs();
+        grp.setField(new StringField(9001, settingValue)); // Custom tag is
+                                                            // 9001
+        return grp;
     }
 
-    public void testAddingGroupsWithDuplicatedNonOrderedFields() {
-        QuoteRequest qr = new QuoteRequest();
-        QuoteRequest.NoRelatedSym.NoLegs grp = new QuoteRequest.NoRelatedSym.NoLegs();
+    public void testSettingGettingGroupWithCustomFields() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
 
-        grp.setField(new StringField(1, "a1"));
-        grp.setField(new StringField(1, "a2"));
+        Quote.NoLegs grp = buildGroupWithCustomFields(settingValue);
 
-        qr.addGroup(grp);
+        StringField accessorField = new StringField(9001); // Custom tag is
+                                                            // 9001
+        StringField gotField = (StringField) grp.getField(accessorField);
 
-        grp.setField(new StringField(1, "b1"));
-        grp.setField(new StringField(1, "b2"));
+        // We assume that checksum equality s enough - DV
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotField.getValue());
+    }
 
-        qr.addGroup(grp);
+    private Quote.NoLegs buildGroupWithCustomAndStandardFields(String settingValue) {
+        Quote.NoLegs grp = new Quote.NoLegs();
+        grp.setField(new StringField(9001, settingValue)); // Custom tag is
+                                                            // 9001
+        grp.set(new LegSymbol(settingValue));
+        return grp;
+    }
+
+    public void testSettingGettingGroupWithCustomAndStandardFields() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
+
+        Quote.NoLegs grp = buildGroupWithCustomAndStandardFields(settingValue);
+
+        StringField accessorField = new StringField(9001); // Custom tag is
+                                                            // 9001
+        StringField gotField = (StringField) grp.getField(accessorField);
+
+        LegSymbol accessorFieldStd = new LegSymbol(); // Standard Field
+        LegSymbol gotFieldStd = (LegSymbol) grp.getField(accessorFieldStd);
+
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotField.getValue());
+
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotFieldStd.getValue());
+    }
+
+    // NESTED Groups outside messages
+    private quickfix.fix44.QuoteRequest.NoRelatedSym buildNestedGroupWithStandardFields(String settingValue) {
+        // The root group
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
         
-        String expectedString = "8=FIX.4.49=2535=R555=21=a11=a21=b11=b210=247";
+        // The nested group
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs nestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        nestedgroup.setField(new LegSymbol(settingValue));
+        gNoRelatedSym.addGroup(nestedgroup);
 
-        assertEquals("Bad content of repeating groups ", expectedString, qr.toString());
+        // Adding a second fake nested group to avoid being the case of having
+        // one element which is not relevant :-)
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs oneMoreNestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        oneMoreNestedgroup.setField(new LegSymbol("Donald"));
+        gNoRelatedSym.addGroup(oneMoreNestedgroup);
+
+        return gNoRelatedSym;
     }
 
-    public void testAddingGroupsWithOrderedFields() {
-        QuoteRequest qr = new QuoteRequest();
-        QuoteRequest.NoRelatedSym.NoLegs grp = new QuoteRequest.NoRelatedSym.NoLegs();
-        
-        grp.setField(new StringField(600, "a1"));
-        grp.setField(new StringField(601, "a2"));
-        grp.setField(new StringField(602, "a3"));
+    public void testSettingGettingNestedGroupWithStandardFields() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
 
-        qr.addGroup(grp);
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithStandardFields(settingValue);
 
-        grp.setField(new StringField(600, "b1"));
-        grp.setField(new StringField(601, "b2"));
-        grp.setField(new StringField(602, "b3"));
+        // Getting part
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs getgrp = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        gNoRelatedSym.getGroup(1, getgrp);
+        LegSymbol accessorFieldStd = new LegSymbol(); // Standard Field
+        LegSymbol gotFieldStd = (LegSymbol) getgrp.getField(accessorFieldStd);
 
-        qr.addGroup(grp);
-        
-        String expectedString = "8=FIX.4.49=4735=R555=2600=a1601=a2602=a3600=b1601=b2602=b310=251";
-
-        assertEquals("Bad content of repeating groups ", expectedString, qr.toString());
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotFieldStd.getValue());
     }
     
-    public void testAddingGroupsWithDuplicatedOrderedFields() {
-        QuoteRequest qr = new QuoteRequest();
-        QuoteRequest.NoRelatedSym.NoLegs grp = new QuoteRequest.NoRelatedSym.NoLegs();
+    private quickfix.fix44.QuoteRequest.NoRelatedSym buildNestedGroupWithCustomFields(String settingValue) {
+        // The root group
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+
+        // The nested group
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs nestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        nestedgroup.setField(new StringField(9001, settingValue));
+        gNoRelatedSym.addGroup(nestedgroup);
+
+        // Adding a second fake nested group to avoid being the case of having
+        // one element which is not relevant :-)
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs oneMoreNestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        oneMoreNestedgroup.setField(new StringField(9001, "Donald"));
+        gNoRelatedSym.addGroup(oneMoreNestedgroup);
         
-        grp.setField(new StringField(600, "a1"));
-        grp.setField(new StringField(600, "a2"));
+        return gNoRelatedSym;
+    }
 
-        qr.addGroup(grp);
+    public void testSettingGettingNestedGroupWithCustomFields() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
 
-        grp.setField(new StringField(600, "b1"));
-        grp.setField(new StringField(600, "b2"));
+        // The root group
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithCustomFields(settingValue);
+            
+        // Getting part
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs getgrp = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        gNoRelatedSym.getGroup(1, getgrp);
+        StringField accessorField = new StringField(9001); // Custom Field
+        StringField gotFieldStd = (StringField) getgrp.getField(accessorField);
 
-        qr.addGroup(grp);
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotFieldStd.getValue());
+    }
+    
+    private quickfix.fix44.QuoteRequest.NoRelatedSym buildNestedGroupWithCustomAndStandardFields(String settingValue) {
+        // The root group
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+
+        // The nested group
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs nestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        nestedgroup.setField(new LegSymbol(settingValue));
+        nestedgroup.setField(new StringField(9001, settingValue));
+        gNoRelatedSym.addGroup(nestedgroup);
+
+        // Adding a second fake nested group to avoid being the case of having
+        // one element which is not relevant :-)
+         quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs oneMoreNestedgroup =
+         new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+         oneMoreNestedgroup.setField(new LegSymbol("Donald"));
+         oneMoreNestedgroup.setField(new StringField(9001, "Donald"));
+         gNoRelatedSym.addGroup(oneMoreNestedgroup);
+         
+         return gNoRelatedSym;
+    }
+
+    public void testSettingGettingNestedGroupWithCustomAndStandardFields() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
+
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithCustomAndStandardFields(settingValue);
+
+        // Getting part
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs getgrp = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        gNoRelatedSym.getGroup(1, getgrp);
+        StringField accessorField = new StringField(9001); // Custom Field
+        StringField gotField = (StringField) getgrp.getField(accessorField);
+
+        LegSymbol accessorFieldStd = new LegSymbol(); // Standard Field
+        LegSymbol gotFieldStd = (LegSymbol) getgrp.getField(accessorFieldStd);
+
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotField.getValue());
+
+        assertEquals("GettingValue is not the same the SettingValue", settingValue, gotFieldStd.getValue());
+    }
+    
+    // Testing group re-usability when setting values
+    public void testSettingGettingGroupByReusingGroup() throws FieldNotFound {
+        String settingValue = "SETTING_VALUE";
+        // The root group
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
         
-        String expectedString = "8=FIX.4.49=1935=R555=2600=a2600=b210=250";
+        // Create the initial group
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs nestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        String notOverridenFieldValue = "Value1.1";
+        nestedgroup.setField(new LegSymbol(notOverridenFieldValue));
+        nestedgroup.setField(new StringField(9001, "Value1.2"));
+        gNoRelatedSym.addGroup(nestedgroup);
+        
+        // Create the second group by re-using the same group and changing one value of only one field
+        String overridenFieldValue = "Value2.2";
+        nestedgroup.setField(new StringField(9001, overridenFieldValue));
+        gNoRelatedSym.addGroup(nestedgroup);
 
-        assertEquals("Bad content of repeating groups ", expectedString, qr.toString());
+        // Getting part
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs getgrp = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        gNoRelatedSym.getGroup(2, getgrp);
+        StringField accessorField = new StringField(9001); // Custom Field
+        StringField gotField = (StringField) getgrp.getField(accessorField);
+
+        LegSymbol accessorFieldStd = new LegSymbol(); // Standard Field
+        LegSymbol gotFieldStd = (LegSymbol) getgrp.getField(accessorFieldStd);
+
+        // Ensures that the field overriden has been set correctly
+        assertEquals("GettingValue is not the same the SettingValue", overridenFieldValue, gotField.getValue());
+        
+        // Ensures that the field not overriden has been set correctly
+        assertEquals("GettingValue is not the same the SettingValue", notOverridenFieldValue, gotFieldStd.getValue());
+    }
+
+    // Testing Message validation
+    private static DataDictionary defaultDataDictionary = null; 
+    private static DataDictionary customDataDictionary = null; 
+        
+    static {
+        try {
+            defaultDataDictionary = new DataDictionary("etc/fix44.xml");
+            customDataDictionary = new DataDictionary("test/fix44_custom_test.xml");
+        } catch (ConfigError e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Helper class building simulation the message parsing from a nio.Buffer - as managed in the networking part
+    private Message buildValidatedMessage(String sourceFIXString, DataDictionary dd) throws InvalidMessage {
+        Message res = null;
+        FileChannel in;
+        try {
+            // Building the nio buffer
+            final String fileName = File.createTempFile("validationTest", "dat").getPath();
+            FileOutputStream out = new FileOutputStream(fileName);
+            ObjectOutputStream outs = new ObjectOutputStream(out);
+            outs.writeObject(sourceFIXString);
+            outs.flush();
+            in = new FileInputStream(fileName).getChannel();
+            int filesize = (int) in.size();
+            ByteBuffer buffer = in.map(FileChannel.MapMode.READ_ONLY, 0, filesize);
+            FIXMessageData msg = new FIXMessageData();
+            msg.read(buffer);
+
+            // Parse - Validate
+            String fixVersion = sourceFIXString.substring(2, 9);
+            res = msg.parse(dd);
+
+        } catch (FileNotFoundException e) {
+            fail(e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            fail(e.getMessage());
+            e.printStackTrace();
+        }
+        return res;
+    }
+    
+    public void testValidationWithNestedGroupAndStandardFields() throws InvalidMessage {
+        quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest();
+
+        quickfix.field.QuoteReqID gQuoteReqID = new quickfix.field.QuoteReqID();
+        gQuoteReqID.setValue("12342");
+        quoteRequest.setField(gQuoteReqID);
+
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithStandardFields("DEFAULT_VALUE");
+        gNoRelatedSym.setField(new Symbol("SYM00"));
+        
+        quoteRequest.addGroup(gNoRelatedSym);
+        
+        quoteRequest.addGroup(gNoRelatedSym);
+        
+        String sourceFIXString = quoteRequest.toString();
+        
+        quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest)buildValidatedMessage(sourceFIXString, defaultDataDictionary);
+        String validateFIXString = null;
+        if(validatedMessage != null) {
+            validateFIXString = validatedMessage.toString();
+        }
+        
+        assertEquals("Message validation failed", sourceFIXString, validateFIXString);
+        
+    }
+    
+    public void testValidationWithNestedGroupAndStandardFieldsWithoutDelimiter() {
+        quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest();
+
+        quickfix.field.QuoteReqID gQuoteReqID = new quickfix.field.QuoteReqID();
+        gQuoteReqID.setValue("12342");
+        quoteRequest.setField(gQuoteReqID);
+
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithStandardFields("DEFAULT_VALUE");
+        
+        quoteRequest.addGroup(gNoRelatedSym);
+        
+        quoteRequest.addGroup(gNoRelatedSym);
+        
+        String sourceFIXString = quoteRequest.toString();
+        
+        quickfix.fix44.QuoteRequest validatedMessage;
+        try {
+            validatedMessage = (quickfix.fix44.QuoteRequest)buildValidatedMessage(sourceFIXString, defaultDataDictionary);
+            fail("No Exception thrown");
+        } catch (InvalidMessage e) {
+            // We expect that Exception did happen, so we don't do anything.
+        }
+        
+    }
+    
+    public void testGroupFieldsOrderWithCustomDataDictionary() throws InvalidMessage {
+        quickfix.fix44.QuoteRequest quoteRequest = new quickfix.fix44.QuoteRequest();
+
+        quickfix.field.QuoteReqID gQuoteReqID = new quickfix.field.QuoteReqID();
+        gQuoteReqID.setValue("12342");
+        quoteRequest.setField(gQuoteReqID);
+        
+        // The root group
+        quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
+        gNoRelatedSym.setField(new Symbol("SYM00"));
+        
+        // The nested group
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs nestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        nestedgroup.setField(new LegSymbol("DEFAULT_VALUE"));
+        nestedgroup.setField(new OrderID("111")); // The non ordered field
+        nestedgroup.setField(new StringField(9001, "1.9001")); // The custom non ordered field
+        gNoRelatedSym.addGroup(nestedgroup);
+        
+        // Adding a second fake nested group to avoid being the case of having
+        // one element which is not relevant :-)
+        quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs oneMoreNestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        oneMoreNestedgroup.setField(new LegSymbol("Donald"));
+        oneMoreNestedgroup.setField(new OrderID("112")); // The non ordered field
+        oneMoreNestedgroup.setField(new StringField(9001, "2.9001")); // The custom non ordered field
+        gNoRelatedSym.addGroup(oneMoreNestedgroup);
+
+        quoteRequest.addGroup(gNoRelatedSym);
+        
+        String sourceFIXString = quoteRequest.toString();
+        quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest)buildValidatedMessage(sourceFIXString, customDataDictionary);
+        String validatedFIXString = null;
+        if(validatedMessage != null) {
+            validatedFIXString = validatedMessage.toString();
+        }
+        
+        System.out.println(validatedFIXString);
+        assertEquals("Message validation failed", checkSum(sourceFIXString), checkSum(validatedFIXString));
+        
+    }
+    
+    public int checkSum(String s) {
+        int offset = s.lastIndexOf("\00110=");
+        int sum = 0;
+        for (int i = 0; i < offset; i++) {
+            sum += s.charAt(i);
+        }
+        return (sum + 1) % 256;
     }
     
 }

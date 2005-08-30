@@ -57,9 +57,9 @@ public class SerializationTest extends TestCase {
         // The srcDir might be the Eclipse and/or Ant srcDir. We'll
         // take the first one we find.
         for (int i = 0; i < srcDirs.length; i++) {
-            String srcDir = srcDirs[i];
-            if (new File(srcDir).exists()) {
-                return srcDir;
+            String asrcDir = srcDirs[i];
+            if (new File(asrcDir).exists()) {
+                return asrcDir;
             }
         }
         return null;
