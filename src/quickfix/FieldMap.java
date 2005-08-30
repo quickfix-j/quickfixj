@@ -1,21 +1,21 @@
 /****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
@@ -40,9 +40,12 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
-public abstract class FieldMap implements Serializable{
+public abstract class FieldMap implements Serializable {
+
     private final int[] fieldOrder;
+
     private final TreeMap fields;
+
     private final TreeMap groups = new TreeMap();
 
     protected FieldMap(int[] fieldOrder) {
@@ -54,10 +57,10 @@ public abstract class FieldMap implements Serializable{
         this(null);
     }
 
-    protected int[] getFieldOrder() {
+    public int[] getFieldOrder() {
         return fieldOrder;
     }
-    
+
     public void clear() {
         fields.clear();
         groups.clear();
@@ -68,24 +71,31 @@ public abstract class FieldMap implements Serializable{
         public int compare(Object o1, Object o2) {
             Integer tag1 = (Integer) o1;
             Integer tag2 = (Integer) o2;
-            int index1 = indexOf(tag1.intValue(), fieldOrder);
-            int index2 = indexOf(tag2.intValue(), fieldOrder);
-            
-            if((index1 != Integer.MAX_VALUE) && (index2 != Integer.MAX_VALUE)) {
-                // We manage two odered fields
+            int index1 = indexOf(tag1.intValue(), getFieldOrder());
+            int index2 = indexOf(tag2.intValue(), getFieldOrder());
+
+            if ((index1 != Integer.MAX_VALUE) && (index2 != Integer.MAX_VALUE)) {
+                // We manage two ordered fields
                 return index1 != index2 ? (index1 < index2 ? -1 : 1) : 0;
-            }else {
-                return -1;
+            } else if ((index1 == Integer.MAX_VALUE) || (index2 == Integer.MAX_VALUE)) {
+                if(index1 != index2) {
+                    return (index1 == Integer.MAX_VALUE ? 1 : -1);
+                }else {
+                    // index1 and index2 equals to Integer.MAX_VALUE so use the tags
+                    return tag1.intValue() != tag2.intValue() ? (tag1.intValue() < tag2.intValue() ? -1 : 1) : 0;
+                }
+            } else {
+                return tag1.intValue() != tag2.intValue() ? (tag1.intValue() < tag2.intValue() ? -1 : 1) : 0;
             }
         }
 
         private int indexOf(int tag, int[] order) {
             if (order != null) {
-	            for (int i = 0; i < order.length; i++) {
-	                if (tag == order[i]) {
-	                    return i;
-	                }
-	            }
+                for (int i = 0; i < order.length; i++) {
+                    if (tag == order[i]) {
+                        return i;
+                    }
+                }
             }
             return Integer.MAX_VALUE;
         }
@@ -94,6 +104,11 @@ public abstract class FieldMap implements Serializable{
     public void setFields(FieldMap fieldMap) {
         fields.clear();
         fields.putAll(fieldMap.fields);
+    }
+
+    public void setGroups(FieldMap fieldMap) {
+        groups.clear();
+        groups.putAll(fieldMap.groups);
     }
 
     public void setString(int field, String value) {
@@ -132,6 +147,7 @@ public abstract class FieldMap implements Serializable{
     public void setUtcTimeOnly(int field, Date value) {
         setUtcTimeOnly(field, value, false);
     }
+
     public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) {
         String s = UtcTimeOnlyConverter.convert(value, includeMillseconds);
         setField(new StringField(field, s));
@@ -230,7 +246,7 @@ public abstract class FieldMap implements Serializable{
             throw new NullPointerException("Null field values are not allowed.");
         }
         Integer key = new Integer(field.getField());
-        StringField replacedField = (StringField)fields.put(key, field);
+        StringField replacedField = (StringField) fields.put(key, field);
     }
 
     public void setField(BooleanField field) {
@@ -355,8 +371,7 @@ public abstract class FieldMap implements Serializable{
     }
 
     private FieldException newIncorrectDataException(FieldConvertError e, int tag) {
-        return new FieldException(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e
-                .getMessage(), tag);
+        return new FieldException(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.getMessage(), tag);
     }
 
     public boolean isSetField(int field) {
@@ -384,8 +399,9 @@ public abstract class FieldMap implements Serializable{
     private boolean isGroupField(int field) {
         return groups.get(new Integer(field)) != null;
     }
+
     // End Patch from David VINCENT
-    
+
     void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {
         if (preFields != null) {
             for (int i = 0; i < preFields.length; i++) {
@@ -397,27 +413,26 @@ public abstract class FieldMap implements Serializable{
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
             // Patch from David VINCENT
-            if (!isOrderedField(field.getField(), preFields)
-                    && !isOrderedField(field.getField(), postFields) 
-                        && !isGroupField(field.getField())) {
-             // End Patch from David VINCENT
+            if (!isOrderedField(field.getField(), preFields) && !isOrderedField(field.getField(), postFields) && !isGroupField(field.getField())) {
+                // End Patch from David VINCENT
                 field.toString(buffer);
                 buffer.append('\001');
             }
         }
-        
+
         for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
             Map.Entry entry = (Map.Entry) iter.next();
-            List mygroups = (List)entry.getValue();
-            IntField groupField = new IntField(((Integer)entry.getKey()).intValue());
+            List mygroups = (List) entry.getValue();
+            IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
             groupField.setValue(mygroups.size());
             groupField.toString(buffer);
             buffer.append('\001');
-            // Acceptance test copies message with group length field already present
+            // Acceptance test copies message with group length field already
+            // present
             // This causes two fields to be sent.
-            //buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
+            // buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
             for (int i = 0; i < mygroups.size(); i++) {
-                FieldMap groupFields = (FieldMap)mygroups.get(i);
+                FieldMap groupFields = (FieldMap) mygroups.get(i);
                 groupFields.calculateString(buffer, preFields, postFields);
             }
         }
@@ -430,10 +445,10 @@ public abstract class FieldMap implements Serializable{
         }
     }
 
-    private boolean isOrderedField(int field, int[] fieldOrder) {
-        if (fieldOrder != null) {
-            for (int i = 0; i < fieldOrder.length; i++) {
-                if (field == fieldOrder[i]) {
+    private boolean isOrderedField(int field, int[] afieldOrder) {
+        if (afieldOrder != null) {
+            for (int i = 0; i < afieldOrder.length; i++) {
+                if (field == afieldOrder[i]) {
                     return true;
                 }
             }
@@ -443,25 +458,31 @@ public abstract class FieldMap implements Serializable{
 
     int calculateLength() {
         int result = 0;
+        int length = 0;
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
-            if (field.getField() == BeginString.FIELD || field.getField() == BodyLength.FIELD
-                    || field.getField() == CheckSum.FIELD) {
+            if (field.getField() == BeginString.FIELD || field.getField() == BodyLength.FIELD || field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
                 continue;
             }
-            result += field.getLength();
+            length = field.getLength();
+            result += length;
         }
 
         Iterator iterator = groups.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry)iterator.next();
-            List groupList = (List)entry.getValue();
+            Map.Entry entry = (Map.Entry) iterator.next();
+            List groupList = (List) entry.getValue();
+            IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
+            groupField.setValue(groupList.size());
+            length = groupField.getLength();
+            result += length;
             for (int i = 0; i < groupList.size(); i++) {
-                Group group = (Group)groupList.get(i);
-                result += group.calculateLength();
+                Group group = (Group) groupList.get(i);
+                length = group.calculateLength();
+                result += length;
             }
         }
-        
+
         return result;
 
     }
@@ -471,10 +492,23 @@ public abstract class FieldMap implements Serializable{
         int result = 0;
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
-            if (field.getField() == CheckSum.FIELD) {
+            if (field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
                 continue;
             }
             result += field.getTotal();
+        }
+
+        Iterator iterator = groups.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry entry = (Map.Entry) iterator.next();
+            List groupList = (List) entry.getValue();
+            IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
+            groupField.setValue(groupList.size());
+            result += groupField.getTotal();
+            for (int i = 0; i < groupList.size(); i++) {
+                Group group = (Group) groupList.get(i);
+                result += group.calculateTotal();
+            }
         }
 
         return result;
@@ -487,17 +521,16 @@ public abstract class FieldMap implements Serializable{
     public Iterator groupKeyIterator() {
         return groups.keySet().iterator();
     }
-    
+
     Map getGroups() {
         return groups;
     }
-    
+
     public void addGroup(Group group) {
         getGroups(group.getFieldTag()).add(new Group(group));
-        group.clear();
     }
 
-    /*package*/ List getGroups(int field) {
+    /* package */List getGroups(int field) {
         List groupList = (List) groups.get(new Integer(field));
         if (groupList == null) {
             groupList = new ArrayList();
@@ -512,6 +545,7 @@ public abstract class FieldMap implements Serializable{
             throw new FieldNotFound(group.getFieldTag() + ", index=" + num);
         }
         group.setFields((Group) groupList.get(num - 1));
+        group.setGroups((Group) groupList.get(num - 1));
         return group;
     }
 }
