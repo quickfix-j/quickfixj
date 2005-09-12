@@ -1,0 +1,6 @@
+1.0.0
+-----
+Added SleepyCat JE message store.
+Fixed bug in logs and default session qualifier.
+Fixed bug with reconnect after remote connect.
+Fixed bugs in repeating group code.
