@@ -59,7 +59,7 @@ public class SessionInitiatorTest extends TestCase {
 
     private void assertLoggedOn(ClientApplication clientApplication, Session clientSession) throws InterruptedException {
         assertNotNull("no client session", clientSession);
-        clientApplication.logonLatch.await(5, TimeUnit.SECONDS);
+        clientApplication.logonLatch.await(20, TimeUnit.SECONDS);
         assertTrue("client session not logged in", clientSession.isLoggedOn());
     }
 
