@@ -117,15 +117,21 @@ public class FIXMessageData implements Message {
                     state = PARSING_LENGTH;
                 }
                 if (state == PARSING_LENGTH) {
+                    if (position >= buffer.limit()) {
+                        break;
+                    }
                     bodyLength = 0;
                     byte ch = buffer.get(position++);
                     while (Character.isDigit((char) ch)) {
                         bodyLength = bodyLength * 10 + (ch - '0');
-                        if (buffer.hasRemaining()) {
+                        if (position < buffer.limit()) {
                             ch = buffer.get(position++);
                         } else {
                             break;
                         }
+                    }
+                    if (position >= buffer.limit()) {
+                        break;
                     }
                     if (ch != '\001') {
                         handleError(buffer, "Error in message length", false);
@@ -147,10 +153,14 @@ public class FIXMessageData implements Message {
                         log.debug("parsing checksum");
                         position += checksumBytes.length;
                     } else {
-                        handleError(buffer, "did not find checksum field, bad length?", isLogon(
-                                buffer, messageStartPosition));
-                        if (buffer.remaining() > 0) {
-                            continue;
+                        if (position + checksumBytes.length < buffer.limit()) {
+                            handleError(buffer, "did not find checksum field, bad length?",
+                                    isLogon(buffer, messageStartPosition));
+                            if (buffer.remaining() > 0) {
+                                continue;
+                            } else {
+                                break;
+                            }
                         } else {
                             break;
                         }
@@ -208,6 +218,9 @@ public class FIXMessageData implements Message {
     }
 
     private static boolean startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
+        if (bufferOffset + data.length > buffer.limit()) {
+            return false;
+        }
         for (int dataOffset = 0, bufferLimit = buffer.limit() - data.length + 1; dataOffset < data.length
                 && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
             if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
