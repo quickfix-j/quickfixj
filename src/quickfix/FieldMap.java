@@ -42,6 +42,8 @@ import quickfix.field.converter.UtcTimestampConverter;
 
 public abstract class FieldMap implements Serializable {
 
+    static final long serialVersionUID = -3193357271891865972L;
+
     private final int[] fieldOrder;
 
     private final TreeMap fields;
@@ -67,6 +69,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     private class FieldOrderComparator implements Comparator, Serializable {
+        static final long serialVersionUID = 3416006398018829270L;
 
         public int compare(Object o1, Object o2) {
             Integer tag1 = (Integer) o1;
@@ -246,7 +249,7 @@ public abstract class FieldMap implements Serializable {
             throw new NullPointerException("Null field values are not allowed.");
         }
         Integer key = new Integer(field.getField());
-        StringField replacedField = (StringField) fields.put(key, field);
+        fields.put(key, field);
     }
 
     public void setField(BooleanField field) {

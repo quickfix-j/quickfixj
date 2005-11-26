@@ -406,9 +406,12 @@ public abstract class AbstractSocketInitiator implements Initiator {
              * @see quickfix.Responder#send(java.lang.String)
              */
             public boolean send(String data) {
-                System.out.println("DEBUG "+nettySession+" "+data);
-                nettySession.write(new FIXMessageData(data));
-                return true;
+                // NOTE: The Netty write operation is asynchronous. This
+                // means that a true result from write() may not result
+                // in an actual write to the socket channel. Hopefully,
+                // this is a close enough approximation to the synchronous
+                // C++ networking code.
+                return nettySession.write(new FIXMessageData(data));
             }
 
             /*

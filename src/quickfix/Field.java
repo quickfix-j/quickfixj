@@ -30,6 +30,7 @@ import java.io.Serializable;
  *  
  */
 public /*abstract*/ class Field implements Serializable{
+    static final long serialVersionUID = 7098326013456432197L;
     private int tag;
     private Object object;
     private boolean isCalculated = false;

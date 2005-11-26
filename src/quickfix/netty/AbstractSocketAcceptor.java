@@ -383,8 +383,12 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
         public boolean send(String data) {
             // TODO PERFORMANCE pool the FIXMessageData objects
-            nettySession.write(new FIXMessageData(data));
-            return true;
+            // NOTE: The Netty write operation is asynchronous. This
+            // means that a true result from write() may not result
+            // in an actual write to the socket channel. Hopefully,
+            // this is a close enough approximation to the synchronous
+            // C++ networking code.
+            return nettySession.write(new FIXMessageData(data));
         }
 
         public void disconnect() {

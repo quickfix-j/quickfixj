@@ -64,8 +64,6 @@ public class Message extends FieldMap {
 
     protected Trailer trailer = new Trailer();
 
-    private DataDictionary dd;
-
     private boolean doValidation;
 
     private int isValidStructureTag = 0;
@@ -90,11 +88,6 @@ public class Message extends FieldMap {
 
     public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
         fromString(string, dd, validate);
-    }
-
-    /* package */Message(Message message, DataDictionary dd) {
-        cloneTo(this);
-        this.dd = dd;
     }
 
     public static boolean InitializeXML(String url) {
@@ -295,12 +288,11 @@ public class Message extends FieldMap {
 
     public void fromString(String messageData, DataDictionary dd, boolean doValidation) throws InvalidMessage {
         this.messageData = messageData;
-        this.dd = dd;
         this.doValidation = doValidation;
         try {
-            parseHeader();
-            parseBody();
-            parseTrailer();
+            parseHeader(dd);
+            parseBody(dd);
+            parseTrailer(dd);
         } catch (InvalidMessage e) {
             isValidStructure = false;
             e.printStackTrace();
@@ -330,7 +322,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseHeader() throws InvalidMessage {
+    private void parseHeader(DataDictionary dd) throws InvalidMessage {
         boolean invalidHeaderFieldOrder = false;
         StringField beginString = extractField();
         if (beginString.getField() != BeginString.FIELD) {
@@ -368,7 +360,7 @@ public class Message extends FieldMap {
         return res;
     }
 
-    private void parseBody() throws InvalidMessage {
+    private void parseBody(DataDictionary dd) throws InvalidMessage {
         StringField field = extractField();
         while (field != null) {
             if (isTrailerField(field.getField())) {
@@ -430,7 +422,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseTrailer() throws InvalidMessage {
+    private void parseTrailer(DataDictionary dd) throws InvalidMessage {
         StringField field = extractField();
         while (field != null && isTrailerField(field, dd)) {
             trailer.setField(field);

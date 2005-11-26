@@ -19,10 +19,10 @@
 
 package quickfix;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -43,6 +43,15 @@ public class SerializationTest extends TestCase {
         super.setUp();
     }
 
+    public void testSerializationWithDataDictionary() throws Exception {
+        Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
+                + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=96\001",
+                DataDictionaryTest.getDictionary());
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream outs = new ObjectOutputStream(out);
+        outs.writeObject(message);
+    }
+    
     public void testSerialization() {
         srcDir = findSrcDir();
         // Check messages
@@ -151,13 +160,12 @@ public class SerializationTest extends TestCase {
     public Object buildSerializedObject(Object sourceMsg) {
         Object res = null;
         try {
-            final String fileName = File.createTempFile("serializationTest", "dat").getPath();
-            FileOutputStream out = new FileOutputStream(fileName);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             ObjectOutputStream outs = new ObjectOutputStream(out);
             outs.writeObject(sourceMsg);
             outs.flush();
 
-            FileInputStream in = new FileInputStream(fileName);
+            ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
             ObjectInputStream ins = new ObjectInputStream(in);
             res = ins.readObject();
 
