@@ -57,7 +57,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
         while (!isStopRequested()) {
             try {
                 Object event = eventQueue.take();
-                System.err.println(Thread.currentThread() + ": processing "+event);
                 if (event instanceof Message) {
                     processMessage((Message) event);
                 } else if (event instanceof Session) {
@@ -84,7 +83,12 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
 
         if (eventQueue.peek() != null) {
-            processMessage((Message) eventQueue.poll());
+            Object event = eventQueue.poll();
+            if (event instanceof Message) {
+                processMessage((Message) event);
+            } else if (event instanceof Session) {
+                processTimerEvent((Session) event);
+            }
         }
 
         return true;

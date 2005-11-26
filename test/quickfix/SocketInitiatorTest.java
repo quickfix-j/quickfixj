@@ -1,14 +1,15 @@
 package quickfix;
 
 import java.util.HashMap;
+import java.util.List;
 
 import junit.framework.TestCase;
 import quickfix.test.acceptance.ATServer;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
-public class SessionInitiatorTest extends TestCase {
-    public void testLogonAfterDisconnect() throws Exception {
+public class SocketInitiatorTest extends TestCase {
+    public void testLogonAfterServerDisconnect() throws Exception {
         ServerThread serverThread = new ServerThread();
         try {
             serverThread.start();
@@ -18,22 +19,65 @@ public class SessionInitiatorTest extends TestCase {
             ClientApplication clientApplication = new ClientApplication();
             SocketInitiator initiator = new SocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-            
+
             // Do initial logon
-            clientApplication.logonLatch = new CountDownLatch(1);
+            clientApplication.setUpLogonExpectation();
             initiator.start();
             Session clientSession = Session.lookupSession(clientSessionID);
             assertLoggedOn(clientApplication, clientSession);
-            
+
             // Disconnect from server-side and assert that client session reconnects and
             // logs on properly.
             SessionID serverSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW");
             Session serverSession = Session.lookupSession(serverSessionID);
-            clientApplication.logonLatch = new CountDownLatch(1);
+            clientApplication.setUpLogonExpectation();
             serverSession.disconnect();
             assertLoggedOn(clientApplication, clientSession);
         } finally {
             serverThread.interrupt();
+        }
+    }
+
+    public void testPoll() throws Exception {
+        ServerThread serverThread = new ServerThread();
+        try {
+            serverThread.start();
+
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID);
+            ClientApplication clientApplication = new ClientApplication();
+            SocketInitiator initiator = new SocketInitiator(clientApplication,
+                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+
+            // Do initial logon
+            clientApplication.setUpLogonExpectation();
+            //initiator.start();
+
+            // BUG #105 - SocketInitiator poll had class cast exception
+            // The class cast was from timer events occuring every one second.
+            // We sleep for one second and then check the poll.
+            try {
+                for (int i = 0; i < 5; i++) {
+                    Thread.sleep(300);
+                    initiator.poll();
+                }
+                
+                Session clientSession = Session.lookupSession(clientSessionID);
+                assertLoggedOn(clientApplication, clientSession);
+                
+                // BUG #106 - sessions were not being recorded.
+                List sessions = initiator.getSessions();
+                assertTrue("wrong logon status", initiator.isLoggedOn());
+                assertEquals("wrong # of session", 1, sessions.size());
+            } finally {
+                initiator.stop();
+            }
+
+            assertFalse("wrong logon status", initiator.isLoggedOn());
+
+        } finally {
+            serverThread.interrupt();
+            Thread.sleep(1000L);
         }
     }
 
@@ -57,7 +101,8 @@ public class SessionInitiatorTest extends TestCase {
         return settings;
     }
 
-    private void assertLoggedOn(ClientApplication clientApplication, Session clientSession) throws InterruptedException {
+    private void assertLoggedOn(ClientApplication clientApplication, Session clientSession)
+            throws InterruptedException {
         assertNotNull("no client session", clientSession);
         clientApplication.logonLatch.await(20, TimeUnit.SECONDS);
         assertTrue("client session not logged in", clientSession.isLoggedOn());
@@ -65,6 +110,10 @@ public class SessionInitiatorTest extends TestCase {
 
     private class ClientApplication extends ApplicationAdapter {
         public CountDownLatch logonLatch;
+
+        public void setUpLogonExpectation() {
+            logonLatch = new CountDownLatch(1);
+        }
 
         public void onLogon(SessionID sessionId) {
             if (logonLatch != null) {

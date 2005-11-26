@@ -15,7 +15,6 @@ package quickfix.netty;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,6 +30,7 @@ import org.apache.commons.logging.Log;
 import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
+import quickfix.DefaultSessionFactory;
 import quickfix.FieldConvertError;
 import quickfix.Initiator;
 import quickfix.InvalidMessage;
@@ -41,7 +41,6 @@ import quickfix.MessageStoreFactory;
 import quickfix.Responder;
 import quickfix.RuntimeError;
 import quickfix.ScreenLogFactory;
-import quickfix.DefaultSessionFactory;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -56,10 +55,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected Thread quickFixThread;
     private IoProcessor ioProcessor;
     private ArrayList sessionConnections = new ArrayList();
-    protected HashMap quickfixSessions = new HashMap();
+    protected ArrayList quickfixSessions = new ArrayList();
     private LowLatencyEventDispatcher eventDispatcher;
     private Timer timer = new Timer();
     private long stopRequestTimestamp;
+    private boolean initialized;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -124,8 +124,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
         if (!force) {
             for (int second = 1; second <= 10 && isLoggedOn(); ++second)
                 try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
+                    poll(); // Hack for synchronous poll/block cases.
+                    Thread.sleep(1000L);
+                } catch (Exception e) {
                     log.error(e);
                 }
         }
@@ -153,6 +154,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     private void initialize(boolean handleMessageInCaller) throws ConfigError {
+        if (initialized) {
+            return;
+        }
         try {
             boolean continueInitOnError = false;
             if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
@@ -190,6 +194,8 @@ public abstract class AbstractSocketInitiator implements Initiator {
             throw new ConfigError(e);
         } catch (IOException e) {
             throw new RuntimeError(e);
+        } finally {
+            initialized = true;
         }
     }
 
@@ -266,6 +272,10 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             quickfixSession = sessionFactory.create(sessionID, settings);
 
+            synchronized (quickfixSessions) {
+                quickfixSessions.add(quickfixSession);
+            }
+
             for (int index = 0;; index++) {
                 try {
                     String hostKey = Initiator.SETTING_SOCKET_CONNECT_HOST
@@ -302,7 +312,8 @@ public abstract class AbstractSocketInitiator implements Initiator {
         }
 
         public void onTimerEvent() {
-            if (!nettySession.isConnected() && quickfixSession.isEnabled() && isTimeForReconnect()
+            if (!nettySession.isStarted() && !nettySession.isConnected()
+                    && quickfixSession.isEnabled() && isTimeForReconnect()
                     && quickfixSession.isSessionTime()) {
                 nettySession = (Session) nettySessions
                         .get((nettySessions.indexOf(nettySession) + 1) % nettySessions.size());
@@ -312,7 +323,14 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
             // Delegate timer event to base class to it can hand off the event
             // to the appropriate thread
-            AbstractSocketInitiator.this.onTimerEvent(quickfixSession);
+            //
+            // Bug #120 - There was a race condition between the timer events, the nettySession
+            // start method and the session relogon. Sometimes the relogon would be attempted
+            // before the nettySession was reestablished. The following check is intended to
+            // keep this from happening. 
+            if (quickfixSession.getResponder() != null) {
+                AbstractSocketInitiator.this.onTimerEvent(quickfixSession);
+            }
         }
 
         private boolean isTimeForReconnect() {
@@ -435,17 +453,21 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     public boolean isLoggedOn() {
-        Iterator sessionItr = quickfixSessions.values().iterator();
-        while (sessionItr.hasNext()) {
-            quickfix.Session s = (quickfix.Session) sessionItr.next();
-            if (s.isLoggedOn()) {
-                return true;
+        synchronized (quickfixSessions) {
+            Iterator sessionItr = quickfixSessions.iterator();
+            while (sessionItr.hasNext()) {
+                quickfix.Session s = (quickfix.Session) sessionItr.next();
+                if (s.isLoggedOn()) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
 
     public ArrayList getSessions() {
-        return new ArrayList(quickfixSessions.values());
+        synchronized (quickfixSessions) {
+            return new ArrayList(quickfixSessions);
+        }
     }
 }

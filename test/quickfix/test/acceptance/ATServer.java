@@ -92,6 +92,11 @@ public class ATServer implements Runnable {
                 try {
                     application.wait();
                 } catch (InterruptedException e1) {
+                    try {
+                        acceptor.stop(true);
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                    }
                     log.info("server exiting");
                 }
             }
