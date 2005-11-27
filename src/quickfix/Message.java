@@ -565,4 +565,5 @@ public class Message extends FieldMap {
     public int getInvalidStructureTag() {
         return isValidStructureTag;
     }
+
 }

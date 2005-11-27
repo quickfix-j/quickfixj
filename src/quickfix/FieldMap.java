@@ -81,14 +81,18 @@ public abstract class FieldMap implements Serializable {
                 // We manage two ordered fields
                 return index1 != index2 ? (index1 < index2 ? -1 : 1) : 0;
             } else if ((index1 == Integer.MAX_VALUE) || (index2 == Integer.MAX_VALUE)) {
-                if(index1 != index2) {
+                if (index1 != index2) {
                     return (index1 == Integer.MAX_VALUE ? 1 : -1);
-                }else {
+                } else {
                     // index1 and index2 equals to Integer.MAX_VALUE so use the tags
-                    return tag1.intValue() != tag2.intValue() ? (tag1.intValue() < tag2.intValue() ? -1 : 1) : 0;
+                    return tag1.intValue() != tag2.intValue() ? (tag1.intValue() < tag2.intValue()
+                            ? -1
+                            : 1) : 0;
                 }
             } else {
-                return tag1.intValue() != tag2.intValue() ? (tag1.intValue() < tag2.intValue() ? -1 : 1) : 0;
+                return tag1.intValue() != tag2.intValue() ? (tag1.intValue() < tag2.intValue()
+                        ? -1
+                        : 1) : 0;
             }
         }
 
@@ -374,7 +378,8 @@ public abstract class FieldMap implements Serializable {
     }
 
     private FieldException newIncorrectDataException(FieldConvertError e, int tag) {
-        return new FieldException(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.getMessage(), tag);
+        return new FieldException(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e
+                .getMessage(), tag);
     }
 
     public boolean isSetField(int field) {
@@ -416,7 +421,9 @@ public abstract class FieldMap implements Serializable {
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
             // Patch from David VINCENT
-            if (!isOrderedField(field.getField(), preFields) && !isOrderedField(field.getField(), postFields) && !isGroupField(field.getField())) {
+            if (!isOrderedField(field.getField(), preFields)
+                    && !isOrderedField(field.getField(), postFields)
+                    && !isGroupField(field.getField())) {
                 // End Patch from David VINCENT
                 field.toString(buffer);
                 buffer.append('\001');
@@ -464,7 +471,8 @@ public abstract class FieldMap implements Serializable {
         int length = 0;
         for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
-            if (field.getField() == BeginString.FIELD || field.getField() == BodyLength.FIELD || field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
+            if (field.getField() == BeginString.FIELD || field.getField() == BodyLength.FIELD
+                    || field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
                 continue;
             }
             length = field.getLength();
@@ -551,4 +559,40 @@ public abstract class FieldMap implements Serializable {
         group.setGroups((Group) groupList.get(num - 1));
         return group;
     }
+
+    public void removeGroup(int field) {
+        getGroups(field).clear();
+    }
+
+    public void removeGroup(int num, int field) {
+        List groupList = getGroups(field);
+        if (num <= groupList.size()) {
+            groupList.remove(num - 1);
+        }
+    }
+
+    public void removeGroup(int num, Group group) {
+        removeGroup(num, group.getFieldTag());
+    }
+
+    public void removeGroup(Group group) {
+        removeGroup(group.getFieldTag());
+    }
+
+    public boolean hasGroup(int field) {
+        return groups.containsKey(new Integer(field));
+    }
+
+    public boolean hasGroup(int num, int field) {
+        return hasGroup(field) && num <= getGroups(field).size();
+    }
+
+    public boolean hasGroup(int num, Group group) {
+        return hasGroup(num, group.getFieldTag());
+    }
+
+    public boolean hasGroup(Group group) {
+        return hasGroup(group.getFieldTag());
+    }
+
 }

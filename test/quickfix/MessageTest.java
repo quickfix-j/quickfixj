@@ -77,7 +77,7 @@ public class MessageTest extends TestCase {
         data += "318=CAD\001";
         data += "10=037\001";
         Message message = new Message(data, DataDictionaryTest.getDictionary());
-        
+
         assertHeaderField(message, "FIX.4.2", BeginString.FIELD);
         assertHeaderField(message, "76", BodyLength.FIELD);
         assertHeaderField(message, MsgType.INDICATION_OF_INTEREST, MsgType.FIELD);
@@ -152,13 +152,7 @@ public class MessageTest extends TestCase {
 
     public void testMessageGroups() {
         Message message = new Message();
-        NewOrderSingle.NoAllocs numAllocs = new NewOrderSingle.NoAllocs();
-        numAllocs.set(new AllocAccount("AllocACC1"));
-        numAllocs.set(new AllocShares(1010.10));
-        message.addGroup(numAllocs);
-        numAllocs.set(new AllocAccount("AllocACC2"));
-        numAllocs.set(new AllocShares(2020.20));
-        message.addGroup(numAllocs);
+        NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
 
         StringField field = null;
         java.util.Iterator i = numAllocs.iterator();
@@ -186,6 +180,77 @@ public class MessageTest extends TestCase {
             fail("exception should be thrown");
         } catch (FieldNotFound e) {
         }
+    }
+
+    public void testMessageGroupRemoval() {
+        Message message = new Message();
+        NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
+
+        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(numAllocs);
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+
+        numAllocs = setUpGroups(message);
+        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(numAllocs.getFieldTag());
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+
+        numAllocs = setUpGroups(message);
+        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(2, numAllocs.getFieldTag());
+
+        assertEquals("wrong # of group members", 1, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(1, numAllocs.getFieldTag());
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+
+        numAllocs = setUpGroups(message);
+        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(2, numAllocs);
+
+        assertEquals("wrong # of group members", 1, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(1, numAllocs);
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+
+        // ensure no exception when groups are empty
+        message.removeGroup(1, numAllocs);
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+}
+
+    public void testHasGroup() {
+        Message message = new Message();
+        NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
+
+        assertFalse("wrong value", message.hasGroup(654));
+        assertTrue("wrong value", message.hasGroup(numAllocs.getFieldTag()));
+        assertTrue("wrong value", message.hasGroup(numAllocs));
+        assertTrue("wrong value", message.hasGroup(1, numAllocs));
+        assertTrue("wrong value", message.hasGroup(1, numAllocs.getFieldTag()));
+        assertTrue("wrong value", message.hasGroup(2, numAllocs));
+        assertTrue("wrong value", message.hasGroup(2, numAllocs.getFieldTag()));
+        assertFalse("wrong value", message.hasGroup(3, numAllocs));
+        assertFalse("wrong value", message.hasGroup(3, numAllocs.getFieldTag()));
+    }
+
+    private NewOrderSingle.NoAllocs setUpGroups(Message message) {
+        NewOrderSingle.NoAllocs numAllocs = new NewOrderSingle.NoAllocs();
+        numAllocs.set(new AllocAccount("AllocACC1"));
+        numAllocs.set(new AllocShares(1010.10));
+        message.addGroup(numAllocs);
+        numAllocs.set(new AllocAccount("AllocACC2"));
+        numAllocs.set(new AllocShares(2020.20));
+        message.addGroup(numAllocs);
+        return numAllocs;
     }
 
     public void testMessageSetGetString() {
@@ -364,10 +429,10 @@ public class MessageTest extends TestCase {
             fail("exception thrown");
         }
     }
-    
+
     public void testIsAdmin() {
         Message message = new Message();
-        
+
         message.getHeader().setString(MsgType.FIELD, MsgType.HEARTBEAT);
         assertTrue(message.isAdmin());
 

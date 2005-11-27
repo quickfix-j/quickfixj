@@ -253,6 +253,16 @@ public class DataDictionary {
         return getFieldTypeEnum(field).getOrdinal();
     }
 
+    /**
+     * Get the field tag given a field name.
+     * @param name the field name
+     * @return the tag
+     */
+    public int getFieldTag(String name) {
+        Integer tag = (Integer) fieldNames.get(name);
+        return tag != null ? tag.intValue() : -1;
+    }
+
     private void addRequiredField(String msgType, int field) {
         Set fields = (Set) requiredFields.get(msgType);
         if (fields == null) {
@@ -283,7 +293,6 @@ public class DataDictionary {
         values.add(value);
     }
 
-    
     /**
      * Predicate for determining if a field has enumerated values.
      * @param field the tag
@@ -374,7 +383,6 @@ public class DataDictionary {
     public void setCheckFieldsHaveValues(boolean flag) {
         checkFieldsHaveValues = flag;
     }
-
 
     /**
      * Controls whether user defined fields are checked.
