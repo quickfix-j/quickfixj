@@ -23,13 +23,19 @@ import java.util.ArrayList;
 
 /**
  * Establishes sessions with FIX servers and manages the associated sessions.
- *  
  */
 public interface Initiator {
     /**
+     * Initiator setting for reconnect interval in seconds. Only valid when
+     * session connection type is "initiator".
+     *
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    public static final String SETTING_RECONNECT_INTERVAL = "ReconnectInterval";
+    /**
      * Initiator setting for connection host. Only valid when session connection
      * type is "initiator".
-     * 
+     *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
     public static final String SETTING_SOCKET_CONNECT_HOST = "SocketConnectHost";
@@ -37,74 +43,68 @@ public interface Initiator {
     /**
      * Initiator setting for connection port. Only valid when session connection
      * type is "initiator".
-     * 
+     *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
     public static final String SETTING_SOCKET_CONNECT_PORT = "SocketConnectPort";
 
     /**
-     * Initiator setting for reconnect interval in seconds. Only valid when
-     * session connection type is "initiator".
-     * 
-     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     * Establish connections. This method blocks until stop is called from
+     * another thread.
+     *
+     * @throws ConfigError  Problem with configuration.
+     * @throws RuntimeError Other unspecified error
      */
-    public static final String SETTING_RECONNECT_INTERVAL = "ReconnectInterval";
+    void block() throws ConfigError, RuntimeError;
+
+    /**
+     * Returns the sessions managed by this initiator.
+     *
+     * @return the sessions associated with this initiator
+     */
+    ArrayList getSessions();
+
+    /**
+     * Checks the logged on status of the initiator's sessions.
+     *
+     * @return true is any session is logged on, false otherwise.
+     */
+    boolean isLoggedOn();
+
+    /**
+     * Checks the logged on status of the specified session.
+     *
+     * @return true is the session is logged on, false otherwise.
+     */
+    boolean isLoggedOn(SessionID session);
+
+    /**
+     * Processes a single message.
+     *
+     * @return false if stopped, true if still active.
+     * @throws ConfigError  Problem with configuration.
+     * @throws RuntimeError Other unspecified error
+     */
+    boolean poll() throws ConfigError, RuntimeError;
 
     /**
      * Establish sessions. Returns immediately. See implementations of this
      * interface potential threading issues.
-     * 
-     * @throws ConfigError
-     *             Problem with configuration.
-     * @throws RuntimeError
-     *             Other unspecified error
+     *
+     * @throws ConfigError  Problem with configuration.
+     * @throws RuntimeError Other unspecified error
      */
     void start() throws ConfigError, RuntimeError;
 
     /**
      * Logout existing sessions and close their connections.
-     *  
      */
     void stop();
 
     /**
      * Stops all sessions, optionally waiting for logout completion.
+     *
      * @param force don't wait for logout before disconnect.
      */
     public void stop(boolean force);
-
-    /**
-     * Establish connections. This method blocks until stop is called from
-     * another thread.
-     * 
-     * @throws ConfigError
-     *             Problem with configuration.
-     * @throws RuntimeError
-     *             Other unspecified error
-     */
-    void block() throws ConfigError, RuntimeError;
-
-    /**
-     * Processes a single message.
-     * 
-     * @return false if stopped, true if still active.
-     * @throws ConfigError
-     *             Problem with configuration.
-     * @throws RuntimeError
-     *             Other unspecified error
-     */
-    boolean poll() throws ConfigError, RuntimeError;
-
-    /**
-     * Checks the logged on status of the session.
-     * @return true is any session is logged on, false otherwise.
-     */
-    boolean isLoggedOn();
-    
-    /**
-     * Returns the sessions managed by this initiator.
-     * @return the sessions associated with this initiator
-     */
-    ArrayList getSessions();
-
 }

@@ -8,15 +8,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import junit.extensions.TestSetup;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import quickfix.test.acceptance.timer.TimerTest;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static Log log = LogFactory.getLog(AcceptanceTestSuite.class);
@@ -146,7 +148,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
     public static Test suite() {
         final AcceptanceTestSuite acceptanceTestSuite = new AcceptanceTestSuite();
-        return new TestSetup(acceptanceTestSuite) {
+        Test scriptedAcceptanceTests = new TestSetup(acceptanceTestSuite) {
             private Thread serverThread;
             
             protected void setUp() throws Exception {
@@ -162,5 +164,9 @@ public class AcceptanceTestSuite extends TestSuite {
                 super.tearDown();
             }
         };
+        TestSuite acceptanceTests = new TestSuite();
+        acceptanceTests.addTestSuite(TimerTest.class);
+        acceptanceTests.addTest(scriptedAcceptanceTests);
+        return acceptanceTests;
     }
 }

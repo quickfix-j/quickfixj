@@ -46,12 +46,10 @@ public class SocketInitiatorTest extends TestCase {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID);
             ClientApplication clientApplication = new ClientApplication();
-            SocketInitiator initiator = new SocketInitiator(clientApplication,
+            final SocketInitiator initiator = new SocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
-            // Do initial logon
             clientApplication.setUpLogonExpectation();
-            //initiator.start();
 
             // BUG #105 - SocketInitiator poll had class cast exception
             // The class cast was from timer events occuring every one second.
@@ -70,7 +68,26 @@ public class SocketInitiatorTest extends TestCase {
                 assertTrue("wrong logon status", initiator.isLoggedOn());
                 assertEquals("wrong # of session", 1, sessions.size());
             } finally {
+                // This is very strange. I'm not sure how the poll() and stop()
+                // are supposed to work. Need more behavioral specifiations from
+                // the C++ developers.
+                //
+                // Must run stop in a separate thread because the logout will
+                // be deffered and occur at the next timer interrupt.
                 initiator.stop();
+//                new Thread(new Runnable() {
+//                
+//                    public void run() {
+//                        initiator.stop();
+//                    }
+//                
+//                });
+//                for (int i = 0; i < 5; i++) {
+//                    Thread.sleep(300);
+//                    if (!initiator.poll()) {
+//                        break;
+//                    }
+//                }
             }
 
             assertFalse("wrong logon status", initiator.isLoggedOn());

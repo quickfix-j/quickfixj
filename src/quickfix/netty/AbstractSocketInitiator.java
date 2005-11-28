@@ -115,6 +115,13 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     public final void stop(boolean force) {
+        onStop();
+
+        if (!isStopRequested) {
+            isStopRequested = true;
+            stopRequestTimestamp = System.currentTimeMillis();
+        }
+        
         synchronized (sessionConnections) {
             for (int i = 0; i < sessionConnections.size(); i++) {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
@@ -122,19 +129,17 @@ public abstract class AbstractSocketInitiator implements Initiator {
         }
 
         if (!force) {
-            for (int second = 1; second <= 10 && isLoggedOn(); ++second)
+            for (int second = 1; second <= 10 && isLoggedOn(); ++second) {
                 try {
-                    poll(); // Hack for synchronous poll/block cases.
                     Thread.sleep(1000L);
                 } catch (Exception e) {
                     log.error(e);
                 }
+            }
         }
 
-        onStop();
+        timer.cancel();
         ioProcessor.stop();
-        stopRequestTimestamp = System.currentTimeMillis();
-        isStopRequested = true;
     }
 
     protected boolean isStopRequested() {
@@ -463,6 +468,14 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
             return false;
         }
+    }
+
+    public boolean isLoggedOn(SessionID sessionID) {
+        quickfix.Session session = quickfix.Session.lookupSession(sessionID);
+        if (session != null) {
+            return session.isLoggedOn();
+        }
+        return false;
     }
 
     public ArrayList getSessions() {
