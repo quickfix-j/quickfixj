@@ -163,6 +163,10 @@ public class AcceptanceTestSuite extends TestSuite {
                 serverThread.interrupt();
                 super.tearDown();
             }
+            
+            public String toString() {
+                return "Acceptance Test Server Context";
+            }
         };
         TestSuite acceptanceTests = new TestSuite();
         acceptanceTests.addTestSuite(TimerTest.class);
