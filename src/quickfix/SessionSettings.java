@@ -19,27 +19,23 @@
 
 package quickfix;
 
+import quickfix.field.converter.BooleanConverter;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-
-import quickfix.field.converter.BooleanConverter;
+import java.util.*;
 
 /**
  * Settings for sessions. Settings are grouped by FIX version and target company
  * ID. There is also a default settings section that is inherited by the
  * session-specific sections.
- * 
+ *
  * Setting constants are declared in the classes using the settings. To find the
  * string constants, navigate to the class constant for the setting, select the
  * link for the setting and then and select the "Constant Field Values" link in
- * the detailed field description. 
- * 
+ * the detailed field description.
+ *
  * @see quickfix.Acceptor
  * @see quickfix.Initiator
  * @see quickfix.FileLogFactory
@@ -75,7 +71,7 @@ public class SessionSettings {
 
     /**
      * Loads session settings from a file.
-     * 
+     *
      * @param filename
      *            the path to the file containing the session settings
      */
@@ -94,7 +90,7 @@ public class SessionSettings {
 
     /**
      * Loads session settings from an input stream.
-     * 
+     *
      * @param stream
      *            the input stream
      * @throws ConfigError
@@ -117,13 +113,13 @@ public class SessionSettings {
 
     /**
      * Get a settings string.
-     * 
+     *
      * @param sessionID
      *            the session ID
      * @param key
      *            the settings key
      * @return the string value for the setting
-     * 
+     *
      * @throws ConfigError
      *             configurion error, probably a missing setting.
      * @throws FieldConvertError
@@ -165,13 +161,13 @@ public class SessionSettings {
 
     /**
      * Get a settings value as a long integer.
-     * 
+     *
      * @param sessionID
      *            the session ID
      * @param key
      *            the settings key
      * @return the long integer value for the setting
-     * 
+     *
      * @throws ConfigError
      *             configurion error, probably a missing setting.
      * @throws FieldConvertError
@@ -207,13 +203,13 @@ public class SessionSettings {
 
     /**
      * Get a settings value as a double number.
-     * 
+     *
      * @param sessionID
      *            the session ID
      * @param key
      *            the settings key
      * @return the double number value for the setting
-     * 
+     *
      * @throws ConfigError
      *             configurion error, probably a missing setting.
      * @throws FieldConvertError
@@ -240,13 +236,13 @@ public class SessionSettings {
 
     /**
      * Get a settings value as a boolean value.
-     * 
+     *
      * @param sessionID
      *            the session ID
      * @param key
      *            the settings key
      * @return the boolean value for the setting
-     * 
+     *
      * @throws ConfigError
      *             configurion error, probably a missing setting.
      * @throws FieldConvertError
@@ -366,7 +362,7 @@ public class SessionSettings {
 
     /**
      * Predicate for determining if a setting exists.
-     * 
+     *
      * @param sessionID the session ID
      * @param key the setting key
      * @return true is setting exists, false otherwise.
@@ -417,15 +413,15 @@ public class SessionSettings {
                 ch = nextCharacter(inputStream);
             }
             skipWhitespace(inputStream);
-            if (Character.isLetterOrDigit(ch)) {
+            if (isLabelCharacter(ch)) {
                 sb.setLength(0);
                 do {
                     sb.append(ch);
                     ch = nextCharacter(inputStream);
-                } while (Character.isLetterOrDigit(ch));
+                } while (isLabelCharacter(ch));
                 return new Token(ID_TOKEN, sb.toString());
             } else if (ch == '=') {
-                ch = nextCharacter(inputStream); // wrong
+                ch = nextCharacter(inputStream); 
                 skipWhitespace(inputStream);
                 if (isValueCharacter(ch)) {
                     sb.setLength(0);
@@ -447,12 +443,17 @@ public class SessionSettings {
                 } while ("\r\n".indexOf(ch) == -1);
                 return getToken(inputStream);
             }
-            // TODO QUESTION is this an error?
             return null;
         }
 
+        private boolean isLabelCharacter(char ch) {
+            //return Character.isLetterOrDigit(ch) || ch == '.';
+            return (byte)ch != -1 && "[]=".indexOf(ch) == -1;
+        }
+
         private boolean isValueCharacter(char ch) {
-            return Character.isLetterOrDigit(ch) || isPunctuation(ch) || ".:_-".indexOf(ch) != -1;
+            //return Character.isLetterOrDigit(ch) || isPunctuation(ch) || " .:_-".indexOf(ch) != -1;
+            return (byte)ch != -1 && "\r\n".indexOf(ch) == -1;
         }
 
         private char nextCharacter(InputStream inputStream) throws IOException {

@@ -56,17 +56,17 @@ public class SessionSettingsTest extends TestCase {
         }
         settings.setDouble(sessionID3, "TestDouble", 43.21);
         assertEquals("wrong setting", 43.21, settings.getDouble(sessionID3, "TestDouble"), 0);
-        
+
         assertTrue("wrong setting", settings.getBool(sessionID1, "TestBoolTrue"));
         assertFalse("wrong setting", settings.getBool(sessionID1, "TestBoolFalse"));
         settings.setBool(sessionID3, "TestBool", true);
         assertTrue("wrong settings", settings.getBool(sessionID3, "TestBool"));
-        
+
         settings.setString(sessionID3, "TestString", "foo");
         assertEquals("wrong setting", "foo", settings.getString(sessionID3, "TestString"));
-        
+
         assertTrue("wrong setting", settings.isSetting(sessionID1, "StartTime"));
-        
+
         Iterator sectionIterator = settings.sectionIterator();
         assertNotNull(sectionIterator.next());
         assertNotNull(sectionIterator.next());
@@ -75,6 +75,10 @@ public class SessionSettingsTest extends TestCase {
     }
 
     private SessionSettings setUpSession() throws ConfigError {
+        return setUpSession(null);
+    }
+
+    private SessionSettings setUpSession(String extra) throws ConfigError {
         String data = new String();
         data += "[DEFAULT]";
         data += "ConnectionType=acceptor\n";
@@ -100,18 +104,21 @@ public class SessionSettingsTest extends TestCase {
         data += "SenderCompID=TW\n";
         data += "TargetCompID=CLIENT2\n";
         data += "DataDictionary=../spec/FIX42.xml\n";
+        if (extra != null) {
+            data += extra;
+        }
         ByteArrayInputStream cfg = new ByteArrayInputStream(data.getBytes());
 
         SessionSettings settings = new SessionSettings(cfg);
         return settings;
     }
-    
+
     public void testSessionKeyIterator() throws Exception {
         SessionSettings settings = setUpSession();
         Iterator itr = settings.sectionIterator();
         while (itr.hasNext()) {
-            SessionID id = (SessionID)itr.next();
-            assertEquals("FIX", id.getBeginString().substring(0,3));
+            SessionID id = (SessionID) itr.next();
+            assertEquals("FIX", id.getBeginString().substring(0, 3));
             assertEquals("", id.getSessionQualifier());
         }
     }
@@ -139,11 +146,25 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("bargle", settings.getString("FileStorePath"));
     }
 
+    public void testSpecialCharactersInKeys() throws Exception {
+        SessionSettings settings = setUpSession("$$$foo bar.baz@@@=value\n");
+        SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
+
+        assertEquals("value", settings.getString(sessionID2, "$$$foo bar.baz@@@"));
+    }
+
+    public void testStrangeCharactersInValues() throws Exception {
+        SessionSettings settings = setUpSession("label=   This is a test? Yes, it is.\n");
+        SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
+
+        assertEquals("This is a test? Yes, it is.", settings.getString(sessionID2, "label"));
+    }
+
     public void testToString() {
         new SessionSettings().toString();
         // Passes if no exceptions are thrown
     }
-    
+
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
