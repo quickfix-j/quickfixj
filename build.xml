@@ -206,6 +206,7 @@
 	</target>
 
 	<target name="test.init">
+                <mkdir dir="${test.report.dir}/reports"/>
 		<!-- copy non-class files that are needed in the classpath -->
 		<copy todir="${test.classes.dir}">
 			<fileset dir="etc">
