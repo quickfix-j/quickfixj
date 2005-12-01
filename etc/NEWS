@@ -1,6 +1,19 @@
 1.0.0
 -----
-Added SleepyCat JE message store.
-Fixed bug in logs and default session qualifier.
-Fixed bug with reconnect after remote connect.
-Fixed bugs in repeating group code.
+
+New Features:
+  * Added SleepyCat JE message store.
+  * Extended syntax supported in configuration files.
+  
+Bug Fixes:
+  * Bug #104 Fixed serialization problem when using DD
+  * Bug #106 Fixed onPoll ClassCastException
+  * Bug #106 Fixed initiator management of session list
+  * Bug #115 Fixed bug in logs and default session qualifier.
+  * Bug #120 Fixed connect after reconnect problems (initiator race condition)
+  * Bug #127 Fixed bugs in fragmented message parsing
+  * Bug #131 Fixed timer race condition during initiator shutdown
+  * Bug #132 Fixed message clone of groups
+  * Bug #133 Added timer to acceptor for automatically sending heartbeats
+  
+  
