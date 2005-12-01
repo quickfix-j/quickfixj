@@ -80,7 +80,8 @@ public class SessionSettingsTest extends TestCase {
 
     private SessionSettings setUpSession(String extra) throws ConfigError {
         String data = new String();
-        data += "[DEFAULT]";
+        data += "#comment\n";
+        data += "[DEFAULT]\n";
         data += "ConnectionType=acceptor\n";
         data += "SocketAcceptPort=5001\n";
         data += "FileStorePath=store\n";
@@ -92,7 +93,7 @@ public class SessionSettingsTest extends TestCase {
         data += "TestDouble2=abcd\n";
         data += "TestBoolTrue=Y\n";
         data += "TestBoolFalse=N\n";
-        data += "\n";
+        data += "\r\n";
         data += "[SESSION]\n";
         data += "BeginString=FIX.4.2\n";
         data += "SenderCompID=TW\n";

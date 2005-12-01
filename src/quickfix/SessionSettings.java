@@ -62,6 +62,8 @@ public class SessionSettings {
     public static final String TARGETCOMPID = "TargetCompID";
     public static final String SESSION_QUALIFIER = "SessionQualifier";
 
+    private static final String NEWLINE = System.getProperty("line.separator");
+    
     /**
      * Creates an empty session settings object.
      */
@@ -440,29 +442,30 @@ public class SessionSettings {
             } else if (ch == '#') {
                 do {
                     ch = nextCharacter(inputStream);
-                } while ("\r\n".indexOf(ch) == -1);
+                } while (!isNewLineCharacter(ch));
                 return getToken(inputStream);
             }
             return null;
         }
 
+		private boolean isNewLineCharacter(char ch) {
+			return NEWLINE.indexOf(ch) != -1;
+		}
+
         private boolean isLabelCharacter(char ch) {
-            //return Character.isLetterOrDigit(ch) || ch == '.';
-            return (byte)ch != -1 && "[]=".indexOf(ch) == -1;
+            return !isEndOfStream(ch) && "[]=#".indexOf(ch) == -1;
         }
 
         private boolean isValueCharacter(char ch) {
-            //return Character.isLetterOrDigit(ch) || isPunctuation(ch) || " .:_-".indexOf(ch) != -1;
-            return (byte)ch != -1 && "\r\n".indexOf(ch) == -1;
+            return !isEndOfStream(ch) && !isNewLineCharacter(ch);
         }
 
-        private char nextCharacter(InputStream inputStream) throws IOException {
+        private boolean isEndOfStream(char ch) {
+			return (byte)ch == -1;
+		}
+
+		private char nextCharacter(InputStream inputStream) throws IOException {
             return (char) inputStream.read();
-        }
-
-        private boolean isPunctuation(char c1) {
-            return (c1 > '\u0020' && c1 < '\u007E' && !Character.isSpaceChar(c1) && !Character
-                    .isLetterOrDigit(c1));
         }
 
         private void skipWhitespace(InputStream inputStream) throws IOException {
