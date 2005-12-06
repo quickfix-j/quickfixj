@@ -101,6 +101,7 @@ public class TimerTestClient extends MessageCracker implements Application {
             }
         } finally {
             initiator.stop();
+            Thread.sleep(3000L);
         }
     }
 
