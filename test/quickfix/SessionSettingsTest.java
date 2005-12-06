@@ -161,6 +161,18 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("This is a test? Yes, it is.", settings.getString(sessionID2, "label"));
     }
 
+    public void testDefaultSetters() throws Exception {
+    	SessionSettings settings = setUpSession();
+    	settings.setBool("bool", true);
+    	assertEquals("wrong default value", true, settings.getBool("bool"));
+    	settings.setDouble("double", 10.00);
+    	assertEquals("wrong default value", 10.00, settings.getDouble("double"), 0);
+    	settings.setLong("long", 1000L);
+    	assertEquals("wrong default value", 1000L, settings.getLong("long"));
+    	settings.setString("string", "xyz");
+    	assertEquals("wrong default value", "xyz", settings.getString("string"));
+    }
+    
     public void testToString() {
         new SessionSettings().toString();
         // Passes if no exceptions are thrown
