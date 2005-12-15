@@ -241,8 +241,8 @@ public class RepeatingGroupTest extends TestCase {
         
     static {
         try {
-            defaultDataDictionary = new DataDictionary("etc/fix44.xml");
-            customDataDictionary = new DataDictionary("test/fix44_custom_test.xml");
+            defaultDataDictionary = new DataDictionary("etc/FIX44.xml");
+            customDataDictionary = new DataDictionary("test/FIX44_Custom_Test.xml");
         } catch (ConfigError e) {
             e.printStackTrace();
         }
