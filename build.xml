@@ -354,7 +354,7 @@
 	</target>
 
 	<target name="release.shared"
-	        depends="check.tests,jar,javadoc"
+	        depends="jar,javadoc"
 	        unless="tests.failed">
 		<initdir dir="${release.output.dir}" />
 

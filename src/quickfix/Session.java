@@ -1445,7 +1445,7 @@ public class Session {
     }
 
     public void setResetOnLogout(boolean flag) {
-        this.resetOnLogout = true;
+        this.resetOnLogout = flag;
     }
 
     public void setResetOnDisconnect(boolean flag) {

@@ -82,7 +82,7 @@ public class DefaultSessionFactory implements SessionFactory {
                         dataDictionary = new DataDictionary(new FileInputStream(path));
                         dictionaryCache.put(path, dataDictionary);
                     } catch (FileNotFoundException e) {
-                        throw new ConfigError(e.getMessage(), e);
+                        throw new ConfigError(e);
                     }
                 }
 
@@ -156,7 +156,8 @@ public class DefaultSessionFactory implements SessionFactory {
             }
             
             if (settings.isSetting(sessionID, Session.SETTING_RESET_WHEN_INITIATING_LOGON)) {
-                session.setResetWhenInitiatingLogon(true);
+                session.setResetWhenInitiatingLogon(settings.getBool(sessionID,
+                        Session.SETTING_RESET_WHEN_INITIATING_LOGON));
             }
 
             return session;
