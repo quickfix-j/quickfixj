@@ -65,7 +65,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory), settings);
+        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory, messageFactory), settings);
     }
 
     public final void block() throws ConfigError, RuntimeError {
@@ -242,7 +242,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
         return onPoll();
     }
-    
+
     public void start() throws ConfigError, RuntimeError {
         initialize(false);
         onStart();
@@ -322,7 +322,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         public String getRemoteIPAddress() {
             return nettySession.getSocketAddressString();
         }
-        
+
         public Session getNettySession() {
             return nettySession;
         }
@@ -347,7 +347,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
     public final void stop(boolean force) {
         onStop();
-        
+
         if (!isStopRequested) {
             isStopRequested = true;
             stopRequestTime = System.currentTimeMillis();
@@ -391,7 +391,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             }
         }
     }
-    
+
     protected void processTimerEvent(quickfix.Session quickfixSession) {
         try {
             quickfixSession.next();

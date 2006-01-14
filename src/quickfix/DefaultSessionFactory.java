@@ -19,13 +19,13 @@
 
 package quickfix;
 
+import quickfix.field.converter.UtcTimeOnlyConverter;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
-
-import quickfix.field.converter.UtcTimeOnlyConverter;
 
 /**
  * Factory for creating sessions. Used by the communications code (acceptors,
@@ -34,20 +34,30 @@ import quickfix.field.converter.UtcTimeOnlyConverter;
 public class DefaultSessionFactory implements SessionFactory {
     private static Map dictionaryCache = new Hashtable(); // synchronized
     private Application application;
-    private MessageStoreFactory messageStoryFactory;
+    private MessageStoreFactory messageStoreFactory;
     private LogFactory logFactory;
+	private MessageFactory messageFactory;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
             LogFactory logFactory) {
         this.application = application;
-        this.messageStoryFactory = messageStoreFactory;
+        this.messageStoreFactory = messageStoreFactory;
         this.logFactory = logFactory;
-    }
+		this.messageFactory = new DefaultMessageFactory();
+	}
+
+	public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+			LogFactory logFactory, MessageFactory messageFactory) {
+		this.application = application;
+		this.messageStoreFactory = messageStoreFactory;
+		this.logFactory = logFactory;
+		this.messageFactory = messageFactory;
+	}
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
             String connectionType = null;
-            
+
             if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
                 connectionType = settings.getString(sessionID,
                         SessionFactory.SETTING_CONNECTION_TYPE);
@@ -90,18 +100,18 @@ public class DefaultSessionFactory implements SessionFactory {
                     dataDictionary.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
                 }
-                
+
                 if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES)) {
                     dataDictionary.setCheckFieldsHaveValues(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES));
                 }
-                
+
                 if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {
                     dataDictionary.setCheckUserDefinedFields(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
                 }
-                
-                
+
+
             }
 
             Date startTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
@@ -127,7 +137,7 @@ public class DefaultSessionFactory implements SessionFactory {
                 }
             }
 
-            Session session = new Session(application, messageStoryFactory, sessionID,
+            Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionary, new SessionSchedule(startTime, endTime, startDay, endDay),
                     logFactory, new DefaultMessageFactory(), heartbeatInterval);
 

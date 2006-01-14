@@ -19,19 +19,17 @@
 
 package quickfix.netty;
 
-import java.nio.ByteBuffer;
-
 import net.gleamynode.netty2.Message;
 import net.gleamynode.netty2.MessageParseException;
 import net.gleamynode.netty2.MessageRecognizer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import quickfix.DataDictionary;
 import quickfix.DefaultMessageFactory;
 import quickfix.InvalidMessage;
 import quickfix.Session;
+
+import java.nio.ByteBuffer;
 
 /**
  * When reading, this class identifies a FIX message and extracts it. When
@@ -45,13 +43,13 @@ public class FIXMessageData implements Message {
     /**
      * This recognizer is used as by Netty as a factory for the
      * FIXMessageAdapter
-     * 
+     *
      * @see net.gleamynode.netty2.MessageRecognizer
      */
     public final static MessageRecognizer RECOGNIZER = new MessageRecognizer() {
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see net.gleamynode.netty2.MessageRecognizer#recognize(java.nio.ByteBuffer)
          */
         public Message recognize(ByteBuffer buffer) throws MessageParseException {
@@ -81,19 +79,19 @@ public class FIXMessageData implements Message {
     private int messageStartPosition;
     private int bodyStartPosition;
     private int position;
-    private String message;
+    private String messageString;
 
     public FIXMessageData() {
         // empty
     }
 
     public FIXMessageData(String message) {
-        this.message = message;
+        this.messageString = message;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see net.gleamynode.netty2.Message#read(java.nio.ByteBuffer)
      */
     public boolean read(ByteBuffer buffer) throws MessageParseException {
@@ -168,9 +166,9 @@ public class FIXMessageData implements Message {
                     byte[] data = new byte[position - messageStartPosition];
                     buffer.position(messageStartPosition);
                     buffer.get(data);
-                    message = new String(data);
+                    messageString = new String(data);
                     if (log.isTraceEnabled()) {
-                        log.trace("extracted message: " + message + ", remaining="
+                        log.trace("extracted message: " + messageString + ", remaining="
                                 + buffer.remaining());
                     }
                     return true;
@@ -232,32 +230,40 @@ public class FIXMessageData implements Message {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see net.gleamynode.netty2.Message#write(java.nio.ByteBuffer)
      */
     public boolean write(ByteBuffer buffer) {
-        buffer.put(message.getBytes());
+        buffer.put(messageString.getBytes());
         return true;
     }
 
     public quickfix.Message parse(DataDictionary dataDictionary) throws InvalidMessage {
-        String beginString = message.substring(2, 9);
+        String beginString = messageString.substring(2, 9);
         String messageType = getMessageType();
-        quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(this.message, dataDictionary, dataDictionary != null);
+		quickfix.Message message = null;
+		if (session != null)
+		{
+			message = session.getMessageFactory().create(beginString, messageType);
+		}
+		else
+		{
+			message = messageFactory.create(beginString, messageType);
+		}
+        message.fromString(this.messageString, dataDictionary, dataDictionary != null);
         return message;
     }
 
     private String getMessageType() throws InvalidMessage {
-        int messageTypeStart = message.indexOf("35=") + 3;
+        int messageTypeStart = messageString.indexOf("35=") + 3;
         int messageTypeEnd = messageTypeStart + 1;
-        while (message.charAt(messageTypeEnd) != '\001') {
+        while (messageString.charAt(messageTypeEnd) != '\001') {
             messageTypeEnd++;
-            if (messageTypeEnd >= message.length()) {
+            if (messageTypeEnd >= messageString.length()) {
                 throw new InvalidMessage("couldn't extract message type");
             }
         }
-        return message.substring(messageTypeStart, messageTypeEnd);
+        return messageString.substring(messageTypeStart, messageTypeEnd);
     }
 
     private boolean isLogon(ByteBuffer buffer, int position) {
@@ -266,7 +272,7 @@ public class FIXMessageData implements Message {
     }
 
     public boolean isLogon() {
-        return message.indexOf("\00135=A\001") != -1;
+        return messageString.indexOf("\00135=A\001") != -1;
     }
 
     public Session getSession() {
@@ -278,6 +284,6 @@ public class FIXMessageData implements Message {
     }
 
     public String toString() {
-        return message;
+        return messageString;
     }
 }

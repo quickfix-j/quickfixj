@@ -12,38 +12,20 @@
 
 package quickfix.netty;
 
+import net.gleamynode.netty2.IoProcessor;
+import net.gleamynode.netty2.LowLatencyEventDispatcher;
+import net.gleamynode.netty2.Message;
+import net.gleamynode.netty2.Session;
+import net.gleamynode.netty2.SessionListener;
+import org.apache.commons.logging.Log;
+import quickfix.*;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import net.gleamynode.netty2.IoProcessor;
-import net.gleamynode.netty2.LowLatencyEventDispatcher;
-import net.gleamynode.netty2.Message;
-import net.gleamynode.netty2.Session;
-import net.gleamynode.netty2.SessionListener;
-
-import org.apache.commons.logging.Log;
-
-import quickfix.Application;
-import quickfix.ConfigError;
-import quickfix.DataDictionary;
-import quickfix.DefaultSessionFactory;
-import quickfix.FieldConvertError;
-import quickfix.Initiator;
-import quickfix.InvalidMessage;
-import quickfix.LogFactory;
-import quickfix.LogUtil;
-import quickfix.MessageFactory;
-import quickfix.MessageStoreFactory;
-import quickfix.Responder;
-import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
-import quickfix.SessionFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
 
 public abstract class AbstractSocketInitiator implements Initiator {
     protected Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
@@ -71,7 +53,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory), settings);
+        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory, messageFactory), settings);
     }
 
     protected AbstractSocketInitiator(SessionFactory sessionFactory, SessionSettings settings) {
@@ -121,7 +103,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
             isStopRequested = true;
             stopRequestTimestamp = System.currentTimeMillis();
         }
-        
+
         synchronized (sessionConnections) {
             for (int i = 0; i < sessionConnections.size(); i++) {
                 ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
@@ -332,7 +314,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
             // Bug #120 - There was a race condition between the timer events, the nettySession
             // start method and the session relogon. Sometimes the relogon would be attempted
             // before the nettySession was reestablished. The following check is intended to
-            // keep this from happening. 
+            // keep this from happening.
             if (quickfixSession.getResponder() != null) {
                 AbstractSocketInitiator.this.onTimerEvent(quickfixSession);
             }
@@ -345,7 +327,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
         private class NettySessionListener implements SessionListener {
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see net.gleamynode.netty2.SessionListener#connectionEstablished(net.gleamynode.netty2.Session)
              */
             public void connectionEstablished(Session nettySession) {
@@ -360,7 +342,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see net.gleamynode.netty2.SessionListener#connectionClosed(net.gleamynode.netty2.Session)
              */
             public void connectionClosed(Session session) {
@@ -379,7 +361,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see net.gleamynode.netty2.SessionListener#messageSent(net.gleamynode.netty2.Session,
              *      net.gleamynode.netty2.Message)
              */
@@ -389,7 +371,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see net.gleamynode.netty2.SessionListener#messageReceived(net.gleamynode.netty2.Session,
              *      net.gleamynode.netty2.Message)
              */
@@ -405,7 +387,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see net.gleamynode.netty2.SessionListener#sessionIdle(net.gleamynode.netty2.Session)
              */
             public void sessionIdle(Session nettySession) {
@@ -413,7 +395,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see quickfix.netty.AbstractSessionListener#exceptionCaught(net.gleamynode.netty2.Session,
              *      java.lang.Throwable)
              */
@@ -425,7 +407,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
         private class QuickFixSessionResponder implements Responder {
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see quickfix.Responder#send(java.lang.String)
              */
             public boolean send(String data) {
@@ -439,7 +421,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
             /*
              * (non-Javadoc)
-             * 
+             *
              * @see quickfix.Responder#disconnect()
              */
             public void disconnect() {
@@ -450,7 +432,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 // Reset session/socket to primary socket for next attempt
                 nettySession = (Session) nettySessions.get(0);
             }
-            
+
             public String getRemoteIPAddress() {
                 return nettySession.getSocketAddressString();
             }

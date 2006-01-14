@@ -12,33 +12,12 @@
 
 package quickfix;
 
+import quickfix.field.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-
-import quickfix.field.BeginSeqNo;
-import quickfix.field.BeginString;
-import quickfix.field.BusinessRejectReason;
-import quickfix.field.EncryptMethod;
-import quickfix.field.EndSeqNo;
-import quickfix.field.GapFillFlag;
-import quickfix.field.HeartBtInt;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.MsgType;
-import quickfix.field.NewSeqNo;
-import quickfix.field.OrigSendingTime;
-import quickfix.field.PossDupFlag;
-import quickfix.field.RefMsgType;
-import quickfix.field.RefSeqNum;
-import quickfix.field.RefTagID;
-import quickfix.field.ResetSeqNumFlag;
-import quickfix.field.SenderCompID;
-import quickfix.field.SendingTime;
-import quickfix.field.SessionRejectReason;
-import quickfix.field.TargetCompID;
-import quickfix.field.TestReqID;
-import quickfix.field.Text;
 
 public class Session {
     /**
@@ -142,7 +121,7 @@ public class Session {
      * Session description. Used by external tools.
      */
     public static final String SETTING_DESCRIPTION = "Description";
-    
+
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -193,12 +172,15 @@ public class Session {
         }
     }
 
+    public MessageFactory getMessageFactory() {
+        return messageFactory;
+    }
+
     /**
      * Registers a responder with the session. This is used by the acceptor and
      * initiator implementations.
-     * 
-     * @param responder
-     *            a responder implementation
+     *
+     * @param responder a responder implementation
      */
     public void setResponder(Responder responder) {
         this.responder = responder;
@@ -206,6 +188,7 @@ public class Session {
 
     /**
      * This should not be used by end users.
+     *
      * @return the Session's connection responder
      */
     public Responder getResponder() {
@@ -242,12 +225,10 @@ public class Session {
     /**
      * Send a message to the session specified in the message's target
      * identifiers.
-     * 
-     * @param message
-     *            a FIX message
+     *
+     * @param message a FIX message
      * @return true is send was successful, false otherwise
-     * @throws SessionNotFound
-     *             if session could not be located
+     * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message) throws SessionNotFound {
         return sendToTarget(message, "");
@@ -257,14 +238,11 @@ public class Session {
      * Send a message to the session specified in the message's target
      * identifiers. The session qualifier is used to distinguish sessions with
      * the same target identifiers.
-     * 
-     * @param message
-     *            a FIX message
-     * @param qualifier
-     *            a session qualifier
+     *
+     * @param message   a FIX message
+     * @param qualifier a session qualifier
      * @return true is send was successful, false otherwise
-     * @throws SessionNotFound
-     *             if session could not be located
+     * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFound {
         try {
@@ -282,16 +260,12 @@ public class Session {
      * Send a message to the session specified by the provided target company
      * ID. The sender company ID is provided as an argument rather than from the
      * message.
-     * 
-     * @param message
-     *            a FIX message
-     * @param senderCompID
-     *            the sender's company ID
-     * @param targetCompID
-     *            the target's company ID
+     *
+     * @param message      a FIX message
+     * @param senderCompID the sender's company ID
+     * @param targetCompID the target's company ID
      * @return true is send was successful, false otherwise
-     * @throws SessionNotFound
-     *             if session could not be located
+     * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID)
             throws SessionNotFound {
@@ -303,21 +277,16 @@ public class Session {
      * ID. The sender company ID is provided as an argument rather than from the
      * message. The session qualifier is used to distinguish sessions with the
      * same target identifiers.
-     * 
-     * @param message
-     *            a FIX message
-     * @param senderCompID
-     *            the sender's company ID
-     * @param targetCompID
-     *            the target's company ID
-     * @param qualifier
-     *            a session qualifier
+     *
+     * @param message      a FIX message
+     * @param senderCompID the sender's company ID
+     * @param targetCompID the target's company ID
+     * @param qualifier    a session qualifier
      * @return true is send was successful, false otherwise
-     * @throws SessionNotFound
-     *             if session could not be located
+     * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-            String qualifier) throws SessionNotFound {
+                                       String qualifier) throws SessionNotFound {
         try {
             return sendToTarget(message, new SessionID(message.getHeader().getString(
                     BeginString.FIELD), senderCompID, targetCompID, qualifier));
@@ -330,14 +299,11 @@ public class Session {
 
     /**
      * Send a message to the session specified by the provided session ID.
-     * 
-     * @param message
-     *            a FIX message
-     * @param sessionID
-     *            the target SessionID
+     *
+     * @param message   a FIX message
+     * @param sessionID the target SessionID
      * @return true is send was successful, false otherwise
-     * @throws SessionNotFound
-     *             if session could not be located
+     * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFound {
         message.setSessionID(sessionID);
@@ -350,9 +316,8 @@ public class Session {
 
     /**
      * Locates a session specified by the provided session ID.
-     * 
-     * @param sessionID
-     *            the session ID
+     *
+     * @param sessionID the session ID
      * @return the session, if found, or null otherwise
      */
     public static Session lookupSession(SessionID sessionID) {
@@ -361,7 +326,6 @@ public class Session {
 
     /**
      * This method can be used to manually logon to a FIX session.
-     * 
      */
     public void logon() {
         enabled = true;
@@ -391,7 +355,7 @@ public class Session {
 
     /**
      * Used internally by initiator implementation.
-     * 
+     *
      * @return true if session is enabled, false otherwise.
      */
     public boolean isEnabled() {
@@ -400,7 +364,7 @@ public class Session {
 
     /**
      * Predicate indicatign whether a logon message has been sent.
-     * 
+     *
      * @return true if logon message was sent, false otherwise.
      */
     public boolean sentLogon() {
@@ -409,7 +373,7 @@ public class Session {
 
     /**
      * Predicate indicatign whether a logon message has been received.
-     * 
+     *
      * @return true if logon message was received, false otherwise.
      */
     public boolean receivedLogon() {
@@ -418,7 +382,7 @@ public class Session {
 
     /**
      * Predicate indicatign whether a logout message has been sent.
-     * 
+     *
      * @return true if logout message was sent, false otherwise.
      */
     public boolean sentLogout() {
@@ -437,9 +401,8 @@ public class Session {
 
     /**
      * Disconnects session and resets session state.
-     * 
-     * @throws IOException
-     *             IO error
+     *
+     * @throws IOException IO error
      * @see #disconnect()
      * @see SessionState#reset()
      */
@@ -451,11 +414,9 @@ public class Session {
     /**
      * Set the next outgoing message sequence number. This method is not
      * synchronized.
-     * 
-     * @param num
-     *            next outgoing sequence number
-     * @throws IOException
-     *             IO error
+     *
+     * @param num next outgoing sequence number
+     * @throws IOException IO error
      */
     public void setNextSenderMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextSenderMsgSeqNum(num);
@@ -464,11 +425,9 @@ public class Session {
     /**
      * Set the next expected target message sequence number. This method is not
      * synchronized.
-     * 
-     * @param num
-     *            next expected target sequence number
-     * @throws IOException
-     *             IO error
+     *
+     * @param num next expected target sequence number
+     * @throws IOException IO error
      */
     public void setNextTargetMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextTargetMsgSeqNum(num);
@@ -477,7 +436,7 @@ public class Session {
     /**
      * Retrieves the expected sender sequence number. This method is not
      * synchronized.
-     * 
+     *
      * @return next expected sender sequence number
      */
     public int getExpectedSenderNum() {
@@ -492,7 +451,7 @@ public class Session {
     /**
      * Retrieves the expected target sequence number. This method is not
      * synchronized.
-     * 
+     *
      * @return next expected target sequence number
      */
     public int getExpectedTargetNum() {

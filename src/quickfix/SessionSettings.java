@@ -30,12 +30,12 @@ import java.util.*;
  * Settings for sessions. Settings are grouped by FIX version and target company
  * ID. There is also a default settings section that is inherited by the
  * session-specific sections.
- * 
+ *
  * Setting constants are declared in the classes using the settings. To find the
  * string constants, navigate to the class constant for the setting, select the
  * link for the setting and then and select the "Constant Field Values" link in
  * the detailed field description.
- * 
+ *
  * @see quickfix.Acceptor
  * @see quickfix.Initiator
  * @see quickfix.FileLogFactory
@@ -65,7 +65,9 @@ public class SessionSettings {
 
 	public static final String SESSION_QUALIFIER = "SessionQualifier";
 
-	private static final String NEWLINE = System.getProperty("line.separator");
+    // This was using the line.separator system property but that caused
+    // problems with moving configuration files between *nix and Windows.
+    private static final String NEWLINE = "\r\n";
 
 	/**
 	 * Creates an empty session settings object.
@@ -76,7 +78,7 @@ public class SessionSettings {
 
 	/**
 	 * Loads session settings from a file.
-	 * 
+	 *
 	 * @param filename
 	 *            the path to the file containing the session settings
 	 */
@@ -96,7 +98,7 @@ public class SessionSettings {
 
 	/**
 	 * Loads session settings from an input stream.
-	 * 
+	 *
 	 * @param stream
 	 *            the input stream
 	 * @throws ConfigError
@@ -108,7 +110,7 @@ public class SessionSettings {
 
 	/**
 	 * Gets a string from the default section of the settings.
-	 * 
+	 *
 	 * @param key
 	 * @return the default string value
 	 * @throws ConfigError
@@ -120,13 +122,13 @@ public class SessionSettings {
 
 	/**
 	 * Get a settings string.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
 	 *            the settings key
 	 * @return the string value for the setting
-	 * 
+	 *
 	 * @throws ConfigError
 	 *             configurion error, probably a missing setting.
 	 * @throws FieldConvertError
@@ -143,7 +145,7 @@ public class SessionSettings {
 
 	/**
 	 * Return the settings for a session as a Properties object.
-	 * 
+	 *
 	 * @param sessionID
 	 * @return the Properties object with the session settings
 	 * @throws ConfigError
@@ -160,7 +162,7 @@ public class SessionSettings {
 
 	/**
 	 * Gets a long from the default section of settings.
-	 * 
+	 *
 	 * @param key
 	 * @return the default value
 	 * @throws ConfigError
@@ -172,13 +174,13 @@ public class SessionSettings {
 
 	/**
 	 * Get a settings value as a long integer.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
 	 *            the settings key
 	 * @return the long integer value for the setting
-	 * 
+	 *
 	 * @throws ConfigError
 	 *             configurion error, probably a missing setting.
 	 * @throws FieldConvertError
@@ -204,7 +206,7 @@ public class SessionSettings {
 
 	/**
 	 * Gets a double value from the default section of the settings.
-	 * 
+	 *
 	 * @param key
 	 * @return the default value
 	 * @throws ConfigError
@@ -216,13 +218,13 @@ public class SessionSettings {
 
 	/**
 	 * Get a settings value as a double number.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
 	 *            the settings key
 	 * @return the double number value for the setting
-	 * 
+	 *
 	 * @throws ConfigError
 	 *             configurion error, probably a missing setting.
 	 * @throws FieldConvertError
@@ -239,7 +241,7 @@ public class SessionSettings {
 
 	/**
 	 * Gets a boolean value from the default section of the settings.
-	 * 
+	 *
 	 * @param key
 	 * @return the boolean value
 	 * @throws ConfigError
@@ -251,13 +253,13 @@ public class SessionSettings {
 
 	/**
 	 * Get a settings value as a boolean value.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
 	 *            the settings key
 	 * @return the boolean value for the setting
-	 * 
+	 *
 	 * @throws ConfigError
 	 *             configurion error, probably a missing setting.
 	 * @throws FieldConvertError
@@ -274,7 +276,7 @@ public class SessionSettings {
 
 	/**
 	 * Sets a string-valued session setting.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
@@ -288,7 +290,7 @@ public class SessionSettings {
 
 	/**
 	 * Sets a long integer-valued session setting.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
@@ -304,7 +306,7 @@ public class SessionSettings {
 
 	/**
 	 * Sets a double-valued session setting.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
@@ -320,7 +322,7 @@ public class SessionSettings {
 
 	/**
 	 * Sets a boolean-valued session setting.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
@@ -394,7 +396,7 @@ public class SessionSettings {
 
 	/**
 	 * Predicate for determining if a setting is in the default section.
-	 * 
+	 *
 	 * @param key
 	 * @return true if setting is in the defaults, false otherwise
 	 */
@@ -404,7 +406,7 @@ public class SessionSettings {
 
 	/**
 	 * Predicate for determining if a setting exists.
-	 * 
+	 *
 	 * @param sessionID
 	 *            the session ID
 	 * @param key
@@ -527,7 +529,7 @@ public class SessionSettings {
 	 * Adds defaults to the settings. Will not delete existing settings not
 	 * overlapping with the new defaults, but will overwrite existing settings
 	 * specified in this call.
-	 * 
+	 *
 	 * @param defaults
 	 */
 	public void set(Map defaults) {
