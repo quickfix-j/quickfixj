@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -28,7 +28,7 @@ public class DateField extends Field {
     private static Calendar calendar;
 
     static {
-        timezone = TimeZone.getTimeZone("GMT+0");
+        timezone = TimeZone.getTimeZone("UTC");
     }
 
     protected DateField(int field) {

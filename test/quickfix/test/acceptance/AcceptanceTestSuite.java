@@ -3,21 +3,27 @@ package quickfix.test.acceptance;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
+import junit.extensions.TestSetup;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
-public class AcceptanceTestSuite extends TestSuite {
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import quickfix.test.acceptance.timer.TimerTest;
+
+public class AcceptanceTestSuite extends TestSuite {
+    private static Log log = LogFactory.getLog(AcceptanceTestSuite.class);
+    private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";
+    
     private final class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -26,13 +32,14 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
-    public static class AcceptanceTest implements Test {
+    public static class AcceptanceTest extends TestCase {
         private final String filename;
         private final String testname;
 
         public AcceptanceTest(String filename) {
             this.filename = filename;
             testname = filename.substring(filename.lastIndexOf(File.separatorChar + "fix") + 1);
+            setName(testname);
         }
 
         public int countTestCases() {
@@ -62,13 +69,15 @@ public class AcceptanceTestSuite extends TestSuite {
 
         private List load(String filename) throws IOException {
             ArrayList steps = new ArrayList();
-            System.out.println("load: " + filename);
+            log.info("load test: " + filename);
             BufferedReader in = null;
             try {
                 in = new BufferedReader(new FileReader(filename));
                 String line = in.readLine();
                 while (line != null) {
-                    if (line.startsWith("I")) {
+                    if (line.matches("^.*#")) {
+                        continue;
+                    } else if (line.startsWith("I")) {
                         steps.add(new InitiateMessageStep(line));
                     } else if (line.startsWith("E")) {
                         steps.add(new ExpectMessageStep(line));
@@ -97,19 +106,25 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        addTests(new File("../quickfix_cvs/test/definitions/server/fix42"));
-        //addTest("2m_BodyLengthValueNotCorrect.def");
+        String timeout = System.getProperty("at.timeout");
+        if (timeout != null) {
+            ExpectMessageStep.TIMEOUT_IN_MS = Long.parseLong(timeout);
+        }
+        addTests(new File(acceptanceTestBaseDir + "server/fix40"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix41"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix42"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix43"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix44"));
+        
+//        addTest("fix40/2q_MsgTypeNotValid.def");
+//      addTest("fix40/10_MsgSeqNumEqual.def");
     }
 
-    private void addTest(String name) {
-        addTests(new File("../quickfix_cvs/test/definitions/server/fix42/"+name));
-    }
-    
-    public static Test suite() {
-        return new AcceptanceTestSuite();
+    protected void addTest(String name) {
+        addTests(new File(acceptanceTestBaseDir + "server/" + name));
     }
 
-    private void addTests(File directory) {
+    protected void addTests(File directory) {
         if (!directory.isDirectory()) {
             addTest(new AcceptanceTest(directory.getPath()));
         } else {
@@ -129,5 +144,33 @@ public class AcceptanceTestSuite extends TestSuite {
                 System.err.println("directory does not exist: " + directory.getPath());
             }
         }
+    }
+
+    public static Test suite() {
+        final AcceptanceTestSuite acceptanceTestSuite = new AcceptanceTestSuite();
+        Test scriptedAcceptanceTests = new TestSetup(acceptanceTestSuite) {
+            private Thread serverThread;
+            
+            protected void setUp() throws Exception {
+                super.setUp();
+                ATServer server = new ATServer(acceptanceTestSuite);
+                serverThread = new Thread(server, "ATServer");
+                serverThread.start();
+                server.waitForInitialization();
+            }
+            
+            protected void tearDown() throws Exception {
+                serverThread.interrupt();
+                super.tearDown();
+            }
+            
+            public String toString() {
+                return "Acceptance Test Server Context";
+            }
+        };
+        TestSuite acceptanceTests = new TestSuite();
+        acceptanceTests.addTestSuite(TimerTest.class);
+        acceptanceTests.addTest(scriptedAcceptanceTests);
+        return acceptanceTests;
     }
 }

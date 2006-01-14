@@ -1,0 +1,15 @@
+table.doctable {
+	margin-top: 0.5em;
+	border-collapse: collapse;
+}
+
+table.doctable th, table.doctable td {
+	font-family: sans-serif;
+	font-size: 0.8em;
+	padding: 0.2em;
+	border: solid 1px;
+}
+
+table.doctable th {
+	background-color: #f0f0f0;
+}

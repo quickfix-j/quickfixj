@@ -1,5 +1,5 @@
 /****************************************************************************
- ** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
  **
  ** This file is part of the QuickFIX FIX Engine
  **
@@ -19,54 +19,50 @@
 
 package quickfix.netty;
 
-import java.nio.ByteBuffer;
-
 import net.gleamynode.netty2.Message;
 import net.gleamynode.netty2.MessageParseException;
 import net.gleamynode.netty2.MessageRecognizer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import quickfix.DataDictionary;
 import quickfix.DefaultMessageFactory;
 import quickfix.InvalidMessage;
+import quickfix.Session;
+
+import java.nio.ByteBuffer;
 
 /**
  * When reading, this class identifies a FIX message and extracts it. When
  * writing, it puts the message into a buffer that the Netty NIO threads will
  * write to the output stream.
- * 
- * @author sbate
- *  
  */
 public class FIXMessageData implements Message {
+    private Session session;
     private Log log = LogFactory.getLog(getClass());
 
     /**
      * This recognizer is used as by Netty as a factory for the
      * FIXMessageAdapter
-     * 
+     *
      * @see net.gleamynode.netty2.MessageRecognizer
      */
-    public static final MessageRecognizer RECOGNIZER = new MessageRecognizer() {
+    public final static MessageRecognizer RECOGNIZER = new MessageRecognizer() {
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see net.gleamynode.netty2.MessageRecognizer#recognize(java.nio.ByteBuffer)
          */
         public Message recognize(ByteBuffer buffer) throws MessageParseException {
-            // TODO Use an object pool for FIXMessageData
-            return new FIXMessageData();
+            // TODO PERFORMANCE Use an object pool for FIXMessageData?
+            return indexOf(buffer, 0, headerBytes) != -1 ? new FIXMessageData() : null;
         }
     };
-    
+
     /**
-     * Message factory for parsing FIX message data. It's threadsafe so it
-     * can be reused by multiple FIXMessageData objects.
+     * Message factory for parsing FIX message data. It's threadsafe so it can
+     * be reused by multiple FIXMessageData objects.
      */
     private static DefaultMessageFactory messageFactory = new DefaultMessageFactory();
-
 
     // Parsing states
     private static final int SEEKING_HEADER = 1;
@@ -80,102 +76,152 @@ public class FIXMessageData implements Message {
 
     private int state = SEEKING_HEADER;
     private int bodyLength = 0;
-    private String message;
+    private int messageStartPosition;
+    private int bodyStartPosition;
+    private int position;
+    private String messageString;
 
     public FIXMessageData() {
         // empty
     }
 
     public FIXMessageData(String message) {
-        this.message = message;
+        this.messageString = message;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see net.gleamynode.netty2.Message#read(java.nio.ByteBuffer)
      */
     public boolean read(ByteBuffer buffer) throws MessageParseException {
-        try {
-            if (state == SEEKING_HEADER) {
-                if (buffer.remaining() < headerBytes.length) {
-                    return false;
-                }
-
-                boolean foundHeader = false;
-                int i = 0;
-                while (i < buffer.remaining() - headerBytes.length) {
-                    if (startsWith(buffer, i, headerBytes)) {
-                        foundHeader = true;
+        for (;;) {
+            try {
+                if (state == SEEKING_HEADER) {
+                    if (buffer.remaining() < headerBytes.length) {
                         break;
                     }
-                    i++;
-                }
-                
-                if (!foundHeader) {
-                    return false;
-                }
 
-                buffer.position(i).mark();
-                log.debug("found header, set mark");
-                
-                buffer.position(i + headerBytes.length); // skip header
-                state = PARSING_LENGTH;
-            }
-            if (state == PARSING_LENGTH) {
-                bodyLength = 0;
-                byte ch = buffer.get();
-                while (Character.isDigit((char) ch)) {
-                    bodyLength = bodyLength * 10 + (ch - '0');
-                    if (buffer.hasRemaining()) {
-                        ch = buffer.get();
-                    } else {
-                        return false;
+                    // TODO PERFORMANCE this can be optimized in recognizer
+                    messageStartPosition = indexOf(buffer, buffer.position(), headerBytes);
+                    if (messageStartPosition == -1) {
+                        throw new MessageParseException("inconsistent header recognization"
+                                + " between message recognizer and parser");
                     }
+
+                    log.debug("found header");
+
+                    position = messageStartPosition + headerBytes.length;
+                    state = PARSING_LENGTH;
                 }
-                if (ch != '\001') {
-                    throw new MessageParseException("Error in message length");
+                if (state == PARSING_LENGTH) {
+                    if (position >= buffer.limit()) {
+                        break;
+                    }
+                    bodyLength = 0;
+                    byte ch = buffer.get(position++);
+                    while (Character.isDigit((char) ch)) {
+                        bodyLength = bodyLength * 10 + (ch - '0');
+                        if (position < buffer.limit()) {
+                            ch = buffer.get(position++);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (position >= buffer.limit()) {
+                        break;
+                    }
+                    if (ch != '\001') {
+                        handleError(buffer, "Error in message length", false);
+                        break;
+                    }
+                    bodyStartPosition = position;
+                    state = READING_BODY;
+                    log.debug("reading body, length = " + bodyLength);
                 }
-                state = READING_BODY;
-                log.debug("message body length: "+bodyLength);
+                if (state == READING_BODY) {
+                    if ((buffer.limit() - position) < bodyLength) {
+                        break;
+                    }
+                    position += bodyLength;
+                    state = PARSING_CHECKSUM;
+                }
+                if (state == PARSING_CHECKSUM) {
+                    if (startsWith(buffer, position, checksumBytes)) {
+                        log.debug("parsing checksum");
+                        position += checksumBytes.length;
+                    } else {
+                        if (position + checksumBytes.length < buffer.limit()) {
+                            handleError(buffer, "did not find checksum field, bad length?",
+                                    isLogon(buffer, messageStartPosition));
+                            if (buffer.remaining() > 0) {
+                                continue;
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                    byte[] data = new byte[position - messageStartPosition];
+                    buffer.position(messageStartPosition);
+                    buffer.get(data);
+                    messageString = new String(data);
+                    if (log.isTraceEnabled()) {
+                        log.trace("extracted message: " + messageString + ", remaining="
+                                + buffer.remaining());
+                    }
+                    return true;
+                }
+            } catch (Throwable t) {
+                state = SEEKING_HEADER;
+                throw new MessageParseException(t);
             }
-            if (state == READING_BODY) {
-                if (buffer.remaining() < bodyLength) {
-                    return false;
-                }
-                buffer.position(buffer.position() + bodyLength);
-                state = PARSING_CHECKSUM;
-            }
-            if (state == PARSING_CHECKSUM) {
-                if (startsWith(buffer, 0, checksumBytes)) {
-                    log.debug("parsing checksum");
-                    buffer.position(buffer.position() + checksumBytes.length);
-                } else {
-                    log.error("did not find checksum field, bad length?");
-                }
-                int messageEndPosition = buffer.position();
-                buffer.reset();
-                byte[] data = new byte[messageEndPosition - buffer.position()];
-                buffer.get(data);
-                message = new String(data);
-                if (log.isTraceEnabled()) {
-                    log.trace("extracted message: " + message + ", remaining=" + buffer.remaining());
-                }
-                return true;
-            }
-        } catch (MessageParseException e) {
-            throw e;
-        } catch (Throwable t) {
-            state = SEEKING_HEADER;
-            throw new MessageParseException(t);
         }
         return false;
     }
 
-    private boolean startsWith(ByteBuffer buffer, int offset, byte[] data) {
-        offset += buffer.position();
-        for (int j = 0; j < data.length && j < buffer.limit(); j++) {
-            if (buffer.get(offset + j) != data[j] && data[j] != '?') {
+    private void handleError(ByteBuffer buffer, String text, boolean disconnect)
+            throws MessageParseException {
+        // TODO FEATURE allow configurable recovery position
+        //int newOffset = messageStartPosition + 1;
+        // Following recovery position is compatible with QuickFIX C++
+        // but drops messages unnecessarily in corruption scenarios.
+        int newOffset = bodyStartPosition + bodyLength;
+        int nextHeader = indexOf(buffer, newOffset, headerBytes);
+        if (nextHeader != -1) {
+            buffer.position(nextHeader);
+        } else {
+            buffer.position(buffer.limit());
+        }
+        position = 0;
+        state = SEEKING_HEADER;
+        if (session != null) {
+            session.getLog().onEvent(text);
+        } else {
+            log.error(text);
+        }
+        if (disconnect) {
+            throw new MessageParseException(text + " (during logon)");
+        }
+    }
+
+    private static int indexOf(ByteBuffer buffer, int position, byte[] data) {
+        for (int offset = position, limit = buffer.limit() - data.length + 1; offset < limit; offset++) {
+            if (buffer.get(offset) == data[0] && startsWith(buffer, offset, data)) {
+                return offset;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
+        if (bufferOffset + data.length > buffer.limit()) {
+            return false;
+        }
+        for (int dataOffset = 0, bufferLimit = buffer.limit() - data.length + 1; dataOffset < data.length
+                && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
+            if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
                 return false;
             }
         }
@@ -184,29 +230,60 @@ public class FIXMessageData implements Message {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see net.gleamynode.netty2.Message#write(java.nio.ByteBuffer)
      */
     public boolean write(ByteBuffer buffer) {
-        buffer.put(message.getBytes());
+        buffer.put(messageString.getBytes());
         return true;
     }
 
     public quickfix.Message parse(DataDictionary dataDictionary) throws InvalidMessage {
-        String beginString = message.substring(2, 9);
-        int messageTypeOffset = message.indexOf("35=") + 3;
-        // TODO Must handle multicharacter message types
-        String messageType = message.substring(messageTypeOffset, messageTypeOffset + 1);
-        quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(this.message, dataDictionary, true);
+        String beginString = messageString.substring(2, 9);
+        String messageType = getMessageType();
+		quickfix.Message message = null;
+		if (session != null)
+		{
+			message = session.getMessageFactory().create(beginString, messageType);
+		}
+		else
+		{
+			message = messageFactory.create(beginString, messageType);
+		}
+        message.fromString(this.messageString, dataDictionary, dataDictionary != null);
         return message;
     }
 
-    public boolean isLogon() {
-        return message.indexOf("\00135=A\001") != -1;
+    private String getMessageType() throws InvalidMessage {
+        int messageTypeStart = messageString.indexOf("35=") + 3;
+        int messageTypeEnd = messageTypeStart + 1;
+        while (messageString.charAt(messageTypeEnd) != '\001') {
+            messageTypeEnd++;
+            if (messageTypeEnd >= messageString.length()) {
+                throw new InvalidMessage("couldn't extract message type");
+            }
+        }
+        return messageString.substring(messageTypeStart, messageTypeEnd);
     }
-    
+
+    private boolean isLogon(ByteBuffer buffer, int position) {
+        // TODO CLEANUP logon bytes should be constant
+        return indexOf(buffer, position, "\00135=A\001".getBytes()) != -1;
+    }
+
+    public boolean isLogon() {
+        return messageString.indexOf("\00135=A\001") != -1;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
     public String toString() {
-        return message;
+        return messageString;
     }
 }

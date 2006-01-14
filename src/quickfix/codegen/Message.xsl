@@ -23,8 +23,11 @@
 
  <xsl:template match="text()"/>
 
+ <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param>
+
  <xsl:template match="/">/* -*- C++ -*- */
  <xsl:copy-of select="document('COPYRIGHT.xml')"/>
+  
 package quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>;
 
 import quickfix.FieldNotFound;
@@ -32,6 +35,9 @@ import quickfix.field.*;
 
 public class Message extends quickfix.Message
 {
+
+  static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+
   public Message() {
     super();
     header = new Header();
