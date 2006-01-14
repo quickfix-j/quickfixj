@@ -973,6 +973,15 @@ public class Session {
                 }
             }
 
+            if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
+                int[] range = state.getResendRange();
+                
+                if (msgSeqNum >= range[1]) {
+                    state.logEvent("ResendRequest for messages FROM: " + range[0] +
+                            " TO: " + range[1] + " has been satisfied.");
+                    state.setResendRange(0, 0);
+                }
+            }
         } catch (FieldNotFound e) {
             throw e;
         } catch (Exception e) {
@@ -1039,7 +1048,7 @@ public class Session {
                 || !msgType.equals(MsgType.LOGON) && state.isLogonReceived()) {
             return true;
         }
-        if (!msgType.equals(MsgType.LOGOUT) && state.isLogonSent()) {
+        if (msgType.equals(MsgType.LOGOUT) && state.isLogonSent()) {
             return true;
         }
         if (!msgType.equals(MsgType.LOGOUT) && state.isLogoutSent()) {

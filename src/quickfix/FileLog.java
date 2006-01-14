@@ -54,16 +54,16 @@ public class FileLog implements Log {
         String prefix = FileUtil.fileAppendPath(path, sessionName + ".");
         incomingFileName = prefix + "incoming";
         outgoingFileName = prefix + "outgoing";
-        eventFileName = prefix + "events";
+        eventFileName = prefix + "event";
 
         File directory = new File(incomingFileName).getParentFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        incoming = new FileOutputStream(incomingFileName);
-        outgoing = new FileOutputStream(outgoingFileName);
-        events = new FileOutputStream(eventFileName);
+        incoming = new FileOutputStream(incomingFileName, true);
+        outgoing = new FileOutputStream(outgoingFileName, true);
+        events = new FileOutputStream(eventFileName, true);
     }
 
     public void onIncoming(String message) {
@@ -109,5 +109,11 @@ public class FileLog implements Log {
 
     String getOutgoingFileName() {
         return outgoingFileName;
+    }
+    
+    void close() throws IOException {
+        incoming.close();
+        outgoing.close();
+        events.close();
     }
 }

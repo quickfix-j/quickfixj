@@ -233,7 +233,8 @@
 	<target name="test.unit.junit"
 	        depends="compile, test.init"
 	        unless="utests.uptodate">
-		<junit fork="no"
+		<junit fork="yes"
+			   dir="."
 		       tempdir="${ant.output.dir}"
 		       printsummary="true"
 		       showoutput="false"
