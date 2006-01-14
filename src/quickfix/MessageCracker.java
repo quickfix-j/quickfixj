@@ -1,5 +1,5 @@
 /****************************************************************************
-** Copyright (c) 2001-2004 quickfixengine.org  All rights reserved.
+** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
 **
 ** This file is part of the QuickFIX FIX Engine
 **
@@ -21,8 +21,16 @@ package quickfix;
 
 import quickfix.field.*;
 
+/**
+ * Helper class for delegating message types for various FIX versions
+ * to type-safe onMessage methods.
+ */
 public class MessageCracker extends quickfix.fix44.MessageCracker {
 
+    /**
+     * Process ("crack") a FIX message and call the type-safe onMessage
+     * method for that message type and FIX version.
+     */
     public void crack( quickfix.Message message, SessionID sessionID )
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
 

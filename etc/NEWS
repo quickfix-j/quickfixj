@@ -1,0 +1,21 @@
+1.0.0 Beta 2
+-----
+
+New Features:
+  * Added SleepyCat JE message store.
+  
+Bug Fixes:
+  * Bug #104 Fixed serialization problem when using DD
+  * Bug #106 Fixed onPoll ClassCastException
+  * Bug #106 Fixed initiator management of session list
+  * Bug #115 Fixed bug in logs and default session qualifier.
+  * Bug #120 Fixed connect after reconnect problems (initiator race condition)
+  * Bug #127 Fixed bugs in fragmented message parsing
+  * Bug #131 Fixed timer race condition during initiator shutdown
+  * Bug #132 Fixed message clone of groups
+  * Bug #133 Added timer to acceptor for automatically sending heartbeats
+  * Bug #139 The Logout message in response to a bad Logon is mishandled  	
+  * Bug #140 FileLog does not append
+  * Bug #141 Resend logic is incorrect
+  * Bug #142 Fixed support for custom message factories
+  

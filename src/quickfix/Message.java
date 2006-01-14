@@ -1,20 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
+ * * Copyright (c) 2001-2005 quickfixengine.org All rights reserved. * * This
+ * file is part of the QuickFIX FIX Engine * * This file may be distributed
+ * under the terms of the quickfixengine.org * license as defined by
+ * quickfixengine.org and appearing in the file * LICENSE included in the
+ * packaging of this file. * * This file is provided AS IS with NO WARRANTY OF
+ * ANY KIND, INCLUDING THE * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE. * * See http://www.quickfixengine.org/LICENSE for
+ * licensing information. * * Contact ask@quickfixengine.org if any conditions
+ * of this licensing are * not clear to you. *
  ******************************************************************************/
 
 package quickfix;
@@ -25,12 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -70,11 +59,15 @@ import quickfix.field.XmlData;
 import quickfix.field.XmlDataLen;
 
 public class Message extends FieldMap {
+
     protected Header header = new Header();
+
     protected Trailer trailer = new Trailer();
-    private DataDictionary dd;
+
     private boolean doValidation;
+
     private int isValidStructureTag = 0;
+
     private boolean isValidStructure = true;
 
     public Message() {
@@ -97,24 +90,25 @@ public class Message extends FieldMap {
         fromString(string, dd, validate);
     }
 
-    /* package */Message(Message message, DataDictionary dd) {
-        cloneTo(this);
-        this.dd = dd;
-    }
-
     public static boolean InitializeXML(String url) {
         throw new UnsupportedOperationException();
     }
 
     public Object clone() {
-        Message message = new Message();
-        return cloneTo(message);
+        try {
+            Message message = (Message) getClass().newInstance();
+            return cloneTo(message);
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Object cloneTo(Message message) {
-        initializeFrom(this);
-        header.initializeFrom(this.getHeader());
-        header.initializeFrom(this.getTrailer());
+        message.initializeFrom(this);
+        message.header.initializeFrom(this.getHeader());
+        message.trailer.initializeFrom(this.getTrailer());
         return message;
     }
 
@@ -134,7 +128,7 @@ public class Message extends FieldMap {
         return header.calculateLength() + calculateLength() + trailer.calculateLength();
     }
 
-    private DecimalFormat checksumFormat = new DecimalFormat("000");
+    private static DecimalFormat checksumFormat = new DecimalFormat("000");
 
     private int checkSum(String s) {
         int offset = s.lastIndexOf("\00110=");
@@ -146,14 +140,12 @@ public class Message extends FieldMap {
     }
 
     private String checkSum() {
-        return checksumFormat.format((header.calculateTotal() + calculateTotal() + trailer
-                .calculateTotal()) % 256);
+        return checksumFormat.format((header.calculateTotal() + calculateTotal() + trailer.calculateTotal()) % 256);
     }
 
-    public String toXML() throws FieldNotFound {
+    public String toXML() {
         try {
-            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                    .newDocument();
+            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             Element message = document.createElement("message");
             document.appendChild(message);
             toXMLFields(message, "header", this.header);
@@ -165,28 +157,16 @@ public class Message extends FieldMap {
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer serializer = tf.newTransformer();
             serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
-            //serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,"users.dtd");
+            // serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,"users.dtd");
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.transform(domSource, streamResult);
             return out.toString();
-        } catch (ParserConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (FactoryConfigurationError e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (TransformerConfigurationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (TransformerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        throw new UnsupportedOperationException();
     }
 
-    public void toXMLFields(Element message, String section, FieldMap fieldMap)
-            throws FieldNotFound {
+    public void toXMLFields(Element message, String section, FieldMap fieldMap) throws FieldNotFound {
         Document document = message.getOwnerDocument();
         Element fields = document.createElement(section);
         message.appendChild(fields);
@@ -230,46 +210,33 @@ public class Message extends FieldMap {
     }
 
     public boolean isAdmin() {
-        throw new UnsupportedOperationException();
+        if (header.isSetField(MsgType.FIELD)) {
+            try {
+                String msgType = header.getString(MsgType.FIELD);
+                return msgType.length() >= 1 && "0A12345".indexOf(msgType.charAt(0)) != -1;
+            } catch (FieldNotFound e) {
+                // shouldn't happen
+            }
+        }
+        return false;
     }
 
     public boolean isApp() {
-        throw new UnsupportedOperationException();
+        return !isAdmin();
     }
 
     public class Header extends FieldMap {
-        public Header() {
-            // TODO remove this constructor after code generator has been
-        }
-
-        public Header(Message ignored) {
-            // TODO remove this constructor after code generator has been
-            // converted
-        }
 
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
-            super.calculateString(buffer, new int[] { BeginString.FIELD, BodyLength.FIELD,
-                    MsgType.FIELD }, postFields);
+            super.calculateString(buffer, new int[] { BeginString.FIELD, BodyLength.FIELD, MsgType.FIELD }, postFields);
         }
     }
 
     public class Trailer extends FieldMap {
-        public Trailer() {
-            // TODO remove this constructor after code generator has been
-        }
-
-        public Trailer(Message ignored) {
-            // TODO remove this constructor after code generator has been
-            // converted
-        }
 
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
-    }
-
-    public static boolean isAdminMsgType(String msgType) {
-        return msgType.length() == 1 && "0A12345".indexOf(msgType) != -1;
     }
 
     public void reverseRoute(Header header) throws FieldNotFound {
@@ -319,14 +286,16 @@ public class Message extends FieldMap {
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
     }
 
-    public void fromString(String messageData, DataDictionary dd, boolean doValidation)
-            throws InvalidMessage {
+    public void fromString(String messageData, DataDictionary dd, boolean doValidation) throws InvalidMessage {
         this.messageData = messageData;
-        this.dd = dd;
         this.doValidation = doValidation;
-        parseHeader();
-        parseBody();
-        parseTrailer();
+        try {
+            parseHeader(dd);
+            parseBody(dd);
+            parseTrailer(dd);
+        } catch (InvalidMessage e) {
+            isValidStructure = false;
+        }
         if (doValidation) {
             validate(messageData);
         }
@@ -337,13 +306,11 @@ public class Message extends FieldMap {
             int expectedBodyLength = header.getInt(BodyLength.FIELD);
             int actualBodyLength = bodyLength();
             if (expectedBodyLength != actualBodyLength) {
-                throw new InvalidMessage("actual body length=" + actualBodyLength
-                        + ", expected body length=" + expectedBodyLength);
+                throw new InvalidMessage("actual body length=" + actualBodyLength + ", expected body length=" + expectedBodyLength);
             }
             int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
-                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData) + ", Received CheckSum="
-                        + checkSum);
+                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData) + ", Received CheckSum=" + checkSum);
             }
         } catch (FieldNotFound e) {
             throw new InvalidMessage("Field not found: " + e.field);
@@ -352,7 +319,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseHeader() throws InvalidMessage {
+    private void parseHeader(DataDictionary dd) throws InvalidMessage {
         boolean invalidHeaderFieldOrder = false;
         StringField beginString = extractField();
         if (beginString.getField() != BeginString.FIELD) {
@@ -380,60 +347,79 @@ public class Message extends FieldMap {
         pushBack(field);
     }
 
-    private void parseBody() throws InvalidMessage {
+    private String getMsgType() throws InvalidMessage {
+        String res = null;
+        try {
+            res = header.getString(MsgType.FIELD);
+        } catch (FieldNotFound e) {
+            throw new InvalidMessage(e.getMessage());
+        }
+        return res;
+    }
+
+    private void parseBody(DataDictionary dd) throws InvalidMessage {
         StringField field = extractField();
         while (field != null) {
-            int tag = field.getField();
-            if (isTrailerField(tag)) {
+            if (isTrailerField(field.getField())) {
                 pushBack(field);
                 return;
             }
-            if (isHeaderField(tag)) {
+            if (isHeaderField(field.getField())) {
                 if (isValidStructure) {
-                    isValidStructureTag = tag;
+                    isValidStructureTag = field.getField();
                     isValidStructure = false;
                 }
                 header.setField(field);
             } else {
                 setField(field);
             }
-            String msgType;
-            try {
-                msgType = header.getString(MsgType.FIELD);
-            } catch (FieldNotFound e) {
-                throw new InvalidMessage(e.getMessage());
+            // Group case
+            if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
+                parseGroup(field, dd, this);
             }
-            if (dd != null && dd.isGroup(msgType, tag)) {
-                DataDictionary.RepeatingGroup rg = dd.getGroup(msgType, tag);
-                int groupField = tag;
-                int firstField = ((Integer) rg.getFirstField().getKey()).intValue();
-                Group group = null;
-                boolean inGroupParse = true;
-                while (inGroupParse) {
-                    field = extractField(group);
-                    if (field.getTag() == firstField) {
-                        if (group != null) {
-                            addGroup(group);
-                        }
-                        group = new Group(groupField, firstField);
-                        group.setField(field);
-                    } else if (rg
-                            .isElementInContainer(DataDictionary.Field.class, new Integer(field.getTag()))) {
+            field = extractField();
+        }
+    }
+
+    private void parseGroup(StringField field, DataDictionary add, FieldMap parent) throws InvalidMessage {
+        DataDictionary.GroupInfo rg = add.getGroup(getMsgType(), field.getField());
+        int groupField = field.getField();
+        int firstField = rg.getDelimeterField();
+        boolean firstFieldFound = false;
+        Group group = null;
+        boolean inGroupParse = true;
+        while (inGroupParse) {
+            field = extractField(group);
+            if (field.getTag() == firstField) {
+                if (group != null) {
+                    parent.addGroup(group);
+                }
+                group = new Group(groupField, firstField);
+                group.setField(field);
+                firstFieldFound = true;
+            } else {
+                if (rg.getDataDictionary().isGroup(getMsgType(), field.getField())) {
+                    if (firstFieldFound) {
+                        parseGroup(field, rg.getDataDictionary(), group);
+                    } else {
+                        throw new InvalidMessage("The group " + groupField + " must set the delimiter field " + firstField);
+                    }
+                } else {
+                    if (rg.getDataDictionary().isField(field.getTag())) {
                         group.setField(field);
                     } else {
                         if (group != null) {
-                            addGroup(group);
+                            parent.addGroup(group);
                         }
                         pushBack(field);
                         inGroupParse = false;
                     }
                 }
             }
-            field = extractField();
         }
     }
 
-    private void parseTrailer() throws InvalidMessage {
+    private void parseTrailer(DataDictionary dd) throws InvalidMessage {
         StringField field = extractField();
         while (field != null && isTrailerField(field, dd)) {
             trailer.setField(field);
@@ -441,58 +427,56 @@ public class Message extends FieldMap {
         }
     }
 
-    private boolean isHeaderField(Field field, DataDictionary dd) {
-        return isHeaderField(field.getField())
-                || (dd != null && dd.isHeaderField(field.getField()));
+    static boolean isHeaderField(Field field, DataDictionary dd) {
+        return isHeaderField(field.getField()) || (dd != null && dd.isHeaderField(field.getField()));
     }
 
-    private boolean isHeaderField(int field) {
+    static boolean isHeaderField(int field) {
         switch (field) {
-        case BeginString.FIELD:
-        case BodyLength.FIELD:
-        case MsgType.FIELD:
-        case SenderCompID.FIELD:
-        case TargetCompID.FIELD:
-        case OnBehalfOfCompID.FIELD:
-        case DeliverToCompID.FIELD:
-        case SecureDataLen.FIELD:
-        case MsgSeqNum.FIELD:
-        case SenderSubID.FIELD:
-        case SenderLocationID.FIELD:
-        case TargetSubID.FIELD:
-        case TargetLocationID.FIELD:
-        case OnBehalfOfSubID.FIELD:
-        case OnBehalfOfLocationID.FIELD:
-        case DeliverToSubID.FIELD:
-        case DeliverToLocationID.FIELD:
-        case PossDupFlag.FIELD:
-        case PossResend.FIELD:
-        case SendingTime.FIELD:
-        case OrigSendingTime.FIELD:
-        case XmlDataLen.FIELD:
-        case XmlData.FIELD:
-        case MessageEncoding.FIELD:
-        case LastMsgSeqNumProcessed.FIELD:
-        case OnBehalfOfSendingTime.FIELD:
-            return true;
-        default:
-            return false;
+            case BeginString.FIELD:
+            case BodyLength.FIELD:
+            case MsgType.FIELD:
+            case SenderCompID.FIELD:
+            case TargetCompID.FIELD:
+            case OnBehalfOfCompID.FIELD:
+            case DeliverToCompID.FIELD:
+            case SecureDataLen.FIELD:
+            case MsgSeqNum.FIELD:
+            case SenderSubID.FIELD:
+            case SenderLocationID.FIELD:
+            case TargetSubID.FIELD:
+            case TargetLocationID.FIELD:
+            case OnBehalfOfSubID.FIELD:
+            case OnBehalfOfLocationID.FIELD:
+            case DeliverToSubID.FIELD:
+            case DeliverToLocationID.FIELD:
+            case PossDupFlag.FIELD:
+            case PossResend.FIELD:
+            case SendingTime.FIELD:
+            case OrigSendingTime.FIELD:
+            case XmlDataLen.FIELD:
+            case XmlData.FIELD:
+            case MessageEncoding.FIELD:
+            case LastMsgSeqNumProcessed.FIELD:
+            case OnBehalfOfSendingTime.FIELD:
+                return true;
+            default:
+                return false;
         }
     }
 
-    private boolean isTrailerField(Field field, DataDictionary dd) {
-        return isTrailerField(field.getField())
-                || (dd != null && dd.isTrailerField(field.getField()));
+    static boolean isTrailerField(Field field, DataDictionary dd) {
+        return isTrailerField(field.getField()) || (dd != null && dd.isTrailerField(field.getField()));
     }
 
-    private boolean isTrailerField(int field) {
+    static boolean isTrailerField(int field) {
         switch (field) {
-        case SignatureLength.FIELD:
-        case Signature.FIELD:
-        case CheckSum.FIELD:
-            return true;
-        default:
-            return false;
+            case SignatureLength.FIELD:
+            case Signature.FIELD:
+            case CheckSum.FIELD:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -500,19 +484,22 @@ public class Message extends FieldMap {
     // Extract field
     //
     private String messageData;
+
     private int position;
+
     private StringField pushedBackField;
+
     private DataDictionary dataDictionary;
 
     public void pushBack(StringField field) {
         pushedBackField = field;
     }
 
-    public StringField extractField() throws InvalidMessage {
+    private StringField extractField() throws InvalidMessage {
         return extractField(null);
     }
 
-    public StringField extractField(Group group) throws InvalidMessage {
+    private StringField extractField(Group group) throws InvalidMessage {
         if (pushedBackField != null) {
             StringField f = pushedBackField;
             pushedBackField = null;
@@ -528,7 +515,7 @@ public class Message extends FieldMap {
             throw new InvalidMessage("Equal sign not found in field");
         }
 
-        int tag;
+        int tag = -1;
         try {
             tag = Integer.parseInt(messageData.substring(position, equalsOffset));
         } catch (NumberFormatException e) {
@@ -575,4 +562,5 @@ public class Message extends FieldMap {
     public int getInvalidStructureTag() {
         return isValidStructureTag;
     }
+
 }

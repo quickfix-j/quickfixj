@@ -1,21 +1,21 @@
-/*******************************************************************************
- * Copyright (c) 2001-2004 quickfixengine.org All rights reserved.
- * 
- * This file is part of the QuickFIX FIX Engine
- * 
- * This file may be distributed under the terms of the quickfixengine.org
- * license as defined by quickfixengine.org and appearing in the file LICENSE
- * included in the packaging of this file.
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
- * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information.
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing are not
- * clear to you.
- *  
- ******************************************************************************/
+/****************************************************************************
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
@@ -24,8 +24,15 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Date;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
+/**
+ * File log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY
+ * WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A FACTORY.
+ * 
+ * @see quickfix.FileLogFactory
+ */
 public class FileLog implements Log {
     private SessionID sessionID;
     private String incomingFileName;
@@ -36,27 +43,27 @@ public class FileLog implements Log {
     private OutputStream outgoing;
     private OutputStream events;
 
-    public FileLog(String path, SessionID sessionID) throws FileNotFoundException {
+    FileLog(String path, SessionID sessionID) throws FileNotFoundException {
         String sessionName = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
         this.sessionID = sessionID;
-        if (sessionID.getSessionQualifier().length() > 0) {
+        if (sessionID.getSessionQualifier() != null && sessionID.getSessionQualifier().length() > 0) {
             sessionName += "-" + sessionID.getSessionQualifier();
         }
 
         String prefix = FileUtil.fileAppendPath(path, sessionName + ".");
         incomingFileName = prefix + "incoming";
         outgoingFileName = prefix + "outgoing";
-        eventFileName = prefix + "events";
+        eventFileName = prefix + "event";
 
         File directory = new File(incomingFileName).getParentFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        incoming = new FileOutputStream(incomingFileName);
-        outgoing = new FileOutputStream(outgoingFileName);
-        events = new FileOutputStream(eventFileName);
+        incoming = new FileOutputStream(incomingFileName, true);
+        outgoing = new FileOutputStream(outgoingFileName, true);
+        events = new FileOutputStream(eventFileName, true);
     }
 
     public void onIncoming(String message) {
@@ -81,8 +88,7 @@ public class FileLog implements Log {
 
     public void onEvent(String message) {
         try {
-            String formattedTime = FieldValueConverter.UtcTimestampConverter.convert(new Date(),
-                    false);
+            String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), false);
             events.write(formattedTime.getBytes());
             events.write(": ".getBytes());
             events.write(message.getBytes());
@@ -93,15 +99,21 @@ public class FileLog implements Log {
         }
     }
 
-    public String getEventFileName() {
+    String getEventFileName() {
         return eventFileName;
     }
 
-    public String getIncomingFileName() {
+    String getIncomingFileName() {
         return incomingFileName;
     }
 
-    public String getOutgoingFileName() {
+    String getOutgoingFileName() {
         return outgoingFileName;
+    }
+    
+    void close() throws IOException {
+        incoming.close();
+        outgoing.close();
+        events.close();
     }
 }
