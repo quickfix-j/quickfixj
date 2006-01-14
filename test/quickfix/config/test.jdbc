@@ -1,9 +1,0 @@
-datasource.class=org.hsqldb.jdbc.jdbcDataSource
-datasource.database=jdbc:hsqldb:mem:quickfix
-datasource.user=sa
-datasource.password=
-table=qf_config
-nameColumn=qf_name
-keyColumn=qf_key
-valueColumn=qf_value
-name=test

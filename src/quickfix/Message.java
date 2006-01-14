@@ -295,9 +295,6 @@ public class Message extends FieldMap {
             parseTrailer(dd);
         } catch (InvalidMessage e) {
             isValidStructure = false;
-            e.printStackTrace();
-            // TODO The printStackTrace() has been added by DavidV just to have
-            // an information about what happened. To be removed.
         }
         if (doValidation) {
             validate(messageData);
