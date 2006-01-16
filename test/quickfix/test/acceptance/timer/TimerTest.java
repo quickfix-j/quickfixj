@@ -1,13 +1,10 @@
 package quickfix.test.acceptance.timer;
 
 import junit.framework.TestCase;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import quickfix.ConfigError;
 import quickfix.SessionNotFound;
 
 public class TimerTest extends TestCase {
-    private static Log log = LogFactory.getLog(TimerTest.class);
     private Thread serverThread;
 
     public void testAcceptorTimer() {

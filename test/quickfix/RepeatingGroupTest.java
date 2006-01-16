@@ -203,7 +203,6 @@ public class RepeatingGroupTest extends TestCase {
     
     // Testing group re-usability when setting values
     public void testSettingGettingGroupByReusingGroup() throws FieldNotFound {
-        String settingValue = "SETTING_VALUE";
         // The root group
         quickfix.fix44.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix44.QuoteRequest.NoRelatedSym();
         
@@ -266,7 +265,6 @@ public class RepeatingGroupTest extends TestCase {
             msg.read(buffer);
 
             // Parse - Validate
-            String fixVersion = sourceFIXString.substring(2, 9);
             res = msg.parse(dd);
 
         } catch (FileNotFoundException e) {
@@ -320,9 +318,8 @@ public class RepeatingGroupTest extends TestCase {
         
         String sourceFIXString = quoteRequest.toString();
         
-        quickfix.fix44.QuoteRequest validatedMessage;
         try {
-            validatedMessage = (quickfix.fix44.QuoteRequest)buildValidatedMessage(sourceFIXString, defaultDataDictionary);
+            buildValidatedMessage(sourceFIXString, defaultDataDictionary);
             fail("No Exception thrown");
         } catch (InvalidMessage e) {
             // We expect that Exception did happen, so we don't do anything.
