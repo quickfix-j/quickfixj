@@ -139,7 +139,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
             Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionary, new SessionSchedule(startTime, endTime, startDay, endDay),
-                    logFactory, new DefaultMessageFactory(), heartbeatInterval);
+                    logFactory, messageFactory, heartbeatInterval);
 
             if (settings.isSetting(sessionID, Session.SETTING_CHECK_LATENCY)) {
                 session.setCheckLatency(settings.getBool(sessionID, Session.SETTING_CHECK_LATENCY));
