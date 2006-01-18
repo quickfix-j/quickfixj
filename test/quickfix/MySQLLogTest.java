@@ -13,6 +13,9 @@ public class MySQLLogTest extends TestCase {
     }
 
     public void testLog() throws Exception {
+    	if (!MySQLTestSupport.isMySQLAvailable(getConfigurationFileName())) {
+    		return;
+    	}
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
@@ -67,6 +70,6 @@ public class MySQLLogTest extends TestCase {
     }
     
     protected String getConfigurationFileName() {
-        return "tests.cfg";
+        return "test/test.cfg";
     }
 }

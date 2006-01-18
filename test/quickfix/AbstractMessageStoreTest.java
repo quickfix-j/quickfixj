@@ -7,7 +7,10 @@ import junit.framework.TestCase;
 public abstract class AbstractMessageStoreTest extends TestCase {
     private SessionID sessionID;
     private MessageStore store;
-
+    
+    // Automatically disable tests if database isn't available
+    private boolean testEnabled = true;
+    
     public AbstractMessageStoreTest() {
         super();
     }
@@ -17,6 +20,9 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     protected void setUp() throws Exception {
+    	if (!testEnabled) {
+    		return;
+    	}
         long now = System.currentTimeMillis();
         sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         store = getMessageStoreFactory().create(sessionID);
@@ -33,6 +39,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     public void testMessageStoreSequenceNumbers() throws Exception {
+    	if (!testEnabled) {
+    		return;
+    	}
+    	
         store.reset();
         assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
@@ -60,7 +70,11 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     public void testMessageStorageMessages() throws Exception {
-        assertTrue("set failed", store.set(111, "message2"));
+    	if (!testEnabled) {
+    		return;
+    	}
+
+    	assertTrue("set failed", store.set(111, "message2"));
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
 
@@ -74,4 +88,8 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     protected String getConfigurationFileName() {
         return "test/test.cfg";
     }
+
+	protected void setTestEnabled(boolean b) {
+		testEnabled = b;
+	}
 }
