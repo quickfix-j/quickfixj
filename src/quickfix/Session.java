@@ -899,7 +899,8 @@ public class Session {
             }
 
             if (!validLogonState(msgType)) {
-                throw new SessionException("Logon state is not valid for message");
+                throw new SessionException("Logon state is not valid for message (MsgType="
+                        + msgType + ")");
             }
 
             if (!isGoodTime(sendingTime)) {
