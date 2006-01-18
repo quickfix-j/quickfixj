@@ -86,9 +86,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     public void start() throws ConfigError, RuntimeError {
-        initialize(false);
+        initialize(isHandlingMessageInCallingThread());
         onStart();
     }
+
+	protected abstract boolean isHandlingMessageInCallingThread();
 
     protected abstract void onStop();
 

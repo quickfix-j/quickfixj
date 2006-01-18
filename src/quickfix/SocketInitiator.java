@@ -112,4 +112,8 @@ public class SocketInitiator extends AbstractSocketInitiator {
             processTimerEvent(quickfixSession);
         }
     }
+
+	protected boolean isHandlingMessageInCallingThread() {
+		return true;
+	}
 }

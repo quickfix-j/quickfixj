@@ -125,4 +125,8 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
             eventQueue.add(event);
         }
     }
+
+	protected boolean isHandlingMessageInCallingThread() {
+		return false;
+	}
 }
