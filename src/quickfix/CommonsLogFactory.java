@@ -45,6 +45,6 @@ public class CommonsLogFactory implements LogFactory {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new CommonsLog(eventCategory, incomingMsgCategory, outgoingMsgCategory);
+        return new CommonsLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory);
     }
 }

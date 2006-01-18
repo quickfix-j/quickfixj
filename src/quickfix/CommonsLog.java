@@ -8,12 +8,14 @@ public class CommonsLog implements quickfix.Log {
     public static final String DEFAULT_INCOMING_MSG_CATEGORY = "quickfixj.msg.incoming";
     public static final String DEFAULT_OUTGOING_MSG_CATEGORY = "quickfixj.msg.outgoing";
 
+    private final SessionID sessionID;
     private final Log eventLog;
     private final Log incomingMsgLog;
     private final Log outgoingMsgLog;
 
-    public CommonsLog(String eventCategory, String incomingMsgCategory,
+    public CommonsLog(SessionID sessionID, String eventCategory, String incomingMsgCategory,
             String outgoingMsgCategory) {
+        this.sessionID = sessionID;
         eventLog = LogFactory
                 .getLog(eventCategory != null ? eventCategory : DEFAULT_EVENT_CATEGORY);
         incomingMsgLog = LogFactory.getLog(incomingMsgCategory != null ? incomingMsgCategory
@@ -23,15 +25,19 @@ public class CommonsLog implements quickfix.Log {
     }
 
     public void onEvent(String text) {
-        eventLog.info(text);
+        log(eventLog, text);
     }
 
     public void onIncoming(String message) {
-        incomingMsgLog.info(message);
+        log(incomingMsgLog, message);
     }
 
     public void onOutgoing(String message) {
-        outgoingMsgLog.info(message);
+        log(outgoingMsgLog, message);
+    }
+
+    private void log(Log log, String text) {
+        log.info(sessionID+": "+text);
     }
 
 }
