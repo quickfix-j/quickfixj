@@ -69,7 +69,7 @@ public class SessionState {
     }
 
     public boolean isHeartBeatNeeded() {
-        long millisSinceLastSentTime = System.currentTimeMillis() - getLastSentTime();
+        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
         return millisSinceLastSentTime >= heartbeatMillis && getTestRequestCounter() == 0;
     }
 
@@ -187,12 +187,12 @@ public class SessionState {
 
     public boolean isTestRequestNeeded() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
-        return millisSinceLastReceivedTime >= (1.2 * (getTestRequestCounter() + 1))
+        return millisSinceLastReceivedTime >= (1.5 * (getTestRequestCounter() + 1))
                 * heartbeatMillis;
     }
 
     private long timeSinceLastReceivedMessage() {
-        return System.currentTimeMillis() - getLastReceivedTime();
+        return SystemTime.currentTimeMillis() - getLastReceivedTime();
     }
 
     public boolean isTimedOut() {

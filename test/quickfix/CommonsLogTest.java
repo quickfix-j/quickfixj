@@ -26,7 +26,7 @@ public class CommonsLogTest extends TestCase {
         System.getProperties().remove("org.apache.commons.logging.Log");
         super.tearDown();
     }
-    
+
     public void testLog() throws Exception {
         long systemTime = SystemTime.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
@@ -37,53 +37,53 @@ public class CommonsLogTest extends TestCase {
         Log commonsLog = factory.create(sessionID);
 
         String loggedText = "TEST123";
-        
+
         setUpLoggerForTest(CommonsLog.DEFAULT_EVENT_CATEGORY);
         commonsLog.onEvent(loggedText);
-        assertMessageLogged(CommonsLog.DEFAULT_EVENT_CATEGORY, loggedText);
+        assertMessageLogged(sessionID, CommonsLog.DEFAULT_EVENT_CATEGORY, loggedText);
 
         setUpLoggerForTest(CommonsLog.DEFAULT_INCOMING_MSG_CATEGORY);
         commonsLog.onIncoming(loggedText);
-        assertMessageLogged(CommonsLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
+        assertMessageLogged(sessionID, CommonsLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
 
         setUpLoggerForTest(CommonsLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         commonsLog.onOutgoing(loggedText);
-        assertMessageLogged(CommonsLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
-        
+        assertMessageLogged(sessionID, CommonsLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
+
         settings.setString(sessionID, CommonsLogFactory.SETTING_EVENT_CATEGORY, "event");
         settings.setString(sessionID, CommonsLogFactory.SETTING_INMSG_CATEGORY, "in");
         settings.setString(sessionID, CommonsLogFactory.SETTING_OUTMSG_CATEGORY, "out");
         commonsLog = factory.create(sessionID);
-        
+
         setUpLoggerForTest("event");
         commonsLog.onEvent(loggedText);
-        assertMessageLogged("event", loggedText);
+        assertMessageLogged(sessionID, "event", loggedText);
 
         setUpLoggerForTest("in");
         commonsLog.onIncoming(loggedText);
-        assertMessageLogged("in", loggedText);
+        assertMessageLogged(sessionID, "in", loggedText);
 
         setUpLoggerForTest("out");
         commonsLog.onOutgoing(loggedText);
-        assertMessageLogged("out", loggedText);
-        
+        assertMessageLogged(sessionID, "out", loggedText);
+
     }
 
-    private void assertMessageLogged(String categoryName, String message) {
+    private void assertMessageLogged(SessionID sessionID, String categoryName, String message) {
         Logger logger = Logger.getLogger(categoryName);
         TestHandler testHandler = null;
         Handler[] handlers = logger.getHandlers();
         for (int i = 0; i < handlers.length; i++) {
             if (handlers[i] instanceof TestHandler) {
-                testHandler = (TestHandler)handlers[i];
+                testHandler = (TestHandler) handlers[i];
                 break;
             }
         }
         assertNotNull(testHandler);
         assertEquals(1, testHandler.records.size());
-        LogRecord r = (LogRecord)testHandler.records.get(0);
+        LogRecord r = (LogRecord) testHandler.records.get(0);
         assertEquals(categoryName, r.getLoggerName());
-        assertEquals(message, r.getMessage());
+        assertEquals(sessionID + ": " + message, r.getMessage());
     }
 
     private TestHandler setUpLoggerForTest(String category) {
@@ -100,8 +100,8 @@ public class CommonsLogTest extends TestCase {
     }
 
     private class TestHandler extends java.util.logging.Handler {
-        public  ArrayList records = new ArrayList();
-        
+        public ArrayList records = new ArrayList();
+
         public void close() throws SecurityException {
         }
 
@@ -111,6 +111,6 @@ public class CommonsLogTest extends TestCase {
         public void publish(LogRecord record) {
             records.add(record);
         }
-        
+
     }
 }
