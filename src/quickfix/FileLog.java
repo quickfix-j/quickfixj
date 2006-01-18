@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -39,9 +38,9 @@ public class FileLog implements Log {
     private String outgoingFileName;
     private String eventFileName;
 
-    private OutputStream incoming;
-    private OutputStream outgoing;
-    private OutputStream events;
+    private FileOutputStream incoming;
+    private FileOutputStream outgoing;
+    private FileOutputStream events;
 
     FileLog(String path, SessionID sessionID) throws FileNotFoundException {
         String sessionName = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
@@ -71,6 +70,7 @@ public class FileLog implements Log {
             incoming.write(message.getBytes());
             incoming.write('\n');
             incoming.flush();
+            incoming.getFD().sync();
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing incoming message to log", e);
         }
@@ -81,6 +81,7 @@ public class FileLog implements Log {
             outgoing.write(message.getBytes());
             outgoing.write('\n');
             outgoing.flush();
+            outgoing.getFD().sync();
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing outgoing message to log", e);
         }
@@ -94,6 +95,7 @@ public class FileLog implements Log {
             events.write(message.getBytes());
             events.write('\n');
             events.flush();
+            events.getFD().sync();
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing event to log", e);
         }
