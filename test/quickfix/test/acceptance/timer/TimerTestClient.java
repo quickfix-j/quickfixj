@@ -58,7 +58,7 @@ public class TimerTestClient extends MessageCracker implements Application {
         defaults.put("ConnectionType", "initiator");
         defaults.put("HeartBtInt", "2");
         defaults.put("SocketConnectHost", "localhost");
-        defaults.put("SocketConnectPort", "9877");
+        defaults.put("SocketConnectPort", "9888");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("SenderCompID", "TW");

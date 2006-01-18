@@ -21,7 +21,7 @@ public class ConnectToServerStep implements TestStep {
     public ConnectToServerStep(String data) {
         this.command = data;
     }
-    
+
     public void run(TestResult result, TestContext context) {
         Matcher matcher = CONNECT_PATTERN.matcher(command);
         if (matcher.lookingAt()) {
@@ -31,9 +31,9 @@ public class ConnectToServerStep implements TestStep {
                 clientId = 1;
             }
         } else {
-            Assert.fail("incorrect connect command: "+command);
+            Assert.fail("incorrect connect command: " + command);
         }
-        log.debug("connecting to client "+clientId);
+        log.debug("connecting to client " + clientId);
         try {
             Socket socket = new Socket(InetAddress.getByName("localhost"), 9877);
             context.setClientSocket(clientId, socket);
@@ -42,8 +42,8 @@ public class ConnectToServerStep implements TestStep {
             Assert.fail(e.getMessage());
         }
     }
-    
+
     public String toString() {
-        return "connect to server: "+command;
+        return "connect to server: " + command;
     }
 }

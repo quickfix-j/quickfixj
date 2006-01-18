@@ -18,7 +18,7 @@ import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
-import quickfix.SocketAcceptor;
+import quickfix.ThreadedSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
@@ -28,7 +28,7 @@ public class ATServer implements Runnable {
     private final SessionSettings settings = new SessionSettings();
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
-    private SocketAcceptor acceptor;
+    private ThreadedSocketAcceptor acceptor;
 
     public ATServer(TestSuite suite) {
         Enumeration e = suite.tests();
@@ -83,10 +83,10 @@ public class ATServer implements Runnable {
             MessageStoreFactory factory = usingMemoryStore
                     ? (MessageStoreFactory) new MemoryStoreFactory()
                     : new FileStoreFactory(settings);
-            acceptor = new SocketAcceptor(application, factory, settings,
+            acceptor = new ThreadedSocketAcceptor(application, factory, settings,
                     new CommonsLogFactory(settings), new DefaultMessageFactory());
             acceptor.start();
-            acceptor.waitForInitialization();
+            //acceptor.waitForInitialization();
             initializationLatch.countDown();
             synchronized (application) {
                 try {

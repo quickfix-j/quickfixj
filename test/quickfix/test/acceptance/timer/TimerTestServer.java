@@ -69,7 +69,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         try {
             HashMap defaults = new HashMap();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", "9877");
+            defaults.put("SocketAcceptPort", "9888");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
@@ -89,7 +89,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
                     new CommonsLogFactory(settings), new DefaultMessageFactory());
             acceptor.start();
             try {
-                acceptor.waitForInitialization();
+                //acceptor.waitForInitialization();
                 initializationLatch.countDown();
 
                 while (!stop) {

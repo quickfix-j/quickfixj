@@ -23,7 +23,8 @@ import quickfix.test.acceptance.timer.TimerTest;
 public class AcceptanceTestSuite extends TestSuite {
     private static Log log = LogFactory.getLog(AcceptanceTestSuite.class);
     private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";
-    
+    private boolean skipSlowTests;
+
     private final class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -75,8 +76,8 @@ public class AcceptanceTestSuite extends TestSuite {
                 in = new BufferedReader(new FileReader(filename));
                 String line = in.readLine();
                 while (line != null) {
-                    if (line.matches("^.*#")) {
-                        continue;
+                    if (line.matches("^[ \t]*#.*")) {
+                        steps.add(new PrintComment(line));
                     } else if (line.startsWith("I")) {
                         steps.add(new InitiateMessageStep(line));
                     } else if (line.startsWith("E")) {
@@ -106,18 +107,23 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        String timeout = System.getProperty("at.timeout");
+        Long timeout = Long.getLong("at.timeout");
         if (timeout != null) {
-            ExpectMessageStep.TIMEOUT_IN_MS = Long.parseLong(timeout);
+            ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
         }
+        
+        this.skipSlowTests = Boolean.getBoolean("at.noslow");
+        
+        // addTest("fix40/1e_NotLogonMessage.def");
+        // addTest("fix40/20_SimultaneousResendRequest.def");
+        // addTest("fix40/4a_NoDataSentDuringHeartBtInt.def");
+        // addTest("fix40/6_SendTestRequest.def");
+
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
         addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         addTests(new File(acceptanceTestBaseDir + "server/fix43"));
         addTests(new File(acceptanceTestBaseDir + "server/fix44"));
-        
-//        addTest("fix40/2q_MsgTypeNotValid.def");
-//      addTest("fix40/10_MsgSeqNumEqual.def");
     }
 
     protected void addTest(String name) {
@@ -131,7 +137,7 @@ public class AcceptanceTestSuite extends TestSuite {
             if (directory.exists()) {
                 File[] files = directory.listFiles(new TestDefinitionFilter());
                 for (int i = 0; i < files.length; i++) {
-                    if (!files[i].isDirectory()) {
+                    if (!files[i].isDirectory() && !isTestSkipped(files[i])) {
                         addTest(new AcceptanceTest(files[i].getPath()));
                     }
                 }
@@ -146,11 +152,20 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
+    private boolean isTestSkipped(File file) {
+        if (skipSlowTests) {
+           return file.getName().indexOf("NoDataSentDuringHeartBtInt") != -1 ||
+                    file.getName().indexOf("SendTestRequest") != -1; 
+        } else {
+            return false;
+        }
+    }
+
     public static Test suite() {
         final AcceptanceTestSuite acceptanceTestSuite = new AcceptanceTestSuite();
         Test scriptedAcceptanceTests = new TestSetup(acceptanceTestSuite) {
             private Thread serverThread;
-            
+
             protected void setUp() throws Exception {
                 super.setUp();
                 ATServer server = new ATServer(acceptanceTestSuite);
@@ -158,12 +173,12 @@ public class AcceptanceTestSuite extends TestSuite {
                 serverThread.start();
                 server.waitForInitialization();
             }
-            
+
             protected void tearDown() throws Exception {
                 serverThread.interrupt();
                 super.tearDown();
             }
-            
+
             public String toString() {
                 return "Acceptance Test Server Context";
             }

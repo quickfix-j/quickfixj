@@ -17,7 +17,7 @@ public class SocketInitiatorTest extends TestCase {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID);
             ClientApplication clientApplication = new ClientApplication();
-            SocketInitiator initiator = new SocketInitiator(clientApplication,
+            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
             // Do initial logon
