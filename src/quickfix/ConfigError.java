@@ -33,7 +33,7 @@ public class ConfigError extends Exception {
         super(cause);
     }
 
-    public ConfigError(String string, Exception e) {
+    public ConfigError(String string, Throwable e) {
         super(string, e);
     }
 }
