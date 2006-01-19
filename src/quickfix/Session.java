@@ -166,7 +166,7 @@ public class Session {
             }
             sessions.put(sessionID, this);
             application.onCreate(sessionID);
-            state.logEvent("Created session");
+            state.logEvent("Created session: " + sessionID);
         } catch (IOException e) {
             LogUtil.logThrowable(log, "error during session construction", e);
         }
