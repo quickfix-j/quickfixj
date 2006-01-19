@@ -37,6 +37,7 @@ public class FileLog implements Log {
     private String incomingFileName;
     private String outgoingFileName;
     private String eventFileName;
+    private boolean syncAfterWrite;
 
     private FileOutputStream incoming;
     private FileOutputStream outgoing;
@@ -70,7 +71,9 @@ public class FileLog implements Log {
             incoming.write(message.getBytes());
             incoming.write('\n');
             incoming.flush();
-            incoming.getFD().sync();
+            if (syncAfterWrite) {
+                incoming.getFD().sync();
+            }
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing incoming message to log", e);
         }
@@ -81,7 +84,9 @@ public class FileLog implements Log {
             outgoing.write(message.getBytes());
             outgoing.write('\n');
             outgoing.flush();
-            outgoing.getFD().sync();
+            if (syncAfterWrite) {
+                outgoing.getFD().sync();
+            }
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing outgoing message to log", e);
         }
@@ -95,7 +100,9 @@ public class FileLog implements Log {
             events.write(message.getBytes());
             events.write('\n');
             events.flush();
-            events.getFD().sync();
+            if (syncAfterWrite) {
+                events.getFD().sync();
+            }
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing event to log", e);
         }
@@ -111,6 +118,10 @@ public class FileLog implements Log {
 
     String getOutgoingFileName() {
         return outgoingFileName;
+    }
+
+    public void setSyncAfterWrite(boolean syncAfterWrite) {
+        this.syncAfterWrite = syncAfterWrite;
     }
     
     void close() throws IOException {

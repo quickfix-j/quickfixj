@@ -31,7 +31,8 @@ public class FileLogTest extends TestCase {
                 .getAbsolutePath());
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog) factory.create(sessionID);
-
+        log.setSyncAfterWrite(true);
+        
         log.onIncoming("INTEST");
         assertEquals("wrong message", "INTEST\n", readLog(log.getIncomingFileName()));
 
