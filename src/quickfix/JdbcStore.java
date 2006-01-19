@@ -33,39 +33,50 @@ import java.util.HashMap;
 import java.util.TimeZone;
 
 class JdbcStore implements MessageStore {
+    private String sessionTableName = "sessions";
+    private String messageTableName = "messages";
     private MemoryStore cache = new MemoryStore();
     private Connection connection;
     private SessionID sessionID;
     private HashMap statementCache = new HashMap();
 
-    private static final String SQL_UPDATE_SEQNUMS = "UPDATE sessions SET incoming_seqnum=?, "
+    private final String SQL_UPDATE_SEQNUMS = "UPDATE " + sessionTableName
+            + " SET incoming_seqnum=?, "
             + "outgoing_seqnum=? WHERE beginstring=? and sendercompid=? "
             + "and targetcompid=? and session_qualifier=?";
-    private static final String SQL_INSERT_SESSION = "INSERT INTO sessions (beginstring, sendercompid, "
-            + "targetcompid, session_qualifier, creation_time, "
+    private final String SQL_INSERT_SESSION = "INSERT INTO " + sessionTableName
+            + " (beginstring, sendercompid, " + "targetcompid, session_qualifier, creation_time, "
             + "incoming_seqnum, outgoing_seqnum) VALUES(?,?,?,?,?,?,?)";
-    private static final String SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, "
-            + "outgoing_seqnum FROM sessions WHERE beginstring=? and  "
+    private final String SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, "
+            + "outgoing_seqnum FROM " + sessionTableName + " WHERE beginstring=? and  "
             + "sendercompid=? and targetcompid=? and session_qualifier=?";
-    private static final String INSERT_UPDATE_MESSAGE = "UPDATE messages SET message=? "
+    private final String INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? "
             + "WHERE beginstring=? and sendercompid=? "
             + "and targetcompid=? and session_qualifier=? and msgseqnum=?";
-    private static final String SQL_INSERT_MESSAGE = "INSERT INTO messages (beginstring, "
+    private final String SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (beginstring, "
             + "sendercompid, targetcompid, session_qualifier, msgseqnum, "
             + "message) VALUES (?,?,?,?,?,?)";
-    private static final String SQL_GET_MESSAGES = "SELECT message FROM messages WHERE  "
+    private final String SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE  "
             + "beginstring=? and sendercompid=? and targetcompid=? and "
             + "session_qualifier=? and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
-    private static final String SQL_UPDATE_SESSION = "UPDATE sessions SET creation_time=?, "
-            + "incoming_seqnum=?, outgoing_seqnum=? "
+    private final String SQL_UPDATE_SESSION = "UPDATE " + sessionTableName
+            + " SET creation_time=?, " + "incoming_seqnum=?, outgoing_seqnum=? "
             + "WHERE beginstring=? and sendercompid=? and "
             + "targetcompid=? and session_qualifier=?";
-    private static final String SQL_DELETE_MESSAGES = "DELETE FROM messages WHERE "
+    private final String SQL_DELETE_MESSAGES = "DELETE FROM " + messageTableName + " WHERE "
             + "beginstring=? and sendercompid=? " + "and targetcompid=? and session_qualifier=?";
-    
+
     public JdbcStore(SessionSettings settings, SessionID sessionID) throws Exception {
         this.sessionID = sessionID;
         connection = connect(settings, sessionID);
+        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_PREFIX)) {
+            sessionTableName = settings.getString(sessionID,
+                    JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_PREFIX);
+        }
+        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_PREFIX)) {
+            sessionTableName = settings.getString(sessionID,
+                    JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_PREFIX);
+        }
         loadCache();
     }
 
@@ -243,4 +254,11 @@ class JdbcStore implements MessageStore {
         }
     }
 
+    public void setSessionTableName(String sessionTableName) {
+        this.sessionTableName = sessionTableName;
+    }
+    
+    public void setMessageTableName(String messageTableName) {
+        this.messageTableName = messageTableName;
+    }
 }

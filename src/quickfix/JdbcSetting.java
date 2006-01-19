@@ -49,4 +49,15 @@ public class JdbcSetting {
      */
     public static final String SETTING_JDBC_PASSWORD = "JdbcPassword";
 
+    /**
+     * Defines the table name for the messages table. Default is "messages".
+     * If you use a different name, you must set up your database accordingly.
+     */
+    public static final String SETTING_JDBC_STORE_MESSAGES_TABLE_PREFIX = "JdbcStoreMessagesTablePrefix";
+
+    /**
+     * Defines the table name for the session table. Default is "sessions".
+     * If you use a different name, you must set up your database accordingly.
+     */
+    public static final String SETTING_JDBC_STORE_SESSIONS_TABLE_PREFIX = "JdbcStoreSessionsTablePrefix";
 }
