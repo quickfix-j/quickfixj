@@ -53,11 +53,11 @@ public class JdbcSetting {
      * Defines the table name for the messages table. Default is "messages".
      * If you use a different name, you must set up your database accordingly.
      */
-    public static final String SETTING_JDBC_STORE_MESSAGES_TABLE_PREFIX = "JdbcStoreMessagesTablePrefix";
+    public static final String SETTING_JDBC_STORE_MESSAGES_TABLE_NAME = "JdbcStoreMessagesTableName";
 
     /**
      * Defines the table name for the session table. Default is "sessions".
      * If you use a different name, you must set up your database accordingly.
      */
-    public static final String SETTING_JDBC_STORE_SESSIONS_TABLE_PREFIX = "JdbcStoreSessionsTablePrefix";
+    public static final String SETTING_JDBC_STORE_SESSIONS_TABLE_NAME = "JdbcStoreSessionsTableName";
 }

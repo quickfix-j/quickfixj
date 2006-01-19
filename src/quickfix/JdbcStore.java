@@ -69,13 +69,13 @@ class JdbcStore implements MessageStore {
     public JdbcStore(SessionSettings settings, SessionID sessionID) throws Exception {
         this.sessionID = sessionID;
         connection = connect(settings, sessionID);
-        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_PREFIX)) {
+        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME)) {
             sessionTableName = settings.getString(sessionID,
-                    JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_PREFIX);
+                    JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME);
         }
-        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_PREFIX)) {
+        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME)) {
             sessionTableName = settings.getString(sessionID,
-                    JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_PREFIX);
+                    JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
         }
         loadCache();
     }
