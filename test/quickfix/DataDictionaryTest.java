@@ -1,6 +1,8 @@
 package quickfix;
 
 import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
 
@@ -132,7 +134,22 @@ public class DataDictionaryTest extends TestCase {
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
         // It worked!
     }
-    
+   
+    // Support finding DD in classpath
+    public void testDictionaryInClassPath() throws Exception {
+        URLClassLoader customClassLoader = new URLClassLoader(new URL[] {
+                new URL("file:etc")
+        }, getClass().getClassLoader());
+        Thread.currentThread().setContextClassLoader(customClassLoader);
+        try {
+            DataDictionary dd = new DataDictionary("FIX40.xml");
+            assertEquals("wrong field name", "Currency", dd.getFieldName(15));
+            // It worked!
+        } finally {
+            Thread.currentThread().setContextClassLoader(null);
+        }
+    }
+
     private static DataDictionary testDataDictionary;
 
     public static DataDictionary getDictionary() throws Exception {
