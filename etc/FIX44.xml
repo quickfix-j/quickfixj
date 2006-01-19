@@ -5915,6 +5915,8 @@
       <value enum="7" description="NO_MATCH_FOR_INQUIRY" />
       <value enum="8" description="NO_MARKET_FOR_INSTRUMENT" />
       <value enum="9" description="NO_INVENTORY" />
+	  <value enum="10" description="PASS"/>
+	  <value enum="99" description="OTHER"/>
     </field>
     <field number="659" name="SideComplianceID" type="STRING" />
     <field number="660" name="AcctIDSource" type="INT">
