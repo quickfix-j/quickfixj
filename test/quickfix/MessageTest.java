@@ -455,5 +455,8 @@ public class MessageTest extends TestCase {
 
         message.getHeader().setString(MsgType.FIELD, MsgType.ORDER_SINGLE);
         assertFalse(message.isAdmin());
-    }
+
+        message.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_RESPONSE);
+        assertFalse(message.isAdmin());
+}
 }
