@@ -100,30 +100,34 @@
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TimeZone</I> </TD>
+    <TD> Time zone for this session; if specified, the session start and end will be converted from this zone to UTC.</TD>
+    <TD> Time zone ID (America/New_York, Asia/Tokyo, Europe/London, etc.)</TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>StartTime</I> </TD>
     <TD> Time of day that this FIX session becomes activated </TD>
-    <TD> time in the format of HH:MM:SS, time is represented in UTC </TD>
-
+    <TD> time in the format of HH:MM:SS -- in UTC by default, or in the time zone specified by TimeZone </TD>
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EndTime</I> </TD>
     <TD> Time of day that this FIX session becomes deactivated </TD>
-    <TD> time in the format of HH:MM:SS, time is represented in UTC </TD>
-
+    <TD> time in the format of HH:MM:SS -- in UTC by default, or in the time zone specified by TimeZone  </TD>
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>StartDay</I> </TD>
     <TD> For week long sessions, the starting day of week for the session. Use in combination with StartTime. </TD>
-    <TD> Day of week in English using any abbreviation (i.e. mo, mon, mond, monda, monday are all valid) </TD>
+    <TD> Day of week in the default locale (e.g. Monday, mon, lundi, lun. etc.)</TD>
 
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EndDay</I> </TD>
     <TD> For week long sessions, the ending day of week for the session. Use in combination with EndTime. </TD>
-    <TD> Day of week in English using any abbreviation (i.e. mo, mon, mond, monda, monday are all valid) </TD>
+    <TD> Day of week in the default locale (e.g. Monday, mon, lundi, lun. etc.)</TD>
 
     <TD>&nbsp; </TD>
   </TR>

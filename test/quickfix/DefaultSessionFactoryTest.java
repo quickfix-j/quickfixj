@@ -1,10 +1,11 @@
 package quickfix;
 
+import quickfix.test.acceptance.ATApplication;
 import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Locale;
 
-import quickfix.test.acceptance.ATApplication;
 import junit.framework.TestCase;
 
 public class DefaultSessionFactoryTest extends TestCase {
@@ -49,38 +50,42 @@ public class DefaultSessionFactoryTest extends TestCase {
     }
 
     public void testIncorrectDayValues() throws Exception {
-        String exceptionMessagePattern = "invalid format for day \\(use su,mo,tu,we,th,fr,sa\\): ";
+        settings.setString(sessionID, Session.SETTING_START_DAY, "mon");
+        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: StartDay used without EndDay");
+
+        setUpDefaultSettings();
+        settings.setString(sessionID, Session.SETTING_END_DAY, "mon");
+        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: EndDay used without StartDay");
+
+        setUpDefaultSettings();
+        settings.setString(sessionID, Session.SETTING_START_DAY, "Monday");
+        settings.setString(sessionID, Session.SETTING_END_DAY, "Tuesday");
         settings.setString(sessionID, Session.SETTING_START_DAY, "xx");
-        createSessionAndAssertConfigError("no exception", exceptionMessagePattern + "'xx'");
+        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse start time 'xx 09:00:00'.");
 
         setUpDefaultSettings();
+        settings.setString(sessionID, Session.SETTING_START_DAY, "Monday");
+        settings.setString(sessionID, Session.SETTING_END_DAY, "Tuesday");
         settings.setString(sessionID, Session.SETTING_END_DAY, "yy");
-        createSessionAndAssertConfigError("no exception", exceptionMessagePattern + "'yy'");
-
-        setUpDefaultSettings();
-        settings.setString(sessionID, Session.SETTING_START_DAY, "mo");
-        createSessionAndAssertConfigError("no exception", "StartDay used without EndDay");
-
-        setUpDefaultSettings();
-        settings.setString(sessionID, Session.SETTING_END_DAY, "mo");
-        createSessionAndAssertConfigError("no exception", "EndDay used without StartDay");
+        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse end time 'yy 16:00:00'.");
 
         assertValidDay("mon");
-        assertValidDay("mond");
-        assertValidDay("monda");
         assertValidDay("monday");
-        assertValidDay("tu");
         assertValidDay("tuesday");
-        assertValidDay("we");
-        assertValidDay("wednes");
-        assertValidDay("th");
-        assertValidDay("thurs");
-        assertValidDay("fr");
-        assertValidDay("frid");
-        assertValidDay("sa");
-        assertValidDay("satur");
-        assertValidDay("su");
+        assertValidDay("wed");
+        assertValidDay("thu");
+        assertValidDay("fri");
+        assertValidDay("sat");
         assertValidDay("sun");
+    }
+
+    public void testFrenchDayValues() {
+        setUpDefaultSettings();
+        Locale defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.FRANCE);
+        settings.setString(sessionID, Session.SETTING_START_DAY, "lun.");
+        settings.setString(sessionID, Session.SETTING_END_DAY, "vendredi");
+        Locale.setDefault(defaultLocale);
     }
 
     public void testInitiatorWithoutHeartbeat() throws Exception {
@@ -110,13 +115,13 @@ public class DefaultSessionFactoryTest extends TestCase {
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_START_TIME, "xx");
-        createSessionAndAssertConfigError("no exception", "invalid UTC time value: xx");
+        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse start time 'xx'.");
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_END_TIME, "yy");
-        createSessionAndAssertConfigError("no exception", "invalid UTC time value: yy");
+        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse end time 'yy'.");
     }
-    
+
     private void createSessionAndAssertConfigError(String message, Class exceptionClass) {
         try {
             factory.create(sessionID, settings);

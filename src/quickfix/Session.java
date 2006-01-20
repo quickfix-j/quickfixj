@@ -47,6 +47,11 @@ public class Session {
     public static final String SETTING_END_DAY = "EndDay";
 
     /**
+     * Session scheduling setting to specify time zone for the session.
+     */
+    public static final String SETTING_TIMEZONE = "TimeZone";
+
+    /**
      * Session scheduling setting to specify starting time of the trading day.
      */
     public static final String SETTING_START_TIME = "StartTime";
@@ -142,6 +147,7 @@ public class Session {
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
         Log log = logFactory.create(sessionID);
+
         try {
             this.application = application;
             this.sessionID = sessionID;
@@ -161,12 +167,14 @@ public class Session {
             if (logFactory != null) {
                 state.setLog(log);
             }
+            log.onEvent("Session " + this.sessionID + " schedule is " + sessionSchedule);
             if (!checkSessionTime()) {
+                log.onEvent("Session " + this.sessionID + " is not configured to be active now.");
                 reset();
             }
             sessions.put(sessionID, this);
             application.onCreate(sessionID);
-            state.logEvent("Created session: " + sessionID);
+            log.onEvent("Created session: " + sessionID);
         } catch (IOException e) {
             LogUtil.logThrowable(log, "error during session construction", e);
         }
@@ -922,10 +930,10 @@ public class Session {
                 doTargetTooLow(msg);
                 return false;
             }
-            
+
             if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
                 int[] range = state.getResendRange();
-                
+
                 if (msgSeqNum >= range[1]) {
                     state.logEvent("ResendRequest for messages FROM: " + range[0] +
                             " TO: " + range[1] + " has been satisfied.");
@@ -935,7 +943,7 @@ public class Session {
 
             if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
                 int[] range = state.getResendRange();
-                
+
                 if (msgSeqNum >= range[1]) {
                     state.logEvent("ResendRequest for messages FROM: " + range[0] +
                             " TO: " + range[1] + " has been satisfied.");
@@ -1028,9 +1036,8 @@ public class Session {
     /**
      * Called from the timer-related code in the acceptor/initiator
      * implementations. This is not typically called from application code.
-     * 
-     * @throws IOException
-     *             IO error
+     *
+     * @throws IOException IO error
      */
     public synchronized void next() throws IOException {
         if (!enabled) {
@@ -1120,9 +1127,8 @@ public class Session {
 
     /**
      * Logs out from session and closes the network connection.
-     * 
-     * @throws IOException
-     *             IO error
+     *
+     * @throws IOException IO error
      */
     public synchronized void disconnect() throws IOException {
         if (responder != null) {
@@ -1451,7 +1457,7 @@ public class Session {
     /**
      * Predicate for determining if the session should be active at the current
      * time.
-     * 
+     *
      * @return true if session should be active, false otherwise.
      */
     public boolean isSessionTime() {
@@ -1464,6 +1470,7 @@ public class Session {
 
     /**
      * Returns the application instance for this session
+     *
      * @return application instance
      */
     public Application getApplication() {

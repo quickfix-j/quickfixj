@@ -19,11 +19,8 @@
 
 package quickfix;
 
-import quickfix.field.converter.UtcTimeOnlyConverter;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -36,23 +33,23 @@ public class DefaultSessionFactory implements SessionFactory {
     private Application application;
     private MessageStoreFactory messageStoreFactory;
     private LogFactory logFactory;
-	private MessageFactory messageFactory;
+    private MessageFactory messageFactory;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
-            LogFactory logFactory) {
+                                 LogFactory logFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
         this.logFactory = logFactory;
-		this.messageFactory = new DefaultMessageFactory();
-	}
+        this.messageFactory = new DefaultMessageFactory();
+    }
 
-	public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
-			LogFactory logFactory, MessageFactory messageFactory) {
-		this.application = application;
-		this.messageStoreFactory = messageStoreFactory;
-		this.logFactory = logFactory;
-		this.messageFactory = messageFactory;
-	}
+    public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+                                 LogFactory logFactory, MessageFactory messageFactory) {
+        this.application = application;
+        this.messageStoreFactory = messageStoreFactory;
+        this.logFactory = logFactory;
+        this.messageFactory = messageFactory;
+    }
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
@@ -110,23 +107,6 @@ public class DefaultSessionFactory implements SessionFactory {
                     dataDictionary.setCheckUserDefinedFields(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
                 }
-
-
-            }
-
-            Date startTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
-                    Session.SETTING_START_TIME));
-            Date endTime = UtcTimeOnlyConverter.convert(settings.getString(sessionID,
-                    Session.SETTING_END_TIME));
-
-            int startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
-            int endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
-
-            if (startDay >= 0 && endDay < 0) {
-                throw new ConfigError("StartDay used without EndDay");
-            }
-            if (endDay >= 0 && startDay < 0) {
-                throw new ConfigError("EndDay used without StartDay");
             }
 
             int heartbeatInterval = 0;
@@ -138,33 +118,33 @@ public class DefaultSessionFactory implements SessionFactory {
             }
 
             Session session = new Session(application, messageStoreFactory, sessionID,
-                    dataDictionary, new SessionSchedule(startTime, endTime, startDay, endDay),
+                    dataDictionary, new SessionSchedule(settings, sessionID),
                     logFactory, messageFactory, heartbeatInterval);
 
             if (settings.isSetting(sessionID, Session.SETTING_CHECK_LATENCY)) {
                 session.setCheckLatency(settings.getBool(sessionID, Session.SETTING_CHECK_LATENCY));
             }
-            
+
             if (settings.isSetting(sessionID, Session.SETTING_MAX_LATENCY)) {
                 session.setMaxLatency((int) settings
                         .getLong(sessionID, Session.SETTING_MAX_LATENCY));
             }
-            
+
             if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_LOGOUT)) {
                 session.setResetOnLogout(settings.getBool(sessionID,
                         Session.SETTING_RESET_ON_LOGOUT));
             }
-            
+
             if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_DISCONNECT)) {
                 session.setResetOnDisconnect(settings.getBool(sessionID,
                         Session.SETTING_RESET_ON_DISCONNECT));
             }
-            
+
             if (settings.isSetting(sessionID, Session.SETTING_MILLISECONDS_IN_TIMESTAMP)) {
                 session.setMillisecondsInTimestamp(settings.getBool(sessionID,
                         Session.SETTING_MILLISECONDS_IN_TIMESTAMP));
             }
-            
+
             if (settings.isSetting(sessionID, Session.SETTING_RESET_WHEN_INITIATING_LOGON)) {
                 session.setResetWhenInitiatingLogon(settings.getBool(sessionID,
                         Session.SETTING_RESET_WHEN_INITIATING_LOGON));
@@ -176,31 +156,5 @@ public class DefaultSessionFactory implements SessionFactory {
         } catch (FieldConvertError e) {
             throw new ConfigError(e.getMessage());
         }
-    }
-
-    private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
-            throws ConfigError, FieldConvertError {
-        if (!settings.isSetting(sessionID, key)) {
-            return defaultValue;
-        }
-        String value = settings.getString(sessionID, key);
-        if (value.length() >= 2) {
-            String abbr = value.substring(0, 2);
-            if (abbr.equals("su"))
-                return 1;
-            if (abbr.equals("mo"))
-                return 2;
-            if (abbr.equals("tu"))
-                return 3;
-            if (abbr.equals("we"))
-                return 4;
-            if (abbr.equals("th"))
-                return 5;
-            if (abbr.equals("fr"))
-                return 6;
-            if (abbr.equals("sa"))
-                return 7;
-        }
-        throw new ConfigError("invalid format for day (use su,mo,tu,we,th,fr,sa): '" + value + "'");
     }
 }
