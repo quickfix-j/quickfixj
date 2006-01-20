@@ -74,7 +74,7 @@ class JdbcStore implements MessageStore {
                     JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME);
         }
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME)) {
-            sessionTableName = settings.getString(sessionID,
+            messageTableName = settings.getString(sessionID,
                     JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
         }
         loadCache();
@@ -110,7 +110,13 @@ class JdbcStore implements MessageStore {
                 insert.execute();
             }
         } finally {
-            rs.close();
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e1) {
+                    throw new IOException(e1.getMessage());
+                }
+            }
         }
     }
 
