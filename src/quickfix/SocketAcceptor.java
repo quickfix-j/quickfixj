@@ -57,6 +57,15 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 return;
             }
         }
+        
+        for (int i = 0; i < 5 && isLoggedOn(); i++) {
+            try {
+                poll();
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                return;
+            }
+        }
     }
 
     protected void onStart() {

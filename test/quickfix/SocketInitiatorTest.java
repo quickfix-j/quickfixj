@@ -4,15 +4,24 @@ import java.util.HashMap;
 import java.util.List;
 
 import junit.framework.TestCase;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import quickfix.test.acceptance.ATServer;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class SocketInitiatorTest extends TestCase {
+    private Log log = LogFactory.getLog(getClass());
+
     public void testLogonAfterServerDisconnect() throws Exception {
         ServerThread serverThread = new ServerThread();
         try {
             serverThread.start();
+            serverThread.waitForInitialization();
+            SessionID serverSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW");
+            Session serverSession = Session.lookupSession(serverSessionID);
 
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID);
@@ -20,18 +29,22 @@ public class SocketInitiatorTest extends TestCase {
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
-            // Do initial logon
+            log.info("Do first login");
             clientApplication.setUpLogonExpectation();
             initiator.start();
             Session clientSession = Session.lookupSession(clientSessionID);
             assertLoggedOn(clientApplication, clientSession);
 
-            // Disconnect from server-side and assert that client session reconnects and
-            // logs on properly.
-            SessionID serverSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW");
-            Session serverSession = Session.lookupSession(serverSessionID);
+            log.info("Disconnect from server-side and assert that client session "
+                    + "reconnects and logs on properly");
             clientApplication.setUpLogonExpectation();
             serverSession.disconnect();
+            for (int i = 0; i < 10; i++) {
+                Thread.sleep(100L);
+                if (serverSession.getResponder() == null) {
+                    break;
+                }
+            }
             assertLoggedOn(clientApplication, clientSession);
         } finally {
             serverThread.interrupt();
@@ -42,6 +55,7 @@ public class SocketInitiatorTest extends TestCase {
         ServerThread serverThread = new ServerThread();
         try {
             serverThread.start();
+            serverThread.waitForInitialization();
 
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID);
@@ -55,46 +69,63 @@ public class SocketInitiatorTest extends TestCase {
             // The class cast was from timer events occuring every one second.
             // We sleep for one second and then check the poll.
             try {
+                initiator.poll();
+                Session clientSession = Session.lookupSession(clientSessionID);
                 for (int i = 0; i < 5; i++) {
                     Thread.sleep(300);
+                    if (clientSession.isLoggedOn()) {
+                        break;
+                    }
                     initiator.poll();
                 }
-                
-                Session clientSession = Session.lookupSession(clientSessionID);
+
                 assertLoggedOn(clientApplication, clientSession);
-                
+
                 // BUG #106 - sessions were not being recorded.
                 List sessions = initiator.getSessions();
                 assertTrue("wrong logon status", initiator.isLoggedOn());
                 assertEquals("wrong # of session", 1, sessions.size());
             } finally {
-                // This is very strange. I'm not sure how the poll() and stop()
-                // are supposed to work. Need more behavioral specifiations from
-                // the C++ developers.
-                //
-                // Must run stop in a separate thread because the logout will
-                // be deffered and occur at the next timer interrupt.
                 initiator.stop();
-//                new Thread(new Runnable() {
-//                
-//                    public void run() {
-//                        initiator.stop();
-//                    }
-//                
-//                });
-//                for (int i = 0; i < 5; i++) {
-//                    Thread.sleep(300);
-//                    if (!initiator.poll()) {
-//                        break;
-//                    }
-//                }
             }
 
+            boolean pollResult = true;
+            for (int i = 0; i < 5; i++) {
+                Thread.sleep(300);
+                pollResult = initiator.poll();
+                if (!pollResult) {
+                    break;
+                }
+            }
+            log.info("Poll returned " + pollResult);
+
             assertFalse("wrong logon status", initiator.isLoggedOn());
+        } finally {
+            serverThread.interrupt();
+        }
+    }
+
+    public void testBlockLogoffAfterLogon() throws Exception {
+        ServerThread serverThread = new ServerThread();
+        try {
+            serverThread.start();
+            serverThread.waitForInitialization();
+
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID);
+            ClientApplication clientApplication = new ClientApplication();
+            final SocketInitiator initiator = new SocketInitiator(clientApplication,
+                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+            clientApplication.stopAfterLogon(initiator);
+            clientApplication.setUpLogonExpectation();
+
+            initiator.block();
+            System.out.println("@@@@ block returned");
+            assertFalse("wrong logon status", initiator.isLoggedOn());
+            assertEquals("wrong # of session", 1, initiator.getSessions().size());
 
         } finally {
             serverThread.interrupt();
-            Thread.sleep(1000L);
         }
     }
 
@@ -106,9 +137,8 @@ public class SocketInitiatorTest extends TestCase {
         defaults.put("SocketConnectPort", "9877");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
-        defaults.put("SenderCompID", "ISLD");
-        defaults.put("TargetCompID", "TW");
         defaults.put("HeartBtInt", "30");
+        defaults.put("ReconnectInterval", "2");
         defaults.put("FileStorePath", "output/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.set(defaults);
@@ -127,6 +157,17 @@ public class SocketInitiatorTest extends TestCase {
 
     private class ClientApplication extends ApplicationAdapter {
         public CountDownLatch logonLatch;
+        private Initiator initiator;
+        private boolean stopAfterLogon;
+
+        public ClientApplication() {
+
+        }
+
+        public void stopAfterLogon(Initiator initiator) {
+            this.initiator = initiator;
+            this.stopAfterLogon = true;
+        }
 
         public void setUpLogonExpectation() {
             logonLatch = new CountDownLatch(1);
@@ -136,19 +177,41 @@ public class SocketInitiatorTest extends TestCase {
             if (logonLatch != null) {
                 logonLatch.countDown();
             }
+            if (stopAfterLogon) {
+                log.info("Stopping after logon");
+                if (initiator instanceof quickfix.netty.AbstractSocketInitiator) {
+                    // Netty-based block requires stop in separate thread
+                    new Thread(new Runnable() {
+
+                        public void run() {
+                            initiator.stop();
+                        }
+
+                    }).start();
+                } else {
+                    initiator.stop();
+                }
+            }
         }
+
     }
 
     private class ServerThread extends Thread {
+        private ATServer server;
+
         public ServerThread() {
             super("test server");
+            server = new ATServer();
         }
 
         public void run() {
-            ATServer server = new ATServer();
             server.setUsingMemoryStore(true);
             server.acceptFixVersion(FixVersions.BEGINSTRING_FIX42);
             server.run();
+        }
+
+        public void waitForInitialization() throws InterruptedException {
+            server.waitForInitialization();
         }
     }
 

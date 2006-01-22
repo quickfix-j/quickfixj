@@ -65,7 +65,9 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     protected AbstractSocketAcceptor(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory, messageFactory), settings);
+        this(
+                new DefaultSessionFactory(application, messageStoreFactory, logFactory,
+                        messageFactory), settings);
     }
 
     public final void block() throws ConfigError, RuntimeError {
@@ -92,7 +94,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
 
     protected quickfix.Session getQuickFixSession(Session nettySession, Message message) {
         quickfix.Session quickfixSession = getQuickFixSession(nettySession);
-        if (quickfixSession == null) {
+        if (quickfixSession == null && isLogon(message)) {
             // No QF session for this Netty session,
             SessionID sessionID = getSessionID(message, true);
             quickfixSession = (quickfix.Session) quickfixSessions.get(sessionID);
@@ -113,6 +115,10 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
             return null;
         }
         return quickfixSession;
+    }
+
+    private boolean isLogon(Message message) {
+        return message.toString().indexOf("\00135=A\001") != -1;
     }
 
     private SessionID getSessionID(Message message, boolean reverse) {
@@ -365,8 +371,13 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
         if (!force) {
             for (int second = 1; second <= 10 && isLoggedOn(); ++second) {
                 try {
+                    // This is a temporary hack (until the MINA) to compensate for not handling
+                    // the intra-thread timers correctly with the Netty code.
+                    if (!poll()) {
+                        break;
+                    }
                     Thread.sleep(1000);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     log.error(e);
                 }
             }
@@ -384,8 +395,7 @@ public abstract class AbstractSocketAcceptor implements Acceptor {
     private class SessionTimerTask extends TimerTask {
         public void run() {
             List sessions = getSessions();
-            for (int i = 0, sessionsSize = sessions.size(); i < sessionsSize; i++)
-            {
+            for (int i = 0, sessionsSize = sessions.size(); i < sessionsSize; i++) {
                 quickfix.Session session = (quickfix.Session) sessions.get(i);
                 onTimerEvent(session);
             }

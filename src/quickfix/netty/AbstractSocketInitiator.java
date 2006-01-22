@@ -53,7 +53,9 @@ public abstract class AbstractSocketInitiator implements Initiator {
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this(new DefaultSessionFactory(application, messageStoreFactory, logFactory, messageFactory), settings);
+        this(
+                new DefaultSessionFactory(application, messageStoreFactory, logFactory,
+                        messageFactory), settings);
     }
 
     protected AbstractSocketInitiator(SessionFactory sessionFactory, SessionSettings settings) {
@@ -90,7 +92,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
         onStart();
     }
 
-	protected abstract boolean isHandlingMessageInCallingThread();
+    protected abstract boolean isHandlingMessageInCallingThread();
 
     protected abstract void onStop();
 
@@ -99,22 +101,24 @@ public abstract class AbstractSocketInitiator implements Initiator {
     }
 
     public final void stop(boolean force) {
-        onStop();
 
         if (!isStopRequested) {
             isStopRequested = true;
             stopRequestTimestamp = System.currentTimeMillis();
         }
 
-        synchronized (sessionConnections) {
-            for (int i = 0; i < sessionConnections.size(); i++) {
-                ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
-            }
+        for (int i = 0; i < sessionConnections.size(); i++) {
+            ((SessionConnection) sessionConnections.get(i)).getQuickFixSession().logout();
         }
 
         if (!force) {
             for (int second = 1; second <= 10 && isLoggedOn(); ++second) {
                 try {
+                    // This is a temporary hack (until MINA) to compensate for not handling
+                    // the intra-thread timers correctly with the Netty code.
+                    if (!poll()) {
+                        break;
+                    }
                     Thread.sleep(1000L);
                 } catch (Exception e) {
                     log.error(e);
@@ -122,6 +126,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
             }
         }
 
+        onStop();
         timer.cancel();
         ioProcessor.stop();
     }
@@ -134,10 +139,8 @@ public abstract class AbstractSocketInitiator implements Initiator {
 
     private class SessionTimerTask extends TimerTask {
         public void run() {
-            synchronized (sessionConnections) {
-                for (int i = 0; i < sessionConnections.size(); i++) {
-                    ((SessionConnection) sessionConnections.get(i)).onTimerEvent();
-                }
+            for (int i = 0; i < sessionConnections.size(); i++) {
+                ((SessionConnection) sessionConnections.get(i)).onTimerEvent();
             }
         }
     }
@@ -306,7 +309,6 @@ public abstract class AbstractSocketInitiator implements Initiator {
                     && quickfixSession.isSessionTime()) {
                 nettySession = (Session) nettySessions
                         .get((nettySessions.indexOf(nettySession) + 1) % nettySessions.size());
-                lastReconnectAttemptTime = System.currentTimeMillis();
                 nettySession.start();
                 return;
             }
@@ -349,6 +351,7 @@ public abstract class AbstractSocketInitiator implements Initiator {
              */
             public void connectionClosed(Session session) {
                 quickfixSession.getState().logEvent("connection closed: " + nettySession);
+                lastReconnectAttemptTime = System.currentTimeMillis();
                 try {
                     if (!responderDisconnected) {
                         log.debug("unsolicited disconnect");
@@ -418,7 +421,11 @@ public abstract class AbstractSocketInitiator implements Initiator {
                 // in an actual write to the socket channel. Hopefully,
                 // this is a close enough approximation to the synchronous
                 // C++ networking code.
-                return nettySession.write(new FIXMessageData(data));
+                if (ioProcessor.isStarted()) {
+                    return nettySession.write(new FIXMessageData(data));
+                } else {
+                    return false;
+                }
             }
 
             /*

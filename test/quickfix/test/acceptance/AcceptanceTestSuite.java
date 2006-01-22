@@ -114,10 +114,7 @@ public class AcceptanceTestSuite extends TestSuite {
         
         this.skipSlowTests = Boolean.getBoolean("at.noslow");
         
-        // addTest("fix40/1e_NotLogonMessage.def");
-        // addTest("fix40/20_SimultaneousResendRequest.def");
-        // addTest("fix40/4a_NoDataSentDuringHeartBtInt.def");
-        // addTest("fix40/6_SendTestRequest.def");
+//        addTest("fix40/2i_BeginStringValueUnexpected.def");
 
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));

@@ -82,7 +82,7 @@ public class TimerTestClient extends MessageCracker implements Application {
                 public void run() {
                     stop(false);
                 }
-            }, 10000);
+            }, 5000);
 
             while (!stop) {
                 synchronized (shutdownLatch) {
@@ -101,7 +101,6 @@ public class TimerTestClient extends MessageCracker implements Application {
             }
         } finally {
             initiator.stop();
-            Thread.sleep(3000L);
         }
     }
 

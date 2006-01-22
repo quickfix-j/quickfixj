@@ -37,7 +37,7 @@ public class ConnectToServerStep implements TestStep {
         try {
             Socket socket = new Socket(InetAddress.getByName("localhost"), 9877);
             context.setClientSocket(clientId, socket);
-            log.debug("connected");
+            log.debug("connected: "+socket.getLocalSocketAddress());
         } catch (IOException e) {
             Assert.fail(e.getMessage());
         }

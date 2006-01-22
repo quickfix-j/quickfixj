@@ -199,7 +199,7 @@ public class Session {
      *
      * @return the Session's connection responder
      */
-    public Responder getResponder() {
+    public synchronized Responder getResponder() {
         return responder;
     }
 

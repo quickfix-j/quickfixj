@@ -21,7 +21,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
     private BlockingQueue eventQueue;
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
-                SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
+            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
         // This exception is thrown for compatibility reasons
@@ -40,7 +40,8 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
     }
 
-    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings)
+            throws ConfigError {
         super(sessionFactory, settings);
         if (settings == null) {
             throw new ConfigError("no settings");
@@ -56,8 +57,18 @@ public class SocketInitiator extends AbstractSocketInitiator {
     protected void onBlock() {
         while (!isStopRequested()) {
             try {
-                processEvent(eventQueue.take());
+                Object event = eventQueue.take();
+                processEvent(event);
             } catch (InterruptedException e) {
+                return;
+            }
+        }
+        
+        for (int i = 0; i < 5 && isLoggedOn(); i++) {
+            try {
+                poll();
+                Thread.sleep(1000);
+            } catch (Exception e) {
                 return;
             }
         }
@@ -113,7 +124,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
     }
 
-	protected boolean isHandlingMessageInCallingThread() {
-		return true;
-	}
+    protected boolean isHandlingMessageInCallingThread() {
+        return true;
+    }
 }
