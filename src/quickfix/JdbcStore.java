@@ -40,35 +40,17 @@ class JdbcStore implements MessageStore {
     private SessionID sessionID;
     private HashMap statementCache = new HashMap();
 
-    private final String SQL_UPDATE_SEQNUMS = "UPDATE " + sessionTableName
-            + " SET incoming_seqnum=?, "
-            + "outgoing_seqnum=? WHERE beginstring=? and sendercompid=? "
-            + "and targetcompid=? and session_qualifier=?";
-    private final String SQL_INSERT_SESSION = "INSERT INTO " + sessionTableName
-            + " (beginstring, sendercompid, " + "targetcompid, session_qualifier, creation_time, "
-            + "incoming_seqnum, outgoing_seqnum) VALUES(?,?,?,?,?,?,?)";
-    private final String SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, "
-            + "outgoing_seqnum FROM " + sessionTableName + " WHERE beginstring=? and  "
-            + "sendercompid=? and targetcompid=? and session_qualifier=?";
-    private final String INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? "
-            + "WHERE beginstring=? and sendercompid=? "
-            + "and targetcompid=? and session_qualifier=? and msgseqnum=?";
-    private final String SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (beginstring, "
-            + "sendercompid, targetcompid, session_qualifier, msgseqnum, "
-            + "message) VALUES (?,?,?,?,?,?)";
-    private final String SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE  "
-            + "beginstring=? and sendercompid=? and targetcompid=? and "
-            + "session_qualifier=? and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
-    private final String SQL_UPDATE_SESSION = "UPDATE " + sessionTableName
-            + " SET creation_time=?, " + "incoming_seqnum=?, outgoing_seqnum=? "
-            + "WHERE beginstring=? and sendercompid=? and "
-            + "targetcompid=? and session_qualifier=?";
-    private final String SQL_DELETE_MESSAGES = "DELETE FROM " + messageTableName + " WHERE "
-            + "beginstring=? and sendercompid=? " + "and targetcompid=? and session_qualifier=?";
+    private String SQL_UPDATE_SEQNUMS;
+    private String SQL_INSERT_SESSION;
+    private String SQL_GET_SEQNUMS;
+    private String INSERT_UPDATE_MESSAGE;
+    private String SQL_INSERT_MESSAGE;
+    private String SQL_GET_MESSAGES;
+    private String SQL_UPDATE_SESSION;
+    private String SQL_DELETE_MESSAGES;
 
     public JdbcStore(SessionSettings settings, SessionID sessionID) throws Exception {
         this.sessionID = sessionID;
-        connection = connect(settings, sessionID);
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME)) {
             sessionTableName = settings.getString(sessionID,
                     JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME);
@@ -77,7 +59,45 @@ class JdbcStore implements MessageStore {
             messageTableName = settings.getString(sessionID,
                     JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
         }
+        setSqlStrings();
+        connection = connect(settings, sessionID);
         loadCache();
+    }
+
+    private void setSqlStrings() {
+        SQL_UPDATE_SEQNUMS = "UPDATE " + sessionTableName + " SET incoming_seqnum=?, "
+                + "outgoing_seqnum=? WHERE beginstring=? and sendercompid=? "
+                + "and targetcompid=? and session_qualifier=?";
+
+        SQL_INSERT_SESSION = "INSERT INTO " + sessionTableName + " (beginstring, sendercompid, "
+                + "targetcompid, session_qualifier, creation_time, "
+                + "incoming_seqnum, outgoing_seqnum) VALUES(?,?,?,?,?,?,?)";
+
+        SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, " + "outgoing_seqnum FROM "
+                + sessionTableName + " WHERE beginstring=? and  "
+                + "sendercompid=? and targetcompid=? and session_qualifier=?";
+
+        INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? "
+                + "WHERE beginstring=? and sendercompid=? "
+                + "and targetcompid=? and session_qualifier=? and msgseqnum=?";
+
+        SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (beginstring, "
+                + "sendercompid, targetcompid, session_qualifier, msgseqnum, "
+                + "message) VALUES (?,?,?,?,?,?)";
+
+        SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE  "
+                + "beginstring=? and sendercompid=? and targetcompid=? and "
+                + "session_qualifier=? and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
+
+        SQL_UPDATE_SESSION = "UPDATE " + sessionTableName + " SET creation_time=?, "
+                + "incoming_seqnum=?, outgoing_seqnum=? "
+                + "WHERE beginstring=? and sendercompid=? and "
+                + "targetcompid=? and session_qualifier=?";
+
+        SQL_DELETE_MESSAGES = "DELETE FROM " + messageTableName + " WHERE "
+                + "beginstring=? and sendercompid=? "
+                + "and targetcompid=? and session_qualifier=?";
+
     }
 
     protected Connection connect(SessionSettings settings, SessionID sessionID)
@@ -262,9 +282,11 @@ class JdbcStore implements MessageStore {
 
     public void setSessionTableName(String sessionTableName) {
         this.sessionTableName = sessionTableName;
+        setSqlStrings();
     }
-    
+
     public void setMessageTableName(String messageTableName) {
         this.messageTableName = messageTableName;
+        setSqlStrings();
     }
 }

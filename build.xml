@@ -46,6 +46,7 @@
 	<path id="test.lib.classpath">
 		<fileset dir="${lib.dir}">
 			<include name="junit-3.8.1.jar" />
+			<include name="hsqldb-1.8.0.jar" />
 			<include name="sleepycat-je_2.0.54.jar"/>
 			<include name="commons-configuration-1.1.jar"/>
 			<include name="commons-lang-2.1.jar"/>
@@ -247,8 +248,6 @@
 				<fileset dir="${test.src.dir}">
 					<include name="quickfix/*Test.java" />
 					<include name="quickfix/netty/*Test.java" />
-					<exclude name="**/MySQLLogTest.java" />
-					<exclude name="**/MySQLStoreTest.java" />
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>
