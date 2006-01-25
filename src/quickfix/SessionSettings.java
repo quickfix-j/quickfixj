@@ -160,6 +160,15 @@ public class SessionSettings {
 		return p;
 	}
 
+    /**
+     * Returns the defaults for the session-level settings.
+     * @return the default properties
+     * @throws ConfigError
+     */
+    public Properties getDefaultProperties() throws ConfigError {
+        return getSessionProperties(DEFAULT_SESSION_ID);
+    }
+    
 	/**
 	 * Gets a long from the default section of settings.
 	 *
