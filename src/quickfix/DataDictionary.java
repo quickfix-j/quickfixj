@@ -308,7 +308,7 @@ public class DataDictionary {
      * @return the tag
      */
     public int getFieldTag(String name) {
-        Integer tag = (Integer) fieldNames.get(name);
+        Integer tag = (Integer) names.get(name);
         return tag != null ? tag.intValue() : -1;
     }
 
