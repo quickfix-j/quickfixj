@@ -46,6 +46,7 @@
     <LI><A HREF="#Validation">Validation</A></LI>
     <LI><A HREF="#Initiator">Initiator</A></LI>
     <LI><A HREF="#Acceptor">Acceptor</A></LI>
+    <LI><A HREF="#Socket">Socket Options</A></LI>
 
     <LI><A HREF="#Storage">Storage</A></LI>
     <LI><A HREF="#Logging">Logging</A></LI>
@@ -275,7 +276,146 @@
       this must be defined in the [DEFAULT] section.</TD>
     <TD>Accept connections on any network interface.</TD>
   </TR>
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Socket">Socket Options (Acceptor or Initiator)</A></TD>
+  </TR>
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" >Acceptor socket options must be set in settings default section.<br/> Initiator
+	socket options can be set in either defaults or per-session settings.</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketKeepAlive</I></TD>
 
+    <TD>    
+     When the keepalive option is set for a TCP socket and no data
+     has been exchanged across the socket in either direction for 
+     2 hours (NOTE: the actual value is implementation dependent),
+     TCP automatically sends a keepalive probe to the peer. This probe is a 
+     TCP segment to which the peer must respond. 
+     One of three responses is expected:
+	 <ol>
+     <li> The peer responds with the expected ACK. The application is not 
+        notified (since everything is OK). TCP will send another probe 
+        following another 2 hours of inactivity.
+     <li> The peer responds with an RST, which tells the local TCP that
+        the peer host has crashed and rebooted. The socket is closed.
+      <li> There is no response from the peer. The socket is closed. 
+     </ol>
+      The purpose of this option is to detect if the peer host crashes. 
+	</TD>
+    <TD> "Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+
+<TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketOobInline</I></TD>
+
+    <TD>When the OOBINLINE option is set, any TCP urgent data received on
+     the socket will be received through the socket input stream.
+     When the option is disabled (which is the default) urgent data
+     is silently discarded.
+</TD>
+    <TD> "Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+		  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketReceiveBufferSize</I></TD>
+
+    <TD>Set a hint the size of the underlying buffers used by the
+     platform for incoming network I/O. When used in set, this is a
+     suggestion to the kernel from the application about the size of
+     buffers to use for the data to be received over the
+     socket.
+    </TD>
+    <TD>Integer value.</TD>
+    <TD></TD>
+  </TR>
+
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketReuseAddress</I></TD>
+
+    <TD>Sets SO_REUSEADDR for a socket.  This is used only for MulticastSockets
+     in java, and it is set by default for MulticastSockets.
+    </TD>
+    <TD>"Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+		  
+	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketSendBufferSize</I></TD>
+
+    <TD>Set a hint the size of the underlying buffers used by the
+     platform for outgoing network I/O. When used in set, this is a
+     suggestion to the kernel from the application about the size of
+     buffers to use for the data to be sent over the socket.
+    </TD>
+    <TD>Integer value.</TD>
+    <TD></TD>
+  </TR>
+	
+		  	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketLinger</I></TD>
+
+    <TD>Specify a linger-on-close timeout.  This option disables/enables
+     immediate return from a <B>close()</B> of a TCP Socket.  Enabling
+     this option with a non-zero Integer <I>timeout</I> means that a
+     <B>close()</B> will block pending the transmission and acknowledgement
+     of all data written to the peer, at which point the socket is closed
+     <I>gracefully</I>.  Upon reaching the linger timeout, the socket is
+     closed <I>forcefully</I>, with a TCP RST. Enabling the option with a
+     timeout of zero does a forceful close immediately. If the specified
+     timeout value exceeds 65,535 it will be reduced to 65,535.
+    </TD>
+    <TD>Integer value.</TD>
+    <TD></TD>
+  </TR>
+
+		  		  	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketTcpNoDelay</I></TD>
+
+    <TD>Disable Nagle's algorithm for this connection.  Written data
+     to the network is not buffered pending acknowledgement of
+     previously written data.
+    </TD>
+    <TD>"Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+
+		  		  		  	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketTrafficClass</I></TD>
+
+    <TD>Sets traffic class or type-of-service octet in the IP
+     header for packets sent from this Socket.
+     As the underlying network implementation may ignore this
+     value applications should consider it a hint.
+     
+     <P> The tc <B>must</B> be in the range <code> 0 <= tc <=
+     255</code> or an IllegalArgumentException will be thrown.
+     <p>Notes:
+     <p> for Internet Protocol v4 the value consists of an octet
+     with precedence and TOS fields as detailed in RFC 1349. The
+     TOS field is bitset created by bitwise-or'ing values such
+     the following :-
+     <p>
+     <UL>
+     <LI><CODE>IPTOS_LOWCOST (0x02)</CODE></LI>
+     <LI><CODE>IPTOS_RELIABILITY (0x04)</CODE></LI>
+     <LI><CODE>IPTOS_THROUGHPUT (0x08)</CODE></LI>
+     <LI><CODE>IPTOS_LOWDELAY (0x10)</CODE></LI>
+     </UL>
+     The last low order bit is always ignored as this
+     corresponds to the MBZ (must be zero) bit.
+     <p>
+     Setting bits in the precedence field may result in a
+     SocketException indicating that the operation is not
+     permitted.
+    </TD>
+    <TD>An integer value or a set of string options separated by
+	"|" (e.g., "IPTOS_LOWCOST|IPTOS_LOWDELAY")</TD>
+    <TD></TD>
+  </TR>
+		    
   <TR ALIGN="center" VALIGN="middle">
 
     <TD COLSPAN="4" class="subsection"><A NAME="Storage">Storage</A></TD>

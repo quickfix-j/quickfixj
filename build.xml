@@ -39,6 +39,8 @@
 		<fileset id="runtime.lib.fileset" dir="${lib.dir}">
 			<include name="commons-logging-1.0.4.jar" />
 			<include name="tl-netty2-1.8.0.jar" />
+			<include name="mina-0.8.2.jar" />
+			<include name="slf4j-jcl.jar" />
 			<include name="backport-util-concurrent-2.0.jar" />
 		</fileset>
 	</path>
@@ -51,6 +53,7 @@
 			<include name="sleepycat-je_2.0.54.jar"/>
 			<include name="commons-configuration-1.1.jar"/>
 			<include name="commons-lang-2.1.jar"/>
+			<include name="easymock-1.1.jar"/>
 		</fileset>
 	</path>
 
@@ -249,6 +252,7 @@
 				<fileset dir="${test.src.dir}">
 					<include name="quickfix/*Test.java" />
 					<include name="quickfix/netty/*Test.java" />
+					<include name="quickfix/mina/**/*Test.java" />
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>

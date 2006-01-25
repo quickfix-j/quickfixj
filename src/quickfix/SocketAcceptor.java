@@ -19,14 +19,11 @@
 
 package quickfix;
 
-import net.gleamynode.netty2.Message;
-import net.gleamynode.netty2.Session;
-import quickfix.netty.AbstractSocketAcceptor;
-import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
+import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
 public class SocketAcceptor extends AbstractSocketAcceptor {
-    private BlockingQueue messageQueue;
+    private volatile Boolean isStarted = Boolean.FALSE;
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
@@ -39,90 +36,43 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         super(application, messageStoreFactory, settings, messageFactory);
     }
 
-    public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) {
-        super(sessionFactory, settings);
+    public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+        super(settings, sessionFactory);
     }
 
-    protected void onInitialize(boolean handleMessageInCaller) {
-        if (handleMessageInCaller) {
-            messageQueue = new LinkedBlockingQueue();
-        }
+    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
+        new SingleThreadedEventHandlingStrategy(this);
+    
+    public void block() throws ConfigError, RuntimeError {
+        initialize();
+        eventHandlingStrategy.block();
+    }
+    
+    public boolean poll() throws ConfigError, RuntimeError {
+        initialize();
+        return eventHandlingStrategy.poll();
+    }
+    
+    public void start() throws ConfigError, RuntimeError {
+        initialize();
     }
 
-    protected void onBlock() {
-        while (!isStopRequested()) {
-            try {
-                ((MessageEvent) messageQueue.take()).process();
-            } catch (InterruptedException e) {
-                return;
+    private void initialize() throws ConfigError {
+        synchronized (isStarted) {
+            if (isStarted == Boolean.FALSE) {
+                startAcceptingConnections(eventHandlingStrategy);
             }
-        }
-        
-        for (int i = 0; i < 5 && isLoggedOn(); i++) {
-            try {
-                poll();
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                return;
-            }
+            isStarted = Boolean.TRUE;
         }
     }
-
-    protected void onStart() {
-        // empty
+    
+    public void stop() {
+        stop(false);
     }
 
-    protected boolean onPoll() {
-        if (!isLoggedOn()) {
-            return false;
-        }
-
-        // If there are still logged on sessions, but it's been more than
-        // 5 seconds from the stop request, then return false.
-        if (isStopRequested() && (System.currentTimeMillis() - getStopRequestTime()) > 5000L) {
-            return false;
-        }
-
-        if (messageQueue.peek() != null) {
-            ((MessageEvent) messageQueue.poll()).process();
-        }
-
-        return true;
-    }
-
-    protected void onStop() {
-        // during stop, process events (like logout) in timer thread
-        messageQueue = null;
-    }
-
-    protected void onMessage(Session nettySession, Message message) {
-        if (messageQueue != null) {
-            // TODO PERFORMANCE find a way to not create an object here
-            messageQueue.add(new MessageEvent(nettySession, message));
-        } else {
-            processMessage(nettySession, message);
-        }
-    }
-
-    protected void onTimerEvent(quickfix.Session quickfixSession) {
-        processTimerEvent(quickfixSession);
-    }
-
-    /**
-     * This class is used to defer message processing to the thread calling
-     * block or poll.
-     */
-    private class MessageEvent {
-        private Session session;
-        private Message message;
-
-        public MessageEvent(Session session, Message message) {
-            this.session = session;
-            this.message = message;
-        }
-
-        public void process() {
-            processMessage(session, message);
-        }
+    public void stop(boolean forceDisconnect) {
+        stopAcceptingConnections();
+        logoutAllSessions(forceDisconnect);
+        stopSessionTimer();
     }
 }

@@ -12,16 +12,14 @@
 
 package quickfix;
 
-import net.gleamynode.netty2.Message;
-import quickfix.netty.AbstractSocketInitiator;
-import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
+import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.initiator.AbstractSocketInitiator;
 
 public class SocketInitiator extends AbstractSocketInitiator {
-    private BlockingQueue eventQueue;
+    private volatile Boolean isStarted = Boolean.FALSE;
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
-            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
+                SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
         // This exception is thrown for compatibility reasons
@@ -40,91 +38,42 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
     }
 
-    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings)
-            throws ConfigError {
-        super(sessionFactory, settings);
-        if (settings == null) {
-            throw new ConfigError("no settings");
-        }
+    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+        super(settings, sessionFactory);
     }
 
-    protected void onInitialize(boolean handleMessageInCaller) {
-        if (handleMessageInCaller) {
-            eventQueue = new LinkedBlockingQueue();
-        }
+    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
+        new SingleThreadedEventHandlingStrategy(this);
+
+    public void block() throws ConfigError, RuntimeError {
+        initialize();
+        eventHandlingStrategy.block();
     }
 
-    protected void onBlock() {
-        while (!isStopRequested()) {
-            try {
-                Object event = eventQueue.take();
-                processEvent(event);
-            } catch (InterruptedException e) {
-                return;
+    public boolean poll() throws ConfigError, RuntimeError {
+        initialize();
+        return eventHandlingStrategy.poll();
+    }
+    
+    public void start() throws ConfigError, RuntimeError {
+        initialize();
+    }
+    
+    public void stop() {
+        stop(false);
+    }
+
+    public void stop(boolean forceDisconnect) {
+        eventHandlingStrategy.stopHandlingMessages();
+        logoutAllSessions(forceDisconnect);
+    }
+
+    private void initialize() throws ConfigError {
+        synchronized (isStarted) {
+            if (isStarted == Boolean.FALSE) {
+                initiateSessions(eventHandlingStrategy);
             }
+            isStarted = Boolean.TRUE;
         }
-        
-        for (int i = 0; i < 5 && isLoggedOn(); i++) {
-            try {
-                poll();
-                Thread.sleep(1000);
-            } catch (Exception e) {
-                return;
-            }
-        }
-    }
-
-    protected void onStart() {
-        // empty
-    }
-
-    protected boolean onPoll() {
-        if (isStopRequested()) {
-            if (!isLoggedOn()) {
-                return false;
-            }
-            if (System.currentTimeMillis() - getStopRequestTimestamp() > 5000L) {
-                return false;
-            }
-        }
-
-        if (eventQueue.peek() != null) {
-            processEvent(eventQueue.poll());
-        }
-
-        return true;
-    }
-
-    private void processEvent(Object event) {
-        if (event instanceof Message) {
-            processMessage((Message) event);
-        } else if (event instanceof Session) {
-            processTimerEvent((Session) event);
-        }
-    }
-
-    protected void onStop() {
-        // during stop, process events (like logout) in timer thread
-        eventQueue = null;
-    }
-
-    protected void onMessage(Message message) {
-        if (eventQueue != null) {
-            eventQueue.add(message);
-        } else {
-            processMessage(message);
-        }
-    }
-
-    protected void onTimerEvent(Session quickfixSession) {
-        if (eventQueue != null) {
-            eventQueue.add(quickfixSession);
-        } else {
-            processTimerEvent(quickfixSession);
-        }
-    }
-
-    protected boolean isHandlingMessageInCallingThread() {
-        return true;
     }
 }
