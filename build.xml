@@ -47,6 +47,7 @@
 		<fileset dir="${lib.dir}">
 			<include name="junit-3.8.1.jar" />
 			<include name="hsqldb-1.8.0.jar" />
+			<include name="mysql-connector-java-3.1.10-bin.jar" />
 			<include name="sleepycat-je_2.0.54.jar"/>
 			<include name="commons-configuration-1.1.jar"/>
 			<include name="commons-lang-2.1.jar"/>
