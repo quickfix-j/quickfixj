@@ -34,6 +34,14 @@ public class ConnectToServerStep implements TestStep {
             Assert.fail("incorrect connect command: " + command);
         }
         log.debug("connecting to client " + clientId);
+        long reconnectDelay = Long.getLong("at.reconnectDelay", 0).longValue();
+        if (reconnectDelay > 0) {
+            try {
+                Thread.sleep(reconnectDelay);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        }
         try {
             Socket socket = new Socket(InetAddress.getByName("localhost"), 9877);
             context.setClientSocket(clientId, socket);
