@@ -86,7 +86,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
             MessageStoreFactory factory = new MemoryStoreFactory();
             acceptor = new SocketAcceptor(this, factory, settings,
-                    new CommonsLogFactory(settings), new DefaultMessageFactory());
+                    new ScreenLogFactory(settings), new DefaultMessageFactory());
             acceptor.start();
             try {
                 //acceptor.waitForInitialization();

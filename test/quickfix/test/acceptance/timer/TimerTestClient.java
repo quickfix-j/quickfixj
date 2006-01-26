@@ -1,14 +1,35 @@
 package quickfix.test.acceptance.timer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import quickfix.*;
-import quickfix.fix44.ListStatusRequest;
-import quickfix.fix44.TestRequest;
-
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import quickfix.Application;
+import quickfix.ConfigError;
+import quickfix.DefaultMessageFactory;
+import quickfix.DoNotSend;
+import quickfix.FieldNotFound;
+import quickfix.FixVersions;
+import quickfix.IncorrectDataFormat;
+import quickfix.IncorrectTagValue;
+import quickfix.Initiator;
+import quickfix.MemoryStoreFactory;
+import quickfix.Message;
+import quickfix.MessageCracker;
+import quickfix.MessageStoreFactory;
+import quickfix.RejectLogon;
+import quickfix.RuntimeError;
+import quickfix.ScreenLogFactory;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
+import quickfix.SessionSettings;
+import quickfix.SocketInitiator;
+import quickfix.UnsupportedMessageType;
+import quickfix.fix44.ListStatusRequest;
+import quickfix.fix44.TestRequest;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -20,15 +41,17 @@ public class TimerTestClient extends MessageCracker implements Application {
     private final Object shutdownLatch = new Object();
     private boolean failed;
 
-    public void crack(Message message, SessionID sessionID)
-            throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
+    public void crack(Message message, SessionID sessionID) throws UnsupportedMessageType,
+            FieldNotFound, IncorrectTagValue {
         super.crack(message, sessionID);
     }
 
-    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+            IncorrectDataFormat, IncorrectTagValue, RejectLogon {
     }
 
-    public void fromApp(Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+    public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
+            IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         crack(message, sessionID);
     }
 
@@ -69,11 +92,12 @@ public class TimerTestClient extends MessageCracker implements Application {
 
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
         settings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
-        settings.setString(sessionID, "DataDictionary", "etc/" + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "")
-                + ".xml");
+        settings.setString(sessionID, "DataDictionary", "etc/"
+                + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "") + ".xml");
 
         MessageStoreFactory storeFactory = new MemoryStoreFactory();
-        Initiator initiator = new SocketInitiator(this, storeFactory, settings, new CommonsLogFactory(settings), new DefaultMessageFactory());
+        Initiator initiator = new SocketInitiator(this, storeFactory, settings,
+                new ScreenLogFactory(settings), new DefaultMessageFactory());
         initiator.start();
 
         try {
@@ -93,8 +117,7 @@ public class TimerTestClient extends MessageCracker implements Application {
                 }
             }
 
-            if (failed)
-            {
+            if (failed) {
                 String message = "TimerTestClient had to send a test request, indicating that the test server was not reliably sending heartbeats.";
                 log.error(message);
                 throw new RuntimeError(message);
@@ -113,7 +136,8 @@ public class TimerTestClient extends MessageCracker implements Application {
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
     }
 
-    public static void main(String[] args) throws ConfigError, SessionNotFound, InterruptedException {
+    public static void main(String[] args) throws ConfigError, SessionNotFound,
+            InterruptedException {
         TimerTestClient ttc = new TimerTestClient();
         ttc.run();
     }
