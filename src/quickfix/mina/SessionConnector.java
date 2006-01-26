@@ -46,8 +46,14 @@ public abstract class SessionConnector {
         this.sessions = sessions;
     }
 
+    /**
+     * Get the session identifiers for the sessions being connected by this connector.
+     * @return a list of session identifiers
+     * 
+     * @see quickfix.SessionID
+     */
     public ArrayList getSessions() {
-        return new ArrayList(sessions.values());
+        return new ArrayList(sessions.keySet());
     }
 
     protected SessionSettings getSettings() {
