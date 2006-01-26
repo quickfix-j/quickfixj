@@ -52,7 +52,6 @@ class AcceptorProtocolHandler extends AbstractProtocolHandler {
                     }
                     sessionLog.onEvent("Accepting session " + qfSession.getSessionID() + " from "
                             + protocolSession.getRemoteAddress());
-                    // It seems strange that we must set this here instead of inside the session.
                     int heartbeatInterval = message.getInt(HeartBtInt.FIELD);
                     qfSession.getState().setHeartBeatInterval(heartbeatInterval);
                     sessionLog.onEvent("Acceptor heartbeat set to " + heartbeatInterval
