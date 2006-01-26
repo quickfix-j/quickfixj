@@ -82,7 +82,7 @@ public class SocketInitiatorTest extends TestCase {
                 assertLoggedOn(clientApplication, clientSession);
 
                 // BUG #106 - sessions were not being recorded.
-                List sessions = initiator.getSessions();
+                List sessions = initiator.getManagedSessions();
                 assertTrue("wrong logon status", initiator.isLoggedOn());
                 assertEquals("wrong # of session", 1, sessions.size());
             } finally {
@@ -120,9 +120,8 @@ public class SocketInitiatorTest extends TestCase {
             clientApplication.setUpLogonExpectation();
 
             initiator.block();
-            System.out.println("@@@@ block returned");
             assertFalse("wrong logon status", initiator.isLoggedOn());
-            assertEquals("wrong # of session", 1, initiator.getSessions().size());
+            assertEquals("wrong # of session", 1, initiator.getManagedSessions().size());
 
         } finally {
             serverThread.interrupt();

@@ -1,21 +1,23 @@
 package quickfix.test.acceptance;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import junit.framework.Assert;
 import junit.framework.TestSuite;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import quickfix.CommonsLogFactory;
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
+import quickfix.ScreenLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.ThreadedSocketAcceptor;
@@ -83,10 +85,17 @@ public class ATServer implements Runnable {
             MessageStoreFactory factory = usingMemoryStore
                     ? (MessageStoreFactory) new MemoryStoreFactory()
                     : new FileStoreFactory(settings);
+            //LogFactory logFactory = new CommonsLogFactory(settings);
+            quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
             acceptor = new ThreadedSocketAcceptor(application, factory, settings,
-                    new CommonsLogFactory(settings), new DefaultMessageFactory());
+                    logFactory, new DefaultMessageFactory());
+            
+            assertSessionIds();
+            
             acceptor.start();
-            //acceptor.waitForInitialization();
+            
+            assertSessionIds();
+
             initializationLatch.countDown();
             synchronized (application) {
                 try {
@@ -102,6 +111,15 @@ public class ATServer implements Runnable {
             }
         } catch (Throwable e) {
             log.error("error in AT server", e);
+        }
+    }
+
+    private void assertSessionIds() {
+        // This is a strange place for this test, but it wasn't convenient
+        // to put it elsewhere. Bug #153
+        ArrayList sessionIDs = acceptor.getSessions();
+        for (int i = 0; i < sessionIDs.size(); i++) {
+            Assert.assertTrue(sessionIDs.get(i) instanceof SessionID);
         }
     }
 

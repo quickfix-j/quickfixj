@@ -46,8 +46,35 @@ public abstract class SessionConnector {
         this.sessions = sessions;
     }
 
-    public ArrayList getSessions() {
+    /**
+     * Get the list of session managed by this connector.
+     * @return list of quickfix.Session objects
+     * 
+     * @see quickfix.Session
+     */
+    public List getManagedSessions() {
         return new ArrayList(sessions.values());
+    }
+
+    /**
+     * Return the list of session identifiers of sessions managed
+     * by this connector. Should be called getSessionIDs but the
+     * current name is retained for QF/JNI compatibility.
+     * 
+     * @return list of session identifiers
+     */
+    public ArrayList getSessions() {
+        if (sessions != null) {
+            return new ArrayList(sessions.keySet());
+        } else {
+            // Sessions will be null before start is called
+            ArrayList sessionIds = new ArrayList();
+            Iterator sessionIdItr = settings.sectionIterator();
+            while (sessionIdItr.hasNext()) {
+                sessionIds.add(sessionIdItr.next());
+            }
+            return sessionIds;
+        }
     }
 
     protected SessionSettings getSettings() {
@@ -160,7 +187,7 @@ public abstract class SessionConnector {
     private class SessionTimerTask implements Runnable {
         public void run() {
             try {
-                List sessions = getSessions();
+                List sessions = getManagedSessions();
                 for (int i = 0, sessionsSize = sessions.size(); i < sessionsSize; i++) {
                     quickfix.Session session = (quickfix.Session) sessions.get(i);
                     try {

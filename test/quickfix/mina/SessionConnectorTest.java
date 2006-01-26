@@ -30,8 +30,8 @@ public class SessionConnectorTest extends TestCase {
         
         Map sessions = Collections.singletonMap(session.getSessionID(), session);
         connector.setSessions(sessions);
-        assertEquals(1, connector.getSessions().size());
-        assertEquals(session, connector.getSessions().get(0));
+        assertEquals(1, connector.getManagedSessions().size());
+        assertEquals(session, connector.getManagedSessions().get(0));
         
         assertFalse(connector.isLoggedOn());
         
