@@ -279,16 +279,22 @@
 	<target name="test.acceptance.junit"
 	        unless="atests.uptodate"
 	        depends="compile, test.init">
-		<junit fork="yes"
-		       forkMode="once"
-		       dir="."
+		<!-- <junit fork="yes" forkMode="once" dir="." -->
+		<junit fork="no"
 		       tempdir="${ant.output.dir}"
 		       printsummary="true"
 		       showoutput="true"
 		       errorproperty="atests.failed"
 		       failureproperty="atests.failed"
 			   maxmemory="512m">
+			<!--
+			<jvmarg value="-Xmn256m"/>
+			<jvmarg value="-Xmx512m"/>
+			-->
+			<sysproperty key="at.heartbeat" value="5" />
 			<sysproperty key="at.timeout" value="60000" />
+			<sysproperty key="at.reconnectDelay" value="5" />
+			<!-- <sysproperty key="at.noslow" value="true" /> -->
 			<formatter type="xml" usefile="true" />
 			<classpath refid="all.classpath" />
 			<test todir="${test.report.dir}" name="${atest.classname}" />
@@ -359,7 +365,7 @@
 	</target>
 
 	<target name="release.shared"
-	        depends="jar,javadoc"
+	        depends="check.tests,jar,javadoc"
 	        unless="tests.failed">
 		<initdir dir="${release.output.dir}" />
 
