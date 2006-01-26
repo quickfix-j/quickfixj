@@ -10,6 +10,7 @@ import org.apache.mina.protocol.ProtocolSession;
 import org.apache.mina.protocol.ProtocolViolationException;
 
 import quickfix.DataDictionary;
+import quickfix.InvalidMessage;
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.MessageFactory;
@@ -83,8 +84,13 @@ public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
             quickFixSession.getLog().onIncoming(messageString);
             MessageFactory messageFactory = quickFixSession.getMessageFactory();
             DataDictionary dataDictionary = quickFixSession.getDataDictionary();
-            Message fixMessage = MessageUtils.parse(messageFactory, dataDictionary, messageString);
-            processMessage(protocolSession, fixMessage);
+            Message fixMessage;
+            try {
+                fixMessage = MessageUtils.parse(messageFactory, dataDictionary, messageString);
+                processMessage(protocolSession, fixMessage);
+            } catch (InvalidMessage e) {
+                log.error("Invalid message: "+e.getMessage());
+            }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
             protocolSession.close();
