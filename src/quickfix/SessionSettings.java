@@ -488,7 +488,7 @@ public class SessionSettings {
 						sb.append(ch);
 						ch = nextCharacter(inputStream);
 					} while (isValueCharacter(ch));
-					return new Token(VALUE_TOKEN, sb.toString());
+					return new Token(VALUE_TOKEN, sb.toString().trim());
 				}
 			} else if (ch == '[') {
 				ch = nextCharacter(inputStream);
