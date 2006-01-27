@@ -1,6 +1,5 @@
 package quickfix.mina.initiator;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -99,8 +98,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             }
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
-        } catch (IOException e) {
-            throw new RuntimeError(e);
         }
     }
 

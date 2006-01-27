@@ -15,7 +15,7 @@
 	<classpathentry kind="lib" path="lib/sleepycat-je_2.0.54.jar"/>
 	<classpathentry kind="lib" path="lib/hsqldb-1.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-jcl.jar"/>
-	<classpathentry kind="lib" path="lib/mina-0.8.2.jar"/>
+	<classpathentry sourcepath="C:/projects/qfj_b1_0/quickfixj-mina/lib/mina-0.8.2-src.zip" kind="lib" path="lib/mina-0.8.2.jar"/>
 	<classpathentry kind="lib" path="lib/easymock-1.1.jar"/>
 	<classpathentry kind="output" path="output/eclipse/classes"/>
 </classpath>

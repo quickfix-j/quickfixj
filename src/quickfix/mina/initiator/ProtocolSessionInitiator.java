@@ -1,6 +1,5 @@
 package quickfix.mina.initiator;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 
 import org.apache.mina.io.socket.SocketConnector;
@@ -19,7 +18,7 @@ class ProtocolSessionInitiator {
 
     private final ScheduledExecutorService executor;
     private final ProtocolProvider protocolProvider;
-    private final long reconnectInterval;
+    private final long reconnectIntervalInMillis;
     private final SocketAddress[] socketAddresses;
 
     private final ProtocolConnector protocolConnector;
@@ -30,7 +29,7 @@ class ProtocolSessionInitiator {
     private Session quickfixSession;
 
     public ProtocolSessionInitiator(Session qfSession, ProtocolProvider protocolProvider,
-            SocketAddress[] socketAddresses, long reconnectInterval,
+            SocketAddress[] socketAddresses, long reconnectIntervalInSeconds,
             ScheduledExecutorService executor) {
 
         if (socketAddresses.length == 0) {
@@ -40,36 +39,36 @@ class ProtocolSessionInitiator {
         this.executor = executor;
         this.protocolProvider = protocolProvider;
         this.socketAddresses = socketAddresses;
-        this.reconnectInterval = reconnectInterval;
+        this.reconnectIntervalInMillis = reconnectIntervalInSeconds * 1000L;
         this.protocolConnector = new IoProtocolConnector(new SocketConnector());
+        reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 1, 1,
+                TimeUnit.SECONDS);
     }
 
     private class ReconnectTask implements Runnable {
         public void run() {
             if (shouldReconnect()) {
-                lastReconnectAttemptTime = SystemTime.currentTimeMillis();
-                try {
-                    connect();
-                } catch (IOException e) {
-                    try {
-                        protocolProvider.getHandler().exceptionCaught(protocolSession, e);
-                    } catch (Exception ece) {
-                        throw new RuntimeException(ece);
-                    }
-                }
+                connect();
             }
         }
     }
 
-    public void connect() throws IOException {
-        protocolSession = protocolConnector.connect(getNextSocketAddress(), protocolProvider);
-        reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), reconnectInterval,
-                reconnectInterval, TimeUnit.SECONDS);
+    public synchronized void connect() {
+        lastReconnectAttemptTime = SystemTime.currentTimeMillis();
+        try {
+            protocolSession = protocolConnector.connect(getNextSocketAddress(), protocolProvider);
+        } catch (Throwable e) {
+            quickfixSession.getLog().onEvent("Connection failed: " + e.getMessage());
+        }
     }
 
     public void close() {
-        reconnectFuture.cancel(true);
-        protocolSession.close();
+        if (reconnectFuture != null) {
+            reconnectFuture.cancel(true);
+        }
+        if (protocolSession != null) {
+            protocolSession.close();
+        }
         nextSocketAddressIndex = 0;
     }
 
@@ -82,11 +81,11 @@ class ProtocolSessionInitiator {
     }
 
     private boolean shouldReconnect() {
-        return !protocolSession.isConnected() && isTimeForReconnect()
+        return (protocolSession == null || !protocolSession.isConnected()) && isTimeForReconnect()
                 && (quickfixSession.isEnabled() && quickfixSession.isSessionTime());
     }
 
     private boolean isTimeForReconnect() {
-        return SystemTime.currentTimeMillis() - lastReconnectAttemptTime > reconnectInterval;
+        return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
     }
 }
