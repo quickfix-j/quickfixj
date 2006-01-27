@@ -84,6 +84,10 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                     acceptorSessions.put(sessionID, sessionFactory.create(sessionID, settings));
                 }
             }
+            if (acceptorSessions.size() == 0) {
+                throw new ConfigError("No acceptor sessions found in settings.");
+            }
+            
             setSessions(acceptorSessions);
             startSessionTimer();
 

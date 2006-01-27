@@ -43,8 +43,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 }
             }
             try {
-                SessionMessageEvent event = (SessionMessageEvent) eventQueue.poll(1000L,
-                        TimeUnit.MILLISECONDS);
+                SessionMessageEvent event = getMessage();
                 if (event != null) {
                     event.processMessage();
                 }
@@ -52,6 +51,10 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 // ignore
             }
         }
+    }
+
+    private SessionMessageEvent getMessage() throws InterruptedException {
+        return (SessionMessageEvent) eventQueue.poll(1000L, TimeUnit.MILLISECONDS);
     }
 
     public void blockInThread() {
@@ -78,8 +81,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
 
         try {
-            SessionMessageEvent event = (SessionMessageEvent) eventQueue.poll(1000L,
-                    TimeUnit.MILLISECONDS);
+            SessionMessageEvent event = getMessage();
             if (event != null) {
                 event.processMessage();
             }

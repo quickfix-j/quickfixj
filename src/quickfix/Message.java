@@ -306,7 +306,7 @@ public class Message extends FieldMap {
             int expectedBodyLength = header.getInt(BodyLength.FIELD);
             int actualBodyLength = bodyLength();
             if (expectedBodyLength != actualBodyLength) {
-                throw new InvalidMessage("actual body length=" + actualBodyLength + ", expected body length=" + expectedBodyLength);
+                throw new InvalidMessage("Actual body length=" + actualBodyLength + ", Expected body length=" + expectedBodyLength);
             }
             int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
