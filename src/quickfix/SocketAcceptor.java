@@ -55,6 +55,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     
     public void start() throws ConfigError, RuntimeError {
         initialize();
+        eventHandlingStrategy.blockInThread();
     }
 
     private void initialize() throws ConfigError {

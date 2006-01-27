@@ -57,6 +57,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
     
     public void start() throws ConfigError, RuntimeError {
         initialize();
+        eventHandlingStrategy.blockInThread();
     }
     
     public void stop() {

@@ -20,7 +20,9 @@ import quickfix.MessageStoreFactory;
 import quickfix.ScreenLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.SocketAcceptor;
 import quickfix.ThreadedSocketAcceptor;
+import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
@@ -30,9 +32,11 @@ public class ATServer implements Runnable {
     private final SessionSettings settings = new SessionSettings();
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
-    private ThreadedSocketAcceptor acceptor;
+    private AbstractSocketAcceptor acceptor;
+    private boolean threaded;
 
-    public ATServer(TestSuite suite) {
+    public ATServer(TestSuite suite, boolean threaded) {
+        this.threaded = threaded;
         Enumeration e = suite.tests();
         while (e.hasMoreElements()) {
             fixVersions.add(e.nextElement().toString().substring(0, 5));
@@ -87,13 +91,18 @@ public class ATServer implements Runnable {
                     : new FileStoreFactory(settings);
             //LogFactory logFactory = new CommonsLogFactory(settings);
             quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
-            acceptor = new ThreadedSocketAcceptor(application, factory, settings,
-                    logFactory, new DefaultMessageFactory());
-            
+            if (threaded) {
+                acceptor = new ThreadedSocketAcceptor(application, factory, settings, logFactory,
+                        new DefaultMessageFactory());
+            } else {
+                acceptor = new SocketAcceptor(application, factory, settings, logFactory,
+                        new DefaultMessageFactory());
+            }
+
             assertSessionIds();
-            
+
             acceptor.start();
-            
+
             assertSessionIds();
 
             initializationLatch.countDown();
@@ -137,7 +146,7 @@ public class ATServer implements Runnable {
     public void stop() {
         acceptor.stop();
     }
-    
+
     public void setUsingMemoryStore(boolean usingMemoryStore) {
         this.usingMemoryStore = usingMemoryStore;
     }

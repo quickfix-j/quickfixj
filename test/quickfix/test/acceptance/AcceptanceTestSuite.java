@@ -111,10 +111,11 @@ public class AcceptanceTestSuite extends TestSuite {
         if (timeout != null) {
             ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
         }
-        
+
         this.skipSlowTests = Boolean.getBoolean("at.noslow");
-        
-//        addTest("fix40/2i_BeginStringValueUnexpected.def");
+
+        //        addTest("fix40/10_MsgSeqNumEqual.def");
+        //      addTest("fix40/2i_BeginStringValueUnexpected.def");
 
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
@@ -151,38 +152,49 @@ public class AcceptanceTestSuite extends TestSuite {
 
     private boolean isTestSkipped(File file) {
         if (skipSlowTests) {
-           return file.getName().indexOf("NoDataSentDuringHeartBtInt") != -1 ||
-                    file.getName().indexOf("SendTestRequest") != -1; 
+            return file.getName().indexOf("NoDataSentDuringHeartBtInt") != -1
+                    || file.getName().indexOf("SendTestRequest") != -1;
         } else {
             return false;
         }
     }
 
+    private static final class AcceptanceTestServerSetUp extends TestSetup {
+        private boolean threaded;
+
+        private Thread serverThread;
+
+        private AcceptanceTestServerSetUp(AcceptanceTestSuite suite, boolean threaded) {
+            super(suite);
+            this.threaded = threaded;
+        }
+
+        protected void setUp() throws Exception {
+            super.setUp();
+            ATServer server = new ATServer((TestSuite) getTest(), threaded);
+            serverThread = new Thread(server, "ATServer");
+            serverThread.start();
+            server.waitForInitialization();
+        }
+
+        protected void tearDown() throws Exception {
+            serverThread.interrupt();
+            super.tearDown();
+        }
+
+        public String toString() {
+            return "Acceptance Test Server Context";
+        }
+    }
+
     public static Test suite() {
         final AcceptanceTestSuite acceptanceTestSuite = new AcceptanceTestSuite();
-        Test scriptedAcceptanceTests = new TestSetup(acceptanceTestSuite) {
-            private Thread serverThread;
-
-            protected void setUp() throws Exception {
-                super.setUp();
-                ATServer server = new ATServer(acceptanceTestSuite);
-                serverThread = new Thread(server, "ATServer");
-                serverThread.start();
-                server.waitForInitialization();
-            }
-
-            protected void tearDown() throws Exception {
-                serverThread.interrupt();
-                super.tearDown();
-            }
-
-            public String toString() {
-                return "Acceptance Test Server Context";
-            }
-        };
+        Test scriptedTests = new AcceptanceTestServerSetUp(acceptanceTestSuite, false);
+        Test scriptedTestsThreaded = new AcceptanceTestServerSetUp(acceptanceTestSuite, true);
         TestSuite acceptanceTests = new TestSuite();
+        acceptanceTests.addTest(scriptedTests);
+        acceptanceTests.addTest(scriptedTestsThreaded);
         acceptanceTests.addTestSuite(TimerTest.class);
-        acceptanceTests.addTest(scriptedAcceptanceTests);
         return acceptanceTests;
     }
 }

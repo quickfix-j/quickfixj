@@ -36,7 +36,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 if (stopTime == 0) {
                     stopTime = SystemTime.currentTimeMillis();
                 }
-                if (!sessionConnector.isLoggedOn() || SystemTime.currentTimeMillis() - stopTime > 5000L) {
+                if (!sessionConnector.isLoggedOn()
+                        || SystemTime.currentTimeMillis() - stopTime > 5000L) {
                     sessionConnector.stopSessionTimer();
                     return;
                 }
@@ -51,6 +52,18 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 // ignore
             }
         }
+    }
+
+    public void blockInThread() {
+        Thread messageProcessingThread = new Thread(new Runnable() {
+
+            public void run() {
+                block();
+            }
+
+        }, "QFJ Socket Acceptor " + Integer.toHexString(System.identityHashCode(this)));
+        messageProcessingThread.setDaemon(true);
+        messageProcessingThread.start();
     }
 
     public boolean poll() {
@@ -71,7 +84,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 event.processMessage();
             }
         } catch (InterruptedException e) {
-            log.error("Unexpected exception: "+e);
+            log.error("Unexpected exception: " + e);
         }
         return true;
     }
@@ -99,4 +112,5 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public void stopHandlingMessages() {
         isStopped = true;
     }
+
 }
