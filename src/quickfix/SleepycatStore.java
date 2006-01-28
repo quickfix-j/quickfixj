@@ -23,7 +23,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
-public class SleepycatStore implements MessageStore {
+public class SleepycatStore implements RefreshableMessageStore {
     private Log log = LogFactory.getLog(getClass());
     private final SessionID sessionID; // session key
     private SessionInfo info;
@@ -313,5 +313,9 @@ public class SleepycatStore implements MessageStore {
                 convertToIOExceptionAndRethrow(e);
             }
         }
+    }
+
+    public void refresh() throws IOException {
+        loadSessionInfo();
     }
 }

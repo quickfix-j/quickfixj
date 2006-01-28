@@ -29,6 +29,10 @@ public class SleepycatStoreTest extends AbstractMessageStoreTest {
         return SleepycatStore.class;
     }
 
+    protected void closeMessageStore(MessageStore store) throws IOException {
+        ((SleepycatStore) store).close();
+    }
+
     public void testCloseAndOpen() throws Exception {
         SleepycatStore store = (SleepycatStore) getStore();
         store.setNextSenderMsgSeqNum(123);

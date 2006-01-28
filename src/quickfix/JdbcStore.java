@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 
-class JdbcStore implements MessageStore {
+class JdbcStore implements RefreshableMessageStore {
     private String sessionTableName = "sessions";
     private String messageTableName = "messages";
     private MemoryStore cache = new MemoryStore();
@@ -288,5 +288,13 @@ class JdbcStore implements MessageStore {
     public void setMessageTableName(String messageTableName) {
         this.messageTableName = messageTableName;
         setSqlStrings();
+    }
+
+    public void refresh() throws IOException {
+        try {
+            loadCache();
+        } catch (SQLException e) {
+            throw new IOException(e.getMessage());
+        }
     }
 }

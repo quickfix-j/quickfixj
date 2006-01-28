@@ -36,7 +36,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  * @see quickfix.FileStoreFactory
  */
-public class FileStore implements MessageStore {
+public class FileStore implements RefreshableMessageStore {
     private MemoryStore cache = new MemoryStore();
     private RandomAccessFile msgFile;
     private RandomAccessFile headerFile;
@@ -289,5 +289,9 @@ public class FileStore implements MessageStore {
 
     String getSeqNumFileName() {
         return seqNumFileName;
+    }
+
+    public void refresh() throws IOException {
+        loadCache();
     }
 }

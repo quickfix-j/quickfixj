@@ -85,18 +85,21 @@ public class ApiCompatibilityTest {
         }
 
         private List getInheritedClasses(Class clazz) {
-            ArrayList classList = new ArrayList();
+            HashSet classSet = new HashSet();
+            getInheritedClasses(clazz, classSet);
+            return new ArrayList(classSet);
+        }
+
+        private void getInheritedClasses(Class clazz, HashSet classSet) {
             while (clazz != null) {
-                classList.add(clazz);
+                classSet.add(clazz);
                 Class[] interfaces = clazz.getInterfaces();
                 for (int i = 0; i < interfaces.length; i++) {
-                    if (!classList.contains(interfaces[i])) {
-                        classList.add(interfaces[i]);
-                    }
+                    classSet.add(interfaces[i]);
+                    getInheritedClasses(interfaces[i], classSet);
                 }
                 clazz = clazz.getSuperclass();
             }
-            return classList;
         }
 
         private void assertCompatibleConstructors() {

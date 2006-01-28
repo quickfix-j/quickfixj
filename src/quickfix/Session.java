@@ -127,6 +127,12 @@ public class Session {
      */
     public static final String SETTING_DESCRIPTION = "Description";
 
+    /**
+     * Requests that state and message data be refreshed from the message store at
+     * logon, if possible. This supports simple failover behavior for acceptors
+     */
+    public static final String SETTING_REFRESH_STORE_AT_LOGON = "RefreshMessageStoreAtLogon";
+
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -215,6 +221,8 @@ public class Session {
     //
     private long lastSessionTimeCheck = 0;
     private boolean lastSessionTimeResult = false;
+
+    private boolean refreshMessageStoreAtLogon;
 
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
@@ -490,7 +498,19 @@ public class Session {
         }
 
         String msgType = message.getHeader().getString(MsgType.FIELD);
+        
         try {
+            if (isStateRefreshNeeded(msgType)) {
+                if (getStore() instanceof RefreshableMessageStore) {
+                    getLog().onEvent("Refreshing message/state store at logon");
+                    ((RefreshableMessageStore) getStore()).refresh();
+                } else {
+                    getLog().onEvent(
+                            "Refresh at logon requested, but message store not capable: "
+                                    + getStore().getClass().getName());
+                }
+            }
+            
             String beginString = message.getHeader().getString(BeginString.FIELD);
 
             if (!beginString.equals(sessionID.getBeginString())) {
@@ -571,6 +591,11 @@ public class Session {
         if (isLoggedOn()) {
             next();
         }
+    }
+
+    private boolean isStateRefreshNeeded(String msgType) {
+        return refreshMessageStoreAtLogon && !getState().isInitiator()
+                && msgType.equals(MsgType.LOGON);
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -1475,5 +1500,13 @@ public class Session {
      */
     public Application getApplication() {
         return application;
+    }
+    
+    /**
+     * Requests that state and message data be refreshed from the message store at
+     * logon, if possible. This supports simple failover behavior for acceptors.
+     */
+    public void setRefreshMessageStoreAtLogon(boolean refreshMessageStoreAtLogon) {
+        this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
     }
 }

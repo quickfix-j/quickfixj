@@ -1,5 +1,6 @@
 package quickfix;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import junit.framework.TestCase;
@@ -85,6 +86,41 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertEquals("wrong message", "message1", messages.get(1));
     }
 
+    public void testRefreshableMessageStore() throws Exception {
+        if (store instanceof RefreshableMessageStore) {
+            RefreshableMessageStore rstore = (RefreshableMessageStore)store;
+            assertEquals("wrong value", 1, rstore.getNextSenderMsgSeqNum());
+            assertEquals("wrong value", 1, rstore.getNextTargetMsgSeqNum());
+
+            MessageStore anotherStore = getMessageStoreFactory().create(sessionID);
+            assertEquals("wrong value", 1, anotherStore.getNextSenderMsgSeqNum());
+            assertEquals("wrong value", 1, anotherStore.getNextTargetMsgSeqNum());
+            
+            anotherStore.setNextSenderMsgSeqNum(2);
+            anotherStore.setNextTargetMsgSeqNum(2);
+ 
+            assertEquals("wrong value", 2, anotherStore.getNextSenderMsgSeqNum());
+            assertEquals("wrong value", 2, anotherStore.getNextTargetMsgSeqNum());
+            closeMessageStore(anotherStore);
+            
+            assertEquals("wrong value", 1, rstore.getNextSenderMsgSeqNum());
+            assertEquals("wrong value", 1, rstore.getNextTargetMsgSeqNum());
+            
+            rstore.refresh();
+            
+            assertEquals("wrong value", 2, anotherStore.getNextSenderMsgSeqNum());
+            assertEquals("wrong value", 2, anotherStore.getNextTargetMsgSeqNum());
+            
+            assertEquals("wrong value", 2, rstore.getNextSenderMsgSeqNum());
+            assertEquals("wrong value", 2, rstore.getNextTargetMsgSeqNum());
+            
+       }
+    }
+
+    protected void closeMessageStore(MessageStore store) throws IOException {
+        // does nothing, by default
+    }
+    
     protected String getConfigurationFileName() {
         return "test/test.cfg";
     }
