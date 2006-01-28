@@ -110,10 +110,19 @@ public abstract class FieldMap implements Serializable {
 		}
 	}
 
-	public void setFields(FieldMap fieldMap) {
-		fields.clear();
-		fields.putAll(fieldMap.fields);
-	}
+    public void setFields(FieldMap fieldMap) {
+        fields.clear();
+        fields.putAll(fieldMap.fields);
+    }
+
+    protected void setComponent(FieldMap component) {
+        fields.putAll(component.fields);
+    }
+    
+    protected void getComponent(FieldMap component) {
+        component.clear();
+        component.setFields(this);
+    }
 
 	public void setGroups(FieldMap fieldMap) {
 		groups.clear();

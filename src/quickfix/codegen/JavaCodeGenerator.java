@@ -54,16 +54,16 @@ public class JavaCodeGenerator {
     private String outputBaseDir;
     private String specificationDir;
     private String xformDir;
-    
+
     //  An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
     private static final long SERIAL_UID = 20050617;
-    
+
     //  The String representation of the UID
     private static final String SERIAL_UID_STR = String.valueOf(SERIAL_UID);
-    
+
     //  The name of the param in the .xsl files to pass the serialVersionUID
-    private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";     
+    private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
 
     /**
      * Constructs a message code generator.
@@ -80,7 +80,8 @@ public class JavaCodeGenerator {
     private void generateMessageBaseClasses() throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
-        generateClassCodeForVersions("Message", new String[] {XSLPARAM_SERIAL_UID}, new String[] {SERIAL_UID_STR});
+        generateClassCodeForVersions("Message", new String[] { XSLPARAM_SERIAL_UID },
+                new String[] { SERIAL_UID_STR });
     }
 
     private void generateMessageFactoryClasses() throws TransformerConfigurationException,
@@ -95,15 +96,16 @@ public class JavaCodeGenerator {
         generateClassCodeForVersions("MessageCracker", null, null);
     }
 
-    private void generateClassCodeForVersions(String className, String[] paramNames, String paramValues[])
-            throws ParserConfigurationException, SAXException, IOException,
+    private void generateClassCodeForVersions(String className, String[] paramNames,
+            String paramValues[]) throws ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
         for (int fixMinorVersion = 0; fixMinorVersion < 5; fixMinorVersion++) {
             log.info("generating " + className + " for FIX 4." + fixMinorVersion);
             Document document = getSpecification(fixMinorVersion);
-            generateCodeFile(document, xformDir + "/" + className + ".xsl", paramNames, paramValues,
-                    outputBaseDir + "/quickfix/fix4" + fixMinorVersion + "/" + className + ".java");
+            generateCodeFile(document, xformDir + "/" + className + ".xsl", paramNames,
+                    paramValues, outputBaseDir + "/quickfix/fix4" + fixMinorVersion + "/"
+                            + className + ".java");
         }
     }
 
@@ -127,8 +129,9 @@ public class JavaCodeGenerator {
                     String outputFile = outputBaseDir + "/quickfix/field/" + fieldName + ".java";
                     if (!new File(outputFile).exists()) {
                         log.info("field: " + fieldName);
-                        generateCodeFile(document, xformDir + "/Fields.xsl", new String[] {"fieldName", XSLPARAM_SERIAL_UID},
-                                new String[] {fieldName, SERIAL_UID_STR}, outputFile);
+                        generateCodeFile(document, xformDir + "/Fields.xsl", new String[] {
+                                "fieldName", XSLPARAM_SERIAL_UID }, new String[] { fieldName,
+                                SERIAL_UID_STR }, outputFile);
                     }
                 }
             } catch (Exception e) {
@@ -145,11 +148,29 @@ public class JavaCodeGenerator {
             List messageNames = getNames(document.getDocumentElement(), "messages/message");
             for (int i = 0; i < messageNames.size(); i++) {
                 String messageName = (String) messageNames.get(i);
-                //if (!messageName.equals("Advertisement")) continue;
+                //if (!messageName.equals("NewOrderSingle")) continue;
                 log.info("message (FIX 4." + fixVersion + "): " + messageName);
-                generateCodeFile(document, xformDir + "/MessageSubclass.xsl",
-                        new String[] {"messageName", XSLPARAM_SERIAL_UID}, new String[] {messageName, SERIAL_UID_STR}, outputBaseDir + "/quickfix/fix4" + fixVersion
-                                + "/" + messageName + ".java");
+                generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
+                        "itemName", XSLPARAM_SERIAL_UID }, new String[] { messageName,
+                        SERIAL_UID_STR }, outputBaseDir + "/quickfix/fix4" + fixVersion + "/"
+                        + messageName + ".java");
+            }
+        }
+    }
+
+    private void generateComponentClasses() throws ParserConfigurationException, SAXException,
+            IOException, TransformerConfigurationException, FileNotFoundException,
+            TransformerFactoryConfigurationError, TransformerException {
+        for (int fixVersion = 0; fixVersion < 5; fixVersion++) {
+            Document document = getSpecification(fixVersion);
+            List componentNames = getNames(document.getDocumentElement(), "components/component");
+            for (int i = 0; i < componentNames.size(); i++) {
+                String componentName = (String) componentNames.get(i);
+                log.info("component (FIX 4." + fixVersion + "): " + componentName);
+                generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
+                        "itemName", XSLPARAM_SERIAL_UID, "baseClass", "subpackage" }, new String[] { componentName,
+                        SERIAL_UID_STR, "quickfix.FieldMap", ".component" }, outputBaseDir + "/quickfix/fix4" + fixVersion + "/component/"
+                        + componentName + ".java");
             }
         }
     }
@@ -184,11 +205,11 @@ public class JavaCodeGenerator {
         Transformer transformer = tFactory.newTransformer(styleSource);
 
         if (paramNames != null) {
-            for(int k=0; k < paramNames.length; k++) {
+            for (int k = 0; k < paramNames.length; k++) {
                 transformer.setParameter(paramNames[k], paramValues[k]);
             }
         }
-        
+
         File out = new File(outputFile);
         if (!out.getParentFile().exists()) {
             out.getParentFile().mkdirs();
@@ -207,6 +228,7 @@ public class JavaCodeGenerator {
             generateMessageBaseClasses();
             generateMessageFactoryClasses();
             generateMessageCrackerClasses();
+            generateComponentClasses();
             generateMessageSubclasses();
         } catch (RuntimeException e) {
             throw e;

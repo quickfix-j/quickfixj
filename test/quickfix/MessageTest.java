@@ -10,17 +10,23 @@ import quickfix.field.AllocShares;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
+import quickfix.field.CountryOfIssue;
 import quickfix.field.EncryptMethod;
 import quickfix.field.IOIid;
 import quickfix.field.MsgDirection;
 import quickfix.field.MsgType;
+import quickfix.field.OrderQty;
+import quickfix.field.Price;
 import quickfix.field.RefMsgType;
+import quickfix.field.SecurityType;
+import quickfix.field.Symbol;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
 import quickfix.fix42.NewOrderSingle;
 import quickfix.fix44.IndicationOfInterest;
 import quickfix.fix44.Logon;
 import quickfix.fix44.Logon.NoMsgTypes;
+import quickfix.fix44.component.Instrument;
 
 public class MessageTest extends TestCase {
 
@@ -459,4 +465,25 @@ public class MessageTest extends TestCase {
         message.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_RESPONSE);
         assertFalse(message.isAdmin());
 }
+    
+    public void testComponent() throws Exception {
+        Instrument instrument = new Instrument();
+        instrument.set(new Symbol("DELL"));
+        instrument.set(new CountryOfIssue("USA"));
+        instrument.set(new SecurityType(SecurityType.COMMON_STOCK));
+        
+        quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle();
+        newOrderSingle.set(instrument);
+        newOrderSingle.set(new OrderQty(100));
+        newOrderSingle.set(new Price(45));
+        
+        assertEquals(new Symbol("DELL"), newOrderSingle.getSymbol());
+        assertEquals(new CountryOfIssue("USA"), newOrderSingle.getCountryOfIssue());
+        assertEquals(new SecurityType(SecurityType.COMMON_STOCK), newOrderSingle.getSecurityType());
+        
+        Instrument instrument2 = newOrderSingle.getInstrument();
+        assertEquals(new Symbol("DELL"), instrument2.getSymbol());
+        assertEquals(new CountryOfIssue("USA"), instrument2.getCountryOfIssue());
+        assertEquals(new SecurityType(SecurityType.COMMON_STOCK), instrument2.getSecurityType());
+    }
 }

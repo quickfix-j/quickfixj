@@ -187,6 +187,9 @@ public class SerializationTest extends TestCase {
         private static final int MAX_GROUP_ELTS = 1;
 
         public void assertSerialization(String msgClassName) {
+            if (msgClassName.indexOf(".component.") != -1) {
+                return;
+            }
             Message sourceMsg = messageFromClassNameWithDefaultValues(msgClassName, MAX_GROUP_ELTS);
             String sourceFIXString = sourceMsg.toString();
             
@@ -267,7 +270,7 @@ public class SerializationTest extends TestCase {
         Method[] methods = cl.getMethods();
         for (int k = 0; k < methods.length; k++) {
             if (methods[k].getName().equals(GET_METHOD)) {
-                Field f = (Field) objectFromClassName(methods[k].getReturnType().getName());
+                Object f = objectFromClassName(methods[k].getReturnType().getName());
                 Class[] signature = new Class[1];
                 signature[0] = f.getClass();
                 try {

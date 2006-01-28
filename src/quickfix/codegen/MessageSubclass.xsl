@@ -34,31 +34,44 @@
 	<xsl:apply-templates/>
   </xsl:template>
 
-  <xsl:param name="messageName">PLACEHOLDER</xsl:param>
+  <xsl:param name="itemName">PLACEHOLDER</xsl:param>
+
+  <xsl:param name="baseClass">Message</xsl:param>
+  
+  <xsl:param name="subpackage"/>
 
   <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param>
  
+	
   <!-- *********************************************************************
  	Main message generation template. This template generates a default
  	constructor and, if any fields are required, generates a constructor
  	taking those fields as arguments.
   *********************************************************************** -->
- 
-  <xsl:template match="fix/messages/message">
-  <xsl:if test="@name=$messageName">
-package quickfix.fix<xsl:value-of select="/fix/@major"/><xsl:value-of select="/fix/@minor"/>;
+  <xsl:template match="/">
+	  <xsl:if test="$baseClass = 'Message'">
+		  <xsl:apply-templates select="fix/messages/message[@name=$itemName]"/>
+	  </xsl:if>
+	  <xsl:if test="$baseClass = 'quickfix.FieldMap'">
+		  <xsl:apply-templates select="fix/components/component[@name=$itemName]"/>
+	  </xsl:if>
+  </xsl:template>
+	
+  <xsl:template match="fix/messages/message|fix/components/component">
+  <xsl:variable name="package" select="concat('quickfix.fix',/fix/@major,/fix/@minor,$subpackage)"/>
+package <xsl:value-of select="$package"/>;
 import quickfix.FieldNotFound;
 import quickfix.field.*;<xsl:call-template name="extra-imports"/>
 
-public class <xsl:value-of select="@name"/> extends Message
+public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseClass"/>
 {
 
   static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
 
   public <xsl:value-of select="@name"/>()
   {
-    super();
-    getHeader().setField(new MsgType("<xsl:value-of select="@msgtype"/>"));
+    super();<xsl:if test="$baseClass = 'Message'">
+    getHeader().setField(new MsgType("<xsl:value-of select="@msgtype"/>"));</xsl:if>
   }
   <xsl:if test="count(field[@required='Y']) > 0">
   public <xsl:value-of select="@name"/>(<xsl:for-each select="field[@required='Y']">
@@ -77,7 +90,6 @@ public class <xsl:value-of select="@name"/> extends Message
     </xsl:if>
     <xsl:apply-templates select="field|component|group" mode="field-accessors"/>
 }
-  </xsl:if>
   </xsl:template>
 
   <!-- *********************************************************************
@@ -215,7 +227,30 @@ import quickfix.Group;</xsl:when>
   }
   </xsl:template>
 
+  <xsl:template name="component-accessor-template">
+  <xsl:variable name="type" select="concat('quickfix.fix',/fix/@major,/fix/@minor,'.component.',@name)"/>
+  public void set(<xsl:value-of select="$type"/> component) 
+  { 
+    setComponent(component); 
+  }
+  
+  public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/>  component) throws FieldNotFound
+  { 
+    getComponent(component);
+    return component; 
+  }
+  
+  public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound
+  { 
+    <xsl:value-of select="$type"/> component = new <xsl:value-of select="$type"/>();
+    getComponent(component); 
+    return component; 
+  }
+  
+  </xsl:template>
+
   <xsl:template mode="field-accessors" match="message//component">
+  	<xsl:call-template name="component-accessor-template"/>
     <xsl:variable name="name" select="@name"/>  
   	<xsl:apply-templates select="/fix/components/component[@name=$name]/*[name(.)='field' or name(.)='group' or name(.)='component']"
   		mode="field-accessors"/>
