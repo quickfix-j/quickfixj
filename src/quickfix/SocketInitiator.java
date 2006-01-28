@@ -17,6 +17,8 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
 
 public class SocketInitiator extends AbstractSocketInitiator {
     private volatile Boolean isStarted = Boolean.FALSE;
+    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
+        new SingleThreadedEventHandlingStrategy(this);
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
                 SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
@@ -42,8 +44,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
         super(settings, sessionFactory);
     }
 
-    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
-        new SingleThreadedEventHandlingStrategy(this);
 
     public void block() throws ConfigError, RuntimeError {
         initialize();

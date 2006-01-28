@@ -5,7 +5,6 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -20,7 +19,6 @@ import quickfix.LogFactory;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
 import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
@@ -30,14 +28,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
-    protected Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
-
-    protected AbstractSocketInitiator(Application application,
-            MessageStoreFactory messageStoreFactory, SessionSettings settings,
-            MessageFactory messageFactory) throws ConfigError {
-        this(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
-                messageFactory);
-    }
+    protected final Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -49,56 +40,65 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
+        try {
+            createSessions();
+        } catch (FieldConvertError e) {
+            throw new ConfigError(e);
+        }
     }
 
     protected void initiateSessions(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
-            SessionSettings settings = getSettings();
-            boolean continueInitOnError = false;
-            if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
-                continueInitOnError = settings
-                        .getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
-            }
+            createSessions();
 
-            Map initiatorSessions = new HashMap();
-            List protocolSessionInitiators = new ArrayList();
-            for (Iterator i = settings.sectionIterator(); i.hasNext();) {
-                SessionID sessionID = (SessionID) i.next();
-                if (isInitiatorSession(sessionID)) {
-                    try {
-                        int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
-                        SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
-                        Session quickfixSession = createSession(sessionID);
-                        initiatorSessions.put(sessionID, quickfixSession);
-                        NetworkingOptions networkingOptions = new NetworkingOptions(settings
-                                .getSessionProperties(sessionID));
-                        ProtocolProvider protocolProvider = new InitiatorProtocolProvider(
-                                quickfixSession, networkingOptions, eventHandlingStrategy);
-                        protocolSessionInitiators.add(new ProtocolSessionInitiator(quickfixSession,
-                                protocolProvider, socketAddresses, reconnectingInterval,
-                                getScheduledExecutorService()));
-                    } catch (Throwable e) {
-                        if (continueInitOnError) {
-                            log.error("error during session initialization, continuing...", e);
-                        } else {
-                            throw new RuntimeError("error during session initialization", e);
-                        }
-                    }
-                }
+            Iterator sessionItr = getSessionMap().values().iterator();
+            while (sessionItr.hasNext()) {
+                Session quickfixSession = (Session) sessionItr.next();
+                SessionID sessionID = quickfixSession.getSessionID();
+                int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
+                SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
+                NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
+                        .getSessionProperties(sessionID));
+                ProtocolProvider protocolProvider = new InitiatorProtocolProvider(quickfixSession,
+                        networkingOptions, eventHandlingStrategy);
+                ProtocolSessionInitiator protocolSessionInitiator = new ProtocolSessionInitiator(
+                        quickfixSession, protocolProvider, socketAddresses, reconnectingInterval,
+                        getScheduledExecutorService());
+                protocolSessionInitiator.connect();
             }
-            setSessions(initiatorSessions);
-
-            if (protocolSessionInitiators.size() > 0) {
-                for (int i = 0; i < protocolSessionInitiators.size(); i++) {
-                    ((ProtocolSessionInitiator) protocolSessionInitiators.get(i)).connect();
-                }
-                startSessionTimer();
-            } else {
-                throw new ConfigError("no initiators in settings");
-            }
+            startSessionTimer();
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
         }
+    }
+
+    private void createSessions() throws ConfigError, FieldConvertError {
+        SessionSettings settings = getSettings();
+        boolean continueInitOnError = false;
+        if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
+            continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
+        }
+
+        Map initiatorSessions = new HashMap();
+        for (Iterator i = settings.sectionIterator(); i.hasNext();) {
+            SessionID sessionID = (SessionID) i.next();
+            if (isInitiatorSession(sessionID)) {
+                try {
+                    Session quickfixSession = createSession(sessionID);
+                    initiatorSessions.put(sessionID, quickfixSession);
+                } catch (Throwable e) {
+                    if (continueInitOnError) {
+                        log.error("error during session initialization, continuing...", e);
+                    } else {
+                        throw new RuntimeError("error during session initialization", e);
+                    }
+                }
+            }
+        }
+        if (initiatorSessions.isEmpty()) {
+            throw new ConfigError("no initiators in settings");
+        }
+        setSessions(initiatorSessions);
     }
 
     private int getReconnectIntervalInSeconds(SessionID sessionID) throws ConfigError {

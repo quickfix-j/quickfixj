@@ -54,6 +54,11 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             throws ConfigError {
         super(settings, sessionFactory);
         this.sessionFactory = sessionFactory;
+        try {
+            createSessions(settings);
+        } catch (FieldConvertError e) {
+            throw new ConfigError(e);
+        }
     }
 
     protected AbstractSocketAcceptor(Application application,
@@ -73,24 +78,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     protected synchronized void startAcceptingConnections(
             EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
-            Map acceptorSessions = new HashMap();
-            SessionSettings settings = getSettings();
-            for (Iterator i = settings.sectionIterator(); i.hasNext();) {
-                Object sectionKey = i.next();
-                SessionID sessionID = (SessionID) sectionKey;
-                String connectionType = settings.getString(sessionID,
-                        SessionFactory.SETTING_CONNECTION_TYPE);
-                if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-                    acceptorSessions.put(sessionID, sessionFactory.create(sessionID, settings));
-                }
-            }
-            if (acceptorSessions.size() == 0) {
-                throw new ConfigError("No acceptor sessions found in settings.");
-            }
-            
-            setSessions(acceptorSessions);
             startSessionTimer();
 
+            SessionSettings settings = getSettings();
             int acceptPort = getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT);
             if (settings.isSetting(SETTING_SOCKET_ACCEPT_ADDRESS)) {
                 String acceptorHost = settings.getString(SETTING_SOCKET_ACCEPT_ADDRESS);
@@ -101,7 +91,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
             protocolAcceptor = new IoProtocolAcceptor(new SocketAcceptor());
             protocolAcceptor.bind(acceptorSocketAddress, new AcceptorProtocolProvider(
-                    acceptorSessions, new NetworkingOptions(settings.getDefaultProperties()),
+                    getSessionMap(), new NetworkingOptions(settings.getDefaultProperties()),
                     eventHandlingStrategy));
 
             log.info("listening for connections on port " + acceptorSocketAddress);
@@ -109,6 +99,24 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             throw new ConfigError(e);
         } catch (IOException e) {
             throw new RuntimeError(e);
+        }
+    }
+
+    private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
+        Map acceptorSessions = new HashMap();
+        for (Iterator i = settings.sectionIterator(); i.hasNext();) {
+            Object sectionKey = i.next();
+            SessionID sessionID = (SessionID) sectionKey;
+            String connectionType = settings.getString(sessionID,
+                    SessionFactory.SETTING_CONNECTION_TYPE);
+            if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
+                acceptorSessions.put(sessionID, sessionFactory.create(sessionID, settings));
+            }
+        }
+        setSessions(acceptorSessions);
+
+        if (acceptorSessions.size() == 0) {
+            throw new ConfigError("No acceptor sessions found in settings.");
         }
     }
 

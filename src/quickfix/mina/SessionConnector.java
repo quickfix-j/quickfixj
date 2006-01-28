@@ -29,7 +29,7 @@ public abstract class SessionConnector {
     private Map sessions;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
-    private final ScheduledExecutorService scheduledExecutorService = Executors
+    private final static ScheduledExecutorService scheduledExecutorService = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture sessionTimerFuture;
 
@@ -57,6 +57,15 @@ public abstract class SessionConnector {
     }
 
     /**
+     * This is for subclasses to directly access the session map.
+     * 
+     * @return a map of sessions keys by session ID
+     */
+    protected Map getSessionMap() {
+        return sessions;
+    }
+
+    /**
      * Return the list of session identifiers of sessions managed
      * by this connector. Should be called getSessionIDs but the
      * current name is retained for QF/JNI compatibility.
@@ -64,20 +73,10 @@ public abstract class SessionConnector {
      * @return list of session identifiers
      */
     public ArrayList getSessions() {
-        if (sessions != null) {
-            return new ArrayList(sessions.keySet());
-        } else {
-            // Sessions will be null before start is called
-            ArrayList sessionIds = new ArrayList();
-            Iterator sessionIdItr = settings.sectionIterator();
-            while (sessionIdItr.hasNext()) {
-                sessionIds.add(sessionIdItr.next());
-            }
-            return sessionIds;
-        }
+        return new ArrayList(sessions.keySet());
     }
 
-    protected SessionSettings getSettings() {
+    public SessionSettings getSettings() {
         return settings;
     }
 
@@ -187,9 +186,9 @@ public abstract class SessionConnector {
     private class SessionTimerTask implements Runnable {
         public void run() {
             try {
-                List sessions = getManagedSessions();
-                for (int i = 0, sessionsSize = sessions.size(); i < sessionsSize; i++) {
-                    quickfix.Session session = (quickfix.Session) sessions.get(i);
+                Iterator sessionItr = sessions.values().iterator();
+                while (sessionItr.hasNext()) {
+                    quickfix.Session session = (quickfix.Session) sessionItr.next();
                     try {
                         // TODO REVIEW Need to sync logon and reconnect (this seems to work)
                         if (session.getResponder() != null) {
@@ -206,7 +205,7 @@ public abstract class SessionConnector {
         }
     }
 
-    private class QFTimerThreadFactory implements ThreadFactory {
+    private static class QFTimerThreadFactory implements ThreadFactory {
 
         public Thread newThread(Runnable runnable) {
             return new Thread(runnable, "QF/J Timer");
