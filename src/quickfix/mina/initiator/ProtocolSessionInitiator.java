@@ -16,7 +16,6 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 class ProtocolSessionInitiator {
 
-    private final ScheduledExecutorService executor;
     private final ProtocolProvider protocolProvider;
     private final long reconnectIntervalInMillis;
     private final SocketAddress[] socketAddresses;
@@ -36,7 +35,6 @@ class ProtocolSessionInitiator {
             throw new IllegalArgumentException("socketAddresses must not be empty");
         }
         this.quickfixSession = qfSession;
-        this.executor = executor;
         this.protocolProvider = protocolProvider;
         this.socketAddresses = socketAddresses;
         this.reconnectIntervalInMillis = reconnectIntervalInSeconds * 1000L;
