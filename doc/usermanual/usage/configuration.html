@@ -276,6 +276,16 @@
       this must be defined in the [DEFAULT] section.</TD>
     <TD>Accept connections on any network interface.</TD>
   </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>RefreshMessageStoreAtLogon</I></TD>
+
+    <TD>Refresh the message and state data from message store when a logon is received for a
+    session. This allows a simple form of failover when the message store data is persistent. The
+    option will be ignored for message stores that are not peristent (e.g., MemoryStore).</TD>
+    <TD> Y<br/>N</TD>
+    <TD>N</TD>
+  </TR>
+  
   <TR ALIGN="center" VALIGN="middle">
     <TD COLSPAN="4" class="subsection"><A NAME="Socket">Socket Options (Acceptor or Initiator)</A></TD>
   </TR>
