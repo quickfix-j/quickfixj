@@ -255,7 +255,7 @@ public class ApiCompatibilityTest {
 
             // The following string is split so that CVS will insert log data
             // during commit
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header$Iterator"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header" + "$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { long.class });
@@ -386,7 +386,7 @@ public class ApiCompatibilityTest {
             this.cause = e;
         }
 
-        public void testInitializationFailure() {
+        public void testInitializationFailure () {
             throw new RuntimeException("error during initialization, see cause below", cause);
         }
     }
