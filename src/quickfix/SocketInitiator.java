@@ -32,7 +32,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
-        // This exception is thrown for compatibility reasons
         if (settings == null) {
             throw new ConfigError("no settings");
         }
@@ -42,7 +41,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
             throws ConfigError {
         super(application, messageStoreFactory, settings, logFactory, messageFactory);
-        // This exception is thrown for compatibility reasons
         if (settings == null) {
             throw new ConfigError("no settings");
         }

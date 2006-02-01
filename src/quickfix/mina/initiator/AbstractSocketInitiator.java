@@ -68,8 +68,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected void initiateSessions(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
-            createSessions();
-
             Iterator sessionItr = getSessionMap().values().iterator();
             while (sessionItr.hasNext()) {
                 Session quickfixSession = (Session) sessionItr.next();
