@@ -50,7 +50,6 @@ public class JdbcStoreFactory implements MessageStoreFactory {
      * 
      * @return the session settings
      * 
-     * @see quickfix.MySQLStoreFactory
      */
     protected SessionSettings getSettings() {
         return settings;

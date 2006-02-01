@@ -46,14 +46,16 @@ public class ApiCompatibilityTest {
         public void run(TestResult result) {
             result.startTest(this);
             try {
-                try {
-                    javaClass = Class.forName(jniClass.getName());
-                    Assert.assertEquals("different class modifiers: " + jniClass.getName(),
-                            jniClass.getModifiers(), javaClass.getModifiers());
-                } catch (ClassNotFoundException e) {
-                    Assert.fail("class not found: " + e.getMessage());
+                if (!ignoredItems.isIgnoredClass(jniClass)) {
+                    try {
+                        javaClass = Class.forName(jniClass.getName());
+                        Assert.assertEquals("different class modifiers: " + jniClass.getName(),
+                                jniClass.getModifiers(), javaClass.getModifiers());
+                    } catch (ClassNotFoundException e) {
+                        Assert.fail("class not found: " + e.getMessage());
+                    }
+                    compareApi();
                 }
-                compareApi();
             } catch (AssertionFailedError e) {
                 result.addFailure(this, e);
             } catch (Throwable t) {
@@ -126,6 +128,9 @@ public class ApiCompatibilityTest {
                 if ((methods[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
                     Method m = null;
                     try {
+                        if (ignoredItems.isIgnoredMethod(methods[i])) {
+                            return;
+                        }
                         m = javaClass.getMethod(methods[i].getName(),
                                 translateClassArray(methods[i].getParameterTypes()));
                     } catch (SecurityException e) {
@@ -135,7 +140,7 @@ public class ApiCompatibilityTest {
                     }
                     List jniExceptionTypes = Arrays.asList(methods[i].getExceptionTypes());
                     List javaExceptionTypes = Arrays.asList(m.getExceptionTypes());
-                    Assert.assertEquals(m.getName() + ": wrong method return type",
+                    Assert.assertEquals(m + ": wrong method return type",
                             translatedClass(methods[i].getReturnType()), m.getReturnType());
                     assertExceptionsExist(methods[i], jniExceptionTypes, javaExceptionTypes);
                     assertNoExtraExceptions(methods[i], jniExceptionTypes, javaExceptionTypes);
@@ -224,6 +229,7 @@ public class ApiCompatibilityTest {
     private static class IgnoredItems {
         private HashSet ignoredClasses = new HashSet();
         private HashSet ignoredConstructors = new HashSet();
+        private HashSet ignoredMethods = new HashSet();
 
         public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,
                 SecurityException, NoSuchMethodException {
@@ -234,20 +240,77 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Iterator"));
+
+            //
+            // Ignore C++ database adapters
+            //
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLLog"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLLogFactory"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLStore"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLStoreFactory"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLLog"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLLogFactory"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLStore"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLStoreFactory"));
+
             // The following string is split so that CVS will insert log data
             // during commit
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$" + "Header$Iterator"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
-            ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { int.class });
-            ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { int.class });
+            ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { long.class });
+            ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { long.class });
             ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", null);
-            ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", new Class[] { int.class });
+            ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", new Class[] { long.class });
             ignoreConstructor(jniClassLoader, "quickfix.Message$Header", new Class[] {
                     Message.class, Message.class });
             ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
                     Message.class, Message.class });
 
+            // TODO QF 1.11 Temporary -- Remove these after hasGroup issue is resolved
+            Class jniGroupClass = jniClassLoader.loadClass("quickfix.Group");
+            ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class,
+                    int.class });
+            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class,
+                    jniGroupClass });
+            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class,
+                    int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class,
+                    jniGroupClass });
+            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup",
+                    new Class[] { jniGroupClass });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup",
+                    new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup", new Class[] {
+                    int.class, int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup", new Class[] {
+                    int.class, jniGroupClass });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup",
+                    new Class[] { jniGroupClass });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup",
+                    new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup", new Class[] {
+                    int.class, int.class });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup", new Class[] {
+                    int.class, jniGroupClass });
+            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup",
+                    new Class[] { jniGroupClass });
+
+        }
+
+        public boolean isIgnoredMethod(Method m) {
+            return ignoredMethods.contains(m);
+        }
+
+        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
+                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
+                NoSuchMethodException {
+            Class c = jniClassLoader.loadClass(className);
+            Method m = c.getMethod(methodName, argumentTypes);
+            ignoredMethods.add(m);
         }
 
         private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)

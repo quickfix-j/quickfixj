@@ -40,4 +40,8 @@ public class CommonsLog implements quickfix.Log {
         log.info(sessionID+": "+text);
     }
 
+    public void clear() {
+        onEvent("Log clear operation is not supported: " + getClass().getName());
+    }
+
 }

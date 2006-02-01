@@ -20,10 +20,9 @@ public class FileLogTest extends TestCase {
     }
 
     public void testLog() throws Exception {
-        long systemTime = SystemTime.currentTimeMillis();
+        long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
-        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
-                "TARGET" + System.currentTimeMillis());
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
 
         File path = File.createTempFile("test", "");
         SessionSettings settings = new SessionSettings();
@@ -32,26 +31,31 @@ public class FileLogTest extends TestCase {
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog) factory.create(sessionID);
         log.setSyncAfterWrite(true);
-        
+
+        String prefix = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
+                + sessionID.getTargetCompID();
+
         log.onIncoming("INTEST");
-        assertEquals("wrong message", "INTEST\n", readLog(log.getIncomingFileName()));
+        assertEquals("wrong message", "INTEST\n", readLog(log.getMessagesFileName()));
+        assertEquals(prefix + ".messages.log", new File(log.getMessagesFileName()).getName());
+        log.clear();
 
         log.onOutgoing("OUTTEST");
-        assertEquals("wrong message", "OUTTEST\n", readLog(log.getOutgoingFileName()));
+        assertEquals("wrong message", "OUTTEST\n", readLog(log.getMessagesFileName()));
 
         // Bug #140
-        assertTrue("wrong file name for events", log.getEventFileName().endsWith(".event"));
-        
+        assertEquals(prefix + ".event.log", new File(log.getEventFileName()).getName());
+
         log.onEvent("EVENTTEST");
         String formattedTime = UtcTimestampConverter.convert(new Date(systemTime), false);
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
                 .getEventFileName()));
-        
+
         // Test append - Bug #140
+        // The last output should still be in the file
         log.close();
         log = (FileLog) factory.create(sessionID);
-        assertEquals("wrong message", "INTEST\n", readLog(log.getIncomingFileName()));
-        assertEquals("wrong message", "OUTTEST\n", readLog(log.getOutgoingFileName()));
+        assertEquals("wrong message", "OUTTEST\n", readLog(log.getMessagesFileName()));
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
                 .getEventFileName()));
     }

@@ -19,23 +19,27 @@
 
 package quickfix;
 
-/**
- * Factory for MySQL store.
- * 
- * @deprecated Use the generic JDBC support instead.
- * @author sbate
- *
- */
-public class MySQLStoreFactory extends JdbcStoreFactory {
-    public MySQLStoreFactory(SessionSettings settings) {
-        super(settings);
+public class NoTagValue extends RuntimeException {
+    public int field;
+    
+    public NoTagValue() {
+        super();
+    }
+
+    public NoTagValue(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public NoTagValue(String message) {
+        super(message);
+    }
+
+    public NoTagValue(Throwable cause) {
+        super(cause);
     }
     
-	public MessageStore create(SessionID sessionID) {
-		try {
-            return new MySQLStore(getSettings(), sessionID);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-	}
+    public NoTagValue(int field) {
+        this.field = field;
+    }
+
 }

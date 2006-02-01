@@ -12,6 +12,7 @@
 
 package quickfix;
 
+
 /**
  * Identifier for a session. Only supports a company ID (target, sender)
  * and a session qualifier. Sessions are also identified by FIX version so
@@ -88,6 +89,46 @@ public class SessionID {
                 + targetCompID
                 + (sessionQualifier != null && !sessionQualifier.equals("") ? ":"
                         + sessionQualifier : "");
+    }
+
+    /**
+     * Populate the sessionID from a string.
+     * @param sessionIDString
+     * @return the sessionIDString
+     */
+    public String fromString(String sessionIDString) {
+        int start = 0;
+        int end = sessionIDString.indexOf(':');
+        if (end == -1) {
+            throw new RuntimeError("Couldn't parse session ID");
+        }
+        String beginString = sessionIDString.substring(start, end);
+
+        start = end + 1;
+        end = sessionIDString.indexOf("->", start);
+        if (end == -1) {
+            throw new RuntimeError("Couldn't parse session ID");
+        }
+        String senderCompID = sessionIDString.substring(start, end);
+
+        start = end + 2;
+        end = sessionIDString.indexOf(":", start);
+        if (end == -1) {
+            end = sessionIDString.length();
+        }
+        String targetCompID = sessionIDString.substring(start, end);
+
+        if (end < sessionIDString.length()) {
+            start = end + 1;
+            end = sessionIDString.length();
+            sessionQualifier = end != -1 ? sessionIDString.substring(start, end) : "";
+        }
+
+        this.beginString = beginString;
+        this.senderCompID = senderCompID;
+        this.targetCompID = targetCompID;
+
+        return sessionIDString;
     }
 
     private void destroy() {

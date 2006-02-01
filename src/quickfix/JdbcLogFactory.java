@@ -50,7 +50,6 @@ public class JdbcLogFactory implements LogFactory {
 	 * 
 	 * @return the session settings
 	 * 
-	 * @see quickfix.MySQLLogFactory
 	 */
     protected SessionSettings getSettings() {
         return settings;

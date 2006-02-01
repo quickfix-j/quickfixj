@@ -1,30 +1,37 @@
 /****************************************************************************
-** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
-**
-** This file is part of the QuickFIX FIX Engine
-**
-** This file may be distributed under the terms of the quickfixengine.org
-** license as defined by quickfixengine.org and appearing in the file
-** LICENSE included in the packaging of this file.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-** See http://www.quickfixengine.org/LICENSE for licensing information.
-**
-** Contact ask@quickfixengine.org if any conditions of this licensing are
-** not clear to you.
-**
-****************************************************************************/
+ ** Copyright (c) 2001-2005 quickfixengine.org  All rights reserved.
+ **
+ ** This file is part of the QuickFIX FIX Engine
+ **
+ ** This file may be distributed under the terms of the quickfixengine.org
+ ** license as defined by quickfixengine.org and appearing in the file
+ ** LICENSE included in the packaging of this file.
+ **
+ ** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ ** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ **
+ ** See http://www.quickfixengine.org/LICENSE for licensing information.
+ **
+ ** Contact ask@quickfixengine.org if any conditions of this licensing are
+ ** not clear to you.
+ **
+ ****************************************************************************/
 
 package quickfix;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 
-class JdbcLog implements Log {
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+class JdbcLog implements quickfix.Log {
+    private Log log = LogFactory.getLog(getClass());
+    private static final String MESSAGES_LOG_TABLE = "messages_log";
+    private static final String EVENT_LOG_TABLE = "event_log";
     private Connection connection;
     private SessionID sessionID;
 
@@ -34,26 +41,27 @@ class JdbcLog implements Log {
         connection = connect(settings, sessionID);
     }
 
-    protected Connection connect(SessionSettings settings, SessionID sessionID2) throws SQLException,
-            ClassNotFoundException, ConfigError, FieldConvertError {
+    protected Connection connect(SessionSettings settings, SessionID sessionID2)
+            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
         return JdbcUtil.openConnection(settings, sessionID);
     }
 
     public void onEvent(String value) {
-        insert("event_log", value);
+        insert(EVENT_LOG_TABLE, value);
     }
 
     public void onIncoming(String value) {
-        insert("incoming_log", value);
+        insert(MESSAGES_LOG_TABLE, value);
     }
 
     public void onOutgoing(String value) {
-        insert("outgoing_log", value);
+        insert(MESSAGES_LOG_TABLE, value);
     }
 
     private void insert(String tableName, String value) {
+        PreparedStatement insert = null;
         try {
-            PreparedStatement insert = connection.prepareStatement("INSERT INTO " + tableName
+            insert = connection.prepareStatement("INSERT INTO " + tableName
                     + " (time, beginstring, sendercompid, targetcompid, session_qualifier, text) "
                     + "VALUES (?,?,?,?,?,?)");
             insert.setTimestamp(1, new Timestamp(SystemTime.getUtcCalendar().getTimeInMillis()));
@@ -65,6 +73,39 @@ class JdbcLog implements Log {
             insert.execute();
         } catch (SQLException e) {
             throw new RuntimeError(e);
+        } finally {
+            if (insert != null) {
+                try {
+                    insert.close();
+                } catch (SQLException e) {
+                    log.error(e);
+                }
+            }
         }
     }
+
+    /**
+     * Deletes all rows from the log tables.
+     */
+    public void clear() {
+        clearTable(EVENT_LOG_TABLE);
+        clearTable(MESSAGES_LOG_TABLE);
+    }
+
+    private void clearTable(String tableName) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            statement.execute("DELETE FROM " + tableName);
+        } catch (SQLException e) {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e1) {
+                    log.error(e1);
+                }
+            }
+        }
+    }
+
 }

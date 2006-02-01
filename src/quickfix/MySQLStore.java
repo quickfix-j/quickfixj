@@ -27,7 +27,6 @@ import java.sql.SQLException;
  * MySQL message store implementation. SHOULD ONLY BE CREATED USING A FACTORY.
  * 
  * @see quickfix.JdbcStoreFactory
- * @see quickfix.MySQLStoreFactory
  */
 public class MySQLStore extends JdbcStore {
     MySQLStore(SessionSettings settings, SessionID sessionID) throws Exception {
@@ -36,7 +35,7 @@ public class MySQLStore extends JdbcStore {
 
     protected Connection connect(SessionSettings settings, SessionID sessionID)
             throws ClassNotFoundException, ConfigError, FieldConvertError, SQLException {
-        return JdbcUtil.openMySQLConnection(settings, sessionID);
+        return JdbcUtil.openMySQLStoreConnection(settings, sessionID);
     }
     
     /**

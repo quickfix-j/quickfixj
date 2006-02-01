@@ -79,4 +79,9 @@ public class ScreenLog implements Log {
     void setOut(PrintStream out) {
         this.out = out;
     }
+    
+    public void clear() {
+        onEvent("Log clear operation is not supported: " + getClass().getName());
+    }
+
 }

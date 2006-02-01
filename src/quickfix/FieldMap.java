@@ -129,50 +129,50 @@ public abstract class FieldMap implements Serializable {
 		groups.putAll(fieldMap.groups);
 	}
 
-	public void setString(int field, String value) {
+	public void setString(int field, String value) throws NoTagValue {
 		setField(new StringField(field, value));
 	}
 
-	public void setBoolean(int field, boolean value) {
+	public void setBoolean(int field, boolean value) throws NoTagValue {
 		String s = BooleanConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setChar(int field, char value) {
+	public void setChar(int field, char value) throws NoTagValue {
 		String s = CharConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setInt(int field, int value) {
+	public void setInt(int field, int value) throws NoTagValue {
 		String s = IntConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setDouble(int field, double value) {
+	public void setDouble(int field, double value) throws NoTagValue {
 		String s = DoubleConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setUtcTimeStamp(int field, Date value) {
+	public void setUtcTimeStamp(int field, Date value) throws NoTagValue {
 		setUtcTimeStamp(field, value, false);
 	}
 
 	public void setUtcTimeStamp(int field, Date value,
-			boolean includeMilliseconds) {
+			boolean includeMilliseconds) throws NoTagValue {
 		String s = UtcTimestampConverter.convert(value, includeMilliseconds);
 		setField(new StringField(field, s));
 	}
 
-	public void setUtcTimeOnly(int field, Date value) {
+	public void setUtcTimeOnly(int field, Date value) throws NoTagValue {
 		setUtcTimeOnly(field, value, false);
 	}
 
-	public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) {
+	public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) throws NoTagValue {
 		String s = UtcTimeOnlyConverter.convert(value, includeMillseconds);
 		setField(new StringField(field, s));
 	}
 
-	public void setUtcDateOnly(int field, Date value) {
+	public void setUtcDateOnly(int field, Date value) throws NoTagValue {
 		String s = UtcDateOnlyConverter.convert(value);
 		setField(new StringField(field, s));
 	}
@@ -260,7 +260,7 @@ public abstract class FieldMap implements Serializable {
 		}
 	}
 
-	public void setField(StringField field) {
+	public void setField(StringField field) throws NoTagValue {
 		if (field.getValue() == null) {
 			throw new NullPointerException("Null field values are not allowed.");
 		}
@@ -268,31 +268,31 @@ public abstract class FieldMap implements Serializable {
 		fields.put(key, field);
 	}
 
-	public void setField(BooleanField field) {
+	public void setField(BooleanField field) throws NoTagValue {
 		setBoolean(field.getField(), field.getValue());
 	}
 
-	public void setField(CharField field) {
+	public void setField(CharField field) throws NoTagValue {
 		setChar(field.getField(), field.getValue());
 	}
 
-	public void setField(IntField field) {
+	public void setField(IntField field) throws NoTagValue  {
 		setInt(field.getField(), field.getValue());
 	}
 
-	public void setField(DoubleField field) {
+	public void setField(DoubleField field) throws NoTagValue {
 		setDouble(field.getField(), field.getValue());
 	}
 
-	public void setField(UtcTimeStampField field) {
+	public void setField(UtcTimeStampField field) throws NoTagValue {
 		setUtcTimeStamp(field.getField(), field.getValue());
 	}
 
-	public void setField(UtcTimeOnlyField field) {
+	public void setField(UtcTimeOnlyField field) throws NoTagValue {
 		setUtcTimeOnly(field.getField(), field.getValue());
 	}
 
-	public void setField(UtcDateOnlyField field) {
+	public void setField(UtcDateOnlyField field) throws NoTagValue {
 		setUtcDateOnly(field.getField(), field.getValue());
 	}
 

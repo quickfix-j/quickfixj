@@ -24,6 +24,12 @@ package quickfix;
  */
 public interface Log {
     /**
+     * Clears the log and removes any persistent log data.
+     *
+     */
+    void clear();
+    
+    /**
      * Logs an incoming message
      * 
      * @param message

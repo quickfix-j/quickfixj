@@ -22,6 +22,8 @@ package quickfix;
 import java.util.Date;
 
 public class UtcTimeOnlyField extends DateField {
+    private boolean includeMilliseconds;
+    
     public UtcTimeOnlyField(int field) {
         super(field);
     }
@@ -29,5 +31,21 @@ public class UtcTimeOnlyField extends DateField {
     protected UtcTimeOnlyField(int field, Date data) {
         super(field, data);
     }
+
+    public UtcTimeOnlyField(int field, boolean includeMilliseconds) {
+        super(field);
+        this.includeMilliseconds = includeMilliseconds;
+    }
+
+    protected UtcTimeOnlyField(int field, Date data, boolean includeMilliseconds) {
+        super(field, data);
+        this.includeMilliseconds = includeMilliseconds;
+    }
+    
+    boolean showMilliseconds() {
+        return includeMilliseconds;
+    }
+    
+    
 }
 

@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import java.util.Date;
+
 public class Group extends FieldMap {
     private IntField field;
     private int delim;
@@ -46,19 +48,114 @@ public class Group extends FieldMap {
     }
 
     public void addGroup(Group group) {
-        // TODO QUESTION review why this is unsupported
-        // throw new UnsupportedOperationException();
         super.addGroup(group);
     }
     
     public Group getGroup(int num, Group group) throws FieldNotFound {
-        // TODO QUESTION review why this is unsupported
-        // throw new UnsupportedOperationException();
         return super.getGroup(num, group);
     }
+
 
     public int getFieldTag() {
         return field.getTag();
     }
+
+    /**
+     * @deprecated Use getFieldTag 
+     * @return
+     */
+    public int field() {
+        return getFieldTag();
+    }
     
+    public void setBoolean(int field, boolean value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setBoolean(field, value);
+    }
+
+    public void setChar(int field, char value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setChar(field, value);
+    }
+
+    public void setDouble(int field, double value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setDouble(field, value);
+    }
+
+    public void setField(BooleanField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(CharField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(DoubleField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(IntField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(StringField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(UtcDateOnlyField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(UtcTimeOnlyField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setField(UtcTimeStampField field) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setField(field);
+    }
+
+    public void setInt(int field, int value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setInt(field, value);
+    }
+
+    public void setString(int field, String value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setString(field, value);
+    }
+
+    public void setUtcDateOnly(int field, Date value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setUtcDateOnly(field, value);
+    }
+
+    public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setUtcTimeOnly(field, value, includeMillseconds);
+    }
+
+    public void setUtcTimeOnly(int field, Date value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setUtcTimeOnly(field, value);
+    }
+
+    public void setUtcTimeStamp(int field, Date value, boolean includeMilliseconds) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setUtcTimeStamp(field, value, includeMilliseconds);
+    }
+
+    public void setUtcTimeStamp(int field, Date value) {
+        // TODO QF 1.11 Temporary (hopefully) overrides to remove NoTagValue declaration
+        super.setUtcTimeStamp(field, value);
+    }
+
 }

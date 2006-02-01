@@ -19,12 +19,16 @@
 
 package quickfix;
 
-import quickfix.field.converter.BooleanConverter;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+
+import quickfix.field.converter.BooleanConverter;
 
 /**
  * Settings for sessions. Settings are grouped by FIX version and target company
@@ -42,123 +46,111 @@ import java.util.*;
  * @see quickfix.ScreenLogFactory
  * @see quickfix.FileStoreFactory
  * @see quickfix.JdbcSetting
- * @see quickfix.MySQLSetting
  * @see quickfix.Session
  * @see quickfix.DefaultSessionFactory
  */
 public class SessionSettings {
-	private static final SessionID DEFAULT_SESSION_ID = new SessionID(
-			"DEFAULT", "", "");
+    private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
 
-	private static final String SESSION_SECTION_NAME = "session";
+    private static final String SESSION_SECTION_NAME = "session";
 
-	private static final String DEFAULT_SECTION_NAME = "default";
+    private static final String DEFAULT_SECTION_NAME = "default";
 
-	// SOCKET_REUSE_ADDRESS not needed for Java
-	// see java.net.SocketOptions
-	// public static final String SOCKET_REUSE_ADDRESS = "SocketReuseAddress";
+    public static final String TARGETCOMPID = "TargetCompID";
 
-	// TODO CLEANUP determine is NODELAY is needed
-	// public static final String SOCKET_NODELAY = "SocketNodelay";
-
-	public static final String TARGETCOMPID = "TargetCompID";
-
-	public static final String SESSION_QUALIFIER = "SessionQualifier";
+    public static final String SESSION_QUALIFIER = "SessionQualifier";
 
     // This was using the line.separator system property but that caused
     // problems with moving configuration files between *nix and Windows.
     private static final String NEWLINE = "\r\n";
 
-	/**
-	 * Creates an empty session settings object.
-	 */
-	public SessionSettings() {
-		sections.put(DEFAULT_SESSION_ID, new Properties());
-	}
+    /**
+     * Creates an empty session settings object.
+     */
+    public SessionSettings() {
+        sections.put(DEFAULT_SESSION_ID, new Properties());
+    }
 
-	/**
-	 * Loads session settings from a file.
-	 *
-	 * @param filename
-	 *            the path to the file containing the session settings
-	 */
-	public SessionSettings(String filename) throws ConfigError {
-		this();
-		InputStream in = getClass().getClassLoader().getResourceAsStream(
-				filename);
-		if (in == null) {
-			try {
-				in = new FileInputStream(filename);
-			} catch (IOException e) {
-				throw new ConfigError(e.getMessage());
-			}
-		}
-		load(in);
-	}
+    /**
+     * Loads session settings from a file.
+     *
+     * @param filename
+     *            the path to the file containing the session settings
+     */
+    public SessionSettings(String filename) throws ConfigError {
+        this();
+        InputStream in = getClass().getClassLoader().getResourceAsStream(filename);
+        if (in == null) {
+            try {
+                in = new FileInputStream(filename);
+            } catch (IOException e) {
+                throw new ConfigError(e.getMessage());
+            }
+        }
+        load(in);
+    }
 
-	/**
-	 * Loads session settings from an input stream.
-	 *
-	 * @param stream
-	 *            the input stream
-	 * @throws ConfigError
-	 */
-	public SessionSettings(InputStream stream) throws ConfigError {
-		this();
-		load(stream);
-	}
+    /**
+     * Loads session settings from an input stream.
+     *
+     * @param stream
+     *            the input stream
+     * @throws ConfigError
+     */
+    public SessionSettings(InputStream stream) throws ConfigError {
+        this();
+        load(stream);
+    }
 
-	/**
-	 * Gets a string from the default section of the settings.
-	 *
-	 * @param key
-	 * @return the default string value
-	 * @throws ConfigError
-	 * @throws FieldConvertError
-	 */
-	public String getString(String key) throws ConfigError, FieldConvertError {
-		return getString(DEFAULT_SESSION_ID, key);
-	}
+    /**
+     * Gets a string from the default section of the settings.
+     *
+     * @param key
+     * @return the default string value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public String getString(String key) throws ConfigError, FieldConvertError {
+        return getString(DEFAULT_SESSION_ID, key);
+    }
 
-	/**
-	 * Get a settings string.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the settings key
-	 * @return the string value for the setting
-	 *
-	 * @throws ConfigError
-	 *             configurion error, probably a missing setting.
-	 * @throws FieldConvertError
-	 *             error during field type conversion.
-	 */
-	public String getString(SessionID sessionID, String key)
-			throws ConfigError, FieldConvertError {
-		String value = getSessionProperties(sessionID).getProperty(key);
-		if (value == null) {
-			throw new ConfigError(key + " not defined");
-		}
-		return value;
-	}
+    /**
+     * Get a settings string.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the settings key
+     * @return the string value for the setting
+     *
+     * @throws ConfigError
+     *             configurion error, probably a missing setting.
+     * @throws FieldConvertError
+     *             error during field type conversion.
+     */
+    public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
+        String value = getSessionProperties(sessionID).getProperty(key);
+        if (value == null) {
+            throw new ConfigError(key + " not defined");
+        }
+        return value;
+    }
 
-	/**
-	 * Return the settings for a session as a Properties object.
-	 *
-	 * @param sessionID
-	 * @return the Properties object with the session settings
-	 * @throws ConfigError
-	 * @see java.util.Properties
-	 */
-	public Properties getSessionProperties(SessionID sessionID)
-			throws ConfigError {
-		Properties p = (Properties) sections.get(sessionID);
-		if (p == null) {
-			throw new ConfigError("Session not found");
-		}
-		return p;
-	}
+    /**
+     * Return the settings for a session as a Properties object.
+     *
+     * @param sessionID
+     * @return the Properties object with the session settings
+     * @throws ConfigError
+     * @see java.util.Properties
+     */
+    public Properties getSessionProperties(SessionID sessionID) throws ConfigError {
+        Properties p = (Properties) sections.get(sessionID);
+        if (p == null) {
+            throw new ConfigError("Session not found");
+        }
+        return p;
+    }
 
     /**
      * Returns the defaults for the session-level settings.
@@ -168,416 +160,432 @@ public class SessionSettings {
     public Properties getDefaultProperties() throws ConfigError {
         return getSessionProperties(DEFAULT_SESSION_ID);
     }
-    
-	/**
-	 * Gets a long from the default section of settings.
-	 *
-	 * @param key
-	 * @return the default value
-	 * @throws ConfigError
-	 * @throws FieldConvertError
-	 */
-	public long getLong(String key) throws ConfigError, FieldConvertError {
-		return getLong(DEFAULT_SESSION_ID, key);
-	}
 
-	/**
-	 * Get a settings value as a long integer.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the settings key
-	 * @return the long integer value for the setting
-	 *
-	 * @throws ConfigError
-	 *             configurion error, probably a missing setting.
-	 * @throws FieldConvertError
-	 *             error during field type conversion.
-	 */
-	public long getLong(SessionID sessionID, String key) throws ConfigError,
-			FieldConvertError {
-		try {
-			return Long.parseLong(getString(sessionID, key));
-		} catch (NumberFormatException e) {
-			throw new FieldConvertError(e.getMessage());
-		}
-	}
+    /**
+     * Gets a long from the default section of settings.
+     *
+     * @param key
+     * @return the default value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public long getLong(String key) throws ConfigError, FieldConvertError {
+        return getLong(DEFAULT_SESSION_ID, key);
+    }
 
-	private Properties getOrCreateSessionProperties(SessionID sessionID) {
-		Properties p = (Properties) sections.get(sessionID);
-		if (p == null) {
-			p = new Properties((Properties) sections.get(DEFAULT_SESSION_ID));
-			sections.put(sessionID, p);
-		}
-		return p;
-	}
+    /**
+     * Get a settings value as a long integer.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the settings key
+     * @return the long integer value for the setting
+     *
+     * @throws ConfigError
+     *             configurion error, probably a missing setting.
+     * @throws FieldConvertError
+     *             error during field type conversion.
+     */
+    public long getLong(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
+        try {
+            return Long.parseLong(getString(sessionID, key));
+        } catch (NumberFormatException e) {
+            throw new FieldConvertError(e.getMessage());
+        }
+    }
 
-	/**
-	 * Gets a double value from the default section of the settings.
-	 *
-	 * @param key
-	 * @return the default value
-	 * @throws ConfigError
-	 * @throws FieldConvertError
-	 */
-	public double getDouble(String key) throws ConfigError, FieldConvertError {
-		return getDouble(DEFAULT_SESSION_ID, key);
-	}
+    private Properties getOrCreateSessionProperties(SessionID sessionID) {
+        Properties p = (Properties) sections.get(sessionID);
+        if (p == null) {
+            p = new Properties((Properties) sections.get(DEFAULT_SESSION_ID));
+            sections.put(sessionID, p);
+        }
+        return p;
+    }
 
-	/**
-	 * Get a settings value as a double number.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the settings key
-	 * @return the double number value for the setting
-	 *
-	 * @throws ConfigError
-	 *             configurion error, probably a missing setting.
-	 * @throws FieldConvertError
-	 *             error during field type conversion.
-	 */
-	public double getDouble(SessionID sessionID, String key)
-			throws ConfigError, FieldConvertError {
-		try {
-			return Double.parseDouble(getString(sessionID, key));
-		} catch (NumberFormatException e) {
-			throw new FieldConvertError(e.getMessage());
-		}
-	}
+    /**
+     * Gets a double value from the default section of the settings.
+     *
+     * @param key
+     * @return the default value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public double getDouble(String key) throws ConfigError, FieldConvertError {
+        return getDouble(DEFAULT_SESSION_ID, key);
+    }
 
-	/**
-	 * Gets a boolean value from the default section of the settings.
-	 *
-	 * @param key
-	 * @return the boolean value
-	 * @throws ConfigError
-	 * @throws FieldConvertError
-	 */
-	public boolean getBool(String key) throws ConfigError, FieldConvertError {
-		return getBool(DEFAULT_SESSION_ID, key);
-	}
+    /**
+     * Get a settings value as a double number.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the settings key
+     * @return the double number value for the setting
+     *
+     * @throws ConfigError
+     *             configurion error, probably a missing setting.
+     * @throws FieldConvertError
+     *             error during field type conversion.
+     */
+    public double getDouble(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
+        try {
+            return Double.parseDouble(getString(sessionID, key));
+        } catch (NumberFormatException e) {
+            throw new FieldConvertError(e.getMessage());
+        }
+    }
 
-	/**
-	 * Get a settings value as a boolean value.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the settings key
-	 * @return the boolean value for the setting
-	 *
-	 * @throws ConfigError
-	 *             configurion error, probably a missing setting.
-	 * @throws FieldConvertError
-	 *             error during field type conversion.
-	 */
-	public boolean getBool(SessionID sessionID, String key) throws ConfigError,
-			FieldConvertError {
-		try {
-			return BooleanConverter.convert(getString(sessionID, key));
-		} catch (FieldConvertError e) {
-			throw new ConfigError(e);
-		}
-	}
+    /**
+     * Gets a boolean value from the default section of the settings.
+     *
+     * @param key
+     * @return the boolean value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public boolean getBool(String key) throws ConfigError, FieldConvertError {
+        return getBool(DEFAULT_SESSION_ID, key);
+    }
 
-	/**
-	 * Sets a string-valued session setting.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the setting key
-	 * @param value
-	 *            the string value
-	 */
-	public void setString(SessionID sessionID, String key, String value) {
-		getOrCreateSessionProperties(sessionID).setProperty(key, value);
-	}
+    /**
+     * Get a settings value as a boolean value.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the settings key
+     * @return the boolean value for the setting
+     *
+     * @throws ConfigError
+     *             configurion error, probably a missing setting.
+     * @throws FieldConvertError
+     *             error during field type conversion.
+     */
+    public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
+        try {
+            return BooleanConverter.convert(getString(sessionID, key));
+        } catch (FieldConvertError e) {
+            throw new ConfigError(e);
+        }
+    }
 
-	/**
-	 * Sets a long integer-valued session setting.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the setting key
-	 * @param value
-	 *            the long integer value
-	 */
-	public void setLong(SessionID sessionID, String key, long value) {
-		getOrCreateSessionProperties(sessionID).setProperty(key,
-				Long.toString(value));
+    /**
+     * Sets a string-valued session setting.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the setting key
+     * @param value
+     *            the string value
+     */
+    public void setString(SessionID sessionID, String key, String value) {
+        getOrCreateSessionProperties(sessionID).setProperty(key, value);
+    }
 
-	}
+    /**
+     * Sets a long integer-valued session setting.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the setting key
+     * @param value
+     *            the long integer value
+     */
+    public void setLong(SessionID sessionID, String key, long value) {
+        getOrCreateSessionProperties(sessionID).setProperty(key, Long.toString(value));
 
-	/**
-	 * Sets a double-valued session setting.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the setting key
-	 * @param value
-	 *            the double value
-	 */
-	public void setDouble(SessionID sessionID, String key, double value) {
-		getOrCreateSessionProperties(sessionID).setProperty(key,
-				Double.toString(value));
+    }
 
-	}
+    /**
+     * Sets a double-valued session setting.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the setting key
+     * @param value
+     *            the double value
+     */
+    public void setDouble(SessionID sessionID, String key, double value) {
+        getOrCreateSessionProperties(sessionID).setProperty(key, Double.toString(value));
 
-	/**
-	 * Sets a boolean-valued session setting.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the setting key
-	 * @param value
-	 *            the boolean value
-	 */
-	public void setBool(SessionID sessionID, String key, boolean value) {
-		getOrCreateSessionProperties(sessionID).setProperty(key,
-				BooleanConverter.convert(value));
+    }
 
-	}
+    /**
+     * Sets a boolean-valued session setting.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the setting key
+     * @param value
+     *            the boolean value
+     */
+    public void setBool(SessionID sessionID, String key, boolean value) {
+        getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
 
-	private HashMap sections = new HashMap();
+    }
 
-	public Iterator sectionIterator() {
-		HashSet nondefaultSessions = new HashSet(sections.keySet());
-		nondefaultSessions.remove(DEFAULT_SESSION_ID);
-		return nondefaultSessions.iterator();
-	}
+    private HashMap sections = new HashMap();
 
-	private void load(InputStream inputStream) throws ConfigError {
-		try {
-			Properties currentSection = null;
-			String currentSectionId = null;
-			Tokenizer tokenizer = new Tokenizer();
-			Tokenizer.Token token = tokenizer.getToken(inputStream);
-			while (token != null) {
-				if (token.getType() == Tokenizer.SECTION_TOKEN) {
-					storeSection(currentSectionId, currentSection);
-					if (token.getValue().equalsIgnoreCase(DEFAULT_SECTION_NAME)) {
-						currentSectionId = DEFAULT_SECTION_NAME;
-						currentSection = getSessionProperties(DEFAULT_SESSION_ID);
-					} else if (token.getValue().equalsIgnoreCase(
-							SESSION_SECTION_NAME)) {
-						currentSectionId = SESSION_SECTION_NAME;
-						currentSection = new Properties(
-								getSessionProperties(DEFAULT_SESSION_ID));
-					}
-				} else if (token.getType() == Tokenizer.ID_TOKEN) {
-					Tokenizer.Token valueToken = tokenizer
-							.getToken(inputStream);
-					if (currentSection != null && token != null) {
-						currentSection.put(token.getValue(), valueToken
-								.getValue());
-					}
-				}
-				token = tokenizer.getToken(inputStream);
-			}
-			storeSection(currentSectionId, currentSection);
-		} catch (IOException e) {
-			ConfigError configError = new ConfigError(e.getMessage());
-			configError.fillInStackTrace();
-			throw configError;
-		}
-	}
+    public Iterator sectionIterator() {
+        HashSet nondefaultSessions = new HashSet(sections.keySet());
+        nondefaultSessions.remove(DEFAULT_SESSION_ID);
+        return nondefaultSessions.iterator();
+    }
 
-	private void storeSection(String currentSectionId, Properties currentSection) {
-		if (currentSectionId != null
-				&& currentSectionId.equals(SESSION_SECTION_NAME)) {
-			SessionID sessionId = new SessionID(currentSection
-					.getProperty("BeginString"), currentSection
-					.getProperty("SenderCompID"), currentSection
-					.getProperty("TargetCompID"), currentSection.getProperty(
-					"SessionQualifier", ""));
-			sections.put(sessionId, currentSection);
-			currentSectionId = null;
-			currentSection = null;
-		}
-	}
+    private void load(InputStream inputStream) throws ConfigError {
+        try {
+            Properties currentSection = null;
+            String currentSectionId = null;
+            Tokenizer tokenizer = new Tokenizer();
+            Tokenizer.Token token = tokenizer.getToken(inputStream);
+            while (token != null) {
+                if (token.getType() == Tokenizer.SECTION_TOKEN) {
+                    storeSection(currentSectionId, currentSection);
+                    if (token.getValue().equalsIgnoreCase(DEFAULT_SECTION_NAME)) {
+                        currentSectionId = DEFAULT_SECTION_NAME;
+                        currentSection = getSessionProperties(DEFAULT_SESSION_ID);
+                    } else if (token.getValue().equalsIgnoreCase(SESSION_SECTION_NAME)) {
+                        currentSectionId = SESSION_SECTION_NAME;
+                        currentSection = new Properties(getSessionProperties(DEFAULT_SESSION_ID));
+                    }
+                } else if (token.getType() == Tokenizer.ID_TOKEN) {
+                    Tokenizer.Token valueToken = tokenizer.getToken(inputStream);
+                    if (currentSection != null && token != null) {
+                        currentSection.put(token.getValue(), valueToken.getValue());
+                    }
+                }
+                token = tokenizer.getToken(inputStream);
+            }
+            storeSection(currentSectionId, currentSection);
+        } catch (IOException e) {
+            ConfigError configError = new ConfigError(e.getMessage());
+            configError.fillInStackTrace();
+            throw configError;
+        }
+    }
 
-	/**
-	 * Predicate for determining if a setting is in the default section.
-	 *
-	 * @param key
-	 * @return true if setting is in the defaults, false otherwise
-	 */
-	public boolean isSetting(String key) {
-		return isSetting(DEFAULT_SESSION_ID, key);
-	}
+    private void storeSection(String currentSectionId, Properties currentSection) {
+        if (currentSectionId != null && currentSectionId.equals(SESSION_SECTION_NAME)) {
+            SessionID sessionId = new SessionID(currentSection.getProperty("BeginString"),
+                    currentSection.getProperty("SenderCompID"), currentSection
+                            .getProperty("TargetCompID"), currentSection.getProperty(
+                            "SessionQualifier", ""));
+            sections.put(sessionId, currentSection);
+            currentSectionId = null;
+            currentSection = null;
+        }
+    }
 
-	/**
-	 * Predicate for determining if a setting exists.
-	 *
-	 * @param sessionID
-	 *            the session ID
-	 * @param key
-	 *            the setting key
-	 * @return true is setting exists, false otherwise.
-	 */
-	public boolean isSetting(SessionID sessionID, String key) {
-		return getOrCreateSessionProperties(sessionID).getProperty(key) != null;
-	}
+    /**
+     * Predicate for determining if a setting is in the default section.
+     *
+     * @param key
+     * @return true if setting is in the defaults, false otherwise
+     */
+    public boolean isSetting(String key) {
+        return isSetting(DEFAULT_SESSION_ID, key);
+    }
 
-	public void removeSetting(SessionID sessionID, String key) {
-		getOrCreateSessionProperties(sessionID).remove(key);
-	}
+    /**
+     * Predicate for determining if a setting exists.
+     *
+     * @param sessionID
+     *            the session ID
+     * @param key
+     *            the setting key
+     * @return true is setting exists, false otherwise.
+     */
+    public boolean isSetting(SessionID sessionID, String key) {
+        return getOrCreateSessionProperties(sessionID).getProperty(key) != null;
+    }
 
-	private static class Tokenizer {
-		public static final int NONE_TOKEN = 1;
+    public void removeSetting(SessionID sessionID, String key) {
+        getOrCreateSessionProperties(sessionID).remove(key);
+    }
 
-		public static final int ID_TOKEN = 2;
+    private static class Tokenizer {
+        public static final int NONE_TOKEN = 1;
 
-		public static final int VALUE_TOKEN = 3;
+        public static final int ID_TOKEN = 2;
 
-		public static final int SECTION_TOKEN = 4;
+        public static final int VALUE_TOKEN = 3;
 
-		private class Token {
-			private int type;
+        public static final int SECTION_TOKEN = 4;
 
-			private String value;
+        private class Token {
+            private int type;
 
-			public Token(int type, String value) {
-				super();
-				this.type = type;
-				this.value = value;
-			}
+            private String value;
 
-			public int getType() {
-				return type;
-			}
+            public Token(int type, String value) {
+                super();
+                this.type = type;
+                this.value = value;
+            }
 
-			public String getValue() {
-				return value;
-			}
+            public int getType() {
+                return type;
+            }
 
-			public String toString() {
-				return type + ": " + value;
-			}
-		}
+            public String getValue() {
+                return value;
+            }
 
-		private char ch = '\0';
+            public String toString() {
+                return type + ": " + value;
+            }
+        }
 
-		private StringBuffer sb = new StringBuffer();
+        private char ch = '\0';
 
-		private Token getToken(InputStream inputStream) throws IOException {
-			if (ch == '\0') {
-				ch = nextCharacter(inputStream);
-			}
-			skipWhitespace(inputStream);
-			if (isLabelCharacter(ch)) {
-				sb.setLength(0);
-				do {
-					sb.append(ch);
-					ch = nextCharacter(inputStream);
-				} while (isLabelCharacter(ch));
-				return new Token(ID_TOKEN, sb.toString());
-			} else if (ch == '=') {
-				ch = nextCharacter(inputStream);
-				skipWhitespace(inputStream);
-				if (isValueCharacter(ch)) {
-					sb.setLength(0);
-					do {
-						sb.append(ch);
-						ch = nextCharacter(inputStream);
-					} while (isValueCharacter(ch));
-					return new Token(VALUE_TOKEN, sb.toString().trim());
-				}
-			} else if (ch == '[') {
-				ch = nextCharacter(inputStream);
-				Token id = getToken(inputStream);
-				// check ]
-				ch = nextCharacter(inputStream); // skip ]
-				return new Token(SECTION_TOKEN, id.getValue());
-			} else if (ch == '#') {
-				do {
-					ch = nextCharacter(inputStream);
-				} while (!isNewLineCharacter(ch));
-				return getToken(inputStream);
-			}
-			return null;
-		}
+        private StringBuffer sb = new StringBuffer();
 
-		private boolean isNewLineCharacter(char ch) {
-			return NEWLINE.indexOf(ch) != -1;
-		}
+        private Token getToken(InputStream inputStream) throws IOException {
+            if (ch == '\0') {
+                ch = nextCharacter(inputStream);
+            }
+            skipWhitespace(inputStream);
+            if (isLabelCharacter(ch)) {
+                sb.setLength(0);
+                do {
+                    sb.append(ch);
+                    ch = nextCharacter(inputStream);
+                } while (isLabelCharacter(ch));
+                return new Token(ID_TOKEN, sb.toString());
+            } else if (ch == '=') {
+                ch = nextCharacter(inputStream);
+                skipWhitespace(inputStream);
+                if (isValueCharacter(ch)) {
+                    sb.setLength(0);
+                    do {
+                        sb.append(ch);
+                        ch = nextCharacter(inputStream);
+                    } while (isValueCharacter(ch));
+                    return new Token(VALUE_TOKEN, sb.toString().trim());
+                }
+            } else if (ch == '[') {
+                ch = nextCharacter(inputStream);
+                Token id = getToken(inputStream);
+                // check ]
+                ch = nextCharacter(inputStream); // skip ]
+                return new Token(SECTION_TOKEN, id.getValue());
+            } else if (ch == '#') {
+                do {
+                    ch = nextCharacter(inputStream);
+                } while (!isNewLineCharacter(ch));
+                return getToken(inputStream);
+            }
+            return null;
+        }
 
-		private boolean isLabelCharacter(char ch) {
-			return !isEndOfStream(ch) && "[]=#".indexOf(ch) == -1;
-		}
+        private boolean isNewLineCharacter(char ch) {
+            return NEWLINE.indexOf(ch) != -1;
+        }
 
-		private boolean isValueCharacter(char ch) {
-			return !isEndOfStream(ch) && !isNewLineCharacter(ch);
-		}
+        private boolean isLabelCharacter(char ch) {
+            return !isEndOfStream(ch) && "[]=#".indexOf(ch) == -1;
+        }
 
-		private boolean isEndOfStream(char ch) {
-			return (byte) ch == -1;
-		}
+        private boolean isValueCharacter(char ch) {
+            return !isEndOfStream(ch) && !isNewLineCharacter(ch);
+        }
 
-		private char nextCharacter(InputStream inputStream) throws IOException {
-			return (char) inputStream.read();
-		}
+        private boolean isEndOfStream(char ch) {
+            return (byte) ch == -1;
+        }
 
-		private void skipWhitespace(InputStream inputStream) throws IOException {
-			if (Character.isWhitespace(ch)) {
-				do {
-					ch = nextCharacter(inputStream);
-				} while (Character.isWhitespace(ch));
-			}
-		}
-	}
+        private char nextCharacter(InputStream inputStream) throws IOException {
+            return (char) inputStream.read();
+        }
 
-	/**
-	 * Adds defaults to the settings. Will not delete existing settings not
-	 * overlapping with the new defaults, but will overwrite existing settings
-	 * specified in this call.
-	 *
-	 * @param defaults
-	 */
-	public void set(Map defaults) {
-		getOrCreateSessionProperties(DEFAULT_SESSION_ID).putAll(defaults);
-	}
+        private void skipWhitespace(InputStream inputStream) throws IOException {
+            if (Character.isWhitespace(ch)) {
+                do {
+                    ch = nextCharacter(inputStream);
+                } while (Character.isWhitespace(ch));
+            }
+        }
+    }
 
-	/**
-	 * Set a default boolean parameter.
-	 * @param key the settings key
-	 * @param value the settings value
-	 */
-	public void setBool(String key, boolean value) {
-		setBool(DEFAULT_SESSION_ID, key, value);
-	}
+    /**
+     * Adds defaults to the settings. Will not delete existing settings not
+     * overlapping with the new defaults, but will overwrite existing settings
+     * specified in this call.
+     *
+     * @param defaults
+     */
+    public void set(Map defaults) {
+        getOrCreateSessionProperties(DEFAULT_SESSION_ID).putAll(defaults);
+    }
 
-	/**
-	 * Set a default double parameter.
-	 * @param key the settings key
-	 * @param value the settings value
-	 */
-	public void setDouble(String key, double value) {
-		setDouble(DEFAULT_SESSION_ID, key, value);
-	}
+    /**
+     * Set a default boolean parameter.
+     * @param key the settings key
+     * @param value the settings value
+     */
+    public void setBool(String key, boolean value) {
+        setBool(DEFAULT_SESSION_ID, key, value);
+    }
 
-	/**
-	 * Set a default long parameter.
-	 * @param key the settings key
-	 * @param value the settings value
-	 */
-	public void setLong(String key, long value) {
-		setLong(DEFAULT_SESSION_ID, key, value);
-	}
+    /**
+     * Set a default double parameter.
+     * @param key the settings key
+     * @param value the settings value
+     */
+    public void setDouble(String key, double value) {
+        setDouble(DEFAULT_SESSION_ID, key, value);
+    }
 
-	/**
-	 * Set a default string parameter.
-	 * @param key the settings key
-	 * @param value the settings value
-	 */
-	public void setString(String key, String value) {
-		setString(DEFAULT_SESSION_ID, key, value);
-	}
+    /**
+     * Set a default long parameter.
+     * @param key the settings key
+     * @param value the settings value
+     */
+    public void setLong(String key, long value) {
+        setLong(DEFAULT_SESSION_ID, key, value);
+    }
+
+    /**
+     * Set a default string parameter.
+     * @param key the settings key
+     * @param value the settings value
+     */
+    public void setString(String key, String value) {
+        setString(DEFAULT_SESSION_ID, key, value);
+    }
+
+    public int size() {
+        // Always a default section
+        return sections.size() - 1;
+    }
+
+    public Dictionary get(SessionID sessionID) throws ConfigError {
+        return new Dictionary(null, getSessionProperties(sessionID));
+    }
+
+    public void set(SessionID sessionID, Dictionary dictionary) throws ConfigError {
+        Properties p = getOrCreateSessionProperties(sessionID);
+        p.clear();
+        p.putAll(dictionary.toMap());
+    }
+
+    public Dictionary get() {
+        try {
+            return new Dictionary(null, getDefaultProperties());
+        } catch (ConfigError e) {
+            return null;
+        }
+    }
+
+    public void set(Dictionary dictionary) throws ConfigError {
+        getDefaultProperties().putAll(dictionary.toMap());
+    }
+
 }

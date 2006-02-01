@@ -34,13 +34,11 @@ import quickfix.field.converter.UtcTimestampConverter;
  */
 public class FileLog implements Log {
     private SessionID sessionID;
-    private String incomingFileName;
-    private String outgoingFileName;
+    private String messagesFileName;
     private String eventFileName;
     private boolean syncAfterWrite;
 
-    private FileOutputStream incoming;
-    private FileOutputStream outgoing;
+    private FileOutputStream messages;
     private FileOutputStream events;
 
     FileLog(String path, SessionID sessionID) throws FileNotFoundException {
@@ -52,44 +50,41 @@ public class FileLog implements Log {
         }
 
         String prefix = FileUtil.fileAppendPath(path, sessionName + ".");
-        incomingFileName = prefix + "incoming";
-        outgoingFileName = prefix + "outgoing";
-        eventFileName = prefix + "event";
+        messagesFileName = prefix + "messages.log";
+        eventFileName = prefix + "event.log";
 
-        File directory = new File(incomingFileName).getParentFile();
+        File directory = new File(messagesFileName).getParentFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        incoming = new FileOutputStream(incomingFileName, true);
-        outgoing = new FileOutputStream(outgoingFileName, true);
-        events = new FileOutputStream(eventFileName, true);
+        openLogStreams(true);
+    }
+
+    private void openLogStreams(boolean append) throws FileNotFoundException {
+        messages = new FileOutputStream(messagesFileName, append);
+        events = new FileOutputStream(eventFileName, append);
     }
 
     public void onIncoming(String message) {
+        writeMessage(message);
+    }
+
+    private void writeMessage(String message) {
         try {
-            incoming.write(message.getBytes());
-            incoming.write('\n');
-            incoming.flush();
+            messages.write(message.getBytes());
+            messages.write('\n');
+            messages.flush();
             if (syncAfterWrite) {
-                incoming.getFD().sync();
+                messages.getFD().sync();
             }
         } catch (IOException e) {
-            LogUtil.logThrowable(sessionID, "error writing incoming message to log", e);
+            LogUtil.logThrowable(sessionID, "error writing message to log", e);
         }
     }
 
     public void onOutgoing(String message) {
-        try {
-            outgoing.write(message.getBytes());
-            outgoing.write('\n');
-            outgoing.flush();
-            if (syncAfterWrite) {
-                outgoing.getFD().sync();
-            }
-        } catch (IOException e) {
-            LogUtil.logThrowable(sessionID, "error writing outgoing message to log", e);
-        }
+        writeMessage(message);
     }
 
     public void onEvent(String message) {
@@ -112,12 +107,8 @@ public class FileLog implements Log {
         return eventFileName;
     }
 
-    String getIncomingFileName() {
-        return incomingFileName;
-    }
-
-    String getOutgoingFileName() {
-        return outgoingFileName;
+    String getMessagesFileName() {
+        return messagesFileName;
     }
 
     public void setSyncAfterWrite(boolean syncAfterWrite) {
@@ -125,8 +116,20 @@ public class FileLog implements Log {
     }
     
     void close() throws IOException {
-        incoming.close();
-        outgoing.close();
+        messages.close();
         events.close();
+    }
+    
+    /**
+     * Deletes the log files. Do not perform any log operations while performing
+     * this operation.
+     */
+    public void clear() {
+        try {
+            close();
+            openLogStreams(false);
+        } catch (IOException e) {
+            System.err.println("Could not clear log: "+getClass().getName());
+        }
     }
 }

@@ -148,7 +148,8 @@ public class Session {
     private boolean resetOnDisconnect;
     private boolean millisecondsInTimeStamp;
     private boolean resetWhenInitiatingLogon;
-
+    private String logoutReason;
+    
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
@@ -369,6 +370,14 @@ public class Session {
         enabled = false;
     }
 
+    /**
+     * This method can be used to manually logout of a FIX session.
+     * @param reason this will be included in the logout message
+     */
+    public void logout(String reason) {
+        logoutReason = reason;
+    }
+    
     /**
      * Used internally by initiator implementation.
      *
@@ -1069,7 +1078,8 @@ public class Session {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
                     state.logEvent("Initiated logout request");
-                    generateLogout();
+                    generateLogout(logoutReason);
+                    // TODO QF 1.11 Does logout reason ever get cleared?
                 }
             } else {
                 return;
@@ -1508,5 +1518,22 @@ public class Session {
      */
     public void setRefreshMessageStoreAtLogon(boolean refreshMessageStoreAtLogon) {
         this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
+    }
+    
+    /**
+     * Determine if a session exists with the given ID.
+     * @param sessionID
+     * @return true if session exists, false otherwise.
+     */
+    public static boolean doesSessionExist(SessionID sessionID) {
+       return sessions.containsKey(sessionID);
+    }
+    
+    /**
+     * Return the session count.
+     * @return the number of sessions
+     */
+    public static int numSessions() {
+        return sessions.size();
     }
 }

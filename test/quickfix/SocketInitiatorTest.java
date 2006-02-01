@@ -15,6 +15,10 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 public class SocketInitiatorTest extends TestCase {
     private Log log = LogFactory.getLog(getClass());
 
+    protected void setUp() throws Exception {
+        SystemTime.setTimeSource(null);
+    }
+    
     public void testLogonAfterServerDisconnect() throws Exception {
         ServerThread serverThread = new ServerThread();
         try {
@@ -174,6 +178,7 @@ public class SocketInitiatorTest extends TestCase {
 
         public void onLogon(SessionID sessionId) {
             if (logonLatch != null) {
+                log.info("Releasing logon latch");
                 logonLatch.countDown();
             }
             if (stopAfterLogon) {

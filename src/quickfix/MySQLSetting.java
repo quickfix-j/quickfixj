@@ -19,8 +19,9 @@
 package quickfix;
 
 /**
- * Setting keys for MySQL. The MySQL-specific support will eventually be
- * deprecated and then removed. Use the generic JDBC support instead.
+ * Setting keys for MySQL store and log.
+ *  
+ * @deprecated Use the generic JDBC support instead.
  * 
  * @see quickfix.JdbcSetting
  */
@@ -54,5 +55,30 @@ public class MySQLSetting {
      * store and the log.
      */
     public static final String SETTING_MYSQL_STORE_PORT = "MySQLStorePort";
+
+    /**
+     * Setting for the MySQL port for the log connection.
+     */
+    public static final String SETTING_MYSQL_LOG_HOST = "MySQLLogHost";
+
+    /**
+     * Setting for the MySQL port for the log connection.
+     */
+    public static final String SETTING_MYSQL_LOG_PORT = "MySQLLogPort";
+
+    /**
+     * Setting for the MySQL port for the log database.
+     */
+    public static final String SETTING_MYSQL_LOG_DATABASE = "MySQLLogDatabase";
+
+    /**
+     * Setting for the MySQL port for the log database.
+     */
+    public static final String SETTING_MYSQL_LOG_USER = "MySQLLogUser";
+
+    /**
+     * Setting for the MySQL port for the log database.
+     */
+    public static final String SETTING_MYSQL_LOG_PASSWORD = "MySQLLogPassword";
 
 }

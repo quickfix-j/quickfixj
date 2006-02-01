@@ -27,7 +27,6 @@ import java.sql.SQLException;
  * WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A FACTORY.
  * 
  * @see quickfix.JdbcLogFactory
- * @see quickfix.MySQLLogFactory
  */
 public class MySQLLog extends JdbcLog {
     public MySQLLog(SessionSettings settings, SessionID sessionID) throws SQLException,
@@ -37,6 +36,6 @@ public class MySQLLog extends JdbcLog {
 
     public Connection connect(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
-        return JdbcUtil.openMySQLConnection(settings, sessionID);
+        return JdbcUtil.openMySQLStoreConnection(settings, sessionID);
     }
 }

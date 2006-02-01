@@ -36,7 +36,7 @@ public class MySQLLogTest extends TestCase {
 
         Connection connection = null;
         try {
-            connection = JdbcUtil.openMySQLConnection(settings, sessionID);
+            connection = JdbcUtil.openMySQLStoreConnection(settings, sessionID);
             assertLoggedMessage(connection, sessionID, "incoming", systemTime, inmsg);
             assertLoggedMessage(connection, sessionID, "outgoing", systemTime, outmsg);
             assertLoggedMessage(connection, sessionID, "event", systemTime, eventmsg);

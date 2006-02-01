@@ -19,7 +19,12 @@
 
 package quickfix;
 
-
+/**
+ * Log Factory for MySQL.
+ * 
+ *  * @deprecated Use the generic JDBC support instead.
+ *
+ */
 public class MySQLLogFactory extends JdbcLogFactory {
     public MySQLLogFactory(SessionSettings settings) {
         super(settings);
