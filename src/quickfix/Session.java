@@ -981,16 +981,6 @@ public class Session {
                     state.setResendRange(0, 0);
                 }
             }
-
-            if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
-                int[] range = state.getResendRange();
-
-                if (msgSeqNum >= range[1]) {
-                    state.logEvent("ResendRequest for messages FROM: " + range[0] +
-                            " TO: " + range[1] + " has been satisfied.");
-                    state.setResendRange(0, 0);
-                }
-            }
         } catch (FieldNotFound e) {
             throw e;
         } catch (Exception e) {
