@@ -1,3 +1,4 @@
+
 package quickfix.test.acceptance;
 
 import java.io.IOException;
@@ -17,13 +18,19 @@ import quickfix.FixVersions;
 import quickfix.field.converter.UtcTimestampConverter;
 
 public class InitiateMessageStep implements TestStep {
+
     private Log log = LogFactory.getLog(getClass());
+
     private final String data;
+
     private int clientId = 0;
-    private static final Pattern MESSAGE_PATTERN = Pattern
-            .compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*)");
+
+    private static final Pattern MESSAGE_PATTERN = Pattern.compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*)");
+
     private static final Pattern TIME_PATTERN = Pattern.compile("<TIME([+-](\\d+))*>");
+
     private static final Pattern HEARTBEAT_PATTERN = Pattern.compile("108=\\d+\001");
+
     private static final DecimalFormat CHECKSUM_FORMAT = new DecimalFormat("000");
 
     private static int heartBeatOverride = -1;
@@ -43,8 +50,7 @@ public class InitiateMessageStep implements TestStep {
         Matcher messageStructureMatcher = MESSAGE_PATTERN.matcher(data);
         String message;
         if (messageStructureMatcher.matches()) {
-            if (messageStructureMatcher.group(1) != null
-                    && !messageStructureMatcher.group(1).equals("")) {
+            if (messageStructureMatcher.group(1) != null && !messageStructureMatcher.group(1).equals("")) {
                 clientId = Integer.parseInt(messageStructureMatcher.group(1).replaceAll(",", ""));
             } else {
                 clientId = 1;
@@ -52,9 +58,7 @@ public class InitiateMessageStep implements TestStep {
             String version = messageStructureMatcher.group(2);
             String messageTail = insertTimes(messageStructureMatcher.group(3));
             messageTail = modifyHeartbeat(messageTail);
-            message = version
-                    + (!messageTail.startsWith("9=") ? "9=" + messageTail.length() + "\001" : "")
-                    + messageTail;
+            message = version + (!messageTail.startsWith("9=") ? "9=" + messageTail.length() + "\001" : "") + messageTail;
         } else {
             log.info("garbled message being sent");
             clientId = 1;
@@ -95,9 +99,7 @@ public class InitiateMessageStep implements TestStep {
             }
             String beginString = message.substring(2, 9);
             boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
-            message = matcher.replaceFirst(UtcTimestampConverter.convert(new Date(System
-                    .currentTimeMillis()
-                    + (offset * 1000)), includeMillis));
+            message = matcher.replaceFirst(UtcTimestampConverter.convert(new Date(System.currentTimeMillis() + offset), includeMillis));
             matcher = TIME_PATTERN.matcher(message);
         }
         return message;
