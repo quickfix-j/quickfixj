@@ -55,7 +55,7 @@ class AcceptorProtocolHandler extends AbstractProtocolHandler {
 
     protected void processMessage(ProtocolSession protocolSession, Message message)
             throws Exception {
-        SessionID sessionID = MessageUtils.getRemoteSessionID(message);
+        SessionID sessionID = MessageUtils.getReverseSessionID(message);
         Session qfSession = (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {

@@ -97,7 +97,7 @@ public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
 
     public void messageReceived(ProtocolSession protocolSession, Object message) throws Exception {
         String messageString = (String) message;
-        SessionID remoteSessionID = MessageUtils.getRemoteSessionID(messageString);
+        SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
         Session quickFixSession = findQFSession(protocolSession, remoteSessionID);
         if (quickFixSession != null) {
             quickFixSession.getLog().onIncoming(messageString);

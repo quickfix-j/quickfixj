@@ -47,7 +47,7 @@ public class MessageUtils {
                 getStringField(messageString, TargetCompID.FIELD));
     }
 
-	public static SessionID getRemoteSessionID(Message fixMessage) {
+	public static SessionID getReverseSessionID(Message fixMessage) {
 		Header header = fixMessage.getHeader();
 		return new SessionID(
 				getFieldOrDefault(header, BeginString.FIELD, null),
@@ -55,7 +55,7 @@ public class MessageUtils {
 				getFieldOrDefault(header, SenderCompID.FIELD, null));
 	}
 
-    public static SessionID getRemoteSessionID(String messageString) {
+    public static SessionID getReverseSessionID(String messageString) {
         return new SessionID(
                 getStringField(messageString, BeginString.FIELD),
                 getStringField(messageString, TargetCompID.FIELD),

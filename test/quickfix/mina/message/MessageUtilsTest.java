@@ -30,19 +30,19 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("ISLD", sessionID.getTargetCompID());
     }
 
-    public void testRemoteSessionIdFromMessage() throws Exception {
+    public void testReverseSessionIdFromMessage() throws Exception {
         Message message = new Logon();
         message.getHeader().setString(SenderCompID.FIELD, "TW");
         message.getHeader().setString(TargetCompID.FIELD, "ISLD");
-        SessionID sessionID = MessageUtils.getRemoteSessionID(message);
+        SessionID sessionID = MessageUtils.getReverseSessionID(message);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
         assertEquals("ISLD", sessionID.getSenderCompID());
         assertEquals("TW", sessionID.getTargetCompID());
     }
     
-    public void testRemoteSessionIdFromMessageWithMissingFields() throws Exception {
+    public void testReverseSessionIdFromMessageWithMissingFields() throws Exception {
         Message message = new Logon();
-        SessionID sessionID = MessageUtils.getRemoteSessionID(message);
+        SessionID sessionID = MessageUtils.getReverseSessionID(message);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
         assertNull(sessionID.getSenderCompID());
         assertNull(sessionID.getTargetCompID());
@@ -56,9 +56,9 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("ISLD", sessionID.getTargetCompID());
     }
 
-    public void testRemoteSessionIdFromRawMessage() throws Exception {
+    public void testReverseSessionIdFromRawMessage() throws Exception {
         String messageString = "8=FIX.4.09=5635=A34=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
-        SessionID sessionID = MessageUtils.getRemoteSessionID(messageString);
+        SessionID sessionID = MessageUtils.getReverseSessionID(messageString);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
         assertEquals("ISLD", sessionID.getSenderCompID());
         assertEquals("TW", sessionID.getTargetCompID());
