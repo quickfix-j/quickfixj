@@ -61,7 +61,7 @@
   <xsl:variable name="package" select="concat('quickfix.fix',/fix/@major,/fix/@minor,$subpackage)"/>
 package <xsl:value-of select="$package"/>;
 import quickfix.FieldNotFound;
-import quickfix.field.*;<xsl:call-template name="extra-imports"/>
+<xsl:call-template name="extra-imports"/>
 
 public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseClass"/>
 {
@@ -71,7 +71,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseC
   public <xsl:value-of select="@name"/>()
   {
     super();<xsl:if test="$baseClass = 'Message'">
-    getHeader().setField(new MsgType("<xsl:value-of select="@msgtype"/>"));</xsl:if>
+    getHeader().setField(new quickfix.field.MsgType("<xsl:value-of select="@msgtype"/>"));</xsl:if>
   }
   <xsl:if test="count(field[@required='Y']) > 0">
   public <xsl:value-of select="@name"/>(<xsl:for-each select="field[@required='Y']">
@@ -79,7 +79,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseC
   	  'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 	  'abcdefghijklmnopqrstuvwxyz'), 
 	  substring(@name, 2, string-length(@name)-1))"/>
-    <xsl:if test="position() > 1">, </xsl:if><xsl:value-of select="concat(@name, ' ', $varname)"/></xsl:for-each>) {
+    <xsl:if test="position() > 1">, </xsl:if>quickfix.field.<xsl:value-of select="concat(@name, ' ', $varname)"/></xsl:for-each>) {
     this();<xsl:for-each select="field[@required='Y']">
       <xsl:variable name="varname" select="concat(translate(substring(@name, 1, 1),
   		'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
