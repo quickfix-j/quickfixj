@@ -92,8 +92,8 @@ public class InitiateMessageStep implements TestStep {
         while (matcher.find()) {
             long offset = 0;
             if (matcher.group(2) != null) {
-                offset = Long.parseLong(matcher.group(2)) * 1000L;
-                if (matcher.group(2).equals("-")) {
+                offset = Long.parseLong(matcher.group(2)) * 1100L;
+                if (matcher.group(1).startsWith("-")) {
                     offset *= -1;
                 }
             }
