@@ -20,10 +20,10 @@
 package quickfix;
 
 /**
- * Abstract for obtaining system time. A system time source should be used
+ * Interface for obtaining system time. A system time source should be used
  * instead of direct system time to facilitate unit testing.
  */
-interface SystemTimeSource {
+public interface SystemTimeSource {
     /**
      * Obtain the current time.
      * 

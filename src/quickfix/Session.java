@@ -236,7 +236,7 @@ public class Session {
         if (sessionSchedule == null) {
             return true;
         }
-        if ((date.getTime() - lastSessionTimeCheck) > 1000L) {
+        if ((date.getTime() - lastSessionTimeCheck) >= 1000L) {
             lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date),
                     SystemTime.getUtcCalendar(state.getCreationTime()));
             lastSessionTimeCheck = date.getTime();
@@ -356,7 +356,7 @@ public class Session {
     }
 
     private void initializeHeader(Message.Header header) {
-        state.setLastSentTime(System.currentTimeMillis());
+        state.setLastSentTime(SystemTime.currentTimeMillis());
         header.setString(BeginString.FIELD, sessionID.getBeginString());
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
@@ -961,7 +961,7 @@ public class Session {
                 return false;
             }
 
-            state.setLastReceivedTime(System.currentTimeMillis());
+            state.setLastReceivedTime(SystemTime.currentTimeMillis());
             state.clearTestRequestCounter();
 
             if (checkTooHigh && isTargetTooHigh(msgSeqNum)) {
@@ -1025,7 +1025,7 @@ public class Session {
         if (!checkLatency) {
             return true;
         }
-        return Math.abs(System.currentTimeMillis() - sendingTime.getTime()) / 1000 <= maxLatency;
+        return Math.abs(SystemTime.currentTimeMillis() - sendingTime.getTime()) / 1000 <= maxLatency;
     }
 
     private void fromCallback(String msgType, Message msg, SessionID sessionID2)
@@ -1151,7 +1151,7 @@ public class Session {
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
         }
         initializeHeader(logon.getHeader());
-        state.setLastReceivedTime(System.currentTimeMillis());
+        state.setLastReceivedTime(SystemTime.currentTimeMillis());
         state.clearTestRequestCounter();
         state.setLogonSent(true);
         return sendRaw(logon, 0);
