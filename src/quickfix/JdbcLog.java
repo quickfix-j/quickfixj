@@ -101,9 +101,7 @@ class JdbcLog implements quickfix.Log {
             statement.setString(2, sessionID.getSenderCompID());
             statement.setString(3, sessionID.getTargetCompID());
             statement.setString(4, sessionID.getSessionQualifier());
-            if (!statement.execute()) {
-                log.error("Error while clearing JDBC log");
-            }
+            statement.execute();
         } catch (SQLException e) {
             if (statement != null) {
                 try {
