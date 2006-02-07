@@ -22,7 +22,6 @@ package quickfix;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 
 import org.apache.commons.logging.Log;
@@ -93,10 +92,18 @@ class JdbcLog implements quickfix.Log {
     }
 
     private void clearTable(String tableName) {
-        Statement statement = null;
+        PreparedStatement statement = null;
         try {
-            statement = connection.createStatement();
-            statement.execute("DELETE FROM " + tableName);
+            statement = connection.prepareStatement("DELETE FROM " + tableName
+                    + " WHERE beginString=? AND senderCompID=? "
+                    + "AND targetCompID=? AND session_qualifier=?");
+            statement.setString(1, sessionID.getBeginString());
+            statement.setString(2, sessionID.getSenderCompID());
+            statement.setString(3, sessionID.getTargetCompID());
+            statement.setString(4, sessionID.getSessionQualifier());
+            if (!statement.execute()) {
+                log.error("Error while clearing JDBC log");
+            }
         } catch (SQLException e) {
             if (statement != null) {
                 try {
