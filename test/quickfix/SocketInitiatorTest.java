@@ -18,7 +18,7 @@ public class SocketInitiatorTest extends TestCase {
     protected void setUp() throws Exception {
         SystemTime.setTimeSource(null);
     }
-    
+
     public void testLogonAfterServerDisconnect() throws Exception {
         ServerThread serverThread = new ServerThread();
         try {
@@ -183,18 +183,7 @@ public class SocketInitiatorTest extends TestCase {
             }
             if (stopAfterLogon) {
                 log.info("Stopping after logon");
-                if (initiator instanceof quickfix.netty.AbstractSocketInitiator) {
-                    // Netty-based block requires stop in separate thread
-                    new Thread(new Runnable() {
-
-                        public void run() {
-                            initiator.stop();
-                        }
-
-                    }).start();
-                } else {
-                    initiator.stop();
-                }
+                initiator.stop();
             }
         }
 
