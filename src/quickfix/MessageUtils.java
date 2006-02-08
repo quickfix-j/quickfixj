@@ -17,19 +17,12 @@
  * are not clear to you.
  ******************************************************************************/
 
-package quickfix.mina.message;
+package quickfix;
 
-import quickfix.DataDictionary;
-import quickfix.FieldMap;
-import quickfix.FieldNotFound;
-import quickfix.InvalidMessage;
-import quickfix.Message;
-import quickfix.MessageFactory;
-import quickfix.SessionID;
-import quickfix.Message.Header;
 import quickfix.field.BeginString;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
+import quickfix.Message.Header;
 
 public class MessageUtils {
 	public static SessionID getSessionID(Message fixMessage) {

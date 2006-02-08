@@ -1,9 +1,10 @@
-package quickfix.mina.message;
+package quickfix;
 
 import junit.framework.TestCase;
 import quickfix.DefaultMessageFactory;
 import quickfix.InvalidMessage;
 import quickfix.Message;
+import quickfix.MessageUtils;
 import quickfix.SessionID;
 import quickfix.field.BeginString;
 import quickfix.field.MsgType;

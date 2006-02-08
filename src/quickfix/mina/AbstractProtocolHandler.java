@@ -33,9 +33,9 @@ import quickfix.InvalidMessage;
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.MessageFactory;
+import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
-import quickfix.mina.message.MessageUtils;
 
 public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
     protected Log log = LogFactory.getLog(getClass());
