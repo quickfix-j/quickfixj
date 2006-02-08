@@ -52,7 +52,7 @@
 	  <xsl:if test="$baseClass = 'Message'">
 		  <xsl:apply-templates select="fix/messages/message[@name=$itemName]"/>
 	  </xsl:if>
-	  <xsl:if test="$baseClass = 'quickfix.FieldMap'">
+	  <xsl:if test="$baseClass = 'quickfix.MessageComponent'">
 		  <xsl:apply-templates select="fix/components/component[@name=$itemName]"/>
 	  </xsl:if>
   </xsl:template>
@@ -67,7 +67,13 @@ public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseC
 {
 
   static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
-
+  <xsl:if test="$baseClass = 'quickfix.MessageComponent'">
+  private int[] componentFields = { <xsl:apply-templates select="field|component" mode="component-field-numbers"/> };
+  protected int[] getFields() { return componentFields; }
+  private int[] componentGroups = { <xsl:apply-templates select="group" mode="component-field-numbers"/> };
+  protected int[] getGroupFields() { return componentGroups; }
+  </xsl:if>
+		  
   public <xsl:value-of select="@name"/>()
   {
     super();<xsl:if test="$baseClass = 'Message'">
@@ -170,6 +176,24 @@ import quickfix.Group;</xsl:when>
   	</xsl:if>
   </xsl:template>
   
+	  <!--  Find the component numbers and order -->
+  
+  <xsl:template mode="component-field-numbers" match="field">
+    <xsl:variable name="name" select="@name"/>
+  	<xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
+
+  <xsl:template mode="component-field-numbers" match="group">
+    <xsl:variable name="name" select="@name"/>
+  	<xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
+ 
+  <xsl:template mode="component-field-numbers" match="component">
+    <xsl:variable name="name" select="@name"/>  
+  	<xsl:apply-templates select="/fix/components/component[@name=$name]/field|group|component" 
+  		mode="component-field-numbers"/>
+  </xsl:template>
+
+	<!-- ================================================================= -->
+	
   <!--  Find the field numbers and order -->
   
   <xsl:template mode="group-field-numbers" match="field">

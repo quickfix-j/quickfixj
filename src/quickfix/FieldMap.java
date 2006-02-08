@@ -115,13 +115,13 @@ public abstract class FieldMap implements Serializable {
         fields.putAll(fieldMap.fields);
     }
 
-    protected void setComponent(FieldMap component) {
-        fields.putAll(component.fields);
+    protected void setComponent(MessageComponent component) {
+        component.copyTo(this);
     }
     
-    protected void getComponent(FieldMap component) {
+    protected void getComponent(MessageComponent component) {
         component.clear();
-        component.setFields(this);
+        component.copyFrom(this);
     }
 
 	public void setGroups(FieldMap fieldMap) {
@@ -129,6 +129,10 @@ public abstract class FieldMap implements Serializable {
 		groups.putAll(fieldMap.groups);
 	}
 
+    protected void setGroups(int key, List groupList) {
+        groups.put(new Integer(key), groupList);
+    }
+    
 	public void setString(int field, String value) throws NoTagValue {
 		setField(new StringField(field, value));
 	}
@@ -260,6 +264,10 @@ public abstract class FieldMap implements Serializable {
 		}
 	}
 
+    protected void setField(int key, Object field) {
+        fields.put(new Integer(key), field);
+    }
+    
 	public void setField(StringField field) throws NoTagValue {
 		if (field.getValue() == null) {
 			throw new NullPointerException("Null field values are not allowed.");

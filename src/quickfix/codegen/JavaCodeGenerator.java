@@ -170,7 +170,7 @@ public class JavaCodeGenerator {
                 log.info("component (FIX 4." + fixVersion + "): " + componentName);
                 generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
                         "itemName", XSLPARAM_SERIAL_UID, "baseClass", "subpackage" }, new String[] { componentName,
-                        SERIAL_UID_STR, "quickfix.FieldMap", ".component" }, outputBaseDir + "/quickfix/fix4" + fixVersion + "/component/"
+                        SERIAL_UID_STR, "quickfix.MessageComponent", ".component" }, outputBaseDir + "/quickfix/fix4" + fixVersion + "/component/"
                         + componentName + ".java");
             }
         }

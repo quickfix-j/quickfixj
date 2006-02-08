@@ -10,6 +10,7 @@ import quickfix.field.AllocShares;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
+import quickfix.field.ClOrdID;
 import quickfix.field.CountryOfIssue;
 import quickfix.field.EncryptMethod;
 import quickfix.field.IOIid;
@@ -481,9 +482,17 @@ public class MessageTest extends TestCase {
         assertEquals(new CountryOfIssue("USA"), newOrderSingle.getCountryOfIssue());
         assertEquals(new SecurityType(SecurityType.COMMON_STOCK), newOrderSingle.getSecurityType());
         
+        newOrderSingle.set(new ClOrdID("CLIENT_ORDER_ID"));
         Instrument instrument2 = newOrderSingle.getInstrument();
         assertEquals(new Symbol("DELL"), instrument2.getSymbol());
         assertEquals(new CountryOfIssue("USA"), instrument2.getCountryOfIssue());
         assertEquals(new SecurityType(SecurityType.COMMON_STOCK), instrument2.getSecurityType());
+        try {
+            instrument2.getField(new ClOrdID());
+            fail("should have thrown exception");
+        } catch (FieldNotFound e) {
+            // expected
+        }
+        
     }
 }
