@@ -63,10 +63,6 @@ public class FieldType {
 
     public static FieldType fromName(String fixVersion, String name) {
         FieldType type = (FieldType) values.get(name);
-        // TODO QUESTION review the spec about this Char->String conversion 
-        //        if ( fixVersion.compareTo(FixVersions.BEGINSTRING_FIX42) == -1 && type == FieldType.Char ) {
-        //            type = FieldType.String;
-        //        }
         return type != null ? type : FieldType.Unknown;
     }
 

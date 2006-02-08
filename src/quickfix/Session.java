@@ -572,12 +572,10 @@ public class Session {
                 }
             }
         } catch (IncorrectTagValue e) {
-            // TODO QUESTION Why is incorrect tag value being rejected as incorrect tag number?
             generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
         } catch (InvalidMessage e) {
             state.logEvent("Skipping invalid message: " + e.getMessage());
         } catch (RejectLogon e) {
-            // TODO TEST need a test for RejectLogon exception
             String rejectMessage = e.getMessage() != null ? (": " + e.getMessage()) : "";
             state.getLog().onEvent("Logon rejected" + rejectMessage);
             generateLogout(e.getMessage());
@@ -817,10 +815,6 @@ public class Session {
         if (!state.isLogonReceived()) {
             String errorMessage = "Tried to send a reject while not logged on: " + reason
                     + " (field " + field + ")";
-            // TODO TEST The C++ code doesn't throw an exception, but the AT
-            // expects a disconnect (???)
-            //    state.logEvent(errorMessage);
-            //    return;
             throw new SessionException(errorMessage);
 
         }
@@ -1270,16 +1264,8 @@ public class Session {
     private void next(String msg) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            // TODO CLEANUP move message type extraction to Message
-            int typeStart = msg.indexOf("\00135=") + 4;
-            int typeEnd;
-            for (typeEnd = typeStart; typeEnd < msg.length(); typeEnd++) {
-                if (msg.charAt(typeEnd) == '\001') {
-                    break;
-                }
-            }
-            Message message = messageFactory.create(dataDictionary.getVersion(), msg.substring(
-                    typeStart, typeEnd));
+            String msgType = MessageUtils.getMessageType(msg);
+            Message message = messageFactory.create(dataDictionary.getVersion(), msgType);
             message.fromString(msg, dataDictionary, false);
             next(message);
         } catch (InvalidMessage e) {

@@ -25,6 +25,7 @@ import org.apache.mina.protocol.ProtocolSession;
 
 import quickfix.Log;
 import quickfix.Message;
+import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.field.HeartBtInt;
@@ -34,7 +35,6 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolSessionResponder;
 import quickfix.mina.SessionConnector;
-import quickfix.mina.message.MessageUtils;
 
 class AcceptorProtocolHandler extends AbstractProtocolHandler {
     private final Map acceptorSessions;

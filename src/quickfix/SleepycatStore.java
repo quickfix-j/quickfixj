@@ -47,7 +47,7 @@ public class SleepycatStore implements RefreshableMessageStore {
     private final SessionID sessionID; // session key
     private SessionInfo info;
 
-    private String dbDir = "/cygwin/tmp/foo"; // TODO change this!
+    private final String dbDir;
     private String seqDbName = "seq";
     private String msgDbName = "outmsg";
 

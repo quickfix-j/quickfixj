@@ -246,7 +246,6 @@ class JdbcStore implements RefreshableMessageStore {
                 update.setInt(5, sequence);
                 update.setString(6, message);
                 update.execute();
-                // TODO QUESTION determine why the update is here
                 return false;
             } catch (SQLException e) {
                 throw new IOException(e.getMessage());

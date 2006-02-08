@@ -209,7 +209,6 @@ public abstract class SessionConnector {
                 while (sessionItr.hasNext()) {
                     quickfix.Session session = (quickfix.Session) sessionItr.next();
                     try {
-                        // TODO REVIEW Need to sync logon and reconnect (this seems to work)
                         if (session.getResponder() != null) {
                             session.next();
                         }
