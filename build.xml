@@ -16,7 +16,9 @@
 	<property name="xsl.dir" value="src/quickfix/codegen" />
 	<property name="etc.dir" value="etc" />
 	<property name="bin.dir" value="bin" />
-	<property name="lib.dir" value="lib" />
+	<property name="core.lib.dir" value="lib" />
+	<property name="test.lib.dir" value="lib/test" />
+	<property name="optional.lib.dir" value="lib/optional" />
 	<property name="java.debug" value="on" />
 	<property name="quickfixj.jar" value="quickfixj.jar" />
 	<property name="release.output.dir" value="${ant.output.dir}/release" />
@@ -24,7 +26,10 @@
 	<property name="usermanual.dir" value="doc/usermanual" />
 	<property name="javadoc.output.dir" value="${ant.output.dir}/javadoc" />
 	<property name="test.report.dir" value="${ant.output.dir}/testreports" />
+	<property name="junit_fork.dir" value="." />
 	<property name="junit.haltonfailure" value="yes" />
+	<property name="acceptance.isforked" value="no" />
+	<property name="acceptance.showoutput" value="yes" />
 	<property name="atest.classname"
 	          value="quickfix.test.acceptance.AcceptanceTestSuite" />
 	<property name="atest.report"
@@ -35,33 +40,30 @@
 	          value="${test.report.dir}/.atest_timestamp" />
 
 
-	<path id="runtime.lib.classpath">
-		<fileset id="runtime.lib.fileset" dir="${lib.dir}">
-			<include name="commons-logging-1.0.4.jar" />
-			<include name="tl-netty2-1.8.0.jar" />
-			<include name="mina-0.8.2.jar" />
-			<include name="slf4j-jcl.jar" />
-			<include name="backport-util-concurrent-2.0.jar" />
+	<path id="core.lib.classpath">
+		<fileset id="core.lib.fileset" dir="${core.lib.dir}">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<path id="optional.lib.classpath">
+		<fileset dir="${optional.lib.dir}">
+			<include name="**/*.jar" />
 		</fileset>
 	</path>
 
 	<path id="test.lib.classpath">
-		<fileset dir="${lib.dir}">
-			<include name="junit-3.8.1.jar" />
-			<include name="hsqldb-1.8.0.jar" />
-			<include name="mysql-connector-java-3.1.10-bin.jar" />
-			<include name="sleepycat-je_2.0.54.jar"/>
-			<include name="commons-configuration-1.1.jar"/>
-			<include name="commons-lang-2.1.jar"/>
-			<include name="easymock-1.1.jar"/>
+		<fileset dir="${test.lib.dir}">
+			<include name="**/*.jar" />
 		</fileset>
 	</path>
 
 	<path id="all.classpath">
 		<pathelement location="${product.classes.dir}" />
 		<pathelement location="${test.classes.dir}" />
-		<path refid="runtime.lib.classpath" />
+		<path refid="core.lib.classpath" />
 		<path refid="test.lib.classpath" />
+		<path refid="optional.lib.classpath" />
 	</path>
 
 	<macrodef name="initdir">
@@ -107,7 +109,7 @@
 		<javac srcdir="${product.src.dir}/quickfix/codegen"
 		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
 		       destdir="${product.classes.dir}"
-		       classpathref="runtime.lib.classpath" />
+		       classpathref="core.lib.classpath" />
 		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
 			<arg value="${specs.dir}" />
 			<arg value="${xsl.dir}" />
@@ -115,7 +117,7 @@
 			<classpath>
 				<pathelement location="${etc.dir}" />
 				<pathelement location="${product.classes.dir}" />
-				<path refid="runtime.lib.classpath" />
+				<path refid="core.lib.classpath" />
 			</classpath>
 		</java>
 	</target>
@@ -239,7 +241,7 @@
 	        depends="compile, test.init"
 	        unless="utests.uptodate">
 		<junit fork="yes"
-			   dir="."
+			   	 dir="${junit_fork.dir}"
 		       tempdir="${ant.output.dir}"
 		       printsummary="true"
 		       showoutput="false"
@@ -280,10 +282,11 @@
 	        unless="atests.uptodate"
 	        depends="compile, test.init">
 		<!-- <junit fork="yes" forkMode="once" dir="." -->
-		<junit fork="no"
+		<junit fork="${acceptance.isforked}"
+			   	 dir="${junit_fork.dir}"
 		       tempdir="${ant.output.dir}"
 		       printsummary="true"
-		       showoutput="true"
+		       showoutput="${acceptance.showoutput}"
 		       errorproperty="atests.failed"
 		       failureproperty="atests.failed"
 			   maxmemory="512m">
@@ -413,7 +416,7 @@
 		</copy>
 		<convertUnixScripts dir="${release.bin.staging.dir}"/>
 		<copy todir="${release.bin.staging.dir}/lib">
-			<fileset refid="runtime.lib.fileset" />
+			<fileset refid="core.lib.fileset" />
 		</copy>
 		<copy todir="${release.bin.staging.dir}/doc/api">
 			<fileset dir="${javadoc.output.dir}" />
