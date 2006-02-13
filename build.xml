@@ -353,7 +353,7 @@
 	        description="release files with explicit version"
 	        depends="query.version,release.shared" />
 
-	<target name="query.version">
+	<target name="query.version" unless="release.prefix">
 		<input message="Enter version number" addproperty="version" />
 		<property name="release.prefix" value="quickfixj-${version}" />
 	</target>
