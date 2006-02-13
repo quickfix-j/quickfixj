@@ -15,13 +15,13 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.test.acceptance.timer.TimerTest;
 
 public class AcceptanceTestSuite extends TestSuite {
-    private static Log log = LogFactory.getLog(AcceptanceTestSuite.class);
+    private static Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";
     private boolean skipSlowTests;
 

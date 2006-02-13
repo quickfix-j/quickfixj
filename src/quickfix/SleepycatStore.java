@@ -25,8 +25,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.bind.tuple.TupleBinding;
@@ -43,7 +43,7 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
 public class SleepycatStore implements RefreshableMessageStore {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private final SessionID sessionID; // session key
     private SessionInfo info;
 

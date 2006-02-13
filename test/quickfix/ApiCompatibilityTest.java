@@ -269,10 +269,12 @@ public class ApiCompatibilityTest {
 
             // TODO QF 1.11 Temporary -- Remove these after hasGroup issue is resolved
             Class jniGroupClass = jniClassLoader.loadClass("quickfix.Group");
+            ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class, jniGroupClass });
             ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class });
             ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class,
                     int.class });
             ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class, int.class });
             ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { jniGroupClass });
             ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class,
                     jniGroupClass });
@@ -348,7 +350,7 @@ public class ApiCompatibilityTest {
             }
         };
         try {
-            String jarPath = "lib/quickfix-jni.jar";
+            String jarPath = "lib/test/quickfix-jni.jar";
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
             IgnoredItems ignoredItems = new IgnoredItems(jniClassLoader);

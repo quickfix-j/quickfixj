@@ -25,8 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
 import org.apache.mina.protocol.ProtocolSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.ConfigError;
 import quickfix.FieldConvertError;
@@ -43,7 +44,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public abstract class SessionConnector {
     public final static String QF_SESSION = "QF_SESSION";
-    protected final Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private Map sessions;
     private final SessionSettings settings;
@@ -161,7 +162,7 @@ public abstract class SessionConnector {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    log.error(e);
+                    log.error(e.getMessage(), e);
                 }
             }
         }

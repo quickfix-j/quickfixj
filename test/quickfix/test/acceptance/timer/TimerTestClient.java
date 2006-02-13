@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.Application;
 import quickfix.ConfigError;
@@ -35,7 +35,7 @@ import quickfix.fix44.TestRequest;
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
  */
 public class TimerTestClient extends MessageCracker implements Application {
-    private final Log log = LogFactory.getLog(TimerTestServer.class);
+    private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
     private boolean stop = false;
     private final Object shutdownLatch = new Object();

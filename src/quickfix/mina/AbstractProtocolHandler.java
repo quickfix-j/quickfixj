@@ -22,11 +22,11 @@ package quickfix.mina;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.protocol.ProtocolHandlerAdapter;
 import org.apache.mina.protocol.ProtocolSession;
 import org.apache.mina.protocol.ProtocolViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.DataDictionary;
 import quickfix.InvalidMessage;
@@ -38,7 +38,7 @@ import quickfix.Session;
 import quickfix.SessionID;
 
 public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
-    protected Log log = LogFactory.getLog(getClass());
+    protected Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
     
     public AbstractProtocolHandler(NetworkingOptions options) {

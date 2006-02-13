@@ -26,8 +26,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
 import org.apache.mina.protocol.ProtocolProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.Application;
 import quickfix.ConfigError;
@@ -47,7 +48,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
-    protected final Log log = org.apache.commons.logging.LogFactory.getLog(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,

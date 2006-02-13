@@ -39,8 +39,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -51,7 +51,7 @@ import org.xml.sax.SAXException;
  * 
  */
 public class JavaCodeGenerator {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private String outputBaseDir;
     private String specificationDir;
     private String xformDir;
@@ -248,7 +248,7 @@ public class JavaCodeGenerator {
             JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(args[0], args[1], args[2]);
             javaCodeGenerator.generate();
         } catch (Exception e) {
-            LogFactory.getLog(JavaCodeGenerator.class).error("error during code generation", e);
+            LoggerFactory.getLogger(JavaCodeGenerator.class).error("error during code generation", e);
             System.exit(1);
         }
     }

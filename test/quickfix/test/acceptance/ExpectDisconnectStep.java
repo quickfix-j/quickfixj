@@ -8,11 +8,11 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 import junit.framework.TestResult;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExpectDisconnectStep implements TestStep {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private static final Pattern DISCONNECT_PATTERN = Pattern.compile("e(\\d+)*,?DISCONNECT");
     private int clientId = 0;
     private String command;

@@ -26,22 +26,22 @@ package quickfix;
  * 
  * See: <a href="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</a> documentation. 
  */
-public class CommonsLogFactory implements LogFactory {
+public class SLF4JLogFactory implements LogFactory {
     /**
      * Log category for events.
      */
-    public final static String SETTING_EVENT_CATEGORY = "CommonsLogEventCategory";
+    public final static String SETTING_EVENT_CATEGORY = "SLF4JLogEventCategory";
     /**
      * Log category for incoming messages.
      */
-    public final static String SETTING_INMSG_CATEGORY = "CommonsLogIncomingMessageCategory";
+    public final static String SETTING_INMSG_CATEGORY = "SLF4JLogIncomingMessageCategory";
     /**
      * Log category for outgoing messages.
      */
-    public final static String SETTING_OUTMSG_CATEGORY = "CommonsLogOutgoingMessageCategory";
+    public final static String SETTING_OUTMSG_CATEGORY = "SLF4JLogOutgoingMessageCategory";
     private final SessionSettings settings;
 
-    public CommonsLogFactory(SessionSettings settings) {
+    public SLF4JLogFactory(SessionSettings settings) {
         this.settings = settings;
     }
 
@@ -64,6 +64,6 @@ public class CommonsLogFactory implements LogFactory {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new CommonsLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory);
+        return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory);
     }
 }

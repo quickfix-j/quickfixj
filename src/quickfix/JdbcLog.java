@@ -24,11 +24,11 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class JdbcLog implements quickfix.Log {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private static final String MESSAGES_LOG_TABLE = "messages_log";
     private static final String EVENT_LOG_TABLE = "event_log";
     private Connection connection;
@@ -77,7 +77,7 @@ class JdbcLog implements quickfix.Log {
                 try {
                     insert.close();
                 } catch (SQLException e) {
-                    log.error(e);
+                    log.error(e.getMessage(), e);
                 }
             }
         }
@@ -107,7 +107,7 @@ class JdbcLog implements quickfix.Log {
                 try {
                     statement.close();
                 } catch (SQLException e1) {
-                    log.error(e1);
+                    log.error(e1.getMessage(), e1);
                 }
             }
         }

@@ -9,11 +9,11 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 import junit.framework.TestResult;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConnectToServerStep implements TestStep {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private static final Pattern CONNECT_PATTERN = Pattern.compile("i(\\d+)*,?CONNECT");
     private String command;
     private int clientId = 0;
@@ -34,7 +34,7 @@ public class ConnectToServerStep implements TestStep {
             Assert.fail("incorrect connect command: " + command);
         }
         log.debug("connecting to client " + clientId);
-        long reconnectDelay = Long.getLong("at.reconnectDelay", 0).longValue();
+        long reconnectDelay = Long.getLong("at.reconnectDelay", 50L).longValue();
         if (reconnectDelay > 0) {
             try {
                 Thread.sleep(reconnectDelay);

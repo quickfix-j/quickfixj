@@ -5,19 +5,16 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import org.apache.commons.logging.LogFactory;
-
 import junit.framework.TestCase;
 
-public class CommonsLogTest extends TestCase {
-    public CommonsLogTest(String name) {
+public class SLF4JLogTest extends TestCase {
+    public SLF4JLogTest(String name) {
         super(name);
     }
 
     protected void setUp() throws Exception {
         super.setUp();
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
-        LogFactory.releaseAll();
         System.setProperty("org.apache.commons.logging.Log",
                 "org.apache.commons.logging.impl.Jdk14Logger");
     }
@@ -33,26 +30,26 @@ public class CommonsLogTest extends TestCase {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis());
         SessionSettings settings = new SessionSettings();
-        CommonsLogFactory factory = new CommonsLogFactory(settings);
+        SLF4JLogFactory factory = new SLF4JLogFactory(settings);
         Log commonsLog = factory.create(sessionID);
 
         String loggedText = "TEST123";
 
-        setUpLoggerForTest(CommonsLog.DEFAULT_EVENT_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
         commonsLog.onEvent(loggedText);
-        assertMessageLogged(sessionID, CommonsLog.DEFAULT_EVENT_CATEGORY, loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY, loggedText);
 
-        setUpLoggerForTest(CommonsLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         commonsLog.onIncoming(loggedText);
-        assertMessageLogged(sessionID, CommonsLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
 
-        setUpLoggerForTest(CommonsLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         commonsLog.onOutgoing(loggedText);
-        assertMessageLogged(sessionID, CommonsLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
 
-        settings.setString(sessionID, CommonsLogFactory.SETTING_EVENT_CATEGORY, "event");
-        settings.setString(sessionID, CommonsLogFactory.SETTING_INMSG_CATEGORY, "in");
-        settings.setString(sessionID, CommonsLogFactory.SETTING_OUTMSG_CATEGORY, "out");
+        settings.setString(sessionID, SLF4JLogFactory.SETTING_EVENT_CATEGORY, "event");
+        settings.setString(sessionID, SLF4JLogFactory.SETTING_INMSG_CATEGORY, "in");
+        settings.setString(sessionID, SLF4JLogFactory.SETTING_OUTMSG_CATEGORY, "out");
         commonsLog = factory.create(sessionID);
 
         setUpLoggerForTest("event");

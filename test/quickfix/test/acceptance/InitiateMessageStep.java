@@ -11,15 +11,15 @@ import java.util.regex.Pattern;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestResult;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.FixVersions;
 import quickfix.field.converter.UtcTimestampConverter;
 
 public class InitiateMessageStep implements TestStep {
 
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     private final String data;
 

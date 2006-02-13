@@ -1,16 +1,35 @@
 package quickfix.test.acceptance.timer;
 
-import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import quickfix.*;
-import quickfix.field.ListID;
-import quickfix.fix44.ListStatusRequest;
-import quickfix.fix44.Logon;
-
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import quickfix.Application;
+import quickfix.DefaultMessageFactory;
+import quickfix.DoNotSend;
+import quickfix.FieldNotFound;
+import quickfix.FixVersions;
+import quickfix.IncorrectDataFormat;
+import quickfix.IncorrectTagValue;
+import quickfix.MemoryStoreFactory;
+import quickfix.Message;
+import quickfix.MessageCracker;
+import quickfix.MessageStoreFactory;
+import quickfix.RejectLogon;
+import quickfix.ScreenLogFactory;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
+import quickfix.SessionSettings;
+import quickfix.SocketAcceptor;
+import quickfix.UnsupportedMessageType;
+import quickfix.field.ListID;
+import quickfix.fix44.ListStatusRequest;
+import quickfix.fix44.Logon;
+import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -18,7 +37,7 @@ import java.util.TimerTask;
 public class TimerTestServer extends MessageCracker implements Application, Runnable {
     SocketAcceptor acceptor;
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
-    private final Log log = LogFactory.getLog(TimerTestServer.class);
+    private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
     private boolean stop = false;
     private final Object shutdownLatch = new Object();

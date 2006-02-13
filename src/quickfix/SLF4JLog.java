@@ -19,27 +19,27 @@
 
 package quickfix;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class CommonsLog implements quickfix.Log {
+public class SLF4JLog implements quickfix.Log {
     public static final String DEFAULT_EVENT_CATEGORY = "quickfixj.event";
     public static final String DEFAULT_INCOMING_MSG_CATEGORY = "quickfixj.msg.incoming";
     public static final String DEFAULT_OUTGOING_MSG_CATEGORY = "quickfixj.msg.outgoing";
 
     private final SessionID sessionID;
-    private final Log eventLog;
-    private final Log incomingMsgLog;
-    private final Log outgoingMsgLog;
+    private final Logger eventLog;
+    private final Logger incomingMsgLog;
+    private final Logger outgoingMsgLog;
 
-    public CommonsLog(SessionID sessionID, String eventCategory, String incomingMsgCategory,
+    public SLF4JLog(SessionID sessionID, String eventCategory, String incomingMsgCategory,
             String outgoingMsgCategory) {
         this.sessionID = sessionID;
-        eventLog = LogFactory
-                .getLog(eventCategory != null ? eventCategory : DEFAULT_EVENT_CATEGORY);
-        incomingMsgLog = LogFactory.getLog(incomingMsgCategory != null ? incomingMsgCategory
+        eventLog = LoggerFactory
+                .getLogger(eventCategory != null ? eventCategory : DEFAULT_EVENT_CATEGORY);
+        incomingMsgLog = LoggerFactory.getLogger(incomingMsgCategory != null ? incomingMsgCategory
                 : DEFAULT_INCOMING_MSG_CATEGORY);
-        outgoingMsgLog = LogFactory.getLog(outgoingMsgCategory != null ? outgoingMsgCategory
+        outgoingMsgLog = LoggerFactory.getLogger(outgoingMsgCategory != null ? outgoingMsgCategory
                 : DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
@@ -55,7 +55,7 @@ public class CommonsLog implements quickfix.Log {
         log(outgoingMsgLog, message);
     }
 
-    private void log(Log log, String text) {
+    private void log(Logger log, String text) {
         log.info(sessionID+": "+text);
     }
 

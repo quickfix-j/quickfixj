@@ -25,7 +25,8 @@ import java.io.InputStream;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
-import org.apache.commons.logging.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
@@ -44,7 +45,7 @@ import quickfix.examples.banzai.ui.BanzaiFrame;
 public class Banzai {
 
     /** enable logging for this class */
-    private static Log log = org.apache.commons.logging.LogFactory.getLog(Banzai.class);
+    private static Logger log = LoggerFactory.getLogger(Banzai.class);
     private static Banzai banzai;
     private Initiator initiator = null;
     private JFrame frame = null;
@@ -106,7 +107,7 @@ public class Banzai {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            log.info(e);
+            log.info(e.getMessage(), e);
         }
         banzai = new Banzai(args);
         if (!System.getProperties().containsKey("openfix")) {

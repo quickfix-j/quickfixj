@@ -19,8 +19,8 @@
 
 package quickfix.mina;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.LogUtil;
 import quickfix.Message;
@@ -31,7 +31,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private BlockingQueue eventQueue = new LinkedBlockingQueue();
     private volatile boolean isStopped;
     private long stopTime = 0L;

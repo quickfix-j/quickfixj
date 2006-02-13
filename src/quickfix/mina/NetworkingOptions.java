@@ -24,11 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.Session;
 import org.apache.mina.common.SessionConfig;
 import org.apache.mina.io.socket.SocketSessionConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.FieldConvertError;
 import quickfix.field.converter.BooleanConverter;
@@ -38,7 +38,7 @@ import quickfix.field.converter.IntConverter;
  * This class holds the QFJ settings information related to networking options.
  */
 public class NetworkingOptions {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
     private Boolean keepAlive;
     private Boolean oobInline;
     private Integer receiveBufferSize;

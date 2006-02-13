@@ -9,8 +9,8 @@ import java.util.Set;
 import junit.framework.Assert;
 import junit.framework.TestSuite;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
@@ -26,7 +26,7 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
-    private final Log log = LogFactory.getLog(ATServer.class);
+    private final Logger log = LoggerFactory.getLogger(ATServer.class);
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Set fixVersions = new HashSet();
     private final SessionSettings settings = new SessionSettings();

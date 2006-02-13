@@ -9,11 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 public class TestContext {
-    private Log log = LogFactory.getLog(getClass());
     private HashMap clientSockets = new HashMap();
     private HashMap messageReaders = new HashMap();
 
@@ -91,14 +87,14 @@ public class TestContext {
                             if (digit != '\001') {
                                 message.clear();
                             }
-                            if (log.isTraceEnabled()) {
-                                log.trace("readFully " + (length + 7) + " bytes");
-                            }
+//                            if (log.isDebugEnabled()) {
+//                                log.debug("readFully " + (length + 7) + " bytes");
+//                            }
                             readFully(in, message, length + 7);
                             synchronized (messages) {
-                                if (log.isTraceEnabled()) {
-                                    log.trace("message added to queue -- " + Thread.currentThread());
-                                }
+//                                if (log.isDebugEnabled()) {
+//                                    log.debug("message added to queue -- " + Thread.currentThread());
+//                                }
                                 message.flip();
                                 messages.add(message);
                                 messages.notify();
@@ -130,20 +126,20 @@ public class TestContext {
         public CharSequence getNextMessage(long timeout) throws InterruptedException {
             synchronized (messages) {
                 if (messages.size() == 0) {
-                    if (log.isTraceEnabled()) {
-                        log.debug("client waiting for message");
-                    }
+//                    if (log.isDebugEnabled()) {
+//                        log.debug("client waiting for message");
+//                    }
                     messages.wait(timeout);
                 }
                 if (messages.size() == 0) {
-                    if (log.isTraceEnabled()) {
-                        log.debug("no client messages found");
-                    }
+//                    if (log.isDebugEnabled()) {
+//                        log.debug("no client messages found");
+//                    }
                     return null;
                 }
-                if (log.isTraceEnabled()) {
-                    log.debug("message removed from queue");
-                }
+//                if (log.isDebugEnabled()) {
+//                    log.debug("message removed from queue");
+//                }
                 return (CharSequence) messages.remove(0);
             }
         }

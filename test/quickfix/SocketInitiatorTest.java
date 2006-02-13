@@ -5,15 +5,15 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.test.acceptance.ATServer;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class SocketInitiatorTest extends TestCase {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     protected void setUp() throws Exception {
         SystemTime.setTimeSource(null);

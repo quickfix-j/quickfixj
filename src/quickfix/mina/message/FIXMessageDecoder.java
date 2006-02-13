@@ -19,19 +19,19 @@
 
 package quickfix.mina.message;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.protocol.ProtocolDecoderOutput;
 import org.apache.mina.protocol.ProtocolSession;
 import org.apache.mina.protocol.ProtocolViolationException;
 import org.apache.mina.protocol.codec.MessageDecoder;
 import org.apache.mina.protocol.codec.MessageDecoderResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.mina.CriticalSessionProtocolException;
 
 public class FIXMessageDecoder implements MessageDecoder {
-    private Log log = LogFactory.getLog(getClass());
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     private static final byte[] HEADER_PATTERN = "8=FIX.?.?\0019=".getBytes();
     private static final byte[] CHECKSUM_PATTERN = "10=???\001".getBytes();
