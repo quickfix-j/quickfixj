@@ -273,6 +273,7 @@ public class ApiCompatibilityTest {
             ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class,
                     int.class });
             ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class });
+            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { jniGroupClass });
             ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class,
                     jniGroupClass });
             ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class });
