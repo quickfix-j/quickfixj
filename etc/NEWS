@@ -1,3 +1,18 @@
+1.0.0 Beta 3
+-----
+
+New Features:
+  * QuickFIX JNI 1.11.0 compatiblity
+  * Converted network code to MINA (Netty removed)
+  * Converted non-session logging to SLF4J (Commons Logging removed)
+  * Failover support for acceptors.
+  * Message component code generation.
+  * Updated third party libraries to latest version.
+  
+Bug Fixes:
+
+
+  
 1.0.0 Beta 2
 -----
 
