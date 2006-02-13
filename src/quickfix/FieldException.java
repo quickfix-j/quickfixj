@@ -20,7 +20,9 @@
 package quickfix;
 
 class FieldException extends RuntimeException {
+
     private final int field;
+
     private final int sessionRejectReason;
 
     public FieldException(int sessionRejectReason) {
@@ -38,16 +40,20 @@ class FieldException extends RuntimeException {
         this.sessionRejectReason = sessionRejectReason;
         this.field = field;
     }
-    
+
     public boolean isFieldSpecified() {
         return field != -1;
     }
-    
+
     public int getField() {
         return field;
     }
 
     public int getSessionRejectReason() {
         return sessionRejectReason;
+    }
+
+    public String toString() {
+        return SessionRejectReasonText.getMessage(sessionRejectReason) + ", field=" + field;
     }
 }
