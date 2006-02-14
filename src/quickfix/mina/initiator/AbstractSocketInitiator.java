@@ -38,7 +38,6 @@ import quickfix.Initiator;
 import quickfix.LogFactory;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
-import quickfix.RuntimeError;
 import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
@@ -48,6 +47,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
+
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected AbstractSocketInitiator(Application application,
@@ -108,7 +108,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     if (continueInitOnError) {
                         log.error("error during session initialization, continuing...", e);
                     } else {
-                        throw new RuntimeError("error during session initialization", e);
+                        throw e instanceof ConfigError ? (ConfigError) e : new ConfigError(
+                                "error during session initialization", e);
                     }
                 }
             }
