@@ -1,12 +1,11 @@
 package quickfix;
 
-import quickfix.test.acceptance.ATApplication;
-import java.io.FileNotFoundException;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Locale;
 
 import junit.framework.TestCase;
+import quickfix.test.acceptance.ATApplication;
 
 public class DefaultSessionFactoryTest extends TestCase {
 
@@ -36,38 +35,52 @@ public class DefaultSessionFactoryTest extends TestCase {
         createSessionAndAssertConfigError("no connection type exception", "Invalid ConnectionType");
     }
 
-    public void testUseDataDictionaryByDefault() {
+    public void testUseDataDictionaryByDefault() throws Exception {
         settings.removeSetting(sessionID, Session.SETTING_USE_DATA_DICTIONARY);
-        createSessionAndAssertConfigError("no data dictionary exception",
-                "DataDictionary not defined");
+        settings.setString(sessionID, Session.SETTING_DATA_DICTIONARY, "BOGUS");
+        createSessionAndAssertDictionaryNotFound();
+    }
+
+    private void createSessionAndAssertDictionaryNotFound() throws ConfigError {
+        try {
+            factory.create(sessionID, settings);
+            fail("no data dictionary exception");
+        } catch (DataDictionary.Exception e) {
+            assertTrue("exception message not matched, expected: " + "... Could not find data ..."
+                    + ", got: " + e.getMessage(),
+                    e.getMessage().indexOf("Could not find data") != -1);
+        }
     }
 
     public void testBadPathForDataDictionary() throws Exception {
         settings.setBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY, true);
         settings.setString(sessionID, Session.SETTING_DATA_DICTIONARY, "xyz");
-        createSessionAndAssertConfigError("no data dictionary exception",
-                FileNotFoundException.class);
+        createSessionAndAssertDictionaryNotFound();
     }
 
     public void testIncorrectDayValues() throws Exception {
         settings.setString(sessionID, Session.SETTING_START_DAY, "mon");
-        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: StartDay used without EndDay");
+        createSessionAndAssertConfigError("no exception",
+                "Session FIX.4.2:FOO->BAR: StartDay used without EndDay");
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_END_DAY, "mon");
-        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: EndDay used without StartDay");
+        createSessionAndAssertConfigError("no exception",
+                "Session FIX.4.2:FOO->BAR: EndDay used without StartDay");
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_START_DAY, "Monday");
         settings.setString(sessionID, Session.SETTING_END_DAY, "Tuesday");
         settings.setString(sessionID, Session.SETTING_START_DAY, "xx");
-        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse start time 'xx 09:00:00'.");
+        createSessionAndAssertConfigError("no exception",
+                "Session FIX.4.2:FOO->BAR: could not parse start time 'xx 09:00:00'.");
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_START_DAY, "Monday");
         settings.setString(sessionID, Session.SETTING_END_DAY, "Tuesday");
         settings.setString(sessionID, Session.SETTING_END_DAY, "yy");
-        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse end time 'yy 16:00:00'.");
+        createSessionAndAssertConfigError("no exception",
+                "Session FIX.4.2:FOO->BAR: could not parse end time 'yy 16:00:00'.");
 
         assertValidDay("mon");
         assertValidDay("monday");
@@ -115,21 +128,13 @@ public class DefaultSessionFactoryTest extends TestCase {
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_START_TIME, "xx");
-        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse start time 'xx'.");
+        createSessionAndAssertConfigError("no exception",
+                "Session FIX.4.2:FOO->BAR: could not parse start time 'xx'.");
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_END_TIME, "yy");
-        createSessionAndAssertConfigError("no exception", "Session FIX.4.2:FOO->BAR: could not parse end time 'yy'.");
-    }
-
-    private void createSessionAndAssertConfigError(String message, Class exceptionClass) {
-        try {
-            factory.create(sessionID, settings);
-            fail(message);
-        } catch (ConfigError e) {
-            assertNotNull("no exception cause", e.getCause());
-            assertSame("wrong exception cause", exceptionClass, e.getCause().getClass());
-        }
+        createSessionAndAssertConfigError("no exception",
+                "Session FIX.4.2:FOO->BAR: could not parse end time 'yy'.");
     }
 
     private void createSessionAndAssertConfigError(String message, String pattern) {
@@ -154,5 +159,6 @@ public class DefaultSessionFactoryTest extends TestCase {
         settings.setString(sessionID, Session.SETTING_START_TIME, "09:00:00");
         settings.setString(sessionID, Session.SETTING_END_TIME, "16:00:00");
         settings.setString(sessionID, Session.SETTING_HEARTBTINT, "10");
+        settings.setString(sessionID, "BeginString", "FIX.4.2");
     }
 }

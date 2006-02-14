@@ -19,8 +19,6 @@
 
 package quickfix;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -29,14 +27,19 @@ import java.util.Map;
  * initiators) for creating sessions.
  */
 public class DefaultSessionFactory implements SessionFactory {
+
     private static Map dictionaryCache = new Hashtable(); // synchronized
+
     private Application application;
+
     private MessageStoreFactory messageStoreFactory;
+
     private LogFactory logFactory;
+
     private MessageFactory messageFactory;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
-                                 LogFactory logFactory) {
+            LogFactory logFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
         this.logFactory = logFactory;
@@ -44,7 +47,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
-                                 LogFactory logFactory, MessageFactory messageFactory) {
+            LogFactory logFactory, MessageFactory messageFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
         this.logFactory = logFactory;
@@ -82,15 +85,17 @@ public class DefaultSessionFactory implements SessionFactory {
 
             DataDictionary dataDictionary = null;
             if (useDataDictionary) {
-                String path = settings.getString(sessionID, Session.SETTING_DATA_DICTIONARY);
+                String path = null;
+                if (settings.isSetting(sessionID, Session.SETTING_DATA_DICTIONARY)) {
+                    path = settings.getString(sessionID, Session.SETTING_DATA_DICTIONARY);
+                } else {
+                    path = settings.getString(sessionID, "BeginString").replaceAll("\\.", "")
+                            + ".xml";
+                }
                 dataDictionary = (DataDictionary) dictionaryCache.get(path);
                 if (dataDictionary == null) {
-                    try {
-                        dataDictionary = new DataDictionary(new FileInputStream(path));
-                        dictionaryCache.put(path, dataDictionary);
-                    } catch (FileNotFoundException e) {
-                        throw new ConfigError(e);
-                    }
+                    dataDictionary = new DataDictionary(path);
+                    dictionaryCache.put(path, dataDictionary);
                 }
 
                 if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
@@ -118,8 +123,8 @@ public class DefaultSessionFactory implements SessionFactory {
             }
 
             Session session = new Session(application, messageStoreFactory, sessionID,
-                    dataDictionary, new SessionSchedule(settings, sessionID),
-                    logFactory, messageFactory, heartbeatInterval);
+                    dataDictionary, new SessionSchedule(settings, sessionID), logFactory,
+                    messageFactory, heartbeatInterval);
 
             if (settings.isSetting(sessionID, Session.SETTING_CHECK_LATENCY)) {
                 session.setCheckLatency(settings.getBool(sessionID, Session.SETTING_CHECK_LATENCY));
@@ -154,7 +159,7 @@ public class DefaultSessionFactory implements SessionFactory {
                 session.setRefreshMessageStoreAtLogon(settings.getBool(sessionID,
                         Session.SETTING_REFRESH_STORE_AT_LOGON));
             }
-            
+
             return session;
         } catch (ConfigError e) {
             throw e;
