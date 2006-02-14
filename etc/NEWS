@@ -6,9 +6,12 @@ New Features:
   * Converted network code to MINA (Netty removed)
   * Converted non-session logging to SLF4J (Commons Logging removed)
   * Failover support for acceptors.
-  * Message component code generation.
+  * Message component code generation and support in FieldMap.
   * Updated third party libraries to latest version.
-  
+  * Standard FIX XML files can be loaded from quickfix.jar
+  * DataDictionary setting is optional, default dictionary inferred
+     from session BeginString.
+     
 Bug Fixes:
 
 
