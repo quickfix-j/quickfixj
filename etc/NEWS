@@ -1,7 +1,8 @@
-1.0.0 Beta 3
------
+********************
+**  1.0.0 Beta 3  **
+********************
 
-New Features:
+New Features and Improvements:
   * QuickFIX JNI 1.11.0 compatiblity
   * Converted network code to MINA (Netty removed)
   * Converted non-session logging to SLF4J (Commons Logging removed)
@@ -11,13 +12,18 @@ New Features:
   * Standard FIX XML files can be loaded from quickfix.jar
   * DataDictionary setting is optional, default dictionary inferred
      from session BeginString.
-     
+  * Database tables are configurable in JdbcLog
+  * Improved DataDictionary error checking.
+  * Time zones can be specified for session schedules
+  
 Bug Fixes:
 
+  * Bug #147 QuoteRequestRejectReason missing 2 values
+  * Bug #148 toAdmin called incorrectly (Message.isAdmin() bug)
 
-  
-1.0.0 Beta 2
------
+********************
+**  1.0.0 Beta 2  **
+********************
 
 New Features:
   * Added SleepyCat JE message store.
