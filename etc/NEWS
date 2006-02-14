@@ -3,7 +3,7 @@
 ********************
 
 New Features and Improvements:
-  * QuickFIX JNI 1.11.0 compatiblity
+  * QuickFIX JNI 1.11.0 compatibility (except MSSQL, PostgreSQL stores)
   * Converted network code to MINA (Netty removed)
   * Converted non-session logging to SLF4J (Commons Logging removed)
   * Failover support for acceptors.
