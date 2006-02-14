@@ -66,8 +66,16 @@
 		</fileset>
 	</path>
 
-	<path id="all.classpath">
+	<path id="compile.classpath">
 		<pathelement location="${product.classes.dir}" />
+		<pathelement location="${test.classes.dir}" />
+		<path refid="core.lib.classpath" />
+		<path refid="test.lib.classpath" />
+		<path refid="optional.lib.classpath" />
+	</path>
+
+	<path id="test.classpath">
+		<pathelement location="${jar.output.dir}/${quickfixj.jar}" />
 		<pathelement location="${test.classes.dir}" />
 		<path refid="core.lib.classpath" />
 		<path refid="test.lib.classpath" />
@@ -152,7 +160,7 @@
 		<mkdir dir="${product.classes.dir}" />
 		<javac destdir="${product.classes.dir}"
 		       debug="${java.debug}"
-		       classpathref="all.classpath"
+		       classpathref="compile.classpath"
 		       memoryMaximumSize="128m"
 		       fork="yes">
 			<src path="${product.src.dir}" />
@@ -172,12 +180,12 @@
 		<mkdir dir="${test.classes.dir}" />
 		<javac destdir="${test.classes.dir}"
 		       debug="${java.debug}"
-		       classpathref="all.classpath"
+		       classpathref="compile.classpath"
 		       srcdir="${test.src.dir}">
 		</javac>
 		<javac destdir="${product.classes.dir}"
 		       debug="${java.debug}"
-		       classpathref="all.classpath"
+		       classpathref="compile.classpath"
 		       srcdir="${example.src.dir}">
 		</javac>
 	</target>
@@ -246,7 +254,7 @@
 
 	<target name="test.unit"
 	        description="run unit tests"
-	        depends="check.utests.uptodate,test.unit.junit"
+	        depends="jar,check.utests.uptodate,test.unit.junit"
 	        unless="utests.failed">
 		<!-- only update timestamp if tests passed -->
 		<touch file="${utest.timestamp}" />
@@ -264,7 +272,7 @@
 		       failureproperty="utests.failed"
 		       haltonfailure="${junit.haltonfailure}">
 			<formatter type="xml" usefile="true" />
-			<classpath refid="all.classpath" />
+			<classpath refid="test.classpath" />
 			<batchtest todir="${test.report.dir}">
 				<fileset dir="${test.src.dir}">
 					<include name="quickfix/*Test.java" />
@@ -285,7 +293,7 @@
 
 	<target name="test.acceptance"
 	        description="run acceptance tests"
-	        depends="check.atests.uptodate,test.acceptance.junit"/>
+	        depends="jar,check.atests.uptodate,test.acceptance.junit"/>
 
 	<!-- Making this a separate test so it can be forced when atests timeout -->
 	<target name="create.atest.timestamp" unless="atests.failed">
@@ -309,7 +317,7 @@
 			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
 			<sysproperty key="atest.skipslow" value="${atest.skipslow}" />
 			<formatter type="xml" usefile="true" />
-			<classpath refid="all.classpath" />
+			<classpath refid="test.classpath" />
 			<test todir="${test.report.dir}" name="${atest.classname}" />
 		</junit>
 		<!-- remove the logged output because it's too large for junitreport -->
@@ -330,7 +338,7 @@
 		         protected="yes"
 		         maxmemory="256m"
 		         breakiterator="yes"
-		         classpathref="all.classpath">
+		         classpathref="compile.classpath">
 			<package name="quickfix" />
 			<package name="quickfix.netty" />
 			<package name="quickfix.field.converter" />
