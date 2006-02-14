@@ -107,12 +107,12 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        Long timeout = Long.getLong("at.timeout");
+        Long timeout = Long.getLong("atest.timeout");
         if (timeout != null) {
             ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
         }
 
-        this.skipSlowTests = Boolean.getBoolean("at.noslow");
+        this.skipSlowTests = Boolean.getBoolean("atest.skipslow");
 
         //        addTest("fix40/10_MsgSeqNumEqual.def");
         //      addTest("fix40/2i_BeginStringValueUnexpected.def");

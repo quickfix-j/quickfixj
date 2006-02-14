@@ -25,7 +25,7 @@ public class ExpectMessageStep implements TestStep {
     private static int heartBeatOverride = -1;
 
     static {
-        String hbi = System.getProperty("at.heartbeat");
+        String hbi = System.getProperty("atest.heartbeat");
         if (hbi != null) {
             heartBeatOverride = Integer.parseInt(hbi);
         }

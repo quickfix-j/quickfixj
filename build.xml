@@ -25,20 +25,28 @@
 	<property name="javadoc.input.dir" value="doc" />
 	<property name="usermanual.dir" value="doc/usermanual" />
 	<property name="javadoc.output.dir" value="${ant.output.dir}/javadoc" />
-	<property name="test.report.dir" value="${ant.output.dir}/testreports" />
-	<property name="junit_fork.dir" value="." />
+	
+	<property name="junit.fork.dir" value="." />
 	<property name="junit.haltonfailure" value="yes" />
-	<property name="acceptance.isforked" value="no" />
-	<property name="acceptance.showoutput" value="yes" />
+	
+	<property name="test.report.dir" value="${ant.output.dir}/testreports" />
+
+	<property name="atest.fork" value="no" />
+	<property name="atest.showoutput" value="yes" />
+	<property name="atest.skipslow" value="false"/>
 	<property name="atest.classname"
 	          value="quickfix.test.acceptance.AcceptanceTestSuite" />
 	<property name="atest.report"
 	          value="${test.report.dir}/TEST-${atest.classname}.xml" />
-	<property name="utest.timestamp"
-	          value="${test.report.dir}/.utest_timestamp" />
 	<property name="atest.timestamp"
 	          value="${test.report.dir}/.atest_timestamp" />
+	<property name="atest.heartbeat" value="5" />
+	<property name="atest.timeout" value="60000" />
+	<property name="atest.reconnectDelay" value="5" />
+	<property name="atest.skipslow" value="false" />
 
+	<property name="utest.timestamp"
+	          value="${test.report.dir}/.utest_timestamp" />
 
 	<path id="core.lib.classpath">
 		<fileset id="core.lib.fileset" dir="${core.lib.dir}">
@@ -110,10 +118,14 @@
 		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
 		       destdir="${product.classes.dir}"
 		       classpathref="core.lib.classpath" />
-		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
+		<java classname="quickfix.codegen.JavaCodeGenerator" 
+			fork="yes">
+			<jvmarg value="-Xms128m"/>
+			<jvmarg value="-Xmx256m"/>
 			<arg value="${specs.dir}" />
 			<arg value="${xsl.dir}" />
 			<arg value="${product.generated.src.dir}" />
+		       
 			<classpath>
 				<pathelement location="${etc.dir}" />
 				<pathelement location="${product.classes.dir}" />
@@ -175,6 +187,9 @@
 		<mkdir dir="${jar.output.dir}" />
 		<jar destfile="${jar.output.dir}/${quickfixj.jar}">
 			<fileset dir="${product.classes.dir}" />
+			<fileset dir="${etc.dir}">
+				<include name="FIX*.xml"/>
+			</fileset>
 		</jar>
 	</target>
 
@@ -241,7 +256,7 @@
 	        depends="compile, test.init"
 	        unless="utests.uptodate">
 		<junit fork="yes"
-			   	 dir="${junit_fork.dir}"
+			   	 dir="${junit.fork.dir}"
 		       tempdir="${ant.output.dir}"
 		       printsummary="true"
 		       showoutput="false"
@@ -282,22 +297,17 @@
 	        unless="atests.uptodate"
 	        depends="compile, test.init">
 		<!-- <junit fork="yes" forkMode="once" dir="." -->
-		<junit fork="${acceptance.isforked}"
-			   	 dir="${junit_fork.dir}"
+		<junit fork="${atest.fork}" dir="${junit.fork.dir}"
 		       tempdir="${ant.output.dir}"
 		       printsummary="true"
-		       showoutput="${acceptance.showoutput}"
+		       showoutput="${atest.showoutput}"
 		       errorproperty="atests.failed"
 		       failureproperty="atests.failed"
 			   maxmemory="512m">
-			<!--
-			<jvmarg value="-Xmn256m"/>
-			<jvmarg value="-Xmx512m"/>
-			-->
-			<sysproperty key="at.heartbeat" value="5" />
-			<sysproperty key="at.timeout" value="60000" />
-			<sysproperty key="at.reconnectDelay" value="5" />
-			<!-- <sysproperty key="at.noslow" value="true" /> -->
+			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
+			<sysproperty key="atest.timeout" value="${atest.timeout}" />
+			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
+			<sysproperty key="atest.skipslow" value="${atest.skipslow}" />
 			<formatter type="xml" usefile="true" />
 			<classpath refid="all.classpath" />
 			<test todir="${test.report.dir}" name="${atest.classname}" />
