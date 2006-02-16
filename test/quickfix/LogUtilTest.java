@@ -41,7 +41,7 @@ public class LogUtilTest extends TestCase {
     }
 
     private LogFactory createLogFactory(ByteArrayOutputStream data) {
-        final ScreenLog log = new ScreenLog(true, true, true, null, new PrintStream(data));
+        final ScreenLog log = new ScreenLog(true, true, true, true, null, new PrintStream(data));
         LogFactory mockLogFactory = new LogFactory() {
             public Log create(SessionID sessionID) {
                 return log;

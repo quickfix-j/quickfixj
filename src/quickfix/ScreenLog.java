@@ -17,11 +17,11 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
 import java.io.PrintStream;
 
+import quickfix.field.MsgType;
 import quickfix.field.converter.UtcTimestampConverter;
 
 /**
@@ -36,51 +36,61 @@ public class ScreenLog implements Log {
     private static final String OUTGOING_CATEGORY = "outgoing";
     private static final String INCOMING_CATEGORY = "incoming";
     private PrintStream out;
-    private SessionID sessionID;
-    private boolean incoming;
-    private boolean outgoing;
-    private boolean events;
+    private final SessionID sessionID;
+    private final boolean incoming;
+    private final boolean outgoing;
+    private final boolean events;
+    private final boolean heartBeats;
 
-    ScreenLog(boolean incoming, boolean outgoing, boolean events, SessionID sessionID,
-            PrintStream out) {
+    ScreenLog(boolean incoming, boolean outgoing, boolean events, boolean heartBeats,
+            SessionID sessionID, PrintStream out) {
         this.out = out;
         this.incoming = incoming;
         this.outgoing = outgoing;
         this.events = events;
+        this.heartBeats = heartBeats;
         this.sessionID = sessionID;
     }
 
     public void onIncoming(String message) {
         if (incoming) {
-            log(message, INCOMING_CATEGORY);
+            logMessage(message, INCOMING_CATEGORY);
         }
-
     }
 
     public void onOutgoing(String message) {
         if (outgoing) {
-            log(message, OUTGOING_CATEGORY);
+            logMessage(message, OUTGOING_CATEGORY);
         }
+    }
 
+    private void logMessage(String message, String type) {
+        try {
+            if (!heartBeats && MsgType.HEARTBEAT.equals(MessageUtils.getMessageType(message))) {
+                return;
+            }
+        } catch (InvalidMessage e) {
+            // ignore
+        }
+        log(message, type);
     }
 
     public void onEvent(String message) {
         if (events) {
             log(message, EVENT_CATEGORY);
         }
-
     }
 
     private void log(String message, String type) {
-        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), false) + ", " + sessionID
-                + ", " + type + "> (" + message + ")");
+        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), false) + ", "
+                + sessionID + ", " + type + "> (" + message + ")");
     }
 
     // For Testing
     void setOut(PrintStream out) {
         this.out = out;
     }
-    
+
     public void clear() {
         onEvent("Log clear operation is not supported: " + getClass().getName());
     }

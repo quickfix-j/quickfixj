@@ -31,37 +31,50 @@ public class ScreenLogFactory implements LogFactory {
     private boolean incoming;
     private boolean outgoing;
     private boolean events;
-    
+    private boolean heartBeats;
+
     /**
-     * <p>Enables incoming message logging.</p>
+     * Enables incoming message logging.
      * 
-     * <p>
+     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
-     * </p>
+     * 
      * 
      */
     public static final String SETTING_LOG_INCOMING = "ScreenLogIncoming";
     /**
-     * <p>Enables outgoing message logging.</p>
+     * Enables outgoing message logging.
      * 
-     * <p>
+     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
-     * </p>
+     * 
      * 
      */
     public static final String SETTING_LOG_OUTGOING = "ScreenLogOutgoing";
+
     /**
-     * <p>Enables session event logging.</p>
+     * Enables session event logging.
      * 
-     * <p>
+     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
-     * </p>
+     * 
      * 
      */
     public static final String SETTING_LOG_EVENTS = "ScreenLogEvents";
+
+    /**
+     * Flag for controlling output of heartbeat messages.
+     * 
+     * 
+     * Valid values: "Y" or "N"<br/>
+     * Default Value: "Y"
+     * 
+     * 
+     */
+    public static final String SETTING_LOG_HEARTBEATS = "ScreenLogHeartBeats";
 
     /**
      * Create factory using configuration in session settings.
@@ -86,34 +99,50 @@ public class ScreenLogFactory implements LogFactory {
      *            if true, log events
      */
     public ScreenLogFactory(boolean incoming, boolean outgoing, boolean events) {
+        this(incoming, outgoing, events, true);
+    }
+
+    /**
+     * 
+     * Create factory with explicit control of message categories.
+     * 
+     * @param incoming
+     *            if true, log incoming messages
+     * @param outgoing
+     *            if true, log outgoing messages
+     * @param events
+     *            if true, log events
+     * @param heartBeats
+     *            if true, log heart beat messages (the default)
+     */
+    public ScreenLogFactory(boolean incoming, boolean outgoing, boolean events,
+            boolean logHeartBeats) {
         this.incoming = incoming;
         this.outgoing = outgoing;
         this.events = events;
+        this.heartBeats = logHeartBeats;
     }
 
     public Log create(SessionID sessionID) {
         try {
-            boolean incoming = this.incoming;
-            if (settings != null
-                    && settings.isSetting(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING)) {
-                incoming = settings.getBool(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING);
-            }
-            boolean outgoing = this.outgoing;
-            if (settings != null
-                    && settings.isSetting(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING)) {
-                outgoing = settings.getBool(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING);
-            }
-            boolean events = this.events;
-            if (settings != null
-                    && settings.isSetting(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS)) {
-                events = settings.getBool(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS);
-            }
-
-            return new ScreenLog(incoming, outgoing, events, sessionID, System.out);
+            incoming = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING, incoming);
+            outgoing = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING, outgoing);
+            events = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS, events);
+            heartBeats = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_HEARTBEATS,
+                    heartBeats);
+            return new ScreenLog(incoming, outgoing, events, heartBeats, sessionID, System.out);
         } catch (FieldConvertError e) {
             throw new RuntimeError(e);
         } catch (ConfigError e) {
             throw new RuntimeError(e);
         }
+    }
+
+    private boolean getBooleanSetting(SessionID sessionID, String key, boolean incoming)
+            throws ConfigError, FieldConvertError {
+        if (settings != null && settings.isSetting(sessionID, key)) {
+            incoming = settings.getBool(sessionID, key);
+        }
+        return incoming;
     }
 }
