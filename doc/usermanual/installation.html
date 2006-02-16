@@ -9,7 +9,7 @@
 <body>
 <h1 id="title">Building QuickFIX/J</h1>
 <h2><a name="dependencies"></a>Runtime Dependencies</h2>
-<p>JMV compatible with Java 1.4.x or higher.</p>
+<p>JVM compatible with Java 1.4.x or higher.</p>
 <p><strong>Required run-time libraries:</strong></p>
 <table cellspacing="0">
   <tr>
@@ -21,15 +21,15 @@
     <td>Main QuickFIX/J library</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">tl-netty2-1.8.0.jar</td>
+    <td nowrap="nowrap">mina-0.8.2.jar</td>
     <td>Socket handling (Java NIO)</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">commons-logging-1.0.4.jar</td>
-    <td>Generic ogging support (JDK logging, Log4J, ...)</td>
+    <td nowrap="nowrap">slf4j-jdk14-1.0-rc5.jar</td>
+    <td>SLF4J library for JDK 1.4+ logging.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">backport-util-concurrent-2.0.jar</td>
+    <td nowrap="nowrap">backport-util-concurrent-2.1.jar</td>
     <td>Java 5 Synchronization and threading library compatible with JDK 1.4.</td>
   </tr>
 </table>
@@ -44,12 +44,17 @@
     <td>If Log4J logging is desired. The JDK logging is the default.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">mysql-connector-java-3.0.9-stable-bin.jar </td>
+    <td nowrap="nowrap">slf4j-log4j12-1.0-rc5.jar</td>
+    <td>Use this JAR file instead of slf4j-jdk14-1.0-rc5.jar if you want to
+	use Log4J logging.</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">mysql-connector-java-3.1.12-bin.jar </td>
     <td>If MySQL message storage or logging is used or include the appropriate
     JAR file for whatever other JDBC data you are using.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">sleepycat-je_2.0.54.jar</td>
+    <td nowrap="nowrap">sleepycat-je_2.1.30.jar</td>
     <td>Needed if the SleepyCat JE message store is used.</td>
   </tr>
 </table>
@@ -81,14 +86,14 @@ is included.</p>
   compile errors related to message classes, the builder may not have run for
   some reason. If so, you can generate the classes by running the <strong>generate.code</strong>  target in the Ant build.xml file.</p>
 <h2><a name="mysql"></a>Generating the MySQL Database</h2>
-<p> Everything needed to generate your MySQL database is in the src/sql directory.
+<p> Everything needed to generate your MySQL database is in the etc/sql/mysql directory.
   Here, there are the script and batch files create_mysql.sh and create_mysql.bat.
   These scripts will work on a newly installed mysql database with default permisions.
   The scripts will try to generate the database using the root MySQL account
   with no password. If you need to use a different account or need a password,
   you will have to edit the script. To select a different user, simply change
   'root' to another user. To add a password, use pass the -p option after the
-username.</p>
+username. Similar scripts are provided for MSSQL and PostgreSQL.</p>
 <h2><a name="testing"></a>Testing QuickFIX/J</h2>
 <p> The development of QuickFIX has been driven by a suite of functional acceptance
   tests and unit tests. We have been working incrementally, functional test by

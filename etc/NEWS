@@ -18,6 +18,7 @@ New Features and Improvements:
   * Time zones can be specified for session schedules
   * ScreenLogFactory can be configured to filter heartbeat messages
   * New CompositeLogFactory supports use of multiple Logs (e.g., screen, file)
+  * Added options for specifying resend ranges
   
 Bug Fixes:
 
