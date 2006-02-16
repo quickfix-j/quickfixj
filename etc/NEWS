@@ -15,6 +15,8 @@ New Features and Improvements:
   * Database tables are configurable in JdbcLog
   * Improved DataDictionary error checking.
   * Time zones can be specified for session schedules
+  * ScreenLogFactory can be configured to filter heartbeat messages
+  * New CompositeLogFactory supports use of multiple Logs (e.g., screen, file)
   
 Bug Fixes:
 
