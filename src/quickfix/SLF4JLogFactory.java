@@ -39,6 +39,10 @@ public class SLF4JLogFactory implements LogFactory {
      * Log category for outgoing messages.
      */
     public final static String SETTING_OUTMSG_CATEGORY = "SLF4JLogOutgoingMessageCategory";
+    /**
+     * Flag for prepending session ID to log output
+     */
+    public final static String SETTING_PREPEND_SESSION_ID = "SLF4JLogPrependSessionID";
     private final SessionSettings settings;
 
     public SLF4JLogFactory(SessionSettings settings) {
@@ -49,6 +53,7 @@ public class SLF4JLogFactory implements LogFactory {
         String eventCategory = null;
         String incomingMsgCategory = null;
         String outgoingMsgCategory = null;
+        boolean prependSessionID = true;
         try {
             if (settings.isSetting(sessionID, SETTING_EVENT_CATEGORY)) {
                 eventCategory = settings.getString(sessionID, SETTING_EVENT_CATEGORY);
@@ -59,11 +64,15 @@ public class SLF4JLogFactory implements LogFactory {
             if (settings.isSetting(sessionID, SETTING_OUTMSG_CATEGORY)) {
                 outgoingMsgCategory = settings.getString(sessionID, SETTING_OUTMSG_CATEGORY);
             }
+            if (settings.isSetting(sessionID, SETTING_PREPEND_SESSION_ID)) {
+                prependSessionID = settings.getBool(sessionID, SETTING_PREPEND_SESSION_ID);
+            }
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory);
+        return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory,
+                prependSessionID);
     }
 }

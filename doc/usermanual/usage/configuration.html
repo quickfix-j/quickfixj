@@ -517,23 +517,41 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>CommonsLogEventCategory</TD>
+    <TD>SL4JLogEventCategory</TD>
     <TD>Log category for logged events.</TD>
-    <TD>Depends on log engine.</TD>
-    <TD>&nbsp;</TD>
+    <TD>Depends on log engine. The SL4J adapter for JDK 1.4 logging is included by default.
+    An adapter for Log4J and the Log4J JAR are in the lib/optional directory. The SLFJ category options
+    support Session ID variables in the category names. The variables are:
+    <ul>
+    <li>${fixMajorVersion}</li>
+    <li>${fixMinorVersion}</li>
+    <li>${senderCompID}</li>
+    <li>${targetCompID}</li>
+    <li>${qualifier}</li>
+    </ul>
+    For example, a category value "${senderCompID}.events" (without the quotes) would become 
+    "BANZAI.events"
+    in the log file if BANZAI is the senderCompID for the session. This can be used with advanced
+    logging libraries like Log4J to create sophisticated session-specific logging policies.</TD>
+    <TD>quickfixj.event</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>CommonsLogIncomingMessageCategory</TD>
+    <TD>SL4JLogIncomingMessageCategory</TD>
     <TD><p>Log category for incoming messages.</p>
       </TD>
-    <TD>Depends on log engine.</TD>
-    <TD>&nbsp;</TD>
+    <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
+    <TD>quickfixj.msg.incoming</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>CommonsLogOutgoingMessageCategory</TD>
+    <TD>SL4JLogOutgoingMessageCategory</TD>
     <TD>Log category for outgoing messages.</TD>
-    <TD>Depends on log engine.</TD>
-    <TD>&nbsp;</TD>
+    <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
+    <TD>quickfixj.msg.outgoing</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SLF4JLogPrependSessionID</TD>
+    <TD>Controls whether session ID is prepended to log message.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>FileLogPath</I> </TD>
