@@ -112,7 +112,7 @@ public class ScreenLogFactory implements LogFactory {
      *            if true, log outgoing messages
      * @param events
      *            if true, log events
-     * @param heartBeats
+     * @param logHeartBeats
      *            if true, log heart beat messages (the default)
      */
     public ScreenLogFactory(boolean incoming, boolean outgoing, boolean events,

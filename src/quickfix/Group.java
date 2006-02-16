@@ -62,7 +62,7 @@ public class Group extends FieldMap {
 
     /**
      * @deprecated Use getFieldTag 
-     * @return
+     * @return the field's tag number
      */
     public int field() {
         return getFieldTag();
