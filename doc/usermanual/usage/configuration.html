@@ -517,10 +517,12 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SL4JLogEventCategory</TD>
+    <TD>SLF4JLogEventCategory</TD>
     <TD>Log category for logged events.</TD>
-    <TD>Depends on log engine. The SL4J adapter for JDK 1.4 logging is included by default.
-    An adapter for Log4J and the Log4J JAR are in the lib/optional directory. The SLFJ category options
+    <TD>Depends on log engine. The SLF4J adapter for JDK 1.4 logging is included by default.
+    An adapter for Log4J and the Log4J JAR are in the lib/optional directory. See 
+    <a href="http://slf4j.org">slf4j.org</a>
+    for other options. The SLF4J category options
     support Session ID variables in the category names. The variables are:
     <ul>
     <li>${fixMajorVersion}</li>
@@ -536,14 +538,14 @@
     <TD>quickfixj.event</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SL4JLogIncomingMessageCategory</TD>
+    <TD>SLF4JLogIncomingMessageCategory</TD>
     <TD><p>Log category for incoming messages.</p>
       </TD>
     <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
     <TD>quickfixj.msg.incoming</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SL4JLogOutgoingMessageCategory</TD>
+    <TD>SLF4JLogOutgoingMessageCategory</TD>
     <TD>Log category for outgoing messages.</TD>
     <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
     <TD>quickfixj.msg.outgoing</TD>
