@@ -22,6 +22,11 @@ package quickfix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This log factory can be used to log messages and events with more than
+ * one logger. For example, you can log to both the screen and to a file
+ * or database.
+ */
 class CompositeLog implements Log {
     private Logger defaultLog = LoggerFactory.getLogger(getClass());
     private final Log[] logs;
