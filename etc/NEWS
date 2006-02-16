@@ -6,6 +6,7 @@ New Features and Improvements:
   * QuickFIX JNI 1.11.0 compatibility (except MSSQL, PostgreSQL stores)
   * Converted network code to MINA (Netty removed)
   * Converted non-session logging to SLF4J (Commons Logging removed)
+  * SLF4J log category names can use SessionID-based patterns
   * Failover support for acceptors.
   * Message component code generation and support in FieldMap.
   * Updated third party libraries to latest version.
