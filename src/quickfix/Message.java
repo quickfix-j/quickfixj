@@ -67,6 +67,7 @@ import quickfix.field.XmlData;
 import quickfix.field.XmlDataLen;
 
 public class Message extends FieldMap {
+    static final long serialVersionUID = -3193357271891865972L;
 
     protected Header header = new Header();
 
@@ -151,14 +152,18 @@ public class Message extends FieldMap {
         return checksumFormat.format((header.calculateTotal() + calculateTotal() + trailer.calculateTotal()) % 256);
     }
 
-    public String toXML() {
+    public String toXml() {
+        return toXML(null);
+    }
+    
+    public String toXML(DataDictionary dataDictionary) {
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             Element message = document.createElement("message");
             document.appendChild(message);
-            toXMLFields(message, "header", this.header);
-            toXMLFields(message, "body", this);
-            toXMLFields(message, "trailer", this.trailer);
+            toXMLFields(message, "header", this.header, dataDictionary);
+            toXMLFields(message, "body", this, dataDictionary);
+            toXMLFields(message, "trailer", this.trailer, dataDictionary);
             DOMSource domSource = new DOMSource(document);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             StreamResult streamResult = new StreamResult(out);
@@ -174,7 +179,7 @@ public class Message extends FieldMap {
         }
     }
 
-    public void toXMLFields(Element message, String section, FieldMap fieldMap) throws FieldNotFound {
+    private void toXMLFields(Element message, String section, FieldMap fieldMap, DataDictionary dataDictionary) throws FieldNotFound {
         Document document = message.getOwnerDocument();
         Element fields = document.createElement(section);
         message.appendChild(fields);
@@ -204,7 +209,7 @@ public class Message extends FieldMap {
             Iterator groupItr = groups.iterator();
             while (groupItr.hasNext()) {
                 Group group = (Group) groupItr.next();
-                toXMLFields(fields, "group", group);
+                toXMLFields(fields, "group", group, dataDictionary);
             }
         }
     }
@@ -234,6 +239,8 @@ public class Message extends FieldMap {
     }
 
     public class Header extends FieldMap {
+
+        static final long serialVersionUID = -3193357271891865972L;
 
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, new int[] { BeginString.FIELD, BodyLength.FIELD, MsgType.FIELD }, postFields);
@@ -334,6 +341,8 @@ public class Message extends FieldMap {
     }
 
     public class Trailer extends FieldMap {
+
+        static final long serialVersionUID = -3193357271891865972L;
 
         void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
@@ -515,15 +524,15 @@ public class Message extends FieldMap {
 
     private void parseHeader(DataDictionary dd) throws InvalidMessage {
         boolean invalidHeaderFieldOrder = false;
-        StringField beginString = extractField();
+        StringField beginString = extractField(dd);
         if (beginString.getField() != BeginString.FIELD) {
             invalidHeaderFieldOrder = true;
         }
-        StringField bodyLength = extractField();
+        StringField bodyLength = extractField(dd);
         if (bodyLength.getField() != BodyLength.FIELD) {
             invalidHeaderFieldOrder = true;
         }
-        StringField msgType = extractField();
+        StringField msgType = extractField(dd);
         if (msgType.getField() != MsgType.FIELD) {
             invalidHeaderFieldOrder = true;
         }
@@ -533,10 +542,10 @@ public class Message extends FieldMap {
         header.setField(beginString);
         header.setField(bodyLength);
         header.setField(msgType);
-        StringField field = extractField();
+        StringField field = extractField(dd);
         while (field != null && isHeaderField(field, dd)) {
             header.setField(field);
-            field = extractField();
+            field = extractField(dd);
         }
         pushBack(field);
     }
@@ -552,7 +561,7 @@ public class Message extends FieldMap {
     }
 
     private void parseBody(DataDictionary dd) throws InvalidMessage {
-        StringField field = extractField();
+        StringField field = extractField(dd);
         while (field != null) {
             if (isTrailerField(field.getField())) {
                 pushBack(field);
@@ -571,19 +580,19 @@ public class Message extends FieldMap {
             if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
                 parseGroup(field, dd, this);
             }
-            field = extractField();
+            field = extractField(dd);
         }
     }
 
-    private void parseGroup(StringField field, DataDictionary add, FieldMap parent) throws InvalidMessage {
-        DataDictionary.GroupInfo rg = add.getGroup(getMsgType(), field.getField());
+    private void parseGroup(StringField field, DataDictionary dd, FieldMap parent) throws InvalidMessage {
+        DataDictionary.GroupInfo rg = dd.getGroup(getMsgType(), field.getField());
         int groupField = field.getField();
         int firstField = rg.getDelimeterField();
         boolean firstFieldFound = false;
         Group group = null;
         boolean inGroupParse = true;
         while (inGroupParse) {
-            field = extractField(group);
+            field = extractField(group, dd);
             if (field.getTag() == firstField) {
                 if (group != null) {
                     parent.addGroup(group);
@@ -614,10 +623,10 @@ public class Message extends FieldMap {
     }
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {
-        StringField field = extractField();
+        StringField field = extractField(dd);
         while (field != null && isTrailerField(field, dd)) {
             trailer.setField(field);
-            field = extractField();
+            field = extractField(dd);
         }
     }
 
@@ -683,17 +692,15 @@ public class Message extends FieldMap {
 
     private StringField pushedBackField;
 
-    private DataDictionary dataDictionary;
-
     public void pushBack(StringField field) {
         pushedBackField = field;
     }
 
-    private StringField extractField() throws InvalidMessage {
-        return extractField(null);
+    private StringField extractField(DataDictionary dataDictionary) throws InvalidMessage {
+        return extractField(null, dataDictionary);
     }
 
-    private StringField extractField(Group group) throws InvalidMessage {
+    private StringField extractField(Group group, DataDictionary dataDictionary) throws InvalidMessage {
         if (pushedBackField != null) {
             StringField f = pushedBackField;
             pushedBackField = null;
