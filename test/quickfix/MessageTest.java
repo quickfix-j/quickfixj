@@ -17,6 +17,9 @@ import quickfix.field.IOIid;
 import quickfix.field.MsgDirection;
 import quickfix.field.MsgType;
 import quickfix.field.OrderQty;
+import quickfix.field.PartyID;
+import quickfix.field.PartyIDSource;
+import quickfix.field.PartyRole;
 import quickfix.field.Price;
 import quickfix.field.RefMsgType;
 import quickfix.field.SecurityType;
@@ -188,6 +191,17 @@ public class MessageTest extends TestCase {
         assertGroupContent(clonedMessage, numAllocs);
     }
     
+    public void testFieldOrderAfterClone() {
+        Message message = new quickfix.fix44.NewOrderSingle();
+            quickfix.fix44.NewOrderSingle.NoPartyIDs partyIdGroup = new quickfix.fix44.NewOrderSingle.NoPartyIDs();
+            partyIdGroup.set(new PartyID("PARTY_1"));
+            partyIdGroup.set(new PartyIDSource(PartyIDSource.DIRECTED_BROKER));
+            partyIdGroup.set(new PartyRole(PartyRole.INTRODUCING_FIRM));
+            message.addGroup(partyIdGroup);
+        Message clonedMessage = (Message)message.clone();
+        assertEquals("wrong field order", "8=FIX.4.49=3535=D453=1448=PARTY_1447=I452=610=040", clonedMessage.toString());
+    }
+
     public void testMessageGroupRemoval() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);

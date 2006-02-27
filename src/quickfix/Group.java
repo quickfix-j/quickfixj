@@ -43,7 +43,7 @@ public class Group extends FieldMap {
         this.delim = delim;
     }
     
-    private int getDelimeter() {
+    int getDelimeter() {
         return delim;
     }
 

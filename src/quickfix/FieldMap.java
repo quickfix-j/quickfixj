@@ -39,7 +39,7 @@ import quickfix.field.converter.IntConverter;
 import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
-
+    
 public abstract class FieldMap implements Serializable {
 
 	static final long serialVersionUID = -3193357271891865972L;
@@ -432,21 +432,19 @@ public abstract class FieldMap implements Serializable {
 			ArrayList clonedMembers = new ArrayList();
 			List groupMembers = ((List) entry.getValue());
 			for (int i = 0; i < groupMembers.size(); i++) {
-				// Object clonedGroup = ((Group)groupMembers.get(i)).clone();
-				Group clonedGroup = new Group();
-				clonedGroup.initializeFrom((Group) groupMembers.get(i));
+			    Group originalGroup = (Group) groupMembers.get(i);
+				Group clonedGroup = new Group(originalGroup.getFieldTag(), 
+                        originalGroup.getDelimeter(), originalGroup.getFieldOrder());
+                clonedGroup.initializeFrom(originalGroup);
 				clonedMembers.add(clonedGroup);
 			}
 			groups.put(entry.getKey(), clonedMembers);
 		}
 	}
 
-	// Patch from David VINCENT
 	private boolean isGroupField(int field) {
 		return groups.get(new Integer(field)) != null;
 	}
-
-	// End Patch from David VINCENT
 
 	void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {
 		if (preFields != null) {
