@@ -33,23 +33,27 @@ public class SocketInitiatorTest extends TestCase {
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
-            log.info("Do first login");
-            clientApplication.setUpLogonExpectation();
-            initiator.start();
-            Session clientSession = Session.lookupSession(clientSessionID);
-            assertLoggedOn(clientApplication, clientSession);
+            try {
+                log.info("Do first login");
+                clientApplication.setUpLogonExpectation();
+                initiator.start();
+                Session clientSession = Session.lookupSession(clientSessionID);
+                assertLoggedOn(clientApplication, clientSession);
 
-            log.info("Disconnect from server-side and assert that client session "
-                    + "reconnects and logs on properly");
-            clientApplication.setUpLogonExpectation();
-            serverSession.disconnect();
-            for (int i = 0; i < 10; i++) {
-                Thread.sleep(100L);
-                if (serverSession.getResponder() == null) {
-                    break;
+                log.info("Disconnect from server-side and assert that client session "
+                        + "reconnects and logs on properly");
+                clientApplication.setUpLogonExpectation();
+                serverSession.disconnect();
+                for (int i = 0; i < 10; i++) {
+                    Thread.sleep(100L);
+                    if (serverSession.getResponder() == null) {
+                        break;
+                    }
                 }
+                assertLoggedOn(clientApplication, clientSession);
+            } finally {
+                initiator.stop();
             }
-            assertLoggedOn(clientApplication, clientSession);
         } finally {
             serverThread.interrupt();
         }
@@ -64,10 +68,10 @@ public class SocketInitiatorTest extends TestCase {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID);
             ClientApplication clientApplication = new ClientApplication();
+            clientApplication.setUpLogonExpectation();
+
             final SocketInitiator initiator = new SocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-
-            clientApplication.setUpLogonExpectation();
 
             // BUG #105 - SocketInitiator poll had class cast exception
             // The class cast was from timer events occuring every one second.
@@ -120,12 +124,16 @@ public class SocketInitiatorTest extends TestCase {
             ClientApplication clientApplication = new ClientApplication();
             final SocketInitiator initiator = new SocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-            clientApplication.stopAfterLogon(initiator);
-            clientApplication.setUpLogonExpectation();
+            try {
+                clientApplication.stopAfterLogon(initiator);
+                clientApplication.setUpLogonExpectation();
 
-            initiator.block();
-            assertFalse("wrong logon status", initiator.isLoggedOn());
-            assertEquals("wrong # of session", 1, initiator.getManagedSessions().size());
+                initiator.block();
+                assertFalse("wrong logon status", initiator.isLoggedOn());
+                assertEquals("wrong # of session", 1, initiator.getManagedSessions().size());
+            } finally {
+                initiator.stop();
+            }
 
         } finally {
             serverThread.interrupt();
