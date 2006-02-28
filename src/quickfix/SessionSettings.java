@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import quickfix.field.converter.BooleanConverter;
 
@@ -65,6 +67,8 @@ public class SessionSettings {
     // problems with moving configuration files between *nix and Windows.
     private static final String NEWLINE = "\r\n";
 
+    private Map variableValues = System.getProperties();
+    
     /**
      * Creates an empty session settings object.
      */
@@ -130,7 +134,7 @@ public class SessionSettings {
      *             error during field type conversion.
      */
     public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
-        String value = getSessionProperties(sessionID).getProperty(key);
+        String value = interpolate(getSessionProperties(sessionID).getProperty(key));
         if (value == null) {
             throw new ConfigError(key + " not defined");
         }
@@ -515,6 +519,31 @@ public class SessionSettings {
         }
     }
 
+    private Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
+    
+    private String interpolate(String value) {
+        if (value == null || value.indexOf('$') == -1) {
+            return value;
+        }
+        StringBuffer buffer = new StringBuffer();
+        Matcher m = variablePattern.matcher(value);
+        while (m.find()) {
+            if (m.start() > 0 && value.charAt(m.start()-1) == '\\') {
+                continue;
+            }
+            String variable = m.group(1);
+            if (variableValues.containsKey(variable)) {
+                m.appendReplacement(buffer, variableValues.get(variable).toString());
+            }
+        }
+        m.appendTail(buffer);
+        return buffer.toString();
+    }
+    
+    public void setVariableValues(Map variableValues) {
+        this.variableValues = variableValues;
+    }
+    
     /**
      * Adds defaults to the settings. Will not delete existing settings not
      * overlapping with the new defaults, but will overwrite existing settings

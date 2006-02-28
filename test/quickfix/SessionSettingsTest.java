@@ -173,6 +173,37 @@ public class SessionSettingsTest extends TestCase {
     	assertEquals("wrong default value", "xyz", settings.getString("string"));
     }
     
+    public void testVariableInterpolationWithDefaultValueSource() throws Exception {
+        System.setProperty("test.1", "FOO");
+        System.setProperty("test.2", "BAR");
+        SessionSettings settings = setUpSession();
+        settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2}");
+        assertEquals("wrong default value", "ABC FOO XYZ FOOBAR", settings.getString("VariableTest"));
+        settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2} 123");
+        assertEquals("wrong default value", "ABC FOO XYZ FOOBAR 123", settings.getString("VariableTest"));
+    }
+    
+    public void testVariableInterpolationWithNoSysProps() throws Exception {
+        System.setProperty("test.1", "FOO");
+        System.setProperty("test.2", "BAR");
+        SessionSettings settings = setUpSession();
+        settings.setVariableValues(new Properties());
+        settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2}");
+        assertEquals("wrong default value", "ABC ${test.1} XYZ ${test.1}${test.2}", settings.getString("VariableTest"));
+    }
+
+    public void testVariableInterpolationWithProps() throws Exception {
+        Properties properties = new Properties();
+        properties.setProperty("test.1", "FOO");
+        properties.setProperty("test.2", "BAR");
+        SessionSettings settings = setUpSession();
+        settings.setVariableValues(properties);
+        settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2}");
+        assertEquals("wrong default value", "ABC FOO XYZ FOOBAR", settings.getString("VariableTest"));
+        settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2} 123");
+        assertEquals("wrong default value", "ABC FOO XYZ FOOBAR 123", settings.getString("VariableTest"));
+    }
+
     public void testToString() {
         new SessionSettings().toString();
         // Passes if no exceptions are thrown
