@@ -540,6 +540,21 @@ public class SessionSettings {
         return buffer.toString();
     }
     
+    /**
+     * Set a Map as a source of variable values in the settings. A variable
+     * is of the form ${variable} and will be replaced with values from the
+     * map when the setting is retrieved.
+     * 
+     * By default, the System properties are used for variable values. If
+     * you use this method, it will override the defaults so use the Properties
+     * default value mechanism if you want to chain a custom properties object
+     * with System properties as the default.
+     * 
+     * @param variableValues
+     * 
+     * @see java.util.Properties
+     * @see java.lang.System
+     */
     public void setVariableValues(Map variableValues) {
         this.variableValues = variableValues;
     }
