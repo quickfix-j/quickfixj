@@ -1,5 +1,7 @@
 package quickfix;
 
+import java.util.Date;
+
 public class FileStoreTest extends AbstractMessageStoreTest {
     public FileStoreTest(String name) {
         super(name);
@@ -34,4 +36,13 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         assertEquals(321, store.getNextTargetMsgSeqNum());
     }
 
+    public void testInitialSessionCreationTime() throws Exception {
+        FileStore store = (FileStore)getStore();
+        Date creationTime1 = store.getCreationTime();
+        store.closeFiles();
+        Thread.sleep(100);
+        store = (FileStore)getMessageStoreFactory().create(getSessionID());
+        Date creationTime2 = store.getCreationTime();
+        assertEquals("wrong time diff", 0, Math.abs(creationTime1.getTime() - creationTime2.getTime()));
+    }
 }
