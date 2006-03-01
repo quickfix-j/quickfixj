@@ -1,31 +1,30 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
 
 /**
  * Corresponds to SessionTime in C++ code
@@ -41,10 +40,10 @@ class SessionSchedule {
     //
     private Calendar calendar1 = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
     private Calendar calendar2 = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
-    private int endDay;
+    private int endDay = -1;
     private Calendar endTime;
     private TimeZone sessionTimeZone;
-    private int startDay;
+    private int startDay = -1;
     private Calendar startTime;
 
     SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
@@ -69,9 +68,9 @@ class SessionSchedule {
             startTimeString = settings.getString(sessionID, Session.SETTING_START_DAY) + " " + startTimeString;
             endTimeString = settings.getString(sessionID, Session.SETTING_END_DAY) + " " + endTimeString;
             weeklySession = true;
-            timeParser = new SimpleDateFormat("EEEE HH:mm:ss");
+            timeParser = new SimpleDateFormat("EEEE HH:mm:ss yyyyMMdd");
         } else {
-            timeParser = new SimpleDateFormat("HH:mm:ss");
+            timeParser = new SimpleDateFormat("HH:mm:ss yyyyMMdd");
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_TIMEZONE)) {
@@ -85,8 +84,10 @@ class SessionSchedule {
         }
         timeParser.setTimeZone(sessionTimeZone);
 
+        SimpleDateFormat ymd = new SimpleDateFormat("yyyyMMdd");
+        String dateString = " " + ymd.format(new Date());
         try {
-            Date parsedStartTime = timeParser.parse(startTimeString);
+            Date parsedStartTime = timeParser.parse(startTimeString + dateString);
             startTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             startTime.setTime(parsedStartTime);
             if (weeklySession) {
@@ -97,7 +98,7 @@ class SessionSchedule {
         }
 
         try {
-            Date parsedEndTime = timeParser.parse(endTimeString);
+            Date parsedEndTime = timeParser.parse(endTimeString + dateString);
             endTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             endTime.setTime(parsedEndTime);
             if (weeklySession) {
@@ -174,8 +175,7 @@ class SessionSchedule {
     }
 
     private boolean isSameWeeklySession(Calendar timestamp1, Calendar timestamp2) {
-        if (!isWeeklySessionTime(timestamp1) ||
-                !isWeeklySessionTime(timestamp2)) {
+        if (!isWeeklySessionTime(timestamp1) || !isWeeklySessionTime(timestamp2)) {
             return false;
         }
 
@@ -205,8 +205,7 @@ class SessionSchedule {
         timestamp2 = (Calendar) timestamp2.clone();
         timestamp2.add(Calendar.DATE, -1 * time2Range);
 
-        return timestamp1.get(Calendar.YEAR) == timestamp2.get(Calendar.YEAR)
-                && timestamp1.get(Calendar.DAY_OF_YEAR) == timestamp2.get(Calendar.DAY_OF_YEAR);
+        return timestamp1.get(Calendar.YEAR) == timestamp2.get(Calendar.YEAR) && timestamp1.get(Calendar.DAY_OF_YEAR) == timestamp2.get(Calendar.DAY_OF_YEAR);
     }
 
     public boolean isSessionTime() {
