@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -156,7 +156,7 @@ public class Session {
     private boolean millisecondsInTimeStamp;
     private boolean resetWhenInitiatingLogon;
     private String logoutReason;
-    
+
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
@@ -183,7 +183,7 @@ public class Session {
             }
             log.onEvent("Session " + this.sessionID + " schedule is " + sessionSchedule);
             if (!checkSessionTime()) {
-                log.onEvent("Session " + this.sessionID + " is not configured to be active now.");
+                log.onEvent("Session state is not current; resetting " + this.sessionID);
                 reset();
             }
             sessions.put(sessionID, this);
@@ -384,7 +384,7 @@ public class Session {
     public void logout(String reason) {
         logoutReason = reason;
     }
-    
+
     /**
      * Used internally by initiator implementation.
      *
@@ -514,7 +514,7 @@ public class Session {
         }
 
         String msgType = message.getHeader().getString(MsgType.FIELD);
-        
+
         try {
             if (isStateRefreshNeeded(msgType)) {
                 if (getStore() instanceof RefreshableMessageStore) {
@@ -526,7 +526,7 @@ public class Session {
                                     + getStore().getClass().getName());
                 }
             }
-            
+
             String beginString = message.getHeader().getString(BeginString.FIELD);
 
             if (!beginString.equals(sessionID.getBeginString())) {
@@ -1493,7 +1493,7 @@ public class Session {
     public Application getApplication() {
         return application;
     }
-    
+
     /**
      * Requests that state and message data be refreshed from the message store at
      * logon, if possible. This supports simple failover behavior for acceptors.
@@ -1501,7 +1501,7 @@ public class Session {
     public void setRefreshMessageStoreAtLogon(boolean refreshMessageStoreAtLogon) {
         this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
     }
-    
+
     /**
      * Determine if a session exists with the given ID.
      * @param sessionID
@@ -1510,7 +1510,7 @@ public class Session {
     public static boolean doesSessionExist(SessionID sessionID) {
        return sessions.containsKey(sessionID);
     }
-    
+
     /**
      * Return the session count.
      * @return the number of sessions

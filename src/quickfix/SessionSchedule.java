@@ -90,6 +90,7 @@ class SessionSchedule {
             Date parsedStartTime = timeParser.parse(startTimeString + dateString);
             startTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             startTime.setTime(parsedStartTime);
+            startTime.set(1970, 0, 1);
             if (weeklySession) {
                 startDay = startTime.get(Calendar.DAY_OF_WEEK);
             }
@@ -101,12 +102,15 @@ class SessionSchedule {
             Date parsedEndTime = timeParser.parse(endTimeString + dateString);
             endTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             endTime.setTime(parsedEndTime);
+            endTime.set(1970, 0, 1);
             if (weeklySession) {
                 endDay = endTime.get(Calendar.DAY_OF_WEEK);
             }
         } catch (ParseException e) {
             throw new ConfigError("Session " + sessionID + ": could not parse end time '" + endTimeString + "'.");
         }
+        calendar1.setTimeZone(TimeZone.getTimeZone("UTC"));
+        calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
     SessionSchedule(Date startTime, Date endTime, int startDay, int endDay) {
@@ -161,7 +165,7 @@ class SessionSchedule {
         if (startTime.before(endTime) || startTime.equals(endTime)) {
             return date1.equals(date2);
         } else if (startTime.after(endTime)) {
-            return Math.abs(date1.getTimeInMillis() - date2.getTimeInMillis()) < ONE_DAY_IN_MILLIS;
+            return Math.abs(timestamp1.getTimeInMillis() - timestamp2.getTimeInMillis()) < ONE_DAY_IN_MILLIS;
         }
 
         return false;

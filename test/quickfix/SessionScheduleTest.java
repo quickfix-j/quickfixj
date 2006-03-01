@@ -41,10 +41,10 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2004, 10, 10, 17, 0, 0);
     }
 
-    private void doIsSessionTimeTest(SessionSchedule schedule, boolean inSession, int year,
+    private void doIsSessionTimeTest(SessionSchedule schedule, boolean expectedInSession, int year,
             int month, int day, int hour, int minute, int second) {
         mockSystemTimeSource.setTime(getUtcTimeStamp(year, month, day, hour, minute, second));
-        assertEquals("schedule is wrong", schedule.isSessionTime(), inSession);
+        assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
     }
 
     public void testSessionTimeWithDay() throws Exception {
@@ -62,6 +62,8 @@ public class SessionScheduleTest extends TestCase {
     }
 
     public void testIsSameSessionWithoutDay() throws Exception {
+        //=====================================================
+        // start time is less than end time
         Calendar start = getUtcTime(3, 0, 0);
         Calendar end = getUtcTime(18, 0, 0);
         SessionSchedule schedule = new SessionSchedule(start.getTime(), end.getTime(), -1, -1);
@@ -91,6 +93,12 @@ public class SessionScheduleTest extends TestCase {
         t2 = getUtcTimeStamp(2000, 10, 10, 2, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, false);
 
+        // same time (in session window) two different days
+        t1 = getUtcTimeStamp(2000, 10, 10, 12, 0, 0);
+        t2 = getUtcTimeStamp(2000, 10, 11, 12, 0, 0);
+        doIsSameSessionTest(schedule, t1, t2, false);
+
+        //=====================================================
         // start time is greater than end time
         start = getUtcTime(18, 0, 0);
         end = getUtcTime(13, 0, 0);
@@ -100,14 +108,19 @@ public class SessionScheduleTest extends TestCase {
         t1 = getUtcTimeStamp(2000, 10, 10, 19, 0, 0);
         t2 = getUtcTimeStamp(2000, 10, 10, 20, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, true);
+        
+        // same time (in session window) two different days
+        t1 = getUtcTimeStamp(2000, 10, 10, 19, 0, 0);
+        t2 = getUtcTimeStamp(2000, 10, 11, 19, 0, 0);
+        doIsSameSessionTest(schedule, t1, t2, false);
 
         // same session time 2 is in next day
         t1 = getUtcTimeStamp(2000, 10, 10, 19, 0, 0);
-        t2 = getUtcTimeStamp(2000, 10, 10, 2, 0, 0);
+        t2 = getUtcTimeStamp(2000, 10, 11, 2, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, true);
 
         // same session time 1 is in next day
-        t1 = getUtcTimeStamp(2000, 10, 10, 2, 0, 0);
+        t1 = getUtcTimeStamp(2000, 10, 11, 2, 0, 0);
         t2 = getUtcTimeStamp(2000, 10, 10, 19, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, true);
 
@@ -116,6 +129,7 @@ public class SessionScheduleTest extends TestCase {
         t2 = getUtcTimeStamp(2000, 10, 10, 20, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, false);
 
+        //=====================================================
         // start time is equal to end time
         start = getUtcTime(6, 0, 0);
         end = getUtcTime(6, 0, 0);
@@ -165,9 +179,9 @@ public class SessionScheduleTest extends TestCase {
     }
 
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
-            boolean isSame) {
-        assertEquals("schedule is wrong", schedule.isSameSession(time1, time2), isSame);
-        assertEquals("schedule is wrong", schedule.isSameSession(time2, time1), isSame);
+            boolean isSameSession) {
+        assertEquals("schedule is wrong", schedule.isSameSession(time1, time2), isSameSession);
+        assertEquals("schedule is wrong", schedule.isSameSession(time2, time1), isSameSession);
     }
 
     private Calendar getUtcTimeStamp(int year, int month, int day, int hour, int minute, int second) {
@@ -181,14 +195,4 @@ public class SessionScheduleTest extends TestCase {
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
         return c;
     }
-
-    // public void testTimeZone() throws Exception {
-    // SimpleDateFormat format = new SimpleDateFormat();
-    // format.setTimeZone(TimeZone.getTimeZone("UTC"));
-    // Calendar c = new GregorianCalendar(2004, 10, 10, 1, 2, 3);
-    // System.out.println(format.format(c.getTime()));
-    // c.setTimeZone(TimeZone.getTimeZone("UTC"));
-    // System.out.println(format.format(c.getTime()));
-    // }
-
 }
