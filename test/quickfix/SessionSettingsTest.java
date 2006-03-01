@@ -193,9 +193,9 @@ public class SessionSettingsTest extends TestCase {
     }
 
     public void testVariableInterpolationWithProps() throws Exception {
-        Properties properties = new Properties();
+        System.setProperty("test.2", "BAR");
+        Properties properties = new Properties(System.getProperties());
         properties.setProperty("test.1", "FOO");
-        properties.setProperty("test.2", "BAR");
         SessionSettings settings = setUpSession();
         settings.setVariableValues(properties);
         settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2}");

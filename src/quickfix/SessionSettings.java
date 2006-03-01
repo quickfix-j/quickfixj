@@ -67,7 +67,7 @@ public class SessionSettings {
     // problems with moving configuration files between *nix and Windows.
     private static final String NEWLINE = "\r\n";
 
-    private Map variableValues = System.getProperties();
+    private Properties variableValues = System.getProperties();
     
     /**
      * Creates an empty session settings object.
@@ -532,8 +532,9 @@ public class SessionSettings {
                 continue;
             }
             String variable = m.group(1);
-            if (variableValues.containsKey(variable)) {
-                m.appendReplacement(buffer, variableValues.get(variable).toString());
+            String variableValue = variableValues.getProperty(variable);
+            if (variableValue != null) {
+                m.appendReplacement(buffer, variableValue);
             }
         }
         m.appendTail(buffer);
@@ -541,7 +542,7 @@ public class SessionSettings {
     }
     
     /**
-     * Set a Map as a source of variable values in the settings. A variable
+     * Set properties that will be the source of variable values in the settings. A variable
      * is of the form ${variable} and will be replaced with values from the
      * map when the setting is retrieved.
      * 
@@ -550,12 +551,25 @@ public class SessionSettings {
      * default value mechanism if you want to chain a custom properties object
      * with System properties as the default.
      * 
+     * <code><pre>
+     * // Custom properties with System properties as default
+     * Properties myprops = new Properties(System.getProperties());
+     * myprops.load(getPropertiesInputStream());
+     * settings.setVariableValues(myprops);
+     * 
+     * // Custom properties with System properties as override
+     * Properties myprops = new Properties();
+     * myprops.load(getPropertiesInputStream());
+     * myprops.putAll(System.getProperties());
+     * settings.setVariableValues(myprops);
+     * </pre></code>
+     * 
      * @param variableValues
      * 
      * @see java.util.Properties
      * @see java.lang.System
      */
-    public void setVariableValues(Map variableValues) {
+    public void setVariableValues(Properties variableValues) {
         this.variableValues = variableValues;
     }
     
