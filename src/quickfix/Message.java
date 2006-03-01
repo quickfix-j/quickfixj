@@ -242,7 +242,7 @@ public class Message extends FieldMap {
 
         static final long serialVersionUID = -3193357271891865972L;
 
-        void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
+        protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, new int[] { BeginString.FIELD, BodyLength.FIELD, MsgType.FIELD }, postFields);
         }
         
@@ -344,7 +344,7 @@ public class Message extends FieldMap {
 
         static final long serialVersionUID = -3193357271891865972L;
 
-        void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
+        protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
         
