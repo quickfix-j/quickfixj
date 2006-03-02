@@ -46,14 +46,15 @@ class SessionSchedule {
     private int startDay = -1;
     private Calendar startTime;
 
-    SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
-        if (settings.isSetting(sessionID, Session.SETTING_START_DAY) && !settings.isSetting(sessionID, Session.SETTING_END_DAY))
-        {
+    SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
+            FieldConvertError {
+        if (settings.isSetting(sessionID, Session.SETTING_START_DAY)
+                && !settings.isSetting(sessionID, Session.SETTING_END_DAY)) {
             throw new ConfigError("Session " + sessionID + ": StartDay used without EndDay");
         }
 
-        if (settings.isSetting(sessionID, Session.SETTING_END_DAY) && !settings.isSetting(sessionID, Session.SETTING_START_DAY))
-        {
+        if (settings.isSetting(sessionID, Session.SETTING_END_DAY)
+                && !settings.isSetting(sessionID, Session.SETTING_START_DAY)) {
             throw new ConfigError("Session " + sessionID + ": EndDay used without StartDay");
         }
 
@@ -63,10 +64,12 @@ class SessionSchedule {
         boolean weeklySession = false;
 
         SimpleDateFormat timeParser = null;
-        if (settings.isSetting(sessionID, Session.SETTING_START_DAY) && settings.isSetting(sessionID, Session.SETTING_END_DAY))
-        {
-            startTimeString = settings.getString(sessionID, Session.SETTING_START_DAY) + " " + startTimeString;
-            endTimeString = settings.getString(sessionID, Session.SETTING_END_DAY) + " " + endTimeString;
+        if (settings.isSetting(sessionID, Session.SETTING_START_DAY)
+                && settings.isSetting(sessionID, Session.SETTING_END_DAY)) {
+            startTimeString = settings.getString(sessionID, Session.SETTING_START_DAY) + " "
+                    + startTimeString;
+            endTimeString = settings.getString(sessionID, Session.SETTING_END_DAY) + " "
+                    + endTimeString;
             weeklySession = true;
             timeParser = new SimpleDateFormat("EEEE HH:mm:ss yyyyMMdd");
         } else {
@@ -77,7 +80,8 @@ class SessionSchedule {
             String sessionTimeZoneID = settings.getString(sessionID, Session.SETTING_TIMEZONE);
             sessionTimeZone = TimeZone.getTimeZone(sessionTimeZoneID);
             if ("GMT".equals(sessionTimeZone.getID()) && !"GMT".equals(sessionTimeZoneID)) {
-                throw new ConfigError("Unrecognized time zone '" + sessionTimeZoneID + "' for session " + sessionID);
+                throw new ConfigError("Unrecognized time zone '" + sessionTimeZoneID
+                        + "' for session " + sessionID);
             }
         } else {
             sessionTimeZone = TimeZone.getTimeZone("UTC");
@@ -92,10 +96,12 @@ class SessionSchedule {
             startTime.setTime(parsedStartTime);
             startTime.set(1970, 0, 1);
             if (weeklySession) {
-                startDay = startTime.get(Calendar.DAY_OF_WEEK);
+                //startDay = startTime.get(Calendar.DAY_OF_WEEK);
+                startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
             }
         } catch (ParseException e) {
-            throw new ConfigError("Session " + sessionID + ": could not parse start time '" + startTimeString + "'.");
+            throw new ConfigError("Session " + sessionID + ": could not parse start time '"
+                    + startTimeString + "'.");
         }
 
         try {
@@ -104,10 +110,13 @@ class SessionSchedule {
             endTime.setTime(parsedEndTime);
             endTime.set(1970, 0, 1);
             if (weeklySession) {
-                endDay = endTime.get(Calendar.DAY_OF_WEEK);
+                //endDay = endTime.get(Calendar.DAY_OF_WEEK);
+                endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
+
             }
         } catch (ParseException e) {
-            throw new ConfigError("Session " + sessionID + ": could not parse end time '" + endTimeString + "'.");
+            throw new ConfigError("Session " + sessionID + ": could not parse end time '"
+                    + endTimeString + "'.");
         }
         calendar1.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -131,7 +140,8 @@ class SessionSchedule {
         dateOnlyOut.set(Calendar.HOUR_OF_DAY, 0);
         dateOnlyOut.set(Calendar.MINUTE, 0);
         dateOnlyOut.set(Calendar.SECOND, 0);
-        dateOnlyOut.set(timestampIn.get(Calendar.YEAR), timestampIn.get(Calendar.MONTH), timestampIn.get(Calendar.DAY_OF_MONTH));
+        dateOnlyOut.set(timestampIn.get(Calendar.YEAR), timestampIn.get(Calendar.MONTH),
+                timestampIn.get(Calendar.DAY_OF_MONTH));
         return dateOnlyOut;
     }
 
@@ -145,9 +155,11 @@ class SessionSchedule {
 
     private boolean isDailySessionTime(Calendar timestamp) {
         Calendar timeOnly = getTimeOnly(timestamp, calendar1);
-        return startTime.before(endTime) ? ((timeOnly.after(startTime) || timeOnly.equals(startTime)) && (timeOnly
-                .before(endTime) || timeOnly.equals(endTime))) : ((timeOnly.after(startTime) || timeOnly
-                .equals(startTime)) || (timeOnly.before(endTime) || timeOnly.equals(endTime)));
+        return startTime.before(endTime)
+                ? ((timeOnly.after(startTime) || timeOnly.equals(startTime)) && (timeOnly
+                        .before(endTime) || timeOnly.equals(endTime)))
+                : ((timeOnly.after(startTime) || timeOnly.equals(startTime)) || (timeOnly
+                        .before(endTime) || timeOnly.equals(endTime)));
     }
 
     private boolean isSameDailySession(Calendar timestamp1, Calendar timestamp2) {
@@ -209,7 +221,8 @@ class SessionSchedule {
         timestamp2 = (Calendar) timestamp2.clone();
         timestamp2.add(Calendar.DATE, -1 * time2Range);
 
-        return timestamp1.get(Calendar.YEAR) == timestamp2.get(Calendar.YEAR) && timestamp1.get(Calendar.DAY_OF_YEAR) == timestamp2.get(Calendar.DAY_OF_YEAR);
+        return timestamp1.get(Calendar.YEAR) == timestamp2.get(Calendar.YEAR)
+                && timestamp1.get(Calendar.DAY_OF_YEAR) == timestamp2.get(Calendar.DAY_OF_YEAR);
     }
 
     public boolean isSessionTime() {
@@ -314,4 +327,31 @@ class SessionSchedule {
         }
         return buf.toString();
     }
+
+    private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
+            throws ConfigError, FieldConvertError {
+        if (!settings.isSetting(sessionID, key)) {
+            return defaultValue;
+        }
+        String value = settings.getString(sessionID, key);
+        if (value.length() >= 2) {
+            String abbr = value.substring(0, 2).toLowerCase();
+            if (abbr.equals("su"))
+                return 1;
+            if (abbr.equals("mo"))
+                return 2;
+            if (abbr.equals("tu"))
+                return 3;
+            if (abbr.equals("we"))
+                return 4;
+            if (abbr.equals("th"))
+                return 5;
+            if (abbr.equals("fr"))
+                return 6;
+            if (abbr.equals("sa"))
+                return 7;
+        }
+        throw new ConfigError("invalid format for day (use su,mo,tu,we,th,fr,sa): '" + value + "'");
+    }
+
 }
