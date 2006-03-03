@@ -22,6 +22,7 @@ package quickfix;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -50,33 +51,23 @@ class SessionSchedule {
 
     SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
-        if (settings.isSetting(sessionID, Session.SETTING_START_DAY)
-                && !settings.isSetting(sessionID, Session.SETTING_END_DAY)) {
+        boolean startDayPresent = settings.isSetting(sessionID, Session.SETTING_START_DAY);
+        boolean endDayPresent = settings.isSetting(sessionID, Session.SETTING_END_DAY);
+
+        if (startDayPresent && !endDayPresent) {
             throw new ConfigError("Session " + sessionID + ": StartDay used without EndDay");
         }
 
-        if (settings.isSetting(sessionID, Session.SETTING_END_DAY)
-                && !settings.isSetting(sessionID, Session.SETTING_START_DAY)) {
+        if (endDayPresent && !startDayPresent) {
             throw new ConfigError("Session " + sessionID + ": EndDay used without StartDay");
         }
+
+        boolean weeklySession = startDayPresent && endDayPresent;
 
         String startTimeString = settings.getString(sessionID, Session.SETTING_START_TIME);
         String endTimeString = settings.getString(sessionID, Session.SETTING_END_TIME);
 
-        boolean weeklySession = false;
-
-        SimpleDateFormat timeParser = null;
-        if (settings.isSetting(sessionID, Session.SETTING_START_DAY)
-                && settings.isSetting(sessionID, Session.SETTING_END_DAY)) {
-            startTimeString = settings.getString(sessionID, Session.SETTING_START_DAY) + " "
-                    + startTimeString;
-            endTimeString = settings.getString(sessionID, Session.SETTING_END_DAY) + " "
-                    + endTimeString;
-            weeklySession = true;
-            timeParser = new SimpleDateFormat("EEEE HH:mm:ss yyyyMMdd");
-        } else {
-            timeParser = new SimpleDateFormat("HH:mm:ss yyyyMMdd");
-        }
+        SimpleDateFormat timeParser = timeParser = new SimpleDateFormat("HH:mm:ss yyyyMMdd");
 
         if (settings.isSetting(sessionID, Session.SETTING_TIMEZONE)) {
             String sessionTimeZoneID = settings.getString(sessionID, Session.SETTING_TIMEZONE);
@@ -98,7 +89,6 @@ class SessionSchedule {
             startTime.setTime(parsedStartTime);
             startTime.set(1970, 0, 1);
             if (weeklySession) {
-                //startDay = startTime.get(Calendar.DAY_OF_WEEK);
                 startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
             }
         } catch (ParseException e) {
@@ -112,7 +102,6 @@ class SessionSchedule {
             endTime.setTime(parsedEndTime);
             endTime.set(1970, 0, 1);
             if (weeklySession) {
-                //endDay = endTime.get(Calendar.DAY_OF_WEEK);
                 endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
 
             }
@@ -178,11 +167,9 @@ class SessionSchedule {
 
         if (startTime.before(endTime) || startTime.equals(endTime)) {
             return date1.equals(date2);
-        } else if (startTime.after(endTime)) {
+        } else {
             return Math.abs(timestamp1.getTimeInMillis() - timestamp2.getTimeInMillis()) < ONE_DAY_IN_MILLIS;
         }
-
-        return false;
     }
 
     public boolean isSameSession(Calendar time1, Calendar time2) {
@@ -332,21 +319,18 @@ class SessionSchedule {
 
     private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
             throws ConfigError, FieldConvertError {
-        if (!settings.isSetting(sessionID, key)) {
-            return defaultValue;
-        }
+        String dayNames[] = new DateFormatSymbols(Locale.getDefault()).getWeekdays();
         String value = settings.getString(sessionID, key);
         if (value.length() >= 2) {
             String abbr = value.substring(0, 2).toLowerCase();
-            DateFormatSymbols dfs = new DateFormatSymbols(Locale.getDefault());
-            String dayNames[] = dfs.getWeekdays();
             for (int i = 1; i < dayNames.length; i++) {
                 if (dayNames[i].toLowerCase().startsWith(abbr)) {
                     return i;
                 }
             }
         }
-        throw new ConfigError("invalid format for day (use su,mo,tu,we,th,fr,sa): '" + value + "'");
+        throw new ConfigError("invalid format for day (valid values: "
+                + Arrays.asList(dayNames).subList(1, dayNames.length) + " or prefix); actual value was '" + value + "'");
     }
 
 }
