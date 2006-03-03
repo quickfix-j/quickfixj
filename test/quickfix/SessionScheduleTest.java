@@ -247,6 +247,19 @@ public class SessionScheduleTest extends TestCase {
 
     // TODO TEST Add test for UTC/GMT issue in 1970
 
+    public void testToString() throws ConfigError, FieldConvertError {
+        // Just be sure it doesn't throw exceptions
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
+        settings.setString(Session.SETTING_START_DAY, "Tue");
+        settings.setString(Session.SETTING_START_TIME, "01:00:00");
+        settings.setString(Session.SETTING_END_DAY, "Fri");
+        settings.setString(Session.SETTING_END_TIME, "15:00:00");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+        assertNotNull(schedule.toString());
+    }
+    
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
             boolean isSameSession) {
         assertEquals("schedule is wrong", schedule.isSameSession(time1, time2), isSameSession);

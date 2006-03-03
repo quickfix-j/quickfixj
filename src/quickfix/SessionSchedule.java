@@ -19,11 +19,13 @@
 
 package quickfix;
 
+import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -336,20 +338,13 @@ class SessionSchedule {
         String value = settings.getString(sessionID, key);
         if (value.length() >= 2) {
             String abbr = value.substring(0, 2).toLowerCase();
-            if (abbr.equals("su"))
-                return 1;
-            if (abbr.equals("mo"))
-                return 2;
-            if (abbr.equals("tu"))
-                return 3;
-            if (abbr.equals("we"))
-                return 4;
-            if (abbr.equals("th"))
-                return 5;
-            if (abbr.equals("fr"))
-                return 6;
-            if (abbr.equals("sa"))
-                return 7;
+            DateFormatSymbols dfs = new DateFormatSymbols(Locale.getDefault());
+            String dayNames[] = dfs.getWeekdays();
+            for (int i = 1; i < dayNames.length; i++) {
+                if (dayNames[i].toLowerCase().startsWith(abbr)) {
+                    return i;
+                }
+            }
         }
         throw new ConfigError("invalid format for day (use su,mo,tu,we,th,fr,sa): '" + value + "'");
     }
