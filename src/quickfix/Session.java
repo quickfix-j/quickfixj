@@ -383,6 +383,7 @@ public class Session {
      */
     public void logout(String reason) {
         logoutReason = reason;
+        logout();
     }
 
     /**
@@ -758,6 +759,7 @@ public class Session {
             logout.setString(Text.FIELD, text);
         }
         sendRaw(logout, 0);
+        logoutReason = null;
         state.setLogoutSent(true);
     }
 
@@ -1070,7 +1072,6 @@ public class Session {
                 if (!state.isLogoutSent()) {
                     state.logEvent("Initiated logout request");
                     generateLogout(logoutReason);
-                    // TODO QF 1.11 Does logout reason ever get cleared?
                 }
             } else {
                 return;
