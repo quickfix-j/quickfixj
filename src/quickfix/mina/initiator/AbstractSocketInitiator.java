@@ -165,9 +165,4 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 || settings.getString((SessionID) sectionKey,
                         SessionFactory.SETTING_CONNECTION_TYPE).equals("initiator");
     }
-
-    public boolean isLoggedOn(SessionID sessionID) {
-        Session session = Session.lookupSession(sessionID);
-        return session != null && session.isLoggedOn();
-    }
 }
