@@ -30,9 +30,8 @@ public class FileStoreFactory implements MessageStoreFactory {
 
     /**
      * Boolean option for controlling whether the FileStore syncs to the hard
-     * drive on every write. It's safer to sync, but it's also much slower (50x
-     * or more slower in some cases). The default (Y=yes) is for safety rather than
-     * performance.
+     * drive on every write. It's safer to sync, but it's also much slower (100x
+     * or more slower in some cases).
      */
     public static final String SETTING_FILE_STORE_SYNC = "FileStoreSync";
 
@@ -53,7 +52,7 @@ public class FileStoreFactory implements MessageStoreFactory {
      */
 	public MessageStore create(SessionID sessionID) {
 		try {
-            boolean syncWrites = true;
+            boolean syncWrites = false;
             if (settings.isSetting(sessionID, SETTING_FILE_STORE_SYNC)) {
                 syncWrites = settings.getBool(sessionID, SETTING_FILE_STORE_SYNC);
             }
