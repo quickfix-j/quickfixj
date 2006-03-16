@@ -1266,6 +1266,7 @@ public class Session {
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
             String msgType = MessageUtils.getMessageType(msg);
+            // TODO What if a data dictionary is not used?
             Message message = messageFactory.create(dataDictionary.getVersion(), msgType);
             message.fromString(msg, dataDictionary, false);
             next(message);
