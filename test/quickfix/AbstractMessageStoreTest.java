@@ -8,22 +8,22 @@ import junit.framework.TestCase;
 public abstract class AbstractMessageStoreTest extends TestCase {
     private SessionID sessionID;
     private MessageStore store;
-    
+
     // Automatically disable tests if database isn't available
     private boolean testEnabled = true;
-    
+
     public AbstractMessageStoreTest() {
         super();
     }
-    
+
     public AbstractMessageStoreTest(String name) {
         super(name);
     }
 
     protected void setUp() throws Exception {
-    	if (!testEnabled) {
-    		return;
-    	}
+        if (!testEnabled) {
+            return;
+        }
         long now = System.currentTimeMillis();
         sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         store = getMessageStoreFactory().create(sessionID);
@@ -40,10 +40,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     public void testMessageStoreSequenceNumbers() throws Exception {
-    	if (!testEnabled) {
-    		return;
-    	}
-    	
+        if (!testEnabled) {
+            return;
+        }
+
         store.reset();
         assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
@@ -71,11 +71,11 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     public void testMessageStorageMessages() throws Exception {
-    	if (!testEnabled) {
-    		return;
-    	}
+        if (!testEnabled) {
+            return;
+        }
 
-    	assertTrue("set failed", store.set(111, "message2"));
+        assertTrue("set failed", store.set(111, "message2"));
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
 
@@ -88,44 +88,47 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
     public void testRefreshableMessageStore() throws Exception {
         if (store instanceof RefreshableMessageStore) {
-            RefreshableMessageStore rstore = (RefreshableMessageStore)store;
-            assertEquals("wrong value", 1, rstore.getNextSenderMsgSeqNum());
-            assertEquals("wrong value", 1, rstore.getNextTargetMsgSeqNum());
+            RefreshableMessageStore failoverStore = (RefreshableMessageStore) getMessageStoreFactory()
+                    .create(sessionID);
+            try {
+                RefreshableMessageStore primaryStore = (RefreshableMessageStore) store;
 
-            MessageStore anotherStore = getMessageStoreFactory().create(sessionID);
-            assertEquals("wrong value", 1, anotherStore.getNextSenderMsgSeqNum());
-            assertEquals("wrong value", 1, anotherStore.getNextTargetMsgSeqNum());
-            
-            anotherStore.setNextSenderMsgSeqNum(2);
-            anotherStore.setNextTargetMsgSeqNum(2);
- 
-            assertEquals("wrong value", 2, anotherStore.getNextSenderMsgSeqNum());
-            assertEquals("wrong value", 2, anotherStore.getNextTargetMsgSeqNum());
-            closeMessageStore(anotherStore);
-            
-            assertEquals("wrong value", 1, rstore.getNextSenderMsgSeqNum());
-            assertEquals("wrong value", 1, rstore.getNextTargetMsgSeqNum());
-            
-            rstore.refresh();
-            
-            assertEquals("wrong value", 2, anotherStore.getNextSenderMsgSeqNum());
-            assertEquals("wrong value", 2, anotherStore.getNextTargetMsgSeqNum());
-            
-            assertEquals("wrong value", 2, rstore.getNextSenderMsgSeqNum());
-            assertEquals("wrong value", 2, rstore.getNextTargetMsgSeqNum());
-            
-       }
+                assertEquals("wrong value", 1, primaryStore.getNextSenderMsgSeqNum());
+                assertEquals("wrong value", 1, primaryStore.getNextTargetMsgSeqNum());
+
+                assertEquals("wrong value", 1, failoverStore.getNextSenderMsgSeqNum());
+                assertEquals("wrong value", 1, failoverStore.getNextTargetMsgSeqNum());
+
+                primaryStore.setNextSenderMsgSeqNum(20);
+                primaryStore.setNextTargetMsgSeqNum(20);
+
+                assertEquals("wrong value", 20, primaryStore.getNextSenderMsgSeqNum());
+                assertEquals("wrong value", 20, primaryStore.getNextTargetMsgSeqNum());
+
+                closeMessageStore(primaryStore);
+
+                assertEquals("wrong value", 1, failoverStore.getNextSenderMsgSeqNum());
+                assertEquals("wrong value", 1, failoverStore.getNextTargetMsgSeqNum());
+
+                failoverStore.refresh();
+
+                assertEquals("wrong value", 20, failoverStore.getNextSenderMsgSeqNum());
+                assertEquals("wrong value", 20, failoverStore.getNextTargetMsgSeqNum());
+            } finally {
+                closeMessageStore(failoverStore);
+            }
+        }
     }
 
     protected void closeMessageStore(MessageStore store) throws IOException {
         // does nothing, by default
     }
-    
+
     protected String getConfigurationFileName() {
         return "test/test.cfg";
     }
 
-	protected void setTestEnabled(boolean b) {
-		testEnabled = b;
-	}
+    protected void setTestEnabled(boolean b) {
+        testEnabled = b;
+    }
 }

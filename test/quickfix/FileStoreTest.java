@@ -1,5 +1,6 @@
 package quickfix;
 
+import java.io.IOException;
 import java.util.Date;
 
 public class FileStoreTest extends AbstractMessageStoreTest {
@@ -10,7 +11,11 @@ public class FileStoreTest extends AbstractMessageStoreTest {
     protected void tearDown() throws Exception {
         super.tearDown();
         FileStore fileStore = (FileStore) getStore();
-        fileStore.deleteFiles();
+        try {
+            fileStore.deleteFiles();
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
@@ -30,10 +35,14 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         store.setNextSenderMsgSeqNum(123);
         store.setNextTargetMsgSeqNum(321);
         store.closeFiles();
-        store.initializeFiles(false);
+        store.initialize(false);
 
         assertEquals(123, store.getNextSenderMsgSeqNum());
         assertEquals(321, store.getNextTargetMsgSeqNum());
+    }
+    
+    protected void closeMessageStore(MessageStore store) throws IOException {
+        ((FileStore)store).closeFiles();
     }
 
     public void testInitialSessionCreationTime() throws Exception {
@@ -41,7 +50,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         Date creationTime1 = store.getCreationTime();
         store.closeFiles();
         Thread.sleep(100);
-        store = (FileStore)getMessageStoreFactory().create(getSessionID());
+        store.initialize(false);
         Date creationTime2 = store.getCreationTime();
         assertEquals("wrong time diff", 0, Math.abs(creationTime1.getTime() - creationTime2.getTime()));
     }

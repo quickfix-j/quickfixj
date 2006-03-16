@@ -28,6 +28,14 @@ public class FileStoreFactory implements MessageStoreFactory {
      */
     public static final String SETTING_FILE_STORE_PATH = "FileStorePath";
 
+    /**
+     * Boolean option for controlling whether the FileStore syncs to the hard
+     * drive on every write. It's safer to sync, but it's also much slower (50x
+     * or more slower in some cases). The default (Y=yes) is for safety rather than
+     * performance.
+     */
+    public static final String SETTING_FILE_STORE_SYNC = "FileStoreSync";
+
     private final SessionSettings settings;
         
     /**
@@ -45,7 +53,11 @@ public class FileStoreFactory implements MessageStoreFactory {
      */
 	public MessageStore create(SessionID sessionID) {
 		try {
-            return new FileStore(settings.getString(sessionID, FileStoreFactory.SETTING_FILE_STORE_PATH), sessionID);
+            boolean syncWrites = true;
+            if (settings.isSetting(sessionID, SETTING_FILE_STORE_SYNC)) {
+                syncWrites = settings.getBool(sessionID, SETTING_FILE_STORE_SYNC);
+            }
+            return new FileStore(settings.getString(sessionID, FileStoreFactory.SETTING_FILE_STORE_PATH), sessionID, syncWrites);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
