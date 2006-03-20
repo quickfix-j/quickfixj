@@ -82,6 +82,7 @@ public class SessionSettingsTest extends TestCase {
         String data = new String();
         data += "#comment\n";
         data += "[DEFAULT]\n";
+        data += "Empty=\n";
         data += "ConnectionType=acceptor\n";
         data += "SocketAcceptPort=5001\n";
         data += "FileStorePath=store\n";

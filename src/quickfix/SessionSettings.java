@@ -466,15 +466,14 @@ public class SessionSettings {
                 return new Token(ID_TOKEN, sb.toString());
             } else if (ch == '=') {
                 ch = nextCharacter(inputStream);
-                skipWhitespace(inputStream);
+                sb.setLength(0);
                 if (isValueCharacter(ch)) {
-                    sb.setLength(0);
                     do {
                         sb.append(ch);
                         ch = nextCharacter(inputStream);
                     } while (isValueCharacter(ch));
-                    return new Token(VALUE_TOKEN, sb.toString().trim());
                 }
+                return new Token(VALUE_TOKEN, sb.toString().trim());
             } else if (ch == '[') {
                 ch = nextCharacter(inputStream);
                 Token id = getToken(inputStream);
