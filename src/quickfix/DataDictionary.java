@@ -762,7 +762,7 @@ public class DataDictionary {
                 }
                 inputStream = classLoader.getResourceAsStream(url);
                 if (inputStream == null) {
-                    throw new DataDictionary.Exception("Could not find data dictionary: "+url);
+                    throw new DataDictionary.Exception("Could not find data dictionary: " + url);
                 }
             }
         } catch (IOException e) {
@@ -890,10 +890,11 @@ public class DataDictionary {
         for (int i = 0; i < headerFieldNodes.getLength(); i++) {
             Node headerFieldNode = headerFieldNodes.item(i);
 
-            if (headerFieldNode.getNodeName().equals("field")) {
+            String nodeName = headerFieldNode.getNodeName();
+            if (nodeName.equals("field") || nodeName.equals("group")) {
                 String name = getAttribute(headerFieldNode, "name");
                 if (name == null) {
-                    throw new ConfigError("<field> does not have a name attribute");
+                    throw new ConfigError("<" + nodeName + "> does not have a name attribute");
                 }
                 String required = "false";
                 addHeaderField(lookupXMLFieldNumber(document, name), required.equals("true"));
@@ -910,10 +911,11 @@ public class DataDictionary {
         for (int i = 0; i < trailerFieldNodes.getLength(); i++) {
             Node trailerFieldNode = trailerFieldNodes.item(i);
 
-            if (trailerFieldNode.getNodeName().equals("field")) {
+            String nodeName = trailerFieldNode.getNodeName();
+            if (nodeName.equals("field") || nodeName.equals("group")) {
                 String name = getAttribute(trailerFieldNode, "name");
                 if (name == null) {
-                    throw new ConfigError("<field> does not have a name attribute");
+                    throw new ConfigError("<" + nodeName + "> does not have a name attribute");
                 }
                 String required = "false";
                 addTrailerField(lookupXMLFieldNumber(document, name), required.equals("true"));

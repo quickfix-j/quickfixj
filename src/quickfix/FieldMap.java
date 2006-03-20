@@ -133,50 +133,54 @@ public abstract class FieldMap implements Serializable {
         groups.put(new Integer(key), groupList);
     }
     
-	public void setString(int field, String value) throws NoTagValue {
+	public void setString(int field, String value) {
 		setField(new StringField(field, value));
 	}
 
-	public void setBoolean(int field, boolean value) throws NoTagValue {
+	public void setBoolean(int field, boolean value) {
 		String s = BooleanConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setChar(int field, char value) throws NoTagValue {
+	public void setChar(int field, char value) {
 		String s = CharConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setInt(int field, int value) throws NoTagValue {
+	public void setInt(int field, int value) {
 		String s = IntConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setDouble(int field, double value) throws NoTagValue {
+	public void setDouble(int field, double value) {
 		String s = DoubleConverter.convert(value);
 		setField(new StringField(field, s));
 	}
 
-	public void setUtcTimeStamp(int field, Date value) throws NoTagValue {
+    public void setDouble(int field, double value, int padding) {
+        // TODO Implement double padding
+    }
+
+	public void setUtcTimeStamp(int field, Date value) {
 		setUtcTimeStamp(field, value, false);
 	}
 
 	public void setUtcTimeStamp(int field, Date value,
-			boolean includeMilliseconds) throws NoTagValue {
+			boolean includeMilliseconds) {
 		String s = UtcTimestampConverter.convert(value, includeMilliseconds);
 		setField(new StringField(field, s));
 	}
 
-	public void setUtcTimeOnly(int field, Date value) throws NoTagValue {
+	public void setUtcTimeOnly(int field, Date value) {
 		setUtcTimeOnly(field, value, false);
 	}
 
-	public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) throws NoTagValue {
+	public void setUtcTimeOnly(int field, Date value, boolean includeMillseconds) {
 		String s = UtcTimeOnlyConverter.convert(value, includeMillseconds);
 		setField(new StringField(field, s));
 	}
 
-	public void setUtcDateOnly(int field, Date value) throws NoTagValue {
+	public void setUtcDateOnly(int field, Date value) {
 		String s = UtcDateOnlyConverter.convert(value);
 		setField(new StringField(field, s));
 	}
@@ -268,7 +272,7 @@ public abstract class FieldMap implements Serializable {
         fields.put(new Integer(key), field);
     }
     
-	public void setField(StringField field) throws NoTagValue {
+	public void setField(StringField field) {
 		if (field.getValue() == null) {
 			throw new NullPointerException("Null field values are not allowed.");
 		}
@@ -276,31 +280,31 @@ public abstract class FieldMap implements Serializable {
 		fields.put(key, field);
 	}
 
-	public void setField(BooleanField field) throws NoTagValue {
+	public void setField(BooleanField field) {
 		setBoolean(field.getField(), field.getValue());
 	}
 
-	public void setField(CharField field) throws NoTagValue {
+	public void setField(CharField field) {
 		setChar(field.getField(), field.getValue());
 	}
 
-	public void setField(IntField field) throws NoTagValue  {
+	public void setField(IntField field)  {
 		setInt(field.getField(), field.getValue());
 	}
 
-	public void setField(DoubleField field) throws NoTagValue {
+	public void setField(DoubleField field) {
 		setDouble(field.getField(), field.getValue());
 	}
 
-	public void setField(UtcTimeStampField field) throws NoTagValue {
+	public void setField(UtcTimeStampField field) {
 		setUtcTimeStamp(field.getField(), field.getValue());
 	}
 
-	public void setField(UtcTimeOnlyField field) throws NoTagValue {
+	public void setField(UtcTimeOnlyField field) {
 		setUtcTimeOnly(field.getField(), field.getValue());
 	}
 
-	public void setField(UtcDateOnlyField field) throws NoTagValue {
+	public void setField(UtcDateOnlyField field) {
 		setUtcDateOnly(field.getField(), field.getValue());
 	}
 
@@ -434,7 +438,7 @@ public abstract class FieldMap implements Serializable {
 			for (int i = 0; i < groupMembers.size(); i++) {
 			    Group originalGroup = (Group) groupMembers.get(i);
 				Group clonedGroup = new Group(originalGroup.getFieldTag(), 
-                        originalGroup.getDelimeter(), originalGroup.getFieldOrder());
+                        originalGroup.delim(), originalGroup.getFieldOrder());
                 clonedGroup.initializeFrom(originalGroup);
 				clonedMembers.add(clonedGroup);
 			}

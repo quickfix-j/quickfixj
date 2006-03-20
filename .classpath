@@ -6,7 +6,7 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="src" path="etc"/>
 	<classpathentry kind="src" path="src-generated"/>
-	<classpathentry sourcepath="C:/projects/qfj_b1_0/quickfixj-mina/lib/mina-0.8.2-src.zip" kind="lib" path="lib/mina-0.8.2.jar"/>
+	<classpathentry sourcepath="C:/java/mina-0.8.2/src/java" kind="lib" path="lib/mina-0.8.2.jar"/>
 	<classpathentry kind="lib" path="lib/backport-util-concurrent-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.0-rc5.jar"/>
 	<classpathentry kind="lib" path="lib/test/easymock-1.1.jar"/>

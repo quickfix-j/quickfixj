@@ -253,7 +253,7 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLStore"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLStoreFactory"));
 
-            // The following string is split so that CVS will insert log data
+            // The following string is split so that CVS will not insert log data
             // during commit
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header" + "$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
@@ -267,54 +267,19 @@ public class ApiCompatibilityTest {
             ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
                     Message.class, Message.class });
 
-            // TODO QF 1.11 Temporary -- Remove these after hasGroup issue is resolved
-            Class jniGroupClass = jniClassLoader.loadClass("quickfix.Group");
-            ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class, jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Group", "hasGroup", new Class[] { int.class,
-                    int.class });
-            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class });
-            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class, int.class });
-            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.FieldMap", "hasGroup", new Class[] { int.class,
-                    jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class,
-                    int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup", new Class[] { int.class,
-                    jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Message", "hasGroup",
-                    new Class[] { jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup",
-                    new Class[] { int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup", new Class[] {
-                    int.class, int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup", new Class[] {
-                    int.class, jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Header", "hasGroup",
-                    new Class[] { jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup",
-                    new Class[] { int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup", new Class[] {
-                    int.class, int.class });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup", new Class[] {
-                    int.class, jniGroupClass });
-            ignoreMethod(jniClassLoader, "quickfix.Message$Trailer", "hasGroup",
-                    new Class[] { jniGroupClass });
-
         }
 
         public boolean isIgnoredMethod(Method m) {
             return ignoredMethods.contains(m);
         }
 
-        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
-                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
-                NoSuchMethodException {
-            Class c = jniClassLoader.loadClass(className);
-            Method m = c.getMethod(methodName, argumentTypes);
-            ignoredMethods.add(m);
-        }
+//        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
+//                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
+//                NoSuchMethodException {
+//            Class c = jniClassLoader.loadClass(className);
+//            Method m = c.getMethod(methodName, argumentTypes);
+//            ignoredMethods.add(m);
+//        }
 
         private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)
                 throws ClassNotFoundException, NoSuchMethodException {

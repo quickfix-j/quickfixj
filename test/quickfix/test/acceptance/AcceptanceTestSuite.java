@@ -172,6 +172,7 @@ public class AcceptanceTestSuite extends TestSuite {
         protected void setUp() throws Exception {
             super.setUp();
             ATServer server = new ATServer((TestSuite) getTest(), threaded);
+            server.setUsingMemoryStore(true);
             serverThread = new Thread(server, "ATServer");
             serverThread.start();
             server.waitForInitialization();

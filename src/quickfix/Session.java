@@ -155,7 +155,6 @@ public class Session {
     private boolean resetOnDisconnect;
     private boolean millisecondsInTimeStamp;
     private boolean resetWhenInitiatingLogon;
-    private String logoutReason;
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
@@ -310,7 +309,7 @@ public class Session {
      * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-                                       String qualifier) throws SessionNotFound {
+            String qualifier) throws SessionNotFound {
         try {
             return sendToTarget(message, new SessionID(message.getHeader().getString(
                     BeginString.FIELD), senderCompID, targetCompID, qualifier));
@@ -352,6 +351,7 @@ public class Session {
      * This method can be used to manually logon to a FIX session.
      */
     public void logon() {
+        state.clearLogoutReason();
         enabled = true;
     }
 
@@ -382,7 +382,7 @@ public class Session {
      * @param reason this will be included in the logout message
      */
     public void logout(String reason) {
-        logoutReason = reason;
+        state.setLogoutReason(reason);
         logout();
     }
 
@@ -759,7 +759,6 @@ public class Session {
             logout.setString(Text.FIELD, text);
         }
         sendRaw(logout, 0);
-        logoutReason = null;
         state.setLogoutSent(true);
     }
 
@@ -801,7 +800,13 @@ public class Session {
         }
         reject.setString(RefSeqNum.FIELD, msgSeqNum);
 
-        if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)) {
+        boolean isPossibleDuplicate = false;
+        if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
+            isPossibleDuplicate = message.getHeader().getBoolean(PossDupFlag.FIELD);
+        }
+        
+        if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
+                && !isPossibleDuplicate) {
             state.incrNextTargetMsgSeqNum();
         }
 
@@ -972,8 +977,8 @@ public class Session {
                 int[] range = state.getResendRange();
 
                 if (msgSeqNum >= range[1]) {
-                    state.logEvent("ResendRequest for messages FROM: " + range[0] +
-                            " TO: " + range[1] + " has been satisfied.");
+                    state.logEvent("ResendRequest for messages FROM: " + range[0] + " TO: "
+                            + range[1] + " has been satisfied.");
                     state.setResendRange(0, 0);
                 }
             }
@@ -1071,7 +1076,7 @@ public class Session {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
                     state.logEvent("Initiated logout request");
-                    generateLogout(logoutReason);
+                    generateLogout(state.getLogoutReason());
                 }
             } else {
                 return;
@@ -1175,6 +1180,7 @@ public class Session {
         state.setResetSent(false);
 
         state.clearQueue();
+        state.clearLogoutReason();
         if (resetOnDisconnect) {
             state.reset();
         }
@@ -1266,14 +1272,13 @@ public class Session {
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
             String msgType = MessageUtils.getMessageType(msg);
-            // TODO What if a data dictionary is not used?
-            Message message = messageFactory.create(dataDictionary.getVersion(), msgType);
+            Message message = messageFactory.create(sessionID.getBeginString(), msgType);
             message.fromString(msg, dataDictionary, false);
             next(message);
         } catch (InvalidMessage e) {
             String message = e.getMessage();
             state.logEvent(message);
-            if (message.indexOf("\00135=A\001") != -1) {
+            if (MsgType.LOGON.equals(MessageUtils.getMessageType(msg))) {
                 state.logEvent("Logon message is not valid");
                 disconnect();
             }
@@ -1510,7 +1515,7 @@ public class Session {
      * @return true if session exists, false otherwise.
      */
     public static boolean doesSessionExist(SessionID sessionID) {
-       return sessions.containsKey(sessionID);
+        return sessions.containsKey(sessionID);
     }
 
     /**

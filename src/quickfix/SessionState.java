@@ -51,6 +51,7 @@ public class SessionState {
     private int[] resendRange = new int[]{ 0, 0 };
     private boolean resetSent;
     private boolean resetReceived;
+    private String logoutReason;
     
     public boolean isConnected() {
         return connected;
@@ -308,5 +309,17 @@ public class SessionState {
 
     public void setResetSent(boolean resetSent) {
         this.resetSent = resetSent;
+    }
+
+    public void setLogoutReason(String reason) {
+        logoutReason = reason;
+    }
+    
+    public String getLogoutReason() {
+        return logoutReason;
+    }
+
+    public void clearLogoutReason() {
+        logoutReason = "";
     }
 }
