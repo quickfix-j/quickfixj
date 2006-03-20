@@ -26,28 +26,49 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import quickfix.FieldConvertError;
-
+import quickfix.RuntimeError;
 
 public class DoubleConverter {
-    private static DecimalFormat doubleFormat = null;
-    private static final Pattern doublePattern = Pattern.compile("-?\\d*(\\.\\d*)?");
+    private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
+    private static ThreadLocal threadDecimalFormats = new ThreadLocal();
 
-    static {
-        doubleFormat = new DecimalFormat("#.##############");
-        // Assigning Locale.US is necessary to avoid mixed up with decimal separators ex : , for France and . for US 
-        doubleFormat.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
-    }
-    
     public static String convert(double d) {
-        // TODO PERFORMANCE This can be optimized!
-        synchronized (doubleFormat) {
-            return doubleFormat.format(d);
+        return convert(d, 0);
+    }
+
+    private static DecimalFormat getDecimalFormat(int padding) {
+        if (padding > 14) {
+            // FieldConvertError not supported in setDouble methods on Message
+            throw new RuntimeError("maximum padding of 14 zeroes is supported: "+padding);
         }
+        DecimalFormat[] decimalFormats = (DecimalFormat[]) threadDecimalFormats.get();
+        if (decimalFormats == null) {
+            decimalFormats = new DecimalFormat[14];
+            threadDecimalFormats.set(decimalFormats);
+        }
+        DecimalFormat f = decimalFormats[padding];
+        if (f == null) {
+            StringBuffer buffer = new StringBuffer("0.");
+            for (int i = 0; i < padding; i++) {
+                buffer.append('0');
+            }
+            for (int i = padding; i < 14; i++) {
+                buffer.append('#');
+            }
+            f = new DecimalFormat(buffer.toString());
+            f.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
+            decimalFormats[padding] = f;
+        }
+        return f;
+    }
+
+    public static String convert(double d, int padding) {
+        return getDecimalFormat(padding).format(d);
     }
 
     public static double convert(String value) throws FieldConvertError {
         try {
-            Matcher matcher = doublePattern.matcher(value);
+            Matcher matcher = decimalPattern.matcher(value);
             if (!matcher.matches()) {
                 throw new NumberFormatException();
             }

@@ -16,10 +16,6 @@ import quickfix.field.converter.UtcTimestampConverter;
 import junit.framework.TestCase;
 
 public class FieldConvertersTest extends TestCase {
-    //    void FieldConvertorsTestCase::emptyConvert::onRun( void*& )
-    //    {
-    //      assert( StringConvertor::convert( "hello" ) == "hello" );
-    //    }
 
     public void testIntegerConversion() throws Exception {
         assertEquals("123", IntConverter.convert(123));
@@ -79,6 +75,14 @@ public class FieldConvertersTest extends TestCase {
         } catch (FieldConvertError e) {
             // expected
         }
+        
+        assertEquals("1.500", DoubleConverter.convert(1.5, 3));
+        assertEquals("45.00000", DoubleConverter.convert(45, 5));
+        assertEquals("5.00", DoubleConverter.convert(5, 2));
+        assertEquals("-5.00", DoubleConverter.convert(-5, 2));
+        assertEquals("-12.2345", DoubleConverter.convert(-12.2345, 3));
+        assertEquals("0.0", DoubleConverter.convert(0, 1));
+
     }
 
     public void testCharConversion() throws Exception {
