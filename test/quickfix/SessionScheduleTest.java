@@ -138,6 +138,18 @@ public class SessionScheduleTest extends TestCase {
         t2 = getUtcTimeStamp(2000, 10, 10, 20, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, false);
 
+        // ------------
+        
+        start = getUtcTime(10, 0, 0);
+        end = getUtcTime(2, 0, 0);
+        schedule = new SessionSchedule(start.getTime(), end.getTime(), -1, -1);
+
+        t1 = getUtcTimeStamp(2000, 10, 10, 17, 0, 0);
+        t2 = getUtcTimeStamp(2000, 10, 10, 1, 0, 0);
+        doIsSameSessionTest(schedule, t1, t2, false);
+        t2 = getUtcTimeStamp(2000, 10, 9, 23, 0, 0);
+        doIsSameSessionTest(schedule, t1, t2, false);
+
         //=====================================================
         // start time is equal to end time
         start = getUtcTime(6, 0, 0);
@@ -396,8 +408,8 @@ public class SessionScheduleTest extends TestCase {
 
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
             boolean isSameSession) {
-        assertEquals("schedule is wrong", schedule.isSameSession(time1, time2), isSameSession);
-        assertEquals("schedule is wrong", schedule.isSameSession(time2, time1), isSameSession);
+        assertEquals("schedule is wrong", isSameSession, schedule.isSameSession(time1, time2));
+        assertEquals("schedule is wrong", isSameSession, schedule.isSameSession(time2, time1));
     }
 
     private Calendar getTimeStamp(int year, int month, int day, int hour, int minute, int second,

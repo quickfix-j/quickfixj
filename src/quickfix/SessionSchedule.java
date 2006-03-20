@@ -168,7 +168,24 @@ class SessionSchedule {
         if (startTime.before(endTime) || startTime.equals(endTime)) {
             return date1.equals(date2);
         } else {
-            return Math.abs(timestamp1.getTimeInMillis() - timestamp2.getTimeInMillis()) < ONE_DAY_IN_MILLIS;
+            long sessionLength = ONE_DAY_IN_MILLIS
+                    - (startTime.getTimeInMillis() - endTime.getTimeInMillis());
+
+            long timeInMillis1 = timestamp1.getTimeInMillis();
+            long timeInMillis2 = timestamp2.getTimeInMillis();
+            
+            if (timestamp1.after(timestamp2)) {
+                long delta = getTimeOnly(timestamp2, calendar1).getTimeInMillis()
+                        - startTime.getTimeInMillis();
+                
+                if (delta < 0) {
+                    delta = ONE_DAY_IN_MILLIS + delta;
+                }
+                
+                return (timeInMillis1 - timeInMillis2) < (sessionLength - delta);
+            } else {
+                return (timeInMillis2 - timeInMillis1) < sessionLength;
+            }
         }
     }
 
@@ -330,7 +347,8 @@ class SessionSchedule {
             }
         }
         throw new ConfigError("invalid format for day (valid values: "
-                + Arrays.asList(dayNames).subList(1, dayNames.length) + " or prefix); actual value was '" + value + "'");
+                + Arrays.asList(dayNames).subList(1, dayNames.length)
+                + " or prefix); actual value was '" + value + "'");
     }
 
 }
