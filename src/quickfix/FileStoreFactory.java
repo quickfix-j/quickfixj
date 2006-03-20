@@ -20,7 +20,11 @@
 package quickfix;
 
 /**
- * Creates a message store that stores messages in a file.
+ * Creates a message store that stores messages in a file. 
+ * 
+ * Compatibility note: The file formats are not compatible with QF C++/JNI. 
+ * If you upgrading from the QuickFIX JNI, you must delete your old session 
+ * state files.)
  */
 public class FileStoreFactory implements MessageStoreFactory {
     /**

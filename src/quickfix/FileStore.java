@@ -149,9 +149,9 @@ public class FileStore implements RefreshableMessageStore {
         sequenceNumberFile.seek(0);
         if (sequenceNumberFile.length() > 0) {
             String s = sequenceNumberFile.readUTF();
-            int offset = s.indexOf(" : ");
+            int offset = s.indexOf(':');
             cache.setNextSenderMsgSeqNum(Integer.parseInt(s.substring(0, offset)));
-            cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 3)));
+            cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 1)));
         }
     }
 
@@ -320,14 +320,12 @@ public class FileStore implements RefreshableMessageStore {
     }
 
     private void storeSequenceNumbers() throws IOException {
-        // TODO PERFORMANCE This should use a more efficient byte buffer
-        // TODO PERFORMANCE Use Javolution fast object pooling and primitive
-        // formatters
         sequenceNumberFile.seek(0);
-        StringBuffer sb = new StringBuffer();
-        sb.append(Integer.toString(cache.getNextSenderMsgSeqNum())).append(" : ").append(
-                Integer.toString(cache.getNextTargetMsgSeqNum()));
-        sequenceNumberFile.writeUTF(sb.toString());
+        // I changed this from explicitly using a StringBuffer because of
+        // recommendations from Sun. The performance also appears higher
+        // with this implementation. -- smb.
+        // http://bugs.sun.com/bugdatabase/view_bug.do;:WuuT?bug_id=4259569
+        sequenceNumberFile.writeUTF(""+cache.getNextSenderMsgSeqNum()+':'+cache.getNextTargetMsgSeqNum());
     }
 
     String getHeaderFileName() {
