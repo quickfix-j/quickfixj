@@ -60,6 +60,56 @@ public class FileLogTest extends TestCase {
                 .getEventFileName()));
     }
 
+    public void testLogWithMessageTimestamps() throws Exception {
+        long systemTime = System.currentTimeMillis();
+        SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
+
+        File path = File.createTempFile("test", "");
+        SessionSettings settings = new SessionSettings();
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
+                .getAbsolutePath());
+        settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES, true);
+        
+        FileLogFactory factory = new FileLogFactory(settings);
+        FileLog log = (FileLog) factory.create(sessionID);
+        log.setSyncAfterWrite(true);
+
+        String formattedTime = UtcTimestampConverter.convert(new Date(systemTime), false);
+
+        String prefix = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
+                + sessionID.getTargetCompID();
+
+        log.onIncoming("INTEST");
+        assertEquals("wrong message", formattedTime + ": " + "INTEST\n", readLog(log.getMessagesFileName()));
+        assertEquals(prefix + ".messages.log", new File(log.getMessagesFileName()).getName());
+        log.clear();
+
+        log.onOutgoing("OUTTEST");
+        assertEquals("wrong message", formattedTime + ": " + "OUTTEST\n", readLog(log.getMessagesFileName()));
+    }
+
+    public void testLogWithMillisInTimestamp() throws Exception {
+        long systemTime = System.currentTimeMillis();
+        SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
+
+        File path = File.createTempFile("test", "");
+        SessionSettings settings = new SessionSettings();
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
+                .getAbsolutePath());
+        settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, true);
+        
+        FileLogFactory factory = new FileLogFactory(settings);
+        FileLog log = (FileLog) factory.create(sessionID);
+        log.setSyncAfterWrite(true);
+
+        log.onEvent("EVENTTEST");
+        String formattedTime = UtcTimestampConverter.convert(new Date(systemTime), true);
+        assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
+                .getEventFileName()));
+    }
+    
     private String readLog(String path) throws IOException {
         File file = new File(path);
         FileInputStream in = new FileInputStream(file);

@@ -31,6 +31,18 @@ public class FileLogFactory implements LogFactory {
      */
     public static final String SETTING_FILE_LOG_PATH = "FileLogPath";
 
+    /**
+     * Specify whether to include milliseconds in log output time stamps. Off, by
+     * default.
+     */
+    public static final String SETTING_INCLUDE_MILLIS_IN_TIMESTAMP = "FileIncludeMilliseconds";
+    
+    /**
+     * Specify whether to include time stamps for message input and output. Off, by
+     * default.
+     */
+    public static final String SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES = "FileIncludeTimeStampForMessages";
+    
     private SessionSettings settings;
 
     /**
@@ -50,8 +62,18 @@ public class FileLogFactory implements LogFactory {
      */
     public Log create(SessionID sessionID) {
         try {
+            boolean includeMillis = false;
+            if (settings.isSetting(sessionID, SETTING_INCLUDE_MILLIS_IN_TIMESTAMP)) {
+                includeMillis = settings.getBool(sessionID, SETTING_INCLUDE_MILLIS_IN_TIMESTAMP);
+            }
+            
+            boolean includeTimestampInMessages = false;
+            if (settings.isSetting(sessionID, SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES)) {
+                includeTimestampInMessages = settings.getBool(sessionID, SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES);
+            }
+            
             return new FileLog(settings.getString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH),
-                    sessionID);
+                    sessionID, includeMillis, includeTimestampInMessages);
         } catch (Exception e) {
             throw new RuntimeError(e);
         }

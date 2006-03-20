@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -33,6 +34,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * @see quickfix.FileLogFactory
  */
 public class FileLog implements Log {
+    private static final byte[] TIME_STAMP_DELIMETER = ": ".getBytes();
     private SessionID sessionID;
     private String messagesFileName;
     private String eventFileName;
@@ -40,8 +42,11 @@ public class FileLog implements Log {
 
     private FileOutputStream messages;
     private FileOutputStream events;
-
-    FileLog(String path, SessionID sessionID) throws FileNotFoundException {
+    
+    private boolean includeMillis;
+    private boolean includeTimestampForMessages;
+    
+    FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages) throws FileNotFoundException {
         String sessionName = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
         this.sessionID = sessionID;
@@ -58,6 +63,9 @@ public class FileLog implements Log {
             directory.mkdirs();
         }
 
+        this.includeMillis = includeMillis;
+        this.includeTimestampForMessages = includeTimestampForMessages;
+        
         openLogStreams(true);
     }
 
@@ -70,8 +78,15 @@ public class FileLog implements Log {
         writeMessage(message);
     }
 
+    public void onOutgoing(String message) {
+        writeMessage(message);
+    }
+
     private void writeMessage(String message) {
         try {
+            if (includeTimestampForMessages) {
+                writeTimeStamp(messages);
+            }
             messages.write(message.getBytes());
             messages.write('\n');
             messages.flush();
@@ -83,15 +98,9 @@ public class FileLog implements Log {
         }
     }
 
-    public void onOutgoing(String message) {
-        writeMessage(message);
-    }
-
     public void onEvent(String message) {
         try {
-            String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), false);
-            events.write(formattedTime.getBytes());
-            events.write(": ".getBytes());
+            writeTimeStamp(events);
             events.write(message.getBytes());
             events.write('\n');
             events.flush();
@@ -101,6 +110,12 @@ public class FileLog implements Log {
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing event to log", e);
         }
+    }
+
+    private void writeTimeStamp(OutputStream out) throws IOException {
+        String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis);
+        out.write(formattedTime.getBytes());
+        out.write(TIME_STAMP_DELIMETER);
     }
 
     String getEventFileName() {
