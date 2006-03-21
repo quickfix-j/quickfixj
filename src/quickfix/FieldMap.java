@@ -153,12 +153,12 @@ public abstract class FieldMap implements Serializable {
 	}
 
 	public void setDouble(int field, double value) {
-		String s = DoubleConverter.convert(value);
-		setField(new StringField(field, s));
+		setDouble(field, value, 0);
 	}
 
     public void setDouble(int field, double value, int padding) {
-        // TODO Implement double padding
+        String s = DoubleConverter.convert(value, padding);
+        setField(new StringField(field, s));
     }
 
 	public void setUtcTimeStamp(int field, Date value) {
@@ -458,18 +458,23 @@ public abstract class FieldMap implements Serializable {
 				buffer.append('\001');
 			}
 		}
+        
 		for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
 			Field field = (Field) iter.next();
-			// Patch from David VINCENT
 			if (!isOrderedField(field.getField(), preFields)
 					&& !isOrderedField(field.getField(), postFields)
 					&& !isGroupField(field.getField())) {
-				// End Patch from David VINCENT
 				field.toString(buffer);
 				buffer.append('\001');
 			}
 		}
 
+        // TODO BUG The groups should not be written after the fields
+        // TODO BUG Add nested group field numbers from code generator
+        // TODO TEST Write test for nested group formatting (NewOrderCross/NoParties)
+        // This loop should be incorporated into the field iteration loop.
+        // Currently the code generator doesn't appear to include nested group
+        // count tags so this also should be fixed.
 		for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
 			Map.Entry entry = (Map.Entry) iter.next();
 			List mygroups = (List) entry.getValue();
@@ -478,10 +483,6 @@ public abstract class FieldMap implements Serializable {
 			groupField.setValue(mygroups.size());
 			groupField.toString(buffer);
 			buffer.append('\001');
-			// Acceptance test copies message with group length field already
-			// present
-			// This causes two fields to be sent.
-			// buffer.append(entry.getKey()).append("=").append(groups.size()).append('\001');
 			for (int i = 0; i < mygroups.size(); i++) {
 				FieldMap groupFields = (FieldMap) mygroups.get(i);
 				groupFields.calculateString(buffer, preFields, postFields);
