@@ -46,10 +46,6 @@ public class SessionID {
         create(beginString, senderCompID, targetCompID, sessionQualifier);
     }
 
-    protected void finalize() {
-        destroy();
-    }
-
     public String getBeginString() {
         return beginString;
     }
@@ -137,9 +133,5 @@ public class SessionID {
         this.targetCompID = targetCompID;
 
         return sessionIDString;
-    }
-
-    private void destroy() {
-
     }
 }
