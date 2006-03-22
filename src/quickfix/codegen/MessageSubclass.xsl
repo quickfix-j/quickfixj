@@ -188,7 +188,7 @@ import quickfix.Group;</xsl:when>
  
   <xsl:template mode="component-field-numbers" match="component">
     <xsl:variable name="name" select="@name"/>  
-  	<xsl:apply-templates select="/fix/components/component[@name=$name]/field|group|component" 
+  	<xsl:apply-templates select="/fix/components/component[@name=$name]/*" 
   		mode="component-field-numbers"/>
   </xsl:template>
 
@@ -196,20 +196,13 @@ import quickfix.Group;</xsl:when>
 	
   <!--  Find the field numbers and order -->
   
-  <xsl:template mode="group-field-numbers" match="field">
+  <xsl:template mode="group-field-numbers" match="field|group">
     <xsl:variable name="name" select="@name"/>
   	<xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
 
-<!-- 
-  <xsl:template mode="group-field-numbers" match="group">
-  	<xsl:value-of select="@number"/>, </xsl:template>
-  	-->
-  	
-   <xsl:template mode="group-field-numbers" match="group"/>
- 
-  <xsl:template mode="group-field-numbers" match="message//component">
+  <xsl:template mode="group-field-numbers" match="component">
     <xsl:variable name="name" select="@name"/>  
-  	<xsl:apply-templates select="/fix/components/component[@name=$name]/field|group|component" 
+  	<xsl:apply-templates select="/fix/components/component[@name=$name]/*" 
   		mode="group-field-numbers"/>
   </xsl:template>
  

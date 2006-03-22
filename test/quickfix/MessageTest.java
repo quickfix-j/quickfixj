@@ -12,23 +12,36 @@ import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.ClOrdID;
 import quickfix.field.CountryOfIssue;
+import quickfix.field.CrossID;
+import quickfix.field.CrossPrioritization;
+import quickfix.field.CrossType;
 import quickfix.field.EncryptMethod;
 import quickfix.field.IOIid;
 import quickfix.field.MsgDirection;
+import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.PartyID;
 import quickfix.field.PartyIDSource;
 import quickfix.field.PartyRole;
 import quickfix.field.Price;
 import quickfix.field.RefMsgType;
+import quickfix.field.SecurityID;
+import quickfix.field.SecurityIDSource;
 import quickfix.field.SecurityType;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
+import quickfix.field.Side;
 import quickfix.field.Symbol;
+import quickfix.field.TargetCompID;
+import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
 import quickfix.fix42.NewOrderSingle;
 import quickfix.fix44.IndicationOfInterest;
 import quickfix.fix44.Logon;
+import quickfix.fix44.NewOrderCross;
 import quickfix.fix44.Logon.NoMsgTypes;
 import quickfix.fix44.component.Instrument;
 
@@ -55,6 +68,70 @@ public class MessageTest extends TestCase {
         assertEquals("wrong value", "S", valueMessageType.getString(MsgDirection.FIELD));
     }
 
+    public void testCalculateStringWithNestedGroups() throws Exception {
+        NewOrderCross noc = new NewOrderCross();
+        noc.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX44);
+        noc.getHeader().setInt(MsgSeqNum.FIELD, 5);
+        noc.getHeader().setString(SenderCompID.FIELD, "sender");
+        noc.getHeader().setString(TargetCompID.FIELD, "target");
+        noc.getHeader().setString(SendingTime.FIELD, "20060319-09:08:20.881");
+        
+        noc.setString(SecurityIDSource.FIELD, SecurityIDSource.EXCHANGE_SYMBOL);
+        noc.setChar(OrdType.FIELD, OrdType.LIMIT);
+        noc.setDouble(Price.FIELD, 9.00);
+        noc.setString(SecurityID.FIELD, "ABC");
+        noc.setString(Symbol.FIELD, "ABC");
+        noc.setString(TransactTime.FIELD, "20060319-09:08:19");
+        noc.setString(CrossID.FIELD, "184214");
+        noc.setInt(CrossType.FIELD, CrossType.CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED);
+        noc.setInt(CrossPrioritization.FIELD, CrossPrioritization.NONE);
+        
+        NewOrderCross.NoSides side = new NewOrderCross.NoSides();
+        side.setChar(Side.FIELD, Side.BUY);
+        side.setDouble(OrderQty.FIELD, 9);
+        
+        NewOrderCross.NoSides.NoPartyIDs party = new NewOrderCross.NoSides.NoPartyIDs();
+        party.setString(PartyID.FIELD, "8");
+        party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
+        party.setInt(PartyRole.FIELD, PartyRole.CLEARING_FIRM);
+        
+        side.addGroup(party);
+        
+        party.setString(PartyID.FIELD, "AAA35777");
+        party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
+        party.setInt(PartyRole.FIELD, PartyRole.CLIENT_ID);
+
+        side.addGroup(party);
+        
+        noc.addGroup(side);
+        
+        side.clear();
+        side.setChar(Side.FIELD, Side.SELL);
+        side.setDouble(OrderQty.FIELD, 9);
+
+        party.clear();
+        party.setString(PartyID.FIELD, "8");
+        party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
+        party.setInt(PartyRole.FIELD, PartyRole.CLEARING_FIRM);
+        side.addGroup(party);
+        
+        party.clear();
+        party.setString(PartyID.FIELD, "aaa");
+        party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
+        party.setInt(PartyRole.FIELD, PartyRole.CLIENT_ID);
+        side.addGroup(party);
+ 
+        noc.addGroup(side);
+        
+        String expectedMessage = "8=FIX.4.49=24735=s34=549=sender52=20060319-09:08:20.881" +
+                "56=target22=840=244=948=ABC55=ABC60=20060319-09:08:19548=184214549=2" +
+                "550=0552=254=1453=2448=8447=D452=4448=AAA35777447=D452=338=954=2" +
+                "453=2448=8447=D452=4448=aaa447=D452=338=910=056";
+        assertEquals("wrong message", expectedMessage, noc.toString());
+        
+
+    }
+    
     public void testParsing2() throws Exception {
         // checksum is not verified in these tests
         String data = "8=FIX.4.2\0019=76\001";
