@@ -210,8 +210,8 @@ class JdbcStore implements RefreshableMessageStore {
             query.setInt(6, endSequence);
             rs = query.executeQuery();
             while (rs.next()) {
-                Blob messageBlob = rs.getBlob(1);
-                messages.add(new String(messageBlob.getBytes(1, (int) messageBlob.length())));
+                String message = rs.getString(1);
+                messages.add(message);
             }
         } catch (SQLException e) {
             throw new IOException(e.getMessage());

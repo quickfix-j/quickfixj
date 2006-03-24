@@ -9,6 +9,6 @@ CREATE TABLE messages_log (
   sendercompid VARCHAR(64) NOT NULL,
   targetcompid VARCHAR(64) NOT NULL,
   session_qualifier VARCHAR(64) NOT NULL,
-  text BLOB NOT NULL,
+  text TEXT NOT NULL,
   PRIMARY KEY (id)
 );

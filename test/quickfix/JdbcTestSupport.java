@@ -38,7 +38,7 @@ public class JdbcTestSupport {
             preprocessedSql = sql.replaceAll("USE .*;", "");
             preprocessedSql = preprocessedSql.replaceAll(" UNSIGNED", "");
             preprocessedSql = preprocessedSql.replaceAll("AUTO_INCREMENT", "IDENTITY");
-            preprocessedSql = preprocessedSql.replaceAll("BLOB", "VARCHAR(256)");
+            preprocessedSql = preprocessedSql.replaceAll("TEXT", "VARCHAR(256)");
             if (tableName != null) {
                 preprocessedSql = preprocessedSql.replaceAll("CREATE TABLE [a-z]+",
                         "CREATE TABLE " + tableName);
