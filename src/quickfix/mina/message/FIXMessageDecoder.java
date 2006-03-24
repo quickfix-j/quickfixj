@@ -172,9 +172,6 @@ public class FIXMessageDecoder implements MessageDecoder {
                                 .debug("parsed message: " + getBufferDebugInfo(in) + " "
                                         + messageString);
                     }
-                    if (messageString.indexOf("8=FIX", 1) >= 0) {
-                        System.out.println("FOO");
-                    }
                     out.write(messageString);
                     state = SEEKING_HEADER;
                     bodyLength = 0;
