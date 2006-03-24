@@ -456,7 +456,8 @@ public class Message extends FieldMap {
 
     private void parseGroup(StringField field, DataDictionary dd, FieldMap parent) throws InvalidMessage {
         DataDictionary.GroupInfo rg = dd.getGroup(getMsgType(), field.getField());
-        int groupField = field.getField();
+        int groupCountTag = field.getField();
+        parent.setField(groupCountTag, field);
         int firstField = rg.getDelimeterField();
         boolean firstFieldFound = false;
         Group group = null;
@@ -467,7 +468,7 @@ public class Message extends FieldMap {
                 if (group != null) {
                     parent.addGroup(group);
                 }
-                group = new Group(groupField, firstField);
+                group = new Group(groupCountTag, firstField, rg.getDataDictionary().getOrderedFields());
                 group.setField(field);
                 firstFieldFound = true;
             } else {
@@ -475,7 +476,7 @@ public class Message extends FieldMap {
                     if (firstFieldFound) {
                         parseGroup(field, rg.getDataDictionary(), group);
                     } else {
-                        throw new InvalidMessage("The group " + groupField + " must set the delimiter field " + firstField);
+                        throw new InvalidMessage("The group " + groupCountTag + " must set the delimiter field " + firstField);
                     }
                 } else {
                     if (rg.getDataDictionary().isField(field.getTag())) {

@@ -25,11 +25,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,11 +79,7 @@ public class DataDictionary {
 
     private Set messages = new HashSet();
 
-    private Set fields = new HashSet();
-
-    private List orderedFields = new ArrayList();
-
-    private int[] orderedFieldsArray;
+    private LinkedHashSet fields = new LinkedHashSet();
 
     private Map headerFields = new HashMap();
 
@@ -474,13 +470,6 @@ public class DataDictionary {
         copyMap(requiredFields, rhs.requiredFields);
         copyCollection(messages, rhs.messages);
         copyCollection(fields, rhs.fields);
-        copyCollection(orderedFields, rhs.orderedFields);
-        if (rhs.orderedFieldsArray != null) {
-            orderedFieldsArray = new int[rhs.orderedFieldsArray.length];
-            for (int i = 0; i < rhs.orderedFieldsArray.length; i++) {
-                orderedFieldsArray[i] = rhs.orderedFieldsArray[i];
-            }
-        }
         copyMap(headerFields, rhs.headerFields);
         copyMap(trailerFields, rhs.trailerFields);
         copyMap(fieldTypes, rhs.fieldTypes);
@@ -998,18 +987,21 @@ public class DataDictionary {
         }
     }
 
+    private int[] orderedFieldsArray;
+
     int[] getOrderedFields() {
 
-        if (orderedFieldsArray != null) {
-            return orderedFieldsArray;
-        }
-        orderedFieldsArray = new int[orderedFields.size()];
+        if (orderedFieldsArray == null) {
+            orderedFieldsArray = new int[fields.size()];
 
-        for (int i = 0; i < orderedFields.size(); i++) {
-            orderedFieldsArray[i] = ((Integer) orderedFields.get(i)).intValue();
+            Iterator fieldItr = fields.iterator();
+            int i = 0;
+            while (fieldItr.hasNext()) {
+                orderedFieldsArray[i++] = ((Integer) fieldItr.next()).intValue();
+            }
         }
+        
         return orderedFieldsArray;
-
     }
 
     private int lookupXMLFieldNumber(Document document, Node node) throws ConfigError {

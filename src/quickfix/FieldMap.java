@@ -195,14 +195,6 @@ public abstract class FieldMap implements Serializable {
         return f;
     }
 
-    private IntField getIntField(int field) throws FieldNotFound {
-        IntField f = (IntField) fields.get(new Integer(field));
-        if (f == null) {
-            throw new FieldNotFound(field);
-        }
-        return f;
-    }
-
     Field getField(int field, Field defaultValue) {
         Field f = (Field) fields.get(new Integer(field));
         if (f == null) {
@@ -593,14 +585,14 @@ public abstract class FieldMap implements Serializable {
 
     private void setGroupCount(int countTag, int groupSize) {
         try {
-            IntField count;
+            StringField count;
             if (groupSize == 1) {
-                count = new IntField(countTag, 1);
+                count = new StringField(countTag, "1");
                 setField(countTag, count);
             } else {
-                count = getIntField(countTag);
+                count = getField(countTag);
             }
-            count.setValue(groupSize);
+            count.setValue(Integer.toString(groupSize));
         } catch (FieldNotFound e) {
             // Shouldn't happen
             throw new RuntimeError(e);

@@ -39,6 +39,7 @@ import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
 import quickfix.fix42.NewOrderSingle;
+import quickfix.fix44.ExecutionReport;
 import quickfix.fix44.IndicationOfInterest;
 import quickfix.fix44.Logon;
 import quickfix.fix44.NewOrderCross;
@@ -68,6 +69,19 @@ public class MessageTest extends TestCase {
         assertEquals("wrong value", "S", valueMessageType.getString(MsgDirection.FIELD));
     }
 
+    public void testValidation() throws Exception {
+        String data = "8=FIX.4.49=30935=849=ASX56=CL1_FIX4434=452=20060324-01:05:58"
+                + "17=X-B-WOW-1494E9A0:58BD3F9D-1109150=D39=011=18427138=200198=1494E9A0:58BD3F9D"
+                + "526=432437=B-WOW-1494E9A0:58BD3F9D55=WOW54=1151=20014=040=244=1559=16=0"
+                + "453=3448=AAA35791447=D452=3448=8447=D452=4448=FIX11447=D452=36"
+                + "60=20060320-03:34:2910=169";
+        ExecutionReport executionReport = new ExecutionReport();
+        DataDictionary dictionary = DataDictionaryTest.getDictionary();
+        assertNotNull(dictionary);
+        executionReport.fromString(data, dictionary, true);
+        dictionary.validate(executionReport);
+    }
+
     public void testCalculateStringWithNestedGroups() throws Exception {
         NewOrderCross noc = new NewOrderCross();
         noc.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX44);
@@ -75,7 +89,7 @@ public class MessageTest extends TestCase {
         noc.getHeader().setString(SenderCompID.FIELD, "sender");
         noc.getHeader().setString(TargetCompID.FIELD, "target");
         noc.getHeader().setString(SendingTime.FIELD, "20060319-09:08:20.881");
-        
+
         noc.setString(SecurityIDSource.FIELD, SecurityIDSource.EXCHANGE_SYMBOL);
         noc.setChar(OrdType.FIELD, OrdType.LIMIT);
         noc.setDouble(Price.FIELD, 9.00);
@@ -83,28 +97,29 @@ public class MessageTest extends TestCase {
         noc.setString(Symbol.FIELD, "ABC");
         noc.setString(TransactTime.FIELD, "20060319-09:08:19");
         noc.setString(CrossID.FIELD, "184214");
-        noc.setInt(CrossType.FIELD, CrossType.CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED);
+        noc.setInt(CrossType.FIELD,
+                CrossType.CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED);
         noc.setInt(CrossPrioritization.FIELD, CrossPrioritization.NONE);
-        
+
         NewOrderCross.NoSides side = new NewOrderCross.NoSides();
         side.setChar(Side.FIELD, Side.BUY);
         side.setDouble(OrderQty.FIELD, 9);
-        
+
         NewOrderCross.NoSides.NoPartyIDs party = new NewOrderCross.NoSides.NoPartyIDs();
         party.setString(PartyID.FIELD, "8");
         party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
         party.setInt(PartyRole.FIELD, PartyRole.CLEARING_FIRM);
-        
+
         side.addGroup(party);
-        
+
         party.setString(PartyID.FIELD, "AAA35777");
         party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
         party.setInt(PartyRole.FIELD, PartyRole.CLIENT_ID);
 
         side.addGroup(party);
-        
+
         noc.addGroup(side);
-        
+
         side.clear();
         side.setChar(Side.FIELD, Side.SELL);
         side.setDouble(OrderQty.FIELD, 9);
@@ -114,24 +129,38 @@ public class MessageTest extends TestCase {
         party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
         party.setInt(PartyRole.FIELD, PartyRole.CLEARING_FIRM);
         side.addGroup(party);
-        
+
         party.clear();
         party.setString(PartyID.FIELD, "aaa");
         party.setChar(PartyIDSource.FIELD, PartyIDSource.PROPRIETARY_CUSTOM_CODE);
         party.setInt(PartyRole.FIELD, PartyRole.CLIENT_ID);
         side.addGroup(party);
- 
+
         noc.addGroup(side);
-        
-        String expectedMessage = "8=FIX.4.49=24735=s34=549=sender52=20060319-09:08:20.881" +
-                "56=target22=840=244=948=ABC55=ABC60=20060319-09:08:19548=184214549=2" +
-                "550=0552=254=1453=2448=8447=D452=4448=AAA35777447=D452=338=954=2" +
-                "453=2448=8447=D452=4448=aaa447=D452=338=910=056";
+
+        String expectedMessage = "8=FIX.4.49=24735=s34=549=sender52=20060319-09:08:20.881"
+                + "56=target22=840=244=948=ABC55=ABC60=20060319-09:08:19548=184214549=2"
+                + "550=0552=254=1453=2448=8447=D452=4448=AAA35777447=D452=338=954=2"
+                + "453=2448=8447=D452=4448=aaa447=D452=338=910=056";
         assertEquals("wrong message", expectedMessage, noc.toString());
-        
 
     }
-    
+
+    public void testFieldOrdering() throws Exception {
+        String expectedMessageString = "8=FIX.4.49=17135=D49=SenderCompId56=TargetCompId11=183339"
+                + "22=838=140=244=1248=BHP54=255=BHP59=160=20060223-22:38:33526=3620453=2448=8"
+                + "447=D452=4448=AAA35354447=D452=310=168";
+        DataDictionary dataDictionary = new DataDictionary("etc/FIX44.xml");
+        Message message = new DefaultMessageFactory().create(dataDictionary.getVersion(), "D");
+        message.fromString(expectedMessageString, dataDictionary, false);
+        String actualMessageString = message.toString();
+        System.out.println(actualMessageString);
+        System.out.println(actualMessageString
+                .indexOf("453=2448=8447=D452=4448=AAA35354447=D452=3"));
+        assertTrue("wrong field ordering", actualMessageString
+                .indexOf("453=2448=8447=D452=4448=AAA35354447=D452=3") != -1);
+    }
+
     public void testParsing2() throws Exception {
         // checksum is not verified in these tests
         String data = "8=FIX.4.2\0019=76\001";
@@ -172,7 +201,7 @@ public class MessageTest extends TestCase {
     private void assertFieldNotFound(FieldMap message, int field) {
         try {
             message.getString(field);
-            fail("expected field to not be found: " + field);
+            fail("field shouldn't be here: " + field);
         } catch (FieldNotFound e) {
             // expected
         }
@@ -227,8 +256,8 @@ public class MessageTest extends TestCase {
         assertGroupContent(message, numAllocs);
     }
 
-	private void assertGroupContent(Message message, NewOrderSingle.NoAllocs numAllocs) {
-		StringField field = null;
+    private void assertGroupContent(Message message, NewOrderSingle.NoAllocs numAllocs) {
+        StringField field = null;
         java.util.Iterator i = numAllocs.iterator();
         assertTrue(i.hasNext());
         field = (StringField) i.next();
@@ -254,25 +283,27 @@ public class MessageTest extends TestCase {
             fail("exception should be thrown");
         } catch (FieldNotFound e) {
         }
-	}
+    }
 
     public void testMessageCloneWithGroups() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
 
-        Message clonedMessage = (Message)message.clone();
+        Message clonedMessage = (Message) message.clone();
         assertGroupContent(clonedMessage, numAllocs);
     }
-    
+
     public void testFieldOrderAfterClone() {
         Message message = new quickfix.fix44.NewOrderSingle();
-            quickfix.fix44.NewOrderSingle.NoPartyIDs partyIdGroup = new quickfix.fix44.NewOrderSingle.NoPartyIDs();
-            partyIdGroup.set(new PartyID("PARTY_1"));
-            partyIdGroup.set(new PartyIDSource(PartyIDSource.DIRECTED_BROKER));
-            partyIdGroup.set(new PartyRole(PartyRole.INTRODUCING_FIRM));
-            message.addGroup(partyIdGroup);
-        Message clonedMessage = (Message)message.clone();
-        assertEquals("wrong field order", "8=FIX.4.49=3535=D453=1448=PARTY_1447=I452=610=040", clonedMessage.toString());
+        quickfix.fix44.NewOrderSingle.NoPartyIDs partyIdGroup = new quickfix.fix44.NewOrderSingle.NoPartyIDs();
+        partyIdGroup.set(new PartyID("PARTY_1"));
+        partyIdGroup.set(new PartyIDSource(PartyIDSource.DIRECTED_BROKER));
+        partyIdGroup.set(new PartyRole(PartyRole.INTRODUCING_FIRM));
+        message.addGroup(partyIdGroup);
+        Message clonedMessage = (Message) message.clone();
+        assertEquals("wrong field order",
+                "8=FIX.4.49=3535=D453=1448=PARTY_1447=I452=610=040", clonedMessage
+                        .toString());
     }
 
     public void testMessageGroupRemoval() {
@@ -318,7 +349,7 @@ public class MessageTest extends TestCase {
         message.removeGroup(1, numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-}
+    }
 
     public void testHasGroup() {
         Message message = new Message();
@@ -552,23 +583,23 @@ public class MessageTest extends TestCase {
 
         message.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_RESPONSE);
         assertFalse(message.isAdmin());
-}
-    
+    }
+
     public void testComponent() throws Exception {
         Instrument instrument = new Instrument();
         instrument.set(new Symbol("DELL"));
         instrument.set(new CountryOfIssue("USA"));
         instrument.set(new SecurityType(SecurityType.COMMON_STOCK));
-        
+
         quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle();
         newOrderSingle.set(instrument);
         newOrderSingle.set(new OrderQty(100));
         newOrderSingle.set(new Price(45));
-        
+
         assertEquals(new Symbol("DELL"), newOrderSingle.getSymbol());
         assertEquals(new CountryOfIssue("USA"), newOrderSingle.getCountryOfIssue());
         assertEquals(new SecurityType(SecurityType.COMMON_STOCK), newOrderSingle.getSecurityType());
-        
+
         newOrderSingle.set(new ClOrdID("CLIENT_ORDER_ID"));
         Instrument instrument2 = newOrderSingle.getInstrument();
         assertEquals(new Symbol("DELL"), instrument2.getSymbol());
@@ -580,6 +611,6 @@ public class MessageTest extends TestCase {
         } catch (FieldNotFound e) {
             // expected
         }
-        
+
     }
 }
