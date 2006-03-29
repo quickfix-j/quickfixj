@@ -20,7 +20,6 @@
 package quickfix;
 
 import java.text.DateFormatSymbols;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -28,12 +27,15 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Corresponds to SessionTime in C++ code
  */
 class SessionSchedule {
     private static final long ONE_DAY_IN_MILLIS = 86400000L;
+    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
 
     //
     // These are cached calendars. Creating calendars to do session time calculations
@@ -67,8 +69,6 @@ class SessionSchedule {
         String startTimeString = settings.getString(sessionID, Session.SETTING_START_TIME);
         String endTimeString = settings.getString(sessionID, Session.SETTING_END_TIME);
 
-        SimpleDateFormat timeParser = timeParser = new SimpleDateFormat("HH:mm:ss yyyyMMdd");
-
         if (settings.isSetting(sessionID, Session.SETTING_TIMEZONE)) {
             String sessionTimeZoneID = settings.getString(sessionID, Session.SETTING_TIMEZONE);
             sessionTimeZone = TimeZone.getTimeZone(sessionTimeZoneID);
@@ -79,35 +79,35 @@ class SessionSchedule {
         } else {
             sessionTimeZone = TimeZone.getTimeZone("UTC");
         }
-        timeParser.setTimeZone(sessionTimeZone);
 
-        SimpleDateFormat ymd = new SimpleDateFormat("yyyyMMdd");
-        String dateString = " " + ymd.format(new Date());
-        try {
-            Date parsedStartTime = timeParser.parse(startTimeString + dateString);
-            startTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            startTime.setTime(parsedStartTime);
-            startTime.set(1970, 0, 1);
-            if (weeklySession) {
-                startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
-            }
-        } catch (ParseException e) {
+        Matcher matcher = TIME_PATTERN.matcher(startTimeString);
+        if (!matcher.find()) {
             throw new ConfigError("Session " + sessionID + ": could not parse start time '"
                     + startTimeString + "'.");
         }
+        Calendar localTime = SystemTime.getUtcCalendar();
+        localTime.setTimeZone(sessionTimeZone);
+        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
+        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
+        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
+        startTime = SystemTime.getUtcCalendar();
+        startTime.setTime(localTime.getTime());
+        if (weeklySession) {
+            startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
+        }
 
-        try {
-            Date parsedEndTime = timeParser.parse(endTimeString + dateString);
-            endTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            endTime.setTime(parsedEndTime);
-            endTime.set(1970, 0, 1);
-            if (weeklySession) {
-                endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
-
-            }
-        } catch (ParseException e) {
+        matcher = TIME_PATTERN.matcher(endTimeString);
+        if (!matcher.find()) {
             throw new ConfigError("Session " + sessionID + ": could not parse end time '"
                     + endTimeString + "'.");
+        }
+        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
+        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
+        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
+        endTime = SystemTime.getUtcCalendar();
+        endTime.setTime(localTime.getTime());
+        if (weeklySession) {
+            endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
         }
         calendar1.setTimeZone(TimeZone.getTimeZone("UTC"));
         calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -137,11 +137,24 @@ class SessionSchedule {
     }
 
     private Calendar getTimeOnly(Calendar timestampIn, Calendar timeOnlyOut) {
-        timeOnlyOut.set(1970, 0, 1);
+        Calendar cal = SystemTime.getUtcCalendar();
+        timeOnlyOut.set(Calendar.YEAR, cal.get(Calendar.YEAR));
+        timeOnlyOut.set(Calendar.MONTH, cal.get(Calendar.MONTH));
+        timeOnlyOut.set(Calendar.DATE, cal.get(Calendar.DATE));
         timeOnlyOut.set(Calendar.HOUR_OF_DAY, timestampIn.get(Calendar.HOUR_OF_DAY));
         timeOnlyOut.set(Calendar.MINUTE, timestampIn.get(Calendar.MINUTE));
         timeOnlyOut.set(Calendar.SECOND, timestampIn.get(Calendar.SECOND));
         return timeOnlyOut;
+    }
+
+    private void adjustSessionTimes() {
+        Calendar cal = SystemTime.getUtcCalendar();
+        startTime.set(Calendar.YEAR, cal.get(Calendar.YEAR));
+        startTime.set(Calendar.MONTH, cal.get(Calendar.MONTH));
+        startTime.set(Calendar.DATE, cal.get(Calendar.DATE));
+        endTime.set(Calendar.YEAR, cal.get(Calendar.YEAR));
+        endTime.set(Calendar.MONTH, cal.get(Calendar.MONTH));
+        endTime.set(Calendar.DATE, cal.get(Calendar.DATE));
     }
 
     private boolean isDailySessionTime(Calendar timestamp) {
@@ -173,15 +186,15 @@ class SessionSchedule {
 
             long timeInMillis1 = timestamp1.getTimeInMillis();
             long timeInMillis2 = timestamp2.getTimeInMillis();
-            
+
             if (timestamp1.after(timestamp2)) {
                 long delta = getTimeOnly(timestamp2, calendar1).getTimeInMillis()
                         - startTime.getTimeInMillis();
-                
+
                 if (delta < 0) {
                     delta = ONE_DAY_IN_MILLIS + delta;
                 }
-                
+
                 return (timeInMillis1 - timeInMillis2) < (sessionLength - delta);
             } else {
                 return (timeInMillis2 - timeInMillis1) < sessionLength;
@@ -190,6 +203,7 @@ class SessionSchedule {
     }
 
     public boolean isSameSession(Calendar time1, Calendar time2) {
+        adjustSessionTimes();
         if (startDay < 0 && endDay < 0) {
             return isSameDailySession(time1, time2);
         }
@@ -232,6 +246,7 @@ class SessionSchedule {
     }
 
     public boolean isSessionTime() {
+        adjustSessionTimes();
         Calendar now = SystemTime.getUtcCalendar();
         if (startDay < 0 && endDay < 0) {
             return isDailySessionTime(now);
@@ -273,6 +288,7 @@ class SessionSchedule {
     }
 
     public String toString() {
+        adjustSessionTimes();
         StringBuffer buf = new StringBuffer();
 
         SimpleDateFormat dowFormat = new SimpleDateFormat("EEEE");

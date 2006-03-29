@@ -288,7 +288,7 @@ public class SessionSettings {
      *            the string value
      */
     public void setString(SessionID sessionID, String key, String value) {
-        getOrCreateSessionProperties(sessionID).setProperty(key, value);
+        getOrCreateSessionProperties(sessionID).setProperty(key, value.trim());
     }
 
     /**
@@ -616,7 +616,7 @@ public class SessionSettings {
      * @param value the settings value
      */
     public void setString(String key, String value) {
-        setString(DEFAULT_SESSION_ID, key, value);
+        setString(DEFAULT_SESSION_ID, key, value.trim());
     }
 
     public int size() {

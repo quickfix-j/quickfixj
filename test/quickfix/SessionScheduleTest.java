@@ -1,6 +1,7 @@
 package quickfix;
 
 import java.text.DateFormatSymbols;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -53,6 +54,15 @@ public class SessionScheduleTest extends TestCase {
             int month, int day, int hour, int minute, int second, TimeZone timeZone) {
         mockSystemTimeSource
                 .setTime(getTimeStamp(year, month, day, hour, minute, second, timeZone));
+        assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
+    }
+
+    private void doIsSessionTimeTest(SessionSettings settings, SessionID sessionID,
+            boolean expectedInSession, int year, int month, int day, int hour, int minute,
+            int second, String timeZoneID) throws ConfigError, FieldConvertError {
+        mockSystemTimeSource.setTime(getTimeStamp(year, month, day, hour, minute, second, TimeZone
+                .getTimeZone(timeZoneID)));
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
         assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
     }
 
@@ -139,7 +149,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSameSessionTest(schedule, t1, t2, false);
 
         // ------------
-        
+
         start = getUtcTime(10, 0, 0);
         end = getUtcTime(2, 0, 0);
         schedule = new SessionSchedule(start.getTime(), end.getTime(), -1, -1);
@@ -201,8 +211,8 @@ public class SessionScheduleTest extends TestCase {
 
     public void testSettingsWithoutStartEndDay() throws Exception {
         SessionSettings settings = new SessionSettings();
-        settings.setString(Session.SETTING_START_TIME, "01:00:00");
-        settings.setString(Session.SETTING_END_TIME, "05:00:00");
+        settings.setString(Session.SETTING_START_TIME, "01:00:00 ");
+        settings.setString(Session.SETTING_END_TIME, " 05:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
         doIsSessionTimeTest(schedule, false, 2002, 5, 5, 0, 30, 0);
@@ -227,7 +237,7 @@ public class SessionScheduleTest extends TestCase {
 
     public void testSettingsWithoutStartEndDayWithTimeZone() throws Exception {
         SessionSettings settings = new SessionSettings();
-        settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
+        settings.setString(Session.SETTING_TIMEZONE, "  US/Eastern ");
         settings.setString(Session.SETTING_START_TIME, "01:00:00");
         settings.setString(Session.SETTING_END_TIME, "15:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
@@ -237,7 +247,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, true, 2002, 7, 5, 14, 30, 0, tz);
         doIsSessionTimeTest(schedule, false, 2003, 5, 5, 16, 30, 0, tz);
     }
-    
+
     public void testSettingsWithStartEndDayAndTimeZone() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
@@ -247,7 +257,7 @@ public class SessionScheduleTest extends TestCase {
         settings.setString(Session.SETTING_END_TIME, "15:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-        TimeZone tz = TimeZone.getTimeZone("US/Eastern");        
+        TimeZone tz = TimeZone.getTimeZone("US/Eastern");
         doIsSessionTimeTest(schedule, false, 2006, 1, 27, 0, 30, 0, tz);
         doIsSessionTimeTest(schedule, false, 2006, 1, 27, 1, 30, 0, tz);
         doIsSessionTimeTest(schedule, false, 2006, 1, 28, 0, 59, 0, tz);
@@ -267,7 +277,7 @@ public class SessionScheduleTest extends TestCase {
         settings.setString(Session.SETTING_END_TIME, "15:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-        TimeZone tz = TimeZone.getTimeZone("US/Eastern");        
+        TimeZone tz = TimeZone.getTimeZone("US/Eastern");
         doIsSessionTimeTest(schedule, true, 2006, 1, 27, 0, 30, 0, tz);
         doIsSessionTimeTest(schedule, true, 2006, 1, 27, 1, 30, 0, tz);
         doIsSessionTimeTest(schedule, false, 2006, 1, 27, 16, 30, 0, tz);
@@ -280,7 +290,72 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, true, 2006, 2, 4, 16, 30, 0);
     }
 
-    // TODO TEST Add test for UTC/GMT issue in 1970
+    /**
+     * From 1968 to 1971, GMT was an hour ahead of UTC. If we perform all our calculations in 1970,
+     * someone in GMT (e.g. London) will see sessions ending an hour later than expected. This test
+     * demonstrates the 1970 behavior and verifies that calculations on current dates give the proper results.
+     *
+     * <p/>
+     * More details at:
+     * <p/>
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4644278
+     * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4832236
+     */
+    public void testThatUTCAndGMTAreTheSameNow() throws ConfigError, FieldConvertError,
+            ParseException {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_TIME, "00:01:00");
+        settings.setString(Session.SETTING_END_TIME, "21:50:00");
+
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+
+        // In 1970, a session configured to end at 21:50 UTC would end at
+        // 22:50 London time any time of year.
+        doIsSessionTimeTest(settings, sessionID, true, 1970, Calendar.JANUARY, 27, 22, 50, 0,
+                "Europe/London");
+        doIsSessionTimeTest(settings, sessionID, false, 1970, Calendar.JANUARY, 27, 22, 50, 1,
+                "Europe/London");
+        doIsSessionTimeTest(settings, sessionID, true, 1970, Calendar.JULY, 27, 22, 50, 0,
+                "Europe/London");
+        doIsSessionTimeTest(settings, sessionID, false, 1970, Calendar.JULY, 27, 22, 50, 1,
+                "Europe/London");
+
+        // Now, at least in winter, it should end at 21:50 in both zones --
+        // if the end time session setting is being parsed correctly.
+        doIsSessionTimeTest(settings, sessionID, true, 2006, Calendar.FEBRUARY, 27, 21, 50, 0,
+                "Europe/London");
+        doIsSessionTimeTest(settings, sessionID, false, 2006, Calendar.FEBRUARY, 27, 21, 50, 1,
+                "Europe/London");
+
+        // When summer time (BST) is in effect, London time will be an hour
+        // ahead again, and the session will end at 22:50 there.
+        doIsSessionTimeTest(settings, sessionID, true, 2006, Calendar.JULY, 27, 22, 50, 0,
+                "Europe/London");
+        doIsSessionTimeTest(settings, sessionID, false, 2006, Calendar.JULY, 27, 22, 50, 1,
+                "Europe/London");
+
+        settings.setString(Session.SETTING_TIMEZONE, "Europe/London");
+
+        // In 1970, a session configured to end at 21:50 GMT would end at
+        // 20:50 UTC any time of year.
+        doIsSessionTimeTest(settings, sessionID, true, 1970, Calendar.JANUARY, 27, 20, 50, 0, "UTC");
+        doIsSessionTimeTest(settings, sessionID, false, 1970, Calendar.JANUARY, 27, 20, 50, 1,
+                "UTC");
+        doIsSessionTimeTest(settings, sessionID, true, 1970, Calendar.JULY, 27, 20, 50, 0, "UTC");
+        doIsSessionTimeTest(settings, sessionID, false, 1970, Calendar.JULY, 27, 20, 50, 1, "UTC");
+
+        // Now, at least in winter, it should end at 21:50 in both zones --
+        // if the end time session setting is being parsed correctly.
+        doIsSessionTimeTest(settings, sessionID, true, 2006, Calendar.FEBRUARY, 27, 21, 50, 0,
+                "UTC");
+        doIsSessionTimeTest(settings, sessionID, false, 2006, Calendar.FEBRUARY, 27, 21, 50, 1,
+                "UTC");
+
+        // When summer time (BST) is in effect, London time will be an hour
+        // ahead again, and the session will end at 20:50 UTC there.
+        doIsSessionTimeTest(settings, sessionID, true, 2006, Calendar.JULY, 27, 20, 50, 0, "UTC");
+        doIsSessionTimeTest(settings, sessionID, false, 2006, Calendar.JULY, 27, 20, 50, 1, "UTC");
+    }
 
     public void testBadDaySpecification() throws Exception {
         SessionSettings settings = new SessionSettings();
@@ -295,14 +370,14 @@ public class SessionScheduleTest extends TestCase {
             fail("no exception");
         } catch (ConfigError e) {
             assertTrue(e.getMessage().indexOf("invalid format") != -1);
-        }        
+        }
     }
 
     public void testBadTimeSpecification() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
- 
+
         try {
             settings.setString(Session.SETTING_START_TIME, "01:xx:00");
             settings.setString(Session.SETTING_END_TIME, "15:00:00");
@@ -310,7 +385,7 @@ public class SessionScheduleTest extends TestCase {
             fail("no exception");
         } catch (ConfigError e) {
             assertTrue(e.getMessage().indexOf("could not parse start") != -1);
-        }        
+        }
 
         try {
             settings.setString(Session.SETTING_START_TIME, "01:00:00");
@@ -319,8 +394,8 @@ public class SessionScheduleTest extends TestCase {
             fail("no exception");
         } catch (ConfigError e) {
             assertTrue(e.getMessage().indexOf("could not parse end") != -1);
-        }        
-}
+        }
+    }
 
     public void testMissingStartOrEndDay() throws Exception {
         SessionSettings settings = new SessionSettings();
@@ -328,7 +403,7 @@ public class SessionScheduleTest extends TestCase {
         settings.setString(Session.SETTING_START_TIME, "01:00:00");
         settings.setString(Session.SETTING_END_TIME, "15:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
- 
+
         String dayNames[] = new DateFormatSymbols(Locale.getDefault()).getWeekdays();
 
         try {
@@ -337,7 +412,7 @@ public class SessionScheduleTest extends TestCase {
             fail("no exception");
         } catch (ConfigError e) {
             assertTrue(e.getMessage().indexOf("without EndDay") != -1);
-        }        
+        }
 
         try {
             settings.removeSetting(sessionID, Session.SETTING_START_DAY);
@@ -346,8 +421,8 @@ public class SessionScheduleTest extends TestCase {
             fail("no exception");
         } catch (ConfigError e) {
             assertTrue(e.getMessage().indexOf("without StartDay") != -1);
-        }        
-}
+        }
+    }
 
     public void testFrenchDayValues() {
         SessionSettings settings = new SessionSettings();
@@ -366,21 +441,20 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
-
     public void testBadTimeZone() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/BOGUS");
         settings.setString(Session.SETTING_START_TIME, "01:00:00");
         settings.setString(Session.SETTING_END_TIME, "15:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
- 
+
         try {
             new SessionSchedule(settings, sessionID);
             fail("no exception");
         } catch (ConfigError e) {
             assertTrue(e.getMessage().indexOf("Unrecognized time zone") != -1);
-        }        
-}
+        }
+    }
 
     public void testWeeklyToString() throws ConfigError, FieldConvertError {
         // Just be sure it doesn't throw exceptions
@@ -394,7 +468,7 @@ public class SessionScheduleTest extends TestCase {
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
         assertNotNull(schedule.toString());
     }
-    
+
     public void testDailyToString() throws ConfigError, FieldConvertError {
         // Just be sure it doesn't throw exceptions
         SessionSettings settings = new SessionSettings();
