@@ -26,6 +26,8 @@ import quickfix.field.PartyID;
 import quickfix.field.PartyIDSource;
 import quickfix.field.PartyRole;
 import quickfix.field.Price;
+import quickfix.field.RawData;
+import quickfix.field.RawDataLength;
 import quickfix.field.RefMsgType;
 import quickfix.field.SecurityID;
 import quickfix.field.SecurityIDSource;
@@ -80,6 +82,75 @@ public class MessageTest extends TestCase {
         assertNotNull(dictionary);
         executionReport.fromString(data, dictionary, true);
         dictionary.validate(executionReport);
+    }
+
+    /**
+     *  Test for data fields with SOH. This test is based on report from a user on
+     *  the QuickFIX mailing list. The problem was the user's configuration but this
+     *  seems like a good unit test to keep in the suite.
+     */
+    public void testDataFieldParsing() throws Exception {
+        String data = "10001=Canonical.1.00\00110002=001058\00125001=01\00110003=SAPI_ADMRESP\00110004=SUBSCRIBE_RESP\001"
+                + "10009=705\00110012=01\00110005=SPGW\00110006=SAPI\00110007=0\00110010=16:25:11.537\001"
+                + "10045=SDQADL:01:/SDB/ENT/@/@/STKSDLL:7\00110955=Y\00110963=043\00110961=03\00111285=N\001"
+                + "11339=823,980\00110919=N\00111111=86795696\00110898=043\00110920=~\00110938=N\00111340=5-  9.99\001"
+                + "11343=0.20\00111344=~\00111341=~\00111342=0.15\00111345=10- 14.99\00111348=0.25\00111349=~\00111346=~\001"
+                + "11347=0.15\00111350=15- 19.99\00111353=0.30\00111354=~\00111351=~\00111352=0.20\00111338=23SEP05\001"
+                + "10981=0\00110485=N\00110761=0\00111220=~\00111224=N\00110808=N\00110921=~\00110960=N\00110957=N\00111329=N\001"
+                + "11286=0\00111214=USA\00110917=Y\00111288=0\00110906=N\00110737=0.01\00110956=~\00110967=~\00110965=~\00110809=0\001"
+                + "10762=N\00110763=N\00110712=1\00110905=09:30:00\00110918=YA0101\00110951=Y\00110469=1\00110949=1\00110487=Q\00110950=Y\001"
+                + "10899=N\00110380=N\00110696=03\00111082=18.41\00110217=12\00110954=N\00110708=E\00110958=N\00111213=US \00111334=N\001"
+                + "11332=N\00111331=N\00111330=N\00111335=N\00111333=N\00110767=3\00110974=~\00110980=AIRTRAN HOLDINGS                \00111289=N\001"
+                + "10912=4\00110915=0501\00110914=0501\00110975=N\00110913=SLK\00110698=055\00110666=AAI\00110903=S\00111328=N\001"
+                + "10624=L\00111287=0\00110699=0\00110962=L\00111227=SUB1\00111229=5\00111228=1\00111236=16:24:41.521\00111277=16:25:11.630\001";
+        
+        try {
+            DataDictionary dictionary = DataDictionaryTest.getDictionary();
+            Message m = new Message(("8=FIX.4.4\0019=1144\00135=A\001"
+                    + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00195=1092\001" + "96="
+                    + data + "\00110=5\001"), dictionary);
+            assertEquals(1144, m.bodyLength());
+            Message m2 = new Message(m.toString(), dictionary);
+            assertEquals(1144, m2.bodyLength());
+        } catch (InvalidMessage e) {
+            fail(e.getMessage());
+        }
+    }
+
+    /**
+     *  Test for data fields with SOH. This test is based on report from a user on
+     *  the QuickFIX mailing list. The problem was the user's configuration but this
+     *  seems like a good unit test to keep in the suite.
+     */
+    public void testDataFieldWithManualFieldInsertion() throws Exception {
+        String data = "10001=Canonical.1.00\00110002=001058\00125001=01\00110003=SAPI_ADMRESP\00110004=SUBSCRIBE_RESP\001"
+                + "10009=705\00110012=01\00110005=SPGW\00110006=SAPI\00110007=0\00110010=16:25:11.537\001"
+                + "10045=SDQADL:01:/SDB/ENT/@/@/STKSDLL:7\00110955=Y\00110963=043\00110961=03\00111285=N\001"
+                + "11339=823,980\00110919=N\00111111=86795696\00110898=043\00110920=~\00110938=N\00111340=5-  9.99\001"
+                + "11343=0.20\00111344=~\00111341=~\00111342=0.15\00111345=10- 14.99\00111348=0.25\00111349=~\00111346=~\001"
+                + "11347=0.15\00111350=15- 19.99\00111353=0.30\00111354=~\00111351=~\00111352=0.20\00111338=23SEP05\001"
+                + "10981=0\00110485=N\00110761=0\00111220=~\00111224=N\00110808=N\00110921=~\00110960=N\00110957=N\00111329=N\001"
+                + "11286=0\00111214=USA\00110917=Y\00111288=0\00110906=N\00110737=0.01\00110956=~\00110967=~\00110965=~\00110809=0\001"
+                + "10762=N\00110763=N\00110712=1\00110905=09:30:00\00110918=YA0101\00110951=Y\00110469=1\00110949=1\00110487=Q\00110950=Y\001"
+                + "10899=N\00110380=N\00110696=03\00111082=18.41\00110217=12\00110954=N\00110708=E\00110958=N\00111213=US \00111334=N\001"
+                + "11332=N\00111331=N\00111330=N\00111335=N\00111333=N\00110767=3\00110974=~\00110980=AIRTRAN HOLDINGS                \00111289=N\001"
+                + "10912=4\00110915=0501\00110914=0501\00110975=N\00110913=SLK\00110698=055\00110666=AAI\00110903=S\00111328=N\001"
+                + "10624=L\00111287=0\00110699=0\00110962=L\00111227=SUB1\00111229=5\00111228=1\00111236=16:24:41.521\00111277=16:25:11.630\001";
+        
+        try {
+            DataDictionary dictionary = DataDictionaryTest.getDictionary();
+            Message m = new Message();
+            m.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX44);
+            MsgType msgType = new MsgType("U678");
+            m.getHeader().setField(msgType);
+            m.setInt(RawDataLength.FIELD, data.length());
+            m.setString(RawData.FIELD, data);
+            assertEquals(1108+msgType.getValue().length(), m.bodyLength());
+            Message m2 = new Message(m.toString(), dictionary);
+            assertEquals(m.bodyLength(), m2.bodyLength());
+        } catch (InvalidMessage e) {
+            fail(e.getMessage());
+        }
     }
 
     public void testCalculateStringWithNestedGroups() throws Exception {
