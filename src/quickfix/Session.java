@@ -763,7 +763,7 @@ public class Session {
     private void generateLogout(String text) {
         Message logout = messageFactory.create(sessionID.getBeginString(), MsgType.LOGOUT);
         initializeHeader(logout.getHeader());
-        if (text != null) {
+        if (text != null && !"".equals(text)) {
             logout.setString(Text.FIELD, text);
         }
         sendRaw(logout, 0);
@@ -1174,7 +1174,7 @@ public class Session {
         if (responder != null) {
             state.logEvent("Disconnecting");
             responder.disconnect();
-            responder = null;
+            setResponder(null);
         }
 
         if (state.isLogonReceived() || state.isLogonSent()) {

@@ -2,7 +2,6 @@
 package quickfix.test.acceptance;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -46,7 +45,7 @@ public class InitiateMessageStep implements TestStep {
         this.data = data;
     }
 
-    public void run(TestResult result, TestContext context) {
+    public void run(TestResult result, TestConnection connection) {
         Matcher messageStructureMatcher = MESSAGE_PATTERN.matcher(data);
         String message;
         if (messageStructureMatcher.matches()) {
@@ -67,9 +66,7 @@ public class InitiateMessageStep implements TestStep {
         message += "10=" + CHECKSUM_FORMAT.format(checksum(message)) + '\001';
         log.debug("sending to client " + clientId + ": " + message);
         try {
-            OutputStream clientOutputStream = context.getClientOutputStream(clientId);
-            clientOutputStream.write(message.getBytes());
-            clientOutputStream.flush();
+            connection.sendMessage(clientId, message);
         } catch (IOException e) {
             AssertionFailedError error = new AssertionFailedError(message);
             error.setStackTrace(e.getStackTrace());

@@ -13,7 +13,7 @@ public class PrintComment implements TestStep {
         this.line = line;
     }
 
-    public void run(TestResult result, TestContext context) throws Exception {
+    public void run(TestResult result, TestConnection connection) throws Exception {
         log.info(line);
     }
 

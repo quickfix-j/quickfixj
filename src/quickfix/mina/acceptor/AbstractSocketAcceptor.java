@@ -20,13 +20,13 @@
 package quickfix.mina.acceptor;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.mina.io.socket.SocketAcceptor;
-import org.apache.mina.protocol.io.IoProtocolAcceptor;
+import org.apache.mina.common.IoAcceptor;
+import org.apache.mina.common.TransportType;
 
 import quickfix.Acceptor;
 import quickfix.Application;
@@ -43,12 +43,13 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
+import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
     private final SessionFactory sessionFactory;
-    private IoProtocolAcceptor protocolAcceptor;
-    private InetSocketAddress acceptorSocketAddress;
+    private IoAcceptor ioAcceptor;
+    private SocketAddress acceptorSocketAddress;
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -81,20 +82,32 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             startSessionTimer();
 
             SessionSettings settings = getSettings();
-            int acceptPort = getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT);
-            if (settings.isSetting(SETTING_SOCKET_ACCEPT_ADDRESS)) {
-                String acceptorHost = settings.getString(SETTING_SOCKET_ACCEPT_ADDRESS);
-                acceptorSocketAddress = new InetSocketAddress(acceptorHost, acceptPort);
-            } else {
-                acceptorSocketAddress = new InetSocketAddress(acceptPort);
+
+            TransportType acceptTransportType = TransportType.SOCKET;
+            if (settings.isSetting(Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL)) {
+                try {
+                    acceptTransportType = 
+                        TransportType.getInstance(settings.getString(Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL));
+                } catch (IllegalArgumentException e) {
+                    // Unknown transport type
+                    throw new ConfigError(e);
+                }
             }
 
-            protocolAcceptor = new IoProtocolAcceptor(new SocketAcceptor());
-            protocolAcceptor.bind(acceptorSocketAddress, new AcceptorProtocolProvider(
-                    getSessionMap(), new NetworkingOptions(settings.getDefaultProperties()),
-                    eventHandlingStrategy));
+            int acceptPort = getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT);
+            String acceptHost = null;
+            if (settings.isSetting(SETTING_SOCKET_ACCEPT_ADDRESS)) {
+                acceptHost = settings.getString(SETTING_SOCKET_ACCEPT_ADDRESS);
+            }
 
-            log.info("listening for connections on port " + acceptorSocketAddress);
+            acceptorSocketAddress = ProtocolFactory.createSocketAddress(acceptTransportType, acceptHost,
+                    acceptPort);
+
+            ioAcceptor = ProtocolFactory.createIoAcceptor(acceptorSocketAddress);
+            ioAcceptor.bind(acceptorSocketAddress, new AcceptorIoHandler(getSessionMap(),
+                    new NetworkingOptions(settings.getDefaultProperties()), eventHandlingStrategy));
+
+            log.info("listening for connections at " + acceptorSocketAddress);
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
         } catch (IOException e) {
@@ -122,7 +135,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     protected void stopAcceptingConnections() {
         log.info("No longer accepting connections on " + acceptorSocketAddress);
-        protocolAcceptor.unbind(acceptorSocketAddress);
+        ioAcceptor.unbind(acceptorSocketAddress);
         acceptorSocketAddress = null;
     }
 }

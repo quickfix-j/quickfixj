@@ -23,10 +23,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.protocol.ProtocolEncoderOutput;
-import org.apache.mina.protocol.ProtocolSession;
-import org.apache.mina.protocol.ProtocolViolationException;
-import org.apache.mina.protocol.codec.MessageEncoder;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecException;
+import org.apache.mina.filter.codec.ProtocolEncoderOutput;
+import org.apache.mina.filter.codec.demux.MessageEncoder;
 
 import quickfix.Message;
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -46,8 +46,8 @@ public class FIXMessageEncoder implements MessageEncoder {
         return TYPES;
     }
 
-    public void encode(ProtocolSession session, Object message, ProtocolEncoderOutput out)
-            throws ProtocolViolationException {
+    public void encode(IoSession session, Object message, ProtocolEncoderOutput out)
+            throws ProtocolCodecException {
         String fixMessageString;
         if (message instanceof String) {
             fixMessageString = (String) message;
@@ -55,7 +55,7 @@ public class FIXMessageEncoder implements MessageEncoder {
             try {
                 fixMessageString = ((Message) message).toString();
             } catch (ClassCastException e) {
-                throw new ProtocolViolationException("Invalid FIX message object type: "
+                throw new ProtocolCodecException("Invalid FIX message object type: "
                         + message.getClass(), e);
             }
         }

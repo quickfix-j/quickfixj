@@ -6,9 +6,9 @@ public class CriticalSessionProtocolExceptionTest extends TestCase {
     // For coverage
     
     public void testConstructors() throws Exception {
-        new CriticalSessionProtocolException();
-        new CriticalSessionProtocolException("");
-        new CriticalSessionProtocolException(new Throwable());
-        new CriticalSessionProtocolException("", new Throwable());
+        new CriticalProtocolCodecException();
+        new CriticalProtocolCodecException("");
+        new CriticalProtocolCodecException(new Throwable());
+        new CriticalProtocolCodecException("", new Throwable());
     }
 }

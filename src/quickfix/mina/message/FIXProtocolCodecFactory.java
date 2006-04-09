@@ -19,7 +19,7 @@
 
 package quickfix.mina.message;
 
-import org.apache.mina.protocol.codec.DemuxingProtocolCodecFactory;
+import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 
 public class FIXProtocolCodecFactory extends DemuxingProtocolCodecFactory {
 

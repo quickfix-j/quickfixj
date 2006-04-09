@@ -569,7 +569,9 @@ public class DataDictionary {
     // / Check if message type is defined in spec.
     private void checkMsgType(String msgType) {
         if (!isMsgType(msgType)) {
-            throw new FieldException(SessionRejectReason.INVALID_MSGTYPE, MsgType.FIELD);
+            // TODO It would be better to include the msgType in exception message
+            // Doing that will break acceptance tests
+            throw new FieldException(SessionRejectReason.INVALID_MSGTYPE);
         }
     }
 

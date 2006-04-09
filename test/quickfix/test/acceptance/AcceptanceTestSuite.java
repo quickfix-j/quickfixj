@@ -15,6 +15,8 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
+import org.apache.mina.common.TransportType;
+import org.apache.mina.util.AvailablePortFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +26,9 @@ public class AcceptanceTestSuite extends TestSuite {
     private static Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";
     private boolean skipSlowTests;
-
+    private static TransportType transportType = TransportType.SOCKET;
+    private static int port = 9887;
+    
     private final class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -49,20 +53,20 @@ public class AcceptanceTestSuite extends TestSuite {
 
         public void run(TestResult result) {
             result.startTest(this);
-            TestContext context = null;
+            TestConnection connection = null;
             try {
-                context = new TestContext();
+                connection = new TestConnection();
                 List testSteps = load(filename);
                 for (int i = 0; i < testSteps.size(); i++) {
-                    ((TestStep) testSteps.get(i)).run(result, context);
+                    ((TestStep) testSteps.get(i)).run(result, connection);
                 }
             } catch (AssertionFailedError e) {
                 result.addFailure(this, e);
             } catch (Throwable t) {
                 result.addError(this, t);
             } finally {
-                if (context != null) {
-                    context.tearDown();
+                if (connection != null) {
+                    connection.tearDown();
                 }
             }
             result.endTest(this);
@@ -83,7 +87,7 @@ public class AcceptanceTestSuite extends TestSuite {
                     } else if (line.startsWith("E")) {
                         steps.add(new ExpectMessageStep(line));
                     } else if (line.matches("^i\\d*,?CONNECT")) {
-                        steps.add(new ConnectToServerStep(line));
+                        steps.add(new ConnectToServerStep(line, transportType, port));
                     } else if (line.matches("^e\\d*,?DISCONNECT")) {
                         steps.add(new ExpectDisconnectStep(line));
                     }
@@ -114,8 +118,8 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean("atest.skipslow");
 
-        //        addTest("fix40/10_MsgSeqNumEqual.def");
-        //      addTest("fix40/2i_BeginStringValueUnexpected.def");
+        //addTest("fix40/10_MsgSeqNumEqual.def");
+        //addTest("fix40/2i_BeginStringValueUnexpected.def");
 
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
@@ -171,7 +175,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
         protected void setUp() throws Exception {
             super.setUp();
-            ATServer server = new ATServer((TestSuite) getTest(), threaded);
+            ATServer server = new ATServer((TestSuite) getTest(), threaded, transportType, port);
             server.setUsingMemoryStore(true);
             serverThread = new Thread(server, "ATServer");
             serverThread.start();
@@ -189,12 +193,12 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public static Test suite() {
-        final AcceptanceTestSuite acceptanceTestSuite = new AcceptanceTestSuite();
-        Test scriptedTests = new AcceptanceTestServerSetUp(acceptanceTestSuite, false);
-        Test scriptedTestsThreaded = new AcceptanceTestServerSetUp(acceptanceTestSuite, true);
+        transportType = TransportType.getInstance(System.getProperty("atest.transport", "SOCKET"));
+        port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite();
-        acceptanceTests.addTest(scriptedTests);
-        acceptanceTests.addTest(scriptedTestsThreaded);
+        final AcceptanceTestSuite scriptedTests = new AcceptanceTestSuite();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(scriptedTests, false));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(scriptedTests, true));
         acceptanceTests.addTestSuite(TimerTest.class);
         return acceptanceTests;
     }

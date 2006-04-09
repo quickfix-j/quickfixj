@@ -19,16 +19,26 @@
 
 package quickfix.mina;
 
-import org.apache.mina.protocol.ProtocolCodecFactory;
-import org.apache.mina.protocol.ProtocolProvider;
+import org.apache.mina.filter.codec.ProtocolCodecException;
 
-import quickfix.mina.message.FIXProtocolCodecFactory;
+/**
+ * This type of exception usually requires a disconnect of the connection. 
+ */
+public class CriticalProtocolCodecException extends ProtocolCodecException {
 
-public abstract class AbstractProtocolProvider implements ProtocolProvider {
-
-    private static final FIXProtocolCodecFactory CODEC_FACTORY = new FIXProtocolCodecFactory();
-
-    public ProtocolCodecFactory getCodecFactory() {
-        return CODEC_FACTORY;
+    public CriticalProtocolCodecException() {
     }
+
+    public CriticalProtocolCodecException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CriticalProtocolCodecException(String message) {
+        super(message);
+    }
+
+    public CriticalProtocolCodecException(Throwable cause) {
+        super(cause);
+    }
+
 }

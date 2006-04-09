@@ -6,16 +6,16 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
-import org.apache.mina.protocol.ProtocolDecoder;
-import org.apache.mina.protocol.ProtocolDecoderOutput;
-import org.apache.mina.protocol.ProtocolSession;
-import org.apache.mina.protocol.ProtocolViolationException;
-import org.apache.mina.protocol.codec.DemuxingProtocolCodecFactory;
-import org.apache.mina.protocol.codec.MessageDecoderResult;
+import org.apache.mina.filter.codec.ProtocolCodecException;
+import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
+import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 import org.easymock.MockControl;
 
-import quickfix.mina.CriticalSessionProtocolException;
+import quickfix.mina.CriticalProtocolCodecException;
 
 public class FIXMessageDecoderTest extends TestCase {
     private FIXMessageDecoder decoder;
@@ -47,10 +47,9 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
-    private void doSplitMessageTest(int splitOffset, String data) throws ProtocolViolationException {
+    private void doSplitMessageTest(int splitOffset, String data) throws ProtocolCodecException {
         String firstChunk = data.substring(0, splitOffset);
         String remaining = data.substring(splitOffset);
-        //System.out.println("@@@@@ " + splitOffset + " " + firstChunk + "  " + remaining);
         buffer.put(firstChunk.getBytes());
         buffer.flip();
         decoderOutput.reset();
@@ -124,7 +123,7 @@ public class FIXMessageDecoderTest extends TestCase {
         try {
             decoder.decode(null, buffer, decoderOutput);
             fail("no exception");
-        } catch (CriticalSessionProtocolException e) {
+        } catch (CriticalProtocolCodecException e) {
             // expected
         }
     }
@@ -140,7 +139,7 @@ public class FIXMessageDecoderTest extends TestCase {
         try {
             decoder.decode(null, null, null);
             fail("no exception");
-        } catch (ProtocolViolationException e) {
+        } catch (ProtocolCodecException e) {
             // expected
             assertTrue(e.getCause() instanceof NullPointerException);
         }
@@ -150,11 +149,11 @@ public class FIXMessageDecoderTest extends TestCase {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
         codecFactory.register(FIXMessageDecoder.class);
 
-        ProtocolDecoder decoder = codecFactory.newDecoder();
+        ProtocolDecoder decoder = codecFactory.getDecoder();
         ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
 
-        MockControl mockSessionControl = MockControl.createControl(ProtocolSession.class);
-        ProtocolSession mockSession = (ProtocolSession) mockSessionControl.getMock();
+        MockControl mockSessionControl = MockControl.createControl(IoSession.class);
+        IoSession mockSession = (IoSession) mockSessionControl.getMock();
         mockSession.getTransportType();
         mockSessionControl.setReturnValue(TransportType.SOCKET, MockControl.ONE_OR_MORE);
 
@@ -185,11 +184,11 @@ public class FIXMessageDecoderTest extends TestCase {
         mockSessionControl.verify();
     }
 
-    private void assertMessageFound(String data) throws ProtocolViolationException {
+    private void assertMessageFound(String data) throws ProtocolCodecException {
         assertMessageFound(data, 1);
     }
 
-    private void assertMessageFound(String data, int count) throws ProtocolViolationException {
+    private void assertMessageFound(String data, int count) throws ProtocolCodecException {
         //        assertEquals("should recognize message", MessageDecoderResult.OK, decoder.decodable(null,
         //                buffer));
 

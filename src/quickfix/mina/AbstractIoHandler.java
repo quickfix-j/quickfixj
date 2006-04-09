@@ -22,9 +22,11 @@ package quickfix.mina;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-import org.apache.mina.protocol.ProtocolHandlerAdapter;
-import org.apache.mina.protocol.ProtocolSession;
-import org.apache.mina.protocol.ProtocolViolationException;
+import org.apache.mina.common.IoHandlerAdapter;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecException;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,26 +38,31 @@ import quickfix.MessageFactory;
 import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.mina.message.FIXProtocolCodecFactory;
 
-public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
+public abstract class AbstractIoHandler extends IoHandlerAdapter {
+    private static final FIXProtocolCodecFactory CODEC = new FIXProtocolCodecFactory();
     protected Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
-    
-    public AbstractProtocolHandler(NetworkingOptions options) {
+
+    public AbstractIoHandler(NetworkingOptions options) {
         networkingOptions = options;
     }
 
-    public void exceptionCaught(ProtocolSession protocolSession, Throwable cause) throws Exception {
+    public void exceptionCaught(IoSession ioSession, Throwable cause) throws Exception {
         boolean disconnectNeeded = false;
-        Session quickFixSession = findQFSession(protocolSession);
+        Session quickFixSession = findQFSession(ioSession);
+        if (cause instanceof ProtocolDecoderException && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
         if (cause instanceof IOException) {
-            SocketAddress remoteAddress = protocolSession.getRemoteAddress();
+            SocketAddress remoteAddress = ioSession.getRemoteAddress();
             String message = cause.getMessage();
             log.error("socket exception (" + remoteAddress + "): " + message);
             disconnectNeeded = true;
-        } else if (cause instanceof CriticalSessionProtocolException) {
+        } else if (cause instanceof CriticalProtocolCodecException) {
             disconnectNeeded = true;
-        } else if (cause instanceof ProtocolViolationException) {
+        } else if (cause instanceof ProtocolCodecException) {
             String text = "protocol handler exception: " + cause.getMessage();
             if (quickFixSession != null) {
                 quickFixSession.getLog().onEvent(text);
@@ -73,32 +80,32 @@ public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
             if (quickFixSession != null) {
                 quickFixSession.disconnect();
             } else {
-                protocolSession.close();
+                ioSession.close();
             }
         }
     }
 
-    
-    public void sessionCreated(ProtocolSession session) throws Exception {
-        super.sessionCreated(session);
-        networkingOptions.apply(session);
+    public void sessionCreated(IoSession ioSession) throws Exception {
+        super.sessionCreated(ioSession);
+        networkingOptions.apply(ioSession);
+        ioSession.getFilterChain().addFirst("protocolCodecFilter", new ProtocolCodecFilter(CODEC));
+
     }
 
-
-    public void sessionClosed(ProtocolSession protocolSession) throws Exception {
-        Session quickFixSession = findQFSession(protocolSession);
+    public void sessionClosed(IoSession ioSession) throws Exception {
+        Session quickFixSession = findQFSession(ioSession);
         if (quickFixSession != null) {
-            protocolSession.removeAttribute(SessionConnector.QF_SESSION);
+            ioSession.removeAttribute(SessionConnector.QF_SESSION);
             if (quickFixSession.getResponder() != null) {
                 quickFixSession.disconnect();
             }
         }
     }
 
-    public void messageReceived(ProtocolSession protocolSession, Object message) throws Exception {
+    public void messageReceived(IoSession ioSession, Object message) throws Exception {
         String messageString = (String) message;
         SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
-        Session quickFixSession = findQFSession(protocolSession, remoteSessionID);
+        Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
             quickFixSession.getLog().onIncoming(messageString);
             MessageFactory messageFactory = quickFixSession.getMessageFactory();
@@ -106,17 +113,17 @@ public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
             Message fixMessage;
             try {
                 fixMessage = MessageUtils.parse(messageFactory, dataDictionary, messageString);
-                processMessage(protocolSession, fixMessage);
+                processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
-                log.error("Invalid message: "+e.getMessage());
+                log.error("Invalid message: " + e.getMessage());
             }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
-            protocolSession.close();
+            ioSession.close();
         }
     }
 
-    private Session findQFSession(ProtocolSession protocolSession, SessionID sessionID) {
+    private Session findQFSession(IoSession protocolSession, SessionID sessionID) {
         Session quickfixSession = findQFSession(protocolSession);
         if (quickfixSession == null) {
             quickfixSession = Session.lookupSession(sessionID);
@@ -124,11 +131,11 @@ public abstract class AbstractProtocolHandler extends ProtocolHandlerAdapter {
         return quickfixSession;
     }
 
-    private Session findQFSession(ProtocolSession protocolSession) {
+    private Session findQFSession(IoSession protocolSession) {
         return (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
     }
 
-    protected abstract void processMessage(ProtocolSession protocolSession, Message message)
+    protected abstract void processMessage(IoSession protocolSession, Message message)
             throws Exception;
 
 }

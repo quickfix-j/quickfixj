@@ -24,9 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.mina.common.Session;
-import org.apache.mina.common.SessionConfig;
-import org.apache.mina.io.socket.SocketSessionConfig;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.common.IoSessionConfig;
+import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,6 @@ public class NetworkingOptions {
     private Integer receiveBufferSize;
     private Boolean reuseAddress;
     private Integer sendBufferSize;
-    private Integer sessionReceiveBufferSize;
     private Integer soLinger;
     private Boolean tcpNoDelay;
     private Integer trafficClass;
@@ -54,7 +53,6 @@ public class NetworkingOptions {
     public static final String SETTING_SOCKET_RECEIVE_BUFFER_SIZE = "SocketReceiveBufferSize";
     public static final String SETTING_SOCKET_REUSE_ADDRESS = "SocketReuseAddress";
     public static final String SETTING_SOCKET_SEND_BUFFER_SIZE = "SocketSendBufferSize";
-    public static final String SETTING_SESSION_RECEIVE_BUFFER_SIZE = "MinaSessionReceiveBufferSize";
     public static final String SETTING_SOCKET_LINGER = "SocketLinger";
     public static final String SETTING_SOCKET_TCP_NODELAY = "SocketTcpNoDelay";
     public static final String SETTING_SOCKET_TRAFFIC_CLASS = "SocketTrafficClass";
@@ -77,7 +75,6 @@ public class NetworkingOptions {
         receiveBufferSize = getInteger(properties, SETTING_SOCKET_RECEIVE_BUFFER_SIZE);
         reuseAddress = getBoolean(properties, SETTING_SOCKET_REUSE_ADDRESS);
         sendBufferSize = getInteger(properties, SETTING_SOCKET_SEND_BUFFER_SIZE);
-        sessionReceiveBufferSize = getInteger(properties, SETTING_SESSION_RECEIVE_BUFFER_SIZE);
         soLinger = getInteger(properties, SETTING_SOCKET_LINGER);
         tcpNoDelay = getBoolean(properties, SETTING_SOCKET_TCP_NODELAY);
 
@@ -123,15 +120,15 @@ public class NetworkingOptions {
         return value;
     }
 
-    public void apply(Session session) throws SocketException {
-        SessionConfig sessionConfig = session.getConfig();
+    public void apply(IoSession session) throws SocketException {
+        IoSessionConfig sessionConfig = session.getConfig();
         if (sessionConfig instanceof SocketSessionConfig) {
             SocketSessionConfig socketSessionConfig = (SocketSessionConfig) sessionConfig;
             if (keepAlive != null) {
                 socketSessionConfig.setKeepAlive(keepAlive.booleanValue());
             }
             if (oobInline != null) {
-                socketSessionConfig.setOOBInline(oobInline.booleanValue());
+                socketSessionConfig.setOobInline(oobInline.booleanValue());
             }
             if (receiveBufferSize != null) {
                 socketSessionConfig.setReceiveBufferSize(receiveBufferSize.intValue());
@@ -142,13 +139,9 @@ public class NetworkingOptions {
             if (sendBufferSize != null) {
                 socketSessionConfig.setSendBufferSize(sendBufferSize.intValue());
             }
-            if (sessionReceiveBufferSize != null) {
-                socketSessionConfig
-                        .setSessionReceiveBufferSize(sessionReceiveBufferSize.intValue());
-            }
             if (soLinger != null) {
                 int linger = soLinger.intValue();
-                socketSessionConfig.setSoLinger(linger > 0, linger);
+                socketSessionConfig.setSoLinger(linger);
             }
             if (tcpNoDelay != null) {
                 socketSessionConfig.setTcpNoDelay(tcpNoDelay.booleanValue());

@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mina.protocol.ProtocolSession;
+import org.apache.mina.common.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,6 +153,10 @@ public abstract class SessionConnector {
                 }
             }
         }
+        
+        if (!forceDisconnect) {
+            waitForLogout();
+        }
     }
 
     protected void waitForLogout() {
@@ -172,12 +176,12 @@ public abstract class SessionConnector {
     //        log.debug(message + getLogSuffix(sessionID, protocolSession));
     //    }
 
-    protected void logError(SessionID sessionID, ProtocolSession protocolSession, String message,
+    protected void logError(SessionID sessionID, IoSession protocolSession, String message,
             Throwable t) {
         log.error(message + getLogSuffix(sessionID, protocolSession), t);
     }
 
-    private String getLogSuffix(SessionID sessionID, ProtocolSession protocolSession) {
+    private String getLogSuffix(SessionID sessionID, IoSession protocolSession) {
         String suffix = ":";
         if (sessionID != null) {
             suffix += "sessionID=" + sessionID.toString() + ";";
@@ -227,7 +231,7 @@ public abstract class SessionConnector {
     private static class QFTimerThreadFactory implements ThreadFactory {
 
         public Thread newThread(Runnable runnable) {
-            return new Thread(runnable, "QF/J Timer");
+            return new Thread(runnable, "QFJ Timer");
         }
 
     }

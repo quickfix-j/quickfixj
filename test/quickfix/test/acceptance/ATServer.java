@@ -9,6 +9,7 @@ import java.util.Set;
 import junit.framework.Assert;
 import junit.framework.TestSuite;
 
+import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,10 +34,14 @@ public class ATServer implements Runnable {
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
     private AbstractSocketAcceptor acceptor;
-    private boolean threaded;
-
-    public ATServer(TestSuite suite, boolean threaded) {
+    private final TransportType transportType;
+    private final int port;
+    private final boolean threaded;
+    
+    public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port) {
         this.threaded = threaded;
+        this.transportType = transportType;
+        this.port = port;
         Enumeration e = suite.tests();
         while (e.hasMoreElements()) {
             fixVersions.add(e.nextElement().toString().substring(0, 5));
@@ -46,14 +51,17 @@ public class ATServer implements Runnable {
     }
 
     public ATServer() {
-        // empty
+        threaded = false;
+        transportType = TransportType.SOCKET;
+        port = 9877;
     }
 
     public void run() {
         try {
             HashMap defaults = new HashMap();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", "9877");
+            defaults.put("SocketAcceptProtocol", transportType.toString());
+            defaults.put("SocketAcceptPort", Integer.toString(port));
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");

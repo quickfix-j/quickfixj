@@ -1,7 +1,5 @@
 package quickfix.test.acceptance;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +19,7 @@ public class ExpectDisconnectStep implements TestStep {
         this.command = data;
     }
     
-    public void run(TestResult result, TestContext context) throws Exception {
+    public void run(TestResult result, TestConnection connection) throws Exception {
         Matcher matcher = DISCONNECT_PATTERN.matcher(command);
         if (matcher.lookingAt()) {
             if (matcher.group(1) != null) {
@@ -33,17 +31,7 @@ public class ExpectDisconnectStep implements TestStep {
             Assert.fail("incorrect disconnect command: "+command);
         }
         log.debug("expecting disconnect from client "+clientId);
-        Socket socket = context.getClientSocket(clientId);
-        try {
-            while (socket.getInputStream().read() != -1) { }
-        } catch (IOException e) {
-            // not a problem
-        }
-        if (socket.getInputStream().read() != -1) {
-            Assert.fail("client not disconnected");
-        } else {
-            log.debug("client "+clientId+" disconnected");
-        }
+        connection.waitForClientDisconnect(clientId);
     }
     
     public String toString() {

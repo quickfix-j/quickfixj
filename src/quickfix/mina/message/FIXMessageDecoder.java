@@ -20,15 +20,15 @@
 package quickfix.mina.message;
 
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.protocol.ProtocolDecoderOutput;
-import org.apache.mina.protocol.ProtocolSession;
-import org.apache.mina.protocol.ProtocolViolationException;
-import org.apache.mina.protocol.codec.MessageDecoder;
-import org.apache.mina.protocol.codec.MessageDecoderResult;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecException;
+import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+import org.apache.mina.filter.codec.demux.MessageDecoder;
+import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import quickfix.mina.CriticalSessionProtocolException;
+import quickfix.mina.CriticalProtocolCodecException;
 
 public class FIXMessageDecoder implements MessageDecoder {
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -58,13 +58,13 @@ public class FIXMessageDecoder implements MessageDecoder {
         resetState();
     }
 
-    public MessageDecoderResult decodable(ProtocolSession session, ByteBuffer in) {
+    public MessageDecoderResult decodable(IoSession session, ByteBuffer in) {
         headerOffset = indexOf(in, in.position(), HEADER_PATTERN);
         return headerOffset != -1 ? MessageDecoderResult.OK : MessageDecoderResult.NEED_DATA;
     }
 
-    public MessageDecoderResult decode(ProtocolSession session, ByteBuffer in,
-            ProtocolDecoderOutput out) throws ProtocolViolationException {
+    public MessageDecoderResult decode(IoSession session, ByteBuffer in,
+            ProtocolDecoderOutput out) throws ProtocolCodecException {
         int messageCount = 0;
         while (parseMessage(in, out)) {
             messageCount++;
@@ -87,7 +87,7 @@ public class FIXMessageDecoder implements MessageDecoder {
      * has occurred. Otherwise, MINA will compact the buffer and we lose data. 
      */
     private boolean parseMessage(ByteBuffer in, ProtocolDecoderOutput out)
-            throws ProtocolViolationException {
+            throws ProtocolCodecException {
         try {
             boolean messageFound = false;
             while (in.hasRemaining() && !messageFound) {
@@ -183,10 +183,10 @@ public class FIXMessageDecoder implements MessageDecoder {
             state = SEEKING_HEADER;
             position = 0;
             bodyLength = 0;
-            if (t instanceof ProtocolViolationException) {
-                throw (ProtocolViolationException) t;
+            if (t instanceof ProtocolCodecException) {
+                throw (ProtocolCodecException) t;
             } else {
-                throw new ProtocolViolationException(t);
+                throw new ProtocolCodecException(t);
             }
         }
     }
@@ -215,13 +215,13 @@ public class FIXMessageDecoder implements MessageDecoder {
     }
 
     private void handleError(ByteBuffer buffer, int recoveryPosition, String text,
-            boolean disconnect) throws ProtocolViolationException {
+            boolean disconnect) throws ProtocolCodecException {
         buffer.position(recoveryPosition);
         position = recoveryPosition;
         state = SEEKING_HEADER;
         bodyLength = 0;
         if (disconnect) {
-            throw new CriticalSessionProtocolException(text);
+            throw new CriticalProtocolCodecException(text);
         } else {
             log.error(text);
         }

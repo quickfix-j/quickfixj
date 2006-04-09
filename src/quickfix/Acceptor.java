@@ -23,6 +23,10 @@ package quickfix;
  * Accepts connections from FIX clients and manages the associated sessions.
  */
 public interface Acceptor extends Connector {
+    /**
+     * Acceptor setting specifying the socket protocol used to accept connections.
+     */
+    public static final String SETTING_SOCKET_ACCEPT_PROTOCOL = "SocketAcceptProtocol";
 
     /**
      * Acceptor setting specifying port for accepting FIX client connections.

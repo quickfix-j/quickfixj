@@ -6,7 +6,6 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="src" path="etc"/>
 	<classpathentry kind="src" path="src-generated"/>
-	<classpathentry sourcepath="C:/java/mina-0.8.2/src/java" kind="lib" path="lib/mina-0.8.2.jar"/>
 	<classpathentry kind="lib" path="lib/backport-util-concurrent-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.0-rc5.jar"/>
 	<classpathentry kind="lib" path="lib/test/easymock-1.1.jar"/>
@@ -14,5 +13,6 @@
 	<classpathentry kind="lib" path="lib/optional/sleepycat-je_2.1.30.jar"/>
 	<classpathentry kind="lib" path="lib/test/hsqldb-1.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/test/junit-3.8.1.jar"/>
+	<classpathentry sourcepath="C:/opensource/mina-0.9.3/mina-core-0.9.3.-src.zip" kind="lib" path="lib/mina-core-0.9.3.jar"/>
 	<classpathentry kind="output" path="output/eclipse/classes"/>
 </classpath>

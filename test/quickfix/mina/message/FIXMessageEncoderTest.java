@@ -1,14 +1,16 @@
 package quickfix.mina.message;
 
+import junit.framework.TestCase;
+
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.protocol.ProtocolEncoderOutput;
-import org.apache.mina.protocol.ProtocolViolationException;
+import org.apache.mina.common.WriteFuture;
+import org.apache.mina.filter.codec.ProtocolCodecException;
+import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 
 import quickfix.Message;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
 import quickfix.fix40.Logon;
-import junit.framework.TestCase;
 
 public class FIXMessageEncoderTest extends TestCase {
     private final class ProtocolEncoderOutputForTest implements ProtocolEncoderOutput {
@@ -19,6 +21,10 @@ public class FIXMessageEncoderTest extends TestCase {
 
         public void write(ByteBuffer buf) {
             buffer = buf;
+        }
+        
+        public WriteFuture flush() {
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -37,7 +43,7 @@ public class FIXMessageEncoderTest extends TestCase {
         try {
             encoder.encode(null, new Object(), new ProtocolEncoderOutputForTest());
             fail("expected exception");
-        } catch (ProtocolViolationException e) {
+        } catch (ProtocolCodecException e) {
             // expected
         }
     }

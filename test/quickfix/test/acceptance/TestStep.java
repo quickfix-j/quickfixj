@@ -4,5 +4,5 @@ import junit.framework.TestResult;
 
 
 public interface TestStep {
-    void run(TestResult result, TestContext context) throws Exception;
+    void run(TestResult result, TestConnection connection) throws Exception;
 }

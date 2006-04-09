@@ -19,26 +19,28 @@
 
 package quickfix.mina;
 
-import org.apache.mina.protocol.ProtocolViolationException;
+import org.apache.mina.common.IoSession;
 
-/**
- * This type of exception usually requires a disconnect of the connection. 
- */
-public class CriticalSessionProtocolException extends ProtocolViolationException {
+import quickfix.Responder;
 
-    public CriticalSessionProtocolException() {
+public class IoSessionResponder implements Responder {
+    private IoSession ioSession;
+
+    public IoSessionResponder(IoSession session) {
+        ioSession = session;
     }
 
-    public CriticalSessionProtocolException(String message, Throwable cause) {
-        super(message, cause);
+    public boolean send(String data) {
+        ioSession.write(data);
+        return true;
     }
 
-    public CriticalSessionProtocolException(String message) {
-        super(message);
+    public void disconnect() {
+        ioSession.close();
     }
 
-    public CriticalSessionProtocolException(Throwable cause) {
-        super(cause);
+    public String getRemoteIPAddress() {
+        return ioSession.getRemoteAddress().toString();
     }
 
 }

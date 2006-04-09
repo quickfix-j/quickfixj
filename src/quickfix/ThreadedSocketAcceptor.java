@@ -50,9 +50,6 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         stopAcceptingConnections();
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
-        if (!forceDisconnect) {
-            waitForLogout();
-        }
     }
 
     public void block() throws ConfigError, RuntimeError {

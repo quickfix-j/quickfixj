@@ -7,7 +7,7 @@ public class FIXProtocolCodecFactoryTest extends TestCase {
         // Unfortunately, there's not a lot of testing that can be done here
         FIXProtocolCodecFactory factory = new FIXProtocolCodecFactory();
         assertNotNull(factory);
-        assertNotNull(factory.newDecoder());
-        assertNotNull(factory.newEncoder());
+        assertNotNull(factory.getDecoder());
+        assertNotNull(factory.getEncoder());
     }
 }

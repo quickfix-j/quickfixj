@@ -30,6 +30,12 @@ public interface Initiator extends Connector {
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
     public static final String SETTING_RECONNECT_INTERVAL = "ReconnectInterval";
+    
+    /**
+     * Initiator setting for connection protocol (defaults to "tcp").
+     */
+    public static final String SETTING_SOCKET_CONNECT_PROTOCOL = "SocketConnectProtocol";
+
     /**
      * Initiator setting for connection host. Only valid when session connection
      * type is "initiator".

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.mina.util.AvailablePortFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +89,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         try {
             HashMap defaults = new HashMap();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", "9888");
+            defaults.put("SocketAcceptPort", Integer.toString(AvailablePortFinder.getNextAvailable(10000)));
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");

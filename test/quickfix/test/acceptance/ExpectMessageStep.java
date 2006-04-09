@@ -51,9 +51,9 @@ public class ExpectMessageStep implements TestStep {
         return fields;
     }
 
-    public void run(TestResult result, final TestContext context) throws InterruptedException {
+    public void run(TestResult result, final TestConnection connection) throws InterruptedException {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
-        CharSequence message = context.getNextMessage(clientId, TIMEOUT_IN_MS);
+        CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
             Assert.fail("message timeout: expected=" + expectedFields);
         }
