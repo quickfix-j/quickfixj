@@ -7,37 +7,53 @@
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 </head>
 <body>
-<p id="title">QuickFIX/J Documentation</p>
-<h1>About QuickFIX/J</h1>
-<p> If you have downloaded this package, you are probably already know about
-  FIX. If not, this simple explanation from the <a href="http://www.fixprotocol.org/">FIX
-  protocol standards organization</a> may help.</p>
-<blockquote>The Financial Information Exchange (FIX) Protocol is a message standard
-  developed to facilitate the electronic exchange of information related to securities
-  transactions. It is intended for use between trading partners wishing to automate
-  communications.</blockquote>
-<p>That being said, the purpose of FIX is to make communication between financial
-  vendors trivial, leaving them to focus on their core business. The FIX organization
-  also specifically cites that openness has been key to their success. QuickFIX
-  intends on expanding the openness of FIX into not just the specification of,
-  but also the implementation of the protocol.</p>
-<p>So what is QuickFIX? Simple. QuickFIX is a free and open source implementation
-  of the FIX protocol. QuickFIX is not crippled, all of the source is open for
-  all supported versions of FIX. There is no upgrade to a commercial version.</p>
-<p>It is our hope that the trading community will work together to help lower
-  the barrier in doing business with each other. QuickFIX is a step in that direction. </p>
-<ul>
-  <li><a href="license.html">License</a></li>
-  <li><a href="support.html">Support</a></li>
+<div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+<h2>About QuickFIX/J...</h2>
+<p>The <a href="http://en.wikipedia.org/wiki/FIX_protocol">Financial 
+Information eXchange</a> (FIX)   protocol is a messaging standard developed 
+specifically for the real-time electronic   exchange of securities   
+transactions. FIX is a public-domain specification owned and 
+maintained by   <a href="http://www.fixprotocol.org">FIX Protocol, 
+Ltd</a> (FPL). The FPL mission is to improve the global trading 
+process   by defining, managing, and promoting an open protocol 
+for real-time, electronic communication between industry 
+participants, while complementing industry standards.</p> 
+
+<p>QuickFIX/J     is a full featured messaging engine 
+for the FIX protocol. It is a 100% Java open source 
+implementation   of the popular C++ 
+<a href="http://www.quickfixengine.org/">QuickFIX</a> engine. For more information
+see the <a href="http://www.quickfixj.org">QuickFIX/J web site</a>.</p> 
+<p>Features:</p> 
+
+<ul>   
+   <li> Free! It costs nothing and has a very liberal <a href="documentation/license.html">open source licence</a>.</li>   
+   <li>Full source code available (also at no cost).</li>   
+   <li>Supports FIX versions 4.0 - 4.4.</li>   
+   <li>Runs on any hardware and operating system supported by 1.4+ Java SE or     compatible VM.</li>   
+   <li>Compatibility with QuickFIX C++ Java Native Wrapper API (easy to upgrade)</li>
+   <li>Java NIO asynchronous network communications for scalability (using Apache     <a href="http://http://directory.apache.org/subprojects/mina/">MINA</a>)</li>
+   <li>Easy to embed in existing Java applications.<br /> </li>   <li>Choice of message processing threading strategies</li>   
+   <li>Communication transports for TCP sockets and VM pipes.</li>   <li>Metadata-driven parsing and validation.</li>
+   <li>Metadata-driven code generation of type-safe FIX message-related classes.</li>
+   <li>Metadata API for use at application level (for example, FIX messaging UI).</li>
+   <li>Support for protocol customizations (new messages, fields, constraints).</li>
+   <li>Session state storage plugins: JDBC, File, <a href="http://http://directory.apache.org/subprojects/mina/">SleepyCat/JE</a>, In memory</li>
+   <li>Logging plugins: JDBC, File, <a href="http://www.slf4j.org/">SFL4J</a> (supports     JDK1.4 logging, Log4J, Commons Logging), Console</li>
+   <li>Failover and High Availability.</li>   <li>Scheduling of session connections.</li>   <li>Many automated unit and acceptance tests.</li>
+   <li>Example applications: Simple Swing order entry UI and a console-based order     execution simulator.</li>
+   <li><a href="support.html">Commercial support available</a> from multiple sources.</li> 
 </ul>
-<h1>Building and Testing QuickFIX/J</h1>
+<h2>Building and Testing QuickFIX/J</h2>
 <ul>
   <li><a href="installation.html#dependencies">Dependencies</a></li>
   <li> <a href="installation.html#build">Building QuickFIX/J</a></li>
   <li><a href="installation.html#mysql">Generating the MySQL Database</a></li>
   <li><a href="installation.html#testing">Testing QuickFIX/J</a></li>
 </ul>
-<h1>Using QuickFIX/J</h1>
+<h2>Using QuickFIX/J</h2>
 <ul>
   <li>    <a href="usage/application.html">Creating Your Application</a></li>
   <li>    <a href="usage/configuration.html">Configuration</a></li>
@@ -49,6 +65,7 @@
   <li>    <a href="usage/validation.html">Validation</a></li>
   <li>    <a href="usage/examples.html">Example Applications</a></li>
 </ul>
-<h1>&nbsp;</h1>
+
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
 </body>
 </html>

@@ -5,7 +5,11 @@
 <link href="../style.css" rel="stylesheet" type="text/css">
 </head>
 <BODY>
-<H1 id="title">Creating Your QuickFIX/J Application</H1>
+<div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+<H2>Creating Your QuickFIX/J Application</H2>
 <p> Creating a FIX application is as easy as implementing the QuickFIX Application
   interface.</p>
 <code>
@@ -89,8 +93,8 @@ public interface Application {
   in this code fragment with a <i>SocketInitiator</i>. <i>ThreadedSocketInitiator</i> and <i>ThreadedSocketAcceptor</i> classes
   are also available. These will supply a thread to each session that is created.
   If you use these you must make sure your application is thread safe.</p>
-<CODE>
-<pre>
+
+<pre class="code">
 import quickfix.*;
 import java.io.FileInputStream;
 
@@ -114,6 +118,8 @@ public class MyClass {
   }
 }  
 </pre>
-</CODE>
+
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
+
 </BODY>
 </html>

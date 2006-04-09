@@ -6,7 +6,11 @@
     <link href="../style.css" rel="stylesheet" type="text/css"/>
 	</head>
   <body>
-  <H1 id="title">Configuring QuickFIX/J</H1>
+  <div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+  <H2>Configuring QuickFIX/J</H2>
   <p>
 
   A quickfix acceptor or initiator can maintain as many FIX sessions as you would like. A FIX
@@ -40,7 +44,7 @@
   These are the settings you can associate with a session based on the default
   components provided with QuickFIX, followed by an example.
 </p>
-  <H2>QuickFIX Settings</H2>
+  <H3>QuickFIX Settings</H3>
   <UL>
     <LI><A HREF="#Session">Session</A></LI>
     <LI><A HREF="#Validation">Validation</A></LI>
@@ -687,14 +691,13 @@
   </tbody>
   </TABLE>
 
-  <H2><A NAME="Sample Settings File">Sample Settings File</A></H2>
+  <H3><A NAME="Sample Settings File">Sample Settings File</A></H3>
 
   <p>
     Here is a typical settings file you might find in a firm that wants to connect to several ECNs.
   </p>
 
-  <CODE>
-  <PRE>
+  <PRE class="code">
   # default settings for sessions
   [DEFAULT]
   ConnectionType=initator
@@ -744,6 +747,7 @@
   SocketConnectHost2=12.12.12.12
   DataDictionary=somewhere/FIX42.xml
 </PRE>
-  </CODE>
-  </head>
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
+
+  </body>
   </html>

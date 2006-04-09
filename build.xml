@@ -343,7 +343,7 @@
 			<package name="quickfix.netty" />
 			<package name="quickfix.field.converter" />
 			<package name="quickfix.codegen" />
-			<package name="quickfix.fields" />
+			<package name="quickfix.field" />
 			<package name="quickfix.fix*" />
 		</javadoc>
 	</target>

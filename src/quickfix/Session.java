@@ -26,6 +26,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+/**
+ * The Session is the primary FIX abstraction for message communication. It
+ * performs sequencing and error recovery and represents an communication channel
+ * to a counterparty. Sessions are independent of specific communication layer 
+ * connections. A Session is defined as starting with message sequence number of 1
+ * and ending when the session is reset. The Sesion could span many sequential
+ * connections (it cannot operate on multiple connection simultaneously).
+ */
 public class Session {
     /**
      * Session setting for heartbeat interval (in seconds).
@@ -1426,7 +1434,22 @@ public class Session {
         }
     }
 
-    private boolean send(Message message) {
+    /**
+     * Send a message to a counterparty. Sequence numbers and information about the sender
+     * and target identification will be added automatically (or overwritten if that
+     * information already is present). 
+     * 
+     * The returned status flag is included for 
+     * compatibility with the JNI API but it's usefulness is questionable.
+     * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
+     * only indicates the message was succesfully queued for transmission. An error could still
+     * occur before the message data is actually sent.
+     * 
+     * @param message the message to send
+     * @return a status flag indicating whether the write to the network layer was successful.
+     * 
+     */
+    public boolean send(Message message) {
         message.getHeader().removeField(PossDupFlag.FIELD);
         message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);

@@ -6,23 +6,26 @@
     <link href="../style.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <H1 id="title">QuickFIX/J: User Defined Fields</H1>
+  <div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+    <H2>User Defined Fields</H2>
   <p>
 
     FIX allows for users to define their own fields that do not belong to the spec. How can QuickFIX
     be used to set and get user defined fields? Well one answer would be to use the non-type safe
     set and get fields like so:
   </p>
-  <code><pre>message.setField(new StringField(6123), "value");
+  <pre class="code">message.setField(new StringField(6123), "value");
 StringField field = message.getField(new StringField(6123));
-  </pre></code>
+  </pre>
 
   <p>
     But there is a better way. Instead of using this non type safe method, why not bring your own
     user defined fields into the type system? QuickFIX provides you with a set of macros to do just
   that. Now you can define your user defined fields in a separate file like this.</p>
-  <code>
-  <pre>
+  <pre class="code">
 // MyStringField.java
 
 import quickfix.StringField;
@@ -46,12 +49,11 @@ public class MyPriceField extends DoubleField
   public MyPriceField(double data) { super(8756, data); }
 }
   </pre>
-  </code>
-
+  
   <p>
   Now, elsewhere in your application, you can write code like this:
   </p>
-  <code><pre>
+  <pre class="code">
 MyStringField stringField = new MyStringField("string");
 MyPriceField priceField = new MyPriceField(14.54);
 
@@ -60,7 +62,9 @@ message.setField(priceField);
 
 message.getField(stringField);
 message.getField(priceField);
-</pre></code>
+</pre>
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
+
   </body>
 
 </html>

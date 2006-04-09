@@ -65,7 +65,7 @@ public class Group extends FieldMap {
     
     /**
      * Add a copy of the group to the message.
-     * @param the group to copy
+     * @param group the group to copy
      */
     public void addGroup(Group group) {
         super.addGroup(group);
@@ -73,8 +73,8 @@ public class Group extends FieldMap {
     
     /**
      * Copy the group at the specified index into the supplied group object.
-     * @param the index of the group (1 based)
-     * @param the target group object for the group fields (it will be cleared).sss
+     * @param num the index of the group (1 based)
+     * @param group the target group object for the group fields (it will be cleared).sss
      */
     public Group getGroup(int num, Group group) throws FieldNotFound {
         return super.getGroup(num, group);

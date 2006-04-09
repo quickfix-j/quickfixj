@@ -6,14 +6,17 @@
     <link href="../style.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-  <H1 id="title">QuickFIX/J: Sending Messages</H1>
+  <div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+  <H2>Sending Messages</H2>
     <p>
 
-    Messages can be sent to a counter party with the static <B>Session sendToTarget</B> methods.
+    Messages can be sent to a counter party with the static <code>Session sendToTarget</code> methods.
     This method has several signatures. They are:
     </p>
-	<code>
-	<PRE>package quickfix;
+	<pre class="code">package quickfix;
 
 
 public static boolean sendToTarget(Message message)
@@ -27,8 +30,7 @@ public static boolean sendToTarget(Message message, SessionID sessionID)
 public static boolean sendToTarget
   (Message message, String senderCompID, String targetCompID)
   throws SessionNotFound
-    </PRE>
-	</code>
+    </pre>
 
     <H1>Creating Messages</H1>
     As for creating messages, just like reading them, there are several levels of type safety. And
@@ -38,11 +40,10 @@ public static boolean sendToTarget
     <H2>Least Type Safe</H2>
     <p>
     Once again. This should only be used for low level interface to other languages and middleware.
-    <B>do not</B> use this for writing applications.
+    <em>do not</em> use this for writing applications.
     </p>
 
-    <code>
-    <PRE>import quickfix.*;
+    <pre class="code">import quickfix.*;
 
 public void sendOrderCancelRequest()
 {
@@ -77,8 +78,7 @@ public void sendOrderCancelRequest()
   message.setField(new StringField(58, "Cancel My Order!"));
 
   Session.sendToTarget(message);
-}    </PRE>
-    </code>
+}    </pre>
   
 
     <H2>More Type Safe</H2>
@@ -88,7 +88,7 @@ public void sendOrderCancelRequest()
     is something you usually use for code that needs to work with multiple messages types or multiple
     FIX versions.
     </p>
-    <code><PRE>import quickfix.*;
+    <pre class="code">import quickfix.*;
 import quickfix.field.*;
 
 void sendOrderCancelRequest()
@@ -107,19 +107,19 @@ void sendOrderCancelRequest()
   message.setField(new Text("Cancel My Order!"));
 
   Session.sendToTarget(message);
-}    </PRE></code>
+}    </pre>
 
 	<H2>Most Type Safe... DO THIS!</H2>
 	<p>
-	Finally, the <B>highly recommended</B> method is to use the type safe message classes. This
+	Finally, the <em>highly recommended</em> method is to use the type safe message classes. This
 	should typically be the only way you should ever have to create messages. Here the constructor
-	takes in all the required fields and adds the correct <I>MsgType</I> and <I>BeginString</I> for you.
-	What's more, by using the <B>set</B> method instead of </B>setField</B>, the compiler will not let
-	you add a field that is not a part of a <I>OrderCancelRequest</I> based on the FIX4.1 specs. Keep in
-	mind you can still use <B>setField</B> if you want to force any field you want into the message.
+	takes in all the required fields and adds the correct <code>MsgType</code> and <code>BeginString</code> for you.
+	What's more, by using the <code>set</code> method instead of </code>setField</code>, the compiler will not let
+	you add a field that is not a part of a <code>OrderCancelRequest</code> based on the FIX4.1 specs. Keep in
+	mind you can still use <code>setField</code> if you want to force any field you want into the message.
 	</p>
 
-	<code><PRE>import quickfix.*;
+	<pre class="code">import quickfix.*;
 
 void sendOrderCancelRequest()
 {
@@ -132,6 +132,6 @@ void sendOrderCancelRequest()
   message.set(new Text("Cancel My Order!"));
 
   Session.sendToTarget(message, "TW", "TARGET");
-}    </PRE></code>
+}    </pre>
   </body>
 </html>

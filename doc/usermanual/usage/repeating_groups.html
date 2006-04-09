@@ -6,13 +6,17 @@
     <link href="../style.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-    <H1 id="title">QuickFIX/J: Repeating Groups</H1>
+  <div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+    <H2>Repeating Groups</H2>
     QuickFIX has the ability to send messages containing repeating groups and even recursive
     repeating groups. All repeating groups begin with a field that indicates how many repeating
     groups are in a set. A group can be created by referencing a class named after this field
     scoped within the parent message or group.
 
-    <H2>Creating Messages With Repeating Groups</H2>
+    <H3>Creating Messages With Repeating Groups</H3>
 
     <p>
     Here is an example of a message that distributes market data. When the message is created
@@ -21,8 +25,7 @@
     never an inconsistancy between the number of entries in the field and in the message.
     </p>
 
-    <code>
-    <PRE>package quickfix;
+    <pre class="code">package quickfix;
 
 
 quickfix.fix42.MarketDataSnapshotFullRefresh message =
@@ -42,9 +45,9 @@ group.set(new MDEntryPx(12.32));
 group.set(new MDEntrySize(100));
 group.set(new OrderID("ORDERID"));
 message.addGroup(group);</PRE>
-    </code>
 
-    <H2>Reading Messages With Repeating Groups</H2>
+
+    <H3>Reading Messages With Repeating Groups</H3>
 
     <p>
     To pull a group out of a message you need to supply the group you wish to pull out. You should
@@ -52,8 +55,7 @@ message.addGroup(group);</PRE>
     of groups. The message that was created above is now parsed back out below.
     </p>
 
-    <code>
-    <PRE>package quickfix;
+    <pre class="code">package quickfix;
 
 
 NoMDEntries noMDEntries = new NoMDEntries();
@@ -75,7 +77,8 @@ message.getGroup(2, group);
 group.get(MDEntryType);
 group.get(MDEntryPx);
 group.get(MDEntrySize);</PRE>
-    </code>
+
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
 
   </body>
 </html>

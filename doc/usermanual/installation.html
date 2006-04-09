@@ -7,10 +7,15 @@
 </head>
 
 <body>
-<h1 id="title">Building QuickFIX/J</h1>
-<h2><a name="dependencies"></a>Runtime Dependencies</h2>
-<p>JVM compatible with Java 1.4.x or higher.</p>
-<p><strong>Required run-time libraries:</strong></p>
+<div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+<h2>Installation and Building the Code.</h2>
+<h3><a name="dependencies"></a>Runtime Dependencies</h3>
+<h4>Java Virtual Machine:</h4>
+<p>JVM compatible with Sun JRE Java 1.4.x or higher.</p>
+
+<h4>Required run-time libraries:</h4>
 <table cellspacing="0">
   <tr>
     <th>Library</th>
@@ -33,7 +38,7 @@
     <td>Java 5 Synchronization and threading library compatible with JDK 1.4.</td>
   </tr>
 </table>
-<p><strong>Optional run-time libraries:</strong></p>
+<h4>Optional run-time libraries:</h4>
 <table cellspacing="0">
   <tr>
     <th>Library</th>
@@ -69,25 +74,25 @@ is included.</p>
   <li>Check out the code from CVS using anonymous access.
       See the <a href="http://sourceforge.net/cvs/?group_id=37535">anonymous
       CVS directions</a> at Source Forge for more details on access. You will
-      want to checkout the <strong>quickfixj</strong> module (notice the 'j'
+      want to checkout the <code>quickfixj</code> module (notice the 'j'
       at the end).</li>
   <li>Change directory to the top-level directory of the checked out code. You
     should see a build.xml file.</li>
-  <li>Run <strong>ant jar</strong> to build the QuickFIX/J and examples jar files.
+  <li>Run <code>ant jar</code> to build the QuickFIX/J and examples jar files.
     This will also generate all the FIX message-related code for the various
     FIX versions.</li>
 </ol>
-<p><strong>Eclipse IDE support:</strong></p>
+<h3>Eclipse IDE support:</h3>
 <p>The QuickFIX/J developers also use Eclipse to build the software. There is
   a project definition in the top-level directory of the checked out CVS workspace.
   In fact, if you are an experienced Eclipse developer you may want to check
    out the project directly from Eclipse. There is an external builder for running
   the Ant target to generate the message-related Java classes. If you are seeing
   compile errors related to message classes, the builder may not have run for
-  some reason. If so, you can generate the classes by running the <strong>generate.code</strong>  target in the Ant build.xml file.</p>
-<h2><a name="mysql"></a>Generating the MySQL Database</h2>
-<p> Everything needed to generate your MySQL database is in the etc/sql/mysql directory.
-  Here, there are the script and batch files create_mysql.sh and create_mysql.bat.
+  some reason. If so, you can generate the classes by running the <code>generate.code</code>  target in the Ant build.xml file.</p>
+<h2><a name="mysql"></a>Setting up the MySQL database</h2>
+<p> Everything needed to generate your MySQL database is in the <code>etc/sql/mysql</code> directory.
+  Here, there are the script and batch files <code>create_mysql.sh</code> and <code>create_mysql.bat</code>.
   These scripts will work on a newly installed mysql database with default permisions.
   The scripts will try to generate the database using the root MySQL account
   with no password. If you need to use a different account or need a password,
@@ -104,7 +109,7 @@ we're reasonably confident that the engine works as intended.</p>
   pumped
   into a running FIX server. Most of these tests are based off of the FIX Session-level
   Test Cases and Expected Behaviors document.</p>
-<p>The unit tests can be run by running the <strong>test.unit</strong> target
+<p>The unit tests can be run by running the <code>test.unit</code> target
   in the Ant build.xml file. If you are using Eclipse, you can right-click on
   the quickfix package in the test subdirectory and select the &quot;Run as... -&gt;
   JUnit Test&quot; option. This should locate all the unit tests in the package hierarchy
@@ -122,16 +127,17 @@ releases of QuickFIX will not break any current functionality. </p>
   one of these tests is written. This test first approach sets up a goal for
   developers who will have objective verification that they correctly implemented
   the standard. </p>
-<p>To run the acceptance tests, use the <strong>test.acceptance</strong> Ant
-  target. If you are using Eclipse, right-click on the <strong>quickfix.test.acceptance.AcceptanceTestSuite</strong>  class
+<p>To run the acceptance tests, use the <code>test.acceptance</code> Ant
+  target. If you are using Eclipse, right-click on the <code>quickfix.test.acceptance.AcceptanceTestSuite</code>  class
   and select the &quot;Run as... -&gt; JUnit Test&quot; option. This will start an acceptance
   test program with an embedded QuickFIX/J server, load the AT definition files
   and convert them to JUnit tests, and run those tests in the embedded JUnit
   test view.</p>
-<p><strong>Writing your own Acceptance Test Scripts</strong></p>
+<h4>Writing your own Acceptance Test Scripts</h4>
 <p> Below is an example of a test script that tests the engines behavior when
   it receives a NewSeqNo value that is less than the expected MsgSeqNum. </p>
-<pre>
+
+<pre class="code">
   iCONNECT
   I8=FIX.4.235=A34=149=TW52=&lt;time&gt;56=ISLD98=0108=30
   E8=FIX.4.29=5735=A34=149=ISLD52=00000000-00:00:0056=TW98=0108=3010=0
@@ -154,7 +160,7 @@ releases of QuickFIX will not break any current functionality. </p>
 In these script there are two types of commands, action commands and messages
 commands. Action commands begin with lowercase letters while message command
 begin with uppercase letters.
-<h2>Action Commands</h2>
+<h4>Action Commands</h4>
 <b>i&lt;ACTION&gt;</b> - initiates an action<br>
 <b>e&lt;ACTION&gt;</b> - expect (wait for) an action<br>
 <br>
@@ -165,7 +171,7 @@ Supported actions are:<br>
 <b>iDISCONNECT</b> - initiate a disconnect<br>
 <b>eDISCONNECT</b> - expect a disconnect<br>
 <br>
-<h2>Message Commands</h2>
+<h3>Message Commands</h3>
 <b>I&lt;MESSAGE&gt;</b> - initiate (send) a message<br>
 <b>E&lt;MESSAGE&gt;</b> - expect (wait for) a message<br>
 <br>
@@ -184,8 +190,13 @@ Supported actions are:<br>
   SendingTime and CheckSum fields. These fields can be added to the <i>fields.fmt</i> file
   where a regular expression can be defined to at least verify the field is in
   the correct format. For example: </p>
+  <p>
 10=\d{3}, checksum must be exactly three digits<br>
 52=\d{8}-\d{2}:\d{2}:\d{2}, sending time must be in the form of DDDDDDDD-DD:DD:DD
 where D is a digit.
+</p>
+
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
+
 </body>
 </html>

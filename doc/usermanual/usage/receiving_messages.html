@@ -5,24 +5,27 @@
 <link href="../style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<H1 id="title">QuickFIX/J: Receiving Messages</H1>
+<div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+<H2>Receiving Messages</H2>
 <p> Most of the messages you will be interested in looking at will be arriving
-  in your overloaded <B>fromApp</B> function of your application. You can get
+  in your overloaded <code>fromApp</code> function of your application. You can get
   fields out of messages with different degrees of type safety. The type in question
-  here is the FIX message type. When the application passes you a <B>Message</B> class,
+  here is the FIX message type. When the application passes you a <code>Message</code> class,
   the Java type checker has no idea what specific FIX message it is, you must
   determine that dynamically. There is, however, a way we can make Java aware
   of this type information. First we will cover how to dynamically retreive fields
   from a message, then we will show you the prefered type safe way. Keep in mind
   that all messages have a header and a trailer. If you want to see fields in
-  them, you must first call <B>getHeader()</B> or <B>getTrailer()</B> to get
+  them, you must first call <code>getHeader()</code> or <code>getTrailer()</code> to get
   access to them. Otherwise you access them just like in the message body.</p>
-<H2>Least Type Safe</H2>
-<p> This method of retreiving data from messages is <b>strongly discouraged</b> and
+<H3>Least Type Safe</H3>
+<p> This method of retreiving data from messages is <em>strongly discouraged</em> and
   is generally only useful for writing more low level interfaces for other languages
   and middleware. </p>
-<code>
-<pre>
+<pre class="code">
 import quickfix.*;
 
 
@@ -33,8 +36,7 @@ public void fromApp(Message message, SessionID sessionID)
   message.getField(field);
 }    
 </pre>
-</code>
-<H2>More Type Safe</H2>
+<H3>More Type Safe</H3>
 <p> A way to add some type safety to this is by using field classes that represent
   all the FIX defined fields. This is sometimes useful in an application, but
   is generally only used within code segments that need to be version independent
@@ -42,10 +44,10 @@ public void fromApp(Message message, SessionID sessionID)
   mostly these. It is generally not recomended for most applications. This will
   also get fields as their appropriate type, not just as strings. </p>
 
-<code><pre>
+<pre class="code">
 import quickfix.*;
 import quickfix.field.*;
-
+ 
 public void fromApp(Message message, SessionID sessionID)
   throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
@@ -55,23 +57,21 @@ public void fromApp(Message message, SessionID sessionID)
   ClOrdID = new ClOrdID();
   message.getField(clOrdID);
 }
-</pre></code>
+</pre>
 
-<H2>Most Type Safe... DO THIS!</H2>
-<p> Here is the most type safe and <B>highly encouraged</B> method for retreiving
+<H3>Most Type Safe... DO THIS!</H3>
+<p> Here is the most type safe and <em>highly encouraged</em> method for retreiving
   data from a message. QuickFIX has message classes that correlate to all the
   messages defined in the spec. They are, just like the field classes, generated
   directly off of the FIX specifications. To take advantage of this, you must
-  break the messages out with the supplied <B>MessageCracker</B>. Also notice
-  we are no longer using a generic <B>Message</B> class and we are now using <B>get</B> instead
-  of <B>getField</B>. Keep in mind you can still use <B>getField</B> as all of
-  these classes derive from <B>Message</B> </p>
-<code>
-<pre>
+  break the messages out with the supplied <code>MessageCracker</code>. Also notice
+  we are no longer using a generic <code>Message</code> class and we are now using <code>get</code> instead
+  of <code>getField</code>. Keep in mind you can still use <code>getField</code> as all of
+  these classes derive from <code>Message</code> </p>
+<pre class="code">
 import quickfix.*;
 import quickfix.field.*;
-
-
+ 
 public void fromApp(Message message, SessionID sessionID)
       throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
@@ -101,15 +101,13 @@ public void onMessage( quickfix.fix42.OrderCancelRequest message, SessionID sess
   message.get(clearingAccount);
 }    
 </pre>
-</code>
-<p> In order to use this you must use the <B>MessageCracker</B> as a mixin to
-  your application. This will provide you with the <B>crack</B> function and
+<p> In order to use this you must use the <code>MessageCracker</code> as a mixin to
+  your application. This will provide you with the <code>crack</code> function and
   allow you to overload specific message functions. Any function you do not overload
-  will by default throw an <B>UnsupportedMessageType</B> exception</p>
+  will by default throw an <code>UnsupportedMessageType</code> exception</p>
   <p>
   Define your application like this: </p>
-<code>
-<pre>
+<pre class="code">
 import quickfix.Application;
 import quickfix.MessageCracker;
 
@@ -117,8 +115,7 @@ import quickfix.MessageCracker;
 public class MyApplication
   extends MessageCracker implements quickfix.Application
 </pre>
-</code>
-</head>
-<body>
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
+
 </body>
 </html>
