@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * Copyright (c) quickfixengine.org  All rights reserved. 
+ * 
+ * This file is part of the QuickFIX FIX Engine 
+ * 
+ * This file may be distributed under the terms of the quickfixengine.org 
+ * license as defined by quickfixengine.org and appearing in the file 
+ * LICENSE included in the packaging of this file. 
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
+ * PARTICULAR PURPOSE. 
+ * 
+ * See http://www.quickfixengine.org/LICENSE for licensing information. 
+ * 
+ * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * are not clear to you.
+ ******************************************************************************/
+
 package quickfix;
 
 import java.util.Calendar;
@@ -8,6 +27,7 @@ import junit.framework.TestCase;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
 import quickfix.field.BeginString;
+import quickfix.field.BidType;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.ClOrdID;
@@ -17,9 +37,12 @@ import quickfix.field.CrossPrioritization;
 import quickfix.field.CrossType;
 import quickfix.field.EncryptMethod;
 import quickfix.field.IOIid;
+import quickfix.field.ListID;
+import quickfix.field.ListSeqNo;
 import quickfix.field.MsgDirection;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.NoOrders;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.PartyID;
@@ -37,10 +60,12 @@ import quickfix.field.SendingTime;
 import quickfix.field.Side;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
+import quickfix.field.TotNoOrders;
 import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
 import quickfix.fix42.NewOrderSingle;
+import quickfix.fix43.NewOrderList;
 import quickfix.fix44.ExecutionReport;
 import quickfix.fix44.IndicationOfInterest;
 import quickfix.fix44.Logon;
@@ -683,5 +708,54 @@ public class MessageTest extends TestCase {
             // expected
         }
 
+    }
+    
+    public void testReplaceGroup() throws Exception {
+        Message message = new Message();
+          message.setField(new ListID( "1" ) );
+          message.setField(new BidType( 0 ) );
+          message.setField(new TotNoOrders( 3 ) );
+
+          NewOrderList.NoOrders group = new NewOrderList.NoOrders();
+          group.set(new ClOrdID( "A" ) );
+          group.set(new ListSeqNo( 1 ) );
+          group.set(new Symbol( "DELL" ) );
+          group.set(new Side( '1' ) );
+          message.addGroup( group );
+
+          group.set(new ClOrdID( "B" ) );
+          group.set(new ListSeqNo( 2 ) );
+          group.set(new Symbol( "LNUX" ) );
+          group.set(new Side( '2' ) );
+          message.addGroup( group );
+
+          group.set(new ClOrdID( "C" ) );
+          group.set(new ListSeqNo( 3 ) );
+          group.set(new Symbol( "RHAT" ) );
+          group.set(new Side( '3' ) );
+          message.addGroup( group );
+
+          group.set(new ClOrdID( "D" ) );
+          group.set(new ListSeqNo( 4 ) );
+          group.set(new Symbol( "AAPL" ) );
+          group.set(new Side( '4' ) );
+          message.replaceGroup( 2, group );
+
+          NoOrders noOrders = new NoOrders();
+
+          assertTrue( message.hasGroup(1, group) );
+          assertTrue( message.hasGroup(2, group) );
+          assertTrue( message.hasGroup(3, group) );
+          assertEquals( 3, message.getGroupCount(NoOrders.FIELD));
+          message.getField( noOrders );
+          assertEquals(3, noOrders.getValue() );
+
+          ClOrdID clOrdID = new ClOrdID();
+          message.getGroup( 1, group );
+          assertEquals("A", group.getField(clOrdID).getValue());
+          message.getGroup( 2, group );
+          assertEquals("D", group.getField(clOrdID).getValue());
+          message.getGroup( 3, group );
+          assertEquals("C", group.getField(clOrdID).getValue());
     }
 }

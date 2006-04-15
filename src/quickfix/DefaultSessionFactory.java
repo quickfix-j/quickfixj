@@ -160,6 +160,14 @@ public class DefaultSessionFactory implements SessionFactory {
                         Session.SETTING_REFRESH_STORE_AT_LOGON));
             }
 
+            if (settings.isSetting(sessionID, Session.SETTING_LOGON_TIMEOUT)) {
+                session.setLogonTimeout((int)settings.getLong(sessionID, Session.SETTING_LOGON_TIMEOUT));
+            }
+
+            if (settings.isSetting(sessionID, Session.SETTING_LOGOUT_TIMEOUT)) {
+                session.setLogoutTimeout((int)settings.getLong(sessionID, Session.SETTING_LOGOUT_TIMEOUT));
+            }
+
             return session;
         } catch (ConfigError e) {
             throw e;

@@ -19,13 +19,10 @@
 
 package quickfix;
 
-import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -352,19 +349,7 @@ class SessionSchedule {
 
     private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
             throws ConfigError, FieldConvertError {
-        String dayNames[] = new DateFormatSymbols(Locale.getDefault()).getWeekdays();
-        String value = settings.getString(sessionID, key);
-        if (value.length() >= 2) {
-            String abbr = value.substring(0, 2).toLowerCase();
-            for (int i = 1; i < dayNames.length; i++) {
-                if (dayNames[i].toLowerCase().startsWith(abbr)) {
-                    return i;
-                }
-            }
-        }
-        throw new ConfigError("invalid format for day (valid values: "
-                + Arrays.asList(dayNames).subList(1, dayNames.length)
-                + " or prefix); actual value was '" + value + "'");
+        return DayConverter.toInteger(settings.getString(sessionID, key));
     }
 
 }

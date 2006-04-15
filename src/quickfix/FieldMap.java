@@ -621,6 +621,16 @@ public abstract class FieldMap implements Serializable {
         return group;
     }
 
+    public void replaceGroup( int num, Group group )
+    { 
+        final int offset = num - 1;
+        List groupList = getGroups(group.getFieldTag());
+        if (offset < 0 || offset >= groupList.size()) {
+            return;
+        }
+        groupList.set(offset, new Group(group));
+    }
+    
     public void removeGroup(int field) {
         getGroups(field).clear();
         removeField(field);

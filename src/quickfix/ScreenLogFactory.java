@@ -42,7 +42,7 @@ public class ScreenLogFactory implements LogFactory {
      * 
      * 
      */
-    public static final String SETTING_LOG_INCOMING = "ScreenLogIncoming";
+    public static final String SETTING_LOG_INCOMING = "ScreenLogShowIncoming";
     /**
      * Enables outgoing message logging.
      * 
@@ -52,7 +52,7 @@ public class ScreenLogFactory implements LogFactory {
      * 
      * 
      */
-    public static final String SETTING_LOG_OUTGOING = "ScreenLogOutgoing";
+    public static final String SETTING_LOG_OUTGOING = "ScreenLogShowOutgoing";
 
     /**
      * Enables session event logging.
@@ -63,7 +63,7 @@ public class ScreenLogFactory implements LogFactory {
      * 
      * 
      */
-    public static final String SETTING_LOG_EVENTS = "ScreenLogEvents";
+    public static final String SETTING_LOG_EVENTS = "ScreenLogShowEvents";
 
     /**
      * Flag for controlling output of heartbeat messages.
@@ -74,7 +74,7 @@ public class ScreenLogFactory implements LogFactory {
      * 
      * 
      */
-    public static final String SETTING_LOG_HEARTBEATS = "ScreenLogHeartBeats";
+    public static final String SETTING_LOG_HEARTBEATS = "ScreenLogShowHeartBeats";
 
     /**
      * Create factory using configuration in session settings.

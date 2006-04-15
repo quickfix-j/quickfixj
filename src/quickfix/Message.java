@@ -159,6 +159,10 @@ public class Message extends FieldMap {
         header.addGroup(group);
     }
     
+    public void headerReplaceGroup(int num, Group group) {
+        header.replaceGroup(num, group);
+    }
+    
     public Group headerGetGroup(int num, Group group) throws FieldNotFound {
         return header.getGroup(num, group);
     }
@@ -191,6 +195,10 @@ public class Message extends FieldMap {
         return trailer.getGroup(num, group);
     }
     
+    public void trailerReplaceGroup(int num, Group group) {
+        trailer.replaceGroup(num, group);
+    }
+
     public void trailerRemoveGroup(Group group) {
         trailer.removeGroup(group);
     }

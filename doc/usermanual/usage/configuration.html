@@ -231,9 +231,15 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>LogonTimeout</I> </TD>
 
-    <TD> Number of seconds to wait for a logon response before disconnecting. Default is 10.</TD>
+    <TD> Number of seconds to wait for a logon response before disconnecting.</TD>
     <TD> positive integer </TD>
     <TD> 10 </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogoutTimeout</I> </TD>
+    <TD> Number of seconds to wait for a logout response before disconnecting.</TD>
+    <TD> positive integer </TD>
+    <TD> 2 </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketConnectPort</I> </TD>
@@ -639,19 +645,19 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogIncoming</TD>
+    <TD>ScreenLogShowIncoming</TD>
     <TD>Log incoming messages to screen.</TD>
     <TD>Y or N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogOutgoing</TD>
+    <TD>ScreenLogShowOutgoing</TD>
     <TD>Log outgoing messages to screen.</TD>
     <TD>Y or N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogHeartBeats</TD>
+    <TD>ScreenLogShowHeartBeats</TD>
     <TD>Filter heartbeats from output (both incoming and outgoing)</TD>
     <TD>Y or N</TD>
     <TD>N</TD>

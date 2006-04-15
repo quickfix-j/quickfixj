@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,30 +98,15 @@ public class Dictionary {
         }        
     }
 
-    private static ArrayList dayTranslations = new ArrayList();
-    
-    static {
-        dayTranslations.add("");
-        dayTranslations.add("su");
-        dayTranslations.add("mo");
-        dayTranslations.add("tu");
-        dayTranslations.add("we");
-        dayTranslations.add("th");
-        dayTranslations.add("fr");
-        dayTranslations.add("sa");
-    }
-    
     public int getDay(String key) throws ConfigError, FieldConvertError {
-        String value = getString(key);
-        if (value.length() < 2) {
-            throw new FieldConvertError("Day value too short: "+value);
+        Object datum = data.get(key);
+        if (datum == null) {
+            throw new ConfigError("No value for key.");
         }
-        String lcvalue = value.toLowerCase();
-        int result = dayTranslations.indexOf(lcvalue.substring(0,2));
-        if (result == -1) {
-            throw new FieldConvertError("Could not translate day value: "+value);
+        if (datum instanceof String) {
+            return DayConverter.toInteger((String)datum);
         }
-        return result;
+        throw new ConfigError("Invalid data type for day value: "+datum.getClass().getName());
     }
 
     public void setString(String key, String value) {
@@ -139,6 +123,19 @@ public class Dictionary {
 
     public void setBool(String key, boolean value) {
         data.put(key, new Boolean(value));
+    }
+
+    public void setDay( String key, int value ) {
+        try {
+            data.put(key, DayConverter.toString(value));
+        } catch (ConfigError e) {
+            // JNI API doesn't allow a ConfigError to be thrown
+            throw new RuntimeError(e);
+        }
+    }
+    
+    public void setDay( String key, String dayName ) {
+        data.put(key, dayName);
     }
 
     public boolean has(String key) {

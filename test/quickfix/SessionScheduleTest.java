@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * Copyright (c) quickfixengine.org  All rights reserved. 
+ * 
+ * This file is part of the QuickFIX FIX Engine 
+ * 
+ * This file may be distributed under the terms of the quickfixengine.org 
+ * license as defined by quickfixengine.org and appearing in the file 
+ * LICENSE included in the packaging of this file. 
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
+ * PARTICULAR PURPOSE. 
+ * 
+ * See http://www.quickfixengine.org/LICENSE for licensing information. 
+ * 
+ * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * are not clear to you.
+ ******************************************************************************/
+
 package quickfix;
 
 import java.text.DateFormatSymbols;
@@ -11,15 +30,18 @@ import junit.framework.TestCase;
 
 public class SessionScheduleTest extends TestCase {
     private MockSystemTimeSource mockSystemTimeSource;
+    private Locale defaultLocale;
 
     protected void setUp() throws Exception {
         super.setUp();
         mockSystemTimeSource = new MockSystemTimeSource();
         SystemTime.setTimeSource(mockSystemTimeSource);
+        defaultLocale = Locale.getDefault();
     }
 
     protected void tearDown() throws Exception {
         SystemTime.setTimeSource(null);
+        Locale.setDefault(defaultLocale);
         super.tearDown();
     }
 
@@ -431,14 +453,9 @@ public class SessionScheduleTest extends TestCase {
         settings.setString(Session.SETTING_END_TIME, "15:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
 
-        Locale defaultLocale = Locale.getDefault();
-        try {
-            Locale.setDefault(Locale.FRANCE);
-            settings.setString(sessionID, Session.SETTING_START_DAY, "lun.");
-            settings.setString(sessionID, Session.SETTING_END_DAY, "vendredi");
-        } finally {
-            Locale.setDefault(defaultLocale);
-        }
+        Locale.setDefault(Locale.FRANCE);
+        settings.setString(sessionID, Session.SETTING_START_DAY, "lun.");
+        settings.setString(sessionID, Session.SETTING_END_DAY, "vendredi");
     }
 
     public void testBadTimeZone() throws Exception {

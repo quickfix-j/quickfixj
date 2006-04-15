@@ -31,19 +31,16 @@ import java.util.HashMap;
  */
 public class SessionState {
     private Log log;
-    private boolean connected;
     private boolean logonReceived;
     private boolean logoutSent;
     private boolean logonSent;
     private boolean initiator;
-    private int logonTimeout;
+    private long logonTimeoutMs;
+    private long logoutTimeoutMs;
     private int testRequestCounter;
     private MessageStore messageStore;
     private long lastSentTime;
     private long lastReceivedTime;
-    private boolean logonAlreadySent;
-    private boolean logonTimedOut;
-    private boolean logoutTimedOut;
     private boolean withinHeartBeat;
     private long heartbeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
@@ -53,14 +50,6 @@ public class SessionState {
     private boolean resetReceived;
     private String logoutReason;
     
-    public boolean isConnected() {
-        return connected;
-    }
-
-    public void setConnected(boolean connected) {
-        this.connected = connected;
-    }
-
     public int getHeartBeatInterval() {
         return heartBeatInterval;
     }
@@ -108,11 +97,7 @@ public class SessionState {
     }
 
     public boolean isLogonAlreadySent() {
-        return logonAlreadySent;
-    }
-
-    public void setLogonAlreadySent(boolean logonAlreadySent) {
-        this.logonAlreadySent = logonAlreadySent;
+        return isInitiator() && isLogonSent();
     }
 
     public boolean isLogonReceived() {
@@ -136,19 +121,15 @@ public class SessionState {
     }
 
     public boolean isLogonTimedOut() {
-        return logonTimedOut;
-    }
-
-    public void setLogonTimedOut(boolean logonTimedOut) {
-        this.logonTimedOut = logonTimedOut;
-    }
-
-    public int getLogonTimeout() {
-        return logonTimeout;
+        return SystemTime.currentTimeMillis() - getLastReceivedTime() >= logonTimeoutMs;
     }
 
     public void setLogonTimeout(int logonTimeout) {
-        this.logonTimeout = logonTimeout;
+        this.logonTimeoutMs = logonTimeout * 1000L;
+    }
+
+    public void setLogoutTimeout(int logoutTimeout) {
+        this.logoutTimeoutMs = logoutTimeout * 1000L;
     }
 
     public boolean isLogoutSent() {
@@ -160,11 +141,7 @@ public class SessionState {
     }
 
     public boolean isLogoutTimedOut() {
-        return logoutTimedOut;
-    }
-
-    public void setLogoutTimedOut(boolean logoutTimedOut) {
-        this.logoutTimedOut = logoutTimedOut;
+        return isLogoutSent() && ( ( SystemTime.currentTimeMillis() - getLastSentTime() ) >= logoutTimeoutMs );
     }
 
     public MessageStore getMessageStore() {
@@ -206,10 +183,6 @@ public class SessionState {
         return withinHeartBeat;
     }
 
-    public void setWithinHeartBeat(boolean withinHeartBeat) {
-        this.withinHeartBeat = withinHeartBeat;
-    }
-
     public boolean set(int sequence, String message) throws IOException {
         return messageStore.set(sequence, message);
     }
@@ -234,10 +207,6 @@ public class SessionState {
         return messageStore.getNextSenderMsgSeqNum();
     }
 
-    public void setNextSenderMsgSeqNum(int sequence) throws IOException {
-        messageStore.setNextSenderMsgSeqNum(sequence);
-    }
-
     public int getNextTargetMsgSeqNum() throws IOException {
         return messageStore.getNextTargetMsgSeqNum();
     }
@@ -256,22 +225,6 @@ public class SessionState {
 
     public Date getCreationTime() throws IOException {
         return messageStore.getCreationTime();
-    }
-
-    public void resetMessageStore() throws IOException {
-        messageStore.reset();
-    }
-
-    public void logIncoming(String s) {
-        log.onIncoming(s);
-    }
-
-    public void logOutgoing(String s) {
-        log.onOutgoing(s);
-    }
-
-    public void logEvent(String s) {
-        log.onEvent(s);
     }
 
     public void reset() {
@@ -322,4 +275,5 @@ public class SessionState {
     public void clearLogoutReason() {
         logoutReason = "";
     }
+
 }

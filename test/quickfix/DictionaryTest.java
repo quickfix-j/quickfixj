@@ -1,13 +1,42 @@
+/*******************************************************************************
+ * Copyright (c) quickfixengine.org  All rights reserved. 
+ * 
+ * This file is part of the QuickFIX FIX Engine 
+ * 
+ * This file may be distributed under the terms of the quickfixengine.org 
+ * license as defined by quickfixengine.org and appearing in the file 
+ * LICENSE included in the packaging of this file. 
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
+ * PARTICULAR PURPOSE. 
+ * 
+ * See http://www.quickfixengine.org/LICENSE for licensing information. 
+ * 
+ * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * are not clear to you.
+ ******************************************************************************/
+
 package quickfix;
+
+import java.util.Locale;
 
 import junit.framework.TestCase;
 
 public class DictionaryTest extends TestCase {
     private Dictionary dictionary;
-
+    private Locale defaultLocale;
+    
     protected void setUp() throws Exception {
         super.setUp();
         dictionary = new Dictionary();
+        defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.US);
+    }
+    
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        Locale.setDefault(defaultLocale);
     }
 
     public void testDay() throws Exception {
@@ -27,7 +56,7 @@ public class DictionaryTest extends TestCase {
         dictionary.setString("DAY", "t");
         try {
             dictionary.getDay("DAY");
-        } catch (FieldConvertError e) {
+        } catch (ConfigError e) {
             // expected
         }
     }
@@ -36,7 +65,7 @@ public class DictionaryTest extends TestCase {
         dictionary.setString("DAY", "xyz");
         try {
             dictionary.getDay("DAY");
-        } catch (FieldConvertError e) {
+        } catch (ConfigError e) {
             // expected
         }
     }
@@ -162,5 +191,43 @@ public class DictionaryTest extends TestCase {
         assertEquals("XYZ", dz.getName());
         assertEquals(1, dz.toMap().size());
         assertEquals("BAR", dz.getString("FOO"));
+    }
+    
+    // From C++ tests
+    public void testGetDay() throws Exception {
+        Dictionary object = new Dictionary();
+        
+        object.setString( "DAY1", "SU" );
+        object.setString( "DAY2", "MO" );
+        object.setString( "DAY3", "TU" );
+        object.setString( "DAY4", "WE" );
+        object.setString( "DAY5", "TH" );
+        object.setString( "DAY6", "FR" );
+        object.setString( "DAY7", "SA" );
+
+        assertEquals( 1, object.getDay( "DAY1" ));
+        assertEquals( 2, object.getDay( "DAY2" ));
+        assertEquals( 3, object.getDay( "DAY3" ));
+        assertEquals( 4, object.getDay( "DAY4" ) );
+        assertEquals( 5, object.getDay( "DAY5" ));
+        assertEquals( 6, object.getDay( "DAY6" ));
+        assertEquals( 7, object.getDay( "DAY7" ));
+
+        object.setDay( "NEXTDAY1", 1 );
+        object.setDay( "NEXTDAY2", 2 );
+        object.setDay( "NEXTDAY3", 3 );
+        object.setDay( "NEXTDAY4", 4 );
+        object.setDay( "NEXTDAY5", 5 );
+        object.setDay( "NEXTDAY6", 6 );
+        object.setDay( "NEXTDAY7", 7 );
+
+        assertEquals( 1, object.getDay( "NEXTDAY1" ));
+        assertEquals( 2, object.getDay( "NEXTDAY2" ));
+        assertEquals( 3, object.getDay( "NEXTDAY3" ));
+        assertEquals( 4, object.getDay( "NEXTDAY4" ));
+        assertEquals( 5, object.getDay( "NEXTDAY5" ));
+        assertEquals( 6, object.getDay( "NEXTDAY6" ));
+        assertEquals( 7, object.getDay( "NEXTDAY7" ));
+
     }
 }

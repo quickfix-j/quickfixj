@@ -109,6 +109,11 @@ public class Session {
     public static final String SETTING_LOGON_TIMEOUT = "LogonTimeout";
 
     /**
+     * Session setting for logout timeout (in seconds).
+     */
+    public static final String SETTING_LOGOUT_TIMEOUT = "LogoutTimeout";
+
+    /**
      * Session setting for doing an automatic sequence number reset on logout.
      * Valid values are "Y" or "N". Default is "N".
      */
@@ -484,7 +489,7 @@ public class Session {
         try {
             return state.getMessageStore().getNextSenderMsgSeqNum();
         } catch (IOException e) {
-            state.getLog().onEvent("getNextSenderMsgSeqNum failed: " + e.getMessage());
+            getLog().onEvent("getNextSenderMsgSeqNum failed: " + e.getMessage());
             return -1;
         }
     }
@@ -499,7 +504,7 @@ public class Session {
         try {
             return state.getMessageStore().getNextTargetMsgSeqNum();
         } catch (IOException e) {
-            state.getLog().onEvent("getNextTargetMsgSeqNum failed: " + e.getMessage());
+            getLog().onEvent("getNextTargetMsgSeqNum failed: " + e.getMessage());
             return -1;
         }
     }
@@ -515,7 +520,6 @@ public class Session {
     public synchronized void next(Message message) throws FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException,
             InvalidMessage {
-        state.setConnected(true);
 
         if (!checkSessionTime()) {
             reset();
@@ -576,17 +580,17 @@ public class Session {
             } else {
                 generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
                 if (msgType.equals(MsgType.LOGON)) {
-                    state.logEvent("Required field missing from logon");
+                    getLog().onEvent("Required field missing from logon");
                     disconnect();
                 }
             }
         } catch (IncorrectTagValue e) {
             generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
         } catch (InvalidMessage e) {
-            state.logEvent("Skipping invalid message: " + e.getMessage());
+            getLog().onEvent("Skipping invalid message: " + e.getMessage());
         } catch (RejectLogon e) {
             String rejectMessage = e.getMessage() != null ? (": " + e.getMessage()) : "";
-            state.getLog().onEvent("Logon rejected" + rejectMessage);
+            getLog().onEvent("Logon rejected" + rejectMessage);
             generateLogout(e.getMessage());
             disconnect();
         } catch (UnsupportedMessageType e) {
@@ -640,7 +644,7 @@ public class Session {
         int beginSeqNo = resendRequest.getInt(BeginSeqNo.FIELD);
         int endSeqNo = resendRequest.getInt(EndSeqNo.FIELD);
 
-        state.logEvent("Received ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
+        getLog().onEvent("Received ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
 
         String beginString = sessionID.getBeginString();
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0 && endSeqNo == 0
@@ -675,7 +679,7 @@ public class Session {
                         generateSequenceReset(begin, msgSeqNum);
                     }
                     send(msg.toString());
-                    state.logEvent("Resending Message: " + msgSeqNum);
+                    getLog().onEvent("Resending Message: " + msgSeqNum);
                     begin = 0;
                 } else {
                     if (begin == 0)
@@ -706,18 +710,19 @@ public class Session {
         return msgSeqNum < state.getNextTargetMsgSeqNum();
     }
 
-    private void generateSequenceReset(int beginSeqNo, int endSeqNo) {
+    private void generateSequenceReset(int beginSeqNo, int endSeqNo) throws FieldNotFound {
         Message sequenceReset = messageFactory.create(sessionID.getBeginString(),
                 MsgType.SEQUENCE_RESET);
         int newSeqNo = endSeqNo;
         sequenceReset.getHeader().setBoolean(PossDupFlag.FIELD, true);
-        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, SystemTime.getDate());
         sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
         initializeHeader(sequenceReset.getHeader());
+        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD,
+                sequenceReset.getHeader().getUtcTimeStamp(SendingTime.FIELD));
         sequenceReset.getHeader().setInt(MsgSeqNum.FIELD, beginSeqNo);
         sequenceReset.setBoolean(GapFillFlag.FIELD, true);
         sendRaw(sequenceReset, beginSeqNo);
-        state.logEvent("Sent SequenceReset TO: " + newSeqNo);
+        getLog().onEvent("Sent SequenceReset TO: " + newSeqNo);
     }
 
     private boolean resend(Message message) throws FieldNotFound {
@@ -741,11 +746,11 @@ public class Session {
             return;
         }
         if (!state.isLogoutSent()) {
-            state.logEvent("Received logout request");
+            getLog().onEvent("Received logout request");
             generateLogout();
-            state.logEvent("Sent logout response");
+            getLog().onEvent("Sent logout response");
         } else {
-            state.logEvent("Received logout response");
+            getLog().onEvent("Received logout response");
         }
 
         state.incrNextTargetMsgSeqNum();
@@ -784,13 +789,14 @@ public class Session {
         if (sequenceReset.isSetField(NewSeqNo.FIELD)) {
             int newSequence = sequenceReset.getInt(NewSeqNo.FIELD);
 
-            state.logEvent("Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
-                    + newSequence);
+            getLog().onEvent(
+                    "Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
+                            + newSequence);
 
             if (newSequence > getExpectedTargetNum()) {
                 state.setNextTargetMsgSeqNum(newSequence);
             } else if (newSequence < getExpectedTargetNum()) {
-                generateReject(sequenceReset, 5, 0);
+                generateReject(sequenceReset, SessionRejectReason.VALUE_IS_INCORRECT, 0);
             }
         }
     }
@@ -812,7 +818,7 @@ public class Session {
         if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
             isPossibleDuplicate = message.getHeader().getBoolean(PossDupFlag.FIELD);
         }
-        
+
         if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
                 && !isPossibleDuplicate) {
             state.incrNextTargetMsgSeqNum();
@@ -820,7 +826,7 @@ public class Session {
 
         reject.setString(Text.FIELD, str);
         sendRaw(reject, 0);
-        state.getLog().onEvent("Message " + msgSeqNum + " Rejected: " + str);
+        getLog().onEvent("Message " + msgSeqNum + " Rejected: " + str);
 
     }
 
@@ -831,30 +837,30 @@ public class Session {
             String errorMessage = "Tried to send a reject while not logged on: " + reason
                     + " (field " + field + ")";
             throw new SessionException(errorMessage);
-
+    
         }
-
+    
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
-
+    
         String msgType = "";
         if (message.getHeader().isSetField(MsgType.FIELD)) {
             msgType = message.getHeader().getString(MsgType.FIELD);
         }
-
+    
         int msgSeqNum = 0;
         if (message.getHeader().isSetField(MsgSeqNum.FIELD)) {
             msgSeqNum = message.getHeader().getInt(MsgSeqNum.FIELD);
             reject.setInt(RefSeqNum.FIELD, msgSeqNum);
         }
-
+    
         boolean possDupFlag = false;
         if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
             possDupFlag = message.getHeader().getBoolean(PossDupFlag.FIELD);
         }
-
+    
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
             if (!msgType.equals("")) {
                 reject.setString(RefMsgType.FIELD, msgType);
@@ -868,16 +874,16 @@ public class Session {
                 && (msgSeqNum == getExpectedTargetNum() || !possDupFlag)) {
             state.incrNextTargetMsgSeqNum();
         }
-
+    
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             populateRejectReason(reject, field, reason);
-            state.logEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
+            getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
         } else if (reason != null) {
             populateRejectReason(reject, reason);
-            state.logEvent("Message " + msgSeqNum + " Rejected: " + reason);
+            getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
         } else
-            state.logEvent("Message " + msgSeqNum + " Rejected");
-
+            getLog().onEvent("Message " + msgSeqNum + " Rejected");
+    
         sendRaw(reject, 0);
     }
 
@@ -908,7 +914,7 @@ public class Session {
         String reason = BusinessRejectReasonText.getMessage(err);
         populateRejectReason(reject, reason);
         sendRaw(reject, 0);
-        state.getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
+        getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
     }
 
     private void nextTestRequest(Message testRequest) throws FieldNotFound, RejectLogon,
@@ -985,15 +991,16 @@ public class Session {
                 int[] range = state.getResendRange();
 
                 if (msgSeqNum >= range[1]) {
-                    state.logEvent("ResendRequest for messages FROM: " + range[0] + " TO: "
-                            + range[1] + " has been satisfied.");
+                    getLog().onEvent(
+                            "ResendRequest for messages FROM: " + range[0] + " TO: " + range[1]
+                                    + " has been satisfied.");
                     state.setResendRange(0, 0);
                 }
             }
         } catch (FieldNotFound e) {
             throw e;
         } catch (Exception e) {
-            state.logEvent(e.getClass().getName() + " " + e.getMessage());
+            getLog().onEvent(e.getClass().getName() + " " + e.getMessage());
             disconnect();
             return false;
         }
@@ -1022,12 +1029,12 @@ public class Session {
     }
 
     private void doBadCompID(Message msg) throws IOException, FieldNotFound {
-        generateReject(msg, 9, 0);
+        generateReject(msg, SessionRejectReason.COMPID_PROBLEM, 0);
         generateLogout();
     }
 
     private void doBadTime(Message msg) throws IOException, FieldNotFound {
-        generateReject(msg, 10, 0);
+        generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
         generateLogout();
     }
 
@@ -1066,6 +1073,9 @@ public class Session {
         if (msgType.equals(MsgType.SEQUENCE_RESET)) {
             return true;
         }
+        if (msgType.equals(MsgType.REJECT)) {
+            return true;
+        }
         return false;
     }
 
@@ -1084,7 +1094,7 @@ public class Session {
         if (!enabled) {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
-                    state.logEvent("Initiated logout request");
+                    getLog().onEvent("Initiated logout request");
                     generateLogout(state.getLogoutReason());
                 }
             } else {
@@ -1100,12 +1110,12 @@ public class Session {
         if (!state.isLogonReceived()) {
             if (state.isLogonSendNeeded()) {
                 if (generateLogon()) {
-                    state.logEvent("Initiated logon request");
+                    getLog().onEvent("Initiated logon request");
                 } else {
-                    state.logEvent("Error during logon request initiation");
+                    getLog().onEvent("Error during logon request initiation");
                 }
             } else if (state.isLogonAlreadySent() && state.isLogonTimedOut()) {
-                state.logEvent("Timed out waiting for logon response");
+                getLog().onEvent("Timed out waiting for logon response");
                 disconnect();
             }
             return;
@@ -1116,7 +1126,7 @@ public class Session {
         }
 
         if (state.isLogoutTimedOut()) {
-            state.logEvent("Timed out waiting for logout response");
+            getLog().onEvent("Timed out waiting for logout response");
             disconnect();
         }
 
@@ -1125,13 +1135,13 @@ public class Session {
         }
 
         if (state.isTimedOut()) {
-            state.logEvent("Timed out waiting for heartbeat");
+            getLog().onEvent("Timed out waiting for heartbeat");
             disconnect();
         } else {
             if (state.isTestRequestNeeded()) {
                 generateTestRequest("TEST");
                 state.incrementTestRequestCounter();
-                state.logEvent("Sent test request TEST");
+                getLog().onEvent("Sent test request TEST");
             } else if (state.isHeartBeatNeeded()) {
                 generateHeartbeat();
             }
@@ -1172,7 +1182,7 @@ public class Session {
      */
     public synchronized void disconnect() throws IOException {
         if (responder != null) {
-            state.logEvent("Disconnecting");
+            getLog().onEvent("Disconnecting");
             responder.disconnect();
             setResponder(null);
         }
@@ -1206,14 +1216,14 @@ public class Session {
         }
 
         if (state.isResetReceived()) {
-            state.logEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
+            getLog().onEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
             if (!state.isResetSent()) {
                 state.reset();
             }
         }
 
         if (state.isLogonSendNeeded() && !state.isResetReceived()) {
-            state.logEvent("Received logon response before sending request");
+            getLog().onEvent("Received logon response before sending request");
             disconnect();
             return;
         }
@@ -1229,11 +1239,11 @@ public class Session {
         }
 
         if (!state.isInitiator() || (state.isResetSent() && !state.isResetReceived())) {
-            state.logEvent("Received logon request");
+            getLog().onEvent("Received logon request");
             generateLogon(logon);
-            state.logEvent("Responding to logon request");
+            getLog().onEvent("Responding to logon request");
         } else {
-            state.logEvent("Received logon response");
+            getLog().onEvent("Received logon response");
         }
 
         state.setResetSent(false);
@@ -1264,7 +1274,7 @@ public class Session {
         Message msg = state.dequeue(num);
 
         if (msg != null) {
-            state.logEvent("Processing QUEUED message: " + num);
+            getLog().onEvent("Processing QUEUED message: " + num);
             String msgType = msg.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
                 state.incrNextTargetMsgSeqNum();
@@ -1285,9 +1295,9 @@ public class Session {
             next(message);
         } catch (InvalidMessage e) {
             String message = e.getMessage();
-            state.logEvent(message);
+            getLog().onEvent(message);
             if (MsgType.LOGON.equals(MessageUtils.getMessageType(msg))) {
-                state.logEvent("Logon message is not valid");
+                getLog().onEvent("Logon message is not valid");
                 disconnect();
             }
             throw e;
@@ -1299,7 +1309,7 @@ public class Session {
         String beginString = header.getString(BeginString.FIELD);
         int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
 
-        state.getLog().onEvent(
+        getLog().onEvent(
                 "MsgSeqNum too high, expecting " + getExpectedTargetNum() + " but received "
                         + msgSeqNum);
         state.enqueue(msgSeqNum, msg);
@@ -1308,8 +1318,9 @@ public class Session {
             int[] range = state.getResendRange();
 
             if (msgSeqNum >= range[0]) {
-                state.logEvent("Already sent ResendRequest FROM: " + range[0] + " TO: " + range[1]
-                        + ".  Not sending another.");
+                getLog().onEvent(
+                        "Already sent ResendRequest FROM: " + range[0] + " TO: " + range[1]
+                                + ".  Not sending another.");
                 return;
             }
         }
@@ -1331,7 +1342,7 @@ public class Session {
         resendRequest.setInt(EndSeqNo.FIELD, endSeqNo);
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
-        state.getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
+        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
         state.setResendRange(beginSeqNo, msgSeqNum - 1);
     }
 
@@ -1353,7 +1364,7 @@ public class Session {
                 return false;
             }
         }
-        
+
         return true;
     }
 
@@ -1427,7 +1438,7 @@ public class Session {
             }
             return result;
         } catch (IOException e) {
-            state.logEvent("Error Reading/Writing in MessageStore");
+            getLog().onEvent("Error Reading/Writing in MessageStore");
             return false;
         } catch (FieldNotFound e) {
             LogUtil.logThrowable(state.getLog(), "Error accessing message fields", e);
@@ -1458,10 +1469,10 @@ public class Session {
 
     private boolean send(String messageString) {
         if (responder == null) {
-            state.logEvent("No responder, not sending message");
+            getLog().onEvent("No responder, not sending message");
             return false;
         }
-        state.logOutgoing(messageString);
+        getLog().onOutgoing(messageString);
         return responder.send(messageString);
     }
 
@@ -1548,5 +1559,21 @@ public class Session {
      */
     public static int numSessions() {
         return sessions.size();
+    }
+
+    /**
+     * Sets the timeout for waiting for a logon response.
+     * @param timeout in seconds
+     */
+    public void setLogonTimeout(int seconds) {
+        state.setLogonTimeout(seconds);
+    }
+
+    /**
+     * Sets the timeout for waiting for a logout response.
+     * @param timeout in seconds
+     */
+    public void setLogoutTimeout(int seconds) {
+        state.setLogoutTimeout(seconds);
     }
 }

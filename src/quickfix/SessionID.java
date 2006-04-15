@@ -34,6 +34,10 @@ public class SessionID {
     private String sessionQualifier;
     private String id;
 
+    public SessionID() {
+        this("", "", "");
+    }
+    
     public SessionID(String beginString, String senderCompID, String targetCompID) {
         create(beginString, senderCompID, targetCompID, "");
     }
