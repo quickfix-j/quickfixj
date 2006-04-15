@@ -23,6 +23,10 @@ import java.util.HashMap;
 
 import quickfix.field.BusinessRejectReason;
 
+/**
+ * Description strings for business reject reasons.
+ * @see BusinessRejectReason
+ */
 public class BusinessRejectReasonText extends BusinessRejectReason {
     private static HashMap rejectReasonText = new HashMap();
     
@@ -39,6 +43,11 @@ public class BusinessRejectReasonText extends BusinessRejectReason {
 
     }
 
+    /**
+     * Get the description string for a specified business reject reason.
+     * @param rejectReason the reason
+     * @return the description or null if there isn't a description for that reason
+     */
     public static String getMessage(int rejectReason) {
         return (String)rejectReasonText.get(new Integer(rejectReason));
     }

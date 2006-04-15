@@ -21,6 +21,9 @@ package quickfix;
 
 import java.lang.Character;
 
+/**
+ * A character message field.
+ */
 public class CharField extends Field {
 
     public CharField(int field) {

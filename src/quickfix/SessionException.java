@@ -20,7 +20,7 @@
 
 package quickfix;
 
-public class SessionException extends RuntimeException {
+class SessionException extends RuntimeException {
 
     public SessionException() {
         super();

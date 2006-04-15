@@ -17,14 +17,10 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix.codegen;
 
-/*
+/**
  * Signals an error in the code generation software.
- * 
- * @author sbate
- *
  */
 public class CodeGenerationException extends RuntimeException {
     public CodeGenerationException(Throwable cause) {

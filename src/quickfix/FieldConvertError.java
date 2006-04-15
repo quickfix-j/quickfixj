@@ -19,6 +19,9 @@
 
 package quickfix;
 
+/**
+ * An exception for field conversion problems. (The "error" naming is from the C++ JNI API.)
+ */
 public class FieldConvertError extends Exception {
 
     public FieldConvertError(String s) {

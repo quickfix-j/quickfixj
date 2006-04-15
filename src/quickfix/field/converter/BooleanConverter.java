@@ -21,12 +21,27 @@ package quickfix.field.converter;
 
 import quickfix.FieldConvertError;
 
-
+/**
+ * Converts between a boolean and a string.
+ */
 public class BooleanConverter {
+    /**
+     * Converts a boolean to a String.
+     * 
+     * @param b the boolean value
+     * @return "Y" for true and "N" for false.
+     */
     public static String convert(boolean b) {
         return b ? "Y" : "N";
     }
 
+    /**
+     * Converts a String value to a boolean.
+     * 
+     * @param value the String value to convert
+     * @return true if "Y" and false if "N"
+     * @throws FieldConvertError raised for any value other than "Y" or "N".
+     */
     public static boolean convert(String value) throws FieldConvertError {
         if ("Y".equals(value)) {
             return true;

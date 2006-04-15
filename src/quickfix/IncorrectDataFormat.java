@@ -19,6 +19,9 @@
 
 package quickfix;
 
+/**
+ * Field has a badly formatted value. (From the C++ API documentation.)
+ */
 public class IncorrectDataFormat extends Exception {
 
     public IncorrectDataFormat(int field) {

@@ -21,6 +21,9 @@ package quickfix;
 
 import java.util.Date;
 
+/**
+ * A timestamp-valued message field (a timestamp has both a date and a time).
+ */
 public class UtcTimeStampField extends DateField {
     private boolean includeMilliseconds;
     

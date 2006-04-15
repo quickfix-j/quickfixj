@@ -30,6 +30,10 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.mina.CriticalProtocolCodecException;
 
+/**
+ * Detects and decodes FIX message strings in an incoming data stream. The
+ * message string is then passed to MINA IO handlers for further processing.
+ */
 public class FIXMessageDecoder implements MessageDecoder {
     private Logger log = LoggerFactory.getLogger(getClass());
 

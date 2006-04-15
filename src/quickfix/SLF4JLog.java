@@ -22,6 +22,12 @@ package quickfix;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A Log using the SLFJ wrapper that supports JDK 1.4 logging, Log4J and others.
+ * This log should be created using the associated factory.
+ * 
+ * @see SLF4JLogFactory
+ */
 public class SLF4JLog implements quickfix.Log {
     public static final String DEFAULT_EVENT_CATEGORY = "quickfixj.event";
     public static final String DEFAULT_INCOMING_MSG_CATEGORY = "quickfixj.msg.incoming";

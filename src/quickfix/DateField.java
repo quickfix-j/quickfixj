@@ -22,6 +22,9 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.Calendar;
 
+/**
+ * A date-valued message field.
+ */
 public class DateField extends Field {
 
     private static TimeZone timezone;

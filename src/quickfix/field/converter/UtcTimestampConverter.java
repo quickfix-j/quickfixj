@@ -28,12 +28,22 @@ import java.util.HashMap;
 import quickfix.FieldConvertError;
 import quickfix.SystemTime;
 
+/**
+ * Convert between a timestamp and a String. A timestamp includes both a date
+ * and a time.
+ */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
     private static ThreadLocal utcTimestampConverter = new ThreadLocal();
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
     private static HashMap dateCache = new HashMap();
 
+    /**
+     * Convert a timestamp (represented as a Date) to a String.
+     * @param d the date to convert
+     * @param includeMilliseconds controls whether milliseconds are included in the result
+     * @return the formatted timestamp
+     */
     public static String convert(Date d, boolean includeMilliseconds) {
         return getFormatter(includeMilliseconds).format(d);
     }
@@ -53,6 +63,12 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     // the base calendar.
     //
     
+    /**
+     * Convert a timestamp string into a Date.
+     * @param value the timestamp String
+     * @return the parsed timestamp
+     * @exception FieldConvertError raised if timestamp is an incorrect format.
+     */
     public static Date convert(String value) throws FieldConvertError {
         verifyFormat(value);
         String dateString = value.substring(0, 8);

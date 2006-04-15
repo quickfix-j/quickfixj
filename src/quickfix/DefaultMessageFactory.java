@@ -19,6 +19,11 @@
 
 package quickfix;
 
+/**
+ * The default factory for creating FIX message instances. Create subclasses
+ * of this factory for generating custom messages using nonstandard message
+ * types.
+ */
 public class DefaultMessageFactory implements quickfix.MessageFactory {
     private quickfix.fix40.MessageFactory fix40Factory =
         new quickfix.fix40.MessageFactory();

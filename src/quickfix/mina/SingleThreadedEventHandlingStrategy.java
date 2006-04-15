@@ -30,6 +30,9 @@ import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
+/**
+ * Processes messages for all sessions in a single thread.
+ */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
     private Logger log = LoggerFactory.getLogger(getClass());
     private BlockingQueue eventQueue = new LinkedBlockingQueue();

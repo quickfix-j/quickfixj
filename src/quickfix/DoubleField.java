@@ -21,6 +21,9 @@ package quickfix;
 
 import java.lang.Double;
 
+/**
+ * A double-values message field.
+ */
 public class DoubleField extends Field {
 
     private int padding = 0;

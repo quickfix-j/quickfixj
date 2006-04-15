@@ -19,6 +19,9 @@
 
 package quickfix;
 
+/**
+ * An exception thrown when a tag does not have a value.
+ */
 public class NoTagValue extends RuntimeException {
     public int field;
     

@@ -19,6 +19,10 @@
 
 package quickfix;
 
+/**
+ * This exception is thrown when a configuration error is detected.
+ * (The "error" naming is from the C++ JNI API.)
+ */
 public class ConfigError extends Exception {
 
     public ConfigError() {

@@ -23,6 +23,10 @@ package quickfix;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
+/**
+ * Accepts connections and uses a single thread to process messages for all
+ * sessions.
+ */
 public class SocketAcceptor extends AbstractSocketAcceptor {
     private volatile Boolean isStarted = Boolean.FALSE;
 

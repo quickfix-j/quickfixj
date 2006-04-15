@@ -1004,13 +1004,14 @@ public class Session {
 
     private boolean doTargetTooLow(Message msg) throws FieldNotFound, IOException {
         Message.Header header = msg.getHeader();
+
         boolean possDupFlag = false;
         if (header.isSetField(PossDupFlag.FIELD)) {
             possDupFlag = header.getBoolean(PossDupFlag.FIELD);
         }
-        int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
 
         if (!possDupFlag) {
+            int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
             String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
                     + " but received " + msgSeqNum;
             generateLogout(text);
@@ -1158,7 +1159,6 @@ public class Session {
         if (isResetOnLogonRequested()) {
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
         }
-        initializeHeader(logon.getHeader());
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
         state.clearTestRequestCounter();
         state.setLogonSent(true);
@@ -1353,6 +1353,7 @@ public class Session {
                 return false;
             }
         }
+        
         return true;
     }
 

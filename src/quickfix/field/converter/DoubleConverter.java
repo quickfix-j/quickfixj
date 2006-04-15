@@ -28,10 +28,19 @@ import java.util.regex.Pattern;
 import quickfix.FieldConvertError;
 import quickfix.RuntimeError;
 
+/**
+ * Converts between a double and a String.
+ */
 public class DoubleConverter {
     private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
     private static ThreadLocal threadDecimalFormats = new ThreadLocal();
 
+    /**
+     * Converts a double to a string with no padding.
+     * @param d the double to convert
+     * @return the formatted String representing the double.
+     * @see #convert(double, int)
+     */
     public static String convert(double d) {
         return convert(d, 0);
     }
@@ -39,7 +48,7 @@ public class DoubleConverter {
     private static DecimalFormat getDecimalFormat(int padding) {
         if (padding > 14) {
             // FieldConvertError not supported in setDouble methods on Message
-            throw new RuntimeError("maximum padding of 14 zeroes is supported: "+padding);
+            throw new RuntimeError("maximum padding of 14 zeroes is supported: " + padding);
         }
         DecimalFormat[] decimalFormats = (DecimalFormat[]) threadDecimalFormats.get();
         if (decimalFormats == null) {
@@ -62,10 +71,22 @@ public class DoubleConverter {
         return f;
     }
 
+    /**
+     * Converts a double to a string with padding.
+     * @param d the double to convert
+     * @param padding the number of zeros to add to end of the formatted double
+     * @return the formatted String representing the double.
+     */
     public static String convert(double d, int padding) {
         return getDecimalFormat(padding).format(d);
     }
 
+    /**
+     * Convert a String value to a double.
+     * @param value the String value to convert
+     * @return the parsed double
+     * @throws FieldConvertError if the String is not a valid double pattern.
+     */
     public static double convert(String value) throws FieldConvertError {
         try {
             Matcher matcher = decimalPattern.matcher(value);

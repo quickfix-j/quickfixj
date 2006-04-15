@@ -40,6 +40,9 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
+/**
+ * Field container used by messages, groups, and composites.
+ */
 public abstract class FieldMap implements Serializable {
 
     static final long serialVersionUID = -3193357271891865972L;

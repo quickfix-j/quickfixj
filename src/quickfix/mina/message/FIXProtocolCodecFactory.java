@@ -21,6 +21,9 @@ package quickfix.mina.message;
 
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 
+/**
+ * Provides the FIX codecs to MINA.
+ */
 public class FIXProtocolCodecFactory extends DemuxingProtocolCodecFactory {
 
     public FIXProtocolCodecFactory() {

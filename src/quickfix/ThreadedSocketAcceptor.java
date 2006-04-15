@@ -22,6 +22,9 @@ package quickfix;
 import quickfix.mina.ThreadPerSessionEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
+/**
+ * Accepts connections and uses a separate thread per session to process messages.
+ */
 public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)

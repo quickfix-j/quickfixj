@@ -65,7 +65,11 @@ import quickfix.field.TargetSubID;
 import quickfix.field.XmlData;
 import quickfix.field.XmlDataLen;
 
+/**
+ * Represents a FIX message.
+ */
 public class Message extends FieldMap {
+    
     static final long serialVersionUID = -3193357271891865972L;
 
     protected Header header = new Header();

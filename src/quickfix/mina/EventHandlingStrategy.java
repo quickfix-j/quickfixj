@@ -22,6 +22,10 @@ package quickfix.mina;
 import quickfix.Message;
 import quickfix.Session;
 
+/**
+ * An interface implemented by various FIX event handling strategies. Currently,
+ * it only handles message reception events.
+ */
 public interface EventHandlingStrategy {
     void onMessage(Session quickfixSession, Message message);
 }

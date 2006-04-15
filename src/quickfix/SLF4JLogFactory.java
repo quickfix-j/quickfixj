@@ -20,11 +20,7 @@
 package quickfix;
 
 /**
- * Jakarta Commons Logging factory. By default, Commons Logging supports JDK logging
- * and Log4J. It can be extended for other logging frameworks through implementing
- * a service provider API.
- * 
- * See: <a href="http://jakarta.apache.org/commons/logging/">Jakarta Commons Logging</a> documentation. 
+ * Simple Logging Facade for Java (SLF4J) log factory (<a href="http://slfj4.org">slfj.org</a>).
  */
 public class SLF4JLogFactory implements LogFactory {
     /**

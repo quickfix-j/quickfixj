@@ -19,7 +19,9 @@
 
 package quickfix;
 
-
+/**
+ * Represents a repeating field group within a message.
+ */
 public class Group extends FieldMap {
     private IntField field;
     private int delim;

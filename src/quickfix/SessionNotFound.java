@@ -20,6 +20,9 @@
 
 package quickfix;
 
+/**
+ * The requested session cannot be found.
+ */
 public class SessionNotFound extends Exception {
 
     public SessionNotFound() {

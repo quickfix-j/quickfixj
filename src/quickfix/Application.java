@@ -110,7 +110,7 @@ public interface Application {
     void toApp(Message message, SessionID sessionId) throws DoNotSend;
 
     /**
-     * This callback received messages for the application. This is one of the
+     * This callback receives messages for the application. This is one of the
      * core entry points for your FIX application. Every application level
      * request will come through here. If, for example, your application is a
      * sell-side OMS, this is where you will get your new order requests. If you

@@ -19,6 +19,9 @@
 
 package quickfix;
 
+/**
+ *  Message type not supported by application.
+ */
 public class UnsupportedMessageType extends Exception {
 
     public UnsupportedMessageType() {

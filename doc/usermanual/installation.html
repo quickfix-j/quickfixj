@@ -86,10 +86,9 @@ is included.</p>
 <p>The QuickFIX/J developers also use Eclipse to build the software. There is
   a project definition in the top-level directory of the checked out CVS workspace.
   In fact, if you are an experienced Eclipse developer you may want to check
-   out the project directly from Eclipse. There is an external builder for running
-  the Ant target to generate the message-related Java classes. If you are seeing
-  compile errors related to message classes, the builder may not have run for
-  some reason. If so, you can generate the classes by running the <code>generate.code</code>  target in the Ant build.xml file.</p>
+   out the project directly from Eclipse. A message generator item will be present
+	on the external tools menu for generating Java message-related classes. If you are seeing
+  compile errors related to message classes, use this tool to generate the classes.</p>
 <h2><a name="mysql"></a>Setting up the MySQL database</h2>
 <p> Everything needed to generate your MySQL database is in the <code>etc/sql/mysql</code> directory.
   Here, there are the script and batch files <code>create_mysql.sh</code> and <code>create_mysql.bat</code>.

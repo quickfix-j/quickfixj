@@ -24,6 +24,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Name/value pairs used for specifying groups of settings.
+ * @see SessionSettings
+ */
 public class Dictionary {
     private String name;
     private HashMap data = new HashMap();

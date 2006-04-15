@@ -20,6 +20,9 @@
 
 package quickfix;
 
+/**
+ * A string-valued message field.
+ */
 public class StringField extends Field {
 
     public StringField(int field) {

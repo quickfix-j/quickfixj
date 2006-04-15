@@ -40,6 +40,9 @@ import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 
+/**
+ * Abstract class used for acceptor and initiator IO handlers.
+ */
 public abstract class AbstractIoHandler extends IoHandlerAdapter {
     private static final FIXProtocolCodecFactory CODEC = new FIXProtocolCodecFactory();
     protected Logger log = LoggerFactory.getLogger(getClass());

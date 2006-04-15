@@ -29,6 +29,9 @@ import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Processes messages in a session-specific thread.
+ */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
     private Map dispatchers = new ConcurrentHashMap();
 

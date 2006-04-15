@@ -19,13 +19,30 @@
 
 package quickfix;
 
+/**
+ * Allows multiple log factories to be used with QuickFIX/J. For example,
+ * you could log events to the console and also log all events and messages to
+ * a file.
+ */
 public class CompositeLogFactory implements LogFactory {
     private final LogFactory[] logFactories;
     
+    /**
+     * Defines a composite log factory based on a set of existing
+     * LogFactory implementations.
+     * @param logFactories the factories to be used in the composite
+     * @see LogFactory
+     */
     public CompositeLogFactory(LogFactory[] logFactories) {
         this.logFactories = logFactories;
     }
     
+    /**
+     * Create the composite Log. This is typically used by the SessionFactory.
+     * @param sessionID the session associated with the log
+     * @return the composite log
+     * @see SessionFactory
+     */
     public Log create(SessionID sessionID) {
         Log[] logs = new Log[logFactories.length];
         for (int i = 0; i < logFactories.length; i++) {

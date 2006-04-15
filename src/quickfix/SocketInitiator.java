@@ -23,6 +23,10 @@ package quickfix;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.initiator.AbstractSocketInitiator;
 
+/**
+ * Initiates connections and uses a single thread to process messages for all
+ * sessions.
+ */
 public class SocketInitiator extends AbstractSocketInitiator {
     private volatile Boolean isStarted = Boolean.FALSE;
     private SingleThreadedEventHandlingStrategy eventHandlingStrategy =

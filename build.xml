@@ -25,10 +25,10 @@
 	<property name="javadoc.input.dir" value="doc" />
 	<property name="usermanual.dir" value="doc/usermanual" />
 	<property name="javadoc.output.dir" value="${ant.output.dir}/javadoc" />
-	
+
 	<property name="junit.fork.dir" value="." />
 	<property name="junit.haltonfailure" value="yes" />
-	
+
 	<property name="test.report.dir" value="${ant.output.dir}/testreports" />
 
 	<property name="atest.fork" value="no" />
@@ -133,7 +133,7 @@
 			<arg value="${specs.dir}" />
 			<arg value="${xsl.dir}" />
 			<arg value="${product.generated.src.dir}" />
-		       
+
 			<classpath>
 				<pathelement location="${etc.dir}" />
 				<pathelement location="${product.classes.dir}" />
@@ -151,6 +151,16 @@
 			<globmapper from="FIX*.xml" 
 				to="${product.generated.src.path}/quickfix/fix*/Message.java"/>
 		</uptodate>
+	</target>
+
+	<target name="clean.generated.code.eclipse">
+		<delete>
+			<fileset dir="${product.generated.src.dir}">
+				<include name="quickfix/**/*.java" />
+				<exclude name="quickfix/**/package.html" />
+			</fileset>
+		</delete>
+
 	</target>
 
 	<!-- Compile -->
@@ -236,7 +246,7 @@
 	</target>
 
 	<target name="test.init">
-                <mkdir dir="${test.report.dir}/reports"/>
+		<mkdir dir="${test.report.dir}/reports"/>
 		<!-- copy non-class files that are needed in the classpath -->
 		<copy todir="${test.classes.dir}">
 			<fileset dir="etc">
@@ -340,7 +350,10 @@
 		         breakiterator="yes"
 		         classpathref="compile.classpath">
 			<package name="quickfix" />
-			<package name="quickfix.netty" />
+			<package name="quickfix.mina" />
+			<package name="quickfix.mina.message" />
+			<package name="quickfix.mina.acceptor" />
+			<package name="quickfix.mina.initiator" />
 			<package name="quickfix.field.converter" />
 			<package name="quickfix.codegen" />
 			<package name="quickfix.field" />

@@ -23,6 +23,10 @@ import org.apache.mina.transport.vmpipe.VmPipeConnector;
 
 import quickfix.ConfigError;
 
+/**
+ * A utility class for creating addresses and connection-related objects
+ * based on the MINA transport type.
+ */
 public class ProtocolFactory {
 
     public static SocketAddress createSocketAddress(TransportType transportType, String host, int port)

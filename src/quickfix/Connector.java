@@ -11,6 +11,9 @@ package quickfix;
 
 import java.util.ArrayList;
 
+/**
+ * Common base interface for acceptors and initiators.
+ */
 public interface Connector {
     /**
      * Start accepting connections. Returns immediately. See implementations of

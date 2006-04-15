@@ -42,6 +42,12 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
+/**
+ * Sleepycat message and session state storage. This could be creating
+ * using the Sleepycat store factory.
+ * 
+ * @see SleepycatStoreFactory
+ */
 public class SleepycatStore implements RefreshableMessageStore {
     private Logger log = LoggerFactory.getLogger(getClass());
     private final SessionID sessionID; // session key

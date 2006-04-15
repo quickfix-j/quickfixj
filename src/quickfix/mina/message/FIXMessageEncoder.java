@@ -31,6 +31,10 @@ import org.apache.mina.filter.codec.demux.MessageEncoder;
 import quickfix.Message;
 import edu.emory.mathcs.backport.java.util.Collections;
 
+/**
+ * Encodes a Message object or message string as a byte array to be
+ * transmitted on MINA connection.
+ */
 public class FIXMessageEncoder implements MessageEncoder {
 
     private static final Set TYPES;

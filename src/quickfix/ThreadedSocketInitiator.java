@@ -22,6 +22,9 @@ package quickfix;
 import quickfix.mina.ThreadPerSessionEventHandlingStrategy;
 import quickfix.mina.initiator.AbstractSocketInitiator;
 
+/**
+ * Initiates connections and uses a separate thread per session to process messages.
+ */
 public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     public ThreadedSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,

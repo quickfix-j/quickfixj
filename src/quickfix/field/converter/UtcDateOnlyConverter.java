@@ -25,12 +25,20 @@ import java.util.Date;
 
 import quickfix.FieldConvertError;
 
+/**
+ * Convert between a date and a String
+ */
 public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
     private static ThreadLocal utcDateConverter = new ThreadLocal();
     private DateFormat dateFormat = createDateFormat("yyyyMMdd");
 
+    /**
+     * Convert a date to a String ("YYYYMMDD")
+     * @param d the date to convert
+     * @return the formatted date
+     */
     public static String convert(Date d) {
         return getFormatter().format(d);
     }
@@ -44,6 +52,12 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
         return converter.dateFormat;
     }
 
+    /**
+     * Convert between a String and a date
+     * @param value the String to convert
+     * @return the parsed Date
+     * @throws FieldConvertError raised for an invalid date string.
+     */
     public static Date convert(String value) throws FieldConvertError {
         Date d = null;
         String type = "date";

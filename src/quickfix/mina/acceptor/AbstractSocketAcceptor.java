@@ -46,6 +46,9 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 
+/**
+ * Abstract base class for socket acceptors.
+ */
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
     private final SessionFactory sessionFactory;
     private IoAcceptor ioAcceptor;

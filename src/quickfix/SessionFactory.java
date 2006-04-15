@@ -19,6 +19,9 @@
 
 package quickfix;
 
+/**
+ * Creates a Session based on the specified settings.
+ */
 public interface SessionFactory {
 
     /**

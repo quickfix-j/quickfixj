@@ -21,6 +21,9 @@ package quickfix;
 
 import java.lang.Integer;
 
+/**
+ * A integer message field.
+ */
 public class IntField extends Field {
 
     public IntField(int field) {

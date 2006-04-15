@@ -17,13 +17,13 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix.codegen;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,12 +122,14 @@ public class JavaCodeGenerator {
     private void generateFieldClasses() throws ParserConfigurationException, SAXException,
             IOException {
         for (int fixMinorVersion = 4; fixMinorVersion >= 0; fixMinorVersion--) {
+            String outputDirectory = outputBaseDir + "/quickfix/field/";
+            writePackageDocumentation(outputDirectory, "FIX field definitions (all FIX versions).");
             Document document = getSpecification(fixMinorVersion);
             List fieldNames = getNames(document.getDocumentElement(), "fields/field");
             try {
                 for (int i = 0; i < fieldNames.size(); i++) {
                     String fieldName = (String) fieldNames.get(i);
-                    String outputFile = outputBaseDir + "/quickfix/field/" + fieldName + ".java";
+                    String outputFile = outputDirectory + fieldName + ".java";
                     if (!new File(outputFile).exists()) {
                         log.info("field: " + fieldName);
                         generateCodeFile(document, xformDir + "/Fields.xsl", new String[] {
@@ -141,10 +143,24 @@ public class JavaCodeGenerator {
         }
     }
 
+    private void writePackageDocumentation(String outputDirectory, String description)
+            throws FileNotFoundException {
+        File packageDescription = new File(outputDirectory + "package.html");
+        PrintStream out = new PrintStream(new FileOutputStream(packageDescription));
+        out.println("<html>");
+        out.println("<head><title/></head>");
+        out.println("<body>" + description + "</body>");
+        out.println("</html>");
+        out.close();
+    }
+
     private void generateMessageSubclasses() throws ParserConfigurationException, SAXException,
             IOException, TransformerConfigurationException, FileNotFoundException,
             TransformerFactoryConfigurationError, TransformerException {
         for (int fixVersion = 0; fixVersion < 5; fixVersion++) {
+            String outputDirectory = outputBaseDir + "/quickfix/fix4" + fixVersion + "/";
+            writePackageDocumentation(outputDirectory, "Message classes for FIX 4."
+                    + fixVersion);
             Document document = getSpecification(fixVersion);
             List messageNames = getNames(document.getDocumentElement(), "messages/message");
             for (int i = 0; i < messageNames.size(); i++) {
@@ -153,8 +169,7 @@ public class JavaCodeGenerator {
                 log.info("message (FIX 4." + fixVersion + "): " + messageName);
                 generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
                         "itemName", XSLPARAM_SERIAL_UID }, new String[] { messageName,
-                        SERIAL_UID_STR }, outputBaseDir + "/quickfix/fix4" + fixVersion + "/"
-                        + messageName + ".java");
+                        SERIAL_UID_STR }, outputDirectory + messageName + ".java");
             }
         }
     }
@@ -163,15 +178,20 @@ public class JavaCodeGenerator {
             IOException, TransformerConfigurationException, FileNotFoundException,
             TransformerFactoryConfigurationError, TransformerException {
         for (int fixVersion = 0; fixVersion < 5; fixVersion++) {
+            String outputDirectory = outputBaseDir + "/quickfix/fix4" + fixVersion + "/component/";
             Document document = getSpecification(fixVersion);
             List componentNames = getNames(document.getDocumentElement(), "components/component");
+            if (componentNames.size() > 0) {
+                writePackageDocumentation(outputDirectory, "Message component classes for FIX 4."
+                        + fixVersion);
+            }
             for (int i = 0; i < componentNames.size(); i++) {
                 String componentName = (String) componentNames.get(i);
                 log.info("component (FIX 4." + fixVersion + "): " + componentName);
                 generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
-                        "itemName", XSLPARAM_SERIAL_UID, "baseClass", "subpackage" }, new String[] { componentName,
-                        SERIAL_UID_STR, "quickfix.MessageComponent", ".component" }, outputBaseDir + "/quickfix/fix4" + fixVersion + "/component/"
-                        + componentName + ".java");
+                        "itemName", XSLPARAM_SERIAL_UID, "baseClass", "subpackage" }, new String[] {
+                        componentName, SERIAL_UID_STR, "quickfix.MessageComponent", ".component" },
+                        outputDirectory + componentName + ".java");
             }
         }
     }
@@ -248,7 +268,8 @@ public class JavaCodeGenerator {
             JavaCodeGenerator javaCodeGenerator = new JavaCodeGenerator(args[0], args[1], args[2]);
             javaCodeGenerator.generate();
         } catch (Exception e) {
-            LoggerFactory.getLogger(JavaCodeGenerator.class).error("error during code generation", e);
+            LoggerFactory.getLogger(JavaCodeGenerator.class).error("error during code generation",
+                    e);
             System.exit(1);
         }
     }

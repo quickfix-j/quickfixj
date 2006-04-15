@@ -42,6 +42,11 @@ import edu.emory.mathcs.backport.java.util.concurrent.ScheduledFuture;
 import edu.emory.mathcs.backport.java.util.concurrent.ThreadFactory;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
+/**
+ * An abstract base class for acceptors and initiators. Provides support
+ * for common functionality and also serves as an abstraction where
+ * the code doesn't need to make the acceptor/initator distinction.
+ */
 public abstract class SessionConnector {
     public final static String QF_SESSION = "QF_SESSION";
     protected final Logger log = LoggerFactory.getLogger(getClass());

@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+/**
+ * A field type enum class. 
+ */
 public class FieldType {
     private int ordinal;
     private String name;

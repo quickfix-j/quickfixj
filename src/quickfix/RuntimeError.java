@@ -19,6 +19,11 @@
 
 package quickfix;
 
+/**
+ * 
+ * Application encountered serious error during runtime.
+ * (The "error" naming is from the C++ JNI API.)
+ */
 public class RuntimeError extends RuntimeException {
 
     public RuntimeError() {
@@ -32,7 +37,7 @@ public class RuntimeError extends RuntimeException {
     public RuntimeError(Throwable e) {
         super(e);
     }
-    
+
     public RuntimeError(String message, Throwable cause) {
         super(message, cause);
     }

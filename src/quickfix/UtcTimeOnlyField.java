@@ -22,6 +22,9 @@ package quickfix;
 
 import java.util.Date;
 
+/*
+ * A time-valued message field.
+ */
 public class UtcTimeOnlyField extends DateField {
     private boolean includeMilliseconds;
     

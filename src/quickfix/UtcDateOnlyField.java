@@ -22,6 +22,9 @@ package quickfix;
 
 import java.util.Date;
 
+/**
+ * A date-valued message field.
+ */
 public class UtcDateOnlyField extends DateField {
     public UtcDateOnlyField(int field) {
         super(field);
