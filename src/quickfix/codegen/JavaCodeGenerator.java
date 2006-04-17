@@ -146,6 +146,10 @@ public class JavaCodeGenerator {
     private void writePackageDocumentation(String outputDirectory, String description)
             throws FileNotFoundException {
         File packageDescription = new File(outputDirectory + "package.html");
+        File parentDirectory = packageDescription.getParentFile();
+        if (!parentDirectory.exists()) {
+            parentDirectory.mkdirs();
+        }
         PrintStream out = new PrintStream(new FileOutputStream(packageDescription));
         out.println("<html>");
         out.println("<head><title/></head>");
