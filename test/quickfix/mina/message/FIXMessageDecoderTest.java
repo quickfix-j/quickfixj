@@ -26,7 +26,6 @@ import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
@@ -48,6 +47,11 @@ public class FIXMessageDecoderTest extends TestCase {
         decoderOutput = new ProtocolDecoderOutputForTest();
     }
 
+    protected void tearDown() throws Exception {
+        buffer.release();
+        super.tearDown();
+    }
+    
     public void testPartialHeader() throws Exception {
         setUpBuffer("8=FIX.4.2");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
@@ -165,42 +169,48 @@ public class FIXMessageDecoderTest extends TestCase {
     }
 
     public void testMinaDemux() throws Exception {
-        DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
-        codecFactory.register(FIXMessageDecoder.class);
+        ByteBuffer otherBuffer = ByteBuffer.allocate(1024);
+        try {
+            DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
+            codecFactory.register(FIXMessageDecoder.class);
 
-        ProtocolDecoder decoder = codecFactory.getDecoder();
-        ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
+            ProtocolDecoder decoder = codecFactory.getDecoder();
+            ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
 
-        MockControl mockSessionControl = MockControl.createControl(IoSession.class);
-        IoSession mockSession = (IoSession) mockSessionControl.getMock();
-        mockSession.getTransportType();
-        mockSessionControl.setReturnValue(TransportType.SOCKET, MockControl.ONE_OR_MORE);
-
-        mockSessionControl.replay();
-
-        int count = 5;
-        String data = "";
-        for (int i = 0; i < count; i++) {
-            data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
-        }
-
-        for (int i = 1; i < data.length(); i++) {
-            String chunk1 = data.substring(0, i);
-            String chunk2 = data.substring(i);
-            setUpBuffer(chunk1);
-            decoder.decode(mockSession, buffer, output);
-            buffer.compact();
-
-            setUpBuffer(chunk2);
-            decoder.decode(mockSession, buffer, output);
-
-            assertEquals("wrong message count", count, output.getMessageCount());
+            MockControl mockSessionControl = MockControl.createControl(IoSession.class);
+            IoSession mockSession = (IoSession) mockSessionControl.getMock();
             
-            output.reset();
-            buffer.clear();
-        }
+            mockSession.getAttribute("org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer");
+            mockSessionControl.setReturnValue(otherBuffer, MockControl.ONE_OR_MORE);
+            
+            mockSessionControl.replay();
 
-        mockSessionControl.verify();
+            int count = 5;
+            String data = "";
+            for (int i = 0; i < count; i++) {
+                data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
+            }
+
+            for (int i = 1; i < data.length(); i++) {
+                String chunk1 = data.substring(0, i);
+                String chunk2 = data.substring(i);
+                setUpBuffer(chunk1);
+                decoder.decode(mockSession, buffer, output);
+                buffer.compact();
+
+                setUpBuffer(chunk2);
+                decoder.decode(mockSession, buffer, output);
+
+                assertEquals("wrong message count", count, output.getMessageCount());
+                
+                output.reset();
+                buffer.clear();
+            }
+
+            mockSessionControl.verify();
+        } finally {
+            otherBuffer.release();
+        }
     }
 
     private void assertMessageFound(String data) throws ProtocolCodecException {
