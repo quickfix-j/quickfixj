@@ -63,6 +63,15 @@
     <td>Needed if the SleepyCat JE message store is used.</td>
   </tr>
 </table>
+
+<p>	
+By default, the XML processing is QuickFIX/J uses the XML parser included
+	with the JDK. In general other parsers can be used but it's possible you
+	will have problems. We've had users report that Xerces 2.6 does not work,
+	but that version 2.8 does. If you try other parsers, please let us know if it
+	works or not.
+</p>
+	
 <h2><a name="build"></a>Building QuickFIX/J</h2>
 <p><em>These instructions are for developers who don't want
     to use the prebuilt binaries or are intending to modify and rebuild the QuickFIX/J
