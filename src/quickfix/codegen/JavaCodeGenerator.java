@@ -81,6 +81,7 @@ public class JavaCodeGenerator {
     private void generateMessageBaseClasses() throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
+        log.info("Generating message base classes.");
         generateClassCodeForVersions("Message", new String[] { XSLPARAM_SERIAL_UID },
                 new String[] { SERIAL_UID_STR });
     }
@@ -88,12 +89,14 @@ public class JavaCodeGenerator {
     private void generateMessageFactoryClasses() throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
+        log.info("Generating message factories.");
         generateClassCodeForVersions("MessageFactory", null, null);
     }
 
     private void generateMessageCrackerClasses() throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
+        log.info("Generating message crackers.");
         generateClassCodeForVersions("MessageCracker", null, null);
     }
 
@@ -102,7 +105,7 @@ public class JavaCodeGenerator {
             TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
         for (int fixMinorVersion = 0; fixMinorVersion < 5; fixMinorVersion++) {
-            log.info("generating " + className + " for FIX 4." + fixMinorVersion);
+            log.debug("generating " + className + " for FIX 4." + fixMinorVersion);
             Document document = getSpecification(fixMinorVersion);
             generateCodeFile(document, xformDir + "/" + className + ".xsl", paramNames,
                     paramValues, outputBaseDir + "/quickfix/fix4" + fixMinorVersion + "/"
@@ -121,6 +124,7 @@ public class JavaCodeGenerator {
 
     private void generateFieldClasses() throws ParserConfigurationException, SAXException,
             IOException {
+        log.info("Generating field classes.");
         for (int fixMinorVersion = 4; fixMinorVersion >= 0; fixMinorVersion--) {
             String outputDirectory = outputBaseDir + "/quickfix/field/";
             writePackageDocumentation(outputDirectory, "FIX field definitions (all FIX versions).");
@@ -131,7 +135,7 @@ public class JavaCodeGenerator {
                     String fieldName = (String) fieldNames.get(i);
                     String outputFile = outputDirectory + fieldName + ".java";
                     if (!new File(outputFile).exists()) {
-                        log.info("field: " + fieldName);
+                        log.debug("field: " + fieldName);
                         generateCodeFile(document, xformDir + "/Fields.xsl", new String[] {
                                 "fieldName", XSLPARAM_SERIAL_UID }, new String[] { fieldName,
                                 SERIAL_UID_STR }, outputFile);
@@ -161,6 +165,7 @@ public class JavaCodeGenerator {
     private void generateMessageSubclasses() throws ParserConfigurationException, SAXException,
             IOException, TransformerConfigurationException, FileNotFoundException,
             TransformerFactoryConfigurationError, TransformerException {
+        log.info("Generating message subclasses.");
         for (int fixVersion = 0; fixVersion < 5; fixVersion++) {
             String outputDirectory = outputBaseDir + "/quickfix/fix4" + fixVersion + "/";
             writePackageDocumentation(outputDirectory, "Message classes for FIX 4."
@@ -170,7 +175,7 @@ public class JavaCodeGenerator {
             for (int i = 0; i < messageNames.size(); i++) {
                 String messageName = (String) messageNames.get(i);
                 //if (!messageName.equals("NewOrderSingle")) continue;
-                log.info("message (FIX 4." + fixVersion + "): " + messageName);
+                log.debug("message (FIX 4." + fixVersion + "): " + messageName);
                 generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
                         "itemName", XSLPARAM_SERIAL_UID }, new String[] { messageName,
                         SERIAL_UID_STR }, outputDirectory + messageName + ".java");
@@ -181,6 +186,7 @@ public class JavaCodeGenerator {
     private void generateComponentClasses() throws ParserConfigurationException, SAXException,
             IOException, TransformerConfigurationException, FileNotFoundException,
             TransformerFactoryConfigurationError, TransformerException {
+        log.info("Generating component classes.");
         for (int fixVersion = 0; fixVersion < 5; fixVersion++) {
             String outputDirectory = outputBaseDir + "/quickfix/fix4" + fixVersion + "/component/";
             Document document = getSpecification(fixVersion);
@@ -191,7 +197,7 @@ public class JavaCodeGenerator {
             }
             for (int i = 0; i < componentNames.size(); i++) {
                 String componentName = (String) componentNames.get(i);
-                log.info("component (FIX 4." + fixVersion + "): " + componentName);
+                log.debug("component (FIX 4." + fixVersion + "): " + componentName);
                 generateCodeFile(document, xformDir + "/MessageSubclass.xsl", new String[] {
                         "itemName", XSLPARAM_SERIAL_UID, "baseClass", "subpackage" }, new String[] {
                         componentName, SERIAL_UID_STR, "quickfix.MessageComponent", ".component" },
