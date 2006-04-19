@@ -125,7 +125,9 @@
 		<javac srcdir="${product.src.dir}/quickfix/codegen"
 		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
 		       destdir="${product.classes.dir}"
-		       classpathref="core.lib.classpath" />
+		       classpathref="core.lib.classpath" >
+			<compilerarg value="-Xlint:unchecked" />
+		</javac>
 		<java classname="quickfix.codegen.JavaCodeGenerator" 
 			fork="yes">
 			<jvmarg value="-Xms128m"/>
