@@ -19,7 +19,8 @@
 	<property name="core.lib.dir" value="lib" />
 	<property name="test.lib.dir" value="lib/test" />
 	<property name="optional.lib.dir" value="lib/optional" />
-	<property name="java.debug" value="on" />
+	<property name="javac.debug" value="on" />
+	<property name="javac.args" value=""/> <!-- used in CruiseControl -->
 	<property name="quickfixj.jar" value="quickfixj.jar" />
 	<property name="release.output.dir" value="${ant.output.dir}/release" />
 	<property name="javadoc.input.dir" value="doc" />
@@ -126,7 +127,7 @@
 		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
 		       destdir="${product.classes.dir}"
 		       classpathref="core.lib.classpath" >
-			<compilerarg value="-Xlint:unchecked" />
+			<compilerarg line="${javac.args}" />
 		</javac>
 		<java classname="quickfix.codegen.JavaCodeGenerator" 
 			fork="yes">
@@ -171,10 +172,11 @@
 	        depends="generate.code">
 		<mkdir dir="${product.classes.dir}" />
 		<javac destdir="${product.classes.dir}"
-		       debug="${java.debug}"
+		       debug="${javac.debug}"
 		       classpathref="compile.classpath"
 		       memoryMaximumSize="128m"
 		       fork="yes">
+			<compilerarg line="${javac.args}" />
 			<src path="${product.src.dir}" />
 			<src path="${product.generated.src.dir}" />
 		</javac>
@@ -191,14 +193,16 @@
 		</copy>
 		<mkdir dir="${test.classes.dir}" />
 		<javac destdir="${test.classes.dir}"
-		       debug="${java.debug}"
+		       debug="${javac.debug}"
 		       classpathref="compile.classpath"
 		       srcdir="${test.src.dir}">
+			<compilerarg line="${javac.args}" />
 		</javac>
 		<javac destdir="${product.classes.dir}"
-		       debug="${java.debug}"
+		       debug="${javac.debug}"
 		       classpathref="compile.classpath"
 		       srcdir="${example.src.dir}">
+			<compilerarg line="${javac.args}" />
 		</javac>
 	</target>
 
