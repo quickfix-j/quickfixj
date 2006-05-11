@@ -30,6 +30,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
     // Automatically disable tests if database isn't available
     private boolean testEnabled = true;
+    private MessageStoreFactory messageStoreFactory;
 
     public AbstractMessageStoreTest() {
         super();
@@ -45,9 +46,17 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         }
         long now = System.currentTimeMillis();
         sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
-        store = getMessageStoreFactory().create(sessionID);
+        messageStoreFactory = getMessageStoreFactoryForTest();
+        store = messageStoreFactory.create(sessionID);
         assertEquals("wrong store type", getMessageStoreClass(), store.getClass());
         super.setUp();
+    }
+
+    private MessageStoreFactory getMessageStoreFactoryForTest() throws Exception {
+        if (messageStoreFactory == null) {
+            messageStoreFactory = getMessageStoreFactory();
+        }
+        return messageStoreFactory;
     }
 
     protected abstract MessageStoreFactory getMessageStoreFactory() throws Exception;
@@ -56,6 +65,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
     protected MessageStore getStore() {
         return store;
+    }
+    
+    protected MessageStore createStore() throws Exception {
+        return messageStoreFactory.create(sessionID);
     }
 
     public void testMessageStoreSequenceNumbers() throws Exception {

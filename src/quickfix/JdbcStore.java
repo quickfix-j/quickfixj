@@ -114,7 +114,7 @@ class JdbcStore implements RefreshableMessageStore {
         try {
             rs = query.executeQuery();
             if (rs.next()) {
-                cache.setCreationTime(SystemTime.getUtcCalendar(rs.getDate(1)));
+                cache.setCreationTime(SystemTime.getUtcCalendar(rs.getTimestamp(1)));
                 cache.setNextTargetMsgSeqNum(rs.getInt(2));
                 cache.setNextSenderMsgSeqNum(rs.getInt(3));
             } else {

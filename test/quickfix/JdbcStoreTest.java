@@ -21,6 +21,7 @@ package quickfix;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class JdbcStoreTest extends AbstractMessageStoreTest {
 
@@ -77,6 +78,16 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         } catch (Exception e) {
             throw new ConfigError(e);
         }
+    }
+
+    public void testCreationTime() throws Exception {
+        JdbcStore store = (JdbcStore) getStore();
+        Date creationTime = store.getCreationTime();
+
+        store = (JdbcStore) createStore();
+        Date creationTime2 = store.getCreationTime();
+
+        assertEquals("creation time not stored correctly", creationTime, creationTime2);
     }
 
     protected Class getMessageStoreClass() {
