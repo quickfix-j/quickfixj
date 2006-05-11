@@ -292,7 +292,6 @@
 			<batchtest todir="${test.report.dir}">
 				<fileset dir="${test.src.dir}">
 					<include name="quickfix/*Test.java" />
-					<include name="quickfix/netty/*Test.java" />
 					<include name="quickfix/mina/**/*Test.java" />
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
