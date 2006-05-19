@@ -1,4 +1,26 @@
 ********************
+**  1.0.0 Final   **
+********************
+
+New Features and Improvements:
+  * Compatability updates for QuickFIX JNI 1.11.1
+  * Upgrade to MINA 0.9.x.
+  * Feature #171 Allow variables in session settings
+      - For example, using property files or System properties for values
+  * Performance improvements in the FileStore
+  * New FileLog options for timestamps on messages (with optional milliseconds)
+  
+Bug Fixes:
+
+  * Bug #170 DataDictionary field in Message not initialized
+  * Bug #172 The message.clone() doesn't preserve group ordering
+  * Bug #173 SessionSchedule improvements
+  * Bug #179 Time-only presentation based on 1970. Patch by John Hensley.
+  * Bug #184 Added missing fields to ExecutionReport.
+  * Fix for creation time storage in FileStore
+  * Fixed start/creation time retrieval in JDBCStore
+  
+********************
 **  1.0.0 Beta 3  **
 ********************
 
