@@ -1,4 +1,5 @@
 @echo off
+set CLASSPATH=%CLASSPATH%;output/eclipse/classes
 set CLASSPATH=%CLASSPATH%;output/ant/jars/quickfixj.jar
 set CLASSPATH=%CLASSPATH%;lib/mina-0.8.2.jar
 set CLASSPATH=%CLASSPATH%;lib/backport-util-concurrent-2.1.jar
