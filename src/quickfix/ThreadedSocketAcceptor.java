@@ -58,9 +58,4 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     public void block() throws ConfigError, RuntimeError {
         throw new UnsupportedOperationException("Blocking not supported: "+getClass());
     }
-
-    public boolean poll() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: "+getClass());
-    }
-
 }

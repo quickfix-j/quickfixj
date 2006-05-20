@@ -20,7 +20,6 @@
 package quickfix;
 
 import java.util.HashMap;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -78,59 +77,6 @@ public class SocketInitiatorTest extends TestCase {
         }
     }
 
-    public void testPoll() throws Exception {
-        ServerThread serverThread = new ServerThread();
-        try {
-            serverThread.start();
-            serverThread.waitForInitialization();
-
-            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-            SessionSettings settings = getClientSessionSettings(clientSessionID);
-            ClientApplication clientApplication = new ClientApplication();
-            clientApplication.setUpLogonExpectation();
-
-            final SocketInitiator initiator = new SocketInitiator(clientApplication,
-                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-
-            // BUG #105 - SocketInitiator poll had class cast exception
-            // The class cast was from timer events occuring every one second.
-            // We sleep for one second and then check the poll.
-            try {
-                initiator.poll();
-                Session clientSession = Session.lookupSession(clientSessionID);
-                for (int i = 0; i < 5; i++) {
-                    Thread.sleep(300);
-                    if (clientSession.isLoggedOn()) {
-                        break;
-                    }
-                    initiator.poll();
-                }
-
-                assertLoggedOn(clientApplication, clientSession);
-
-                // BUG #106 - sessions were not being recorded.
-                List sessions = initiator.getManagedSessions();
-                assertTrue("wrong logon status", initiator.isLoggedOn());
-                assertEquals("wrong # of session", 1, sessions.size());
-            } finally {
-                initiator.stop();
-            }
-
-            boolean pollResult = true;
-            for (int i = 0; i < 5; i++) {
-                Thread.sleep(300);
-                pollResult = initiator.poll();
-                if (!pollResult) {
-                    break;
-                }
-            }
-            log.info("Poll returned " + pollResult);
-
-            assertFalse("wrong logon status", initiator.isLoggedOn());
-        } finally {
-            serverThread.interrupt();
-        }
-    }
 
     public void testBlockLogoffAfterLogon() throws Exception {
         ServerThread serverThread = new ServerThread();

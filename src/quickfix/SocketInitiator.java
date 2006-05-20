@@ -60,11 +60,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
         eventHandlingStrategy.block();
     }
 
-    public boolean poll() throws ConfigError, RuntimeError {
-        initialize();
-        return eventHandlingStrategy.poll();
-    }
-    
     public void start() throws ConfigError, RuntimeError {
         initialize();
         eventHandlingStrategy.blockInThread();
