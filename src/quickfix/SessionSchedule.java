@@ -212,34 +212,9 @@ class SessionSchedule {
             return false;
         }
 
-        if (timestamp1.equals(timestamp2)) {
-            return true;
-        }
-
-        int time1Range = timestamp1.get(Calendar.DAY_OF_WEEK) - startDay;
-        int time2Range = timestamp2.get(Calendar.DAY_OF_WEEK) - startDay;
-
-        if (time1Range == 0) {
-            Calendar timeOnly = getTimeOnly(timestamp1, calendar1);
-            if (timeOnly.before(startTime)) {
-                time1Range = 7;
-            }
-        }
-
-        if (time2Range == 0) {
-            Calendar timeOnly = getTimeOnly(timestamp2, calendar2);
-            if (timeOnly.before(startTime)) {
-                time2Range = 7;
-            }
-        }
-
-        timestamp1 = (Calendar) timestamp1.clone();
-        timestamp1.add(Calendar.DATE, -1 * time1Range);
-        timestamp2 = (Calendar) timestamp2.clone();
-        timestamp2.add(Calendar.DATE, -1 * time2Range);
-
-        return timestamp1.get(Calendar.YEAR) == timestamp2.get(Calendar.YEAR)
-                && timestamp1.get(Calendar.DAY_OF_YEAR) == timestamp2.get(Calendar.DAY_OF_YEAR);
+        long day1 = timestamp1.getTimeInMillis() / 86400000L;
+        long day2 = timestamp2.getTimeInMillis() / 86400000L;
+        return Math.abs(day1 - day2) < 7;
     }
 
     public boolean isSessionTime() {

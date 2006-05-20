@@ -191,7 +191,8 @@ public class SessionScheduleTest extends TestCase {
         t1 = getUtcTimeStamp(2004, 1, 13, 19, 10, 0);
         t2 = getUtcTimeStamp(2004, 10, 14, 19, 06, 0);
         doIsSameSessionTest(schedule, t1, t2, false);
-    }
+
+}
 
     public void testIsSameSessionWithDay() throws Exception {
         SessionSchedule schedule = new SessionSchedule(getUtcTime(3, 0, 0).getTime(), getUtcTime(
@@ -229,6 +230,35 @@ public class SessionScheduleTest extends TestCase {
         t2 = getUtcTimeStamp(2004, 6, 19, 3, 0, 0);
         doIsSameSessionTest(schedule, t1, t2, false);
 
+        // Reset start/end time so that they fall within an hour of midnight
+        Calendar startTime = getUtcTime(0, 5, 0);
+        Calendar endTime = getUtcTime(23, 45, 0);
+
+        // Make it a week-long session
+        int startDay = 1;
+        int endDay = 7;
+        schedule = new SessionSchedule(startTime.getTime(), endTime.getTime(), startDay, endDay);
+
+        // Check that ST-->DST (Sunday is missing one hour) is handled
+        t1 = getUtcTimeStamp(2006, 4, 4, 0, 0, 0);
+        t2 = getUtcTimeStamp(2006, 4, 3, 1, 0, 0);
+        doIsSameSessionTest( schedule, t1, t2, true );
+
+        // Check that DST-->ST (Sunday has an extra hour) is handled
+        t1 = getUtcTimeStamp(2006, 10, 30, 1, 0, 0);
+        t2 = getUtcTimeStamp(2006, 10, 31, 1, 0, 0);
+        doIsSameSessionTest( schedule, t1, t2, true );
+
+        // Check that everything works across a year boundary
+        t1 = getUtcTimeStamp(2006, 12, 31, 10, 10, 10);
+        t2 = getUtcTimeStamp(2007, 1, 1, 10, 10, 10);
+        doIsSameSessionTest( schedule, t1, t2, true );
+
+//        // Check that "missing" start and end days are handled as isSameSession without days
+//        startDay = -1;
+//        endDay = -1;
+//        schedule = new SessionSchedule(startTime.getTime(), endTime.getTime(), startDay, endDay);
+//        doIsSameSessionTest( schedule, t1, t2, true );
     }
 
     public void testSettingsWithoutStartEndDay() throws Exception {
