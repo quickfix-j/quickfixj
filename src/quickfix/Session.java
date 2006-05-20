@@ -140,7 +140,7 @@ public class Session {
      * Session setting that causes the session to reset sequence numbers when initiating
      * a logon (>= FIX 4.2).
      */
-    public static final String SETTING_RESET_WHEN_INITIATING_LOGON = "SendResetSeqNumFlag";
+    public static final String SETTING_RESET_ON_LOGON = "ResetOnLogon";
 
     /**
      * Session description. Used by external tools.
@@ -167,7 +167,7 @@ public class Session {
     private boolean resetOnLogout;
     private boolean resetOnDisconnect;
     private boolean millisecondsInTimeStamp;
-    private boolean resetWhenInitiatingLogon;
+    private boolean resetOnLogon;
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
@@ -183,7 +183,7 @@ public class Session {
             maxLatency = 120;
             resetOnLogout = false;
             resetOnDisconnect = false;
-            resetWhenInitiatingLogon = false;
+            resetOnLogon = false;
             millisecondsInTimeStamp = true;
             this.dataDictionary = dataDictionary;
             state.setHeartBeatInterval(heartbeatInterval);
@@ -439,9 +439,9 @@ public class Session {
         return sentLogon() && receivedLogon();
     }
 
-    private boolean isResetOnLogonRequested() {
+    private boolean isResetNeeded() {
         return sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX41) >= 0
-                && (resetWhenInitiatingLogon || resetOnLogout || resetOnDisconnect)
+                && (resetOnLogon || resetOnLogout || resetOnDisconnect)
                 && getExpectedSenderNum() == 1 && getExpectedTargetNum() == 1;
     }
 
@@ -837,30 +837,30 @@ public class Session {
             String errorMessage = "Tried to send a reject while not logged on: " + reason
                     + " (field " + field + ")";
             throw new SessionException(errorMessage);
-    
+
         }
-    
+
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
-    
+
         String msgType = "";
         if (message.getHeader().isSetField(MsgType.FIELD)) {
             msgType = message.getHeader().getString(MsgType.FIELD);
         }
-    
+
         int msgSeqNum = 0;
         if (message.getHeader().isSetField(MsgSeqNum.FIELD)) {
             msgSeqNum = message.getHeader().getInt(MsgSeqNum.FIELD);
             reject.setInt(RefSeqNum.FIELD, msgSeqNum);
         }
-    
+
         boolean possDupFlag = false;
         if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
             possDupFlag = message.getHeader().getBoolean(PossDupFlag.FIELD);
         }
-    
+
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
             if (!msgType.equals("")) {
                 reject.setString(RefMsgType.FIELD, msgType);
@@ -874,7 +874,7 @@ public class Session {
                 && (msgSeqNum == getExpectedTargetNum() || !possDupFlag)) {
             state.incrNextTargetMsgSeqNum();
         }
-    
+
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             populateRejectReason(reject, field, reason);
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
@@ -883,7 +883,7 @@ public class Session {
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
         } else
             getLog().onEvent("Message " + msgSeqNum + " Rejected");
-    
+
         sendRaw(reject, 0);
     }
 
@@ -1166,7 +1166,10 @@ public class Session {
         Message logon = messageFactory.create(sessionID.getBeginString(), MsgType.LOGON);
         logon.setInt(EncryptMethod.FIELD, 0);
         logon.setInt(HeartBtInt.FIELD, state.getHeartBeatInterval());
-        if (isResetOnLogonRequested()) {
+        if (isResetNeeded()) {
+            if (resetOnLogon) {
+                state.reset();
+            }
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
         }
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
@@ -1227,6 +1230,10 @@ public class Session {
             disconnect();
             return;
         }
+        
+        if (!state.isLogonSendNeeded() && resetOnLogon) {
+            state.reset();
+        }
 
         if (!verify(logon, false, true)) {
             return;
@@ -1250,7 +1257,7 @@ public class Session {
         state.setResetReceived(false);
 
         int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
-        if (isTargetTooHigh(sequence) && !resetWhenInitiatingLogon) {
+        if (isTargetTooHigh(sequence) && !resetOnLogon) {
             doTargetTooHigh(logon);
         } else {
             state.incrNextTargetMsgSeqNum();
@@ -1523,8 +1530,8 @@ public class Session {
         return sessionSchedule.isSessionTime();
     }
 
-    void setResetWhenInitiatingLogon(boolean flag) {
-        resetWhenInitiatingLogon = flag;
+    void setResetOnLogon(boolean flag) {
+        resetOnLogon = flag;
     }
 
     /**

@@ -150,9 +150,9 @@ public class DefaultSessionFactory implements SessionFactory {
                         Session.SETTING_MILLISECONDS_IN_TIMESTAMP));
             }
 
-            if (settings.isSetting(sessionID, Session.SETTING_RESET_WHEN_INITIATING_LOGON)) {
-                session.setResetWhenInitiatingLogon(settings.getBool(sessionID,
-                        Session.SETTING_RESET_WHEN_INITIATING_LOGON));
+            if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_LOGON)) {
+                session.setResetOnLogon(settings.getBool(sessionID,
+                        Session.SETTING_RESET_ON_LOGON));
             }
 
             if (settings.isSetting(sessionID, Session.SETTING_REFRESH_STORE_AT_LOGON)) {
