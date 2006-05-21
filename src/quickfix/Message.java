@@ -469,6 +469,7 @@ public class Message extends FieldMap {
     private void parseGroup(StringField field, DataDictionary dd, FieldMap parent) throws InvalidMessage {
         DataDictionary.GroupInfo rg = dd.getGroup(getMsgType(), field.getField());
         int groupCountTag = field.getField();
+        int declaredGroupCount = Integer.parseInt(field.getValue());
         parent.setField(groupCountTag, field);
         int firstField = rg.getDelimeterField();
         boolean firstFieldFound = false;
@@ -503,6 +504,8 @@ public class Message extends FieldMap {
                 }
             }
         }
+        // For later validation that the group size matches the parsed group count
+        setGroupCount(groupCountTag, declaredGroupCount);
     }
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {

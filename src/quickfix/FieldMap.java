@@ -586,7 +586,7 @@ public abstract class FieldMap implements Serializable {
         setGroupCount(countTag, currentGroups.size());
     }
 
-    private void setGroupCount(int countTag, int groupSize) {
+    protected void setGroupCount(int countTag, int groupSize) {
         try {
             StringField count;
             if (groupSize == 1) {
