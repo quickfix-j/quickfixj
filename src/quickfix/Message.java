@@ -505,7 +505,7 @@ public class Message extends FieldMap {
             }
         }
         // For later validation that the group size matches the parsed group count
-        setGroupCount(groupCountTag, declaredGroupCount);
+        parent.setGroupCount(groupCountTag, declaredGroupCount);
     }
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {
