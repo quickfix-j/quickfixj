@@ -32,6 +32,7 @@ import org.apache.mina.transport.vmpipe.VmPipeAddress;
 import org.apache.mina.transport.vmpipe.VmPipeConnector;
 
 import quickfix.ConfigError;
+import quickfix.RuntimeError;
 
 /**
  * A utility class for creating addresses and connection-related objects
@@ -39,8 +40,8 @@ import quickfix.ConfigError;
  */
 public class ProtocolFactory {
 
-    public static SocketAddress createSocketAddress(TransportType transportType, String host, int port)
-            throws ConfigError {
+    public static SocketAddress createSocketAddress(TransportType transportType, String host,
+            int port) throws ConfigError {
         if (transportType == TransportType.SOCKET) {
             return host != null ? new InetSocketAddress(host, port) : new InetSocketAddress(port);
         } else if (transportType == TransportType.VM_PIPE) {
@@ -50,14 +51,24 @@ public class ProtocolFactory {
         }
     }
 
-    public static IoAcceptor createIoAcceptor(SocketAddress address) throws ConfigError {
+    public static TransportType getAddressTransportType(SocketAddress address) {
         if (address instanceof InetSocketAddress) {
-            return new SocketAcceptor();
+            return TransportType.SOCKET;
         } else if (address instanceof VmPipeAddress) {
+            return TransportType.VM_PIPE;
+        } else {
+            throw new RuntimeError("Unknown address type: "
+                    + address.getClass().getName());
+        }
+    }
+
+    public static IoAcceptor createIoAcceptor(TransportType transportType) {
+        if (transportType == TransportType.SOCKET) {
+            return new SocketAcceptor();
+        } else if (transportType == TransportType.VM_PIPE) {
             return new VmPipeAcceptor();
         } else {
-            throw new ConfigError("Unknown session acceptor address type: "
-                    + address.getClass().getName());
+            throw new RuntimeError("Unsupported transport type: " + transportType);
         }
     }
 

@@ -156,9 +156,13 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                         throw new ConfigError(e);
                     }
                 }
-                if (settings.isSetting(sessionID, hostKey)
-                        && settings.isSetting(sessionID, portKey)) {
-                    String host = settings.getString(sessionID, hostKey);
+                if (settings.isSetting(sessionID, portKey)) {
+                    String host;
+                    if (!isHostRequired(transportType)) {
+                        host = "localhost";
+                    } else {
+                        host = settings.getString(sessionID, hostKey);
+                    }
                     int port = (int) settings.getLong(sessionID, portKey);
                     addresses.add(ProtocolFactory.createSocketAddress(transportType, host, port));
                 } else {
@@ -170,6 +174,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         }
 
         return (SocketAddress[]) addresses.toArray(new SocketAddress[addresses.size()]);
+    }
+
+    private boolean isHostRequired(TransportType transportType) {
+        return transportType != TransportType.VM_PIPE;
     }
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
