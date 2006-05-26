@@ -446,13 +446,14 @@ public class Session {
     }
 
     /**
-     * Disconnects session and resets session state.
+     * Logouts and disconnects session and then resets session state.
      *
      * @throws IOException IO error
      * @see #disconnect()
      * @see SessionState#reset()
      */
     public void reset() throws IOException {
+        generateLogout();
         disconnect();
         state.reset();
     }
