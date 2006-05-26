@@ -331,8 +331,9 @@ public class Message extends FieldMap {
 
         if (header.isSetField(BeginString.FIELD)) {
             String beginString = header.getString(BeginString.FIELD);
-            if (beginString.length() > 0)
+            if (beginString.length() > 0) {
                 this.header.setString(BeginString.FIELD, beginString);
+            }
 
             this.header.removeField(OnBehalfOfLocationID.FIELD);
             this.header.removeField(DeliverToLocationID.FIELD);
@@ -360,8 +361,9 @@ public class Message extends FieldMap {
     private void copyField(Header header, int fromField, int toField) throws FieldNotFound {
         if (header.isSetField(fromField)) {
             String value = header.getString(fromField);
-            if (value.length() > 0)
+            if (value.length() > 0) {
                 this.header.setString(toField, value);
+            }
         }
     }
 
@@ -380,6 +382,7 @@ public class Message extends FieldMap {
             parseTrailer(dd);
         } catch (InvalidMessage e) {
             isValidStructure = false;
+            throw e;
         }
         if (doValidation) {
             validate(messageData);
@@ -493,6 +496,9 @@ public class Message extends FieldMap {
                     }
                 } else {
                     if (rg.getDataDictionary().isField(field.getTag())) {
+                        if (!firstFieldFound) {
+                            throw new InvalidMessage("Repeating group " + groupCountTag + " is out of order: first field should be " + firstField + ", but was " + field.getField() + ".");
+                        }
                         group.setField(field);
                     } else {
                         if (group != null) {
@@ -617,8 +623,9 @@ public class Message extends FieldMap {
             /* Assume length field is 1 less. */
             int lengthField = tag - 1;
             /* Special case for Signature which violates above assumption. */
-            if (tag == 89)
+            if (tag == 89) {
                 lengthField = 93;
+            }
             int fieldLength;
             try {
                 if (group == null) {
