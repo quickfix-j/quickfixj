@@ -35,8 +35,8 @@ public class SessionState {
     private boolean logoutSent;
     private boolean logonSent;
     private boolean initiator;
-    private long logonTimeoutMs;
-    private long logoutTimeoutMs;
+    private long logonTimeoutMs = 10000L;
+    private long logoutTimeoutMs = 2000L;
     private int testRequestCounter;
     private MessageStore messageStore;
     private long lastSentTime;
