@@ -23,9 +23,6 @@ import java.io.IOException;
 import java.util.Date;
 
 public class FileStoreTest extends AbstractMessageStoreTest {
-    public FileStoreTest(String name) {
-        super(name);
-    }
 
     protected void tearDown() throws Exception {
         super.tearDown();

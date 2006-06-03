@@ -24,25 +24,19 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.sql.DataSource;
 
 class JdbcLog implements quickfix.Log {
-    private Logger log = LoggerFactory.getLogger(getClass());
     private static final String MESSAGES_LOG_TABLE = "messages_log";
     private static final String EVENT_LOG_TABLE = "event_log";
-    private Connection connection;
-    private SessionID sessionID;
-
+    private final SessionID sessionID;
+    private final DataSource dataSource;
+    
     public JdbcLog(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
-        connection = connect(settings, sessionID);
-    }
 
-    protected Connection connect(SessionSettings settings, SessionID sessionID2)
-            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
-        return JdbcUtil.openConnection(settings, sessionID);
+        dataSource = JdbcUtil.getDataSource(settings, sessionID);
     }
 
     public void onEvent(String value) {
@@ -58,8 +52,10 @@ class JdbcLog implements quickfix.Log {
     }
 
     private void insert(String tableName, String value) {
+        Connection connection = null;
         PreparedStatement insert = null;
         try {
+            connection = dataSource.getConnection();
             insert = connection.prepareStatement("INSERT INTO " + tableName
                     + " (time, beginstring, sendercompid, targetcompid, session_qualifier, text) "
                     + "VALUES (?,?,?,?,?,?)");
@@ -71,15 +67,10 @@ class JdbcLog implements quickfix.Log {
             insert.setString(6, value);
             insert.execute();
         } catch (SQLException e) {
-            throw new RuntimeError(e);
+            LogUtil.logThrowable(sessionID, e.getMessage(), e);
         } finally {
-            if (insert != null) {
-                try {
-                    insert.close();
-                } catch (SQLException e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
+            JdbcUtil.close(sessionID, insert);
+            JdbcUtil.close(sessionID, connection);
         }
     }
 
@@ -92,8 +83,10 @@ class JdbcLog implements quickfix.Log {
     }
 
     private void clearTable(String tableName) {
+        Connection connection = null;
         PreparedStatement statement = null;
         try {
+            connection = dataSource.getConnection();
             statement = connection.prepareStatement("DELETE FROM " + tableName
                     + " WHERE beginString=? AND senderCompID=? "
                     + "AND targetCompID=? AND session_qualifier=?");
@@ -103,14 +96,10 @@ class JdbcLog implements quickfix.Log {
             statement.setString(4, sessionID.getSessionQualifier());
             statement.execute();
         } catch (SQLException e) {
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e1) {
-                    log.error(e1.getMessage(), e1);
-                }
-            }
+            LogUtil.logThrowable(sessionID, e.getMessage(), e);
+        } finally {
+            JdbcUtil.close(sessionID, statement);
+            JdbcUtil.close(sessionID, connection);
         }
     }
-
 }

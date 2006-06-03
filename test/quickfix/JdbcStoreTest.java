@@ -19,32 +19,53 @@
 
 package quickfix;
 
+import java.io.IOException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Hashtable;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 public class JdbcStoreTest extends AbstractMessageStoreTest {
 
-    public JdbcStoreTest(String name) {
-        super(name);
-    }
-
     protected void setUp() throws Exception {
+        bindDataSource();
         super.setUp();
     }
 
-    protected MessageStoreFactory getMessageStoreFactory() throws ConfigError {
-        SessionSettings settings = new SessionSettings();
+    protected void tearDown() throws Exception {
+        JdbcTestSupport.assertNoActiveConnections();
+        super.tearDown();
+    }
 
-        JdbcTestSupport.setHypersonicSettings(settings);
+    private void bindDataSource() throws NamingException {
+        Hashtable env = new Hashtable();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "tyrex.naming.MemoryContextFactory");
+        env.put(Context.PROVIDER_URL, "TEST");
+        new InitialContext(env).rebind("TestDataSource", getDataSource());
+    }
+
+    protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, SQLException,
+            IOException {
+        
+        SessionSettings settings = new SessionSettings();
+        settings.setString(JdbcSetting.SETTING_JDBC_JNDI_FACTORY, "tyrex.naming.MemoryContextFactory");
+        settings.setString(JdbcSetting.SETTING_JDBC_JNDI_URL, "TEST");
+        settings.setString(JdbcSetting.SETTING_JDBC_JNDI_NAME, "TestDataSource");
+
         initializeTableDefinitions(null, null);
 
         return new JdbcStoreFactory(settings);
     }
 
     public void testSequenceNumbersWithCustomSessionsTableName() throws Exception {
-        initializeTableDefinitions("xsessions", "messages");
         JdbcStore store = (JdbcStore) getStore();
+        initializeTableDefinitions("xsessions", "messages");
         store.setSessionTableName("xsessions");
         store.reset();
         assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
@@ -68,16 +89,22 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
     }
 
     private void initializeTableDefinitions(String sessionsTableName, String messagesTableName)
-            throws ConfigError {
+            throws ConfigError, SQLException, IOException {
+        Connection connection = null;
         try {
-            Connection connection = JdbcTestSupport.getConnection();
+            connection = getDataSource().getConnection();
             JdbcTestSupport.loadSQL(connection, "etc/sql/mysql/messages_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(messagesTableName));
             JdbcTestSupport.loadSQL(connection, "etc/sql/mysql/sessions_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(sessionsTableName));
-        } catch (Exception e) {
-            throw new ConfigError(e);
+        } finally {
+            JdbcUtil.close(null, connection);
         }
+    }
+
+    private DataSource getDataSource() {
+        return JdbcUtil.getDataSource(JdbcTestSupport.HSQL_DRIVER,
+                JdbcTestSupport.HSQL_CONNECTION_URL, JdbcTestSupport.HSQL_USER, "", true);
     }
 
     public void testCreationTime() throws Exception {

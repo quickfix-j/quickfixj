@@ -27,6 +27,10 @@ import java.sql.Statement;
 import junit.framework.TestCase;
 
 public class JdbcLogTest extends TestCase {
+    protected void tearDown() throws Exception {
+        JdbcTestSupport.assertNoActiveConnections();
+        super.tearDown();
+    }
 
     public void testLog() throws Exception {
         Connection connection = JdbcTestSupport.getConnection();

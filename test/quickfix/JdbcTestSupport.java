@@ -27,10 +27,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import junit.framework.Assert;
+
+import org.logicalcobwebs.proxool.ProxoolException;
+import org.logicalcobwebs.proxool.ProxoolFacade;
+import org.logicalcobwebs.proxool.admin.SnapshotIF;
+
 public class JdbcTestSupport {
-    private static String HSQL_DRIVER = "org.hsqldb.jdbcDriver";
-    private static String HSQL_CONNECTION_URL = "jdbc:hsqldb:mem:quickfix";
-    private static String HSQL_USER = "sa";
+    public static String HSQL_DRIVER = "org.hsqldb.jdbcDriver";
+    public static String HSQL_CONNECTION_URL = "jdbc:hsqldb:mem:quickfixj";
+    public static String HSQL_USER = "sa";
 
     public static void setHypersonicSettings(SessionSettings settings) {
         settings.setString(JdbcSetting.SETTING_JDBC_DRIVER, HSQL_DRIVER);
@@ -85,6 +91,14 @@ public class JdbcTestSupport {
         byte b[] = new byte[x];
         in.read(b);
         return new String(b);
+    }
+
+    static void assertNoActiveConnections() throws ProxoolException {
+        String[] aliases = ProxoolFacade.getAliases();
+        for (int i = 0; i < aliases.length; i++) {
+            SnapshotIF snapshot = ProxoolFacade.getSnapshot(aliases[i], true);
+            Assert.assertEquals("unclosed connections: "+aliases[i], 0, snapshot.getActiveConnectionCount());            
+        }
     }
 
 }

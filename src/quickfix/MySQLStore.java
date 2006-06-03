@@ -21,8 +21,6 @@
 package quickfix;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * MySQL message store implementation. SHOULD ONLY BE CREATED USING A FACTORY.
@@ -31,14 +29,10 @@ import java.sql.SQLException;
  */
 public class MySQLStore extends JdbcStore {
     MySQLStore(SessionSettings settings, SessionID sessionID) throws Exception {
-        super(settings, sessionID);
-    }
-
-    protected Connection connect(SessionSettings settings, SessionID sessionID)
-            throws ClassNotFoundException, ConfigError, FieldConvertError, SQLException {
-        return JdbcUtil.openMySQLStoreConnection(settings, sessionID);
+        super(JdbcUtil.convertMySQLStoreSettings(settings, sessionID), sessionID);
     }
     
+
     /**
      * This method is here for JNI API consistency but it's not 
      * implemented. Use get(int, int, Collection) with the same 

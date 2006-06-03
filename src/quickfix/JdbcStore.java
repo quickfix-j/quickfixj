@@ -28,16 +28,16 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.TimeZone;
+
+import javax.sql.DataSource;
 
 class JdbcStore implements RefreshableMessageStore {
     private String sessionTableName = "sessions";
     private String messageTableName = "messages";
     private MemoryStore cache = new MemoryStore();
-    private Connection connection;
+    private DataSource dataSource;
     private SessionID sessionID;
-    private HashMap statementCache = new HashMap();
 
     private String SQL_UPDATE_SEQNUMS;
     private String SQL_INSERT_SESSION;
@@ -59,7 +59,9 @@ class JdbcStore implements RefreshableMessageStore {
                     JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME);
         }
         setSqlStrings();
-        connection = connect(settings, sessionID);
+
+        dataSource = JdbcUtil.getDataSource(settings, sessionID);
+
         loadCache();
     }
 
@@ -99,26 +101,25 @@ class JdbcStore implements RefreshableMessageStore {
 
     }
 
-    protected Connection connect(SessionSettings settings, SessionID sessionID)
-            throws ClassNotFoundException, ConfigError, FieldConvertError, SQLException {
-        return JdbcUtil.openConnection(settings, sessionID);
-    }
-
     private void loadCache() throws SQLException, IOException {
-        PreparedStatement query = getPreparedStatement(SQL_GET_SEQNUMS);
-        query.setString(1, sessionID.getBeginString());
-        query.setString(2, sessionID.getSenderCompID());
-        query.setString(3, sessionID.getTargetCompID());
-        query.setString(4, sessionID.getSessionQualifier());
+        Connection connection = null;
+        PreparedStatement query = null;
+        PreparedStatement insert = null;
         ResultSet rs = null;
         try {
+            connection = dataSource.getConnection();
+            query = connection.prepareStatement(SQL_GET_SEQNUMS);
+            query.setString(1, sessionID.getBeginString());
+            query.setString(2, sessionID.getSenderCompID());
+            query.setString(3, sessionID.getTargetCompID());
+            query.setString(4, sessionID.getSessionQualifier());
             rs = query.executeQuery();
             if (rs.next()) {
                 cache.setCreationTime(SystemTime.getUtcCalendar(rs.getTimestamp(1)));
                 cache.setNextTargetMsgSeqNum(rs.getInt(2));
                 cache.setNextSenderMsgSeqNum(rs.getInt(3));
             } else {
-                PreparedStatement insert = getPreparedStatement(SQL_INSERT_SESSION);
+                insert = connection.prepareStatement(SQL_INSERT_SESSION);
                 insert.setString(1, sessionID.getBeginString());
                 insert.setString(2, sessionID.getSenderCompID());
                 insert.setString(3, sessionID.getTargetCompID());
@@ -129,23 +130,11 @@ class JdbcStore implements RefreshableMessageStore {
                 insert.execute();
             }
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e1) {
-                    throw new IOException(e1.getMessage());
-                }
-            }
+            JdbcUtil.close(sessionID, rs);
+            JdbcUtil.close(sessionID, query);
+            JdbcUtil.close(sessionID, insert);
+            JdbcUtil.close(sessionID, connection);
         }
-    }
-
-    private PreparedStatement getPreparedStatement(String sql) throws SQLException {
-        PreparedStatement ps = (PreparedStatement) statementCache.get(sql);
-        if (ps == null) {
-            ps = connection.prepareStatement(sql);
-        }
-        ps.clearParameters();
-        return ps;
     }
 
     public Date getCreationTime() throws IOException {
@@ -172,15 +161,19 @@ class JdbcStore implements RefreshableMessageStore {
 
     public void reset() throws IOException {
         cache.reset();
+        Connection connection = null;
+        PreparedStatement deleteMessages = null;
+        PreparedStatement updateTime = null;
         try {
-            PreparedStatement deleteMessages = getPreparedStatement(SQL_DELETE_MESSAGES);
+            connection = dataSource.getConnection();
+            deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
             deleteMessages.setString(1, sessionID.getBeginString());
             deleteMessages.setString(2, sessionID.getSenderCompID());
             deleteMessages.setString(3, sessionID.getTargetCompID());
             deleteMessages.setString(4, sessionID.getSessionQualifier());
             deleteMessages.execute();
 
-            PreparedStatement updateTime = getPreparedStatement(SQL_UPDATE_SESSION);
+            updateTime = connection.prepareStatement(SQL_UPDATE_SESSION);
             updateTime.setTimestamp(1, new Timestamp(Calendar.getInstance(
                     TimeZone.getTimeZone("UTC")).getTimeInMillis()));
             updateTime.setInt(2, getNextTargetMsgSeqNum());
@@ -191,16 +184,23 @@ class JdbcStore implements RefreshableMessageStore {
             updateTime.setString(7, sessionID.getSessionQualifier());
             updateTime.execute();
         } catch (SQLException e) {
-            throw new IOException(e.getMessage());
+            throw (IOException) new IOException(e.getMessage()).initCause(e);
         } catch (IOException e) {
             throw e;
+        } finally {
+            JdbcUtil.close(sessionID, deleteMessages);
+            JdbcUtil.close(sessionID, updateTime);
+            JdbcUtil.close(sessionID, connection);
         }
     }
 
     public void get(int startSequence, int endSequence, Collection messages) throws IOException {
+        Connection connection = null;
+        PreparedStatement query = null;
         ResultSet rs = null;
         try {
-            PreparedStatement query = getPreparedStatement(SQL_GET_MESSAGES);
+            connection = dataSource.getConnection();
+            query = connection.prepareStatement(SQL_GET_MESSAGES);
             query.setString(1, sessionID.getBeginString());
             query.setString(2, sessionID.getSenderCompID());
             query.setString(3, sessionID.getTargetCompID());
@@ -213,21 +213,21 @@ class JdbcStore implements RefreshableMessageStore {
                 messages.add(message);
             }
         } catch (SQLException e) {
-            throw new IOException(e.getMessage());
+            throw (IOException) new IOException(e.getMessage()).initCause(e);
         } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e1) {
-                    throw new IOException(e1.getMessage());
-                }
-            }
+            JdbcUtil.close(sessionID, rs);
+            JdbcUtil.close(sessionID, query);
+            JdbcUtil.close(sessionID, connection);
         }
     }
 
     public boolean set(int sequence, String message) throws IOException {
+        Connection connection = null;
+        PreparedStatement insert = null;
+        ResultSet rs = null;
         try {
-            PreparedStatement insert = getPreparedStatement(SQL_INSERT_MESSAGE);
+            connection = dataSource.getConnection();
+            insert = connection.prepareStatement(SQL_INSERT_MESSAGE);
             insert.setString(1, sessionID.getBeginString());
             insert.setString(2, sessionID.getSenderCompID());
             insert.setString(3, sessionID.getTargetCompID());
@@ -236,19 +236,28 @@ class JdbcStore implements RefreshableMessageStore {
             insert.setString(6, message);
             insert.execute();
         } catch (SQLException ex) {
-            try {
-                PreparedStatement update = getPreparedStatement(INSERT_UPDATE_MESSAGE);
-                update.setString(1, sessionID.getBeginString());
-                update.setString(2, sessionID.getSenderCompID());
-                update.setString(3, sessionID.getTargetCompID());
-                update.setString(4, sessionID.getSessionQualifier());
-                update.setInt(5, sequence);
-                update.setString(6, message);
-                update.execute();
-                return false;
-            } catch (SQLException e) {
-                throw new IOException(e.getMessage());
+            if (connection != null) {
+                PreparedStatement update = null;
+                try {
+                    update = connection.prepareStatement(INSERT_UPDATE_MESSAGE);
+                    update.setString(1, sessionID.getBeginString());
+                    update.setString(2, sessionID.getSenderCompID());
+                    update.setString(3, sessionID.getTargetCompID());
+                    update.setString(4, sessionID.getSessionQualifier());
+                    update.setInt(5, sequence);
+                    update.setString(6, message);
+                    update.execute();
+                    return false;
+                } catch (SQLException e) {
+                    throw (IOException) new IOException(e.getMessage()).initCause(e);
+                } finally {
+                    JdbcUtil.close(sessionID, update);
+                }
             }
+        } finally {
+            JdbcUtil.close(sessionID, rs);
+            JdbcUtil.close(sessionID, insert);
+            JdbcUtil.close(sessionID, connection);
         }
         return true;
     }
@@ -264,8 +273,11 @@ class JdbcStore implements RefreshableMessageStore {
     }
 
     private void storeSequenceNumbers() throws IOException {
+        Connection connection = null;
+        PreparedStatement update = null;
         try {
-            PreparedStatement update = getPreparedStatement(SQL_UPDATE_SEQNUMS);
+            connection = dataSource.getConnection();
+            update = connection.prepareStatement(SQL_UPDATE_SEQNUMS);
             update.setInt(1, cache.getNextTargetMsgSeqNum());
             update.setInt(2, cache.getNextSenderMsgSeqNum());
             update.setString(3, sessionID.getBeginString());
@@ -274,7 +286,10 @@ class JdbcStore implements RefreshableMessageStore {
             update.setString(6, sessionID.getSessionQualifier());
             update.execute();
         } catch (SQLException e) {
-            throw new IOException(e.getMessage());
+            throw (IOException) new IOException(e.getMessage()).initCause(e);
+        } finally {
+            JdbcUtil.close(sessionID, update);
+            JdbcUtil.close(sessionID, connection);
         }
     }
 
@@ -292,7 +307,11 @@ class JdbcStore implements RefreshableMessageStore {
         try {
             loadCache();
         } catch (SQLException e) {
-            throw new IOException(e.getMessage());
+            throw (IOException) new IOException(e.getMessage()).initCause(e);
         }
+    }
+    
+    DataSource getDataSource() {
+        return dataSource;
     }
 }

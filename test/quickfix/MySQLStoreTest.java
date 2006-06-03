@@ -21,8 +21,7 @@ package quickfix;
 
 
 public class MySQLStoreTest extends AbstractMessageStoreTest {
-	public MySQLStoreTest(String name) {
-		super(name);
+	public MySQLStoreTest() {
 		setTestEnabled(MySQLTestSupport.isMySQLAvailable(getConfigurationFileName()));
 	}
 
