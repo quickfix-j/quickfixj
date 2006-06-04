@@ -1,3 +1,3 @@
-Version HEAD 20 May 2006
+QF JNI Subversion Revision: 1495
 
 NOTE: The JNI library is only used for API compatibility testing.

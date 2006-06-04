@@ -109,7 +109,8 @@ public class MemoryStore implements MessageStore {
         nextTargetMsgSeqNum = next;
     }
 
-    public void refresh() {
+    public void refresh() throws IOException {
+        // IOException is declared to maintain strict compatibility with QF JNI
         final String text = "memory store does not support refresh!";
         if (sessionID != null) {
             Session session = Session.lookupSession(sessionID);
