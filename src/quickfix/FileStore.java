@@ -43,7 +43,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  * @see quickfix.FileStoreFactory
  */
-public class FileStore implements RefreshableMessageStore {
+public class FileStore implements MessageStore {
     private static final String READ_OPTION = "r";
     private static final String WRITE_OPTION = "w";
     private static final String SYNC_OPTION = "d";

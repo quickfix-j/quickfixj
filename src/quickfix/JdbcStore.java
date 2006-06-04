@@ -32,7 +32,7 @@ import java.util.TimeZone;
 
 import javax.sql.DataSource;
 
-class JdbcStore implements RefreshableMessageStore {
+class JdbcStore implements MessageStore {
     private String sessionTableName = "sessions";
     private String messageTableName = "messages";
     private MemoryStore cache = new MemoryStore();

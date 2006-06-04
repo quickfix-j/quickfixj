@@ -48,7 +48,7 @@ import com.sleepycat.je.OperationStatus;
  * 
  * @see SleepycatStoreFactory
  */
-public class SleepycatStore implements RefreshableMessageStore {
+public class SleepycatStore implements MessageStore {
     private Logger log = LoggerFactory.getLogger(getClass());
     private final SessionID sessionID; // session key
     private SessionInfo info;

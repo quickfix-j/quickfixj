@@ -155,9 +155,9 @@ public class DefaultSessionFactory implements SessionFactory {
                         Session.SETTING_RESET_ON_LOGON));
             }
 
-            if (settings.isSetting(sessionID, Session.SETTING_REFRESH_STORE_AT_LOGON)) {
-                session.setRefreshMessageStoreAtLogon(settings.getBool(sessionID,
-                        Session.SETTING_REFRESH_STORE_AT_LOGON));
+            if (settings.isSetting(sessionID, Session.SETTING_REFRESH_ON_LOGON)) {
+                session.setRefreshOnLogon(settings.getBool(sessionID,
+                        Session.SETTING_REFRESH_ON_LOGON));
             }
 
             if (settings.isSetting(sessionID, Session.SETTING_LOGON_TIMEOUT)) {

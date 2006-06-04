@@ -158,7 +158,7 @@ public class Session {
      * Requests that state and message data be refreshed from the message store at
      * logon, if possible. This supports simple failover behavior for acceptors
      */
-    public static final String SETTING_REFRESH_STORE_AT_LOGON = "RefreshMessageStoreAtLogon";
+    public static final String SETTING_REFRESH_ON_LOGON = "RefreshOnLogon";
 
     private Application application;
     private Responder responder;
@@ -251,7 +251,7 @@ public class Session {
     private long lastSessionTimeCheck = 0;
     private boolean lastSessionTimeResult = false;
 
-    private boolean refreshMessageStoreAtLogon;
+    private boolean refreshOnLogon;
 
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
@@ -539,16 +539,6 @@ public class Session {
         String msgType = message.getHeader().getString(MsgType.FIELD);
 
         try {
-            if (isStateRefreshNeeded(msgType)) {
-                if (getStore() instanceof RefreshableMessageStore) {
-                    getLog().onEvent("Refreshing message/state store at logon");
-                    ((RefreshableMessageStore) getStore()).refresh();
-                } else {
-                    getLog().onEvent(
-                            "Refresh at logon requested, but message store not capable: "
-                                    + getStore().getClass().getName());
-                }
-            }
 
             String beginString = message.getHeader().getString(BeginString.FIELD);
 
@@ -630,9 +620,8 @@ public class Session {
         }
     }
 
-    private boolean isStateRefreshNeeded(String msgType) {
-        return refreshMessageStoreAtLogon && !getState().isInitiator()
-                && msgType.equals(MsgType.LOGON);
+    private boolean isRefreshNeeded() {
+        return refreshOnLogon && !getState().isInitiator();
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -1224,6 +1213,11 @@ public class Session {
         String senderCompID = logon.getHeader().getString(SenderCompID.FIELD);
         String targetCompID = logon.getHeader().getString(TargetCompID.FIELD);
 
+        if (isRefreshNeeded()) {
+            getLog().onEvent("Refreshing message/state store at logon");
+            getStore().refresh();
+        }
+
         if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
             state.setResetReceived(logon.getBoolean(ResetSeqNumFlag.FIELD));
         }
@@ -1240,7 +1234,7 @@ public class Session {
             disconnect();
             return;
         }
-        
+
         if (!state.isLogonSendNeeded() && resetOnLogon) {
             state.reset();
         }
@@ -1505,10 +1499,24 @@ public class Session {
         return dataDictionary;
     }
 
+    public void setDataDictionary(DataDictionary dataDictionary) {
+        this.dataDictionary = dataDictionary;
+    }
+    
+    /**
+     * Reset session on logout.
+     * @param flag true to reset, false otherwise.
+     * @see #SETTING_RESET_ON_LOGOUT
+     */
     public void setResetOnLogout(boolean flag) {
         this.resetOnLogout = flag;
     }
 
+    /**
+     * Reset session on disconnect.
+     * @param flag true to reset, false otherwise.
+     * @see #SETTING_RESET_ON_DISCONNECT
+     */
     public void setResetOnDisconnect(boolean flag) {
         this.resetOnDisconnect = flag;
     }
@@ -1517,10 +1525,20 @@ public class Session {
         return state;
     }
 
+    /**
+     * Controls latency checks.
+     * @param flag true to validate, false otherwise.
+     * @see #SETTING_CHECK_LATENCY
+     */
     public void setCheckLatency(boolean flag) {
         checkLatency = flag;
     }
 
+    /**
+     * Sets the maximum latency for a message (in seconds).
+     * @param latency seconds
+     * @see #SETTING_MAX_LATENCY
+     */
     public void setMaxLatency(int latency) {
         maxLatency = latency;
     }
@@ -1560,8 +1578,8 @@ public class Session {
      * Requests that state and message data be refreshed from the message store at
      * logon, if possible. This supports simple failover behavior for acceptors.
      */
-    public void setRefreshMessageStoreAtLogon(boolean refreshMessageStoreAtLogon) {
-        this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
+    public void setRefreshOnLogon(boolean refreshMessageStoreAtLogon) {
+        this.refreshOnLogon = refreshMessageStoreAtLogon;
     }
 
     /**
@@ -1596,7 +1614,7 @@ public class Session {
     public void setLogoutTimeout(int seconds) {
         state.setLogoutTimeout(seconds);
     }
- 
+
     /**
      * Controls whether CompID validation is performed.
      * @param flag true for validation, false otherwise
@@ -1605,4 +1623,5 @@ public class Session {
     public void setCheckCompID(boolean flag) {
         checkCompID = flag;
     }
+    
 }

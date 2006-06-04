@@ -90,4 +90,12 @@ public interface MessageStore {
      *             IO error
      */
     void reset() throws IOException;
+    
+    /**
+     * Refresh session state from a <em>shared</em> state storage (e.g. database,
+     * file, ...). Refresh will not work for message stores without shared state 
+     * (e.g., MemoryStore). These stores should log an session error, at a minimum,
+     * or throw an exception.
+     */
+    void refresh() throws IOException;
 }

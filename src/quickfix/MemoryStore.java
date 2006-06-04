@@ -25,6 +25,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.slf4j.LoggerFactory;
+
 /**
  * In-memory message store implementation.
  * 
@@ -34,10 +36,15 @@ public class MemoryStore implements MessageStore {
     private HashMap messages = new HashMap();
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
+    private SessionID sessionID;
     private Calendar creationTime = SystemTime.getUtcCalendar();
 
     public MemoryStore() throws IOException {
         reset();
+    }
+
+    public MemoryStore(SessionID sessionID) {
+        this.sessionID = sessionID;
     }
 
     public void get(int startSequence, int endSequence, Collection messages) throws IOException {
@@ -101,4 +108,16 @@ public class MemoryStore implements MessageStore {
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         nextTargetMsgSeqNum = next;
     }
+
+    public void refresh() {
+        final String text = "memory store does not support refresh!";
+        if (sessionID != null) {
+            Session session = Session.lookupSession(sessionID);
+            session.getLog().onEvent("ERROR: " + text);
+        } else {
+            LoggerFactory.getLogger(MemoryStore.class).error(text);
+        }
+
+    }
+
 }

@@ -111,11 +111,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     public void testRefreshableMessageStore() throws Exception {
-        if (store instanceof RefreshableMessageStore) {
-            RefreshableMessageStore failoverStore = (RefreshableMessageStore) getMessageStoreFactory()
-                    .create(sessionID);
+        if (store instanceof MemoryStore == false) {
+            MessageStore failoverStore = getMessageStoreFactory().create(sessionID);
             try {
-                RefreshableMessageStore primaryStore = (RefreshableMessageStore) store;
+                MessageStore primaryStore = store;
 
                 assertEquals("wrong value", 1, primaryStore.getNextSenderMsgSeqNum());
                 assertEquals("wrong value", 1, primaryStore.getNextTargetMsgSeqNum());
