@@ -20,7 +20,6 @@
 
 package quickfix;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -32,11 +31,6 @@ import java.sql.SQLException;
 public class MySQLLog extends JdbcLog {
     public MySQLLog(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
-        super(settings, sessionID);
-    }
-
-    public Connection connect(SessionSettings settings, SessionID sessionID) throws SQLException,
-            ClassNotFoundException, ConfigError, FieldConvertError {
-        return JdbcUtil.openMySQLStoreConnection(settings, sessionID);
+        super(JdbcUtil.convertMySQLLogSettings(settings, sessionID), sessionID);
     }
 }

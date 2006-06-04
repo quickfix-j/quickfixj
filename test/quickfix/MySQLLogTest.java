@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,30 +33,33 @@ public class MySQLLogTest extends TestCase {
     }
 
     public void testLog() throws Exception {
-    	if (!MySQLTestSupport.isMySQLAvailable(getConfigurationFileName())) {
-    		return;
-    	}
+        if (!MySQLTestSupport.isMySQLAvailable(getConfigurationFileName())) {
+            return;
+        }
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis(), "X");
 
         SessionSettings settings = new SessionSettings("test/test.cfg");
+        settings.setString(sessionID, "BeginString", sessionID.getBeginString());
+        settings.setString(sessionID, "SenderCompID", sessionID.getSenderCompID());
+        settings.setString(sessionID, "TargetCompID", sessionID.getTargetCompID());
         MySQLLogFactory factory = new MySQLLogFactory(settings);
         Log log = factory.create(sessionID);
         assertEquals(MySQLLog.class, log.getClass());
 
-        String inmsg = "IN"+System.currentTimeMillis();
-        String outmsg = "OUT"+System.currentTimeMillis();
-        String eventmsg = "EVENT"+System.currentTimeMillis();
-        
+        String inmsg = "IN" + System.currentTimeMillis();
+        String outmsg = "OUT" + System.currentTimeMillis();
+        String eventmsg = "EVENT" + System.currentTimeMillis();
+
         log.onIncoming(inmsg);
         log.onOutgoing(outmsg);
         log.onEvent(eventmsg);
 
         Connection connection = null;
         try {
-            connection = JdbcUtil.openMySQLStoreConnection(settings, sessionID);
+            connection = openMySQLStoreConnection(settings, sessionID);
             assertLoggedMessage(connection, sessionID, "messages", systemTime, inmsg);
             assertLoggedMessage(connection, sessionID, "messages", systemTime, outmsg);
             assertLoggedMessage(connection, sessionID, "event", systemTime, eventmsg);
@@ -66,8 +70,18 @@ public class MySQLLogTest extends TestCase {
         }
     }
 
-    private void assertLoggedMessage(Connection connection, SessionID sessionID, String tablePrefix,
-            long systemTime, String msg) throws SQLException {
+    private Connection openMySQLStoreConnection(SessionSettings settings, SessionID sessionID)
+            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
+        JdbcUtil.convertMySQLStoreSettings(settings, sessionID);
+        Class.forName(settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER));
+        return DriverManager.getConnection(settings.getString(sessionID,
+                JdbcSetting.SETTING_JDBC_CONNECTION_URL), settings.getString(sessionID,
+                JdbcSetting.SETTING_JDBC_USER), settings.getString(sessionID,
+                JdbcSetting.SETTING_JDBC_PASSWORD));
+    }
+
+    private void assertLoggedMessage(Connection connection, SessionID sessionID,
+            String tablePrefix, long systemTime, String msg) throws SQLException {
         PreparedStatement ps = null;
         try {
             ps = connection.prepareStatement("select id,time,beginstring,sendercompid,"
@@ -80,14 +94,14 @@ public class MySQLLogTest extends TestCase {
             ps.setString(4, sessionID.getSessionQualifier());
             ps.setString(5, msg);
             ResultSet rs = ps.executeQuery();
-            assertTrue("log item not found: "+msg, rs.next());
+            assertTrue("log item not found: " + msg, rs.next());
         } finally {
             if (ps != null) {
                 ps.close();
             }
         }
     }
-    
+
     protected String getConfigurationFileName() {
         return "test/test.cfg";
     }

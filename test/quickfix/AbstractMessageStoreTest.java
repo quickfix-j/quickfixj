@@ -32,14 +32,6 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     private boolean testEnabled = true;
     private MessageStoreFactory messageStoreFactory;
 
-    public AbstractMessageStoreTest() {
-        super();
-    }
-
-    public AbstractMessageStoreTest(String name) {
-        super(name);
-    }
-
     protected void setUp() throws Exception {
         if (!testEnabled) {
             return;

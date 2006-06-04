@@ -60,4 +60,19 @@ public class JdbcSetting {
      * If you use a different name, you must set up your database accordingly.
      */
     public static final String SETTING_JDBC_STORE_SESSIONS_TABLE_NAME = "JdbcStoreSessionsTableName";
+
+    /**
+     * The JNDI name used to lookup a DataSource for the JDBC plugins.
+     */
+    public static final String SETTING_JDBC_JNDI_NAME = "JdbcJndiName";
+
+    /**
+     * The class name of the JNDI initial context factory.
+     */
+    public static final String SETTING_JDBC_JNDI_FACTORY = "JdbcJndiFactory";
+
+    /**
+     * The JNDI provider URL.
+     */
+    public static final String SETTING_JDBC_JNDI_URL = "JdbcJndiUrl";
 }
