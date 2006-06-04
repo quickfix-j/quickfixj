@@ -35,7 +35,7 @@
   A settings file is set up with two types of heading, a [DEFAULT] and a [SESSION]
     heading. [SESSION] tells QuickFIX that a new Session is being defined. [DEFAULT]
     is a place that you can define settings
-  which will be inherited bysessions that don't explicitly define them.  If you
+  which will be inherited by sessions that don't explicitly define them.  If you
     do not provide a setting
     that QuickFIX needs, it will
   throw a ConfigError telling you what setting is missing or improperly formatted.
@@ -476,9 +476,30 @@
     <TD>"N"</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD>JndiContextFactory</TD>
+    <TD>JNDI intial context factory class name. Optionally used for JDBC data source lookup.</TD>
+    <TD>Class name for the context factory.</TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JndiProviderURL</TD>
+    <TD>JNDI provider URL. Optionaly used for JDBC data source lookup</TD>
+    <TD>URL of the naming provider.</TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcDataSourceName</TD>
+    <TD>JNDI name for the JDBC data source. This technique for finding the data source can
+	    be used as an alternative to specifying the driver details. It allows better integration
+	    with application servers and servlet containers that are already configured with
+	    JDBC data sources.</TD>
+    <TD>JNDI name of the data source.</TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD>JdbcDriver</TD>
     <TD>JDBC driver for JDBC logger. Also used for JDBC log.</TD>
-    <TD>Classname for the JDBC driver.</TD>
+    <TD>Class name for the JDBC driver.</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
     <TD>JdbcURL</TD>

@@ -54,9 +54,9 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
             IOException {
         
         SessionSettings settings = new SessionSettings();
-        settings.setString(JdbcSetting.SETTING_JDBC_JNDI_FACTORY, "tyrex.naming.MemoryContextFactory");
-        settings.setString(JdbcSetting.SETTING_JDBC_JNDI_URL, "TEST");
-        settings.setString(JdbcSetting.SETTING_JDBC_JNDI_NAME, "TestDataSource");
+        settings.setString(JdbcSetting.SETTING_JNDI_CONTEXT_FACTORY, "tyrex.naming.MemoryContextFactory");
+        settings.setString(JdbcSetting.SETTING_JNDI_PROVIDER_URL, "TEST");
+        settings.setString(JdbcSetting.SETTING_JDBC_DS_NAME, "TestDataSource");
 
         initializeTableDefinitions(null, null);
 

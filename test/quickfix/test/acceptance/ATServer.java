@@ -85,6 +85,11 @@ public class ATServer implements Runnable {
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
+            defaults.put("JdbcDriver", "com.mysql.jdbc.Driver");
+            defaults.put("JdbcURL", "jdbc:mysql://localhost/quickfix");
+            defaults.put("JdbcUser", "quickfixj");
+            defaults.put("JdbcPassword", "quickfixj");
+
             if (resetOnDisconnect) {
                 defaults.put("ResetOnDisconnect", "Y");
             }
@@ -116,8 +121,10 @@ public class ATServer implements Runnable {
             MessageStoreFactory factory = usingMemoryStore
                     ? (MessageStoreFactory) new MemoryStoreFactory()
                     : new FileStoreFactory(settings);
+            //MessageStoreFactory factory = new JdbcStoreFactory(settings);
             //LogFactory logFactory = new CommonsLogFactory(settings);
             quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+            //quickfix.LogFactory logFactory = new JdbcLogFactory(settings);
             if (threaded) {
                 acceptor = new ThreadedSocketAcceptor(application, factory, settings, logFactory,
                         new DefaultMessageFactory());

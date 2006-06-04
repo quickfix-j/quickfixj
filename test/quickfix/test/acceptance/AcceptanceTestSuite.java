@@ -17,6 +17,9 @@ import junit.framework.TestSuite;
 
 import org.apache.mina.common.TransportType;
 import org.apache.mina.util.AvailablePortFinder;
+import org.logicalcobwebs.proxool.ProxoolException;
+import org.logicalcobwebs.proxool.ProxoolFacade;
+import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +73,22 @@ public class AcceptanceTestSuite extends TestSuite {
                 }
             }
             result.endTest(this);
+            //printDatabasePoolingStatistics();
+        }
+
+        protected void printDatabasePoolingStatistics() {
+            String[] aliases = ProxoolFacade.getAliases();
+            try {
+                for (int i = 0; i < aliases.length; i++) {
+                    SnapshotIF snapshot = ProxoolFacade.getSnapshot(aliases[i], true);
+                    System.out.println("active:"+snapshot.getActiveConnectionCount()+
+                            ",max:"+snapshot.getMaximumConnectionCount()+
+                            ",served:"+snapshot.getServedCount());
+                }
+            } catch (ProxoolException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         private List load(String filename) throws IOException {
