@@ -64,15 +64,15 @@ public class JdbcSetting {
     /**
      * The JNDI name used to lookup a DataSource for the JDBC plugins.
      */
-    public static final String SETTING_JDBC_JNDI_NAME = "JdbcJndiName";
+    public static final String SETTING_JDBC_DS_NAME = "JdbcDataSourceName";
 
     /**
      * The class name of the JNDI initial context factory.
      */
-    public static final String SETTING_JDBC_JNDI_FACTORY = "JdbcJndiFactory";
+    public static final String SETTING_JNDI_CONTEXT_FACTORY = "JndiContextFactory";
 
     /**
      * The JNDI provider URL.
      */
-    public static final String SETTING_JDBC_JNDI_URL = "JdbcJndiUrl";
+    public static final String SETTING_JNDI_PROVIDER_URL = "JndiProviderURL";
 }

@@ -72,12 +72,12 @@ class JdbcUtil {
     
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
             throws ConfigError, FieldConvertError {
-        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_JNDI_FACTORY) ||
-                settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_JNDI_URL) ||
-                settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_JNDI_NAME)) {
-            String jndiFactory = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_JNDI_FACTORY);
-            String jndiURL = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_JNDI_URL);
-            String jndiName = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_JNDI_NAME);
+        if (settings.isSetting(sessionID, JdbcSetting.SETTING_JNDI_CONTEXT_FACTORY) ||
+                settings.isSetting(sessionID, JdbcSetting.SETTING_JNDI_PROVIDER_URL) ||
+                settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME)) {
+            String jndiFactory = settings.getString(sessionID, JdbcSetting.SETTING_JNDI_CONTEXT_FACTORY);
+            String jndiURL = settings.getString(sessionID, JdbcSetting.SETTING_JNDI_PROVIDER_URL);
+            String jndiName = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME);
             try {
                 Hashtable env = new Hashtable();
                 env.put(InitialContext.INITIAL_CONTEXT_FACTORY, jndiFactory);
