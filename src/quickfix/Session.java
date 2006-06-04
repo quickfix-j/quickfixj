@@ -47,6 +47,13 @@ public class Session {
     public static final String SETTING_CHECK_LATENCY = "CheckLatency";
 
     /**
+     * If set to Y, messages must be received from the counterparty with the 
+     * correct SenderCompID and TargetCompID. Some systems will send you 
+     * different CompIDs by design, so you must set this to N.
+     */
+    public static final String SETTING_CHECK_COMP_ID = "CheckCompID";
+
+    /**
      * Session setting for maximum message latency (in seconds).
      */
     public static final String SETTING_MAX_LATENCY = "MaxLatency";
@@ -163,6 +170,7 @@ public class Session {
     private static HashMap sessions = new HashMap();
     private boolean enabled;
     private boolean checkLatency;
+    private boolean checkCompID;
     private int maxLatency;
     private boolean resetOnLogout;
     private boolean resetOnDisconnect;
@@ -180,6 +188,7 @@ public class Session {
             this.sessionSchedule = sessionSchedule;
             enabled = true;
             checkLatency = true;
+            checkCompID = true;
             maxLatency = 120;
             resetOnLogout = false;
             resetOnDisconnect = false;
@@ -977,9 +986,6 @@ public class Session {
                 return false;
             }
 
-            state.setLastReceivedTime(SystemTime.currentTimeMillis());
-            state.clearTestRequestCounter();
-
             if (checkTooHigh && isTargetTooHigh(msgSeqNum)) {
                 doTargetTooHigh(msg);
                 return false;
@@ -1005,6 +1011,9 @@ public class Session {
             disconnect();
             return false;
         }
+
+        state.setLastReceivedTime(SystemTime.currentTimeMillis());
+        state.clearTestRequestCounter();
 
         fromCallback(msgType, msg, sessionID);
         return true;
@@ -1485,6 +1494,9 @@ public class Session {
     }
 
     private boolean isCorrectCompID(String senderCompID, String targetCompID) {
+        if (!checkCompID) {
+            return true;
+        }
         return sessionID.getSenderCompID().equals(targetCompID)
                 && sessionID.getTargetCompID().equals(senderCompID);
     }
@@ -1583,5 +1595,14 @@ public class Session {
      */
     public void setLogoutTimeout(int seconds) {
         state.setLogoutTimeout(seconds);
+    }
+ 
+    /**
+     * Controls whether CompID validation is performed.
+     * @param flag true for validation, false otherwise
+     * @see #SETTING_CHECK_COMP_ID
+     */
+    public void setCheckCompID(boolean flag) {
+        checkCompID = flag;
     }
 }

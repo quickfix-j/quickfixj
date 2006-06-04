@@ -168,6 +168,10 @@ public class DefaultSessionFactory implements SessionFactory {
                 session.setLogoutTimeout((int)settings.getLong(sessionID, Session.SETTING_LOGOUT_TIMEOUT));
             }
 
+            if (settings.isSetting(sessionID, Session.SETTING_CHECK_COMP_ID)) {
+                session.setCheckCompID(settings.getBool(sessionID, Session.SETTING_CHECK_COMP_ID));
+            }
+            
             return session;
         } catch (ConfigError e) {
             throw e;
