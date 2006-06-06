@@ -111,6 +111,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     public void testRefreshableMessageStore() throws Exception {
+        if (!testEnabled) {
+            return;
+        }
+
         if (store instanceof MemoryStore == false) {
             MessageStore failoverStore = getMessageStoreFactory().create(sessionID);
             try {
