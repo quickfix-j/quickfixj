@@ -305,6 +305,16 @@ public class Message extends FieldMap {
         return !isAdmin();
     }
 
+    public boolean isEmpty() {
+        return super.isEmpty() && header.isEmpty() && trailer.isEmpty();
+    }
+
+    public void clear() {
+        super.clear();
+        header.clear();
+        trailer.clear();
+    }
+
     public class Header extends FieldMap {
 
         static final long serialVersionUID = -3193357271891865972L;
@@ -409,26 +419,36 @@ public class Message extends FieldMap {
 
     private void parseHeader(DataDictionary dd) throws InvalidMessage {
         boolean invalidHeaderFieldOrder = false;
+
         StringField beginString = extractField(dd);
-        if (beginString.getField() != BeginString.FIELD) {
+        if (beginString == null || beginString.getField() != BeginString.FIELD) {
             invalidHeaderFieldOrder = true;
+        }
+        if (beginString != null) {
+            header.setField(beginString);
         }
         StringField bodyLength = extractField(dd);
-        if (bodyLength.getField() != BodyLength.FIELD) {
+        if (bodyLength == null || bodyLength.getField() != BodyLength.FIELD) {
             invalidHeaderFieldOrder = true;
+        } 
+        if (bodyLength != null) {
+            header.setField(bodyLength);
         }
         StringField msgType = extractField(dd);
-        if (msgType.getField() != MsgType.FIELD) {
+        if (msgType == null || msgType.getField() != MsgType.FIELD) {
             invalidHeaderFieldOrder = true;
         }
+        if (msgType != null) {
+            header.setField(msgType);
+        }
+
         if (doValidation && invalidHeaderFieldOrder) {
             throw new InvalidMessage("Header fields out of order");
         }
-        header.setField(beginString);
-        header.setField(bodyLength);
-        header.setField(msgType);
+
         StringField field = extractField(dd);
         while (field != null && isHeaderField(field, dd)) {
+            header.setField(field);
             header.setField(field);
             field = extractField(dd);
         }
