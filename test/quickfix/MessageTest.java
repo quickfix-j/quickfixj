@@ -287,6 +287,31 @@ public class MessageTest extends TestCase {
         assertEquals("wrong value", "CAD", valueMessageType.getString(UnderlyingCurrency.FIELD));
     }
 
+	public void testParseEmptyString() throws Exception {
+		String data = "";
+
+		// with validation
+		try {
+			new Message(data, DataDictionaryTest.getDictionary());
+        } catch( InvalidMessage im ) {
+        }
+        catch( Throwable e ) {
+            e.printStackTrace();
+            fail("InvalidMessage expected, got " + e.getClass().getName() );
+        }
+
+		// without validation
+		try {
+			new Message(data, DataDictionaryTest.getDictionary(), false);
+		} catch( InvalidMessage im ) {
+		}
+		catch( Throwable e ) {
+            e.printStackTrace();
+			fail("InvalidMessage expected, got " + e.getClass().getName() );
+        }
+
+	}
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
@@ -471,6 +496,23 @@ public class MessageTest extends TestCase {
         numAllocs.set(new AllocShares(2020.20));
         message.addGroup(numAllocs);
         return numAllocs;
+    }
+
+    public void testIsEmpty() {
+        Message message = new Message();
+        assertTrue("Message should be empty on construction", message.isEmpty());
+        message.getHeader().setField(new BeginString("FIX.4.2"));
+        assertFalse("Header should contain a field", message.isEmpty());
+        message.clear();
+        assertTrue("Message should be empty after clear", message.isEmpty());
+        message.setField(new Symbol("MSFT"));
+        assertFalse("Body should contain a field", message.isEmpty());
+        message.clear();
+        assertTrue("Message should be empty after clear", message.isEmpty());
+        message.getTrailer().setField(new CheckSum("10"));
+        assertFalse("Trailer should contain a field", message.isEmpty());
+        message.clear();
+        assertTrue("Message should be empty after clear", message.isEmpty());
     }
 
     public void testMessageSetGetString() {

@@ -71,6 +71,10 @@ public abstract class FieldMap implements Serializable {
         groups.clear();
     }
 
+    public boolean isEmpty() {
+        return fields.size() == 0;
+    }
+
     private class FieldOrderComparator implements Comparator, Serializable {
         static final long serialVersionUID = 3416006398018829270L;
 
