@@ -169,4 +169,20 @@ public class FieldTest extends TestCase {
         assertEquals(33, field.getTag());
         assertEquals(44, field.getValue());
     }
+    
+    public void testFieldhashCode() throws Exception {
+        assertEqualsAndHash(new IntField(11, 100), new IntField(11, 100));
+        assertEqualsAndHash(new DoubleField(11, 100.0), new DoubleField(11, 100.0));
+        assertEqualsAndHash(new StringField(11, "foo"), new StringField(11, "foo"));
+        assertEqualsAndHash(new BooleanField(11, true), new BooleanField(11, true));
+        assertEqualsAndHash(new CharField(11, 'x'), new CharField(11, 'x'));
+        assertEqualsAndHash(new UtcDateOnlyField(11, new Date()), new UtcDateOnlyField(11, new Date()));
+        assertEqualsAndHash(new UtcTimeOnlyField(11, new Date()), new UtcTimeOnlyField(11, new Date()));
+        assertEqualsAndHash(new UtcTimeStampField(11, new Date()), new UtcTimeStampField(11, new Date()));
+    }
+
+    private void assertEqualsAndHash(Field field1, Field field2) {
+        assertEquals("fields not equal", field1, field2);
+        assertEquals("fields hashcode not equal", field1.hashCode(), field2.hashCode());
+    }
 }
