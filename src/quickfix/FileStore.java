@@ -67,6 +67,8 @@ public class FileStore implements MessageStore {
         if (path == null) {
             path = ".";
         }
+		path = new File(path).getAbsolutePath();
+		
         String sessionId = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
         if (sessionID.getSessionQualifier() != null && !sessionID.getSessionQualifier().equals("")) {
