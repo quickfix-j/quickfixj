@@ -1,9 +1,9 @@
 @echo off
-set CLASSPATH=%CLASSPATH%;output/eclipse/classes
-set CLASSPATH=%CLASSPATH%;output/ant/jars/quickfixj.jar
-set CLASSPATH=%CLASSPATH%;lib/mina-core-0.9.3.jar
-set CLASSPATH=%CLASSPATH%;lib/backport-util-concurrent-2.1.jar
-set CLASSPATH=%CLASSPATH%;lib/slf4j-jdk14.jar
+set CP=%CLASSPATH%;output/eclipse/classes
+set CP=%CP%;output/ant/jars/quickfixj.jar
+set CP=%CP%;lib/mina-core-0.9.3.jar
+set CP=%CP%;lib/backport-util-concurrent-2.1.jar
+set CP=%CP%;lib/slf4j-jdk14-1.0.1.jar
 
 cd ..
-java quickfix.examples.banzai.Banzai
+java -classpath "%CP%" quickfix.examples.banzai.Banzai
