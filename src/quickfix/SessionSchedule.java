@@ -21,32 +21,23 @@ package quickfix;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.Comparator;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Corresponds to SessionTime in C++ code
  */
 class SessionSchedule {
-    private static final long ONE_DAY_IN_MILLIS = 86400000L;
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
 
-    //
-    // These are cached calendars. Creating calendars to do session time calculations
-    // on every message was too expensive. This is a performance optimization.
-    // It assumes that there is a separate SessionTime object for each session and
-    // that the session is accessing it in a single thread.
-    //
-    private Calendar calendar1 = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
-    private Calendar calendar2 = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
-    private int endDay = -1;
-    private Calendar endTime;
+    private TimeEndPoint startTime;
+    private TimeEndPoint endTime;
+
     private TimeZone sessionTimeZone;
-    private int startDay = -1;
-    private Calendar startTime;
 
     SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
@@ -84,11 +75,13 @@ class SessionSchedule {
         }
         Calendar localTime = SystemTime.getUtcCalendar();
         localTime.setTimeZone(sessionTimeZone);
+        localTime.set(Calendar.MILLISECOND, 0);
         localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
         localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
         localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
-        startTime = SystemTime.getUtcCalendar();
+        Calendar startTime = SystemTime.getUtcCalendar();
         startTime.setTime(localTime.getTime());
+        int startDay = -1;
         if (weeklySession) {
             startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
         }
@@ -101,166 +94,203 @@ class SessionSchedule {
         localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
         localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
         localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
-        endTime = SystemTime.getUtcCalendar();
+        Calendar endTime = SystemTime.getUtcCalendar();
         endTime.setTime(localTime.getTime());
+        int endDay = -1;
         if (weeklySession) {
             endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
         }
-        calendar1.setTimeZone(TimeZone.getTimeZone("UTC"));
-        calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        initialize(startDay, startTime, endDay, endTime);
     }
 
-    SessionSchedule(Date startTime, Date endTime, int startDay, int endDay) {
-        this.startTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        this.startTime.setTime(startTime);
-        this.endTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        this.endTime.setTime(endTime);
-        this.startDay = startDay;
-        this.endDay = endDay;
-        if (startDay > 0 && endDay > 0 && startDay == endDay && endTime.after(startTime)) {
-            endTime = startTime;
-        }
-        calendar1.setTimeZone(TimeZone.getTimeZone("UTC"));
-        calendar2.setTimeZone(TimeZone.getTimeZone("UTC"));
+    SessionSchedule(int startDay, Calendar startTime, int endDay, Calendar endTime) {
+        initialize(startDay, startTime, endDay, endTime);
     }
 
-    private Calendar getDateOnly(Calendar timestampIn, Calendar dateOnlyOut) {
-        dateOnlyOut.set(Calendar.HOUR_OF_DAY, 0);
-        dateOnlyOut.set(Calendar.MINUTE, 0);
-        dateOnlyOut.set(Calendar.SECOND, 0);
-        dateOnlyOut.set(timestampIn.get(Calendar.YEAR), timestampIn.get(Calendar.MONTH),
-                timestampIn.get(Calendar.DAY_OF_MONTH));
-        return dateOnlyOut;
+    private void initialize(int startDay, Calendar startTime, int endDay, Calendar endTime) {
+        this.startTime = new TimeEndPoint(startDay, startTime);
+        this.endTime = new TimeEndPoint(endDay, endTime);
     }
 
-    private Calendar getTimeOnly(Calendar timestampIn, Calendar timeOnlyOut) {
-        Calendar cal = SystemTime.getUtcCalendar();
-        timeOnlyOut.set(Calendar.YEAR, cal.get(Calendar.YEAR));
-        timeOnlyOut.set(Calendar.MONTH, cal.get(Calendar.MONTH));
-        timeOnlyOut.set(Calendar.DATE, cal.get(Calendar.DATE));
-        timeOnlyOut.set(Calendar.HOUR_OF_DAY, timestampIn.get(Calendar.HOUR_OF_DAY));
-        timeOnlyOut.set(Calendar.MINUTE, timestampIn.get(Calendar.MINUTE));
-        timeOnlyOut.set(Calendar.SECOND, timestampIn.get(Calendar.SECOND));
-        return timeOnlyOut;
-    }
+    private class TimeEndPoint {
+        private int weekDay;
+        private int hour;
+        private int minute;
+        private int second;
 
-    private void adjustSessionTimes() {
-        Calendar cal = SystemTime.getUtcCalendar();
-        startTime.set(Calendar.YEAR, cal.get(Calendar.YEAR));
-        startTime.set(Calendar.MONTH, cal.get(Calendar.MONTH));
-        startTime.set(Calendar.DATE, cal.get(Calendar.DATE));
-        endTime.set(Calendar.YEAR, cal.get(Calendar.YEAR));
-        endTime.set(Calendar.MONTH, cal.get(Calendar.MONTH));
-        endTime.set(Calendar.DATE, cal.get(Calendar.DATE));
-    }
-
-    private boolean isDailySessionTime(Calendar timestamp) {
-        Calendar timeOnly = getTimeOnly(timestamp, calendar1);
-        return startTime.before(endTime)
-                ? ((timeOnly.after(startTime) || timeOnly.equals(startTime)) && (timeOnly
-                        .before(endTime) || timeOnly.equals(endTime)))
-                : ((timeOnly.after(startTime) || timeOnly.equals(startTime)) || (timeOnly
-                        .before(endTime) || timeOnly.equals(endTime)));
-    }
-
-    private boolean isSameDailySession(Calendar timestamp1, Calendar timestamp2) {
-        if (!isDailySessionTime(timestamp1) || !isDailySessionTime(timestamp2)) {
-            return false;
+        public TimeEndPoint(int day, Calendar c) {
+            this(day, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND));
         }
 
-        if (timestamp1.equals(timestamp2)) {
-            return true;
+        public TimeEndPoint(int day, int hour, int minute, int second) {
+            weekDay = day;
+            this.hour = hour;
+            this.minute = minute;
+            this.second = second;
         }
 
-        Calendar date1 = getDateOnly(timestamp1, calendar1);
-        Calendar date2 = getDateOnly(timestamp2, calendar2);
+        public int getHour() {
+            return hour;
+        }
 
-        if (startTime.before(endTime) || startTime.equals(endTime)) {
-            return date1.equals(date2);
-        } else {
-            long sessionLength = ONE_DAY_IN_MILLIS
-                    - (startTime.getTimeInMillis() - endTime.getTimeInMillis());
+        public int getMinute() {
+            return minute;
+        }
 
-            long timeInMillis1 = timestamp1.getTimeInMillis();
-            long timeInMillis2 = timestamp2.getTimeInMillis();
+        public int getSecond() {
+            return second;
+        }
 
-            if (timestamp1.after(timestamp2)) {
-                long delta = getTimeOnly(timestamp2, calendar1).getTimeInMillis()
-                        - startTime.getTimeInMillis();
-
-                if (delta < 0) {
-                    delta = ONE_DAY_IN_MILLIS + delta;
-                }
-
-                return (timeInMillis1 - timeInMillis2) < (sessionLength - delta);
-            } else {
-                return (timeInMillis2 - timeInMillis1) < sessionLength;
+        public String toString() {
+            try {
+                return (weekDay != -1 ? "d=" + DayConverter.toString(weekDay) + "," : "") + hour
+                        + ":" + minute + ":" + second;
+            } catch (ConfigError e) {
+                return "ERROR: " + e.getMessage();
             }
         }
+
+        public int getDay() {
+            return weekDay;
+        }
+    }
+
+
+    private TimeInterval theMostRecentIntervalBefore(Calendar t) {
+        TimeInterval timeInterval = getIntervalFromPool();
+        Calendar startCal = timeInterval.getStart();
+        startCal.setTimeInMillis(t.getTimeInMillis());
+        startCal.set(Calendar.MILLISECOND, 0);
+
+        if (startTime.getDay() != -1) {
+            startCal.set(Calendar.DAY_OF_WEEK, startTime.getDay());
+        }
+        if (startTime.getDay() == -1 && t.get(Calendar.HOUR_OF_DAY) < startTime.getHour()) {
+            startCal.add(Calendar.DATE, -1);
+        }
+        if (startTime.getDay() != -1
+                && t.get(Calendar.DAY_OF_WEEK) < startTime.getDay()
+                || (t.get(Calendar.DAY_OF_WEEK) == startTime.getDay() && t
+                        .get(Calendar.HOUR_OF_DAY) < startTime.getHour())) {
+            startCal.add(Calendar.WEEK_OF_YEAR, -1);
+        }
+        startCal.set(Calendar.HOUR_OF_DAY, startTime.getHour());
+        startCal.set(Calendar.MINUTE, startTime.getMinute());
+        startCal.set(Calendar.SECOND, startTime.getSecond());
+
+        Calendar endCal = timeInterval.getEnd();
+        endCal.setTimeInMillis(startCal.getTimeInMillis());
+
+        if (endTime.getDay() != -1) {
+            endCal.set(Calendar.DAY_OF_WEEK, endTime.getDay());
+        }
+        if (endTime.getDay() == -1 && startTime.getHour() >= endTime.getHour()) {
+            endCal.add(Calendar.DATE, 1);
+        }
+        if (endTime.getDay() != -1
+                && (startTime.getDay() > endTime.getDay() || (startTime.getDay() == endTime
+                        .getDay() && startTime.getHour() >= endTime.getHour()))) {
+            endCal.add(Calendar.WEEK_OF_YEAR, 1);
+        }
+        endCal.set(Calendar.HOUR_OF_DAY, endTime.getHour());
+        endCal.set(Calendar.MINUTE, endTime.getMinute());
+        endCal.set(Calendar.SECOND, endTime.getSecond());
+
+        return timeInterval;
+    }
+
+    private class TimeInterval {
+        private Calendar start = SystemTime.getUtcCalendar();
+        private Calendar end = SystemTime.getUtcCalendar();
+
+        public boolean isContainingTime(Calendar t) {
+            return t.equals(start) || t.equals(end) || (t.after(start) && t.before(end));
+        }
+
+        public String toString() {
+            return start.getTime() + " --> " + end.getTime();
+        }
+
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (other instanceof TimeInterval == false) {
+                return false;
+            }
+            TimeInterval otherInterval = (TimeInterval) other;
+            return start.equals(otherInterval.start) && end.equals(otherInterval.end);
+        }
+
+        public Calendar getStart() {
+            return start;
+        }
+
+        public Calendar getEnd() {
+            return end;
+        }
+
+        public void release() {
+            intervalPool.add(this);
+        }
+    }
+
+    private ConcurrentSkipListSet intervalPool = new ConcurrentSkipListSet(new Comparator() {
+
+        public int compare(Object o1, Object o2) {
+            return 1;
+        }
+    });
+
+    private TimeInterval getIntervalFromPool() {
+        TimeInterval i = (TimeInterval) intervalPool.pollFirst();
+        if (i == null) {
+            i = new TimeInterval();
+        }
+        return i;
     }
 
     public boolean isSameSession(Calendar time1, Calendar time2) {
-        adjustSessionTimes();
-        if (startDay < 0 && endDay < 0) {
-            return isSameDailySession(time1, time2);
+        TimeInterval interval1 = null;
+        TimeInterval interval2 = null;
+        try {
+            interval1 = theMostRecentIntervalBefore(time1);
+            if (!interval1.isContainingTime(time1)) {
+                return false;
+            }
+
+            interval2 = theMostRecentIntervalBefore(time2);
+            if (!interval2.isContainingTime(time2)) {
+                return false;
+            }
+
+            return interval1.equals(interval2);
+        } finally {
+            if (interval1 != null) {
+                interval1.release();
+            }
+            if (interval2 != null) {
+                interval2.release();
+            }
         }
-        return isSameWeeklySession(time1, time2);
     }
 
-    private boolean isSameWeeklySession(Calendar timestamp1, Calendar timestamp2) {
-        if (!isWeeklySessionTime(timestamp1) || !isWeeklySessionTime(timestamp2)) {
-            return false;
-        }
-
-        long day1 = timestamp1.getTimeInMillis() / 86400000L;
-        long day2 = timestamp2.getTimeInMillis() / 86400000L;
-        return Math.abs(day1 - day2) < 7;
+    private boolean isDailySession() {
+        return startTime.getDay() == -1 && endTime.getDay() == -1;
     }
 
     public boolean isSessionTime() {
-        adjustSessionTimes();
         Calendar now = SystemTime.getUtcCalendar();
-        if (startDay < 0 && endDay < 0) {
-            return isDailySessionTime(now);
+        TimeInterval interval = theMostRecentIntervalBefore(now);
+        try {
+            return interval.isContainingTime(now);
+        } finally {
+            interval.release();
         }
-        return isWeeklySessionTime(now);
-    }
-
-    private boolean isWeekly() {
-        return startDay > 0 && endDay > 0;
-    }
-
-    private boolean isWeeklySessionTime(Calendar timestamp) {
-        int currentDay = timestamp.get(Calendar.DAY_OF_WEEK);
-        Calendar currentTime = getTimeOnly(timestamp, calendar1);
-
-        if (startDay == endDay) {
-            if (currentTime.before(startTime) && currentTime.after(endTime)) {
-                return false;
-            }
-        } else if (startDay < endDay) {
-            if (currentDay < startDay || currentDay > endDay) {
-                return false;
-            } else if (currentDay == startDay && currentTime.before(startTime)) {
-                return false;
-            } else if (currentDay == endDay && currentTime.after(endTime)) {
-                return false;
-            }
-        } else if (startDay > endDay) {
-            if (currentDay < startDay && currentDay > endDay) {
-                return false;
-            } else if (currentDay == startDay && currentTime.before(startTime)) {
-                return false;
-            } else if (currentDay == endDay && currentTime.after(endTime)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public String toString() {
-        adjustSessionTimes();
         StringBuffer buf = new StringBuffer();
 
         SimpleDateFormat dowFormat = new SimpleDateFormat("EEEE");
@@ -269,29 +299,9 @@ class SessionSchedule {
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss z");
         timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        Calendar now = SystemTime.getUtcCalendar();
-        now.setTime(startTime.getTime());
+        TimeInterval ti = theMostRecentIntervalBefore(SystemTime.getUtcCalendar());
 
-        if (isWeekly()) {
-            buf.append("weekly, ");
-            now.set(Calendar.DAY_OF_WEEK, startDay);
-            buf.append(dowFormat.format(now.getTime()));
-            buf.append(" ");
-        } else {
-            buf.append("daily, ");
-        }
-
-        buf.append(timeFormat.format(now.getTime()));
-
-        buf.append(" - ");
-
-        now.setTime(endTime.getTime());
-        if (isWeekly()) {
-            now.set(Calendar.DAY_OF_WEEK, endDay);
-            buf.append(dowFormat.format(now.getTime()));
-            buf.append(" ");
-        }
-        buf.append(timeFormat.format(now.getTime()));
+        formatTimeInterval(buf, ti, timeFormat);
 
         // Now the localized equivalents, if necessary
         if (sessionTimeZone != null && !TimeZone.getTimeZone("UTC").equals(sessionTimeZone)) {
@@ -299,32 +309,48 @@ class SessionSchedule {
             timeFormat.setTimeZone(sessionTimeZone);
 
             buf.append(" (");
-            now.setTime(startTime.getTime());
-            if (isWeekly()) {
-                now.set(Calendar.DAY_OF_WEEK, startDay);
-                buf.append(dowFormat.format(now.getTime()));
-                buf.append(" ");
-            }
-
-            buf.append(timeFormat.format(now.getTime()));
-
-            buf.append(" - ");
-
-            now.setTime(endTime.getTime());
-            if (isWeekly()) {
-                now.set(Calendar.DAY_OF_WEEK, endDay);
-                buf.append(dowFormat.format(now.getTime()));
-                buf.append(" ");
-            }
-            buf.append(timeFormat.format(now.getTime()));
+            formatTimeInterval(buf, ti, timeFormat);
             buf.append(")");
         }
+
         return buf.toString();
+    }
+
+    private void formatTimeInterval(StringBuffer buf, TimeInterval timeInterval,
+            SimpleDateFormat timeFormat) {
+        if (!isDailySession()) {
+            buf.append("weekly, ");
+            formatDayOfWeek(buf, startTime.getDay());
+            buf.append(" ");
+        } else {
+            buf.append("daily, ");
+        }
+
+        buf.append(timeFormat.format(timeInterval.getStart().getTime()));
+
+        buf.append(" - ");
+
+        if (!isDailySession()) {
+            formatDayOfWeek(buf, endTime.getDay());
+            buf.append(" ");
+        }
+        buf.append(timeFormat.format(timeInterval.getEnd().getTime()));
+    }
+
+    private void formatDayOfWeek(StringBuffer buf, int dayOfWeek) {
+        try {
+            String dayName = DayConverter.toString(dayOfWeek).toUpperCase();
+            if (dayName.length() > 3) {
+                dayName = dayName.substring(0, 3);
+            }
+            buf.append(dayName);
+        } catch (ConfigError e) {
+            buf.append("[Error: unknown day " + dayOfWeek + "]");
+        }
     }
 
     private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
             throws ConfigError, FieldConvertError {
         return DayConverter.toInteger(settings.getString(sessionID, key));
     }
-
 }
