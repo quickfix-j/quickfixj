@@ -27,6 +27,8 @@ import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.ThreadModel;
+import org.apache.mina.common.support.BaseIoServiceConfig;
 
 import quickfix.Session;
 import quickfix.SystemTime;
@@ -77,14 +79,16 @@ class IoSessionInitiator {
         lastReconnectAttemptTime = SystemTime.currentTimeMillis();
         try {
             IoConnector ioConnector = ProtocolFactory.createIoConnector(getNextSocketAddress());
-            ConnectFuture connectFuture = ioConnector.connect(getNextSocketAddress(), ioHandler);
+            BaseIoServiceConfig connectorConfig = (BaseIoServiceConfig) ioConnector.getDefaultConfig().clone();
+            connectorConfig.setThreadModel(ThreadModel.MANUAL);
+            ConnectFuture connectFuture = ioConnector.connect(getNextSocketAddress(), ioHandler, connectorConfig);
             connectFuture.join();
             ioSession = connectFuture.getSession();
         } catch (Throwable e) {
             quickfixSession.getLog().onEvent("Connection failed: " + e.getMessage());
         }
-    }
-
+    } 
+    
     public void close() throws IOException {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
