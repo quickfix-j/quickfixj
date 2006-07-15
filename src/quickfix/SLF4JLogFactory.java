@@ -71,4 +71,9 @@ public class SLF4JLogFactory implements LogFactory {
         return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory,
                 prependSessionID);
     }
+    
+    public Log create() {
+        throw new UnsupportedOperationException();
+    }
+
 }

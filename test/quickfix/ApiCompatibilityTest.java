@@ -267,10 +267,6 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLLogFactory"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLStore"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLStoreFactory"));
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLLog"));
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLLogFactory"));
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLStore"));
-            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MSSQLStoreFactory"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.OdbcLog"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.OdbcLogFactory"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.OdbcStore"));

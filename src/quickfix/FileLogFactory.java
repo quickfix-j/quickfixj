@@ -78,4 +78,8 @@ public class FileLogFactory implements LogFactory {
             throw new RuntimeError(e);
         }
     }
+
+    public Log create() {
+        throw new UnsupportedOperationException();
+    }
 }

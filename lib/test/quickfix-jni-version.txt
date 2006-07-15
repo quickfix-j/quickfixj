@@ -1,3 +1,3 @@
-QF JNI Subversion Revision: 1495
+QF JNI Subversion Revision: 1593
 
 NOTE: The JNI library is only used for API compatibility testing.

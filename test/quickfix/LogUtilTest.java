@@ -74,6 +74,10 @@ public class LogUtilTest extends TestCase {
                 return log;
             }
 
+            public Log create() {
+                throw new UnsupportedOperationException();
+            }
+
         };
         return mockLogFactory;
     }

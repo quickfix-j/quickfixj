@@ -145,4 +145,9 @@ public class ScreenLogFactory implements LogFactory {
         }
         return incoming;
     }
+    
+    public Log create() {
+        throw new UnsupportedOperationException();
+    }
+
 }

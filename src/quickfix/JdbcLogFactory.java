@@ -54,4 +54,9 @@ public class JdbcLogFactory implements LogFactory {
     protected SessionSettings getSettings() {
         return settings;
     }
+    
+    public Log create() {
+        throw new UnsupportedOperationException();
+    }
+
 }
