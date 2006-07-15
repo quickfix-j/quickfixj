@@ -32,17 +32,25 @@ public class LogUtilTest extends TestCase {
         super.setUp();
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
     }
-    
-    public void testLogThrowable() {
+
+    public void testLogThrowable() throws ConfigError, FieldConvertError {
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         LogFactory mockLogFactory = createLogFactory(data);
         createSessionAndGenerateException(mockLogFactory);
-        
+
         String message = new String(data.toByteArray());
         assertTrue(message.indexOf("IOException") != -1);
     }
-    
-    private void createSessionAndGenerateException(LogFactory mockLogFactory) {
+
+    private void createSessionAndGenerateException(LogFactory mockLogFactory) throws ConfigError,
+            FieldConvertError {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_DAY, "Fri");
+        settings.setString(Session.SETTING_START_TIME, "16:00:00");
+        settings.setString(Session.SETTING_END_DAY, "Fri");
+        settings.setString(Session.SETTING_END_TIME, "13:00:00");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
         new Session(null, new MessageStoreFactory() {
             public MessageStore create(SessionID sessionID) {
                 try {
@@ -56,7 +64,7 @@ public class LogUtilTest extends TestCase {
                     return null;
                 }
             }
-        }, null, null, new SessionSchedule(new Date(), new Date(), 1, 7), mockLogFactory, null, 0);
+        }, null, null, schedule, mockLogFactory, null, 0);
     }
 
     private LogFactory createLogFactory(ByteArrayOutputStream data) {

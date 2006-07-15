@@ -22,25 +22,39 @@ package quickfix;
 import java.util.Calendar;
 
 public class MockSystemTimeSource implements SystemTimeSource {
-    private long systemTime;
+    private long[] systemTimes = new long[] { System.currentTimeMillis() };
+    private int offset;
     
     public MockSystemTimeSource() {
         // empty
     }
     
     public MockSystemTimeSource(long time) {
-        this.systemTime = time;
+        setSystemTimes(time);
     }
-    
-    public void setTime(long time) {
-        systemTime = time;
+
+    public void setSystemTimes(long[] times) {
+        systemTimes = times;
+    }
+
+    private void setSystemTimes(long time) {
+        systemTimes =  new long[] { time };
     }
     
     public void setTime(Calendar c) {
-        systemTime = c.getTimeInMillis();
+        setSystemTimes(c.getTimeInMillis());
     }
     
     public long getTime() {
-        return systemTime;
+        if (systemTimes.length - offset > 1) {
+            offset++;
+        }
+        return systemTimes[offset];
+    }
+    
+    public void increment(long delta) {
+        if (systemTimes.length - offset == 1) {
+            systemTimes[offset] += delta;
+        }
     }
 }

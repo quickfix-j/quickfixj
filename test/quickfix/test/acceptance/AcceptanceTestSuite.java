@@ -86,7 +86,6 @@ public class AcceptanceTestSuite extends TestSuite {
                             ",served:"+snapshot.getServedCount());
                 }
             } catch (ProxoolException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
