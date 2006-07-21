@@ -5070,7 +5070,21 @@
       <value enum="7" description="MARKET_IMBALANCE_BUY" />
       <value enum="8" description="MARKET_IMBALANCE_SELL" />
       <value enum="9" description="MARKET_ON_CLOSE_IMBALANCE_BUY" />
-    </field>
+      <value enum="10" description="Market On Close Imbalance Sell" />
+      <value enum="11" description="(not assigned)" />
+      <value enum="12" description="No Market Imbalance" />
+      <value enum="13" description="No Market On Close Imbalance" />
+      <value enum="14" description="ITS Pre-Opening" />
+      <value enum="15" description="New Price Indication" />
+      <value enum="16" description="Trade Dissemination Time" />
+      <value enum="17" description="Ready to trade (start of session)" />
+      <value enum="18" description="Not Available for trading (end of session)" />
+      <value enum="19" description="Not Traded on this Market" />
+      <value enum="20" description="Unknown or Invalid" />
+      <value enum="21" description="Pre-Open" />
+      <value enum="22" description="Opening Rotation" />
+      <value enum="23" description="Fast Market" />
+	</field>
     <field number="327" name="HaltReason" type="CHAR">
       <value enum="I" description="ORDER_IMBALANCE" />
       <value enum="X" description="EQUIPMENT_CHANGEOVER" />
