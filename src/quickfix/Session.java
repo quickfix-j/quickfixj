@@ -662,7 +662,7 @@ public class Session {
         int current = beginSeqNo;
 
         for (int i = 0; i < messages.size(); i++) {
-            Message msg = new Message((String) messages.get(i), dataDictionary);
+            Message msg = rebuildMessage((String) messages.get(i));
             msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
             String msgType = msg.getHeader().getString(MsgType.FIELD);
 
@@ -705,6 +705,14 @@ public class Session {
         if (!isTargetTooHigh(msgSeqNum) && !isTargetTooLow(msgSeqNum)) {
             state.incrNextTargetMsgSeqNum();
         }
+    }
+
+    private Message rebuildMessage(String messageData) throws InvalidMessage {
+        String msgBeginString = MessageUtils.getStringField(messageData, BeginString.FIELD);
+        String msgType = MessageUtils.getMessageType(messageData);
+        Message msg = messageFactory.create(msgBeginString, msgType);
+        msg.fromString(messageData, dataDictionary, false);
+        return msg;
     }
 
     private boolean isTargetTooLow(int msgSeqNum) throws IOException {

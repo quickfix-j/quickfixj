@@ -27,14 +27,16 @@ import quickfix.FieldNotFound;
 import quickfix.IncorrectDataFormat;
 import quickfix.IncorrectTagValue;
 import quickfix.Message;
+import quickfix.MessageCracker;
 import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.UnsupportedMessageType;
 
 public class ATApplication implements Application {
-    private ATMessageCracker cracker = new ATMessageCracker();
-
+    private ATMessageCracker inboundCracker = new ATMessageCracker();
+    private MessageCracker outboundCracker = new MessageCracker();
+    
     public void onCreate(SessionID sessionID) {
         try {
             Session.lookupSession(sessionID).reset();
@@ -47,13 +49,20 @@ public class ATApplication implements Application {
     }
 
     public void onLogout(SessionID sessionID) {
-        cracker.reset();
+        inboundCracker.reset();
     }
 
     public void toAdmin(Message message, SessionID sessionID) {
     }
 
     public void toApp(Message message, SessionID sessionID) throws DoNotSend {
+        try {
+            outboundCracker.crack(message, sessionID);
+        } catch (ClassCastException e) {
+            throw e;
+        } catch (Exception e) {
+            // ignore
+        }
     }
 
     public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound,
@@ -62,6 +71,6 @@ public class ATApplication implements Application {
 
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        cracker.crack(message, sessionID);
+        inboundCracker.crack(message, sessionID);
     }
 }
