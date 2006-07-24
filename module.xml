@@ -1,0 +1,36 @@
+<project name="module" basedir="." default="">
+	<description>
+		This is the shared module build file for QFJ modules.
+	</description>
+			
+	<target name="export_sources">
+		<echo message="${basedir}"/>
+		<echo message="${user.dir}"/>
+		<echo message="${release.src.staging.dir}"/>
+		<description>Export source code from a module to the staging directory.
+			The root directory should be the module base.</description>
+		<copy todir="${release.src.staging.dir}/${ant.project.name}" includeEmptyDirs="false">
+			<fileset dir="${basedir}">
+				<exclude name="target/**/*"/>
+				<exclude name="classes/**/*"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="export_binaries">
+		<description>Export files for a binary release (jars, resource, 
+			javadocs) to the staging area.</description>
+		<copy todir="${release.bin.staging.dir}" includeEmptyDirs="false">
+			<fileset dir="target">
+				<include name="*.jar" />
+				<include name="docs" />
+			</fileset>
+			<fileset dir="resources" />
+		</copy>
+	</target>
+
+	<target name="test">
+		<description>Default test target</description>
+	</target>
+	
+</project>

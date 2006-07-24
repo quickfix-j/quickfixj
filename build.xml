@@ -1,5 +1,7 @@
-<project name="quickfix-java" basedir="." default="jar">
-	<property name="output.dir" value="output" />
+<project name="master" basedir="." default="">
+	<property name="release.output.dir" value="dist"/>
+	<property name="output.dir" value="classes" />
+	<!--
 	<property name="ant.output.dir" value="output/ant" />
 	<property name="eclipse.output.dir" value="${output.dir}/eclipse" />
 	<property name="jar.output.dir" value="${ant.output.dir}/jars" />
@@ -8,46 +10,42 @@
 	<property name="example.src.dir" value="examples" />
 	<property name="product.classes.dir"
 	          value="${ant.output.dir}/classes/product" />
-	<property name="product.src.dir" value="src" />
+	<property name="product.src.dir" value="core/src/main/java" />
 	<property name="product.generated.src.dir"
 	          value="${ant.output.dir}/src-generated" />
-	<property name="eclipse.generated.src.dir" value="src-generated" />
-	<property name="specs.dir" value="etc" />
-	<property name="xsl.dir" value="src/quickfix/codegen" />
+	<property name="eclipse.generated.src.dir" value="core/target/src-generated" />
+	<property name="specs.dir" value="core/src/main/resources" />
+	<property name="xsl.dir" value="core/src/main/java/quickfix/codegen" />
 	<property name="etc.dir" value="etc" />
 	<property name="bin.dir" value="bin" />
-	<property name="core.lib.dir" value="lib" />
-	<property name="test.lib.dir" value="lib/test" />
-	<property name="optional.lib.dir" value="lib/optional" />
-	<property name="javac.debug" value="on" />
-	<property name="javac.args" value=""/> <!-- used in CruiseControl -->
+	<property name="core.lib.dir" value="core/src/main/lib" />
+	<property name="test.lib.dir" value="core/src/test/lib" />
+	<property name="optional.lib.dir" value="${core.lib.directory}/optional" />
 	<property name="quickfixj.jar" value="quickfixj.jar" />
 	<property name="release.output.dir" value="${ant.output.dir}/release" />
 	<property name="javadoc.input.dir" value="doc" />
 	<property name="usermanual.dir" value="doc/usermanual" />
 	<property name="javadoc.output.dir" value="${ant.output.dir}/javadoc" />
+	-->
 
-	<property name="junit.fork.dir" value="." />
-	<property name="junit.haltonfailure" value="yes" />
+	<macrodef name="iterate">
+		<attribute name="target" />
+		<element name="properties" optional="true"/>
+		<sequential>
+			<subant target="@{target}" verbose="true">
+				<fileset dir="." includes="*/build.xml" />
+				<properties/>
+			</subant>
+		</sequential>
+	</macrodef>
 
-	<property name="test.report.dir" value="${ant.output.dir}/testreports" />
+	<target name="jar" description="create module jar files">
+		<iterate target="jar"/>
+	</target>
 
-	<property name="atest.fork" value="no" />
-	<property name="atest.showoutput" value="yes" />
-	<property name="atest.skipslow" value="false"/>
-	<property name="atest.classname"
-	          value="quickfix.test.acceptance.AcceptanceTestSuite" />
-	<property name="atest.report"
-	          value="${test.report.dir}/TEST-${atest.classname}.xml" />
-	<property name="atest.timestamp"
-	          value="${test.report.dir}/.atest_timestamp" />
-	<property name="atest.heartbeat" value="5" />
-	<property name="atest.timeout" value="60000" />
-	<property name="atest.reconnectDelay" value="5" />
-	<property name="atest.skipslow" value="false" />
-
-	<property name="utest.timestamp"
-	          value="${test.report.dir}/.utest_timestamp" />
+	<target name="test" description="run tests">
+		<iterate target="test"/>
+	</target>
 
 	<path id="core.lib.classpath">
 		<fileset id="core.lib.fileset" dir="${core.lib.dir}">
@@ -104,274 +102,10 @@
 		<attribute name="dir" />
 		<sequential>
 			<convertUnixLineEndings>
-				<fileset dir="@{dir}/bin" includes="*.sh" />
+				<fileset dir="@{dir}" includes="**/*.sh" />
 			</convertUnixLineEndings>
 		</sequential>
 	</macrodef>
-
-	<!-- Checkout CVS repository -->
-	<!-- TODO -->
-
-	<!-- Clean -->
-	<target name="clean" description="clean Ant output files">
-		<delete dir="${ant.output.dir}" />
-	</target>
-
-	<!-- Code generation -->
-	<target name="generate.code"
-	        unless="generated.isuptodate"
-	        depends="check.generated.isuptodate"
-	        description="generate FIX message code">
-		<mkdir dir="${product.classes.dir}" />
-		<javac srcdir="${product.src.dir}/quickfix/codegen"
-		       includes="JavaCodeGenerator.java,CodeGenerationException.java"
-		       destdir="${product.classes.dir}"
-		       classpathref="core.lib.classpath" >
-			<compilerarg line="${javac.args}" />
-		</javac>
-		<java classname="quickfix.codegen.JavaCodeGenerator" 
-			fork="yes">
-			<jvmarg value="-Xms128m"/>
-			<jvmarg value="-Xmx256m"/>
-			<arg value="${specs.dir}" />
-			<arg value="${xsl.dir}" />
-			<arg value="${product.generated.src.dir}" />
-
-			<classpath>
-				<pathelement location="${etc.dir}" />
-				<pathelement location="${product.classes.dir}" />
-				<path refid="core.lib.classpath" />
-			</classpath>
-		</java>
-	</target>
-
-	<target name="check.generated.isuptodate">
-		<property name="product.generated.src.path"
-			value="${basedir}/${product.generated.src.dir}"/>
-		<uptodate property="generated.isuptodate">
-			<srcfiles dir="${specs.dir}" includes="FIX4*.xml" />
-			<srcfiles dir="${xsl.dir}" includes="*.xsl" />
-			<globmapper from="FIX*.xml" 
-				to="${product.generated.src.path}/quickfix/fix*/Message.java"/>
-		</uptodate>
-	</target>
-
-	<target name="clean.generated.code.eclipse">
-		<delete>
-			<fileset dir="${product.generated.src.dir}">
-				<include name="quickfix/**/*.java" />
-				<exclude name="quickfix/**/package.html" />
-			</fileset>
-		</delete>
-
-	</target>
-
-	<!-- Compile -->
-	<target name="compile"
-	        description="compile sources and tests"
-	        depends="generate.code">
-		<mkdir dir="${product.classes.dir}" />
-		<javac destdir="${product.classes.dir}"
-		       debug="${javac.debug}"
-		       classpathref="compile.classpath"
-		       memoryMaximumSize="128m"
-		       fork="yes">
-			<compilerarg line="${javac.args}" />
-			<src path="${product.src.dir}" />
-			<src path="${product.generated.src.dir}" />
-		</javac>
-		<!-- Copy configuration files to classpath -->
-		<copy todir="${product.classes.dir}">
-			<fileset dir="${product.src.dir}">
-				<include name="**/*.cfg" />
-			</fileset>
-		</copy>
-		<copy todir="${product.classes.dir}">
-			<fileset dir="${example.src.dir}">
-				<include name="**/*.cfg" />
-			</fileset>
-		</copy>
-		<mkdir dir="${test.classes.dir}" />
-		<javac destdir="${test.classes.dir}"
-		       debug="${javac.debug}"
-		       classpathref="compile.classpath"
-		       srcdir="${test.src.dir}">
-			<compilerarg line="${javac.args}" />
-		</javac>
-		<javac destdir="${product.classes.dir}"
-		       debug="${javac.debug}"
-		       classpathref="compile.classpath"
-		       srcdir="${example.src.dir}">
-			<compilerarg line="${javac.args}" />
-		</javac>
-	</target>
-
-	<!-- Build JARs -->
-	<target name="jar" description="build jar files" depends="compile">
-		<mkdir dir="${jar.output.dir}" />
-		<jar destfile="${jar.output.dir}/${quickfixj.jar}">
-			<fileset dir="${product.classes.dir}" />
-			<fileset dir="${etc.dir}">
-				<include name="FIX*.xml"/>
-			</fileset>
-		</jar>
-	</target>
-
-	<!-- Run tests -->
-	<!-- Testing : we assume that junit.jar and the optional Junit ANT task are available in the class path or %ANT_HOME%/lib -->
-
-	<target name="test"
-	        description="run all tests"
-	        depends="check.tests.uptodate, test.clean, test.unit, test.acceptance, test.report"
-	        unless="tests.uptodate" />
-
-	<!-- To force a test.clean, run this target directly -->
-	<target name="test.clean" description="Clean test output" unless="tests.uptodate">
-		<initdir dir="${test.report.dir}" />
-	</target>
-
-	<target name="test.report" unless="tests.uptodate">
-		<delete dir="${test.report.dir}/reports" />
-		<junitreport todir="${test.report.dir}">
-			<fileset dir="${test.report.dir}">
-				<include name="TEST-*.xml" />
-			</fileset>
-			<report format="frames" todir="${test.report.dir}/reports" />
-		</junitreport>
-	</target>
-
-	<!-- Check if utest or atest timestamps are older than the QFJ classes -->
-	<target name="check.tests.uptodate"
-	        depends="check.utests.uptodate,check.atests.uptodate">
-		<condition property="tests.uptodate">
-			<and>
-				<isset property="utests.uptodate" />
-				<isset property="atests.uptodate" />
-			</and>
-		</condition>
-	</target>
-
-	<target name="test.init">
-		<mkdir dir="${test.report.dir}/reports"/>
-		<!-- copy non-class files that are needed in the classpath -->
-		<copy todir="${test.classes.dir}">
-			<fileset dir="etc">
-				<include name="FIX*.xml" />
-			</fileset>
-		</copy>
-	</target>
-
-	<!-- Check if any classes are newer than the timestamp file -->
-	<target name="check.utests.uptodate">
-		<uptodate property="utests.uptodate" targetfile="${utest.timestamp}">
-			<srcfiles dir="${product.classes.dir}" includes="**/*" />
-		</uptodate>
-	</target>
-
-	<target name="test.unit"
-	        description="run unit tests"
-	        depends="jar,check.utests.uptodate,test.unit.junit"
-	        unless="utests.failed">
-		<!-- only update timestamp if tests passed -->
-		<touch file="${utest.timestamp}" />
-	</target>
-
-	<target name="test.unit.junit"
-	        depends="compile, test.init"
-	        unless="utests.uptodate">
-		<junit fork="yes"
-			   	 dir="${junit.fork.dir}"
-		       tempdir="${ant.output.dir}"
-		       printsummary="true"
-		       showoutput="false"
-		       errorproperty="utests.failed"
-		       failureproperty="utests.failed"
-		       haltonfailure="${junit.haltonfailure}">
-			<formatter type="xml" usefile="true" />
-			<classpath refid="test.classpath" />
-			<batchtest todir="${test.report.dir}">
-				<fileset dir="${test.src.dir}">
-					<include name="quickfix/*Test.java" />
-					<include name="quickfix/mina/**/*Test.java" />
-					<exclude name="**/Abstract*Test.java" />
-				</fileset>
-			</batchtest>
-		</junit>
-	</target>
-
-	<!-- Check if any classes are newer than the timestamp file -->
-	<target name="check.atests.uptodate">
-		<uptodate property="atests.uptodate" targetfile="${atest.timestamp}">
-			<srcfiles dir="${product.classes.dir}" includes="**/*" />
-		</uptodate>
-	</target>
-
-	<target name="test.acceptance"
-	        description="run acceptance tests"
-	        depends="jar,check.atests.uptodate,test.acceptance.junit"/>
-
-	<!-- Making this a separate test so it can be forced when atests timeout -->
-	<target name="create.atest.timestamp" unless="atests.failed">
-		<!-- touch timestamp only if tests passed -->
-		<touch file="${atest.timestamp}" />
-	</target>
-
-	<target name="test.acceptance.junit"
-	        unless="atests.uptodate"
-	        depends="compile, test.init">
-		<!-- <junit fork="yes" forkMode="once" dir="." -->
-		<junit fork="${atest.fork}" dir="${junit.fork.dir}"
-		       tempdir="${ant.output.dir}"
-		       printsummary="true"
-		       showoutput="${atest.showoutput}"
-		       errorproperty="atests.failed"
-		       failureproperty="atests.failed"
-			   maxmemory="512m">
-			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
-			<sysproperty key="atest.timeout" value="${atest.timeout}" />
-			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
-			<sysproperty key="atest.skipslow" value="${atest.skipslow}" />
-			<formatter type="xml" usefile="true" />
-			<classpath refid="test.classpath" />
-			<test todir="${test.report.dir}" name="${atest.classname}" />
-		</junit>
-		<!-- remove the logged output because it's too large for junitreport -->
-		<replaceregexp file="${atest.report}"
-		               flags="s"
-		               byline="false"
-		               match="system-err>.*&lt;/system-err"
-		               replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
-	</target>
-
-	<!-- Prepare documentation -->
-	<target name="javadoc" depends="check.javadoc.uptodate" description="generate Javadocs" unless="javadoc.uptodate">
-		<mkdir dir="${javadoc.output.dir}" />
-		<javadoc sourcepath="${product.src.dir};${product.generated.src.dir}"
-		         overview="${javadoc.input.dir}/javadoc_overview.html"
-		         stylesheetfile="${javadoc.input.dir}/javadoc.css"
-		         destdir="${javadoc.output.dir}"
-		         protected="yes"
-		         maxmemory="256m"
-		         breakiterator="yes"
-		         classpathref="compile.classpath">
-			<package name="quickfix" />
-			<package name="quickfix.mina" />
-			<package name="quickfix.mina.message" />
-			<package name="quickfix.mina.acceptor" />
-			<package name="quickfix.mina.initiator" />
-			<package name="quickfix.field.converter" />
-			<package name="quickfix.codegen" />
-			<package name="quickfix.field" />
-			<package name="quickfix.fix*" />
-		</javadoc>
-	</target>
-
-	<target name="check.javadoc.uptodate">
-		<uptodate property="javadoc.uptodate" targetfile="${javadoc.output.dir}/index.html">
-			<srcfiles dir="${product.src.dir}" includes="**/*.java"/>
-			<srcfiles dir="${example.src.dir}" includes="**/*.java"/>
-		</uptodate>
-	</target>
 
 	<!-- Create release archives -->
 	<target name="release.timestamped"
@@ -394,33 +128,21 @@
 		<property name="release.prefix" value="quickfixj-${version}" />
 	</target>
 
-	<target name="check.tests" depends="test">
-		<condition property="tests.failed">
-			<or>
-				<isset property="utests.failed"/>
-				<isset property="atests.failed"/>
-			</or>
-		</condition>
-	</target>
-
-	<target name="release.shared"
-	        depends="check.tests,jar,javadoc"
-	        unless="tests.failed">
+	<target name="release.shared">
 		<initdir dir="${release.output.dir}" />
 
 		<!-- Source release staging -->
 		<property name="release.src.staging.dir"
-		          value="${release.output.dir}/src/quickfixj" />
+		          value="${basedir}/${release.output.dir}/staging/source" />
 		<mkdir dir="${release.src.staging.dir}" />
-		<copy todir="${release.src.staging.dir}" includeEmptyDirs="false">
-			<fileset dir=".">
-				<exclude name="${output.dir}/**/*" />
-				<exclude name="${eclipse.generated.src.dir}/**/*" />
-			</fileset>
-		</copy>
+		<iterate target="export_sources">
+			<properties>
+				<property name="release.src.staging.dir" value="${release.src.staging.dir}"/>
+			</properties>
+		</iterate>
 		<convertUnixScripts dir="${release.src.staging.dir}"/>
 
-		<!-- Create source releases -->
+		<!-- Build source archives -->
 		<property name="release.src"
 		          value="${release.output.dir}/${release.prefix}-src" />
 
@@ -436,12 +158,18 @@
 
 		<!-- Binary release staging -->
 		<property name="release.bin.staging.dir"
-		          value="${release.output.dir}/bin/quickfixj" />
+		          value="${basedir}/${release.output.dir}/staging/bin" />
 
 		<mkdir dir="${release.bin.staging.dir}" />
-		<copy todir="${release.bin.staging.dir}">
-			<fileset dir="${jar.output.dir}">
-				<include name="${quickfixj.jar}" />
+		<iterate target="export_binaries">
+			<properties>
+				<property name="release.bin.staging.dir" value="${release.src.staging.dir}"/>
+			</properties>
+		</iterate>
+
+		<copy todir="${release.bin.staging.dir}" flatten="yes">
+			<fileset dir=".">
+				<include name="**/target/*.jar" />
 			</fileset>
 			<fileset dir=".">
 				<include name="LICENSE" />
@@ -450,7 +178,6 @@
 				<include name="${bin.dir}/**/*" />
 			</fileset>
 		</copy>
-		<convertUnixScripts dir="${release.bin.staging.dir}"/>
 		<copy todir="${release.bin.staging.dir}/lib">
 			<fileset refid="core.lib.fileset" />
 		</copy>
@@ -460,6 +187,8 @@
 		<copy todir="${release.bin.staging.dir}/doc/usermanual">
 			<fileset dir="${usermanual.dir}" />
 		</copy>
+
+		<convertUnixScripts dir="${release.bin.staging.dir}"/>
 
 		<!-- Create binary releases -->
 		<property name="release.bin"
@@ -477,18 +206,4 @@
 
 	</target>
 
-	<!-- FTP files to SourceForge -->
-	<target name="scp.tosourceforge" description="SCP to SourceForge">
-		<input message="user" addproperty="scp.user"/>
-		<input message="password" addproperty="scp.password"/>
-		<property name="scp.dest" 
-			value="shell.sf.net:/home/groups/q/qu/quickfix/buildreport"/>
-		<scp todir="${scp.user}:${scp.password}@${scp.dest}"
-			trust="yes">
-			<fileset dir="${release.output.dir}">
-				<include name="*.zip"/>
-				<include name="*.tar.gz"/>
-			</fileset>
-		</scp>
-	</target>
 </project>
