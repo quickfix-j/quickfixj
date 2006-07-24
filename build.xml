@@ -43,6 +43,10 @@
 		<iterate target="jar"/>
 	</target>
 
+	<target name="clean" description="clean files">
+		<iterate target="clean"/>
+	</target>
+
 	<target name="test" description="run tests">
 		<iterate target="test"/>
 	</target>

@@ -33,4 +33,7 @@
 		<description>Default test target</description>
 	</target>
 	
+	<target name="clean" description="clean files">
+		<delete dir="target"/>
+	</target>
 </project>
