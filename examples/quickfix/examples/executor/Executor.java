@@ -40,9 +40,9 @@ public class Executor {
 
         try {
 
-            Application application = new Application();
             SessionSettings settings =
                 new SessionSettings(inputStream);
+            Application application = new Application(settings);
             MessageStoreFactory messageStoreFactory =
                 new FileStoreFactory(settings);
             LogFactory logFactory = new ScreenLogFactory(true, true, true);
