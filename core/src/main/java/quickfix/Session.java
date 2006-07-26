@@ -660,7 +660,7 @@ public class Session {
         int current = beginSeqNo;
 
         for (int i = 0; i < messages.size(); i++) {
-            Message msg = rebuildMessage((String) messages.get(i));
+            Message msg = parseMessage((String) messages.get(i));
             msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
             String msgType = msg.getHeader().getString(MsgType.FIELD);
 
@@ -705,10 +705,9 @@ public class Session {
         }
     }
 
-    private Message rebuildMessage(String messageData) throws InvalidMessage {
-        String msgBeginString = MessageUtils.getStringField(messageData, BeginString.FIELD);
+    private Message parseMessage(String messageData) throws InvalidMessage {
         String msgType = MessageUtils.getMessageType(messageData);
-        Message msg = messageFactory.create(msgBeginString, msgType);
+        Message msg = messageFactory.create(sessionID.getBeginString(), msgType);
         msg.fromString(messageData, dataDictionary, false);
         return msg;
     }
@@ -1298,6 +1297,7 @@ public class Session {
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
                 state.incrNextTargetMsgSeqNum();
             } else {
+                // TODO Is it necessary to convert the queued message to a string?
                 next(msg.toString());
             }
             return true;
@@ -1308,10 +1308,7 @@ public class Session {
     private void next(String msg) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            String msgType = MessageUtils.getMessageType(msg);
-            Message message = messageFactory.create(sessionID.getBeginString(), msgType);
-            message.fromString(msg, dataDictionary, false);
-            next(message);
+            next(parseMessage(msg));
         } catch (InvalidMessage e) {
             String message = e.getMessage();
             getLog().onEvent(message);
