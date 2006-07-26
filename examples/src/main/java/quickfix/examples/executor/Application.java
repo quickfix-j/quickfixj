@@ -19,7 +19,12 @@
 
 package quickfix.examples.executor;
 
+import java.util.HashSet;
+import java.util.List;
+
+import quickfix.ConfigError;
 import quickfix.DoNotSend;
+import quickfix.FieldConvertError;
 import quickfix.FieldNotFound;
 import quickfix.IncorrectDataFormat;
 import quickfix.IncorrectTagValue;
@@ -27,6 +32,7 @@ import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
+import quickfix.SessionSettings;
 import quickfix.UnsupportedMessageType;
 import quickfix.field.AvgPx;
 import quickfix.field.ClOrdID;
@@ -45,13 +51,25 @@ import quickfix.field.OrderQty;
 import quickfix.field.Price;
 import quickfix.field.Side;
 import quickfix.field.Symbol;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class Application extends quickfix.MessageCracker implements quickfix.Application {
-
-    public Application() {
+    private static final String VALID_ORDER_TYPES_KEY = "ValidOrderTypes";
+    
+    private HashSet validOrderTypes = new HashSet();
+    private double defaultMarketPrice = 10.00;
+    
+    public Application(SessionSettings settings) throws ConfigError, FieldConvertError {
+        if (settings.isSetting(VALID_ORDER_TYPES_KEY)) {
+            List orderTypes = Arrays.asList(settings.getString(VALID_ORDER_TYPES_KEY).trim().split("\\s*,\\s*"));
+            validOrderTypes.addAll(orderTypes);
+        } else {
+            validOrderTypes.add(OrdType.LIMIT+"");
+        }
     }
 
     public void onCreate(SessionID sessionID) {
+        Session.lookupSession(sessionID).getLog().onEvent("Valid order types: "+validOrderTypes);
     }
 
     public void onLogon(SessionID sessionID) {
@@ -86,8 +104,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         order.get(ordType);
 
-        if (ordType.getValue() != OrdType.LIMIT)
-            throw new IncorrectTagValue(ordType.getField());
+        assertValidOrderType(ordType);
 
         order.get(symbol);
         order.get(side);
@@ -120,8 +137,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         order.get(ordType);
 
-        if (ordType.getValue() != OrdType.LIMIT)
-            throw new IncorrectTagValue(ordType.getField());
+        assertValidOrderType(ordType);
 
         order.get(symbol);
         order.get(side);
@@ -154,14 +170,9 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         order.get(ordType);
 
-        if (ordType.getValue() != OrdType.LIMIT)
-            throw new IncorrectTagValue(ordType.getField());
+        assertValidOrderType(ordType);
 
-        order.get(symbol);
-        order.get(side);
-        order.get(orderQty);
-        order.get(price);
-        order.get(clOrdID);
+        readFields(order, symbol, side, orderQty, price, clOrdID);
 
         quickfix.fix42.ExecutionReport executionReport = new quickfix.fix42.ExecutionReport(
                 genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(
@@ -179,6 +190,24 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         }
     }
 
+    private void readFields(quickfix.fix42.NewOrderSingle order, Symbol symbol, Side side, OrderQty orderQty, Price price, ClOrdID clOrdID) throws FieldNotFound {
+        order.get(symbol);
+        order.get(side);
+        order.get(orderQty);
+        if (order.isSet(price)) {
+            order.get(price);
+        } else {
+            price.setValue(defaultMarketPrice);
+        }
+        order.get(clOrdID);
+    }
+
+    private void assertValidOrderType(OrdType ordType) throws IncorrectTagValue {
+        if (!validOrderTypes.contains(""+ordType.getValue())) {
+            throw new IncorrectTagValue(ordType.getField());
+        }
+    }
+
     public void onMessage(quickfix.fix43.NewOrderSingle order, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         Symbol symbol = new Symbol();
@@ -190,8 +219,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         order.get(ordType);
 
-        if (ordType.getValue() != OrdType.LIMIT)
-            throw new IncorrectTagValue(ordType.getField());
+        assertValidOrderType(ordType);
 
         order.get(symbol);
         order.get(side);
@@ -227,8 +255,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         order.get(ordType);
 
-        if (ordType.getValue() != OrdType.LIMIT)
-            throw new IncorrectTagValue(ordType.getField());
+        assertValidOrderType(ordType);
 
         order.get(symbol);
         order.get(side);
