@@ -1168,14 +1168,18 @@ public class Session {
         sendRaw(testRequest, 0);
     }
 
-    private boolean generateLogon() {
+    private boolean generateLogon() throws IOException {
         Message logon = messageFactory.create(sessionID.getBeginString(), MsgType.LOGON);
         logon.setInt(EncryptMethod.FIELD, 0);
         logon.setInt(HeartBtInt.FIELD, state.getHeartBeatInterval());
+        if (isRefreshNeeded()) {
+            getLog().onEvent("Refreshing message/state store at logon");
+            getStore().refresh();            
+        }
+        if (resetOnLogon) {
+            state.reset();
+        }
         if (isResetNeeded()) {
-            if (resetOnLogon) {
-                state.reset();
-            }
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
         }
         state.setLastReceivedTime(SystemTime.currentTimeMillis());

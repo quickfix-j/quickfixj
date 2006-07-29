@@ -2152,8 +2152,8 @@
     <field number="195" name="LastForwardPoints" type="PRICEOFFSET"/>
     <field number="196" name="AllocLinkID" type="STRING"/>
     <field number="197" name="AllocLinkType" type="INT">
-      <value enum="0" description="FX_NETTING"/>
-      <value enum="1" description="FX_SWAP"/>
+      <value enum="0" description="F_X_NETTING"/>
+      <value enum="1" description="F_X_SWAP"/>
     </field>
     <field number="198" name="SecondaryOrderID" type="STRING"/>
     <field number="199" name="NoIOIQualifiers" type="INT"/>
@@ -2217,8 +2217,13 @@
       <value enum="2" description="DISABLE_PREVIOUS"/>
     </field>
     <field number="264" name="MarketDepth" type="INT">
+<!--
+      Temporarily commented out until we can handle
+      N>1 scenario
+
       <value enum="0" description="FULL_BOOK"/>
       <value enum="1" description="TOP_OF_BOOK"/>
+-->
     </field>
     <field number="265" name="MDUpdateType" type="INT">
       <value enum="0" description="FULL_REFRESH"/>
@@ -2393,7 +2398,7 @@
       <value enum="9" description="MARKET_ON_CLOSE_IMBALANCE_BUY"/>
       <value enum="10" description="MARKET_ON_CLOSE_IMBALANCE_SELL"/>
       <value enum="11" description="NOT_ASSIGNED" />
-            <value enum="12" description="NO_MARKET_IMBALANCE"/>
+      <value enum="12" description="NO_MARKET_IMBALANCE"/>
       <value enum="13" description="NO_MARKET_ON_CLOSE_IMBALANCE"/>
       <value enum="14" description="ITS_PREOPENING"/>
       <value enum="15" description="NEW_PRICE_INDICATION"/>
