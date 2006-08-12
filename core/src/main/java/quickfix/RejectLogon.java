@@ -20,18 +20,34 @@
 package quickfix;
 
 /**
- * This exception causes a logon to be reject with an immediate disconnect.
+ * This exception causes a logon to be rejected with a forced logout and immediate disconnect.
  */
 public class RejectLogon extends Exception {
 
+    private final boolean logoutBeforeDisconnect;
+
     public RejectLogon() {
-        super();
+        this(null, true);
     }
 
     /**
      * @param msg text to print to session event log
      */
     public RejectLogon(String msg) {
+        this(msg, true);
+    }
+
+    /**
+     * @param msg text to print to session event log
+     * @param logoutBeforeDisconnect controls whether a logout is sent 
+     * before the disconnect, defaults to true.
+     */
+    public RejectLogon(String msg, boolean logoutBeforeDisconnect) {
         super(msg);
+        this.logoutBeforeDisconnect = logoutBeforeDisconnect;
+    }
+    
+    public boolean isLogoutBeforeDisconnect() {
+        return logoutBeforeDisconnect ;
     }
 }

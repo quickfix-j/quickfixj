@@ -621,7 +621,9 @@ public class Session {
         } catch (RejectLogon e) {
             String rejectMessage = e.getMessage() != null ? (": " + e.getMessage()) : "";
             getLog().onEvent("Logon rejected" + rejectMessage);
-            generateLogout(e.getMessage());
+            if (e.isLogoutBeforeDisconnect()) {
+                generateLogout(e.getMessage());
+            }
             disconnect();
         } catch (UnsupportedMessageType e) {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
