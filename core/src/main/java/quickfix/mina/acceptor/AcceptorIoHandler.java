@@ -21,6 +21,7 @@ package quickfix.mina.acceptor;
 
 import java.util.Map;
 
+import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoSession;
 
 import quickfix.Log;
@@ -32,8 +33,8 @@ import quickfix.field.HeartBtInt;
 import quickfix.field.MsgType;
 import quickfix.mina.AbstractIoHandler;
 import quickfix.mina.EventHandlingStrategy;
-import quickfix.mina.NetworkingOptions;
 import quickfix.mina.IoSessionResponder;
+import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
 class AcceptorIoHandler extends AbstractIoHandler {
@@ -42,8 +43,8 @@ class AcceptorIoHandler extends AbstractIoHandler {
     private final EventHandlingStrategy eventHandlingStrategy;
 
     public AcceptorIoHandler(Map acceptorSessions, NetworkingOptions networkingOptions,
-            EventHandlingStrategy eventHandingStrategy) {
-        super(networkingOptions);
+            EventHandlingStrategy eventHandingStrategy, IoFilterChainBuilder filterChainBuilder) {
+        super(networkingOptions, filterChainBuilder);
         this.acceptorSessions = acceptorSessions;
         this.eventHandlingStrategy = eventHandingStrategy;
     }

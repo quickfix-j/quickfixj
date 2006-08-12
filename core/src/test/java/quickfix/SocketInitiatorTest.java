@@ -23,6 +23,10 @@ import java.util.HashMap;
 
 import junit.framework.TestCase;
 
+import org.apache.mina.common.IoFilterAdapter;
+import org.apache.mina.common.IoFilterChain;
+import org.apache.mina.common.IoFilterChainBuilder;
+import org.apache.mina.common.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +42,7 @@ public class SocketInitiatorTest extends TestCase {
     }
 
     public void testLogonAfterServerDisconnect() throws Exception {
+        final WriteCounter initiatorWriteCounter = new WriteCounter();
         ServerThread serverThread = new ServerThread();
         try {
             serverThread.start();
@@ -50,6 +55,11 @@ public class SocketInitiatorTest extends TestCase {
             ClientApplication clientApplication = new ClientApplication();
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+            initiator.setIoFilterChainBuilder(new IoFilterChainBuilder() {
+                public void buildFilterChain(IoFilterChain chain) throws Exception {
+                    chain.addLast("TestFilter", initiatorWriteCounter);
+                 } 
+             });
 
             try {
                 log.info("Do first login");
@@ -75,6 +85,8 @@ public class SocketInitiatorTest extends TestCase {
         } finally {
             serverThread.interrupt();
         }
+        assertTrue("Initiator write count = 0, filter problem?", initiatorWriteCounter.getCount() > 0);
+        assertTrue("Acceptor write count = 0, filter problem?", serverThread.getWriteCount() > 0);
     }
 
 
@@ -161,12 +173,32 @@ public class SocketInitiatorTest extends TestCase {
 
     }
 
+    private class WriteCounter extends IoFilterAdapter {
+        private int count;
+        
+        public void filterWrite(NextFilter nextFilter, IoSession session, WriteRequest writeRequest) throws Exception {
+            super.filterWrite(nextFilter, session, writeRequest);
+            count++;
+        }
+        
+        public int getCount() {
+            return count;
+        }
+        
+    }
+    
     private class ServerThread extends Thread {
         private ATServer server;
-
+        private WriteCounter writeCounter = new WriteCounter();
+        
         public ServerThread() {
             super("test server");
             server = new ATServer();
+            server.setIoFilterChainBuilder(new IoFilterChainBuilder() {
+                public void buildFilterChain(IoFilterChain chain) throws Exception {
+                    chain.addLast("TestFilter", writeCounter);
+                 } 
+             });
         }
 
         public void run() {
@@ -177,6 +209,10 @@ public class SocketInitiatorTest extends TestCase {
 
         public void waitForInitialization() throws InterruptedException {
             server.waitForInitialization();
+        }
+        
+        public int getWriteCount() {
+            return writeCounter.getCount();
         }
     }
 

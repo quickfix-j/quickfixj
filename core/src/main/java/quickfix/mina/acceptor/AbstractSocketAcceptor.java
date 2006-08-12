@@ -94,7 +94,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 IoAcceptor ioAcceptor = getIoAcceptor(acceptorSocketAddress);
                 ioAcceptor.bind(acceptorSocketAddress, new AcceptorIoHandler(
                         getSessionsForAddress(acceptorSocketAddress), new NetworkingOptions(
-                                settings.getDefaultProperties()), eventHandlingStrategy));
+                                settings.getDefaultProperties()), eventHandlingStrategy,
+                        getIoFilterChainBuilder()));
                 log.info("Listening for connections at " + acceptorSocketAddress);
             }
         } catch (FieldConvertError e) {

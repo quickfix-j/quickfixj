@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,8 @@ public abstract class SessionConnector {
     private final static ScheduledExecutorService scheduledExecutorService = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture sessionTimerFuture;
-
+    private IoFilterChainBuilder ioFilterChainBuilder;
+    
     public SessionConnector(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         this.settings = settings;
@@ -177,10 +179,6 @@ public abstract class SessionConnector {
         }
     }
 
-    //    protected void logDebug(SessionID sessionID, ProtocolSession protocolSession, String message) {
-    //        log.debug(message + getLogSuffix(sessionID, protocolSession));
-    //    }
-
     protected void logError(SessionID sessionID, IoSession protocolSession, String message,
             Throwable t) {
         log.error(message + getLogSuffix(sessionID, protocolSession), t);
@@ -239,5 +237,23 @@ public abstract class SessionConnector {
             return new Thread(runnable, "QFJ Timer");
         }
 
+    }
+    
+    /**
+     * Allows a custom IOFilterChainBuilder to be added to the session connector. This
+     * will allow modification of the MINA filter chain. Modifying the filter chain can
+     * be useful for logging, encryption/SSL and other purposes. The FIX codec filter name
+     * can be used to for inserting custom filters before or after the FIX message codec.
+     * 
+     * @param ioFilterChainBuilder
+     * @see IoFilterChainBuilder
+     * @see AbstractIoHandler#FIX_CODEC_FILTER_NAME
+     */
+    public void setIoFilterChainBuilder(IoFilterChainBuilder ioFilterChainBuilder) {
+        this.ioFilterChainBuilder = ioFilterChainBuilder;
+    }
+    
+    protected IoFilterChainBuilder getIoFilterChainBuilder() {
+        return ioFilterChainBuilder;
     }
 }

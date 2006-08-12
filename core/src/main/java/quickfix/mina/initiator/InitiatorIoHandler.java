@@ -19,22 +19,24 @@
 
 package quickfix.mina.initiator;
 
+import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoSession;
 
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.mina.AbstractIoHandler;
 import quickfix.mina.EventHandlingStrategy;
-import quickfix.mina.NetworkingOptions;
 import quickfix.mina.IoSessionResponder;
+import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
 class InitiatorIoHandler extends AbstractIoHandler {
     private final Session quickfixSession;
     private final EventHandlingStrategy eventHandlingStrategy;
-    
-    public InitiatorIoHandler(Session quickfixSession, NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy) {
-        super(networkingOptions);
+
+    public InitiatorIoHandler(Session quickfixSession, NetworkingOptions networkingOptions,
+            EventHandlingStrategy eventHandlingStrategy, IoFilterChainBuilder filterChainBuilder) {
+        super(networkingOptions, filterChainBuilder);
         this.quickfixSession = quickfixSession;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }

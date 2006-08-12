@@ -25,6 +25,7 @@ import java.net.SocketAddress;
 import org.apache.mina.common.CloseFuture;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
+import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.ThreadModel;
@@ -51,10 +52,10 @@ class IoSessionInitiator {
     private Future reconnectFuture;
     private Session quickfixSession;
 
-    public IoSessionInitiator(Session qfSession,
-            SocketAddress[] socketAddresses, long reconnectIntervalInSeconds,
-            ScheduledExecutorService executor, NetworkingOptions networkingOptions,
-            EventHandlingStrategy eventHandlingStrategy) {
+    public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
+            long reconnectIntervalInSeconds, ScheduledExecutorService executor,
+            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
+            IoFilterChainBuilder ioFilterChainBuilder) {
 
         if (socketAddresses.length == 0) {
             throw new IllegalArgumentException("socketAddresses must not be empty");
@@ -62,7 +63,8 @@ class IoSessionInitiator {
         this.quickfixSession = qfSession;
         this.socketAddresses = socketAddresses;
         this.reconnectIntervalInMillis = reconnectIntervalInSeconds * 1000L;
-        ioHandler =  new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy);
+        ioHandler = new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy,
+                ioFilterChainBuilder);
         reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 1, 1,
                 TimeUnit.SECONDS);
     }
@@ -79,16 +81,18 @@ class IoSessionInitiator {
         lastReconnectAttemptTime = SystemTime.currentTimeMillis();
         try {
             IoConnector ioConnector = ProtocolFactory.createIoConnector(getNextSocketAddress());
-            BaseIoServiceConfig connectorConfig = (BaseIoServiceConfig) ioConnector.getDefaultConfig().clone();
+            BaseIoServiceConfig connectorConfig = (BaseIoServiceConfig) ioConnector
+                    .getDefaultConfig().clone();
             connectorConfig.setThreadModel(ThreadModel.MANUAL);
-            ConnectFuture connectFuture = ioConnector.connect(getNextSocketAddress(), ioHandler, connectorConfig);
+            ConnectFuture connectFuture = ioConnector.connect(getNextSocketAddress(), ioHandler,
+                    connectorConfig);
             connectFuture.join();
             ioSession = connectFuture.getSession();
         } catch (Throwable e) {
             quickfixSession.getLog().onEvent("Connection failed: " + e.getMessage());
         }
-    } 
-    
+    }
+
     public void close() throws IOException {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
