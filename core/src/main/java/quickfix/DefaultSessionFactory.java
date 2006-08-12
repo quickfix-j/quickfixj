@@ -172,6 +172,10 @@ public class DefaultSessionFactory implements SessionFactory {
                 session.setCheckCompID(settings.getBool(sessionID, Session.SETTING_CHECK_COMP_ID));
             }
             
+            if (settings.isSetting(sessionID, Session.SETTING_SEND_REDUNDANT_RESEND_REQUEST)) {
+                session.setRedundantResentRequestsAllowed(true);
+            }
+            
             return session;
         } catch (ConfigError e) {
             throw e;

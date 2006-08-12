@@ -517,8 +517,9 @@ public class DataDictionary {
      *             if a field value is not valid
      * @throws FieldNotFound
      *             if a field cannot be found
+     * @throws IncorrectDataFormat 
      */
-    public void validate(Message message) throws IncorrectTagValue, FieldNotFound {
+    public void validate(Message message) throws IncorrectTagValue, FieldNotFound, IncorrectDataFormat {
         if (hasVersion && !getVersion().equals(message.getHeader().getString(BeginString.FIELD))) {
             throw new UnsupportedVersion();
         }
@@ -539,7 +540,7 @@ public class DataDictionary {
         iterate(message.getTrailer(), msgType);
     }
 
-    private void iterate(FieldMap map, String msgType) throws IncorrectTagValue {
+    private void iterate(FieldMap map, String msgType) throws IncorrectTagValue, IncorrectDataFormat {
         Field previousField = null;
         Iterator iterator = map.iterator();
         while (iterator.hasNext()) {
@@ -591,7 +592,7 @@ public class DataDictionary {
         }
     }
 
-    private void checkValidFormat(StringField field) {
+    private void checkValidFormat(StringField field) throws IncorrectDataFormat {
         try {
             FieldType fieldType = getFieldTypeEnum(field.getTag());
             if (fieldType == FieldType.String) {
@@ -648,8 +649,7 @@ public class DataDictionary {
                 // String
             }
         } catch (FieldConvertError e) {
-            throw new FieldException(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e
-                    .getMessage(), field.getTag());
+            throw new IncorrectDataFormat(field.getTag(), field.getValue());
         }
     }
 

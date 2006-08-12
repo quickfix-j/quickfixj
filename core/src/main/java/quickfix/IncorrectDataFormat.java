@@ -23,15 +23,34 @@ package quickfix;
  * Field has a badly formatted value. (From the C++ API documentation.)
  */
 public class IncorrectDataFormat extends Exception {
+    public final int field;
+    public final String data;
 
+    public IncorrectDataFormat(int field, String data) {
+        this(field, data, null);
+    }
+
+    /**
+     * This constructor is here for QF JNI compatibility.
+     * 
+     * @param message
+     */
     public IncorrectDataFormat(int field) {
-        super();
+        this(field, null, null);
+    }
+
+    /**
+     * This constructor is here for QF JNI compatibility.
+     * 
+     * @param message
+     */
+    public IncorrectDataFormat(String message) {
+        this(0, null, null);
+    }
+
+    private IncorrectDataFormat(int field, String data, String message) {
+        super(message);
         this.field = field;
+        this.data = data;
     }
-
-    public IncorrectDataFormat(String s) {
-        super(s);
-    }
-
-    public int field = 0;
 }

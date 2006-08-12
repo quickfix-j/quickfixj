@@ -28,6 +28,7 @@ import java.util.Set;
 import junit.framework.Assert;
 import junit.framework.TestSuite;
 
+import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,8 @@ public class ATServer implements Runnable {
     private final TransportType transportType;
     private final int port;
     private final boolean threaded;
-    
+    private IoFilterChainBuilder ioFilterChainBuilder;
+
     public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port) {
         this.threaded = threaded;
         this.transportType = transportType;
@@ -132,9 +134,9 @@ public class ATServer implements Runnable {
                 acceptor = new SocketAcceptor(application, factory, settings, logFactory,
                         new DefaultMessageFactory());
             }
-
             assertSessionIds();
 
+            acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
             acceptor.start();
 
             assertSessionIds();
@@ -169,8 +171,8 @@ public class ATServer implements Runnable {
     public void acceptFixVersion(String beginString) {
         SessionID sessionID = new SessionID(beginString, "ISLD", "TW");
         settings.setString(sessionID, "BeginString", beginString);
-//        settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replaceAll("\\.", "")
-//                + ".xml");
+        //        settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replaceAll("\\.", "")
+        //                + ".xml");
     }
 
     public void waitForInitialization() throws InterruptedException {
@@ -193,5 +195,13 @@ public class ATServer implements Runnable {
         ATServer server = new ATServer();
         server.acceptFixVersion(FixVersions.BEGINSTRING_FIX42);
         server.run();
+    }
+
+    public AbstractSocketAcceptor getAcceptor() {
+        return acceptor;
+    }
+
+    public void setIoFilterChainBuilder(IoFilterChainBuilder builder) {
+        ioFilterChainBuilder = builder;
     }
 }

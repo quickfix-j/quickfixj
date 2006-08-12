@@ -19,12 +19,33 @@
 
 package quickfix;
 
-import quickfix.field.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+
+import quickfix.field.BeginSeqNo;
+import quickfix.field.BeginString;
+import quickfix.field.BusinessRejectReason;
+import quickfix.field.EncryptMethod;
+import quickfix.field.EndSeqNo;
+import quickfix.field.GapFillFlag;
+import quickfix.field.HeartBtInt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.NewSeqNo;
+import quickfix.field.OrigSendingTime;
+import quickfix.field.PossDupFlag;
+import quickfix.field.RefMsgType;
+import quickfix.field.RefSeqNum;
+import quickfix.field.RefTagID;
+import quickfix.field.ResetSeqNumFlag;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
+import quickfix.field.SessionRejectReason;
+import quickfix.field.TargetCompID;
+import quickfix.field.TestReqID;
+import quickfix.field.Text;
 
 /**
  * The Session is the primary FIX abstraction for message communication. It
@@ -160,6 +181,11 @@ public class Session {
      */
     public static final String SETTING_REFRESH_ON_LOGON = "RefreshOnLogon";
 
+    /**
+     * Configures the session to send redundant resend requests (off, by default).
+     */
+    public static final String SETTING_SEND_REDUNDANT_RESEND_REQUEST = "SendRedundantResendRequests";
+    
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -252,6 +278,8 @@ public class Session {
     private boolean lastSessionTimeResult = false;
 
     private boolean refreshOnLogon;
+
+    private boolean redundantResentRequestsAllowed;
 
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
@@ -576,7 +604,7 @@ public class Session {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
                     && message.isApp()) {
                 generateBusinessReject(message,
-                        BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING);
+                        BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, e.field);
             } else {
                 generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
                 if (msgType.equals(MsgType.LOGON)) {
@@ -584,6 +612,8 @@ public class Session {
                     disconnect();
                 }
             }
+        } catch (IncorrectDataFormat e) {
+            generateReject(message, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
         } catch (IncorrectTagValue e) {
             generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
         } catch (InvalidMessage e) {
@@ -595,7 +625,7 @@ public class Session {
             disconnect();
         } catch (UnsupportedMessageType e) {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
-                generateBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE);
+                generateBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE, 0);
             } else {
                 generateReject(message, "Unsupported message type");
             }
@@ -626,7 +656,7 @@ public class Session {
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (!verify(reject)) {
+        if (!verify(reject, false, true)) {
             return;
         }
         state.incrNextTargetMsgSeqNum();
@@ -711,7 +741,7 @@ public class Session {
         msg.fromString(messageData, dataDictionary, false);
         return msg;
     }
-   
+
     private boolean isTargetTooLow(int msgSeqNum) throws IOException {
         return msgSeqNum < state.getNextTargetMsgSeqNum();
     }
@@ -898,7 +928,14 @@ public class Session {
     }
 
     private void populateRejectReason(Message reject, int field, String reason) {
-        if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+        boolean isRejectMessage;
+        try {
+            isRejectMessage = MsgType.REJECT.equals(reject.getHeader().getString(MsgType.FIELD));
+        } catch (FieldNotFound e) {
+            isRejectMessage = false;
+        }
+        if (isRejectMessage
+                && sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
             reject.setInt(RefTagID.FIELD, field);
             reject.setString(Text.FIELD, reason);
         } else {
@@ -906,7 +943,8 @@ public class Session {
         }
     }
 
-    private void generateBusinessReject(Message message, int err) throws FieldNotFound, IOException {
+    private void generateBusinessReject(Message message, int err, int field) throws FieldNotFound,
+            IOException {
         Message reject = messageFactory.create(sessionID.getBeginString(),
                 MsgType.BUSINESS_MESSAGE_REJECT);
         initializeHeader(reject.getHeader());
@@ -918,9 +956,12 @@ public class Session {
         state.incrNextTargetMsgSeqNum();
 
         String reason = BusinessRejectReasonText.getMessage(err);
-        populateRejectReason(reject, reason);
+        populateRejectReason(reject, field, reason);
+        getLog().onEvent(
+                "Message " + msgSeqNum + (reason != null ? (" Rejected: " + reason) : "")
+                        + (field != 0 ? (": tag=" + field) : ""));
+
         sendRaw(reject, 0);
-        getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
     }
 
     private void nextTestRequest(Message testRequest) throws FieldNotFound, RejectLogon,
@@ -1174,7 +1215,7 @@ public class Session {
         logon.setInt(HeartBtInt.FIELD, state.getHeartBeatInterval());
         if (isRefreshNeeded()) {
             getLog().onEvent("Refreshing message/state store at logon");
-            getStore().refresh();            
+            getStore().refresh();
         }
         if (resetOnLogon) {
             state.reset();
@@ -1246,7 +1287,7 @@ public class Session {
             return;
         }
 
-        if (!state.isLogonSendNeeded() && resetOnLogon) {
+        if (!state.isInitiator() && resetOnLogon) {
             state.reset();
         }
 
@@ -1337,7 +1378,7 @@ public class Session {
         if (state.isResendRequested()) {
             int[] range = state.getResendRange();
 
-            if (msgSeqNum >= range[0]) {
+            if (!redundantResentRequestsAllowed && msgSeqNum >= range[0]) {
                 getLog().onEvent(
                         "Already sent ResendRequest FROM: " + range[0] + " TO: " + range[1]
                                 + ".  Not sending another.");
@@ -1511,7 +1552,7 @@ public class Session {
     public void setDataDictionary(DataDictionary dataDictionary) {
         this.dataDictionary = dataDictionary;
     }
-    
+
     /**
      * Reset session on logout.
      * @param flag true to reset, false otherwise.
@@ -1632,5 +1673,10 @@ public class Session {
     public void setCheckCompID(boolean flag) {
         checkCompID = flag;
     }
-    
+
+    public void setRedundantResentRequestsAllowed(boolean flag) {
+        redundantResentRequestsAllowed = flag;
+        
+    }
+
 }

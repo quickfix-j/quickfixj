@@ -32,7 +32,6 @@ import junit.framework.TestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class ExpectMessageStep implements TestStep {
     public static long TIMEOUT_IN_MS = 10000;
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -103,8 +102,14 @@ public class ExpectMessageStep implements TestStep {
             if (expectedFields.get("108") != null && heartBeatOverride >= 0) {
                 continue;
             }
-            Assert.assertEquals("field " + key + " not equal: ", expectedFields.get(key), entry
-                    .getValue());
+            if (key.equals("58")) {
+                Assert.assertTrue("field " + key + " not equal: ", entry.getValue().toString()
+                        .startsWith((String) expectedFields.get(key)));
+
+            } else {
+                Assert.assertEquals("field " + key + " not equal: ", expectedFields.get(key), entry
+                        .getValue());
+            }
         }
         Iterator expectedKey = expectedFields.keySet().iterator();
         while (expectedKey.hasNext()) {
@@ -116,16 +121,17 @@ public class ExpectMessageStep implements TestStep {
         while (timeFieldItr.hasNext()) {
             String key = (String) timeFieldItr.next();
             if (expectedFields.containsKey(key)) {
-                if (((String) expectedFields
-                        .get(key)).length() != ((String) actualFields.get(key)).length()) {
+                if (((String) expectedFields.get(key)).length() != ((String) actualFields.get(key))
+                        .length()) {
                     dateLengthMismatch = true;
                 }
-//                Assert.assertEquals("tag " + key + " size is wrong: ", ((String) expectedFields
-//                        .get(key)).length(), ((String) actualFields.get(key)).length());
+                //                Assert.assertEquals("tag " + key + " size is wrong: ", ((String) expectedFields
+                //                        .get(key)).length(), ((String) actualFields.get(key)).length());
             }
         }
         if (expectedFields.get("9") != null && !dateLengthMismatch && heartBeatOverride < 0) {
-            Assert.assertEquals("field 9 not equal: ", expectedFields.get("9"), actualFields.get("9"));
+            Assert.assertEquals("field 9 not equal: ", expectedFields.get("9"), actualFields
+                    .get("9"));
         }
     }
 

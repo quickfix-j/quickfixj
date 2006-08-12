@@ -28,9 +28,9 @@ public class ExceptionTest extends TestCase {
     }
     
     public void testIncorrectDataFormat() {
-        IncorrectDataFormat e = new IncorrectDataFormat(5);
-        e = new IncorrectDataFormat("test");
-        e.field = 5;
+        IncorrectDataFormat e = new IncorrectDataFormat(5, "test");
+        assertEquals(5, e.field);
+        assertEquals("test", e.data);
     }
     
     public void testIncorrectTagValue() {
