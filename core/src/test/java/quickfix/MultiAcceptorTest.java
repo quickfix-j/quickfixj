@@ -77,7 +77,6 @@ public class MultiAcceptorTest extends TestCase {
 
         TestRequest message = new TestRequest();
         message.set(new TestReqID("TEST"+3));
-        System.out.println("@@@@@ DEBUG MultiAcceptorTest.testMultipleAcceptor "+message);
         SessionID sessionID = getSessionIDForClient(3);
         Session.sendToTarget(message, sessionID);
         
@@ -87,7 +86,6 @@ public class MultiAcceptorTest extends TestCase {
     private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException, FieldNotFound {
         TestRequest message = new TestRequest();
         message.set(new TestReqID("TEST"+i));
-        System.out.println("@@@@@ DEBUG MultiAcceptorTest.testMultipleAcceptor "+message);
         SessionID sessionID = getSessionIDForClient(i);
         Session.sendToTarget(message, sessionID);
 

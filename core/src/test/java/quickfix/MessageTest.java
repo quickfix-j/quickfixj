@@ -35,7 +35,9 @@ import quickfix.field.CountryOfIssue;
 import quickfix.field.CrossID;
 import quickfix.field.CrossPrioritization;
 import quickfix.field.CrossType;
+import quickfix.field.EncodedHeadline;
 import quickfix.field.EncryptMethod;
+import quickfix.field.Headline;
 import quickfix.field.IOIid;
 import quickfix.field.ListID;
 import quickfix.field.ListSeqNo;
@@ -70,6 +72,7 @@ import quickfix.fix44.ExecutionReport;
 import quickfix.fix44.IndicationOfInterest;
 import quickfix.fix44.Logon;
 import quickfix.fix44.NewOrderCross;
+import quickfix.fix44.News;
 import quickfix.fix44.Logon.NoMsgTypes;
 import quickfix.fix44.component.Instrument;
 
@@ -109,6 +112,17 @@ public class MessageTest extends TestCase {
         dictionary.validate(executionReport);
     }
 
+    public void testRequiredGroupValidation() throws Exception {
+        News news = new News();
+        news.set(new Headline("Test"));
+        DataDictionary dictionary = DataDictionaryTest.getDictionary();
+        try {
+            dictionary.validate(news);
+            fail("no field exception for missing lines group");
+        } catch (FieldException e) {
+            // expected
+        }
+    }
     /**
      *  Test for data fields with SOH. This test is based on report from a user on
      *  the QuickFIX mailing list. The problem was the user's configuration but this
