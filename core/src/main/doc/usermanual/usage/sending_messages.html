@@ -121,9 +121,9 @@ void sendOrderCancelRequest()
 
 	<pre class="code">import quickfix.*;
 
-void sendOrderCancelRequest()
+void sendOrderCancelRequest() throws SessionNotFound
 {
-  quickfix.fix41.OrderCancelRequest message(
+  quickfix.fix41.OrderCancelRequest message = new quickfix.fix41.OrderCancelRequest(
 	new OrigClOrdID("123"),
 	new ClOrdID("321"),
 	new Symbol("LNUX"),
