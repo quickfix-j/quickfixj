@@ -82,6 +82,9 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     log.error("Unknown session ID during logon: " + sessionID);
                     return;
                 }
+            } else {
+                log.warn("Ignoring non-logon message before session establishment: "+message);
+                return;
             }
         }
         eventHandlingStrategy.onMessage(qfSession, message);
