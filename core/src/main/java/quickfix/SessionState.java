@@ -50,6 +50,10 @@ public class SessionState {
     private boolean resetReceived;
     private String logoutReason;
     
+    public SessionState() {
+        log = new NullLog();
+    }
+    
     public int getHeartBeatInterval() {
         return heartBeatInterval;
     }
@@ -276,4 +280,17 @@ public class SessionState {
         logoutReason = "";
     }
 
+    private final class NullLog implements Log {
+        public void onOutgoing(String message) {
+        }
+
+        public void onIncoming(String message) {
+        }
+
+        public void onEvent(String text) {
+        }
+
+        public void clear() {
+        }
+    }
 }

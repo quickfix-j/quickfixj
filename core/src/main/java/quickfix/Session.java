@@ -206,7 +206,9 @@ public class Session {
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
-        Log log = logFactory.create(sessionID);
+        if (logFactory != null) {
+            state.setLog(logFactory.create(sessionID));
+        }
 
         try {
             this.application = application;
@@ -225,19 +227,16 @@ public class Session {
             state.setInitiator(heartbeatInterval != 0);
             state.setMessageStore(messageStoreFactory.create(sessionID));
             this.messageFactory = messageFactory;
-            if (logFactory != null) {
-                state.setLog(log);
-            }
-            log.onEvent("Session " + this.sessionID + " schedule is " + sessionSchedule);
+            getLog().onEvent("Session " + this.sessionID + " schedule is " + sessionSchedule);
             if (!checkSessionTime()) {
-                log.onEvent("Session state is not current; resetting " + this.sessionID);
+                getLog().onEvent("Session state is not current; resetting " + this.sessionID);
                 reset();
             }
             sessions.put(sessionID, this);
             application.onCreate(sessionID);
-            log.onEvent("Created session: " + sessionID);
+            getLog().onEvent("Created session: " + sessionID);
         } catch (IOException e) {
-            LogUtil.logThrowable(log, "error during session construction", e);
+            LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
     }
 
