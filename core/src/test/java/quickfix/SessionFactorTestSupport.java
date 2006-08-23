@@ -9,8 +9,8 @@
 
 package quickfix;
 
-public class SessionFactoryForTest implements SessionFactory {
-    private static SessionFactoryForTest instance = new SessionFactoryForTest();
+public class SessionFactorTestSupport implements SessionFactory {
+    private static SessionFactorTestSupport instance = new SessionFactorTestSupport();
     
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         if (sessionID == null) {

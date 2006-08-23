@@ -18,7 +18,7 @@ import org.apache.mina.common.IoSession;
 import org.easymock.MockControl;
 
 import quickfix.Session;
-import quickfix.SessionFactoryForTest;
+import quickfix.SessionFactorTestSupport;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
 import quickfix.fix44.Logout;
@@ -55,7 +55,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
         IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
         
-        Session qfSession = SessionFactoryForTest.create();
+        Session qfSession = SessionFactorTestSupport.create();
         mockIoSession.getAttribute("QF_SESSION");
         mockIoSessionControl.setReturnValue(qfSession);
 
@@ -97,7 +97,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         EventHandlingStrategy mockEventHandlingStrategy = (EventHandlingStrategy) mockEventHandlingStrategyControl
                 .getMock();
 
-        Session qfSession = SessionFactoryForTest.create();
+        Session qfSession = SessionFactorTestSupport.create();
 
         Logout logout = new Logout();
         logout.getHeader().setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
