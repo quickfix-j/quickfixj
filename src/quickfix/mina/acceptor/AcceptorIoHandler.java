@@ -60,8 +60,8 @@ class AcceptorIoHandler extends AbstractIoHandler {
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
                 qfSession = (Session) acceptorSessions.get(sessionID);
-                Log sessionLog = qfSession.getLog();
                 if (qfSession != null) {
+                Log sessionLog = qfSession.getLog();
                     if (qfSession.getResponder() != null) {
                         // Session is already bound to another connection
                         sessionLog
@@ -79,7 +79,11 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     qfSession.setResponder(new IoSessionResponder(protocolSession));
                 } else {
                     log.error("Unknown session ID during logon: " + sessionID);
+                    return;
                 }
+            } else {
+                log.warn("Ignoring non-logon message before session establishment: "+message);
+                return;
             }
         }
         eventHandlingStrategy.onMessage(qfSession, message);
