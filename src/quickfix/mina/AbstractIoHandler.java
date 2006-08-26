@@ -64,6 +64,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             log.error("socket exception (" + remoteAddress + "): " + message);
             disconnectNeeded = true;
         } else if (cause instanceof CriticalProtocolCodecException) {
+            log.error("critical protocol codec error: "+cause.getMessage());
             disconnectNeeded = true;
         } else if (cause instanceof ProtocolCodecException) {
             String text = "protocol handler exception: " + cause.getMessage();
@@ -83,7 +84,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             if (quickFixSession != null) {
                 quickFixSession.disconnect();
             } else {
-                ioSession.close();
+                ioSession.close().join();
             }
         }
     }
@@ -122,7 +123,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
-            ioSession.close();
+            ioSession.close().join();
         }
     }
 

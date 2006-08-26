@@ -66,7 +66,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                         // Session is already bound to another connection
                         sessionLog
                                 .onEvent("Multiple logons/connections for this session are not allowed");
-                        protocolSession.close();
+                        protocolSession.close().join();
                         return;
                     }
                     sessionLog.onEvent("Accepting session " + qfSession.getSessionID() + " from "

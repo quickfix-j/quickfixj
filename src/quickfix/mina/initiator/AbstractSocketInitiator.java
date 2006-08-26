@@ -52,6 +52,7 @@ import quickfix.mina.SessionConnector;
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
+    private IoSessionInitiator ioSessionInitiator;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -80,9 +81,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
                 NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
                         .getSessionProperties(sessionID));
-                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(quickfixSession,
-                        socketAddresses, reconnectingInterval, getScheduledExecutorService(),
-                        networkingOptions, eventHandlingStrategy);
+                ioSessionInitiator = new IoSessionInitiator(quickfixSession,
+                                        socketAddresses, reconnectingInterval, getScheduledExecutorService(),
+                                        networkingOptions, eventHandlingStrategy);
                 ioSessionInitiator.connect();
             }
             startSessionTimer();
@@ -178,4 +179,11 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 || settings.getString((SessionID) sectionKey,
                         SessionFactory.SETTING_CONNECTION_TYPE).equals("initiator");
     }
+
+    protected void stopSessionTimer() {
+        ioSessionInitiator.stop();
+        super.stopSessionTimer();
+    }
+    
+    
 }

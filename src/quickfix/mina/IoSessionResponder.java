@@ -40,7 +40,7 @@ public class IoSessionResponder implements Responder {
     }
 
     public void disconnect() {
-        ioSession.close();
+        ioSession.close().join();
     }
 
     public String getRemoteIPAddress() {
