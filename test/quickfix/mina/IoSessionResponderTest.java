@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 
 import junit.framework.TestCase;
 
+import org.apache.mina.common.CloseFuture;
 import org.apache.mina.common.IoSession;
 import org.easymock.MockControl;
 
@@ -42,18 +43,28 @@ public class IoSessionResponderTest extends TestCase {
         mockIoSessionControl.verify();
     }
 
+    private final class MockCloseFuture extends CloseFuture {
+        public boolean joined;
+        
+        public void join() {
+            joined = true;
+        }
+    }
+
     public void testDisconnect() throws Exception {
         MockControl mockProtocolSessionControl = MockControl.createControl(IoSession.class);
         IoSession mockProtocolSession = (IoSession) mockProtocolSessionControl.getMock();
         mockProtocolSession.close();
-        mockProtocolSessionControl.setReturnValue(null);
+        MockCloseFuture mockCloseFuture = new MockCloseFuture();
+        mockProtocolSessionControl.setReturnValue(mockCloseFuture);
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession);
 
         mockProtocolSessionControl.replay();
 
         responder.disconnect();
-
+        
+        assertTrue("Close not synchronous (joined)", mockCloseFuture.joined);
         mockProtocolSessionControl.verify();
     }
 
