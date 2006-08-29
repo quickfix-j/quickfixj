@@ -234,7 +234,9 @@ public abstract class SessionConnector {
     private static class QFTimerThreadFactory implements ThreadFactory {
 
         public Thread newThread(Runnable runnable) {
-            return new Thread(runnable, "QFJ Timer");
+            Thread thread = new Thread(runnable, "QFJ Timer");
+            thread.setDaemon(true);
+            return thread;
         }
 
     }
