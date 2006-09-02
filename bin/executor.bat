@@ -6,8 +6,6 @@ if "%OS%"=="WINNT" @setlocal
 rem %~dp0 is expanded pathname of the current script under NT
 set DEFAULT_QFJ_HOME=%~dp0..
 
-echo %DEFAULT_QFJ_HOME%
-
 if "%QFJ_HOME%"=="" set QFJ_HOME=%DEFAULT_QFJ_HOME%
 set DEFAULT_QFJ_HOME=
 
