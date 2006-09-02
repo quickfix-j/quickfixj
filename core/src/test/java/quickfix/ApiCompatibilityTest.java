@@ -334,7 +334,10 @@ public class ApiCompatibilityTest {
             }
         };
         try {
-            String jarPath = "core/src/test/lib/quickfix-jni.jar";
+            String jarPath = System.getProperty("utest.jnijar");
+            if (jarPath == null) {
+                jarPath= "core/src/test/lib/quickfix-jni.jar";
+            }
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
             IgnoredItems ignoredItems = new IgnoredItems(jniClassLoader);

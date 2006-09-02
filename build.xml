@@ -1,54 +1,32 @@
 <project name="master" basedir="." default="">
 	<property name="release.output.dir" value="dist"/>
 	<property name="output.dir" value="classes" />
-	<!--
-	<property name="ant.output.dir" value="output/ant" />
-	<property name="eclipse.output.dir" value="${output.dir}/eclipse" />
-	<property name="jar.output.dir" value="${ant.output.dir}/jars" />
-	<property name="test.classes.dir" value="${ant.output.dir}/classes/test" />
-	<property name="test.src.dir" value="test" />
-	<property name="example.src.dir" value="examples" />
-	<property name="product.classes.dir"
-	          value="${ant.output.dir}/classes/product" />
-	<property name="product.src.dir" value="core/src/main/java" />
-	<property name="product.generated.src.dir"
-	          value="${ant.output.dir}/src-generated" />
-	<property name="eclipse.generated.src.dir" value="core/target/src-generated" />
-	<property name="specs.dir" value="core/src/main/resources" />
-	<property name="xsl.dir" value="core/src/main/java/quickfix/codegen" />
-	<property name="etc.dir" value="etc" />
-	<property name="bin.dir" value="bin" />
-	<property name="core.lib.dir" value="core/src/main/lib" />
-	<property name="test.lib.dir" value="core/src/test/lib" />
-	<property name="optional.lib.dir" value="${core.lib.directory}/optional" />
-	<property name="quickfixj.jar" value="quickfixj.jar" />
-	<property name="release.output.dir" value="${ant.output.dir}/release" />
-	<property name="javadoc.input.dir" value="doc" />
-	<property name="usermanual.dir" value="doc/usermanual" />
-	<property name="javadoc.output.dir" value="${ant.output.dir}/javadoc" />
-	-->
 
 	<macrodef name="iterate">
 		<attribute name="target" />
 		<element name="properties" optional="true"/>
 		<sequential>
-			<subant target="@{target}" verbose="true">
+			<subant target="@{target}" verbose="yes">
 				<fileset dir="." includes="*/build.xml" />
 				<properties/>
 			</subant>
 		</sequential>
 	</macrodef>
 
-	<target name="jar" description="create module jar files">
+	<target name="jar" description="Create module jar files">
 		<iterate target="jar"/>
 	</target>
 
-	<target name="clean" description="clean files">
+	<target name="clean" description="Clean files">
 		<iterate target="clean"/>
 	</target>
 
-	<target name="test" description="run tests">
+	<target name="test" description="Run tests">
 		<iterate target="test"/>
+	</target>
+
+	<target name="javadoc" description="Generate Javadocs">
+		<iterate target="javadoc"/>
 	</target>
 
 	<path id="core.lib.classpath">
@@ -132,7 +110,7 @@
 		<property name="release.prefix" value="quickfixj-${version}" />
 	</target>
 
-	<target name="release.shared">
+	<target name="release.shared" depends="jar,test,javadoc">
 		<initdir dir="${release.output.dir}" />
 
 		<!-- Source release staging -->

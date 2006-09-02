@@ -3,6 +3,33 @@
 		This is the shared module build file for QFJ modules.
 	</description>
 			
+	<property name="main.dir" value="src/main" />
+	<property name="test.dir" value="src/test" />
+	<property name="target.dir" value="target" />
+
+	<property name="main.src.dir" value="${main.dir}/java" />
+	<property name="main.resources.dir" value="${main.dir}/resources" />
+
+	<property name="test.src.dir" value="${test.dir}/java" />
+
+	<property name="main.lib.dir" value="${main.dir}/lib" />
+	<property name="main.optional.lib.dir" value="${main.dir}/lib/optional" />
+	<property name="test.lib.dir" value="${test.dir}/lib" />
+
+	<property name="target.classes.dir" value="${target.dir}/classes"/>
+	<property name="main.classes.dir" value="${target.classes.dir}/main" />
+	<property name="test.classes.dir" value="${target.classes.dir}/test" />
+	<property name="jar.output.dir" value="${target.dir}" />
+
+	<property name="javadoc.input.dir" value="${main.dir}/doc" />
+	<property name="javadoc.output.dir" value="${target.dir}/doc/api" />
+
+	<property name="test.output.dir" value="${target.dir}/test"/>
+	<property name="test.report.dir" value="${target.dir}/test/reports"/>
+
+	<available file="src/main/java" property="main.java.available"/>
+	<available file="src/test/java" property="test.java.available"/>
+	
 	<target name="export_sources">
 		<echo message="${basedir}"/>
 		<echo message="${user.dir}"/>
@@ -25,7 +52,7 @@
 				<include name="*.jar" />
 				<include name="docs" />
 			</fileset>
-			<fileset dir="resources" />
+			<fileset dir="${main.resources.dir}" />
 		</copy>
 	</target>
 
@@ -33,7 +60,15 @@
 		<description>Default test target</description>
 	</target>
 	
+	<target name="javadoc">
+		<description>Default javadoc target</description>
+	</target>
+
 	<target name="clean" description="clean files">
 		<delete dir="target"/>
+	</target>
+	
+	<target name="clean.classes" description="Clean the target classes">
+		<delete dir="${target.classes.dir}"/>
 	</target>
 </project>
