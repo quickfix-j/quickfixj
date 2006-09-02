@@ -1,3 +1,5 @@
 #!/bin/sh
 
-cd `dirname $0`; . run.inc.sh quickfix.examples.executor.Executor $*
+scriptdir=`dirname $0`
+qfjhome=$scriptdir/../../../..
+. $scriptdir/run.inc.sh quickfix.examples.executor.Executor $*

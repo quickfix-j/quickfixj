@@ -1,7 +1,9 @@
 #!/bin/sh
 
 # For ANT build
+pwd
 CP=$CP:core/target/quickfixj.jar
+CP=$CP:examples/target/quickfixj-examples.jar
 # For Eclipse build
 CP=$CP:classes
 # For binary release
