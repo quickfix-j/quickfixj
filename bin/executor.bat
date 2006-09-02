@@ -1,9 +1,23 @@
 @echo off
-set CP=%CLASSPATH%;output/eclipse/classes
-set CP=%CP%;output/ant/jars/quickfixj.jar
-set CP=%CP%;lib/mina-core-0.9.3.jar
-set CP=%CP%;lib/backport-util-concurrent-2.1.jar
-set CP=%CP%;lib/slf4j-jdk14-1.0.1.jar
 
-cd ..
-java -cp %CP% quickfix.examples.executor.Executor
+if "%OS%"=="Windows_NT" @setlocal
+if "%OS%"=="WINNT" @setlocal
+
+rem %~dp0 is expanded pathname of the current script under NT
+set DEFAULT_QFJ_HOME=%~dp0..
+
+echo %DEFAULT_QFJ_HOME%
+
+if "%QFJ_HOME%"=="" set QFJ_HOME=%DEFAULT_QFJ_HOME%
+set DEFAULT_QFJ_HOME=
+
+if not "%QFJ_HOME%"=="" goto qfjHomeOk
+echo QFJ_HOME must set manually for older versions of Windows. Please set QFJ_HOME.
+goto end
+:qfjHomeOk
+
+call "%QFJ_HOME%\bin\classpath.inc.bat"
+
+java -cp %CP% quickfix.examples.executor.Executor %1 %2 %3 %4 %5 %6 %7 %8 %9
+
+:end
