@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -43,6 +44,17 @@ import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
 public class ApiCompatibilityTest {
+    static Set testedDirectories = new HashSet();
+
+    static {
+        testedDirectories.add("quickfix");
+        testedDirectories.add("quickfix/fields");
+        testedDirectories.add("quickfix/fix40");
+        testedDirectories.add("quickfix/fix41");
+        testedDirectories.add("quickfix/fix42");
+        testedDirectories.add("quickfix/fix43");
+        testedDirectories.add("quickfix/fix44");
+    }
 
     private static class ApiTest implements Test {
         private final Class jniClass;
@@ -142,7 +154,7 @@ public class ApiCompatibilityTest {
         }
 
         private void assertCompatibleMethods() {
-            Method[] methods = jniClass.getMethods();
+            Method[] methods = jniClass.getDeclaredMethods();
             for (int i = 0; i < methods.length; i++) {
                 if ((methods[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
                     Method m = null;
@@ -150,8 +162,7 @@ public class ApiCompatibilityTest {
                         if (ignoredItems.isIgnoredMethod(methods[i])) {
                             return;
                         }
-                        m = javaClass.getMethod(methods[i].getName(),
-                                translateClassArray(methods[i].getParameterTypes()));
+                        m = findCompatibleMethod(methods[i]);
                     } catch (SecurityException e) {
                         Assert.fail(e.getMessage());
                     } catch (NoSuchMethodException e) {
@@ -165,6 +176,30 @@ public class ApiCompatibilityTest {
                     assertNoExtraExceptions(methods[i], jniExceptionTypes, javaExceptionTypes);
                 }
             }
+        }
+
+        private Method findCompatibleMethod(Method jniMethod) throws NoSuchMethodException {
+            Method method = null;
+            final String methodName = jniMethod.getName();
+            final Class[] parameterTypes = translateClassArray(jniMethod.getParameterTypes());
+            if ((jniMethod.getModifiers() & Modifier.PUBLIC) != 0) {
+                method = javaClass.getMethod(methodName, parameterTypes);
+            } else {
+                // Search for a protected method
+                Class clazz = javaClass;
+                while (clazz != null) {
+                    try {
+                        method = clazz.getDeclaredMethod(methodName, parameterTypes);
+                        break;
+                    } catch (NoSuchMethodException e) {
+                        clazz = clazz.getSuperclass();
+                        if (clazz == null) {
+                            throw e;
+                        }
+                    }
+                }
+            }
+            return method;
         }
 
         private void assertNoExtraExceptions(Method jniMethod, List jniExceptionTypes,
@@ -285,10 +320,12 @@ public class ApiCompatibilityTest {
                     Message.class, Message.class });
             ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
                     Message.class, Message.class });
-
         }
 
         public boolean isIgnoredMethod(Method m) {
+            if (m.getName().equals("finalize") && m.getParameterTypes().length == 0) {
+                return true;
+            }
             return ignoredMethods.contains(m);
         }
 
@@ -296,7 +333,7 @@ public class ApiCompatibilityTest {
 //                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
 //                NoSuchMethodException {
 //            Class c = jniClassLoader.loadClass(className);
-//            Method m = c.getMethod(methodName, argumentTypes);
+//            Method m = c.getDeclaredMethod(methodName, argumentTypes);
 //            ignoredMethods.add(m);
 //        }
 
@@ -348,7 +385,7 @@ public class ApiCompatibilityTest {
                 String path = entry.getName();
                 String directory = path.substring(0, path.lastIndexOf('/'));
                 String name = path.substring(path.lastIndexOf('/') + 1);
-                if (directory.equals("quickfix") && !name.equals("")) {
+                if (testedDirectories.contains(directory) && !name.equals("")) {
                     String classname = path.substring(0, path.lastIndexOf(".class")).replace('/',
                             '.');
                     Class jniClass = jniClassLoader.loadClass(classname);

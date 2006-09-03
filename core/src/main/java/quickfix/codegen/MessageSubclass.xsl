@@ -21,7 +21,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	version="1.0">
 	<xsl:output method="text" encoding="UTF-8" />
-
+	
 	<xsl:template match="text()"/>
 
   <xsl:template match="fix/header">
@@ -136,7 +136,7 @@ import quickfix.Group;</xsl:when>
     </xsl:if>
   </xsl:template>
   
-  <!-- *********************************************************************
+	  <!-- *********************************************************************
  	FIX repeating group generation template.
  		- Find first field (for constructor)
  		- Find all fields and their order (for constructor)
@@ -266,11 +266,10 @@ import quickfix.Group;</xsl:when>
   
   </xsl:template>
 
-  <xsl:template mode="field-accessors" match="message//component">
+  <xsl:template mode="field-accessors" match="component">
   	<xsl:call-template name="component-accessor-template"/>
     <xsl:variable name="name" select="@name"/>  
   	<xsl:apply-templates select="/fix/components/component[@name=$name]/*[name(.)='field' or name(.)='group' or name(.)='component']"
   		mode="field-accessors"/>
   </xsl:template>
-
 </xsl:stylesheet>
