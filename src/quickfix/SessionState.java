@@ -31,9 +31,10 @@ import java.util.HashMap;
  */
 public class SessionState {
     private Log log;
+    private boolean logonSent;
     private boolean logonReceived;
     private boolean logoutSent;
-    private boolean logonSent;
+    private boolean logoutReceived = false;
     private boolean initiator;
     private long logonTimeoutMs = 10000L;
     private long logoutTimeoutMs = 2000L;
@@ -142,6 +143,14 @@ public class SessionState {
 
     public void setLogoutSent(boolean logoutSent) {
         this.logoutSent = logoutSent;
+    }
+
+    public boolean isLogoutReceived() {
+        return logoutReceived;
+    }
+
+    public void setLogoutReceived(boolean logoutReceived) {
+        this.logoutReceived = logoutReceived;
     }
 
     public boolean isLogoutTimedOut() {

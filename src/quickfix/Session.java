@@ -408,7 +408,7 @@ public class Session {
     }
 
     /**
-     * Predicate indicatign whether a logon message has been sent.
+     * Predicate indication whether a logon message has been sent.
      *
      * @return true if logon message was sent, false otherwise.
      */
@@ -417,7 +417,7 @@ public class Session {
     }
 
     /**
-     * Predicate indicatign whether a logon message has been received.
+     * Predicate indication whether a logon message has been received.
      *
      * @return true if logon message was received, false otherwise.
      */
@@ -426,12 +426,21 @@ public class Session {
     }
 
     /**
-     * Predicate indicatign whether a logout message has been sent.
+     * Predicate indication whether a logout message has been sent.
      *
      * @return true if logout message was sent, false otherwise.
      */
     public boolean sentLogout() {
         return state.isLogoutSent();
+    }
+    
+    /**
+     * Predicate indication whether a logout message has been received.
+     *  
+     * @return true if logout message has been received, false otherwise.
+     */ 
+    public boolean receivedLogout() {
+        return state.isLogoutReceived();
     }
 
     public boolean isLoggedOn() {
@@ -443,7 +452,7 @@ public class Session {
                 && (resetWhenInitiatingLogon || resetOnLogout || resetOnDisconnect)
                 && getExpectedSenderNum() == 1 && getExpectedTargetNum() == 1;
     }
-
+        
     /**
      * Logouts and disconnects session and then resets session state.
      *
@@ -760,6 +769,7 @@ public class Session {
         } else {
             getLog().onEvent("Received logout response");
         }
+        state.setLogoutReceived(true);
 
         state.incrNextTargetMsgSeqNum();
         if (resetOnLogout) {
@@ -1202,6 +1212,7 @@ public class Session {
         }
 
         state.setLogoutSent(false);
+        state.setLogoutReceived(false);
         state.setResetReceived(false);
         state.setResetSent(false);
 
