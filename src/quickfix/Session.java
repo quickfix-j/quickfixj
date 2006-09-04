@@ -417,7 +417,7 @@ public class Session {
     }
 
     /**
-     * Predicate indication whether a logon message has been received.
+     * Predicate indicating whether a logon message has been received.
      *
      * @return true if logon message was received, false otherwise.
      */
@@ -426,7 +426,7 @@ public class Session {
     }
 
     /**
-     * Predicate indication whether a logout message has been sent.
+     * Predicate indicating whether a logout message has been sent.
      *
      * @return true if logout message was sent, false otherwise.
      */
@@ -435,7 +435,7 @@ public class Session {
     }
     
     /**
-     * Predicate indication whether a logout message has been received.
+     * Predicate indicating whether a logout message has been received.
      *  
      * @return true if logout message has been received, false otherwise.
      */ 
