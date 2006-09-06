@@ -35,7 +35,6 @@ import quickfix.field.CountryOfIssue;
 import quickfix.field.CrossID;
 import quickfix.field.CrossPrioritization;
 import quickfix.field.CrossType;
-import quickfix.field.EncodedHeadline;
 import quickfix.field.EncryptMethod;
 import quickfix.field.Headline;
 import quickfix.field.IOIid;
@@ -74,10 +73,24 @@ import quickfix.fix44.Logon;
 import quickfix.fix44.NewOrderCross;
 import quickfix.fix44.News;
 import quickfix.fix44.Logon.NoMsgTypes;
+import quickfix.fix44.NewOrderSingle.NoPartyIDs;
 import quickfix.fix44.component.Instrument;
+import quickfix.fix44.component.Parties;
 
 public class MessageTest extends TestCase {
 
+    public void testComponentGroupExtraction() throws Exception {
+        quickfix.fix44.NewOrderSingle order = new quickfix.fix44.NewOrderSingle();
+        NoPartyIDs partyIds = new NoPartyIDs();
+        partyIds.set(new PartyID("PARTY_ID_1"));
+        order.addGroup(partyIds);
+        partyIds.set(new PartyID("PARTY_ID_2"));
+        order.addGroup(partyIds);
+        
+        Parties parties = order.getParties();
+        assertEquals("wrong # of party IDs", 2, parties.getNoPartyIDs().getValue());
+    }
+    
     public void testParsing() throws Exception {
         // checksum is not verified in these tests
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
