@@ -91,6 +91,20 @@ public class MessageTest extends TestCase {
         assertEquals("wrong # of party IDs", 2, parties.getNoPartyIDs().getValue());
     }
     
+    public void testComponentGroupInsertion() throws Exception {
+        Parties parties = new Parties();
+        NoPartyIDs partyIds = new NoPartyIDs();
+        partyIds.set(new PartyID("PARTY_ID_1"));
+        parties.addGroup(partyIds);
+        partyIds.set(new PartyID("PARTY_ID_2"));
+        parties.addGroup(partyIds);
+        
+        quickfix.fix44.NewOrderSingle order = new quickfix.fix44.NewOrderSingle();
+        order.set(parties);
+        
+        assertEquals("wrong # of party IDs", 2, order.getNoPartyIDs().getValue());
+    }
+
     public void testParsing() throws Exception {
         // checksum is not verified in these tests
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"

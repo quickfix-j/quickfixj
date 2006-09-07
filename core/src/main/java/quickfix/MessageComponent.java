@@ -38,6 +38,7 @@ public abstract class MessageComponent extends FieldMap {
             int[] groupFields = getGroupFields();
             for (int i = 0; i < groupFields.length; i++) {
                 if (isSetField(groupFields[i])) {
+                    fields.setField(groupFields[i], getField(groupFields[i]));
                     fields.setGroups(groupFields[i], getGroups(groupFields[i]));
                 }
             }
