@@ -923,7 +923,7 @@ public class Session {
         }
 
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
-            populateRejectReason(reject, field, reason);
+            populateRejectReason(reject, field, reason, true);
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
         } else if (reason != null) {
             populateRejectReason(reject, reason);
@@ -938,7 +938,7 @@ public class Session {
         reject.setString(Text.FIELD, reason);
     }
 
-    private void populateRejectReason(Message reject, int field, String reason) {
+    private void populateRejectReason(Message reject, int field, String reason, boolean includeFieldInReason) {
         boolean isRejectMessage;
         try {
             isRejectMessage = MsgType.REJECT.equals(reject.getHeader().getString(MsgType.FIELD));
@@ -950,7 +950,7 @@ public class Session {
             reject.setInt(RefTagID.FIELD, field);
             reject.setString(Text.FIELD, reason);
         } else {
-            reject.setString(Text.FIELD, reason + " (" + field + ")");
+            reject.setString(Text.FIELD, reason + (includeFieldInReason ? " (" + field + ")" : ""));
         }
     }
 
@@ -967,7 +967,7 @@ public class Session {
         state.incrNextTargetMsgSeqNum();
 
         String reason = BusinessRejectReasonText.getMessage(err);
-        populateRejectReason(reject, field, reason);
+        populateRejectReason(reject, field, reason, false);
         getLog().onEvent(
                 "Message " + msgSeqNum + (reason != null ? (" Rejected: " + reason) : "")
                         + (field != 0 ? (": tag=" + field) : ""));

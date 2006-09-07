@@ -126,7 +126,7 @@ public class SessionState {
     }
 
     public boolean isLogonTimedOut() {
-        return SystemTime.currentTimeMillis() - getLastReceivedTime() >= logonTimeoutMs;
+        return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= logonTimeoutMs;
     }
 
     public void setLogonTimeout(int logonTimeout) {
