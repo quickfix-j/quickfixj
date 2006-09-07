@@ -53,6 +53,7 @@ import quickfix.field.Price;
 import quickfix.field.RawData;
 import quickfix.field.RawDataLength;
 import quickfix.field.RefMsgType;
+import quickfix.field.SecureData;
 import quickfix.field.SecurityID;
 import quickfix.field.SecurityIDSource;
 import quickfix.field.SecurityType;
@@ -194,6 +195,14 @@ public class MessageTest extends TestCase {
         assertEquals("wrong # of party IDs", 2, order.getNoPartyIDs().getValue());
     }
 
+    // QFJ-66 Should not throw exception when parsing data field in header
+    public void testHeaderDataField() throws Exception {
+        Message m = new Message("8=FIX.4.2\0019=53\00135=A\00190=4\00191=ABCD\001"
+                + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=241\001",
+                DataDictionaryTest.getDictionary());
+        assertEquals("ABCD", m.getHeader().getString(SecureData.FIELD));
+    }
+    
     // QFJ-52
     public void testInvalidFirstFieldInGroup() throws Exception {
         News news = new News();
