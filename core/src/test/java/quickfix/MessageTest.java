@@ -205,6 +205,8 @@ public class MessageTest extends TestCase {
         
         try {
             new Message(news.toString(), DataDictionaryTest.getDictionary());
+        } catch (InvalidMessage e) {
+            // expected
         } catch (NullPointerException e) {
             fail("Should not throw NPE when first field is missing.");
         }
