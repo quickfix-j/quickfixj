@@ -27,6 +27,7 @@ import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +85,7 @@ public class SocketInitiatorTest extends TestCase {
             }
         } finally {
             serverThread.interrupt();
+            serverThread.join();
         }
         assertTrue("Initiator write count = 0, filter problem?", initiatorWriteCounter.getCount() > 0);
         assertTrue("Acceptor write count = 0, filter problem?", serverThread.getWriteCount() > 0);
@@ -114,6 +116,7 @@ public class SocketInitiatorTest extends TestCase {
 
         } finally {
             serverThread.interrupt();
+            serverThread.join();
         }
     }
 
@@ -121,6 +124,7 @@ public class SocketInitiatorTest extends TestCase {
         SessionSettings settings = new SessionSettings();
         HashMap defaults = new HashMap();
         defaults.put("ConnectionType", "initiator");
+        defaults.put("SocketConnectProtocol", "VM_PIPE");
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", "9877");
         defaults.put("StartTime", "00:00:00");
@@ -193,7 +197,7 @@ public class SocketInitiatorTest extends TestCase {
         
         public ServerThread() {
             super("test server");
-            server = new ATServer();
+            server = new ATServer(TransportType.VM_PIPE);
             server.setIoFilterChainBuilder(new IoFilterChainBuilder() {
                 public void buildFilterChain(IoFilterChain chain) throws Exception {
                     chain.addLast("TestFilter", writeCounter);

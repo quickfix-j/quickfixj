@@ -77,6 +77,12 @@ public class ATServer implements Runnable {
         port = 9877;
     }
 
+    public ATServer(TransportType transportType) {
+        this.transportType = transportType;
+        threaded = false;
+        port = 9877;
+    }
+
     public void run() {
         try {
             HashMap defaults = new HashMap();
