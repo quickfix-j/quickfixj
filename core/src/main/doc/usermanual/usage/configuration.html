@@ -263,14 +263,14 @@
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>SocketConnectPort&lt;n&gt;</I> </TD>
 
-    <TD> Alternate socket ports for connecting to a session for failover, where <B>n</B> is a
-  	     positive integer. (i.e.) SocketConnectPort1, SocketConnectPort2... must be consecutive
-             and have a matching SocketConnectHost[n]</TD>
-    <TD> positive integer </TD>
-    <TD>&nbsp; </TD>
-    </TR>
+    <TD> <I>SocketConnectProtocol</I> </TD>
+    <TD> Specifies the initiator communication protocol. The SocketConnectHost is not used with the VM_PIPE
+		protocol, but the SocketConnectPort is significant and must match the acceptor configuration.
+    </TD>
+    <TD> "TCP" or "VM_PIPE".  </TD>
+    <TD>"TCP" </TD>
+  </TR>
   <TR ALIGN="left" VALIGN="middle">
 
     <TD> <I>SocketConnectHost&lt;n&gt;</I> </TD>
@@ -281,7 +281,6 @@
 
     <TD>&nbsp; </TD>
   </TR>
-
   <TR ALIGN="center" VALIGN="middle">
     <TD COLSPAN="4" class="subsection"><A NAME="Acceptor">Acceptor</A></TD>
   </TR>
@@ -300,6 +299,15 @@
     <TD> A hostname or IP address parseable by java.net.InetAddress. Currently,
       this must be defined in the [DEFAULT] section.</TD>
     <TD>Accept connections on any network interface.</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>SocketAcceptProtocol</I> </TD>
+    <TD> Specifies the acceptor communication protocol. The SocketAcceptAddress is not used with the VM_PIPE
+		protocol, but the SocketAcceptPort is significant and must match the initiator configuration.
+    </TD>
+    <TD> "TCP" or "VM_PIPE".  </TD>
+    <TD>"TCP" </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>RefreshOnLogon</I></TD>
