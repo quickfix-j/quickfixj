@@ -632,6 +632,7 @@ public class Session {
             if (e.isLogoutBeforeDisconnect()) {
                 generateLogout(e.getMessage());
             }
+            state.incrNextTargetMsgSeqNum();
             disconnect();
         } catch (UnsupportedMessageType e) {
             if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
