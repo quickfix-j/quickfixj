@@ -19,17 +19,18 @@
 
 package quickfix;
 
+import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import quickfix.field.converter.UtcTimeOnlyConverter;
-
 import junit.framework.TestCase;
+import quickfix.field.converter.UtcTimeOnlyConverter;
 
 public class SessionScheduleTest extends TestCase {
     private MockSystemTimeSource mockSystemTimeSource;
@@ -95,7 +96,8 @@ public class SessionScheduleTest extends TestCase {
             int month, int day, int hour, int minute, int second, TimeZone timeZone) {
         mockSystemTimeSource
                 .setTime(getTimeStamp(year, month, day, hour, minute, second, timeZone));
-        assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
+        assertEquals("in session expectation incorrect", expectedInSession, schedule
+                .isSessionTime());
     }
 
     private void doIsSessionTimeTest(boolean expectedInSession, int year, int month, int day,
@@ -228,7 +230,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSameSessionTest(schedule, t1, t2, false);
 
     }
-    
+
     public void testIsSameSessionWithDay() throws Exception {
         SessionSchedule schedule = newSessionSchedule(getUtcTime(3, 0, 0).getTime(), getUtcTime(18,
                 0, 0).getTime(), 2, 5);
@@ -277,23 +279,23 @@ public class SessionScheduleTest extends TestCase {
         // Check that ST-->DST (Sunday is missing one hour) is handled
         t1 = getUtcTimeStamp(2006, 4, 4, 0, 0, 0);
         t2 = getUtcTimeStamp(2006, 4, 3, 1, 0, 0);
-        doIsSameSessionTest( schedule, t1, t2, true );
+        doIsSameSessionTest(schedule, t1, t2, true);
 
         // Check that DST-->ST (Sunday has an extra hour) is handled
         t1 = getUtcTimeStamp(2006, 10, 30, 1, 0, 0);
         t2 = getUtcTimeStamp(2006, 10, 31, 1, 0, 0);
-        doIsSameSessionTest( schedule, t1, t2, true );
+        doIsSameSessionTest(schedule, t1, t2, true);
 
         // Check that everything works across a year boundary
         t1 = getUtcTimeStamp(2006, 12, 31, 10, 10, 10);
         t2 = getUtcTimeStamp(2007, 1, 1, 10, 10, 10);
-        doIsSameSessionTest( schedule, t1, t2, true );
+        doIsSameSessionTest(schedule, t1, t2, true);
 
-//        // Check that "missing" start and end days are handled as isSameSession without days
-//        startDay = -1;
-//        endDay = -1;
-//        schedule = new SessionSchedule(startTime.getTime(), endTime.getTime(), startDay, endDay);
-//        doIsSameSessionTest( schedule, t1, t2, true );
+        //        // Check that "missing" start and end days are handled as isSameSession without days
+        //        startDay = -1;
+        //        endDay = -1;
+        //        schedule = new SessionSchedule(startTime.getTime(), endTime.getTime(), startDay, endDay);
+        //        doIsSameSessionTest( schedule, t1, t2, true );
     }
 
     public void testSettingsWithoutStartEndDay() throws Exception {
@@ -549,7 +551,7 @@ public class SessionScheduleTest extends TestCase {
         assertNotNull(schedule.toString());
     }
 
-    public void testWeeklyPeriodically() throws Exception {
+    public void testWeeklyIsSessionTimePeriodically() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_START_DAY, "Fri");
         settings.setString(Session.SETTING_START_TIME, "16:00:00");
@@ -594,43 +596,135 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
-//    public void testCalendarPerf() throws Exception {
-//        for (int i = 0; i < 100; i++) {
-//            SystemTime.getUtcCalendar();
-//        }
-//
-//        SessionSettings settings = new SessionSettings();
-//        settings.setString(Session.SETTING_START_DAY, "Fri");
-//        settings.setString(Session.SETTING_START_TIME, "16:00:00");
-//        settings.setString(Session.SETTING_END_DAY, "Fri");
-//        settings.setString(Session.SETTING_END_TIME, "13:00:00");
-//        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
-//        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-//
-//        long start = System.currentTimeMillis();
-//        int count = 86400;
-//        for (int i = 0; i < count; i++) {
-//            //SystemTime.getUtcCalendar();
-//            schedule.isSessionTime();
-//            mockSystemTimeSource.increment(1000L);
-//        }
-//        System.out.println(count / ((System.currentTimeMillis() - start) / 1000.0));
-//
-//        long start2 = System.currentTimeMillis();
-//        int count2 = 86400;
-//        Calendar t1 = SystemTime.getUtcCalendar();
-//        for (int i = 0; i < count; i++) {
-//            //SystemTime.getUtcCalendar();
-//            schedule.isSameSession(t1, SystemTime.getUtcCalendar());
-//            mockSystemTimeSource.increment(1000L);
-//        }
-//        System.out.println(count2 / ((System.currentTimeMillis() - start2) / 1000.0));
-//    }
+    public void testWeeklyIsSameSessionPeriodically() throws Exception {
+        doWeeklyIsSameSessionTest("Wed", "14:00:00", "Wed", "12:00:00");
+        doWeeklyIsSameSessionTest("Wed", "14:00:00", "Tues", "18:00:00");
+        doWeeklyIsSameSessionTest("Wed", "14:00:00", "Tues", "12:00:00");
+        doWeeklyIsSameSessionTest("Wed", "14:00:00", "Fri", "18:00:00");
+        doWeeklyIsSameSessionTest("Wed", "14:00:00", "Fri", "12:00:00");
+        doWeeklyIsSameSessionTest("Fri", "14:00:00", "Fri", "13:59:00");
+    }
+
+    private void doWeeklyIsSameSessionTest(String startDay, String startTimeString, String endDay,
+            String endTimeString) throws ConfigError, FieldConvertError, ParseException {
+        DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+        timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Calendar startTime = parseTime(startTimeString, timeFormat);
+        Calendar endTime = parseTime(endTimeString, timeFormat);
+        
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_START_DAY, startDay);
+        settings.setString(Session.SETTING_START_TIME, startTimeString);
+        settings.setString(Session.SETTING_END_DAY, endDay);
+        settings.setString(Session.SETTING_END_TIME, endTimeString);
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+
+        Calendar sessionCreateTime = SystemTime.getUtcCalendar();
+
+        Calendar scheduleStartTime = SystemTime.getUtcCalendar();
+        scheduleStartTime.set(Calendar.DAY_OF_WEEK, DayConverter.toInteger(startDay));
+        scheduleStartTime.set(Calendar.HOUR_OF_DAY, startTime.get(Calendar.HOUR_OF_DAY));
+        scheduleStartTime.set(Calendar.MINUTE, startTime.get(Calendar.MINUTE));
+        scheduleStartTime.set(Calendar.SECOND, startTime.get(Calendar.SECOND));
+        scheduleStartTime.set(Calendar.MILLISECOND, 0);
+
+        Calendar scheduleEndTime = SystemTime.getUtcCalendar();
+        scheduleEndTime.set(Calendar.DAY_OF_WEEK, DayConverter.toInteger(endDay));
+        scheduleEndTime.set(Calendar.HOUR_OF_DAY, endTime.get(Calendar.HOUR_OF_DAY));
+        scheduleEndTime.set(Calendar.MINUTE, endTime.get(Calendar.MINUTE));
+        scheduleEndTime.set(Calendar.SECOND, endTime.get(Calendar.SECOND));
+        scheduleEndTime.set(Calendar.MILLISECOND, 0);
+        if (scheduleStartTime.after(scheduleEndTime)) {
+            scheduleEndTime.add(Calendar.DATE, 7); // one week later
+        }
+
+        sessionCreateTime.setTime(scheduleStartTime.getTime());
+        while (sessionCreateTime.before(scheduleEndTime)) {
+            //System.out.println(formatCalendar(sessionCreateTime));
+            doWeeklyIsSameSessionTest(schedule, sessionCreateTime, (Calendar) scheduleStartTime
+                    .clone(), (Calendar) scheduleEndTime.clone());
+            sessionCreateTime.add(Calendar.MINUTE, 23);
+            sessionCreateTime.add(Calendar.SECOND, 11);
+        }
+    }
+
+    private Calendar parseTime(String time, DateFormat timeFormat) throws ParseException {
+        Calendar start = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        start.setTime(timeFormat.parse(time));
+        return start;
+    }
+
+    private void doWeeklyIsSameSessionTest(SessionSchedule schedule, Calendar sessionCreateTime,
+            Calendar scheduleStartTime, Calendar scheduleEndTime) {
+        Calendar initialSystemTime = SystemTime.getUtcCalendar();
+        initialSystemTime.set(Calendar.DAY_OF_WEEK, Calendar.FRIDAY);
+        initialSystemTime.set(Calendar.HOUR_OF_DAY, 15);
+        initialSystemTime.set(Calendar.MINUTE, 0);
+        initialSystemTime.set(Calendar.SECOND, 0);
+        mockSystemTimeSource.setTime(initialSystemTime);
+
+        int timeIncrement = 17; // seconds
+
+        while (beforeSession(scheduleStartTime)) {
+            assertFalse(formatErrorMessage("before session", sessionCreateTime), schedule
+                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+            mockSystemTimeSource.increment(timeIncrement * 1000L);
+        }
+
+        while (withinSession(scheduleStartTime, scheduleEndTime)
+                && SystemTime.getUtcCalendar().before(sessionCreateTime)) {
+            // This should be an impossible situation. "Now" should always be 
+            // after the session create time.
+            assertFalse(formatErrorMessage("before create", sessionCreateTime), schedule
+                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+            mockSystemTimeSource.increment(timeIncrement * 1000L);
+        }
+
+        while (withinSession(scheduleStartTime, scheduleEndTime)) {
+            assertTrue(formatErrorMessage("within", sessionCreateTime), schedule.isSameSession(
+                    sessionCreateTime, SystemTime.getUtcCalendar()));
+            mockSystemTimeSource.increment(timeIncrement * 1000L);
+        }
+
+        scheduleStartTime.add(Calendar.DATE, 7);
+        scheduleEndTime.add(Calendar.DATE, 7);
+
+        while (beforeSession(scheduleStartTime)) {
+            assertFalse(formatErrorMessage("after", sessionCreateTime), schedule.isSameSession(
+                    sessionCreateTime, SystemTime.getUtcCalendar()));
+            mockSystemTimeSource.increment(timeIncrement * 1000L);
+        }
+    }
+
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d HH:mm:ss");
+
+    {
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+    protected String formatCalendar(Calendar c) {
+        return dateFormat.format(c.getTime());
+    }
+
+    private String formatErrorMessage(String label, Calendar sessionCreateTime) {
+        return label + " -- Created: " + formatCalendar(sessionCreateTime) + ", Now: "
+                + formatCalendar(SystemTime.getUtcCalendar());
+    }
+
+    private boolean withinSession(Calendar start, Calendar end) {
+        Calendar now = SystemTime.getUtcCalendar();
+        return (now.after(start) || now.equals(start)) && (now.before(end) || now.equals(end));
+    }
+
+    private boolean beforeSession(Calendar start) {
+        return SystemTime.getUtcCalendar().before(start);
+    }
 
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
             boolean isSameSession) {
-        assertEquals("schedule is wrong", isSameSession, schedule.isSameSession(time1, time2));
-        assertEquals("schedule is wrong", isSameSession, schedule.isSameSession(time2, time1));
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time1, time2));
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time2, time1));
     }
 
     private Calendar getTimeStamp(int year, int month, int day, int hour, int minute, int second,
@@ -649,4 +743,5 @@ public class SessionScheduleTest extends TestCase {
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
         return c;
     }
+
 }
