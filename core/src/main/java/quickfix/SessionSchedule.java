@@ -156,7 +156,6 @@ class SessionSchedule {
         }
     }
 
-
     private TimeInterval theMostRecentIntervalBefore(Calendar t) {
         TimeInterval timeInterval = getIntervalFromPool();
         Calendar startCal = timeInterval.getStart();
@@ -170,9 +169,9 @@ class SessionSchedule {
             startCal.add(Calendar.DATE, -1);
         }
         if (startTime.getDay() != -1
-                && t.get(Calendar.DAY_OF_WEEK) < startTime.getDay()
-                || (t.get(Calendar.DAY_OF_WEEK) == startTime.getDay() && t
-                        .get(Calendar.HOUR_OF_DAY) < startTime.getHour())) {
+                && (t.get(Calendar.DAY_OF_WEEK) < startTime.getDay() || (t
+                        .get(Calendar.DAY_OF_WEEK) == startTime.getDay() && t
+                        .get(Calendar.HOUR_OF_DAY) < startTime.getHour()))) {
             startCal.add(Calendar.WEEK_OF_YEAR, -1);
         }
         startCal.set(Calendar.HOUR_OF_DAY, startTime.getHour());
@@ -232,6 +231,8 @@ class SessionSchedule {
         }
 
         public void release() {
+            start.clear();
+            end.clear();
             intervalPool.add(this);
         }
     }

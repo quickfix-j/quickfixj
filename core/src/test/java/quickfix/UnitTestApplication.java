@@ -19,38 +19,55 @@
 
 package quickfix;
 
-import quickfix.Application;
-import quickfix.DoNotSend;
-import quickfix.FieldNotFound;
-import quickfix.IncorrectDataFormat;
-import quickfix.IncorrectTagValue;
-import quickfix.Message;
-import quickfix.RejectLogon;
-import quickfix.SessionID;
-import quickfix.UnsupportedMessageType;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UnitTestApplication implements Application {
+    public List fromAppMessages = new ArrayList();
+    public List toAppMessages = new ArrayList();
+    public List fromAdminMessages = new ArrayList();
+    public List toAdminMessages = new ArrayList();
+    public List logonSessions = new ArrayList();
+    public List logoutSessions = new ArrayList();
+    public List createSessions = new ArrayList();
+    
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-    
+        fromAppMessages.add(message);
     }
 
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+        toAppMessages.add(message);
     }
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        fromAdminMessages.add(message);
     }
 
     public void toAdmin(Message message, SessionID sessionId) {
+        toAdminMessages.add(message);
     }
 
     public void onLogout(SessionID sessionId) {
+        logoutSessions.add(sessionId);
     }
 
     public void onLogon(SessionID sessionId) {
+        logonSessions.add(sessionId);
     }
 
     public void onCreate(SessionID sessionId) {
+        createSessions.add(sessionId);
+    }
+    
+    public void clear() {
+        fromAppMessages.clear();;
+        toAppMessages.clear();;
+        fromAdminMessages.clear();;
+        toAdminMessages.clear();;
+        logonSessions.clear();;
+        logoutSessions.clear();;
+        createSessions.clear();;
     }
 }
