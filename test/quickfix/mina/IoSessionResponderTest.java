@@ -64,7 +64,6 @@ public class IoSessionResponderTest extends TestCase {
 
         responder.disconnect();
         
-        assertTrue("Close not synchronous (joined)", mockCloseFuture.joined);
         mockProtocolSessionControl.verify();
     }
 
