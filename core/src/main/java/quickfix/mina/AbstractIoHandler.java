@@ -69,6 +69,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             log.error("socket exception (" + remoteAddress + "): " + message);
             disconnectNeeded = true;
         } else if (cause instanceof CriticalProtocolCodecException) {
+            log.error("critical protocol codec error: "+cause.getMessage());
             disconnectNeeded = true;
         } else if (cause instanceof ProtocolCodecException) {
             String text = "protocol handler exception: " + cause.getMessage();

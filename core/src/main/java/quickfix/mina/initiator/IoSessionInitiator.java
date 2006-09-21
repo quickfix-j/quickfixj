@@ -22,7 +22,6 @@ package quickfix.mina.initiator;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-import org.apache.mina.common.CloseFuture;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoFilterChainBuilder;
@@ -94,16 +93,10 @@ class IoSessionInitiator {
         }
     }
 
-    public void close() throws IOException {
+    public void stop() {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
         }
-        if (ioSession != null) {
-            CloseFuture closeFuture = ioSession.close();
-            closeFuture.join();
-            ioSession = null;
-        }
-        nextSocketAddressIndex = 0;
     }
 
     //----
