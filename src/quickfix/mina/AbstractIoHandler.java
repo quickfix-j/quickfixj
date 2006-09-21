@@ -84,7 +84,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             if (quickFixSession != null) {
                 quickFixSession.disconnect();
             } else {
-                ioSession.close().join();
+                ioSession.close();
             }
         }
     }
@@ -123,7 +123,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
-            ioSession.close().join();
+            ioSession.close();
         }
     }
 
