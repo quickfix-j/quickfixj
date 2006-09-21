@@ -22,6 +22,9 @@ package quickfix.examples.executor;
 import java.util.HashSet;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quickfix.ConfigError;
 import quickfix.DoNotSend;
 import quickfix.FieldConvertError;
@@ -54,6 +57,7 @@ import quickfix.field.Symbol;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class Application extends quickfix.MessageCracker implements quickfix.Application {
+    private Logger log = LoggerFactory.getLogger(getClass());
     private static final String VALID_ORDER_TYPES_KEY = "ValidOrderTypes";
     
     private HashSet validOrderTypes = new HashSet();
@@ -66,16 +70,18 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         } else {
             validOrderTypes.add(OrdType.LIMIT+"");
         }
+        log.info("Valid order types: "+validOrderTypes);
     }
 
     public void onCreate(SessionID sessionID) {
-        Session.lookupSession(sessionID).getLog().onEvent("Valid order types: "+validOrderTypes);
     }
 
     public void onLogon(SessionID sessionID) {
+        log.info("Logon: "+sessionID);
     }
 
     public void onLogout(SessionID sessionID) {
+        log.info("Logout: "+sessionID);
     }
 
     public void toAdmin(quickfix.Message message, SessionID sessionID) {

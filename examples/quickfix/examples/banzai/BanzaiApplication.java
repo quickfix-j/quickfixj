@@ -26,6 +26,9 @@ import java.util.Observer;
 
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quickfix.Application;
 import quickfix.DefaultMessageFactory;
 import quickfix.DoNotSend;
@@ -71,6 +74,7 @@ import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 
 public class BanzaiApplication implements Application {
+    private Logger log = LoggerFactory.getLogger(getClass());
     private DefaultMessageFactory messageFactory = new DefaultMessageFactory();
     private OrderTableModel orderTableModel = null;
     private ExecutionTableModel executionTableModel = null;
@@ -78,7 +82,7 @@ public class BanzaiApplication implements Application {
     private ObservableLogon observableLogon = new ObservableLogon();
     private boolean isAvailable = true;
     private boolean isMissingField;
-    
+
     static private TwoWayMap sideMap = new TwoWayMap();
     static private TwoWayMap typeMap = new TwoWayMap();
     static private TwoWayMap tifMap = new TwoWayMap();
@@ -95,10 +99,12 @@ public class BanzaiApplication implements Application {
 
     public void onLogon(SessionID sessionID) {
         observableLogon.logon(sessionID);
+        log.info("Logon: "+sessionID);
     }
 
     public void onLogout(SessionID sessionID) {
         observableLogon.logoff(sessionID);
+        log.info("Logout: " + sessionID);
     }
 
     public void toAdmin(quickfix.Message message, SessionID sessionID) {
@@ -134,9 +140,10 @@ public class BanzaiApplication implements Application {
                 if (isAvailable) {
                     if (isMissingField) {
                         // For OpenFIX certification testing
-                        sendBusinessReject(message, BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, "Conditionally required field missing");                        
-                    }
-                    else if (message.getHeader().isSetField(DeliverToCompID.FIELD)) {
+                        sendBusinessReject(message,
+                                BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING,
+                                "Conditionally required field missing");
+                    } else if (message.getHeader().isSetField(DeliverToCompID.FIELD)) {
                         // This is here to support OpenFIX certification
                         sendSessionReject(message, SessionRejectReason.COMPID_PROBLEM);
                     } else if (message.getHeader().getField(msgType).valueEquals("8")) {
@@ -550,11 +557,11 @@ public class BanzaiApplication implements Application {
         tifMap.put(OrderTIF.GTX, new TimeInForce(TimeInForce.GOOD_TILL_CROSSING));
 
     }
-    
+
     public boolean isMissingField() {
         return isMissingField;
     }
-    
+
     public void setMissingField(boolean isMissingField) {
         this.isMissingField = isMissingField;
     }
@@ -562,7 +569,7 @@ public class BanzaiApplication implements Application {
     public boolean isAvailable() {
         return isAvailable;
     }
-    
+
     public void setAvailable(boolean isAvailable) {
         this.isAvailable = isAvailable;
     }
