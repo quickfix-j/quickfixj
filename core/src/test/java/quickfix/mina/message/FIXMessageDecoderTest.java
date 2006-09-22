@@ -20,7 +20,6 @@
 package quickfix.mina.message;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public class FIXMessageDecoderTest extends TestCase {
         try {
             decoder.setCharsetName("BOGUS");
             fail("no exception thrown");
-        } catch (UnsupportedCharsetException e) {
+        } catch (UnsupportedEncodingException e) {
             // expected
         }
 
