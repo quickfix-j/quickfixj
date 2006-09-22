@@ -67,6 +67,10 @@ public class ApiCompatibilityTest {
         }
 
         public String toString() {
+            return getName();
+        }
+
+        private String getName() {
             return "API check: " + jniClass.getName();
         }
 
