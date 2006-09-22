@@ -19,7 +19,6 @@
 
 package quickfix.mina.initiator;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 
 import org.apache.mina.common.ConnectFuture;

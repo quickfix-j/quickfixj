@@ -105,7 +105,7 @@
 		<description>Generate the test reports</description>
 		<delete dir="${test.report.dir}/reports" />
 		<junitreport todir="${test.report.dir}">
-			<fileset dir="${test.report.dir}">
+			<fileset dir="${junit.output.dir}">
 				<include name="TEST-*.xml" />
 			</fileset>
 			<report format="frames" todir="${test.report.dir}/reports" />
@@ -168,7 +168,7 @@
 		       haltonfailure="${junit.haltonfailure}">
 			<formatter type="xml" usefile="true" />
 			<classpath refid="test.classpath" />
-			<batchtest todir="${test.report.dir}">
+			<batchtest todir="${junit.output.dir}">
 				<fileset dir="${test.src.dir}">
 					<include name="quickfix/*Test.java" />
 					<include name="quickfix/mina/**/*Test.java" />
@@ -188,7 +188,7 @@
 	<property name="atest.report"
 	          value="${test.report.dir}/TEST-${atest.classname}.xml" />
 	<property name="atest.timestamp"
-	          value="${test.report.dir}/.atest_timestamp" />
+	          value="${target.dir}/test/.atest_timestamp" />
 	<property name="atest.heartbeat" value="5" />
 	<property name="atest.timeout" value="60000" />
 	<property name="atest.reconnectDelay" value="5" />
@@ -223,7 +223,7 @@
 			<sysproperty key="atest.skipslow" value="${atest.skipslow}" />
 			<formatter type="xml" usefile="true" />
 			<classpath refid="test.classpath" />
-			<test todir="${test.report.dir}" name="${atest.classname}" />
+			<test todir="${junit.output.dir}" name="${atest.classname}" />
 		</junit>
 		<!-- remove the logged output because it's too large for junitreport -->
 		<replaceregexp file="${atest.report}"
