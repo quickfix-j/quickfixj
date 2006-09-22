@@ -70,7 +70,7 @@ public class ApiCompatibilityTest {
             return getName();
         }
 
-        private String getName() {
+        public String getName() {
             return "API check: " + jniClass.getName();
         }
 
