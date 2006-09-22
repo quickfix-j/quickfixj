@@ -19,6 +19,9 @@
 
 package quickfix.mina.message;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
@@ -51,6 +54,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     private int bodyLength;
     private int position;
     private int headerOffset;
+    private String charsetName = "ISO_8859-1";
 
     private void resetState() {
         state = SEEKING_HEADER;
@@ -67,8 +71,8 @@ public class FIXMessageDecoder implements MessageDecoder {
         return headerOffset != -1 ? MessageDecoderResult.OK : MessageDecoderResult.NEED_DATA;
     }
 
-    public MessageDecoderResult decode(IoSession session, ByteBuffer in,
-            ProtocolDecoderOutput out) throws ProtocolCodecException {
+    public MessageDecoderResult decode(IoSession session, ByteBuffer in, ProtocolDecoderOutput out)
+            throws ProtocolCodecException {
         int messageCount = 0;
         while (parseMessage(in, out)) {
             messageCount++;
@@ -212,10 +216,10 @@ public class FIXMessageDecoder implements MessageDecoder {
         return position < in.limit();
     }
 
-    private String getMessageString(ByteBuffer buffer) {
+    private String getMessageString(ByteBuffer buffer) throws UnsupportedEncodingException {
         byte[] data = new byte[position - buffer.position()];
         buffer.get(data);
-        return new String(data);
+        return new String(data, charsetName);
     }
 
     private void handleError(ByteBuffer buffer, int recoveryPosition, String text,
@@ -255,6 +259,14 @@ public class FIXMessageDecoder implements MessageDecoder {
             }
         }
         return true;
+    }
+
+    public void setCharsetName(String charsetName) throws UnsupportedEncodingException {
+        if (Charset.isSupported(charsetName)) {
+            this.charsetName = charsetName;
+        } else {
+            throw new UnsupportedEncodingException();
+        }
     }
 
 }

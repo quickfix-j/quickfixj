@@ -19,6 +19,8 @@
 
 package quickfix.mina.message;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +53,25 @@ public class FIXMessageDecoderTest extends TestCase {
         buffer.release();
         super.tearDown();
     }
-    
+
+    public void testInvalidStringCharset() throws Exception {
+        try {
+            decoder.setCharsetName("BOGUS");
+            fail("no exception thrown");
+        } catch (UnsupportedCharsetException e) {
+            // expected
+        }
+
+    }
+
+    public void testStringDecoding() throws Exception {
+        decoder.setCharsetName("UTF-16");
+        setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001");
+        MessageDecoderResult decoderResult = decoder.decode(null, buffer, decoderOutput);
+        assertEquals("wrong decoder result", MessageDecoderResult.OK, decoderResult);
+        assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
+    }
+
     public void testPartialHeader() throws Exception {
         setUpBuffer("8=FIX.4.2");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
@@ -179,10 +199,11 @@ public class FIXMessageDecoderTest extends TestCase {
 
             MockControl mockSessionControl = MockControl.createControl(IoSession.class);
             IoSession mockSession = (IoSession) mockSessionControl.getMock();
-            
-            mockSession.getAttribute("org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer");
+
+            mockSession
+                    .getAttribute("org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer");
             mockSessionControl.setReturnValue(otherBuffer, MockControl.ONE_OR_MORE);
-            
+
             mockSessionControl.replay();
 
             int count = 5;
@@ -202,7 +223,7 @@ public class FIXMessageDecoderTest extends TestCase {
                 decoder.decode(mockSession, buffer, output);
 
                 assertEquals("wrong message count", count, output.getMessageCount());
-                
+
                 output.reset();
                 buffer.clear();
             }
@@ -218,9 +239,6 @@ public class FIXMessageDecoderTest extends TestCase {
     }
 
     private void assertMessageFound(String data, int count) throws ProtocolCodecException {
-        //        assertEquals("should recognize message", MessageDecoderResult.OK, decoder.decodable(null,
-        //                buffer));
-
         assertEquals("wrong decoder result", MessageDecoderResult.OK, decoder.decode(null, buffer,
                 decoderOutput));
         assertEquals("wrong message count", count, decoderOutput.getMessageCount());
@@ -229,10 +247,16 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
-    private String setUpBuffer(String bufferContents) {
-        buffer.put(bufferContents.getBytes());
+    private String setUpBuffer(String bufferContents) throws UnsupportedEncodingException {
+        byte[] bytes = bufferContents.getBytes();
+        return setUpBuffer(bytes, "ISO_8859-1");
+    }
+
+    private String setUpBuffer(byte[] bytes, String charsetName)
+            throws UnsupportedEncodingException {
+        buffer.put(bytes);
         buffer.flip();
-        return bufferContents;
+        return new String(bytes, charsetName);
     }
 
     private class ProtocolDecoderOutputForTest implements ProtocolDecoderOutput {
