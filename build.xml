@@ -114,9 +114,15 @@
 		<initdir dir="${release.output.dir}" />
 
 		<!-- Source release staging -->
+		
 		<property name="release.src.staging.dir"
-		          value="${basedir}/${release.output.dir}/staging/source" />
+		          value="${basedir}/${release.output.dir}/staging/source/quickfixj" />
 		<mkdir dir="${release.src.staging.dir}" />
+
+		<copy todir="${release.src.staging.dir}">
+			<fileset dir="." includes="*" excludes=".settings,classes"/>
+		</copy>
+
 		<iterate target="export_sources">
 			<properties>
 				<property name="release.src.staging.dir" value="${release.src.staging.dir}"/>
@@ -142,33 +148,17 @@
 		<property name="release.bin.staging.dir"
 		          value="${basedir}/${release.output.dir}/staging/bin" />
 
+		<copy todir="${release.bin.staging.dir}">
+			<fileset dir="." includes="LICENSE"/>
+			<fileset dir="." includes="NEWS"/>
+		</copy>
+			
 		<mkdir dir="${release.bin.staging.dir}" />
 		<iterate target="export_binaries">
 			<properties>
-				<property name="release.bin.staging.dir" value="${release.src.staging.dir}"/>
+				<property name="release.bin.staging.dir" value="${release.bin.staging.dir}"/>
 			</properties>
 		</iterate>
-
-		<copy todir="${release.bin.staging.dir}" flatten="yes">
-			<fileset dir=".">
-				<include name="**/target/*.jar" />
-			</fileset>
-			<fileset dir=".">
-				<include name="LICENSE" />
-				<include name="${etc.dir}/**/*" />
-				<exclude name="${etc.dir}/eclipse/**/*" />
-				<include name="${bin.dir}/**/*" />
-			</fileset>
-		</copy>
-		<copy todir="${release.bin.staging.dir}/lib">
-			<fileset refid="core.lib.fileset" />
-		</copy>
-		<copy todir="${release.bin.staging.dir}/doc/api">
-			<fileset dir="${javadoc.output.dir}" />
-		</copy>
-		<copy todir="${release.bin.staging.dir}/doc/usermanual">
-			<fileset dir="${usermanual.dir}" />
-		</copy>
 
 		<convertUnixScripts dir="${release.bin.staging.dir}"/>
 
@@ -186,6 +176,38 @@
 		<zip destfile="${release.bin.zip}"
 		     basedir="${release.bin.staging.dir}/.." />
 
+		<!-- Test the releases -->
+		
+		<!--
+		<antcall target="test_tar_bin_release"/>
+		<antcall target="test_zip_bin_release"/>
+		-->
+		<antcall target="test_tar_src_release"/>
+		<antcall target="test_zip_src_release"/>
+	</target>
+
+	<target name="test_zip_bin_release">
+		<unzip src="${release.output.dir}/${release.prefix}-bin.zip" dest="${release.output.dir}/zip-bin" />
+		<mkdir dir="${release.output.dir}/zip-bin/quickfixj/output/ant/testreports" />
+		<ant dir="${release.output.dir}/zip-bin/quickfixj/core" antfile="build.xml" target="test.unit" />
+	</target>
+
+	<target name="test_zip_src_release">
+		<unzip src="${release.output.dir}/${release.prefix}-src.zip" dest="${release.output.dir}/zip-src" />
+		<mkdir dir="${release.output.dir}/zip-src/quickfixj/output/ant/testreports" />
+		<ant dir="${release.output.dir}/zip-src/quickfixj/core" antfile="build.xml" target="test.unit" />
+	</target>
+
+	<target name="test_tar_bin_release">
+		<untar compression="gzip" src="${release.output.dir}/${release.prefix}-bin.tar.gz" dest="${release.output.dir}/tar-bin" />
+		<mkdir dir="${release.output.dir}/tar-bin/quickfixj/output/ant/testreports" />
+		<ant dir="${release.output.dir}/tar-bin/quickfixj/core" antfile="build.xml" target="test.unit" />
+	</target>
+	
+	<target name="test_tar_src_release">
+		<untar compression="gzip" src="${release.output.dir}/${release.prefix}-src.tar.gz" dest="${release.output.dir}/tar-src" />
+		<mkdir dir="${release.output.dir}/tar-src/quickfixj/output/ant/testreports" />
+		<ant dir="${release.output.dir}/tar-src/quickfixj/core" antfile="build.xml" target="test.unit" />
 	</target>
 
 </project>

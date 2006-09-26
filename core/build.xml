@@ -40,6 +40,7 @@
 	================================================================= -->
 	
 	<target name="compile" depends="generate.code" description="compile the sources">
+		<antcall target="assert_jvm"/>
 		<antcall target="compile_main"/>
 		<antcall target="compile_test"/>
 	</target>
@@ -92,9 +93,14 @@
 	<property name="junit.haltonfailure" value="true"/>
 
 	<target name="test"
-	        description="run all tests"
-	        depends="check.tests.uptodate, test.clean, test.unit, test.acceptance, test.report"
-	        unless="tests.uptodate" />
+	        description="run all tests, if needed"
+	        depends="check.tests.uptodate"
+	        unless="tests.uptodate">
+		<antcall target="test.clean"/>
+		<antcall target="test.unit"/>
+		<antcall target="test.acceptance"/>
+		<antcall target="test.report"/>
+	</target>
 
 	<target name="test.clean" description="Clean test output, forces tests to be run." 
 		unless="tests.uptodate">
@@ -243,7 +249,7 @@
 	Generate Javadocs
 	================================================================= -->
 
-	<target name="javadoc" depends="check.javadoc.uptodate" description="generate Javadocs" unless="javadoc.uptodate">
+	<target name="javadoc" depends="check.javadoc.uptodate"  unless="javadoc.uptodate" description="generate Javadocs">
 		<description>Generate the Javadocs for the main sources.</description>
 		<mkdir dir="${javadoc.output.dir}" />
 		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html"
@@ -280,6 +286,23 @@
 		</uptodate>
 	</target>
 
+	<!-- =============================================================
+	Custom Exports
+	================================================================= -->
+
+	<target name="export_binaries" depends="module.export_binaries">
+		<copy todir="${release.bin.staging.dir}/lib">
+			<fileset dir="src/main/lib"/>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/doc">
+			<fileset dir="src/main/doc" includes="usermanual/**/*"/>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/etc">
+			<fileset dir="src/main/resources" includes="**/*"/>
+			<fileset dir="src/main/config" includes="**/*"/>
+		</copy>
+	</target>
+	
 	<!-- =============================================================
 	Path References
 	================================================================= -->

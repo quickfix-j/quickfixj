@@ -1,4 +1,54 @@
 ********************
+**  1.0.3         **
+********************
+
+New Features and Improvements:
+    * [QFJ-61] - Extend SessionState to track whether a Logout has been received
+
+Bug Fixes:
+    * [QFJ-48] - Fix class path in examples scripts
+    * [QFJ-54] - Occasional NPE in block method during acceptor start.
+    * [QFJ-56] - Support null LogFactories.
+    * [QFJ-57] - Make QFJ timer thread a daemon.
+    * [QFJ-59] - Doc Bug: "initiator" is misspelled in the sample configuration 
+
+********************
+**  1.0.2         **
+********************
+
+New Features and Improvements:
+    * [QFJ-37] - Make executor in examples handle Forex limit orders too
+    * [QFJ-41] - AllocLinkType has different descriptions for enum in FIX42.xml 
+                 and FIX44.xml
+
+Bug Fixes:
+    * [QFJ-30] - Weekly session does not work 
+    * [QFJ-32] - SessionSchedule race condition causes disconnect at midnight UTC
+    * [QFJ-34] - Thread leak in socket connector
+    * [QFJ-36] - Missing enums for SecurityTradingStatus (Tag #326)
+    * [QFJ-39] - ClassCastException in MessageCracker
+    * [QFJ-40] - MarketDepth enum status inconsistent
+    * [QFJ-51] - QuickFIX/J Initiator failover multi-address has a wrong rolling sequence
+
+********************
+**  1.0.1         **
+********************
+
+New Features and Improvements:
+    * [QFJ-24] - Upgrade to SLF4J 1.0.1
+    * [QFJ-26] - Add clear and isEmpty operation to FieldMap (Message)
+    * [QFJ-28] - FileStore: working directory patch
+
+Bug Fixes:
+    * [QFJ-12] - CruiseControl reports success even when tests fail
+    * [QFJ-16] - Logon Timeout defaults to 0
+    * [QFJ-18] - Logout not sent at session expiration time
+    * [QFJ-20] - Database statement leak in JDBCStore
+    * [QFJ-25] - Message constructor throws NullPointerException with empty string
+    * [QFJ-29] - Clean example scripts classpath.
+
+
+********************
 **  1.0.0 Final   **
 ********************
 

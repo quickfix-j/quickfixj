@@ -45,4 +45,14 @@
 		</jar>
 	</target>
 
+	<!-- =============================================================
+	Custom Exports
+	================================================================= -->
+
+	<target name="export_binaries" depends="module.export_binaries">
+		<copy todir="${release.bin.staging.dir}/bin">
+			<fileset dir="src/main/scripts"/>
+		</copy>
+	</target>
+
 </project>

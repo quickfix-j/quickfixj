@@ -28,6 +28,7 @@
 	<property name="test.report.dir" value="${target.dir}/test/reports"/>
 
 	<available file="src/main/java" property="main.java.available"/>
+	<available file="src/main/resources" property="main.resources.available"/>
 	<available file="src/test/java" property="test.java.available"/>
 	
 	<target name="export_sources">
@@ -38,8 +39,8 @@
 			The root directory should be the module base.</description>
 		<copy todir="${release.src.staging.dir}/${ant.project.name}" includeEmptyDirs="false">
 			<fileset dir="${basedir}">
+				<exclude name="target/*"/>
 				<exclude name="target/**/*"/>
-				<exclude name="classes/**/*"/>
 			</fileset>
 		</copy>
 	</target>
@@ -50,12 +51,16 @@
 		<copy todir="${release.bin.staging.dir}" includeEmptyDirs="false">
 			<fileset dir="target">
 				<include name="*.jar" />
-				<include name="docs" />
+				<!--<include name="doc/**/*" />-->
 			</fileset>
-			<fileset dir="${main.resources.dir}" />
 		</copy>
+		<antcall target="export_binaries.resources"/>
 	</target>
-
+	
+	<target name="export_binaries.resources" if="main.resources.available">
+		<fileset dir="${main.resources.dir}" />
+    </target>
+    	
 	<target name="test">
 		<description>Default test target</description>
 	</target>
@@ -71,4 +76,16 @@
 	<target name="clean.classes" description="Clean the target classes">
 		<delete dir="${target.classes.dir}"/>
 	</target>
+	
+	<!-- Setting the jvm.ok property on the command line will bypass this check -->
+	<target name="jvm_identification" unless="jvm.ok">
+		<condition property="jvm.ok">
+			<equals arg1="${ant.java.version}" arg2="1.4" />
+		</condition>
+	</target>
+
+	<target name="assert_jvm" depends="jvm_identification" unless="jvm.ok">
+		<fail message="Wrong JVM - ${ant.java.version}" />
+	</target>
+
 </project>
