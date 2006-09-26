@@ -4351,6 +4351,10 @@
       <value enum="7" description="OTHER"/>
       <value enum="8" description="INCORRECT_ALLOCATED_QUANTITY"/>
       <value enum="9" description="CALCULATION_DIFFERENCE"/>
+      <value enum="10" description="UNKNOWN_OR_STALE_EXEC_ID"/>
+      <value enum="11" description="MISMATCHED_DATA_VALUE"/>
+      <value enum="12" description="UNKNOWN_CLORDID"/>
+      <value enum="13" description="WAREHOUSE_REQUEST_REJECTED"/>
     </field>
     <field number="89" name="Signature" type="DATA"/>
     <field number="90" name="SecureDataLen" type="LENGTH"/>
