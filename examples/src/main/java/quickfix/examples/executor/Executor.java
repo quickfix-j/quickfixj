@@ -52,10 +52,10 @@ public class Executor {
                        (application, messageStoreFactory, settings, logFactory, messageFactory);
 
             acceptor.start();
+            
             System.out.println("press <enter> to quit");
             System.in.read();
             acceptor.stop();
-            System.exit(0);
         }
         catch(Exception e) {
             System.out.println(e);

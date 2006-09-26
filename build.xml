@@ -110,13 +110,22 @@
 		<property name="release.prefix" value="quickfixj-${version}" />
 	</target>
 
-	<target name="release.shared" depends="jar,test,javadoc">
+	<target name="define.src.staging.dir" unless="release.src.staging.dir">
+		<property name="release.src.staging.dir"
+		          value="${basedir}/${release.output.dir}/staging/source/quickfixj" />
+	</target>
+	
+	<target name="define.bin.staging.dir" unless="release.bin.staging.dir">
+		<property name="release.bin.staging.dir"
+		          value="${basedir}/${release.output.dir}/staging/bin/quickfixj" />
+	</target>
+
+	<target name="release.shared" 
+		depends="define.src.staging.dir,define.bin.staging.dir,jar,test,javadoc">
 		<initdir dir="${release.output.dir}" />
 
 		<!-- Source release staging -->
 		
-		<property name="release.src.staging.dir"
-		          value="${basedir}/${release.output.dir}/staging/source/quickfixj" />
 		<mkdir dir="${release.src.staging.dir}" />
 
 		<copy todir="${release.src.staging.dir}">
@@ -145,8 +154,6 @@
 		     basedir="${release.src.staging.dir}/.." />
 
 		<!-- Binary release staging -->
-		<property name="release.bin.staging.dir"
-		          value="${basedir}/${release.output.dir}/staging/bin" />
 
 		<copy todir="${release.bin.staging.dir}">
 			<fileset dir="." includes="LICENSE"/>
@@ -178,30 +185,77 @@
 
 		<!-- Test the releases -->
 		
-		<!--
-		<antcall target="test_tar_bin_release"/>
 		<antcall target="test_zip_bin_release"/>
-		-->
+		<antcall target="test_tar_bin_release"/>
 		<antcall target="test_tar_src_release"/>
 		<antcall target="test_zip_src_release"/>
 	</target>
 
+	<macrodef name="test_executor">
+		<attribute name="dir"/>
+		<sequential>
+			<java fork="true" outputproperty="executor.output" classname="quickfix.examples.executor.Executor" inputstring="exit\n">
+				<classpath>
+					<fileset dir="@{dir}">
+						<include name="lib/*.jar"/>
+						<include name="*.jar"/>
+					</fileset>
+				</classpath>
+			</java>
+			<echo message="${executor.output}" />
+			<condition property="executor.success">
+				<contains string="${executor.output}" substring="Logging out all sessions"/>
+			</condition>
+			<fail message="Executor failed" unless="executor.success"/>
+		</sequential>
+	</macrodef>
+			
+	<macrodef name="test_bin_contents">
+		<attribute name="dir"/>
+		<sequential>
+			<condition property="dirs.exist">
+				<and>
+					<available file="@{dir}/quickfixj/bin"/>
+					<available file="@{dir}/quickfixj/doc/api"/>
+					<available file="@{dir}/quickfixj/doc/usermanual"/>
+					<available file="@{dir}/quickfixj/etc/FIX40.xml"/>
+					<available file="@{dir}/quickfixj/etc/FIX41.xml"/>
+					<available file="@{dir}/quickfixj/etc/FIX42.xml"/>
+					<available file="@{dir}/quickfixj/etc/FIX43.xml"/>
+					<available file="@{dir}/quickfixj/etc/FIX44.xml"/>
+					<available file="@{dir}/quickfixj/etc/sql/mssql"/>
+					<available file="@{dir}/quickfixj/etc/sql/mysql"/>
+					<available file="@{dir}/quickfixj/etc/sql/postgresql"/>
+					<available file="@{dir}/quickfixj/lib"/>
+					<available file="@{dir}/quickfixj/quickfixj.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-examples.jar"/>
+					<available file="@{dir}/quickfixj/LICENSE"/>
+					<available file="@{dir}/quickfixj/NEWS"/>
+				</and>
+			</condition>
+			<fail message="Missing files or directories in bin release" unless="dirs.exist"/>
+		</sequential>
+	</macrodef>
+			
+		
 	<target name="test_zip_bin_release">
-		<unzip src="${release.output.dir}/${release.prefix}-bin.zip" dest="${release.output.dir}/zip-bin" />
-		<mkdir dir="${release.output.dir}/zip-bin/quickfixj/output/ant/testreports" />
-		<ant dir="${release.output.dir}/zip-bin/quickfixj/core" antfile="build.xml" target="test.unit" />
+		<property name="zip.bin.dir" value="${release.output.dir}/zip-bin"/>
+		<unzip src="${release.output.dir}/${release.prefix}-bin.zip" dest="${zip.bin.dir}" />
+		<test_executor dir="${zip.bin.dir}/quickfixj"/>
+		<test_bin_contents dir="${zip.bin.dir}"/>
 	</target>
 
 	<target name="test_zip_src_release">
 		<unzip src="${release.output.dir}/${release.prefix}-src.zip" dest="${release.output.dir}/zip-src" />
 		<mkdir dir="${release.output.dir}/zip-src/quickfixj/output/ant/testreports" />
-		<ant dir="${release.output.dir}/zip-src/quickfixj/core" antfile="build.xml" target="test.unit" />
+		<test_executor dir="${release.output.dir}/zip-bin/quickfixj"/>		
 	</target>
 
 	<target name="test_tar_bin_release">
-		<untar compression="gzip" src="${release.output.dir}/${release.prefix}-bin.tar.gz" dest="${release.output.dir}/tar-bin" />
-		<mkdir dir="${release.output.dir}/tar-bin/quickfixj/output/ant/testreports" />
-		<ant dir="${release.output.dir}/tar-bin/quickfixj/core" antfile="build.xml" target="test.unit" />
+		<property name="tar.bin.dir" value="${release.output.dir}/tar-bin"/>
+		<untar compression="gzip" src="${release.output.dir}/${release.prefix}-bin.tar.gz" dest="${tar.bin.dir}" />
+		<test_executor dir="${tar.bin.dir}/quickfixj"/>
+		<test_bin_contents dir="${tar.bin.dir}"/>
 	</target>
 	
 	<target name="test_tar_src_release">

@@ -51,7 +51,7 @@
 		<copy todir="${release.bin.staging.dir}" includeEmptyDirs="false">
 			<fileset dir="target">
 				<include name="*.jar" />
-				<!--<include name="doc/**/*" />-->
+				<include name="doc/**/*" />
 			</fileset>
 		</copy>
 		<antcall target="export_binaries.resources"/>
