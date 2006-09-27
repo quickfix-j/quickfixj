@@ -26,6 +26,10 @@ public class IncorrectDataFormat extends Exception {
     public final int field;
     public final String data;
 
+    /**
+     * @param field the tag number with the incorrect data
+     * @param data the incorrect data
+     */
     public IncorrectDataFormat(int field, String data) {
         this(field, data, null);
     }
@@ -33,7 +37,7 @@ public class IncorrectDataFormat extends Exception {
     /**
      * This constructor is here for QF JNI compatibility.
      * 
-     * @param message
+     * @param field the tag number with the incorrect data
      */
     public IncorrectDataFormat(int field) {
         this(field, null, null);
