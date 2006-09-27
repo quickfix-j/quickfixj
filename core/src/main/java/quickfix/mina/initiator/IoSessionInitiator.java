@@ -19,21 +19,25 @@
 
 package quickfix.mina.initiator;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandler;
+import org.apache.mina.common.IoService;
 import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.ThreadModel;
 
+import quickfix.LogUtil;
 import quickfix.Session;
 import quickfix.SystemTime;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
+import quickfix.mina.QuickfixjIoFilterChainBuilder;
 import edu.emory.mathcs.backport.java.util.concurrent.Future;
 import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
@@ -48,23 +52,24 @@ class IoSessionInitiator {
     private long lastReconnectAttemptTime = 0;
     private int nextSocketAddressIndex = 0;
     private Future reconnectFuture;
-    private Session quickfixSession;
+    private final Session quickfixSession;
+    private final IoFilterChainBuilder ioFilterChainBuilder;
+    private final ScheduledExecutorService executor;
 
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
             long reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder ioFilterChainBuilder) {
 
+        this.executor = executor;
+        this.ioFilterChainBuilder = ioFilterChainBuilder;
         if (socketAddresses.length == 0) {
             throw new IllegalArgumentException("socketAddresses must not be empty");
         }
         this.quickfixSession = qfSession;
         this.socketAddresses = socketAddresses;
         this.reconnectIntervalInMillis = reconnectIntervalInSeconds * 1000L;
-        ioHandler = new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy,
-                ioFilterChainBuilder);
-        reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 1, 1,
-                TimeUnit.SECONDS);
+        ioHandler = new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy);
     }
 
     private class ReconnectTask implements Runnable {
@@ -75,23 +80,37 @@ class IoSessionInitiator {
         }
     }
 
-    public synchronized void connect() {
+    private synchronized void connect() {
         lastReconnectAttemptTime = SystemTime.currentTimeMillis();
         try {
             final SocketAddress nextSocketAddress = getNextSocketAddress();
             IoConnector ioConnector = ProtocolFactory.createIoConnector(nextSocketAddress);
-            IoServiceConfig connectorConfig = (IoServiceConfig) ioConnector
-                    .getDefaultConfig().clone();
-            connectorConfig.setThreadModel(ThreadModel.MANUAL);
+            IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioConnector);
+            serviceConfig.setFilterChainBuilder(new QuickfixjIoFilterChainBuilder(
+                    ioFilterChainBuilder));
+            serviceConfig.setThreadModel(ThreadModel.MANUAL);
             ConnectFuture connectFuture = ioConnector.connect(nextSocketAddress, ioHandler,
-                    connectorConfig);
+                    serviceConfig);
             connectFuture.join();
             ioSession = connectFuture.getSession();
         } catch (Throwable e) {
-            quickfixSession.getLog().onEvent("Connection failed: " + e.getMessage());
+            while (e instanceof IOException) {
+                quickfixSession.getLog().onEvent("MINA IO Exception: " + e.getMessage());
+                e = e.getCause();
+            }
+            LogUtil.logThrowable(quickfixSession.getLog(), "Exception during connection", e);
         }
     }
 
+    private IoServiceConfig copyDefaultIoServiceConfig(IoService ioService) {
+        return (IoServiceConfig) ioService.getDefaultConfig().clone();
+    }
+
+    public void start() {
+        reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 0, 1,
+                TimeUnit.SECONDS);        
+    }
+    
     public void stop() {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);

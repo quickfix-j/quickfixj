@@ -1542,11 +1542,11 @@ public class Session {
     }
 
     private boolean send(String messageString) {
+        getLog().onOutgoing(messageString);
         if (responder == null) {
             getLog().onEvent("No responder, not sending message");
             return false;
         }
-        getLog().onOutgoing(messageString);
         return responder.send(messageString);
     }
 

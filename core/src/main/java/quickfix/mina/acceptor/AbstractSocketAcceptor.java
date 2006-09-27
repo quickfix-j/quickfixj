@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.mina.common.IoAcceptor;
+import org.apache.mina.common.IoService;
+import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.TransportType;
 
 import quickfix.Acceptor;
@@ -45,6 +47,7 @@ import quickfix.SessionSettings;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
+import quickfix.mina.QuickfixjIoFilterChainBuilder;
 import quickfix.mina.SessionConnector;
 
 /**
@@ -92,10 +95,13 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 Map.Entry entry = (Map.Entry) addressItr.next();
                 SocketAddress acceptorSocketAddress = (SocketAddress) entry.getKey();
                 IoAcceptor ioAcceptor = getIoAcceptor(acceptorSocketAddress);
+                IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioAcceptor);
+                serviceConfig.setFilterChainBuilder(new QuickfixjIoFilterChainBuilder(
+                        getIoFilterChainBuilder()));
                 ioAcceptor.bind(acceptorSocketAddress, new AcceptorIoHandler(
                         getSessionsForAddress(acceptorSocketAddress), new NetworkingOptions(
-                                settings.getDefaultProperties()), eventHandlingStrategy,
-                        getIoFilterChainBuilder()));
+                                settings.getDefaultProperties()), eventHandlingStrategy),
+                        serviceConfig);
                 log.info("Listening for connections at " + acceptorSocketAddress);
             }
         } catch (FieldConvertError e) {
@@ -103,6 +109,10 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         } catch (IOException e) {
             throw new RuntimeError(e);
         }
+    }
+    
+    private IoServiceConfig copyDefaultIoServiceConfig(IoService ioService) {
+        return (IoServiceConfig) ioService.getDefaultConfig().clone();
     }
 
     private IoAcceptor getIoAcceptor(SocketAddress address) {

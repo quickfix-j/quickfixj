@@ -36,14 +36,18 @@ import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class SocketInitiatorTest extends TestCase {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final TransportType transportProtocol = TransportType.SOCKET;
+    // TODO Change this back to VM_PIPE after MINA 1.0 upgrade
+    // Bug in MINA 0.9.5 caused sessionCreated to not be called with VM_PIPE.
+    //private final TransportType transportProtocol = TransportType.VM_PIPE;
 
     protected void setUp() throws Exception {
         SystemTime.setTimeSource(null);
     }
 
     public void testLogonAfterServerDisconnect() throws Exception {
-        final WriteCounter initiatorWriteCounter = new WriteCounter();
+        final WriteCounter initiatorWriteCounter = new WriteCounter("initiator");
         ServerThread serverThread = new ServerThread();
         try {
             serverThread.start();
@@ -59,8 +63,8 @@ public class SocketInitiatorTest extends TestCase {
             initiator.setIoFilterChainBuilder(new IoFilterChainBuilder() {
                 public void buildFilterChain(IoFilterChain chain) throws Exception {
                     chain.addLast("TestFilter", initiatorWriteCounter);
-                 } 
-             });
+                }
+            });
 
             try {
                 log.info("Do first login");
@@ -87,10 +91,13 @@ public class SocketInitiatorTest extends TestCase {
             serverThread.interrupt();
             serverThread.join();
         }
-        assertTrue("Initiator write count = 0, filter problem?", initiatorWriteCounter.getCount() > 0);
+        assertTrue("Initiator write count = 0, filter problem?",
+                initiatorWriteCounter.getCount() > 0);
         assertTrue("Acceptor write count = 0, filter problem?", serverThread.getWriteCount() > 0);
+        assertTrue("Initiator sessionCreated not called", initiatorWriteCounter
+                .wasSessionCreatedCalled());
+        assertTrue("Acceptor sessionCreated not called", serverThread.wasSessionCreatedCalled());
     }
-
 
     public void testBlockLogoffAfterLogon() throws Exception {
         ServerThread serverThread = new ServerThread();
@@ -124,7 +131,7 @@ public class SocketInitiatorTest extends TestCase {
         SessionSettings settings = new SessionSettings();
         HashMap defaults = new HashMap();
         defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", "VM_PIPE");
+        defaults.put("SocketConnectProtocol", transportProtocol.toString());
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", "9877");
         defaults.put("StartTime", "00:00:00");
@@ -178,31 +185,50 @@ public class SocketInitiatorTest extends TestCase {
     }
 
     private class WriteCounter extends IoFilterAdapter {
+        private String name;
         private int count;
-        
-        public void filterWrite(NextFilter nextFilter, IoSession session, WriteRequest writeRequest) throws Exception {
+        private boolean sessionCreated;
+
+        public WriteCounter(String name) {
+            this.name = name;
+        }
+
+        public void sessionCreated(NextFilter nextFilter, IoSession session) throws Exception {
+            sessionCreated = true;
+            super.sessionCreated(nextFilter, session);
+        }
+
+        public void filterWrite(NextFilter nextFilter, IoSession session, WriteRequest writeRequest)
+                throws Exception {
             super.filterWrite(nextFilter, session, writeRequest);
             count++;
         }
-        
+
         public int getCount() {
             return count;
         }
-        
+
+        public boolean wasSessionCreatedCalled() {
+            return sessionCreated;
+        }
+
+        public String toString() {
+            return getClass().getName() + "[" + name + "]@" + System.identityHashCode(this);
+        }
     }
-    
+
     private class ServerThread extends Thread {
         private ATServer server;
-        private WriteCounter writeCounter = new WriteCounter();
-        
+        private WriteCounter writeCounter = new WriteCounter("acceptor");
+
         public ServerThread() {
             super("test server");
-            server = new ATServer(TransportType.VM_PIPE);
+            server = new ATServer(transportProtocol);
             server.setIoFilterChainBuilder(new IoFilterChainBuilder() {
                 public void buildFilterChain(IoFilterChain chain) throws Exception {
                     chain.addLast("TestFilter", writeCounter);
-                 } 
-             });
+                }
+            });
         }
 
         public void run() {
@@ -214,9 +240,13 @@ public class SocketInitiatorTest extends TestCase {
         public void waitForInitialization() throws InterruptedException {
             server.waitForInitialization();
         }
-        
+
         public int getWriteCount() {
             return writeCounter.getCount();
+        }
+
+        public boolean wasSessionCreatedCalled() {
+            return writeCounter.wasSessionCreatedCalled();
         }
     }
 

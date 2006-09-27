@@ -22,12 +22,9 @@ package quickfix.mina;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,21 +37,16 @@ import quickfix.MessageFactory;
 import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
-import quickfix.mina.message.FIXProtocolCodecFactory;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.
  */
 public abstract class AbstractIoHandler extends IoHandlerAdapter {
-    public static final String FIX_CODEC_FILTER_NAME = "FixCodecFilter";
-    private static final FIXProtocolCodecFactory CODEC = new FIXProtocolCodecFactory();
     protected Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
-    private final IoFilterChainBuilder customFilterChainBuilder;
     
-    public AbstractIoHandler(NetworkingOptions options, IoFilterChainBuilder filterChainBuilder) {
+    public AbstractIoHandler(NetworkingOptions options) {
         networkingOptions = options;
-        this.customFilterChainBuilder = filterChainBuilder;
     }
 
     public void exceptionCaught(IoSession ioSession, Throwable cause) throws Exception {
@@ -97,11 +89,6 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     public void sessionCreated(IoSession ioSession) throws Exception {
         super.sessionCreated(ioSession);
         networkingOptions.apply(ioSession);
-        final IoFilterChain defaultFilterChain = ioSession.getFilterChain();
-        defaultFilterChain.addFirst(FIX_CODEC_FILTER_NAME, new ProtocolCodecFilter(CODEC));
-        if (customFilterChainBuilder != null) {
-            customFilterChainBuilder.buildFilterChain(defaultFilterChain);
-        }
     }
 
     public void sessionClosed(IoSession ioSession) throws Exception {

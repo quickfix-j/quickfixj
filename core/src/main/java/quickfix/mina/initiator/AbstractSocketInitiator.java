@@ -84,7 +84,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 ioSessionInitiator = new IoSessionInitiator(quickfixSession,
                                         socketAddresses, reconnectingInterval, getScheduledExecutorService(),
                                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder());
-                ioSessionInitiator.connect();
+                ioSessionInitiator.start();
             }
             startSessionTimer();
         } catch (FieldConvertError e) {

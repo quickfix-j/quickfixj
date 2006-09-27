@@ -19,8 +19,6 @@
 
 package quickfix.test.acceptance;
 
-import java.io.IOException;
-
 import quickfix.Application;
 import quickfix.DoNotSend;
 import quickfix.FieldNotFound;
@@ -36,13 +34,9 @@ import quickfix.UnsupportedMessageType;
 public class ATApplication implements Application {
     private ATMessageCracker inboundCracker = new ATMessageCracker();
     private MessageCracker outboundCracker = new MessageCracker();
-    
+
     public void onCreate(SessionID sessionID) {
-        try {
-            Session.lookupSession(sessionID).reset();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Session.lookupSession(sessionID).getState().reset();
     }
 
     public void onLogon(SessionID sessionID) {

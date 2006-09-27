@@ -40,7 +40,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         HashMap acceptorSessions = new HashMap();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(acceptorSessions, new NetworkingOptions(
-                new Properties()), mockEventHandlingStrategy, null);
+                new Properties()), mockEventHandlingStrategy);
 
         mockIoSessionControl.replay();
         mockEventHandlingStrategyControl.replay();
@@ -73,7 +73,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         HashMap acceptorSessions = new HashMap();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(acceptorSessions, new NetworkingOptions(
-                new Properties()), mockEventHandlingStrategy, null);
+                new Properties()), mockEventHandlingStrategy);
 
         mockIoSessionControl.replay();
         mockEventHandlingStrategyControl.replay();
@@ -110,7 +110,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         acceptorSessions.put(qfSession.getSessionID(), qfSession);
         
         AcceptorIoHandler handler = new AcceptorIoHandler(acceptorSessions, new NetworkingOptions(
-                new Properties()), mockEventHandlingStrategy, null);
+                new Properties()), mockEventHandlingStrategy);
 
         mockIoSessionControl.replay();
         mockEventHandlingStrategyControl.replay();
