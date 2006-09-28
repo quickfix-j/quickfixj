@@ -223,7 +223,7 @@ public class SocketInitiatorTest extends TestCase {
 
         public ServerThread() {
             super("test server");
-            server = new ATServer(transportProtocol);
+            server = new ATServer();
             server.setIoFilterChainBuilder(new IoFilterChainBuilder() {
                 public void buildFilterChain(IoFilterChain chain) throws Exception {
                     chain.addLast("TestFilter", writeCounter);

@@ -19,16 +19,21 @@
 
 package quickfix.mina.acceptor;
 
-import java.io.IOException;
 import java.net.SocketAddress;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
 
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoService;
 import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.TransportType;
+import org.apache.mina.filter.SSLFilter;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
 
 import quickfix.Acceptor;
 import quickfix.Application;
@@ -44,18 +49,21 @@ import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
-import quickfix.mina.QuickfixjIoFilterChainBuilder;
 import quickfix.mina.SessionConnector;
+import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.AcceptorSSLContextFactory;
+import quickfix.mina.ssl.SSLSupport;
 
 /**
  * Abstract base class for socket acceptors.
  */
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
     private final SessionFactory sessionFactory;
-    private Map sessionsForAcceptorAddress = new HashMap();
+    private Map socketDescriptorForAddress = new HashMap();
     private Map ioAcceptorForTransport = new HashMap();
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
@@ -87,30 +95,47 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
             startSessionTimer();
-
             SessionSettings settings = getSettings();
-            //
-            Iterator addressItr = sessionsForAcceptorAddress.entrySet().iterator();
-            while (addressItr.hasNext()) {
-                Map.Entry entry = (Map.Entry) addressItr.next();
-                SocketAddress acceptorSocketAddress = (SocketAddress) entry.getKey();
-                IoAcceptor ioAcceptor = getIoAcceptor(acceptorSocketAddress);
+
+            Iterator descriptors = socketDescriptorForAddress.values().iterator();
+            while (descriptors.hasNext()) {
+                AcceptorSocketDescriptor socketDescriptor = (AcceptorSocketDescriptor) descriptors
+                        .next();
+                IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor.getAddress());
                 IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioAcceptor);
-                serviceConfig.setFilterChainBuilder(new QuickfixjIoFilterChainBuilder(
-                        getIoFilterChainBuilder()));
-                ioAcceptor.bind(acceptorSocketAddress, new AcceptorIoHandler(
-                        getSessionsForAddress(acceptorSocketAddress), new NetworkingOptions(
-                                settings.getDefaultProperties()), eventHandlingStrategy),
-                        serviceConfig);
-                log.info("Listening for connections at " + acceptorSocketAddress);
+                CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
+                        getIoFilterChainBuilder());
+
+                if (socketDescriptor.isUseSSL()) {
+                    installSSL(socketDescriptor, ioFilterChainBuilder);
+                }
+
+                ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
+                        new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
+
+                serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
+                ioAcceptor.bind(socketDescriptor.getAddress(), new AcceptorIoHandler(
+                        socketDescriptor.getAcceptedSessions(), new NetworkingOptions(settings
+                                .getDefaultProperties()), eventHandlingStrategy), serviceConfig);
+                log.info("Listening for connections at " + socketDescriptor.getAddress());
             }
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeError(e);
         }
     }
-    
+
+    private void installSSL(AcceptorSocketDescriptor descriptor,
+            CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
+        log.info("Installing SSL filter for " + descriptor.getAddress());
+        SSLContext sslContext = AcceptorSSLContextFactory.getInstance(descriptor.getKeyStoreName(),
+                descriptor.getKeyStorePassword().toCharArray());
+        SSLFilter sslFilter = new SSLFilter(sslContext);
+        sslFilter.setUseClientMode(false);
+        ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
+    }
+
     private IoServiceConfig copyDefaultIoServiceConfig(IoService ioService) {
         return (IoServiceConfig) ioService.getDefaultConfig().clone();
     }
@@ -125,8 +150,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         return ioAcceptor;
     }
 
-    private SocketAddress getAcceptorSocketAddress(SessionSettings settings, SessionID sessionID)
-            throws ConfigError, FieldConvertError {
+    private AcceptorSocketDescriptor getAcceptorSocketDescriptor(SessionSettings settings,
+            SessionID sessionID) throws ConfigError, FieldConvertError {
         TransportType acceptTransportType = TransportType.SOCKET;
         if (settings.isSetting(sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL)) {
             try {
@@ -138,15 +163,66 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             }
         }
 
+        boolean useSSL = false;
+        String keyStoreName = null;
+        String keyStorePassword = null;
+        if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)
+                && getSettings().getBool(sessionID, SSLSupport.SETTING_USE_SSL)) {
+            if (acceptTransportType == TransportType.SOCKET) {
+                useSSL = true;
+
+                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_NAME)) {
+                    keyStoreName = getSettings().getString(sessionID,
+                            SSLSupport.SETTING_KEY_STORE_NAME);
+                } else {
+                    keyStoreName = "quickfixj.cert";
+                }
+
+                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_PWD)) {
+                    keyStorePassword = getSettings().getString(sessionID,
+                            SSLSupport.SETTING_KEY_STORE_PWD);
+                } else {
+                    keyStorePassword = "quickfixjpw";
+                }
+            } else {
+                log.warn("SSL will not be enabled for transport type=" + acceptTransportType
+                        + ", session=" + sessionID);
+            }
+        }
+
         int acceptPort = (int) settings.getLong(sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PORT);
+
         String acceptHost = null;
         if (settings.isSetting(sessionID, SETTING_SOCKET_ACCEPT_ADDRESS)) {
             acceptHost = settings.getString(sessionID, SETTING_SOCKET_ACCEPT_ADDRESS);
         }
 
-        SocketAddress acceptorSocketAddress = ProtocolFactory.createSocketAddress(
-                acceptTransportType, acceptHost, acceptPort);
-        return acceptorSocketAddress;
+        SocketAddress acceptorAddress = ProtocolFactory.createSocketAddress(acceptTransportType,
+                acceptHost, acceptPort);
+
+        //
+        // Check for cached descriptor
+        //
+        AcceptorSocketDescriptor descriptor = (AcceptorSocketDescriptor) socketDescriptorForAddress
+                .get(acceptorAddress);
+        if (descriptor != null) {
+            if (descriptor.isUseSSL() && !useSSL
+                    || !equals(descriptor.getKeyStoreName(), keyStoreName)
+                    || !equals(descriptor.getKeyStorePassword(), keyStorePassword)) {
+                throw new ConfigError("Conflicting configurations of acceptor socket: "
+                        + acceptorAddress);
+            }
+        } else {
+            descriptor = new AcceptorSocketDescriptor(acceptorAddress, useSSL, keyStoreName,
+                    keyStorePassword);
+            socketDescriptorForAddress.put(acceptorAddress, descriptor);
+        }
+
+        return descriptor;
+    }
+
+    private boolean equals(Object object1, Object object2) {
+        return object1 == null ? object2 == null : object1.equals(object2);
     }
 
     private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
@@ -156,38 +232,69 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             String connectionType = settings.getString(sessionID,
                     SessionFactory.SETTING_CONNECTION_TYPE);
             if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-                Map sessionsForAddress = getSessionsForAddress(getAcceptorSocketAddress(settings,
-                        sessionID));
                 Session session = sessionFactory.create(sessionID, settings);
-                sessionsForAddress.put(sessionID, session);
+                getAcceptorSocketDescriptor(settings, sessionID).acceptSession(session);
                 allSessions.put(sessionID, session);
             }
         }
         setSessions(allSessions);
 
-        if (sessionsForAcceptorAddress.size() == 0) {
+        if (socketDescriptorForAddress.size() == 0) {
             throw new ConfigError("No acceptor sessions found in settings.");
         }
     }
 
-    private Map getSessionsForAddress(SocketAddress address) {
-        Map acceptorSessions = (Map) sessionsForAcceptorAddress.get(address);
-        if (acceptorSessions == null) {
-            acceptorSessions = new HashMap();
-            sessionsForAcceptorAddress.put(address, acceptorSessions);
-        }
-        return acceptorSessions;
-    }
-
     protected void stopAcceptingConnections() {
-        Iterator addressItr = sessionsForAcceptorAddress.entrySet().iterator();
-        while (addressItr.hasNext()) {
-            Map.Entry entry = (Map.Entry) addressItr.next();
-            SocketAddress acceptorSocketAddress = (SocketAddress) entry.getKey();
+        Iterator descriptors = socketDescriptorForAddress.values().iterator();
+        while (descriptors.hasNext()) {
+            AcceptorSocketDescriptor socketDescriptor = (AcceptorSocketDescriptor) descriptors
+                    .next();
+            SocketAddress acceptorSocketAddress = socketDescriptor.getAddress();
             log.info("No longer accepting connections on " + acceptorSocketAddress);
             IoAcceptor ioAcceptor = getIoAcceptor(acceptorSocketAddress);
             ioAcceptor.unbind(acceptorSocketAddress);
         }
         ioAcceptorForTransport.clear();
+    }
+
+    private static class AcceptorSocketDescriptor {
+        private final SocketAddress address;
+        private final boolean useSSL;
+        private final String keyStoreName;
+        private final String keyStorePassword;
+        private final Map acceptedSessions = new HashMap();
+
+        public AcceptorSocketDescriptor(SocketAddress address, boolean useSSL, String keyStoreName,
+                String keyStorePassword) {
+            this.address = address;
+            this.useSSL = useSSL;
+            this.keyStoreName = keyStoreName;
+            this.keyStorePassword = keyStorePassword;
+        }
+
+        public void acceptSession(Session session) {
+            acceptedSessions.put(session.getSessionID(), session);
+        }
+
+        public Map getAcceptedSessions() {
+            return Collections.unmodifiableMap(acceptedSessions);
+        }
+
+        public SocketAddress getAddress() {
+            return address;
+        }
+
+        public String getKeyStoreName() {
+            return keyStoreName;
+        }
+
+        public String getKeyStorePassword() {
+            return keyStorePassword;
+        }
+
+        public boolean isUseSSL() {
+            return useSSL;
+        }
+
     }
 }

@@ -5,11 +5,12 @@
 	<classpathentry kind="src" path="examples/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="core/src/main/resources"/>
+	<classpathentry sourcepath="core/src/main/lib/mina-filter-ssl-0.9.5-src.zip" kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-0.9.5.jar"/>
+	<classpathentry kind="lib" path="core/src/main/lib/mina-core-0.9.5.jar"/>
 	<classpathentry kind="src" path="core/target/src-generated"/>
 	<classpathentry kind="lib" path="core/src/test/lib/easymock-1.1.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/jcl104-over-slf4j-1.0.1.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/backport-util-concurrent-2.1.jar"/>
-	<classpathentry kind="lib" path="core/src/main/lib/mina-core-0.9.3.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-0.9.0RC2.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/sleepycat-je_2.1.30.jar"/>
 	<classpathentry kind="lib" path="core/src/test/lib/hsqldb-1.8.0.jar"/>

@@ -41,10 +41,12 @@ import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.field.converter.BooleanConverter;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
+import quickfix.mina.ssl.SSLSupport;
 
 /**
  * Abstract base class for socket initiators.
@@ -84,6 +86,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 ioSessionInitiator = new IoSessionInitiator(quickfixSession,
                                         socketAddresses, reconnectingInterval, getScheduledExecutorService(),
                                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder());
+                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)) {
+                    ioSessionInitiator.setSslEnabled(
+                            BooleanConverter.convert(getSettings().getString(sessionID, SSLSupport.SETTING_USE_SSL)));
+                }
                 ioSessionInitiator.start();
             }
             startSessionTimer();

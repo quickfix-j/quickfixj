@@ -22,9 +22,6 @@ package quickfix.mina;
 import org.apache.mina.common.DefaultIoFilterChainBuilder;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-
-import quickfix.mina.message.FIXProtocolCodecFactory;
 
 /**
  * (For internal usage only.) This is the filter that initializes the FIX 
@@ -35,15 +32,11 @@ import quickfix.mina.message.FIXProtocolCodecFactory;
  * @see DefaultIoFilterChainBuilder
  *
  */
-public class QuickfixjIoFilterChainBuilder extends DefaultIoFilterChainBuilder {
-    public static final String FIX_CODEC_FILTER_NAME = "FIXCodecFilter";
-    private static final FIXProtocolCodecFactory CODEC = new FIXProtocolCodecFactory();
-
+public class CompositeIoFilterChainBuilder extends DefaultIoFilterChainBuilder {
     private final IoFilterChainBuilder userFilterChainBuilder;
 
-    public QuickfixjIoFilterChainBuilder(IoFilterChainBuilder userFilterChainBuilder) {
+    public CompositeIoFilterChainBuilder(IoFilterChainBuilder userFilterChainBuilder) {
         this.userFilterChainBuilder = userFilterChainBuilder;
-        addLast(FIX_CODEC_FILTER_NAME, new ProtocolCodecFilter(CODEC));
     }
 
     public void buildFilterChain(IoFilterChain chain) throws Exception {

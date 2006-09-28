@@ -32,7 +32,10 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
+import org.easymock.ArgumentsMatcher;
 import org.easymock.MockControl;
+
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 import quickfix.mina.CriticalProtocolCodecException;
 
@@ -187,50 +190,72 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
+    private ByteBuffer otherBuffer;
+
     public void testMinaDemux() throws Exception {
-        ByteBuffer otherBuffer = ByteBuffer.allocate(1024);
-        try {
-            DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
-            codecFactory.register(FIXMessageDecoder.class);
+        DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
+        codecFactory.register(FIXMessageDecoder.class);
 
-            ProtocolDecoder decoder = codecFactory.getDecoder();
-            ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
+        ProtocolDecoder decoder = codecFactory.getDecoder();
+        ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
 
-            MockControl mockSessionControl = MockControl.createControl(IoSession.class);
-            IoSession mockSession = (IoSession) mockSessionControl.getMock();
+        final MockControl mockSessionControl = MockControl.createControl(IoSession.class);
+        final IoSession mockSession = (IoSession) mockSessionControl.getMock();
 
-            mockSession
-                    .getAttribute("org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer");
-            mockSessionControl.setReturnValue(otherBuffer, MockControl.ONE_OR_MORE);
+        final String bufferKey = "org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer";
 
-            mockSessionControl.replay();
-
-            int count = 5;
-            String data = "";
-            for (int i = 0; i < count; i++) {
-                data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
-            }
-
-            for (int i = 1; i < data.length(); i++) {
-                String chunk1 = data.substring(0, i);
-                String chunk2 = data.substring(i);
-                setUpBuffer(chunk1);
-                decoder.decode(mockSession, buffer, output);
-                buffer.compact();
-
-                setUpBuffer(chunk2);
-                decoder.decode(mockSession, buffer, output);
-
-                assertEquals("wrong message count", count, output.getMessageCount());
-
-                output.reset();
-                buffer.clear();
-            }
-
-            mockSessionControl.verify();
-        } finally {
-            otherBuffer.release();
+        int count = 5;
+        String data = "";
+        for (int i = 0; i < count; i++) {
+            data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
         }
+
+        for (int i = 1; i < data.length(); i++) {
+            String chunk1 = data.substring(0, i);
+            String chunk2 = data.substring(i);
+            setUpBuffer(chunk1);
+
+            mockSession.getAttribute(bufferKey);
+            mockSessionControl.setReturnValue(null, MockControl.ONE_OR_MORE);
+
+            mockSession.setAttribute(bufferKey, null);
+            mockSessionControl.setMatcher(new ArgumentsMatcher() {
+
+                public String toString(Object[] args) {
+                    return Arrays.asList(args).toString();
+                }
+
+                public boolean matches(Object[] actual, Object[] expected) {
+                    otherBuffer = (ByteBuffer) actual[1];
+                    if (otherBuffer != null) {
+                        mockSessionControl.reset();
+                        mockSession.getAttribute(bufferKey);
+                        mockSessionControl.setReturnValue(otherBuffer, MockControl.ONE_OR_MORE);
+                        mockSession.removeAttribute(bufferKey);
+                        mockSessionControl.setReturnValue(null, MockControl.ZERO_OR_MORE);
+                        mockSessionControl.replay();
+                    }
+                    return true;
+                }
+
+            });
+            mockSessionControl.setReturnValue(null, MockControl.ZERO_OR_MORE);
+            mockSessionControl.replay();            
+            
+            decoder.decode(mockSession, buffer, output);
+            buffer.compact();
+
+            setUpBuffer(chunk2);
+            decoder.decode(mockSession, buffer, output);
+
+            assertEquals("wrong message count", count, output.getMessageCount());
+
+            output.reset();
+            buffer.clear();
+            mockSessionControl.verify();
+            mockSessionControl.reset();
+        }
+
     }
 
     private void assertMessageFound(String data) throws ProtocolCodecException {
@@ -282,6 +307,10 @@ public class FIXMessageDecoderTest extends TestCase {
 
         public void reset() {
             messages.clear();
+        }
+
+        public void flush() {
+            // empty
         }
     }
 }

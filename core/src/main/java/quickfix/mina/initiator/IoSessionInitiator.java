@@ -21,6 +21,7 @@ package quickfix.mina.initiator;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.security.GeneralSecurityException;
 
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
@@ -30,6 +31,10 @@ import org.apache.mina.common.IoService;
 import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.ThreadModel;
+import org.apache.mina.filter.SSLFilter;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.LogUtil;
 import quickfix.Session;
@@ -37,13 +42,16 @@ import quickfix.SystemTime;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
-import quickfix.mina.QuickfixjIoFilterChainBuilder;
+import quickfix.mina.CompositeIoFilterChainBuilder;
+import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.InitiatorSSLContextFactory;
+import quickfix.mina.ssl.SSLSupport;
 import edu.emory.mathcs.backport.java.util.concurrent.Future;
 import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 class IoSessionInitiator {
-
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final long reconnectIntervalInMillis;
     private final SocketAddress[] socketAddresses;
 
@@ -53,16 +61,17 @@ class IoSessionInitiator {
     private int nextSocketAddressIndex = 0;
     private Future reconnectFuture;
     private final Session quickfixSession;
-    private final IoFilterChainBuilder ioFilterChainBuilder;
+    private final IoFilterChainBuilder userIoFilterChainBuilder;
     private final ScheduledExecutorService executor;
-
+    private boolean sslEnabled;
+    
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
             long reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
-            IoFilterChainBuilder ioFilterChainBuilder) {
+            IoFilterChainBuilder userIoFilterChainBuilder) {
 
         this.executor = executor;
-        this.ioFilterChainBuilder = ioFilterChainBuilder;
+        this.userIoFilterChainBuilder = userIoFilterChainBuilder;
         if (socketAddresses.length == 0) {
             throw new IllegalArgumentException("socketAddresses must not be empty");
         }
@@ -86,8 +95,16 @@ class IoSessionInitiator {
             final SocketAddress nextSocketAddress = getNextSocketAddress();
             IoConnector ioConnector = ProtocolFactory.createIoConnector(nextSocketAddress);
             IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioConnector);
-            serviceConfig.setFilterChainBuilder(new QuickfixjIoFilterChainBuilder(
-                    ioFilterChainBuilder));
+            CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
+                    userIoFilterChainBuilder);
+            
+            if (sslEnabled) {
+                installSSLFilter(nextSocketAddress, ioFilterChainBuilder);
+            }
+            ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
+                    new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
+
+            serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
             serviceConfig.setThreadModel(ThreadModel.MANUAL);
             ConnectFuture connectFuture = ioConnector.connect(nextSocketAddress, ioHandler,
                     serviceConfig);
@@ -102,15 +119,22 @@ class IoSessionInitiator {
         }
     }
 
+    private void installSSLFilter(SocketAddress address, CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
+        log.info("Installing SSL filter for "+address);
+        SSLFilter sslFilter = new SSLFilter(InitiatorSSLContextFactory.getInstance());
+        sslFilter.setUseClientMode(true);
+        ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
+    }
+
     private IoServiceConfig copyDefaultIoServiceConfig(IoService ioService) {
         return (IoServiceConfig) ioService.getDefaultConfig().clone();
     }
 
     public void start() {
         reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 0, 1,
-                TimeUnit.SECONDS);        
+                TimeUnit.SECONDS);
     }
-    
+
     public void stop() {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
@@ -132,5 +156,9 @@ class IoSessionInitiator {
 
     private boolean isTimeForReconnect() {
         return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
+    }
+    
+    public void setSslEnabled(boolean flag) {
+        this.sslEnabled = flag;
     }
 }

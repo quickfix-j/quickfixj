@@ -44,6 +44,7 @@ import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.ThreadedSocketAcceptor;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
+import quickfix.mina.ssl.SSLSupport;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
@@ -54,10 +55,17 @@ public class ATServer implements Runnable {
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
     private AbstractSocketAcceptor acceptor;
-    private final TransportType transportType;
-    private final int port;
-    private final boolean threaded;
+    private TransportType transportType = TransportType.SOCKET;
+    private int port = 9877;
+    private boolean threaded;
     private IoFilterChainBuilder ioFilterChainBuilder;
+    private boolean useSSL;
+    private String keyStoreName;
+    private String keyStorePassword;
+
+    public ATServer() {
+        // defaults
+    }
 
     public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port) {
         this.threaded = threaded;
@@ -70,19 +78,7 @@ public class ATServer implements Runnable {
         resetOnDisconnect = true;
         log.info("creating sessions for " + fixVersions);
     }
-
-    public ATServer() {
-        threaded = false;
-        transportType = TransportType.SOCKET;
-        port = 9877;
-    }
-
-    public ATServer(TransportType transportType) {
-        this.transportType = transportType;
-        threaded = false;
-        port = 9877;
-    }
-
+    
     public void run() {
         try {
             HashMap defaults = new HashMap();
@@ -97,7 +93,15 @@ public class ATServer implements Runnable {
             defaults.put("JdbcURL", "jdbc:mysql://localhost/quickfix");
             defaults.put("JdbcUser", "quickfixj");
             defaults.put("JdbcPassword", "quickfixj");
-
+            if (useSSL) {
+                defaults.put("SocketUseSSL", "Y");
+            }
+            if (keyStoreName != null) {
+                defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
+            }
+            if (keyStorePassword != null) {
+                defaults.put(SSLSupport.SETTING_KEY_STORE_PWD, keyStorePassword);
+            }
             if (resetOnDisconnect) {
                 defaults.put("ResetOnDisconnect", "Y");
             }
@@ -209,5 +213,18 @@ public class ATServer implements Runnable {
 
     public void setIoFilterChainBuilder(IoFilterChainBuilder builder) {
         ioFilterChainBuilder = builder;
+    }
+    
+    public void setUseSSL(boolean useSSL) {
+        this.useSSL = useSSL;
+    }
+
+    public void setKeyStoreName(String keyStoreName) {
+        this.keyStoreName = keyStoreName;
+        
+    }
+
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
     }
 }
