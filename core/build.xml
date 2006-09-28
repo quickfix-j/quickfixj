@@ -81,6 +81,9 @@
 		<jar destfile="${jar.output.dir}/${quickfixj.jar}">
 			<fileset dir="${main.classes.dir}" />
 			<fileset dir="${main.resources.dir}" includes="*" />
+			<fileset dir="${main.src.dir}">
+				<include name="**/*.cert" />
+			</fileset>
 		</jar>
 	</target>
 
@@ -133,13 +136,11 @@
 		<mkdir dir="${test.output.dir}/junit"/>
 		<mkdir dir="${test.output.dir}/reports"/>
 		<!-- copy non-class files that are needed in the classpath -->
-		<!-- TODO
 		<copy todir="${test.classes.dir}">
-			<fileset dir="etc">
-				<include name="FIX*.xml" />
+			<fileset dir="${test.src.dir}">
+				<include name="**/*.cert" />
 			</fileset>
 		</copy>
-		-->
 	</target>
 
 	<!-- Run Unit Tests	-->
