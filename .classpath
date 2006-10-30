@@ -5,8 +5,8 @@
 	<classpathentry kind="src" path="examples/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="core/src/main/resources"/>
-	<classpathentry sourcepath="core/src/main/lib/mina-filter-ssl-0.9.5-src.zip" kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-0.9.5.jar"/>
-	<classpathentry kind="lib" path="core/src/main/lib/mina-core-0.9.5.jar"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-0.9.5.jar" sourcepath="core/src/main/lib/optional/mina-filter-ssl-0.9.5-src.zip"/>
+	<classpathentry kind="lib" path="core/src/main/lib/mina-core-0.9.5.jar" sourcepath="core/src/main/lib/mina-core-0.9.5-src.zip"/>
 	<classpathentry kind="src" path="core/target/src-generated"/>
 	<classpathentry kind="lib" path="core/src/test/lib/easymock-1.1.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/jcl104-over-slf4j-1.0.1.jar"/>
