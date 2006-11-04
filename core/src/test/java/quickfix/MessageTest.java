@@ -169,6 +169,20 @@ public class MessageTest extends TestCase {
         dictionary.validate(executionReport);
     }
 
+    public void testGroupDelimOrdering() throws Exception {
+        // Test the generic group constructor (QFJ-95)
+        quickfix.fix44.NewOrderSingle order = new quickfix.fix44.NewOrderSingle();
+        Group partyGroup = new Group(quickfix.field.NoPartyIDs.FIELD, PartyID.FIELD);
+        partyGroup.setField(new PartyID("TraderName"));
+        partyGroup.setField(new PartyIDSource(
+                PartyIDSource.GENERALLY_ACCEPTED_MARKET_PARTICIPANT_IDENTIFIER));
+        partyGroup.setField(new PartyRole(11));
+        order.addGroup(partyGroup);
+        String data = order.toString();
+        System.out.println(data);
+        assertTrue("wrong field order", data.indexOf("453=1\001448=TraderName") != -1);
+    }
+    
     public void testComponentGroupExtraction() throws Exception {
         quickfix.fix44.NewOrderSingle order = new quickfix.fix44.NewOrderSingle();
         NoPartyIDs partyIds = new NoPartyIDs();

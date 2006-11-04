@@ -32,7 +32,7 @@ public class Group extends FieldMap {
      * @param delim the delimeter tag number (first group field)
      */
     public Group(int field, int delim) {
-        this(field, delim, null);
+        this(field, delim, new int[] { delim });
     }
 
     /**
