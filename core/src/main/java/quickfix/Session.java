@@ -849,7 +849,7 @@ public class Session {
         }
     }
 
-    public void generateReject(Message message, String str) throws FieldNotFound, IOException {
+    private void generateReject(Message message, String str) throws FieldNotFound, IOException {
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         reject.reverseRoute(message.getHeader());
