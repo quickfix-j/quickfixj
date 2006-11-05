@@ -182,7 +182,7 @@
 					<exclude name="**/Abstract*Test.java" />
 					<exclude name="**/Abstract*Test.java" />
 	                <!-- This is hanging sometimes on Linux??? -->
-					<exclude name="**/SecureSocketTest"/>
+					<exclude name="**/SecureSocketTest.java"/>
 				</fileset>
 			</batchtest>
 		</junit>
