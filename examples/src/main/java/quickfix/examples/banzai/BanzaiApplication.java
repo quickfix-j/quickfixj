@@ -284,7 +284,7 @@ public class BanzaiApplication implements Application {
             order.setMessage(message.getField(new Text()).getValue());
         } catch (FieldNotFound e) {
         }
-        orderTableModel.updateOrder(order, order.getID());
+        orderTableModel.updateOrder(order, message.getField(new OrigClOrdID()).getValue());
     }
 
     private boolean alreadyProcessed(ExecID execID, SessionID sessionID) {
