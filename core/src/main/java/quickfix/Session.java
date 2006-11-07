@@ -251,12 +251,12 @@ public class Session {
             state.setInitiator(heartbeatInterval != 0);
             state.setMessageStore(messageStoreFactory.create(sessionID));
             this.messageFactory = messageFactory;
+            sessions.put(sessionID, this);
             getLog().onEvent("Session " + this.sessionID + " schedule is " + sessionSchedule);
             if (!checkSessionTime()) {
                 getLog().onEvent("Session state is not current; resetting " + this.sessionID);
                 reset();
             }
-            sessions.put(sessionID, this);
             application.onCreate(sessionID);
             getLog().onEvent("Created session: " + sessionID);
         } catch (IOException e) {
