@@ -20,10 +20,31 @@
 package quickfix;
 
 import junit.framework.TestCase;
+import quickfix.field.BeginString;
+import quickfix.field.SenderCompID;
+import quickfix.field.TargetCompID;
 
 public class SessionIDTest extends TestCase {
+    public void testFromFields() throws Exception {
+        SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
+                new TargetCompID("TARGET"), "QUALIFIER");
+        assertEquals("FIX.4.2", sessionID.getBeginString());
+        assertEquals("SENDER", sessionID.getSenderCompID());
+        assertEquals("TARGET", sessionID.getTargetCompID());
+        assertEquals("QUALIFIER", sessionID.getSessionQualifier());
+    }
+
+    public void testFromFieldsWithoutQualifier() throws Exception {
+        SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
+                new TargetCompID("TARGET"));
+        assertEquals("FIX.4.2", sessionID.getBeginString());
+        assertEquals("SENDER", sessionID.getSenderCompID());
+        assertEquals("TARGET", sessionID.getTargetCompID());
+        assertEquals("", sessionID.getSessionQualifier());
+    }
+
     public void testFromString() throws Exception {
-        SessionID sessionID = new SessionID(null, null, null);
+        SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
         sessionID.fromString("FIX.4.2:SENDER->TARGET:QUALIFIER");
         assertEquals("FIX.4.2", sessionID.getBeginString());
         assertEquals("SENDER", sessionID.getSenderCompID());
@@ -32,7 +53,7 @@ public class SessionIDTest extends TestCase {
     }
 
     public void testFromStringNoQualifier() throws Exception {
-        SessionID sessionID = new SessionID(null, null, null);
+        SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
         sessionID.fromString("FIX.4.2:SENDER->TARGET");
         assertEquals("FIX.4.2", sessionID.getBeginString());
         assertEquals("SENDER", sessionID.getSenderCompID());
@@ -41,7 +62,7 @@ public class SessionIDTest extends TestCase {
     }
 
     public void testFromStringError1() throws Exception {
-        SessionID sessionID = new SessionID(null, null, null);
+        SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
         try {
             sessionID.fromString("FIX.4.2@SENDER->TARGET");
             fail("no exception");
@@ -51,7 +72,7 @@ public class SessionIDTest extends TestCase {
     }
 
     public void testFromStringError2() throws Exception {
-        SessionID sessionID = new SessionID(null, null, null);
+        SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
         try {
             sessionID.fromString("FIX.4.2:SENDER=>TARGET");
             fail("no exception");
@@ -61,7 +82,7 @@ public class SessionIDTest extends TestCase {
     }
 
     public void testFromStringError3() throws Exception {
-        SessionID sessionID = new SessionID(null, null, null);
+        SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
         sessionID.fromString("FIX.4.2:SENDER->TARGET:");
         assertEquals("FIX.4.2", sessionID.getBeginString());
         assertEquals("SENDER", sessionID.getSenderCompID());
