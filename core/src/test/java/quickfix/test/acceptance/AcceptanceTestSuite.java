@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 import quickfix.test.acceptance.timer.TimerTest;
 
 public class AcceptanceTestSuite extends TestSuite {
+    private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
+    private static final String ATEST_TRANSPORT_KEY = "atest.transport";
+    private static final String ATEST_SKIPSLOW_KEY = "atest.skipslow";
     private static Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private String acceptanceTestBaseDir = "core/src/test/java/quickfix/test/acceptance/definitions/";
     private boolean skipSlowTests;
@@ -129,12 +132,12 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public AcceptanceTestSuite() {
-        Long timeout = Long.getLong("atest.timeout");
+        Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);
         if (timeout != null) {
             ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
         }
 
-        this.skipSlowTests = Boolean.getBoolean("atest.skipslow");
+        this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
 
         //addTest("fix44/14b_RequiredFieldMissing.def");
         //addTest("fix40/2i_BeginStringValueUnexpected.def");
@@ -211,7 +214,7 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public static Test suite() {
-        transportType = TransportType.getInstance(System.getProperty("atest.transport", "SOCKET"));
+        transportType = TransportType.getInstance(System.getProperty(ATEST_TRANSPORT_KEY, "SOCKET"));
         port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite();
         final AcceptanceTestSuite scriptedTests = new AcceptanceTestSuite();

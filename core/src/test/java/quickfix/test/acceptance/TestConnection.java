@@ -53,11 +53,14 @@ public class TestConnection {
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
+        System.out.println("@@@@@@ sendMessage "+clientId + ", " + handler.getSession() + ", " + Thread.currentThread());
         handler.getSession().write(message);
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        return (TestIoHandler) ioHandlers.get(new Integer(clientId));
+        synchronized (ioHandlers) {
+            return (TestIoHandler) ioHandlers.get(new Integer(clientId));
+        }
     }
 
     public void tearDown() {
@@ -91,15 +94,19 @@ public class TestConnection {
             throw new RuntimeException("Unsupported transport type: " + transportType);
         }
         TestIoHandler testIoHandler = new TestIoHandler();
-        ioHandlers.put(new Integer(clientId), testIoHandler);
-        ConnectFuture future = connector.connect(address, testIoHandler);
-        future.join();
-        Assert.assertTrue("connection to server failed", future.isConnected());
+        synchronized (ioHandlers) {
+            ioHandlers.put(new Integer(clientId), testIoHandler);
+            System.out.println("@@@@@@ registered Handler "+clientId + ", " + testIoHandler + ", " + Thread.currentThread());
+            ConnectFuture future = connector.connect(address, testIoHandler);
+            future.join();
+            Assert.assertTrue("connection to server failed", future.isConnected());
+        }
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
         private IoSession session;
         private BlockingQueue messages = new LinkedBlockingQueue();
+        private CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
         private CountDownLatch disconnectLatch = new CountDownLatch(1);
 
         public void sessionCreated(IoSession session) throws Exception {
@@ -107,9 +114,9 @@ public class TestConnection {
             this.session = session;
             session.getFilterChain().addLast("codec",
                     new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
+            sessionCreatedLatch.countDown();
         }
 
-        
         public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
             super.exceptionCaught(session, cause);
             log.error(cause.getMessage(), cause);
@@ -125,6 +132,11 @@ public class TestConnection {
         }
 
         public IoSession getSession() {
+            try {
+                sessionCreatedLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             return session;
         }
 
