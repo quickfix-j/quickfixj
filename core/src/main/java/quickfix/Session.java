@@ -22,7 +22,8 @@ package quickfix;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
@@ -186,6 +187,18 @@ public class Session {
      */
     public static final String SETTING_SEND_REDUNDANT_RESEND_REQUEST = "SendRedundantResendRequests";
     
+    /**
+     * Persist messages setting (true, by default). If set to false this will cause the Session to
+     * not persist any messages and all resend requests will be answered with a gap fill.
+     */
+    public static final String SETTING_PERSIST_MESSAGES = "";
+    
+    /**
+     * A weak hash map is used so session will be GC'ed when no connector (or anything else)
+     * references them any more.
+     */
+    private static Map sessions = new WeakHashMap();
+
     private Application application;
     private Responder responder;
     private SessionID sessionID;
@@ -193,7 +206,6 @@ public class Session {
     private SessionSchedule sessionSchedule;
     private MessageFactory messageFactory;
     private SessionState state = new SessionState();
-    private static HashMap sessions = new HashMap();
     private boolean enabled;
     private boolean checkLatency;
     private boolean checkCompID;
@@ -202,6 +214,17 @@ public class Session {
     private boolean resetOnDisconnect;
     private boolean millisecondsInTimeStamp;
     private boolean resetOnLogon;
+    //
+    // The session time checks were causing performance problems
+    // so we are caching the last session time check result and
+    // only recalculating it if it's been at least 1 second since
+    // the last check
+    //
+    private long lastSessionTimeCheck = 0;
+    private boolean lastSessionTimeResult = false;
+    private boolean refreshOnLogon;
+    private boolean redundantResentRequestsAllowed;
+    private boolean persistMessages;
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
@@ -222,6 +245,7 @@ public class Session {
             resetOnDisconnect = false;
             resetOnLogon = false;
             millisecondsInTimeStamp = true;
+            persistMessages = true;
             this.dataDictionary = dataDictionary;
             state.setHeartBeatInterval(heartbeatInterval);
             state.setInitiator(heartbeatInterval != 0);
@@ -266,19 +290,6 @@ public class Session {
     private boolean checkSessionTime() throws IOException {
         return checkSessionTime(SystemTime.getDate());
     }
-
-    //
-    // The session time checks were causing performance problems
-    // so we are caching the last session time check result and
-    // only recalculating it if it's been at least 1 second since
-    // the last check
-    //
-    private long lastSessionTimeCheck = 0;
-    private boolean lastSessionTimeResult = false;
-
-    private boolean refreshOnLogon;
-
-    private boolean redundantResentRequestsAllowed;
 
     private boolean checkSessionTime(Date date) throws IOException {
         if (sessionSchedule == null) {
@@ -693,6 +704,16 @@ public class Session {
             endSeqNo = getExpectedSenderNum() - 1;
         }
 
+        if ( !persistMessages )
+        {
+          endSeqNo += 1;
+          int next = state.getNextSenderMsgSeqNum();
+          if( endSeqNo > next )
+            endSeqNo = next;
+          generateSequenceReset( beginSeqNo, endSeqNo );
+          return;
+        }
+        
         ArrayList messages = new ArrayList();
         state.get(beginSeqNo, endSeqNo, messages);
 
@@ -1507,7 +1528,9 @@ public class Session {
 
             if (num == 0) {
                 int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
-                state.set(msgSeqNum, messageString);
+                if(persistMessages) {
+                    state.set(msgSeqNum, messageString);
+                }
                 state.incrNextSenderMsgSeqNum();
             }
             return result;
@@ -1690,6 +1713,10 @@ public class Session {
     public void setRedundantResentRequestsAllowed(boolean flag) {
         redundantResentRequestsAllowed = flag;
         
+    }
+
+    public void setPersistMessages(boolean persistMessages) {
+        this.persistMessages = persistMessages;
     }
 
 }

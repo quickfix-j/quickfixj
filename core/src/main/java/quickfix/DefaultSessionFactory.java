@@ -176,6 +176,9 @@ public class DefaultSessionFactory implements SessionFactory {
                 session.setRedundantResentRequestsAllowed(true);
             }
             
+            if (settings.isSetting(sessionID, Session.SETTING_PERSIST_MESSAGES)) {
+                session.setPersistMessages(settings.getBool(Session.SETTING_PERSIST_MESSAGES));
+            }
             return session;
         } catch (ConfigError e) {
             throw e;
