@@ -21,6 +21,7 @@ package quickfix.mina;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +90,7 @@ public abstract class SessionConnector {
      * @return a map of sessions keys by session ID
      */
     protected Map getSessionMap() {
-        return sessions;
+        return Collections.unmodifiableMap(sessions);
     }
 
     /**
@@ -103,7 +104,7 @@ public abstract class SessionConnector {
         return new ArrayList(sessions.keySet());
     }
 
-    public SessionSettings getSettings() {
+    protected SessionSettings getSettings() {
         return settings;
     }
 
