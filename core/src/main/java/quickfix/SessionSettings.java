@@ -17,12 +17,14 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,6 +32,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.field.converter.BooleanConverter;
 
@@ -53,6 +58,8 @@ import quickfix.field.converter.BooleanConverter;
  * @see quickfix.DefaultSessionFactory
  */
 public class SessionSettings {
+    private Logger log = LoggerFactory.getLogger(getClass());
+    
     private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
 
     private static final String SESSION_SECTION_NAME = "session";
@@ -68,7 +75,7 @@ public class SessionSettings {
     private static final String NEWLINE = "\r\n";
 
     private Properties variableValues = System.getProperties();
-    
+
     /**
      * Creates an empty session settings object.
      */
@@ -162,8 +169,13 @@ public class SessionSettings {
      * @return the default properties
      * @throws ConfigError
      */
-    public Properties getDefaultProperties() throws ConfigError {
-        return getSessionProperties(DEFAULT_SESSION_ID);
+    public Properties getDefaultProperties() {
+        try {
+            return getSessionProperties(DEFAULT_SESSION_ID);
+        } catch (ConfigError e) {
+            // shouldn't happen
+            return new Properties();
+        }
     }
 
     /**
@@ -519,7 +531,7 @@ public class SessionSettings {
     }
 
     private Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
-    
+
     private String interpolate(String value) {
         if (value == null || value.indexOf('$') == -1) {
             return value;
@@ -527,7 +539,7 @@ public class SessionSettings {
         StringBuffer buffer = new StringBuffer();
         Matcher m = variablePattern.matcher(value);
         while (m.find()) {
-            if (m.start() > 0 && value.charAt(m.start()-1) == '\\') {
+            if (m.start() > 0 && value.charAt(m.start() - 1) == '\\') {
                 continue;
             }
             String variable = m.group(1);
@@ -539,7 +551,7 @@ public class SessionSettings {
         m.appendTail(buffer);
         return buffer.toString();
     }
-    
+
     /**
      * Set properties that will be the source of variable values in the settings. A variable
      * is of the form ${variable} and will be replaced with values from the
@@ -571,7 +583,7 @@ public class SessionSettings {
     public void setVariableValues(Properties variableValues) {
         this.variableValues = variableValues;
     }
-    
+
     /**
      * Adds defaults to the settings. Will not delete existing settings not
      * overlapping with the new defaults, but will overwrite existing settings
@@ -635,15 +647,44 @@ public class SessionSettings {
     }
 
     public Dictionary get() {
-        try {
-            return new Dictionary(null, getDefaultProperties());
-        } catch (ConfigError e) {
-            return null;
-        }
+        return new Dictionary(null, getDefaultProperties());
     }
 
     public void set(Dictionary dictionary) throws ConfigError {
         getDefaultProperties().putAll(dictionary.toMap());
     }
 
+    public void toStream(OutputStream out) {
+        PrintWriter writer = new PrintWriter(out);
+        try {
+            writeSection("[DEFAULT]", writer, getDefaultProperties());
+            Iterator s = sectionIterator();
+            while (s.hasNext()) {
+                try {
+                    writeSection("[SESSION]", writer, getSessionProperties((SessionID)s.next()));
+                } catch (ConfigError e) {
+                    log.error("Invalid session", e);
+                }
+            }
+        } finally {
+            writer.flush();
+        }
+    }
+
+    private void writeSection(String sectionName, PrintWriter writer, Properties properties) {
+        writer.println(sectionName);
+        Iterator p = properties.keySet().iterator();
+        while (p.hasNext()) {
+            String key = (String) p.next();
+            writer.print(key);
+            writer.print("=");
+            writer.println(properties.getProperty(key));
+        }
+    }
+    
+    public String toString() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        toStream(out);
+        return new String(out.toByteArray());
+    }
 }

@@ -20,14 +20,18 @@
 package quickfix;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
 public class SessionSettingsTest extends TestCase {
+
+    private String settingsString;
 
     public SessionSettingsTest(String name) {
         super(name);
@@ -98,37 +102,37 @@ public class SessionSettingsTest extends TestCase {
     }
 
     private SessionSettings setUpSession(String extra) throws ConfigError {
-        String data = new String();
-        data += "#comment\n";
-        data += "[DEFAULT]\n";
-        data += "Empty=\n";
-        data += "ConnectionType=acceptor\n";
-        data += "SocketAcceptPort=5001\n";
-        data += "FileStorePath=store\n";
-        data += "StartTime=00:00:00\n";
-        data += "EndTime=00:00:00\n";
-        data += "TestLong=1234\n";
-        data += "TestLong2=abcd\n";
-        data += "TestDouble=12.34\n";
-        data += "TestDouble2=abcd\n";
-        data += "TestBoolTrue=Y\n";
-        data += "TestBoolFalse=N\n";
-        data += "\r\n";
-        data += "[SESSION]\n";
-        data += "BeginString=FIX.4.2\n";
-        data += "SenderCompID=TW\n";
-        data += "TargetCompID=CLIENT1\n";
-        data += "DataDictionary=../spec/FIX42.xml\n";
-        data += "\n";
-        data += "[SESSION]\n";
-        data += "BeginString=FIX.4.2\n";
-        data += "SenderCompID=TW\n";
-        data += "TargetCompID=CLIENT2\n";
-        data += "DataDictionary=../spec/FIX42.xml\n";
+        settingsString = new String();
+        settingsString += "#comment\n";
+        settingsString += "[DEFAULT]\n";
+        settingsString += "Empty=\n";
+        settingsString += "ConnectionType=acceptor\n";
+        settingsString += "SocketAcceptPort=5001\n";
+        settingsString += "FileStorePath=store\n";
+        settingsString += "StartTime=00:00:00\n";
+        settingsString += "EndTime=00:00:00\n";
+        settingsString += "TestLong=1234\n";
+        settingsString += "TestLong2=abcd\n";
+        settingsString += "TestDouble=12.34\n";
+        settingsString += "TestDouble2=abcd\n";
+        settingsString += "TestBoolTrue=Y\n";
+        settingsString += "TestBoolFalse=N\n";
+        settingsString += "\r\n";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "SenderCompID=TW\n";
+        settingsString += "TargetCompID=CLIENT1\n";
+        settingsString += "DataDictionary=../spec/FIX42.xml\n";
+        settingsString += "\n";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "SenderCompID=TW\n";
+        settingsString += "TargetCompID=CLIENT2\n";
+        settingsString += "DataDictionary=../spec/FIX42.xml\n";
         if (extra != null) {
-            data += extra;
+            settingsString += extra;
         }
-        ByteArrayInputStream cfg = new ByteArrayInputStream(data.getBytes());
+        ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
 
         SessionSettings settings = new SessionSettings(cfg);
         return settings;
@@ -224,11 +228,6 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("wrong default value", "ABC FOO XYZ FOOBAR 123", settings.getString("VariableTest"));
     }
 
-    public void testToString() {
-        new SessionSettings().toString();
-        // Passes if no exceptions are thrown
-    }
-
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
@@ -247,5 +246,40 @@ public class SessionSettingsTest extends TestCase {
         } catch (ConfigError e) {
             // expected
         }
+    }
+    
+    public void testSettingsToStream() throws Exception {
+        SessionSettings expectedSettings = setUpSession();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        expectedSettings.toStream(out);
+        String writtenSettingsString = new String(out.toByteArray());
+        assertSettingsEqual(expectedSettings, writtenSettingsString);
+    }
+
+    private void assertSettingsEqual(SessionSettings expectedSettings, String actualSettingsString) throws ConfigError {
+        SessionSettings actualSettings = new SessionSettings(new ByteArrayInputStream(actualSettingsString.getBytes()));
+        assertSectionEquals(expectedSettings.getDefaultProperties(), actualSettings.getDefaultProperties());
+        Iterator sessionIDs = expectedSettings.sectionIterator();
+        while (sessionIDs.hasNext()) {
+            SessionID sessionID = (SessionID) sessionIDs.next();
+            assertSectionEquals(expectedSettings.getSessionProperties(sessionID), 
+                    actualSettings.getSessionProperties(sessionID));
+        }
+    }
+
+    private void assertSectionEquals(Properties expectedProperties, Properties actualProperties) {
+        Set keySet = actualProperties.keySet();
+        assertEquals("Key sets don't match", expectedProperties.keySet(), keySet);
+        Iterator p = keySet.iterator();
+        while (p.hasNext()) {
+            String key = (String) p.next();
+            assertEquals("property doesn't match", expectedProperties.getProperty(key), actualProperties.getProperty(key));
+        }
+    }
+    
+    public void testToString() throws Exception {
+        SessionSettings expectedSettings = setUpSession();
+        String actualString = expectedSettings.toString();
+        assertSettingsEqual(expectedSettings, actualString);
     }
 }
