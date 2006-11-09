@@ -26,11 +26,11 @@ class FieldException extends RuntimeException {
     private final int sessionRejectReason;
 
     public FieldException(int sessionRejectReason) {
-        this.sessionRejectReason = sessionRejectReason;
-        this.field = -1;
+        this(sessionRejectReason, -1);
     }
 
     public FieldException(int sessionRejectReason, int field) {
+        super(SessionRejectReasonText.getMessage(sessionRejectReason) + ", field=" + field);
         this.sessionRejectReason = sessionRejectReason;
         this.field = field;
     }
@@ -51,9 +51,5 @@ class FieldException extends RuntimeException {
 
     public int getSessionRejectReason() {
         return sessionRejectReason;
-    }
-
-    public String toString() {
-        return SessionRejectReasonText.getMessage(sessionRejectReason) + ", field=" + field;
     }
 }
