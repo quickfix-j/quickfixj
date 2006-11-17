@@ -32,12 +32,11 @@ import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet;
  * Corresponds to SessionTime in C++ code
  */
 class SessionSchedule {
+    private static final int NOT_SET = -1;
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
-
+    private TimeZone sessionTimeZone;
     private TimeEndPoint startTime;
     private TimeEndPoint endTime;
-
-    private TimeZone sessionTimeZone;
 
     SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
@@ -81,9 +80,9 @@ class SessionSchedule {
         localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
         Calendar startTime = SystemTime.getUtcCalendar();
         startTime.setTime(localTime.getTime());
-        int startDay = -1;
+        int startDay = NOT_SET;
         if (weeklySession) {
-            startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, -1);
+            startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, NOT_SET);
         }
 
         matcher = TIME_PATTERN.matcher(endTimeString);
@@ -96,9 +95,9 @@ class SessionSchedule {
         localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
         Calendar endTime = SystemTime.getUtcCalendar();
         endTime.setTime(localTime.getTime());
-        int endDay = -1;
+        int endDay = NOT_SET;
         if (weeklySession) {
-            endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
+            endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, NOT_SET);
         }
 
         initialize(startDay, startTime, endDay, endTime);
@@ -114,10 +113,11 @@ class SessionSchedule {
     }
 
     private class TimeEndPoint {
-        private int weekDay;
-        private int hour;
-        private int minute;
-        private int second;
+        private final int weekDay;
+        private final int hour;
+        private final int minute;
+        private final int second;
+        private final int timeInSeconds;
 
         public TimeEndPoint(int day, Calendar c) {
             this(day, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND));
@@ -128,6 +128,7 @@ class SessionSchedule {
             this.hour = hour;
             this.minute = minute;
             this.second = second;
+            timeInSeconds = timeInSeconds(hour, minute, second);
         }
 
         public int getHour() {
@@ -144,7 +145,7 @@ class SessionSchedule {
 
         public String toString() {
             try {
-                return (weekDay != -1 ? "d=" + DayConverter.toString(weekDay) + "," : "") + hour
+                return (isSet(weekDay) ? "d=" + DayConverter.toString(weekDay) + "," : "") + hour
                         + ":" + minute + ":" + second;
             } catch (ConfigError e) {
                 return "ERROR: " + e.getMessage();
@@ -154,6 +155,10 @@ class SessionSchedule {
         public int getDay() {
             return weekDay;
         }
+
+        public int getTimeInSeconds() {
+            return timeInSeconds;
+        }
     }
 
     private TimeInterval theMostRecentIntervalBefore(Calendar t) {
@@ -162,41 +167,63 @@ class SessionSchedule {
         startCal.setTimeInMillis(t.getTimeInMillis());
         startCal.set(Calendar.MILLISECOND, 0);
 
-        if (startTime.getDay() != -1) {
-            startCal.set(Calendar.DAY_OF_WEEK, startTime.getDay());
+        int scheduleStartDay = startTime.getDay();
+        int scheduleStartHour = startTime.getHour();
+
+        int day = t.get(Calendar.DAY_OF_WEEK);
+
+        if (isSet(scheduleStartDay)) {
+            startCal.set(Calendar.DAY_OF_WEEK, scheduleStartDay);
+            if (day < scheduleStartDay
+                    || (isSameDay(day, scheduleStartDay) && isTimeBefore(t, startTime))) {
+                startCal.add(Calendar.WEEK_OF_YEAR, -1);
+            }
+        } else {
+            if (isTimeBefore(t, startTime)) {
+                startCal.add(Calendar.DATE, -1);
+            }
         }
-        if (startTime.getDay() == -1 && t.get(Calendar.HOUR_OF_DAY) < startTime.getHour()) {
-            startCal.add(Calendar.DATE, -1);
-        }
-        if (startTime.getDay() != -1
-                && (t.get(Calendar.DAY_OF_WEEK) < startTime.getDay() || (t
-                        .get(Calendar.DAY_OF_WEEK) == startTime.getDay() && t
-                        .get(Calendar.HOUR_OF_DAY) < startTime.getHour()))) {
-            startCal.add(Calendar.WEEK_OF_YEAR, -1);
-        }
-        startCal.set(Calendar.HOUR_OF_DAY, startTime.getHour());
+
+        startCal.set(Calendar.HOUR_OF_DAY, scheduleStartHour);
         startCal.set(Calendar.MINUTE, startTime.getMinute());
         startCal.set(Calendar.SECOND, startTime.getSecond());
 
         Calendar endCal = timeInterval.getEnd();
         endCal.setTimeInMillis(startCal.getTimeInMillis());
 
-        if (endTime.getDay() != -1) {
-            endCal.set(Calendar.DAY_OF_WEEK, endTime.getDay());
+        int scheduleEndDay = endTime.getDay();
+
+        if (isSet(scheduleEndDay)) {
+            endCal.set(Calendar.DAY_OF_WEEK, scheduleEndDay);
+            if (scheduleStartDay > scheduleEndDay
+                    || (isSameDay(scheduleStartDay, scheduleEndDay) && isTimeAfter(startTime,
+                            endTime))) {
+                endCal.add(Calendar.WEEK_OF_YEAR, 1);
+            }
         }
-        if (endTime.getDay() == -1 && startTime.getHour() >= endTime.getHour()) {
+
+        if (!isSet(scheduleEndDay) && isTimeAfter(startTime, endTime)) {
             endCal.add(Calendar.DATE, 1);
         }
-        if (endTime.getDay() != -1
-                && (startTime.getDay() > endTime.getDay() || (startTime.getDay() == endTime
-                        .getDay() && startTime.getHour() >= endTime.getHour()))) {
-            endCal.add(Calendar.WEEK_OF_YEAR, 1);
-        }
+
         endCal.set(Calendar.HOUR_OF_DAY, endTime.getHour());
         endCal.set(Calendar.MINUTE, endTime.getMinute());
         endCal.set(Calendar.SECOND, endTime.getSecond());
 
         return timeInterval;
+    }
+
+    private boolean isSameDay(int day1, int day2) {
+        return day1 == day2;
+    }
+
+    private boolean isTimeBefore(Calendar calendar, TimeEndPoint timeEndPoint) {
+        return timeInSeconds(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
+                calendar.get(Calendar.SECOND)) < timeEndPoint.getTimeInSeconds();
+    }
+
+    private boolean isTimeAfter(TimeEndPoint timeEndPoint, TimeEndPoint timeEndPoint2) {
+        return timeEndPoint.getTimeInSeconds() > timeEndPoint2.getTimeInSeconds();
     }
 
     private class TimeInterval {
@@ -278,7 +305,7 @@ class SessionSchedule {
     }
 
     private boolean isDailySession() {
-        return startTime.getDay() == -1 && endTime.getDay() == -1;
+        return !isSet(startTime.getDay()) && !isSet(endTime.getDay());
     }
 
     public boolean isSessionTime() {
@@ -353,5 +380,13 @@ class SessionSchedule {
     private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
             throws ConfigError, FieldConvertError {
         return DayConverter.toInteger(settings.getString(sessionID, key));
+    }
+
+    private boolean isSet(int value) {
+        return value != NOT_SET;
+    }
+
+    private int timeInSeconds(int hour, int minute, int second) {
+        return (hour * 3600) + (minute * 60) + second;
     }
 }

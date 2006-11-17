@@ -86,6 +86,28 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2004, 10, 10, 17, 0, 0);
     }
 
+    public void testShortSessionTestStartBeforeEnd() throws Exception {
+        Calendar start = getUtcTime(18, 00, 0);
+        Calendar end = getUtcTime(18, 30, 0);
+        SessionSchedule schedule = newSessionSchedule(start.getTime(), end.getTime(), -1, -1);
+        doIsSessionTimeTest(schedule, false, 2000, 10, 10, 17, 15, 0);
+        doIsSessionTimeTest(schedule, true, 2000, 10, 10, 18, 00, 0);
+        doIsSessionTimeTest(schedule, true, 2000, 10, 10, 18, 15, 0);
+        doIsSessionTimeTest(schedule, true, 2000, 10, 10, 18, 30, 0);
+        doIsSessionTimeTest(schedule, false, 2000, 10, 10, 19, 30, 0);
+    }
+
+    public void testShortSessionTestStartAfterEnd() throws Exception {
+        Calendar start = getUtcTime(18, 30, 0);
+        Calendar end = getUtcTime(18, 00, 0);
+        SessionSchedule schedule = newSessionSchedule(start.getTime(), end.getTime(), -1, -1);
+        doIsSessionTimeTest(schedule, false, 2000, 10, 10, 18, 15, 0);
+        doIsSessionTimeTest(schedule, true, 2000, 10, 10, 18, 00, 0);
+        doIsSessionTimeTest(schedule, true, 2000, 10, 10, 19, 15, 0);
+        doIsSessionTimeTest(schedule, true, 2000, 10, 10, 18, 30, 0);
+        doIsSessionTimeTest(schedule, false, 2000, 10, 10, 18, 25, 0);
+    }
+
     private void doIsSessionTimeTest(SessionSchedule schedule, boolean expectedInSession, int year,
             int month, int day, int hour, int minute, int second) {
         doIsSessionTimeTest(schedule, expectedInSession, year, month, day, hour, minute, second,
