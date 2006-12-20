@@ -31,6 +31,7 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
+import org.easymock.ArgumentsMatcher;
 import org.easymock.MockControl;
 
 import quickfix.mina.CriticalProtocolCodecException;
@@ -51,7 +52,7 @@ public class FIXMessageDecoderTest extends TestCase {
         buffer.release();
         super.tearDown();
     }
-    
+
     public void testPartialHeader() throws Exception {
         setUpBuffer("8=FIX.4.2");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
@@ -169,48 +170,58 @@ public class FIXMessageDecoderTest extends TestCase {
     }
 
     public void testMinaDemux() throws Exception {
-        ByteBuffer otherBuffer = ByteBuffer.allocate(1024);
-        try {
-            DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
-            codecFactory.register(FIXMessageDecoder.class);
+        final ByteBuffer[] previousBuffer = new ByteBuffer[1];
+        DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
+        codecFactory.register(FIXMessageDecoder.class);
 
-            ProtocolDecoder decoder = codecFactory.getDecoder();
-            ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
+        ProtocolDecoder decoder = codecFactory.getDecoder();
+        ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
 
-            MockControl mockSessionControl = MockControl.createControl(IoSession.class);
-            IoSession mockSession = (IoSession) mockSessionControl.getMock();
-            
-            mockSession.getAttribute("org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer");
-            mockSessionControl.setReturnValue(otherBuffer, MockControl.ONE_OR_MORE);
-            
+        MockControl mockSessionControl = MockControl.createControl(IoSession.class);
+        IoSession mockSession = (IoSession) mockSessionControl.getMock();
+
+        String bufferKey = "org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer";
+
+        int count = 5;
+        String data = "";
+        for (int i = 0; i < count; i++) {
+            data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
+        }
+
+        for (int i = 1; i < data.length(); i++) {
+            String chunk1 = data.substring(0, i);
+            String chunk2 = data.substring(i);
+
+            mockSessionControl.reset();
+            mockSessionControl.expectAndReturn(mockSession.getAttribute(bufferKey), null,
+                    MockControl.ONE_OR_MORE);
+            mockSession.setAttribute(bufferKey, null/*don't care*/);
+            mockSessionControl.setMatcher(new PreviousBufferCapturer(previousBuffer));
+            mockSessionControl.setReturnValue(null);
             mockSessionControl.replay();
 
-            int count = 5;
-            String data = "";
-            for (int i = 0; i < count; i++) {
-                data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
-            }
+            setUpBuffer(chunk1);
+            decoder.decode(mockSession, buffer, output);
+            buffer.compact();
 
-            for (int i = 1; i < data.length(); i++) {
-                String chunk1 = data.substring(0, i);
-                String chunk2 = data.substring(i);
-                setUpBuffer(chunk1);
-                decoder.decode(mockSession, buffer, output);
-                buffer.compact();
+            mockSessionControl.reset();
+            mockSessionControl.expectAndReturn(mockSession.getAttribute(bufferKey),
+                    previousBuffer[0], MockControl.ONE_OR_MORE);
+            mockSessionControl.expectAndReturn(mockSession.removeAttribute(bufferKey),
+                    previousBuffer[0]);
+            mockSessionControl.replay();
 
-                setUpBuffer(chunk2);
-                decoder.decode(mockSession, buffer, output);
+            setUpBuffer(chunk2);
+            decoder.decode(mockSession, buffer, output);
 
-                assertEquals("wrong message count", count, output.getMessageCount());
-                
-                output.reset();
-                buffer.clear();
-            }
+            assertEquals("wrong message count", count, output.getMessageCount());
 
-            mockSessionControl.verify();
-        } finally {
-            otherBuffer.release();
+            output.reset();
+            buffer.clear();
+            previousBuffer[0] = null;
         }
+
+        mockSessionControl.verify();
     }
 
     private void assertMessageFound(String data) throws ProtocolCodecException {
@@ -233,6 +244,26 @@ public class FIXMessageDecoderTest extends TestCase {
         buffer.put(bufferContents.getBytes());
         buffer.flip();
         return bufferContents;
+    }
+
+    private final class PreviousBufferCapturer implements ArgumentsMatcher {
+        private final ByteBuffer[] buffer;
+
+        private PreviousBufferCapturer(ByteBuffer[] buffer) {
+            this.buffer = buffer;
+        }
+
+        public String toString(Object[] arg0) {
+            return "";
+        }
+
+        public boolean matches(Object[] actual, Object[] expected) {
+            if (actual == expected) {
+                return true;
+            }
+            buffer[0] = (ByteBuffer) actual[1];
+            return true;
+        }
     }
 
     private class ProtocolDecoderOutputForTest implements ProtocolDecoderOutput {

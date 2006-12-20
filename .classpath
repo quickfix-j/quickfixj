@@ -17,6 +17,6 @@
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/optional/jcl104-over-slf4j-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/optional/slf4j-log4j12-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-core-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/mina-core-1.0.0.jar" sourcepath="lib/mina-core-1.0.1-src.zip"/>
 	<classpathentry kind="output" path="output/eclipse/classes"/>
 </classpath>
