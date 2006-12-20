@@ -21,12 +21,9 @@ package quickfix;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Corresponds to SessionTime in C++ code. Immutable class.
@@ -148,9 +145,8 @@ class SessionSchedule {
         }
     }
 
-
     private TimeInterval theMostRecentIntervalBefore(Calendar t) {
-        TimeInterval timeInterval = getIntervalFromPool();
+        TimeInterval timeInterval = new TimeInterval();
         Calendar startCal = timeInterval.getStart();
         startCal.setTimeInMillis(t.getTimeInMillis());
         startCal.set(Calendar.MILLISECOND, 0);
@@ -222,50 +218,20 @@ class SessionSchedule {
         public Calendar getEnd() {
             return end;
         }
-
-        public void release() {
-            intervalPool.add(this);
-        }
-    }
-
-    private ConcurrentSkipListSet intervalPool = new ConcurrentSkipListSet(new Comparator() {
-
-        public int compare(Object o1, Object o2) {
-            return 1;
-        }
-    });
-
-    private TimeInterval getIntervalFromPool() {
-        TimeInterval i = (TimeInterval) intervalPool.pollFirst();
-        if (i == null) {
-            i = new TimeInterval();
-        }
-        return i;
     }
 
     public boolean isSameSession(Calendar time1, Calendar time2) {
-        TimeInterval interval1 = null;
-        TimeInterval interval2 = null;
-        try {
-            interval1 = theMostRecentIntervalBefore(time1);
-            if (!interval1.isContainingTime(time1)) {
-                return false;
-            }
-
-            interval2 = theMostRecentIntervalBefore(time2);
-            if (!interval2.isContainingTime(time2)) {
-                return false;
-            }
-
-            return interval1.equals(interval2);
-        } finally {
-            if (interval1 != null) {
-                interval1.release();
-            }
-            if (interval2 != null) {
-                interval2.release();
-            }
+        TimeInterval interval1 = theMostRecentIntervalBefore(time1);
+        if (!interval1.isContainingTime(time1)) {
+            return false;
         }
+
+        TimeInterval interval2 = theMostRecentIntervalBefore(time2);
+        if (!interval2.isContainingTime(time2)) {
+            return false;
+        }
+
+        return interval1.equals(interval2);
     }
 
     private boolean isDailySession() {
@@ -275,11 +241,7 @@ class SessionSchedule {
     public boolean isSessionTime() {
         Calendar now = SystemTime.getUtcCalendar();
         TimeInterval interval = theMostRecentIntervalBefore(now);
-        try {
-            return interval.isContainingTime(now);
-        } finally {
-            interval.release();
-        }
+        return interval.isContainingTime(now);
     }
 
     public String toString() {
