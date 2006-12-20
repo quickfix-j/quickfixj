@@ -43,20 +43,12 @@ public class IoSessionResponderTest extends TestCase {
         mockIoSessionControl.verify();
     }
 
-    private final class MockCloseFuture extends CloseFuture {
-        public boolean joined;
-        
-        public void join() {
-            joined = true;
-        }
-    }
-
     public void testDisconnect() throws Exception {
         MockControl mockProtocolSessionControl = MockControl.createControl(IoSession.class);
+        MockControl mockCloseFutureControl = MockControl.createControl(CloseFuture.class);
         IoSession mockProtocolSession = (IoSession) mockProtocolSessionControl.getMock();
         mockProtocolSession.close();
-        MockCloseFuture mockCloseFuture = new MockCloseFuture();
-        mockProtocolSessionControl.setReturnValue(mockCloseFuture);
+        mockProtocolSessionControl.setReturnValue(mockCloseFutureControl.getMock());
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession);
 

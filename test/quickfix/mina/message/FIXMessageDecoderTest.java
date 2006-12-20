@@ -260,5 +260,9 @@ public class FIXMessageDecoderTest extends TestCase {
         public void reset() {
             messages.clear();
         }
+
+        public void flush() {
+            // empty
+        }
     }
 }

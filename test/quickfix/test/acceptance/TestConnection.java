@@ -23,13 +23,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 import java.util.Iterator;
 
 import junit.framework.Assert;
 
+import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.CloseFuture;
-import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
@@ -43,17 +42,19 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
+import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class TestConnection {
-    private Logger log = LoggerFactory.getLogger(getClass());
-    private HashMap ioHandlers = new HashMap();
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private ConcurrentHashMap ioHandlers = new ConcurrentHashMap();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
-        handler.getSession().write(message);
+        IoSession session = handler.getSession();
+        session.write(ByteBuffer.wrap(message.getBytes()));
     }
 
     private TestIoHandler getIoHandler(int clientId) {
@@ -63,7 +64,9 @@ public class TestConnection {
     public void tearDown() {
         Iterator handlerItr = ioHandlers.values().iterator();
         while (handlerItr.hasNext()) {
-            CloseFuture closeFuture = ((TestIoHandler) handlerItr.next()).getSession().close();
+            TestIoHandler iohandler = (TestIoHandler) handlerItr.next();
+            IoSession session = iohandler.getSession();
+            CloseFuture closeFuture = session.close();
             closeFuture.join();
         }
         ioHandlers.clear();
@@ -74,11 +77,11 @@ public class TestConnection {
     }
 
     public void waitForClientDisconnect(int clientId) throws IOException, InterruptedException {
-        getIoHandler(clientId).waitForDisconnect();
+        getIoHandler(clientId).waitForClose();
     }
 
     public void connect(int clientId, TransportType transportType, int port)
-            throws UnknownHostException, IOException {
+            throws UnknownHostException, IOException, InterruptedException {
         IoConnector connector;
         SocketAddress address;
         if (transportType == TransportType.SOCKET) {
@@ -92,24 +95,24 @@ public class TestConnection {
         }
         TestIoHandler testIoHandler = new TestIoHandler();
         ioHandlers.put(new Integer(clientId), testIoHandler);
-        ConnectFuture future = connector.connect(address, testIoHandler);
-        future.join();
-        Assert.assertTrue("connection to server failed", future.isConnected());
+        connector.connect(address, testIoHandler);
+        testIoHandler.waitForSessionCreate();
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
         private IoSession session;
-        private BlockingQueue messages = new LinkedBlockingQueue();
-        private CountDownLatch disconnectLatch = new CountDownLatch(1);
+        private final BlockingQueue messages = new LinkedBlockingQueue();
+        private final CountDownLatch sessionClosedLatch = new CountDownLatch(1);
+        private final CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
 
-        public void sessionCreated(IoSession session) throws Exception {
+        public synchronized void sessionCreated(IoSession session) throws Exception {
             super.sessionCreated(session);
             this.session = session;
             session.getFilterChain().addLast("codec",
                     new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
+            sessionCreatedLatch.countDown();
         }
 
-        
         public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
             super.exceptionCaught(session, cause);
             log.error(cause.getMessage(), cause);
@@ -117,14 +120,14 @@ public class TestConnection {
 
         public void sessionClosed(IoSession session) throws Exception {
             super.sessionClosed(session);
-            disconnectLatch.countDown();
+            sessionClosedLatch.countDown();
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
             messages.add(message);
         }
 
-        public IoSession getSession() {
+        public synchronized IoSession getSession() {
             return session;
         }
 
@@ -132,9 +135,15 @@ public class TestConnection {
             return (String) messages.poll(timeout, TimeUnit.MILLISECONDS);
         }
 
-        public void waitForDisconnect() throws InterruptedException {
-            if (!disconnectLatch.await(500000L, TimeUnit.MILLISECONDS)) {
+        public void waitForClose() throws InterruptedException {
+            if (!sessionClosedLatch.await(30000L, TimeUnit.MILLISECONDS)) {
                 Assert.fail("client not disconnected");
+            }
+        }
+        
+        public void waitForSessionCreate() throws InterruptedException {
+            if (!sessionCreatedLatch.await(30000L, TimeUnit.MILLISECONDS)) {
+                Assert.fail("timeout waiting for session creation");
             }
         }
     }

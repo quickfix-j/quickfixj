@@ -257,4 +257,8 @@ public class FIXMessageDecoder implements MessageDecoder {
         return true;
     }
 
+    public void finishDecode(IoSession arg0, ProtocolDecoderOutput arg1) throws Exception {
+        // empty
+    }
+
 }

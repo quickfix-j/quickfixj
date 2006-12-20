@@ -39,7 +39,9 @@ public class ATApplication implements Application {
     
     public void onCreate(SessionID sessionID) {
         try {
-            Session.lookupSession(sessionID).reset();
+            Session session = Session.lookupSession(sessionID);
+            session.getLog().onEvent("Resetting session for test.");
+            session.reset();
         } catch (IOException e) {
             e.printStackTrace();
         }

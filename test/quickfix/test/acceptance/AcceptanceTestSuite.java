@@ -140,8 +140,9 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean("atest.skipslow");
 
-        //addTest("fix44/14b_RequiredFieldMissing.def");
-        //addTest("fix40/2i_BeginStringValueUnexpected.def");
+//        addTest("fix40/10_MsgSeqNumEqual.def");
+//        addTest("fix40/10_MsgSeqNumGreater.def");
+//        addTest("fix40/10_MsgSeqNumLess.def");
 
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));

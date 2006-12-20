@@ -19,7 +19,6 @@
 
 package quickfix.test.acceptance;
 
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,7 +65,7 @@ public class ConnectToServerStep implements TestStep {
         }
         try {
             connection.connect(clientId, transportType, port);
-        } catch (IOException e) {
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }

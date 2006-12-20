@@ -531,8 +531,10 @@ public class Session {
      * @see SessionState#reset()
      */
     public synchronized void reset() throws IOException {
-        generateLogout();
-        disconnect();
+        if (hasResponder()) {
+            generateLogout();
+            disconnect();
+        }
         state.reset();
     }
 
