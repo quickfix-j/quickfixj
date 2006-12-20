@@ -29,15 +29,15 @@ import java.util.regex.Pattern;
 import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentSkipListSet;
 
 /**
- * Corresponds to SessionTime in C++ code
+ * Corresponds to SessionTime in C++ code. Immutable class.
  */
 class SessionSchedule {
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
 
-    private TimeEndPoint startTime;
-    private TimeEndPoint endTime;
-
-    private TimeZone sessionTimeZone;
+    // TimeEndPoint is immutable
+    private final TimeEndPoint startTime;
+    private final TimeEndPoint endTime;
+    private final TimeZone sessionTimeZone;
 
     SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
@@ -101,14 +101,6 @@ class SessionSchedule {
             endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, -1);
         }
 
-        initialize(startDay, startTime, endDay, endTime);
-    }
-
-    SessionSchedule(int startDay, Calendar startTime, int endDay, Calendar endTime) {
-        initialize(startDay, startTime, endDay, endTime);
-    }
-
-    private void initialize(int startDay, Calendar startTime, int endDay, Calendar endTime) {
         this.startTime = new TimeEndPoint(startDay, startTime);
         this.endTime = new TimeEndPoint(endDay, endTime);
     }

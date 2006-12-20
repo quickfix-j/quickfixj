@@ -19,12 +19,34 @@
 
 package quickfix;
 
-import quickfix.field.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+import quickfix.field.BeginSeqNo;
+import quickfix.field.BeginString;
+import quickfix.field.BusinessRejectReason;
+import quickfix.field.EncryptMethod;
+import quickfix.field.EndSeqNo;
+import quickfix.field.GapFillFlag;
+import quickfix.field.HeartBtInt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.NewSeqNo;
+import quickfix.field.OrigSendingTime;
+import quickfix.field.PossDupFlag;
+import quickfix.field.RefMsgType;
+import quickfix.field.RefSeqNum;
+import quickfix.field.RefTagID;
+import quickfix.field.ResetSeqNumFlag;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
+import quickfix.field.SessionRejectReason;
+import quickfix.field.TargetCompID;
+import quickfix.field.TestReqID;
+import quickfix.field.Text;
 
 /**
  * The Session is the primary FIX abstraction for message communication. It
@@ -153,56 +175,88 @@ public class Session {
      */
     public static final String SETTING_REFRESH_STORE_AT_LOGON = "RefreshMessageStoreAtLogon";
 
-    private Application application;
-    private Responder responder;
-    private SessionID sessionID;
-    private DataDictionary dataDictionary;
-    private SessionSchedule sessionSchedule;
-    private MessageFactory messageFactory;
-    private SessionState state = new SessionState();
-    private static HashMap sessions = new HashMap();
-    private boolean enabled;
-    private boolean checkLatency;
-    private int maxLatency;
-    private boolean resetOnLogout;
-    private boolean resetOnDisconnect;
-    private boolean millisecondsInTimeStamp;
-    private boolean resetWhenInitiatingLogon;
+    // @GuardedBy(sessions)
+    private static Map sessions = new WeakHashMap();
+
+    private final Application application;
+    private final SessionID sessionID;
+    private final DataDictionary dataDictionary;
+    private final SessionSchedule sessionSchedule;
+    private final MessageFactory messageFactory;
+
+    // @GuardedBy(this)
+    private final SessionState state = new SessionState();
+
+    private volatile boolean enabled;
+    private volatile Responder responder;
+
+    //
+    // The session time checks were causing performance problems
+    // so we are caching the last session time check result and
+    // only recalculating it if it's been at least 1 second since
+    // the last check
+    //
+    // @GuardedBy(this)
+    private long lastSessionTimeCheck = 0;
+    private boolean lastSessionTimeResult = false;
+
+    private final boolean checkLatency;
+    private final int maxLatency;
+    private final boolean resetOnLogout;
+    private final boolean resetOnDisconnect;
+    private final boolean millisecondsInTimeStamp;
+    private final boolean resetWhenInitiatingLogon;
+    private final boolean refreshMessageStoreAtLogon;
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
-        if (logFactory != null) {
-            state.setLog(logFactory.create(sessionID));
-        }
+        this(application, messageStoreFactory, sessionID, dataDictionary, sessionSchedule,
+                logFactory, messageFactory, heartbeatInterval, true, 120, true, false, false,
+                false, false);
+    }
 
-        try {
-            this.application = application;
-            this.sessionID = sessionID;
-            this.sessionSchedule = sessionSchedule;
-            enabled = true;
-            checkLatency = true;
-            maxLatency = 120;
-            resetOnLogout = false;
-            resetOnDisconnect = false;
-            resetWhenInitiatingLogon = false;
-            millisecondsInTimeStamp = true;
-            this.dataDictionary = dataDictionary;
+    Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
+            DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
+            MessageFactory messageFactory, int heartbeatInterval, boolean checkLatency,
+            int maxLatency, boolean millisecondsInTimeStamp, boolean resetOnLogout,
+            boolean resetOnDisconnect, boolean resetWhenInitiatingLogon,
+            boolean refreshMessageStoreAtLogon) {
+        this.application = application;
+        this.sessionID = sessionID;
+        this.sessionSchedule = sessionSchedule;
+        this.checkLatency = checkLatency;
+        this.maxLatency = maxLatency;
+        this.resetOnLogout = resetOnLogout;
+        this.resetOnDisconnect = resetOnDisconnect;
+        this.millisecondsInTimeStamp = millisecondsInTimeStamp;
+        this.resetWhenInitiatingLogon = resetWhenInitiatingLogon;
+        this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
+        this.dataDictionary = dataDictionary;
+        this.messageFactory = messageFactory;
+
+        synchronized (this) {
+            if (logFactory != null) {
+                state.setLog(logFactory.create(sessionID));
+            }
+
             state.setHeartBeatInterval(heartbeatInterval);
             state.setInitiator(heartbeatInterval != 0);
             state.setMessageStore(messageStoreFactory.create(sessionID));
-            this.messageFactory = messageFactory;
-            getLog().onEvent("Session " + this.sessionID + " schedule is " + sessionSchedule);
-            if (!checkSessionTime()) {
-                getLog().onEvent("Session state is not current; resetting " + this.sessionID);
-                reset();
+
+            getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
+            try {
+                if (!checkSessionTime()) {
+                    getLog().onEvent("Session state is not current; resetting " + sessionID);
+                    reset();
+                }
+            } catch (IOException e) {
+                LogUtil.logThrowable(getLog(), "error during session construction", e);
             }
-            sessions.put(sessionID, this);
-            application.onCreate(sessionID);
-            getLog().onEvent("Created session: " + sessionID);
-        } catch (IOException e) {
-            LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
+
+        enabled = true;
+        getLog().onEvent("Created session: " + sessionID);
     }
 
     public MessageFactory getMessageFactory() {
@@ -224,32 +278,28 @@ public class Session {
      *
      * @return the Session's connection responder
      */
-    public synchronized Responder getResponder() {
-        return responder;
+    public boolean hasResponder() {
+        return responder != null;
     }
 
     private boolean checkSessionTime() throws IOException {
         return checkSessionTime(SystemTime.getDate());
     }
 
-    //
-    // The session time checks were causing performance problems
-    // so we are caching the last session time check result and
-    // only recalculating it if it's been at least 1 second since
-    // the last check
-    //
-    private long lastSessionTimeCheck = 0;
-    private boolean lastSessionTimeResult = false;
-
-    private boolean refreshMessageStoreAtLogon;
-
     private boolean checkSessionTime(Date date) throws IOException {
+
         if (sessionSchedule == null) {
             return true;
         }
+
+        //
+        // Only check the session time once per second at most. It isn't
+        // necessary to do for every message received.
+        //
         if ((date.getTime() - lastSessionTimeCheck) >= 1000L) {
+            Date getSessionCreationTime = state.getCreationTime();
             lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date),
-                    SystemTime.getUtcCalendar(state.getCreationTime()));
+                    SystemTime.getUtcCalendar(getSessionCreationTime));
             lastSessionTimeCheck = date.getTime();
             return lastSessionTimeResult;
         } else {
@@ -349,6 +399,12 @@ public class Session {
         return session.send(message);
     }
 
+    static void registerSession(Session session) {
+        synchronized (sessions) {
+            sessions.put(session.getSessionID(), session);
+        }
+    }
+
     /**
      * Locates a session specified by the provided session ID.
      *
@@ -356,13 +412,15 @@ public class Session {
      * @return the session, if found, or null otherwise
      */
     public static Session lookupSession(SessionID sessionID) {
-        return (Session) sessions.get(sessionID);
+        synchronized (sessions) {
+            return (Session) sessions.get(sessionID);
+        }
     }
 
     /**
      * This method can be used to manually logon to a FIX session.
      */
-    public void logon() {
+    public synchronized void logon() {
         state.clearLogoutReason();
         enabled = true;
     }
@@ -393,7 +451,7 @@ public class Session {
      * This method can be used to manually logout of a FIX session.
      * @param reason this will be included in the logout message
      */
-    public void logout(String reason) {
+    public synchronized void logout(String reason) {
         state.setLogoutReason(reason);
         logout();
     }
@@ -408,42 +466,54 @@ public class Session {
     }
 
     /**
-     * Predicate indication whether a logon message has been sent.
+     * Predicate indicating whether a logon message has been sent.
+     * 
+     * (QF Compatibility)
      *
      * @return true if logon message was sent, false otherwise.
      */
-    public boolean sentLogon() {
+    public synchronized boolean sentLogon() {
         return state.isLogonSent();
     }
 
     /**
      * Predicate indicating whether a logon message has been received.
+     * 
+     * (QF Compatibility)
      *
      * @return true if logon message was received, false otherwise.
      */
-    public boolean receivedLogon() {
+    public synchronized boolean receivedLogon() {
         return state.isLogonReceived();
     }
 
     /**
      * Predicate indicating whether a logout message has been sent.
+     * 
+     * (QF Compatibility)
      *
      * @return true if logout message was sent, false otherwise.
      */
-    public boolean sentLogout() {
+    public synchronized boolean sentLogout() {
         return state.isLogoutSent();
     }
-    
+
     /**
-     * Predicate indicating whether a logout message has been received.
+     * Predicate indicating whether a logout message has been received. This can
+     * be used to determine if a session ended with an unexpected disconnect.
      *  
      * @return true if logout message has been received, false otherwise.
-     */ 
-    public boolean receivedLogout() {
+     */
+    public synchronized boolean receivedLogout() {
         return state.isLogoutReceived();
     }
 
-    public boolean isLoggedOn() {
+    /**
+     * Is the session logged on.
+     * 
+     * @return true if logged on, false otherwise.
+     */
+    public synchronized boolean isLoggedOn() {
         return sentLogon() && receivedLogon();
     }
 
@@ -452,7 +522,7 @@ public class Session {
                 && (resetWhenInitiatingLogon || resetOnLogout || resetOnDisconnect)
                 && getExpectedSenderNum() == 1 && getExpectedTargetNum() == 1;
     }
-        
+
     /**
      * Logouts and disconnects session and then resets session state.
      *
@@ -460,7 +530,7 @@ public class Session {
      * @see #disconnect()
      * @see SessionState#reset()
      */
-    public void reset() throws IOException {
+    public synchronized void reset() throws IOException {
         generateLogout();
         disconnect();
         state.reset();
@@ -473,7 +543,7 @@ public class Session {
      * @param num next outgoing sequence number
      * @throws IOException IO error
      */
-    public void setNextSenderMsgSeqNum(int num) throws IOException {
+    public synchronized void setNextSenderMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextSenderMsgSeqNum(num);
     }
 
@@ -484,7 +554,7 @@ public class Session {
      * @param num next expected target sequence number
      * @throws IOException IO error
      */
-    public void setNextTargetMsgSeqNum(int num) throws IOException {
+    public synchronized void setNextTargetMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextTargetMsgSeqNum(num);
     }
 
@@ -494,7 +564,7 @@ public class Session {
      *
      * @return next expected sender sequence number
      */
-    public int getExpectedSenderNum() {
+    public synchronized int getExpectedSenderNum() {
         try {
             return state.getMessageStore().getNextSenderMsgSeqNum();
         } catch (IOException e) {
@@ -509,7 +579,7 @@ public class Session {
      *
      * @return next expected target sequence number
      */
-    public int getExpectedTargetNum() {
+    public synchronized int getExpectedTargetNum() {
         try {
             return state.getMessageStore().getNextTargetMsgSeqNum();
         } catch (IOException e) {
@@ -522,10 +592,17 @@ public class Session {
         return state.getLog();
     }
 
-    public MessageStore getStore() {
+    /**
+     * Get the message store. (QF Compatibility)
+     * @return the message store
+     */
+    public synchronized MessageStore getStore() {
         return state.getMessageStore();
     }
 
+    /**
+     * (Internal use only)
+     */
     public synchronized void next(Message message) throws FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException,
             InvalidMessage {
@@ -630,8 +707,7 @@ public class Session {
     }
 
     private boolean isStateRefreshNeeded(String msgType) {
-        return refreshMessageStoreAtLogon && !getState().isInitiator()
-                && msgType.equals(MsgType.LOGON);
+        return refreshMessageStoreAtLogon && !state.isInitiator() && msgType.equals(MsgType.LOGON);
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -643,9 +719,9 @@ public class Session {
         nextQueued();
     }
 
-    private synchronized void nextResendRequest(Message resendRequest) throws IOException,
-            RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
-            UnsupportedMessageType, InvalidMessage {
+    private void nextResendRequest(Message resendRequest) throws IOException, RejectLogon,
+            FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType,
+            InvalidMessage {
         if (!verify(resendRequest, false, false)) {
             return;
         }
@@ -819,7 +895,7 @@ public class Session {
         }
     }
 
-    public void generateReject(Message message, String str) throws FieldNotFound, IOException {
+    private void generateReject(Message message, String str) throws FieldNotFound, IOException {
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         reject.reverseRoute(message.getHeader());
@@ -855,30 +931,30 @@ public class Session {
             String errorMessage = "Tried to send a reject while not logged on: " + reason
                     + " (field " + field + ")";
             throw new SessionException(errorMessage);
-    
+
         }
-    
+
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
         reject.reverseRoute(message.getHeader());
         initializeHeader(reject.getHeader());
-    
+
         String msgType = "";
         if (message.getHeader().isSetField(MsgType.FIELD)) {
             msgType = message.getHeader().getString(MsgType.FIELD);
         }
-    
+
         int msgSeqNum = 0;
         if (message.getHeader().isSetField(MsgSeqNum.FIELD)) {
             msgSeqNum = message.getHeader().getInt(MsgSeqNum.FIELD);
             reject.setInt(RefSeqNum.FIELD, msgSeqNum);
         }
-    
+
         boolean possDupFlag = false;
         if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
             possDupFlag = message.getHeader().getBoolean(PossDupFlag.FIELD);
         }
-    
+
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
             if (!msgType.equals("")) {
                 reject.setString(RefMsgType.FIELD, msgType);
@@ -892,7 +968,7 @@ public class Session {
                 && (msgSeqNum == getExpectedTargetNum() || !possDupFlag)) {
             state.incrNextTargetMsgSeqNum();
         }
-    
+
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             populateRejectReason(reject, field, reason);
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
@@ -901,7 +977,7 @@ public class Session {
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
         } else
             getLog().onEvent("Message " + msgSeqNum + " Rejected");
-    
+
         sendRaw(reject, 0);
     }
 
@@ -1073,8 +1149,7 @@ public class Session {
         }
     }
 
-    // This is public for AbstractSocketInitiator
-    public boolean validLogonState(String msgType) {
+    private boolean validLogonState(String msgType) {
         if (msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived()) {
             return true;
         }
@@ -1199,7 +1274,7 @@ public class Session {
      * @throws IOException IO error
      */
     public synchronized void disconnect() throws IOException {
-        if (responder != null) {
+        if (hasResponder()) {
             getLog().onEvent("Disconnecting");
             responder.disconnect();
             setResponder(null);
@@ -1403,7 +1478,7 @@ public class Session {
         state.setLogonSent(true);
     }
 
-    private synchronized boolean sendRaw(Message message, int num) {
+    private boolean sendRaw(Message message, int num) {
         try {
             boolean result = false;
             Message.Header header = message.getHeader();
@@ -1480,7 +1555,7 @@ public class Session {
      * @return a status flag indicating whether the write to the network layer was successful.
      * 
      */
-    public boolean send(Message message) {
+    public synchronized boolean send(Message message) {
         message.getHeader().removeField(PossDupFlag.FIELD);
         message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
@@ -1504,30 +1579,6 @@ public class Session {
         return dataDictionary;
     }
 
-    public void setResetOnLogout(boolean flag) {
-        this.resetOnLogout = flag;
-    }
-
-    public void setResetOnDisconnect(boolean flag) {
-        this.resetOnDisconnect = flag;
-    }
-
-    public SessionState getState() {
-        return state;
-    }
-
-    public void setCheckLatency(boolean flag) {
-        checkLatency = flag;
-    }
-
-    public void setMaxLatency(int latency) {
-        maxLatency = latency;
-    }
-
-    public void setMillisecondsInTimestamp(boolean flag) {
-        millisecondsInTimeStamp = flag;
-    }
-
     public SessionID getSessionID() {
         return sessionID;
     }
@@ -1542,34 +1593,15 @@ public class Session {
         return sessionSchedule.isSessionTime();
     }
 
-    void setResetWhenInitiatingLogon(boolean flag) {
-        resetWhenInitiatingLogon = flag;
-    }
-
-    /**
-     * Returns the application instance for this session
-     *
-     * @return application instance
-     */
-    public Application getApplication() {
-        return application;
-    }
-
-    /**
-     * Requests that state and message data be refreshed from the message store at
-     * logon, if possible. This supports simple failover behavior for acceptors.
-     */
-    public void setRefreshMessageStoreAtLogon(boolean refreshMessageStoreAtLogon) {
-        this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
-    }
-
     /**
      * Determine if a session exists with the given ID.
      * @param sessionID
      * @return true if session exists, false otherwise.
      */
     public static boolean doesSessionExist(SessionID sessionID) {
-        return sessions.containsKey(sessionID);
+        synchronized (sessions) {
+            return sessions.containsKey(sessionID);
+        }
     }
 
     /**
@@ -1577,14 +1609,16 @@ public class Session {
      * @return the number of sessions
      */
     public static int numSessions() {
-        return sessions.size();
+        synchronized (sessions) {
+            return sessions.size();
+        }
     }
 
     /**
      * Sets the timeout for waiting for a logon response.
      * @param timeout in seconds
      */
-    public void setLogonTimeout(int seconds) {
+    public synchronized void setLogonTimeout(int seconds) {
         state.setLogonTimeout(seconds);
     }
 
@@ -1592,7 +1626,16 @@ public class Session {
      * Sets the timeout for waiting for a logout response.
      * @param timeout in seconds
      */
-    public void setLogoutTimeout(int seconds) {
+    public synchronized void setLogoutTimeout(int seconds) {
         state.setLogoutTimeout(seconds);
+    }
+
+    /**
+     * Internal use by acceptor code.
+     * 
+     * @param heartbeatInterval
+     */
+    public synchronized void setHeartBeatInterval(int heartbeatInterval) {
+        state.setHeartBeatInterval(heartbeatInterval);
     }
 }

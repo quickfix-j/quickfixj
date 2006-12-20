@@ -25,6 +25,10 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.test.acceptance.timer.TimerTest;
 
+// atest.timeout
+// atest.skipslow
+// atest.transport
+
 public class AcceptanceTestSuite extends TestSuite {
     private static Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private String acceptanceTestBaseDir = "test/quickfix/test/acceptance/definitions/";

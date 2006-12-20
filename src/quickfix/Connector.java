@@ -61,18 +61,6 @@ public interface Connector {
     void block() throws ConfigError, RuntimeError;
 
     /**
-     * Processes a single event which could either a connection attempt or a
-     * received message.
-     * 
-     * @return false if stopped, true if still active.
-     * @throws ConfigError
-     *             Problem with acceptor configuration.
-     * @throws RuntimeError
-     *             Other unspecified error
-     */
-    boolean poll() throws ConfigError, RuntimeError;
-    
-    /**
      * Checks the logged on status of the session.
      * @return true is any session is logged on, false otherwise.
      */

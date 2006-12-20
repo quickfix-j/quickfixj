@@ -41,73 +41,82 @@ class IoSessionInitiator {
 
     private final long reconnectIntervalInMillis;
     private final SocketAddress[] socketAddresses;
-
+    private final Session quickfixSession;
+    private final ScheduledExecutorService executor;
     private final IoHandler ioHandler;
-    private IoSession ioSession;
-    private long lastReconnectAttemptTime = 0;
-    private int nextSocketAddressIndex = 0;
+
     private Future reconnectFuture;
-    private Session quickfixSession;
 
-    public IoSessionInitiator(Session qfSession,
-            SocketAddress[] socketAddresses, long reconnectIntervalInSeconds,
-            ScheduledExecutorService executor, NetworkingOptions networkingOptions,
-            EventHandlingStrategy eventHandlingStrategy) {
+    public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
+            long reconnectIntervalInSeconds, ScheduledExecutorService executor,
+            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy) {
 
+        this.executor = executor;
         if (socketAddresses.length == 0) {
             throw new IllegalArgumentException("socketAddresses must not be empty");
         }
         this.quickfixSession = qfSession;
         this.socketAddresses = socketAddresses;
         this.reconnectIntervalInMillis = reconnectIntervalInSeconds * 1000L;
-        ioHandler =  new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy);
-        reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 1, 1,
-                TimeUnit.SECONDS);
+        ioHandler = new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy);
     }
 
     private class ReconnectTask implements Runnable {
-        public void run() {
+        // state thread-safety guarded by synchronized run method
+        
+        private IoSession ioSession;
+        private long lastReconnectAttemptTime = 0;
+        private int nextSocketAddressIndex = 0;
+
+        public synchronized void run() {
             if (shouldReconnect()) {
                 connect();
             }
         }
+
+        private void connect() {
+            lastReconnectAttemptTime = SystemTime.currentTimeMillis();
+            try {
+                SocketAddress failoverAddress = getNextSocketAddress();
+                IoConnector ioConnector = ProtocolFactory.createIoConnector(failoverAddress);
+                IoServiceConfig connectorConfig = (IoServiceConfig) ioConnector.getDefaultConfig()
+                        .clone();
+                connectorConfig.setThreadModel(ThreadModel.MANUAL);
+                ConnectFuture connectFuture = ioConnector.connect(failoverAddress, ioHandler,
+                        connectorConfig);
+                connectFuture.join();
+                ioSession = connectFuture.getSession();
+            } catch (Throwable e) {
+                quickfixSession.getLog().onEvent("Connection failed: " + e.getMessage());
+            }
+        }
+
+        private SocketAddress getNextSocketAddress() {
+            SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
+            nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
+            return socketAddress;
+        }
+
+        private boolean shouldReconnect() {
+            return (ioSession == null || !ioSession.isConnected()) && isTimeForReconnect()
+                    && (quickfixSession.isEnabled() && quickfixSession.isSessionTime());
+        }
+
+        private boolean isTimeForReconnect() {
+            return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
+        }
     }
 
-    public synchronized void connect() {
-        lastReconnectAttemptTime = SystemTime.currentTimeMillis();
-        try {
-            SocketAddress failoverAddress = getNextSocketAddress();
-            IoConnector ioConnector = ProtocolFactory.createIoConnector(failoverAddress);
-            IoServiceConfig connectorConfig = (IoServiceConfig) ioConnector.getDefaultConfig().clone();
-            connectorConfig.setThreadModel(ThreadModel.MANUAL);
-            ConnectFuture connectFuture = ioConnector.connect(failoverAddress, ioHandler, connectorConfig);
-            connectFuture.join();
-            ioSession = connectFuture.getSession();
-        } catch (Throwable e) {
-            quickfixSession.getLog().onEvent("Connection failed: " + e.getMessage());
+    void start() {
+        if (reconnectFuture == null) {
+            reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 1, 1,
+                    TimeUnit.SECONDS);
         }
-    } 
-    
+    }
+
     void stop() {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
         }
-    }
-
-    //----
-
-    private SocketAddress getNextSocketAddress() {
-        SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
-        nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
-        return socketAddress;
-    }
-
-    private boolean shouldReconnect() {
-        return (ioSession == null || !ioSession.isConnected()) && isTimeForReconnect()
-                && (quickfixSession.isEnabled() && quickfixSession.isSessionTime());
-    }
-
-    private boolean isTimeForReconnect() {
-        return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
     }
 }

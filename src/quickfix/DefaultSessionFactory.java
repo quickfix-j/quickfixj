@@ -122,51 +122,44 @@ public class DefaultSessionFactory implements SessionFactory {
                 }
             }
 
+            boolean checkLatency = getSetting(settings, sessionID, Session.SETTING_CHECK_LATENCY,
+                    true);
+            int maxLatency = getSetting(settings, sessionID, Session.SETTING_MAX_LATENCY, 120);
+            
+            boolean millisInTimestamp = getSetting(settings, sessionID,
+                    Session.SETTING_MILLISECONDS_IN_TIMESTAMP, true);
+            
+            boolean resetOnLogout = getSetting(settings, sessionID,
+                    Session.SETTING_RESET_ON_LOGOUT, false);
+            
+            boolean resetOnDisconnect = getSetting(settings, sessionID,
+                    Session.SETTING_RESET_ON_DISCONNECT, false);
+            
+            boolean resetOnLogon = getSetting(settings, sessionID,
+                    Session.SETTING_RESET_WHEN_INITIATING_LOGON, false);
+            
+            boolean refreshAtLogon = getSetting(settings, sessionID,
+                    Session.SETTING_REFRESH_STORE_AT_LOGON, false);
+
+            int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
+            int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 2);
+            
             Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionary, new SessionSchedule(settings, sessionID), logFactory,
-                    messageFactory, heartbeatInterval);
+                    messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
+                    resetOnLogout, resetOnDisconnect, resetOnLogon, refreshAtLogon);
 
-            if (settings.isSetting(sessionID, Session.SETTING_CHECK_LATENCY)) {
-                session.setCheckLatency(settings.getBool(sessionID, Session.SETTING_CHECK_LATENCY));
-            }
+            session.setLogonTimeout(logonTimeout);
+            session.setLogoutTimeout(logoutTimeout);
 
-            if (settings.isSetting(sessionID, Session.SETTING_MAX_LATENCY)) {
-                session.setMaxLatency((int) settings
-                        .getLong(sessionID, Session.SETTING_MAX_LATENCY));
-            }
+            //
+            // Session registration and creation callback is done here instead of in
+            // session constructor to eliminate the possibility of other threads
+            // accessing the session before it's fully constructed.
+            //
 
-            if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_LOGOUT)) {
-                session.setResetOnLogout(settings.getBool(sessionID,
-                        Session.SETTING_RESET_ON_LOGOUT));
-            }
-
-            if (settings.isSetting(sessionID, Session.SETTING_RESET_ON_DISCONNECT)) {
-                session.setResetOnDisconnect(settings.getBool(sessionID,
-                        Session.SETTING_RESET_ON_DISCONNECT));
-            }
-
-            if (settings.isSetting(sessionID, Session.SETTING_MILLISECONDS_IN_TIMESTAMP)) {
-                session.setMillisecondsInTimestamp(settings.getBool(sessionID,
-                        Session.SETTING_MILLISECONDS_IN_TIMESTAMP));
-            }
-
-            if (settings.isSetting(sessionID, Session.SETTING_RESET_WHEN_INITIATING_LOGON)) {
-                session.setResetWhenInitiatingLogon(settings.getBool(sessionID,
-                        Session.SETTING_RESET_WHEN_INITIATING_LOGON));
-            }
-
-            if (settings.isSetting(sessionID, Session.SETTING_REFRESH_STORE_AT_LOGON)) {
-                session.setRefreshMessageStoreAtLogon(settings.getBool(sessionID,
-                        Session.SETTING_REFRESH_STORE_AT_LOGON));
-            }
-
-            if (settings.isSetting(sessionID, Session.SETTING_LOGON_TIMEOUT)) {
-                session.setLogonTimeout((int)settings.getLong(sessionID, Session.SETTING_LOGON_TIMEOUT));
-            }
-
-            if (settings.isSetting(sessionID, Session.SETTING_LOGOUT_TIMEOUT)) {
-                session.setLogoutTimeout((int)settings.getLong(sessionID, Session.SETTING_LOGOUT_TIMEOUT));
-            }
+            Session.registerSession(session);
+            application.onCreate(sessionID);
 
             return session;
         } catch (ConfigError e) {
@@ -174,5 +167,17 @@ public class DefaultSessionFactory implements SessionFactory {
         } catch (FieldConvertError e) {
             throw new ConfigError(e.getMessage());
         }
+    }
+
+    private boolean getSetting(SessionSettings settings, SessionID sessionID, String key,
+            boolean defaultValue) throws ConfigError, FieldConvertError {
+        return settings.isSetting(sessionID, key) ? settings.getBool(sessionID, key) : defaultValue;
+    }
+
+    private int getSetting(SessionSettings settings, SessionID sessionID, String key,
+            int defaultValue) throws ConfigError, FieldConvertError {
+        return settings.isSetting(sessionID, key)
+                ? (int) settings.getLong(sessionID, key)
+                : defaultValue;
     }
 }

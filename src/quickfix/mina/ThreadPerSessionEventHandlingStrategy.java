@@ -70,10 +70,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         public void run() {
             while (true) {
                 try {
-                    Message message = getNextMessage(messages);
-                    if (quickfixSession.getResponder() != null) {
-                        quickfixSession.next(message);
-                    }
+                    quickfixSession.next(getNextMessage(messages));
                 } catch (InterruptedException e) {
                     return;
                 } catch (Throwable e) {
@@ -96,6 +93,5 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
     Message getNextMessage(BlockingQueue messages) throws InterruptedException {
         return (Message) messages.take();
     }
-    
 
 }

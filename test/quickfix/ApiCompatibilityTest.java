@@ -290,19 +290,24 @@ public class ApiCompatibilityTest {
             ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
                     Message.class, Message.class });
 
+            // TODO Remove these after JNI library is updated
+            ignoreMethod(jniClassLoader, "quickfix.Acceptor", "poll", new Class[0]);
+            ignoreMethod(jniClassLoader, "quickfix.Initiator", "poll", new Class[0]);
+            ignoreMethod(jniClassLoader, "quickfix.SocketAcceptor", "poll", new Class[0]);
+            ignoreMethod(jniClassLoader, "quickfix.SocketInitiator", "poll", new Class[0]);
         }
 
         public boolean isIgnoredMethod(Method m) {
             return ignoredMethods.contains(m);
         }
 
-//        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
-//                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
-//                NoSuchMethodException {
-//            Class c = jniClassLoader.loadClass(className);
-//            Method m = c.getMethod(methodName, argumentTypes);
-//            ignoredMethods.add(m);
-//        }
+        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
+                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
+                NoSuchMethodException {
+            Class c = jniClassLoader.loadClass(className);
+            Method m = c.getMethod(methodName, argumentTypes);
+            ignoredMethods.add(m);
+        }
 
         private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)
                 throws ClassNotFoundException, NoSuchMethodException {
