@@ -218,7 +218,7 @@ public abstract class SessionConnector {
                 while (sessionItr.hasNext()) {
                     quickfix.Session session = (quickfix.Session) sessionItr.next();
                     try {
-                        if (session.getResponder() != null) {
+                        if (session.hasResponder()) {
                             session.next();
                         }
                     } catch (IOException e) {

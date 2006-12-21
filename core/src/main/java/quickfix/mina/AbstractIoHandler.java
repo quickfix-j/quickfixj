@@ -42,7 +42,7 @@ import quickfix.SessionID;
  * Abstract class used for acceptor and initiator IO handlers.
  */
 public abstract class AbstractIoHandler extends IoHandlerAdapter {
-    protected Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
     
     public AbstractIoHandler(NetworkingOptions options) {
@@ -95,7 +95,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         Session quickFixSession = findQFSession(ioSession);
         if (quickFixSession != null) {
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
-            if (quickFixSession.getResponder() != null) {
+            if (quickFixSession.hasResponder()) {
                 quickFixSession.disconnect();
             }
         }

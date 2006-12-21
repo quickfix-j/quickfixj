@@ -53,7 +53,6 @@ public class TestConnection {
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
-        System.out.println("@@@@@@ sendMessage "+clientId + ", " + handler.getSession() + ", " + Thread.currentThread());
         handler.getSession().write(message);
     }
 
@@ -96,7 +95,6 @@ public class TestConnection {
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {
             ioHandlers.put(new Integer(clientId), testIoHandler);
-            System.out.println("@@@@@@ registered Handler "+clientId + ", " + testIoHandler + ", " + Thread.currentThread());
             ConnectFuture future = connector.connect(address, testIoHandler);
             future.join();
             Assert.assertTrue("connection to server failed", future.isConnected());

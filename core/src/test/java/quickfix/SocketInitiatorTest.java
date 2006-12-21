@@ -79,7 +79,7 @@ public class SocketInitiatorTest extends TestCase {
                 serverSession.disconnect();
                 for (int i = 0; i < 10; i++) {
                     Thread.sleep(100L);
-                    if (serverSession.getResponder() == null) {
+                    if (serverSession.hasResponder()) {
                         break;
                     }
                 }

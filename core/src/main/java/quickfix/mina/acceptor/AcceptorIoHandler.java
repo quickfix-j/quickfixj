@@ -62,7 +62,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                 qfSession = (Session) acceptorSessions.get(sessionID);
                 if (qfSession != null) {
                     Log sessionLog = qfSession.getLog();
-                    if (qfSession.getResponder() != null) {
+                    if (qfSession.hasResponder()) {
                         // Session is already bound to another connection
                         sessionLog
                                 .onEvent("Multiple logons/connections for this session are not allowed");
@@ -72,7 +72,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     sessionLog.onEvent("Accepting session " + qfSession.getSessionID() + " from "
                             + protocolSession.getRemoteAddress());
                     int heartbeatInterval = message.getInt(HeartBtInt.FIELD);
-                    qfSession.getState().setHeartBeatInterval(heartbeatInterval);
+                    qfSession.setHeartBeatInterval(heartbeatInterval);
                     sessionLog.onEvent("Acceptor heartbeat set to " + heartbeatInterval
                             + " seconds");
                     protocolSession.setAttribute(SessionConnector.QF_SESSION, qfSession);

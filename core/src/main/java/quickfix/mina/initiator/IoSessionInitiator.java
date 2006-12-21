@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
 import quickfix.LogUtil;
 import quickfix.Session;
 import quickfix.SystemTime;
+import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
-import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.InitiatorSSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
@@ -81,6 +81,7 @@ class IoSessionInitiator {
         ioHandler = new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy);
     }
 
+    // TODO SYNC apply branch thread safety changes
     private class ReconnectTask implements Runnable {
         public void run() {
             if (shouldReconnect()) {

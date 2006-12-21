@@ -19,6 +19,7 @@
 
 package quickfix.mina;
 
+import java.lang.reflect.Field;
 import java.util.Map;
 
 import junit.framework.TestCase;
@@ -32,6 +33,7 @@ import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.SessionState;
 import quickfix.UnitTestApplication;
 import edu.emory.mathcs.backport.java.util.Collections;
 
@@ -54,8 +56,12 @@ public class SessionConnectorTest extends TestCase {
         
         assertFalse(connector.isLoggedOn());
         
-        session.getState().setLogonSent(true);
-        session.getState().setLogonReceived(true);
+        Field stateField = session.getClass().getDeclaredField("state");
+        stateField.setAccessible(true);
+        SessionState state = (SessionState) stateField.get(session);
+
+        state.setLogonSent(true);
+        state.setLogonReceived(true);
         assertTrue(connector.isLoggedOn());
         
         assertTrue(session.isEnabled());

@@ -124,7 +124,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
         public void processMessage() {
             try {
-                if (quickfixSession.getResponder() != null) {
+                if (quickfixSession.hasResponder()) {
                     quickfixSession.next(message);
                 }
             } catch (Throwable e) {

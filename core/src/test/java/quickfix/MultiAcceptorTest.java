@@ -24,6 +24,8 @@ import java.util.HashMap;
 import junit.framework.TestCase;
 
 import org.apache.mina.common.TransportType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.field.TestReqID;
 import quickfix.fix42.TestRequest;
@@ -31,8 +33,8 @@ import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class MultiAcceptorTest extends TestCase {
-
-    private TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+    private Logger log = LoggerFactory.getLogger(getClass());
+    private TestAcceptorApplication testAcceptorApplication;
 
     protected void tearDown() throws Exception {
         super.tearDown();
@@ -40,33 +42,42 @@ public class MultiAcceptorTest extends TestCase {
     }
 
     public void testMultipleAcceptor() throws Exception {
+        testAcceptorApplication = new TestAcceptorApplication(3);
         Acceptor acceptor = null;
         Initiator initiator = null;
         try {
             acceptor = createAcceptor();
             acceptor.start();
-
+            
             initiator = createInitiator(false);
             initiator.start();
 
             testAcceptorApplication.waitForLogon();
 
-            testAcceptorApplication.setMessageLatch(new CountDownLatch(3));
             doSessionDispatchingTest(1);
             doSessionDispatchingTest(2);
             doSessionDispatchingTest(3);
-            
+
         } finally {
-            if (acceptor != null) {
-                acceptor.stop();
-            }
             if (initiator != null) {
-                initiator.stop();
+                try {
+                    initiator.stop();
+                } catch (RuntimeException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+            if (acceptor != null) {
+                try {
+                    acceptor.stop();
+                } catch (RuntimeException e) {
+                    log.error(e.getMessage(), e);
+                }
             }
         }
     }
 
     public void testMessageSentOnWrongAcceptor() throws Exception {
+        testAcceptorApplication = new TestAcceptorApplication(2);
         Acceptor acceptor = createAcceptor();
         acceptor.start();
 
@@ -76,32 +87,40 @@ public class MultiAcceptorTest extends TestCase {
         testAcceptorApplication.waitForLogon();
 
         TestRequest message = new TestRequest();
-        message.set(new TestReqID("TEST"+3));
+        message.set(new TestReqID("TEST" + 3));
         SessionID sessionID = getSessionIDForClient(3);
         Session.sendToTarget(message, sessionID);
-        
-        testAcceptorApplication.assertNoMessages(sessionID);        
+
+        testAcceptorApplication.assertNoMessages(sessionID);
     }
-    
-    private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException, FieldNotFound {
+
+    private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException,
+            FieldNotFound {
         TestRequest message = new TestRequest();
-        message.set(new TestReqID("TEST"+i));
+        message.set(new TestReqID("TEST" + i));
         SessionID sessionID = getSessionIDForClient(i);
+        
+        testAcceptorApplication.setMessageLatch(new CountDownLatch(1));
         Session.sendToTarget(message, sessionID);
 
         testAcceptorApplication.waitForMessages();
-        testAcceptorApplication.assertTestRequestOnSession("TEST"+i, sessionID);
+        testAcceptorApplication.assertTestRequestOnSession("TEST" + i, sessionID);
     }
 
     private SessionID getSessionIDForClient(int i) {
-        return new SessionID(FixVersions.BEGINSTRING_FIX42, "SENDER" + i, "TARGET");
+        return new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + i, "INITIATOR");
     }
 
     private class TestAcceptorApplication extends ApplicationAdapter {
-        private HashMap sessionMessages = new HashMap();
-        private CountDownLatch logonLatch = new CountDownLatch(3);
+        private final HashMap sessionMessages = new HashMap();
+        private final CountDownLatch logonLatch;
         private CountDownLatch messageLatch;
+
         
+        public TestAcceptorApplication(int countDown) {
+            logonLatch = new CountDownLatch(countDown);
+        }
+
         public void onLogon(SessionID sessionId) {
             super.onLogon(sessionId);
             logonLatch.countDown();
@@ -115,37 +134,39 @@ public class MultiAcceptorTest extends TestCase {
             }
         }
 
-        public void assertTestRequestOnSession(String text, SessionID sessionID) throws FieldNotFound {
-            Message testRequest = (Message)sessionMessages.get(sessionID);
+        public void assertTestRequestOnSession(String text, SessionID sessionID)
+                throws FieldNotFound {
+            Message testRequest = (Message) sessionMessages.get(sessionID);
             assertNotNull("no message", testRequest);
-            System.out.println("@@@@@ DEBUG TestAcceptorApplication.assertTestRequestOnSession "+testRequest);
             assertEquals("wrong message", text, testRequest.getString(TestReqID.FIELD));
         }
 
         public void assertNoMessages(SessionID sessionID) {
             assertNull("unexpected message", sessionMessages.get(sessionID));
         }
-        
+
         public void waitForLogon() {
             try {
-                logonLatch.await(2, TimeUnit.SECONDS);
+                logonLatch.await(20, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 fail(e.getMessage());
             }
         }
-        
-        public void setMessageLatch(CountDownLatch messageLatch) {
+
+        public synchronized void setMessageLatch(CountDownLatch messageLatch) {
             this.messageLatch = messageLatch;
         }
-        
-        public void waitForMessages() {
+
+        public synchronized void waitForMessages() {
             try {
-                messageLatch.await(2, TimeUnit.SECONDS);
+                if (!messageLatch.await(20, TimeUnit.SECONDS)) {
+                    fail("Timed out waiting for message");
+                }
             } catch (InterruptedException e) {
                 fail(e.getMessage());
             }
         }
-        
+
         public void tearDown() {
             sessionMessages.clear();
         }
@@ -164,9 +185,9 @@ public class MultiAcceptorTest extends TestCase {
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
         settings.set(defaults);
 
-        configureInitiatorForSession(settings, 1, 1000);
-        configureInitiatorForSession(settings, 2, 1000);
-        configureInitiatorForSession(settings, 3, wrongPort ? 1000 : 2000);
+        configureInitiatorForSession(settings, 1, 10001);
+        configureInitiatorForSession(settings, 2, 10002);
+        configureInitiatorForSession(settings, 3, wrongPort ? 1000 : 10003);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
         quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
@@ -175,8 +196,9 @@ public class MultiAcceptorTest extends TestCase {
     }
 
     private void configureInitiatorForSession(SessionSettings settings, int i, int port) {
-        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TARGET", "SENDER" + i);
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "INITIATOR", "ACCEPTOR-" + i);
         settings.setString(sessionID, "SocketConnectProtocol", TransportType.VM_PIPE.toString());
+        settings.setString(sessionID, "SocketConnectHost", "127.0.0.1");
         settings.setString(sessionID, "SocketConnectPort", Integer.toString(port));
     }
 
@@ -192,9 +214,9 @@ public class MultiAcceptorTest extends TestCase {
         defaults.put("ResetOnDisconnect", "Y");
         settings.set(defaults);
 
-        configureAcceptorForSession(settings, 1, 1000);
-        configureAcceptorForSession(settings, 2, 1000);
-        configureAcceptorForSession(settings, 3, 2000);
+        configureAcceptorForSession(settings, 1, 10001);
+        configureAcceptorForSession(settings, 2, 10002);
+        configureAcceptorForSession(settings, 3, 10003);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
         quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
@@ -203,7 +225,7 @@ public class MultiAcceptorTest extends TestCase {
     }
 
     private void configureAcceptorForSession(SessionSettings settings, int i, int port) {
-        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "SENDER" + i, "TARGET");
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + i, "INITIATOR");
         settings.setString(sessionID, "SocketAcceptProtocol", TransportType.VM_PIPE.toString());
         settings.setString(sessionID, "SocketAcceptPort", Integer.toString(port));
     }

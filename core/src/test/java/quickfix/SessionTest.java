@@ -1,6 +1,7 @@
 package quickfix;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Date;
 
 import junit.framework.TestCase;
@@ -16,23 +17,27 @@ import quickfix.fix44.Logon;
  *
  */
 public class SessionTest extends TestCase {
-    
+
     // QFJ-60
     public void testRejectLogon() throws Exception {
 
         // Create application that rejects all logons
         Application application = new UnitTestApplication() {
 
-            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
                 super.fromAdmin(message, sessionId);
                 throw new RejectLogon("FOR TEST");
             }
-            
+
         };
-        
+
         Session session = setUpSession(application);
-        SessionState state = session.getState();
-        
+
+        Field stateField = session.getClass().getDeclaredField("state");
+        stateField.setAccessible(true);
+        SessionState state = (SessionState) stateField.get(session);
+
         assertEquals(false, state.isInitiator());
         assertEquals(false, state.isLogonSent());
         assertEquals(false, state.isLogonReceived());
@@ -42,12 +47,12 @@ public class SessionTest extends TestCase {
         assertEquals(false, state.isLogoutSent());
         assertEquals(false, state.isLogoutReceived());
         assertEquals(false, state.isLogoutTimedOut());
-        
+
         assertEquals(1, state.getNextSenderMsgSeqNum());
         assertEquals(1, state.getNextTargetMsgSeqNum());
 
         logonTo(session);
-        
+
         assertEquals(false, state.isLogonSent());
         assertEquals(false, state.isLogonReceived());
         assertEquals(false, state.isLogonAlreadySent());
@@ -56,7 +61,7 @@ public class SessionTest extends TestCase {
         assertEquals(false, state.isLogoutSent());
         assertEquals(false, state.isLogoutReceived());
         assertEquals(false, state.isLogoutTimedOut());
-        
+
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(2, state.getNextTargetMsgSeqNum());
     }
@@ -68,7 +73,8 @@ public class SessionTest extends TestCase {
         return session;
     }
 
-    private void logonTo(Session session) throws FieldNotFound, RejectLogon, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
+    private void logonTo(Session session) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
+            IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
         Logon receivedLogon = new Logon();
         setUpHeader(session.getSessionID(), receivedLogon, true, 1);
         receivedLogon.setInt(HeartBtInt.FIELD, 30);
@@ -76,12 +82,14 @@ public class SessionTest extends TestCase {
     }
 
     private void setUpHeader(SessionID sessionID, Message message, boolean reversed, int sequence) {
-        message.getHeader().setString(TargetCompID.FIELD, reversed ? sessionID.getSenderCompID() : sessionID.getTargetCompID());
-        message.getHeader().setString(SenderCompID.FIELD, reversed ? sessionID.getTargetCompID() : sessionID.getSenderCompID());
+        message.getHeader().setString(TargetCompID.FIELD,
+                reversed ? sessionID.getSenderCompID() : sessionID.getTargetCompID());
+        message.getHeader().setString(SenderCompID.FIELD,
+                reversed ? sessionID.getTargetCompID() : sessionID.getSenderCompID());
         message.getHeader().setField(new SendingTime(new Date()));
         message.getHeader().setInt(MsgSeqNum.FIELD, sequence);
     }
-    
+
     private final class UnitTestResponder implements Responder {
 
         public boolean send(String data) {
@@ -95,6 +103,5 @@ public class SessionTest extends TestCase {
         public void disconnect() {
         }
     }
-
 
 }

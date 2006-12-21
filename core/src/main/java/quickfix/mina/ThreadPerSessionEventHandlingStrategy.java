@@ -71,7 +71,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             while (true) {
                 try {
                     Message message = getNextMessage(messages);
-                    if (quickfixSession.getResponder() != null) {
+                    if (quickfixSession.hasResponder()) {
                         quickfixSession.next(message);
                     }
                 } catch (InterruptedException e) {
