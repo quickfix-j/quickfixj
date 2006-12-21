@@ -21,6 +21,7 @@ package quickfix.mina.acceptor;
 
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -296,5 +297,22 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             return useSSL;
         }
 
+    }
+
+    public Collection getEndpoints() {
+        return ioAcceptorForTransport.values();
+    }
+
+    public Map getAcceptorAddresses() {
+        Map sessionIdToAddressMap = new HashMap();
+        Iterator descriptors = socketDescriptorForAddress.values().iterator();
+        while (descriptors.hasNext()) {
+            AcceptorSocketDescriptor descriptor = (AcceptorSocketDescriptor) descriptors.next();
+            Iterator sessionIDs = descriptor.getAcceptedSessions().keySet().iterator();
+            while (sessionIDs.hasNext()) {
+                sessionIdToAddressMap.put(sessionIDs.next(), descriptor.getAddress());
+            }
+        }
+        return sessionIdToAddressMap;
     }
 }

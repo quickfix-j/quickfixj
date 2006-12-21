@@ -1,0 +1,25 @@
+package org.quickfixj.jmx.mbean.connector;
+
+import java.util.ArrayList;
+import java.util.Map;
+
+import javax.management.openmbean.TabularData;
+
+import org.quickfixj.jmx.openmbean.TabularDataAdapter;
+
+import quickfix.mina.initiator.AbstractSocketInitiator;
+
+class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdminMBean {
+    private final TabularDataAdapter tabularDataAdapter = new TabularDataAdapter();
+    private final AbstractSocketInitiator initiator;
+
+    protected SocketInitiatorAdmin(AbstractSocketInitiator connector, Map sessionNames) {
+        super(connector, sessionNames);
+        initiator = (AbstractSocketInitiator) connector;
+    }
+    
+    public TabularData getEndpoints() {
+        return tabularDataAdapter.fromBeanList("Endpoints", "Endpoint", "sessionID", new ArrayList(
+                initiator.getInitiators()));
+    }
+}

@@ -1,32 +1,31 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
 package quickfix.mina.initiator;
 
-import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoHandler;
 import org.apache.mina.common.IoService;
 import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.IoSession;
@@ -38,7 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.LogUtil;
 import quickfix.Session;
+import quickfix.SessionID;
 import quickfix.SystemTime;
+import quickfix.mina.AbstractIoHandler;
 import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
@@ -46,31 +47,28 @@ import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.InitiatorSSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
-import edu.emory.mathcs.backport.java.util.concurrent.Future;
 import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
-class IoSessionInitiator {
+public class IoSessionInitiator {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final long reconnectIntervalInMillis;
     private final SocketAddress[] socketAddresses;
 
-    private final IoHandler ioHandler;
+    private final AbstractIoHandler ioHandler;
     private IoSession ioSession;
-    private long lastReconnectAttemptTime = 0;
-    private int nextSocketAddressIndex = 0;
-    private Future reconnectFuture;
+    private long lastConnectAttemptTime;
+    private long lastConnectTime;
+    private int connectionFailureCount;
+    private int nextSocketAddressIndex;
     private final Session quickfixSession;
     private final IoFilterChainBuilder userIoFilterChainBuilder;
-    private final ScheduledExecutorService executor;
     private boolean sslEnabled;
-    
+
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
             long reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder) {
-
-        this.executor = executor;
+        // TODO Remove executor argument
         this.userIoFilterChainBuilder = userIoFilterChainBuilder;
         if (socketAddresses.length == 0) {
             throw new IllegalArgumentException("socketAddresses must not be empty");
@@ -81,24 +79,15 @@ class IoSessionInitiator {
         ioHandler = new InitiatorIoHandler(qfSession, networkingOptions, eventHandlingStrategy);
     }
 
-    // TODO SYNC apply branch thread safety changes
-    private class ReconnectTask implements Runnable {
-        public void run() {
-            if (shouldReconnect()) {
-                connect();
-            }
-        }
-    }
-
     private synchronized void connect() {
-        lastReconnectAttemptTime = SystemTime.currentTimeMillis();
+        lastConnectAttemptTime = SystemTime.currentTimeMillis();
         try {
             final SocketAddress nextSocketAddress = getNextSocketAddress();
             IoConnector ioConnector = ProtocolFactory.createIoConnector(nextSocketAddress);
             IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioConnector);
             CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                     userIoFilterChainBuilder);
-            
+
             if (sslEnabled) {
                 installSSLFilter(nextSocketAddress, ioFilterChainBuilder);
             }
@@ -111,13 +100,39 @@ class IoSessionInitiator {
                     serviceConfig);
             connectFuture.join();
             ioSession = connectFuture.getSession();
+            connectionFailureCount = 0;
+            lastConnectTime = System.currentTimeMillis();
         } catch (Throwable e) {
-            while (e instanceof IOException) {
-                quickfixSession.getLog().onEvent("MINA IO Exception: " + e.getMessage());
+            while (e.getCause() != null) {
                 e = e.getCause();
             }
-            LogUtil.logThrowable(quickfixSession.getLog(), "Exception during connection", e);
+            if (e instanceof ConnectException) {
+                quickfixSession.getLog().onEvent(e.getMessage());
+            } else {
+                LogUtil.logThrowable(quickfixSession.getLog(), "Exception during connection", e);
+            }
+            connectionFailureCount++;
         }
+    }
+
+    public int getConnectionFailureCount() {
+        return connectionFailureCount;
+    }
+
+    public long getLastConnectTime() {
+        return lastConnectTime;
+    }
+
+    public long getLastConnectAttemptTime() {
+        return lastConnectAttemptTime;
+    }
+
+    public long getReconnectIntervalInMillis() {
+        return reconnectIntervalInMillis;
+    }
+
+    public boolean isConnected() {
+        return ioSession != null && ioSession.isConnected();
     }
 
     private void installSSLFilter(SocketAddress address, CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
@@ -131,19 +146,6 @@ class IoSessionInitiator {
         return (IoServiceConfig) ioService.getDefaultConfig().clone();
     }
 
-    public void start() {
-        reconnectFuture = executor.scheduleWithFixedDelay(new ReconnectTask(), 0, 1,
-                TimeUnit.SECONDS);
-    }
-
-    public void stop() {
-        if (reconnectFuture != null) {
-            reconnectFuture.cancel(true);
-        }
-    }
-
-    //----
-
     private SocketAddress getNextSocketAddress() {
         SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
         nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
@@ -156,10 +158,20 @@ class IoSessionInitiator {
     }
 
     private boolean isTimeForReconnect() {
-        return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
+        return SystemTime.currentTimeMillis() - lastConnectAttemptTime >= reconnectIntervalInMillis;
     }
-    
+
     public void setSslEnabled(boolean flag) {
         this.sslEnabled = flag;
+    }
+
+    public void checkConnection() {
+        if (shouldReconnect()) {
+            connect();
+        }
+    }
+    
+    public SessionID getSessionID() {
+        return quickfixSession.getSessionID();
     }
 }

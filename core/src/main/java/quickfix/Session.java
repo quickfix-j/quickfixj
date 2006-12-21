@@ -1708,4 +1708,78 @@ public class Session {
     public synchronized void setHeartBeatInterval(int heartbeatInterval) {
         state.setHeartBeatInterval(heartbeatInterval);
     }
+
+    public Responder getResponder() {
+        return responder;
+    }
+
+    public boolean getCheckCompID() {
+        return checkCompID;
+    }
+
+    public synchronized int getLogonTimeout() {
+        return state.getLogonTimeout();
+    }
+
+    public synchronized int getLogoutTimeout() {
+        return state.getLogoutTimeout();
+    }
+
+    public boolean getRedundantResentRequestsAllowed() {
+        return redundantResentRequestsAllowed;
+    }
+
+    public boolean getRefreshOnLogon() {
+        return refreshMessageStoreAtLogon;
+    }
+
+    public boolean getResetOnDisconnect() {
+        return resetOnDisconnect;
+    }
+
+    public boolean getResetOnLogout() {
+        return resetOnLogout;
+    }
+
+    public synchronized boolean isLogonAlreadySent() {
+        return state.isLogonAlreadySent();
+    }
+
+    public synchronized boolean isLogonReceived() {
+        return state.isLogonReceived();
+    }
+
+    public synchronized boolean isLogonSendNeeded() {
+        return state.isLogonSendNeeded();
+    }
+
+    public synchronized boolean isLogonSent() {
+        return state.isLogonSent();
+    }
+
+    public synchronized boolean isLogonTimedOut() {
+        return state.isLogonTimedOut();
+    }
+
+    public synchronized boolean isLogoutReceived() {
+        return state.isLogoutReceived();
+    }
+
+    public synchronized boolean isLogoutSent() {
+        return state.isLogoutSent();
+    }
+
+    public synchronized boolean isLogoutTimedOut() {
+        return state.isLogonTimedOut();
+    }
+
+    public boolean isUsingDataDictionary() {
+        return dataDictionary != null;
+    }
+
+    public synchronized Date getStartTime() throws IOException {
+        return state.getCreationTime();
+    }
+    
+    
 }

@@ -104,7 +104,7 @@ public abstract class SessionConnector {
         return new ArrayList(sessions.keySet());
     }
 
-    protected SessionSettings getSettings() {
+    public SessionSettings getSettings() {
         return settings;
     }
 

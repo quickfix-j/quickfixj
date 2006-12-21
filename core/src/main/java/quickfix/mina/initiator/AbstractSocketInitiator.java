@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -21,13 +21,19 @@ package quickfix.mina.initiator;
 
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import edu.emory.mathcs.backport.java.util.concurrent.Future;
+import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 import quickfix.Application;
 import quickfix.ConfigError;
@@ -48,13 +54,16 @@ import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.ssl.SSLSupport;
 
+//TODO SYNC Review for thread safety
+
 /**
  * Abstract base class for socket initiators.
  */
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private IoSessionInitiator ioSessionInitiator;
+    private Set initiators = new HashSet();
+    private Future reconnectFuture;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -83,16 +92,16 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
                 NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
                         .getSessionProperties(sessionID));
-                ioSessionInitiator = new IoSessionInitiator(quickfixSession,
+                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(quickfixSession,
                                         socketAddresses, reconnectingInterval, getScheduledExecutorService(),
                                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder());
                 if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)) {
                     ioSessionInitiator.setSslEnabled(
                             BooleanConverter.convert(getSettings().getString(sessionID, SSLSupport.SETTING_USE_SSL)));
                 }
-                ioSessionInitiator.start();
+                initiators.add(ioSessionInitiator);
             }
-            startSessionTimer();
+            startTimers();
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
         }
@@ -193,9 +202,39 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 || settings.getString((SessionID) sectionKey,
                         SessionFactory.SETTING_CONNECTION_TYPE).equals("initiator");
     }
-    
-    protected void stopSessionTimer() {
-        ioSessionInitiator.stop();
+
+    private void startTimers() {
+        startSessionTimer();
+        startReconnectTimer();
+    }
+
+    public void stopSessionTimer() {
+        stopReconnectTimer();
         super.stopSessionTimer();
+    }
+
+    public void startReconnectTimer() {
+        reconnectFuture = getScheduledExecutorService().scheduleWithFixedDelay(new ReconnectTask(), 0, 1,
+                TimeUnit.SECONDS);
+    }
+
+    public void stopReconnectTimer() {
+        if (reconnectFuture != null) {
+            reconnectFuture.cancel(true);
+        }
+    }
+
+    private class ReconnectTask implements Runnable {
+        public void run() {
+            Iterator initiatorItr = initiators.iterator();
+            while (initiatorItr.hasNext()) {
+                IoSessionInitiator initiator = (IoSessionInitiator) initiatorItr.next();
+                initiator.checkConnection();
+            }
+        }
+    }
+
+    public Set getInitiators() {
+        return Collections.unmodifiableSet(initiators);
     }
 }

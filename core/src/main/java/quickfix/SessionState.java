@@ -133,10 +133,18 @@ public class SessionState {
         this.logonTimeoutMs = logonTimeout * 1000L;
     }
 
+    public int getLogonTimeout() {
+        return (int)(logonTimeoutMs / 1000L);
+    }
+    
     public void setLogoutTimeout(int logoutTimeout) {
         this.logoutTimeoutMs = logoutTimeout * 1000L;
     }
 
+    public int getLogoutTimeout() {
+        return (int)(logoutTimeoutMs / 1000L);
+    }
+    
     public boolean isLogoutSent() {
         return logoutSent;
     }
