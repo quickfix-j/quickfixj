@@ -186,9 +186,8 @@ public class Session {
 
     // @GuardedBy(this)
     private final SessionState state = new SessionState();
-
-    private volatile boolean enabled;
-    private volatile Responder responder;
+    private boolean enabled;
+    private Responder responder;
 
     //
     // The session time checks were causing performance problems
@@ -253,9 +252,9 @@ public class Session {
             } catch (IOException e) {
                 LogUtil.logThrowable(getLog(), "error during session construction", e);
             }
+            enabled = true;
         }
 
-        enabled = true;
         getLog().onEvent("Created session: " + sessionID);
     }
 
@@ -278,7 +277,7 @@ public class Session {
      *
      * @return the Session's connection responder
      */
-    public boolean hasResponder() {
+    public synchronized boolean hasResponder() {
         return responder != null;
     }
 
@@ -443,7 +442,7 @@ public class Session {
     /**
      * This method can be used to manually logout of a FIX session.
      */
-    public void logout() {
+    public synchronized void logout() {
         enabled = false;
     }
 
@@ -461,7 +460,7 @@ public class Session {
      *
      * @return true if session is enabled, false otherwise.
      */
-    public boolean isEnabled() {
+    public synchronized boolean isEnabled() {
         return enabled;
     }
 

@@ -17,7 +17,6 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
@@ -28,7 +27,7 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
  * sessions.
  */
 public class SocketAcceptor extends AbstractSocketAcceptor {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private Boolean isStarted = Boolean.FALSE;
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
@@ -41,32 +40,31 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         super(application, messageStoreFactory, settings, messageFactory);
     }
 
-    public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+    public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings)
+            throws ConfigError {
         super(settings, sessionFactory);
     }
 
-    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
-        new SingleThreadedEventHandlingStrategy(this);
-    
+    private SingleThreadedEventHandlingStrategy eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(
+            this);
+
     public void block() throws ConfigError, RuntimeError {
         initialize();
         eventHandlingStrategy.block();
     }
-    
+
     public void start() throws ConfigError, RuntimeError {
         initialize();
         eventHandlingStrategy.blockInThread();
     }
 
-    private void initialize() throws ConfigError {
-        synchronized (isStarted) {
-            if (isStarted == Boolean.FALSE) {
-                startAcceptingConnections(eventHandlingStrategy);
-            }
-            isStarted = Boolean.TRUE;
+    private synchronized void initialize() throws ConfigError {
+        if (isStarted == Boolean.FALSE) {
+            startAcceptingConnections(eventHandlingStrategy);
         }
+        isStarted = Boolean.TRUE;
     }
-    
+
     public void stop() {
         stop(false);
     }

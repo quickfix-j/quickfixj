@@ -17,7 +17,6 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
@@ -28,12 +27,12 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private volatile Boolean isStarted = Boolean.FALSE;
-    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
-        new SingleThreadedEventHandlingStrategy(this);
+    private Boolean isStarted = Boolean.FALSE;
+    private SingleThreadedEventHandlingStrategy eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(
+            this);
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
-                SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
+            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
         if (settings == null) {
@@ -50,10 +49,10 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
     }
 
-    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings)
+            throws ConfigError {
         super(settings, sessionFactory);
     }
-
 
     public void block() throws ConfigError, RuntimeError {
         initialize();
@@ -64,7 +63,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
         initialize();
         eventHandlingStrategy.blockInThread();
     }
-    
+
     public void stop() {
         stop(false);
     }
@@ -74,12 +73,10 @@ public class SocketInitiator extends AbstractSocketInitiator {
         logoutAllSessions(forceDisconnect);
     }
 
-    private void initialize() throws ConfigError {
-        synchronized (isStarted) {
-            if (isStarted == Boolean.FALSE) {
-                initiateSessions(eventHandlingStrategy);
-            }
-            isStarted = Boolean.TRUE;
+    private synchronized void initialize() throws ConfigError {
+        if (isStarted == Boolean.FALSE) {
+            initiateSessions(eventHandlingStrategy);
         }
+        isStarted = Boolean.TRUE;
     }
 }

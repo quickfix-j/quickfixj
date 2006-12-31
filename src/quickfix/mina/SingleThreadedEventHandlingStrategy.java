@@ -32,8 +32,8 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
     private final BlockingQueue eventQueue = new LinkedBlockingQueue();
-    private volatile boolean isStopped;
-    private volatile long stopTime = 0L;
+    private boolean isStopped;
+    private long stopTime = 0L;
     private final SessionConnector sessionConnector;
 
     public SingleThreadedEventHandlingStrategy(SessionConnector connector) {
@@ -48,7 +48,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
-    public void block() {
+    public synchronized void block() {
         while (true) {
             if (isStopped) {
                 if (stopTime == 0) {
@@ -105,7 +105,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
-    public void stopHandlingMessages() {
+    public synchronized void stopHandlingMessages() {
         isStopped = true;
     }
 
