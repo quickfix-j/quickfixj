@@ -48,16 +48,18 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
-    public synchronized void block() {
+    public void block() {
         while (true) {
-            if (isStopped) {
-                if (stopTime == 0) {
-                    stopTime = SystemTime.currentTimeMillis();
-                }
-                if (!sessionConnector.isLoggedOn()
-                        || SystemTime.currentTimeMillis() - stopTime > 5000L) {
-                    sessionConnector.stopSessionTimer();
-                    return;
+            synchronized (this) {
+                if (isStopped) {
+                    if (stopTime == 0) {
+                        stopTime = SystemTime.currentTimeMillis();
+                    }
+                    if (!sessionConnector.isLoggedOn()
+                            || SystemTime.currentTimeMillis() - stopTime > 5000L) {
+                        sessionConnector.stopSessionTimer();
+                        return;
+                    }
                 }
             }
             try {
