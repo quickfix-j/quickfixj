@@ -136,7 +136,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         }
     }
 
-    protected void stopAcceptingConnections() {
+    protected synchronized void stopAcceptingConnections() {
         log.info("No longer accepting connections on " + acceptorSocketAddress);
         ioAcceptor.unbind(acceptorSocketAddress);
         acceptorSocketAddress = null;

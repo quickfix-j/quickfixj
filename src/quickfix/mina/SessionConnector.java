@@ -36,11 +36,13 @@ import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.field.converter.IntConverter;
+import edu.emory.mathcs.backport.java.util.Collections;
 import edu.emory.mathcs.backport.java.util.concurrent.Executors;
 import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
 import edu.emory.mathcs.backport.java.util.concurrent.ScheduledFuture;
 import edu.emory.mathcs.backport.java.util.concurrent.ThreadFactory;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
+import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicReference;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support
@@ -51,12 +53,15 @@ public abstract class SessionConnector {
     public final static String QF_SESSION = "QF_SESSION";
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Map sessions;
+    
+    //private Map sessions;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
     private final static ScheduledExecutorService scheduledExecutorService = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
-    private ScheduledFuture sessionTimerFuture;
+    
+    private AtomicReference sessionsRef = new AtomicReference();
+    private AtomicReference sessionTimerFutureRef = new AtomicReference();
 
     public SessionConnector(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -68,7 +73,7 @@ public abstract class SessionConnector {
     }
 
     protected void setSessions(Map sessions) {
-        this.sessions = sessions;
+        sessionsRef.set(Collections.unmodifiableMap(sessions));
     }
 
     /**
@@ -78,7 +83,7 @@ public abstract class SessionConnector {
      * @see quickfix.Session
      */
     public List getManagedSessions() {
-        return new ArrayList(sessions.values());
+        return new ArrayList(getSessionMap().values());
     }
 
     /**
@@ -87,7 +92,7 @@ public abstract class SessionConnector {
      * @return a map of sessions keys by session ID
      */
     protected Map getSessionMap() {
-        return sessions;
+        return (Map)sessionsRef.get();
     }
 
     /**
@@ -98,7 +103,7 @@ public abstract class SessionConnector {
      * @return list of session identifiers
      */
     public ArrayList getSessions() {
-        return new ArrayList(sessions.keySet());
+        return new ArrayList(getSessionMap().keySet());
     }
 
     public SessionSettings getSettings() {
@@ -118,7 +123,7 @@ public abstract class SessionConnector {
     }
 
     public boolean isLoggedOn() {
-        Iterator sessionItr = sessions.values().iterator();
+        Iterator sessionItr = getSessionMap().values().iterator();
         while (sessionItr.hasNext()) {
             quickfix.Session s = (quickfix.Session) sessionItr.next();
             if (s.isLoggedOn()) {
@@ -130,6 +135,7 @@ public abstract class SessionConnector {
 
     protected void logoutAllSessions(boolean forceDisconnect) {
         log.info("Logging out all sessions");
+        Map sessions = getSessionMap();
         if (sessions == null) {
             log.error("Attempt to logout all sessions before intialization is complete.");
             return;
@@ -177,10 +183,6 @@ public abstract class SessionConnector {
         }
     }
 
-    //    protected void logDebug(SessionID sessionID, ProtocolSession protocolSession, String message) {
-    //        log.debug(message + getLogSuffix(sessionID, protocolSession));
-    //    }
-
     protected void logError(SessionID sessionID, IoSession protocolSession, String message,
             Throwable t) {
         log.error(message + getLogSuffix(sessionID, protocolSession), t);
@@ -198,13 +200,14 @@ public abstract class SessionConnector {
     }
 
     protected void startSessionTimer() {
-        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(new SessionTimerTask(),
-                0, 1000L, TimeUnit.MILLISECONDS);
+        sessionTimerFutureRef.set(scheduledExecutorService.scheduleAtFixedRate(new SessionTimerTask(),
+                0, 1000L, TimeUnit.MILLISECONDS));
     }
 
     protected void stopSessionTimer() {
-        if (sessionTimerFuture != null) {
-            sessionTimerFuture.cancel(false);
+        ScheduledFuture future = (ScheduledFuture) sessionTimerFutureRef.getAndSet(null);
+        if (future != null) {
+            future.cancel(false);
         }
     }
 
@@ -215,7 +218,7 @@ public abstract class SessionConnector {
     private class SessionTimerTask implements Runnable {
         public void run() {
             try {
-                Iterator sessionItr = sessions.values().iterator();
+                Iterator sessionItr = getSessionMap().values().iterator();
                 while (sessionItr.hasNext()) {
                     quickfix.Session session = (quickfix.Session) sessionItr.next();
                     try {
