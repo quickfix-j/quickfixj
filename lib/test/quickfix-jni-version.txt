@@ -1,0 +1,3 @@
+Version HEAD 14 April 2006
+
+NOTE: The JNI library is only used for API compatibility testing.
