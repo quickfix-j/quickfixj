@@ -111,7 +111,7 @@ public class DataDictionary {
      */
     public DataDictionary(String location) throws ConfigError {
         this();
-        readFromURL(location);
+        read(location);
     }
 
     /**
@@ -739,21 +739,21 @@ public class DataDictionary {
         }
     }
 
-    private void readFromURL(String url) throws ConfigError {
+    private void read(String location) throws ConfigError {
         InputStream inputStream;
         try {
-            inputStream = new URL(url).openStream();
+            inputStream = new URL(location).openStream();
         } catch (MalformedURLException e) {
             try {
-                inputStream = new FileInputStream(url);
-            } catch (FileNotFoundException fe) {
+                inputStream = new FileInputStream(location);
+            } catch (/*QFJ-116*/java.lang.Exception fe) {
                 ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
                 if (classLoader == null) {
                     classLoader = getClass().getClassLoader();
                 }
-                inputStream = classLoader.getResourceAsStream(url);
+                inputStream = classLoader.getResourceAsStream(location);
                 if (inputStream == null) {
-                    throw new DataDictionary.Exception("Could not find data dictionary: " + url);
+                    throw new DataDictionary.Exception("Could not find data dictionary: " + location);
                 }
             }
         } catch (IOException e) {
@@ -763,7 +763,7 @@ public class DataDictionary {
         try {
             load(inputStream);
         } catch (java.lang.Exception e) {
-            ConfigError ce = new ConfigError(url + ": " + e.getMessage());
+            ConfigError ce = new ConfigError(location + ": " + e.getMessage());
             ce.setStackTrace(e.getStackTrace());
             throw ce;
         }
