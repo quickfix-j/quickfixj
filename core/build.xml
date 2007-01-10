@@ -53,7 +53,7 @@
 		<do_compile srcref="test.src.path" classpathref="compile.classpath" output="${test.classes.dir}"/>
 	</target>
 
-	<property name="javac.debug" value="yes" />
+	<property name="javac.debug" value="true" />
 	<property name="javac.args" value="" /> <!-- overridden by CruiseControl on command line -->
 
 	<macrodef name="do_compile">
@@ -62,7 +62,7 @@
 		<attribute name="output"/>
 		<sequential>
 			<mkdir dir="@{output}" />
-			<javac destdir="@{output}" debug="@{javac.debug}" memoryMaximumSize="128m" fork="yes">
+			<javac destdir="@{output}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}"/>
 				<src refid="@{srcref}" />

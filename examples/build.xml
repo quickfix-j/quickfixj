@@ -1,7 +1,7 @@
 <project name="examples" basedir="." default="jar">
 	<import file="../module.xml"/>
 		
-	<property name="javac.debug" value="yes" />
+	<property name="javac.debug" value="true" />
 	<!-- overridden by CruiseControl -->
 	<property name="javac.args" value="" />
 
