@@ -829,6 +829,32 @@ public class MessageTest extends TestCase {
           assertEquals("C", group.getField(clOrdID).getValue());
     }
 
+    
+    public void testFalseMessageStructureException() {
+        try {
+            DataDictionary dd = DataDictionaryTest.getDictionary();
+            // duplicated tag 98
+            // QFJ-65
+            new Message("8=FIX.4.4\0019=22\00135=A\00198=0\00198=0\001108=30\00110=223\001", dd, true);
+            // For now, this will not cause an exception if the length and checksum are correct
+        } catch (Exception e) {
+            String text = e.getMessage();
+            assertTrue("Wrong exception message: "+text, text.indexOf("Actual body length") == -1);
+        }
+    }
+    
+    public void testFalseMessageStructureException2() {
+        try {
+            DataDictionary dd = DataDictionaryTest.getDictionary();
+            // duplicated raw data length 
+            // QFJ-121
+            new Message("8=FIX.4.4\0019=22\00135=A\00196=X\001108=30\00110=223\001", dd, true);
+        } catch (Exception e) {
+            String text = e.getMessage();
+            assertTrue("Wrong exception message: "+text, text != null && text.indexOf("Actual body length") == -1);
+        }
+    }
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));

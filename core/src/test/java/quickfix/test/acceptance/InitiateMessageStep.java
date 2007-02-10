@@ -42,7 +42,8 @@ public class InitiateMessageStep implements TestStep {
 
     private int clientId = 0;
 
-    private static final Pattern MESSAGE_PATTERN = Pattern.compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*)");
+    private static final Pattern MESSAGE_PATTERN = Pattern
+            .compile("I(\\d,)*(8=FIX\\.\\d\\.\\d\\001)(.*?)(10=.*|)$");
 
     private static final Pattern TIME_PATTERN = Pattern.compile("<TIME([+-](\\d+))*>");
 
@@ -67,7 +68,8 @@ public class InitiateMessageStep implements TestStep {
         Matcher messageStructureMatcher = MESSAGE_PATTERN.matcher(data);
         String message;
         if (messageStructureMatcher.matches()) {
-            if (messageStructureMatcher.group(1) != null && !messageStructureMatcher.group(1).equals("")) {
+            if (messageStructureMatcher.group(1) != null
+                    && !messageStructureMatcher.group(1).equals("")) {
                 clientId = Integer.parseInt(messageStructureMatcher.group(1).replaceAll(",", ""));
             } else {
                 clientId = 1;
@@ -75,13 +77,21 @@ public class InitiateMessageStep implements TestStep {
             String version = messageStructureMatcher.group(2);
             String messageTail = insertTimes(messageStructureMatcher.group(3));
             messageTail = modifyHeartbeat(messageTail);
-            message = version + (!messageTail.startsWith("9=") ? "9=" + messageTail.length() + "\001" : "") + messageTail;
+            String checksum = messageStructureMatcher.group(4);
+            if ("10=0\001".equals(checksum)) {
+                checksum = "10=000\001";
+            }
+            message = version
+                    + (!messageTail.startsWith("9=") ? "9=" + messageTail.length() + "\001" : "")
+                    + messageTail + checksum;
         } else {
             log.info("garbled message being sent");
             clientId = 1;
             message = data.substring(1);
         }
-        message += "10=" + CHECKSUM_FORMAT.format(checksum(message)) + '\001';
+        if (message.indexOf("\00110=") == -1) {
+            message += "10=" + CHECKSUM_FORMAT.format(checksum(message)) + '\001';
+        }
         log.debug("sending to client " + clientId + ": " + message);
         try {
             connection.sendMessage(clientId, message);
@@ -114,7 +124,9 @@ public class InitiateMessageStep implements TestStep {
             }
             String beginString = message.substring(2, 9);
             boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
-            message = matcher.replaceFirst(UtcTimestampConverter.convert(new Date(System.currentTimeMillis() + offset), includeMillis));
+            message = matcher.replaceFirst(UtcTimestampConverter.convert(new Date(System
+                    .currentTimeMillis()
+                    + offset), includeMillis));
             matcher = TIME_PATTERN.matcher(message);
         }
         return message;

@@ -53,8 +53,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
         log.info("MINA session created: " + session.getRemoteAddress());
     }
 
-    protected void processMessage(IoSession protocolSession, Message message)
-            throws Exception {
+    protected void processMessage(IoSession protocolSession, Message message) throws Exception {
         SessionID sessionID = MessageUtils.getReverseSessionID(message);
         Session qfSession = (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
         if (qfSession == null) {
@@ -82,10 +81,19 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     return;
                 }
             } else {
-                log.warn("Ignoring non-logon message before session establishment: "+message);
+                log.warn("Ignoring non-logon message before session establishment: " + message);
                 return;
             }
         }
-        eventHandlingStrategy.onMessage(qfSession, message);
+    
+        if (qfSession == null) {
+            // [QFJ-117] this can happen if a late test request arrives after we 
+            // gave up waiting and closed the session.
+            log.error("Attempt to process message for non existant or closed session (only "
+                    + "legal action for logon messages). MsgType="
+                    + message.getHeader().getString(MsgType.FIELD));
+        } else {
+            eventHandlingStrategy.onMessage(qfSession, message);
+        }
     }
 }

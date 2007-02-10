@@ -406,12 +406,7 @@ public class Message extends FieldMap {
 
     private void validate(String messageData) throws InvalidMessage {
         try {
-            int expectedBodyLength = header.getInt(BodyLength.FIELD);
-            int actualBodyLength = bodyLength();
-            if (expectedBodyLength != actualBodyLength) {
-                throw new InvalidMessage("Actual body length=" + actualBodyLength
-                        + ", Expected body length=" + expectedBodyLength);
-            }
+            // Body length is checked at the protocol layer
             int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
                 throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData)
@@ -455,7 +450,6 @@ public class Message extends FieldMap {
 
         StringField field = extractField(dd, header);
         while (field != null && isHeaderField(field, dd)) {
-            header.setField(field);
             header.setField(field);
             field = extractField(dd, header);
         }
@@ -670,7 +664,7 @@ public class Message extends FieldMap {
                     fieldLength = group.getInt(lengthField);
                 }
             } catch (FieldNotFound e1) {
-                throw new InvalidMessage(e1.getMessage());
+                throw new InvalidMessage("Tag " + e1.field + " not found.");
             }
             sohOffset = equalsOffset + 1 + fieldLength;
         }
