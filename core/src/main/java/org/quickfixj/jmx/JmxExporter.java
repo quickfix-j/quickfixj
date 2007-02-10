@@ -22,7 +22,6 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
 import org.quickfixj.jmx.mbean.connector.ConnectorJmxExporter;
-import org.quickfixj.jmx.mbean.stats.JamonJmxExporter;
 
 import quickfix.Connector;
 import quickfix.mina.SessionConnector;
@@ -55,10 +54,6 @@ public class JmxExporter {
         } catch (ClassNotFoundException e) {
             return MBeanServerFactory.createMBeanServer();
         }
-    }
-
-    public void enableStatistics() {
-        new JamonJmxExporter().export(mbeanServer);
     }
 
     public void export(Connector connector) {

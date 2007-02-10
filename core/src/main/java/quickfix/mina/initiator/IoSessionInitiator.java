@@ -19,7 +19,7 @@
 
 package quickfix.mina.initiator;
 
-import java.net.ConnectException;
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 
@@ -106,7 +106,7 @@ public class IoSessionInitiator {
             while (e.getCause() != null) {
                 e = e.getCause();
             }
-            if (e instanceof ConnectException) {
+            if (e instanceof IOException) {
                 quickfixSession.getLog().onEvent(e.getMessage());
             } else {
                 LogUtil.logThrowable(quickfixSession.getLog(), "Exception during connection", e);

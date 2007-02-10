@@ -21,6 +21,10 @@ import java.io.IOException;
 
 import javax.management.ObjectName;
 
+/**
+ * This MBean provides the ability monitor session settings and to
+ * change some of them.
+ */
 public interface SessionAdminMBean {
 
     /**
@@ -112,7 +116,9 @@ public interface SessionAdminMBean {
     boolean getRedundantResendRequestsAllowed();
     
     String getLogClassName();
+    
     String getMessageFactoryClassName();
+    
     String getMessageStoreClassName();
     
     // TODO

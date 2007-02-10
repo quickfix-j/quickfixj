@@ -22,6 +22,8 @@ import quickfix.*;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import org.quickfixj.jmx.JmxExporter;
+
 public class Executor {
 
     private static Acceptor acceptor = null;
@@ -47,9 +49,12 @@ public class Executor {
                 new FileStoreFactory(settings);
             LogFactory logFactory = new ScreenLogFactory(true, true, true);
             MessageFactory messageFactory = new DefaultMessageFactory();
-
+            
             acceptor = new SocketAcceptor
                        (application, messageStoreFactory, settings, logFactory, messageFactory);
+
+            JmxExporter jmxExporter = new JmxExporter();
+            jmxExporter.export(acceptor);
 
             acceptor.start();
             

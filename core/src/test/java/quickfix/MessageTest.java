@@ -179,7 +179,6 @@ public class MessageTest extends TestCase {
         partyGroup.setField(new PartyRole(11));
         order.addGroup(partyGroup);
         String data = order.toString();
-        System.out.println(data);
         assertTrue("wrong field order", data.indexOf("453=1\001448=TraderName") != -1);
     }
     
@@ -388,9 +387,6 @@ public class MessageTest extends TestCase {
         Message message = new DefaultMessageFactory().create(dataDictionary.getVersion(), "D");
         message.fromString(expectedMessageString, dataDictionary, false);
         String actualMessageString = message.toString();
-        System.out.println(actualMessageString);
-        System.out.println(actualMessageString
-                .indexOf("453=2448=8447=D452=4448=AAA35354447=D452=3"));
         assertTrue("wrong field ordering", actualMessageString
                 .indexOf("453=2448=8447=D452=4448=AAA35354447=D452=3") != -1);
     }
