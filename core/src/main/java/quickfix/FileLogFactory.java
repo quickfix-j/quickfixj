@@ -80,7 +80,7 @@ public class FileLogFactory implements LogFactory {
        
             boolean logHeartbeats = true;
             if (settings.isSetting(sessionID, SETTING_LOG_HEARTBEATS)) {
-                includeTimestampInMessages = settings.getBool(sessionID, SETTING_LOG_HEARTBEATS);
+                logHeartbeats = settings.getBool(sessionID, SETTING_LOG_HEARTBEATS);
             }
 
             return new FileLog(settings.getString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH),
