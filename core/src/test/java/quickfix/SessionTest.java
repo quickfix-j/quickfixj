@@ -66,6 +66,28 @@ public class SessionTest extends TestCase {
         assertEquals(2, state.getNextTargetMsgSeqNum());
     }
 
+    /** Veifies that the session has been registered before the logger tries accessing it
+     * Use case:
+     *  JdbcLogger not setup correctly, barfs during Session creation, tries to log and
+     * can't find the session in global session list yet
+     */
+    public void testSessionRegisteredCorrectly() throws Exception {
+        SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        settings.setString(Session.SETTING_USE_DATA_DICTIONARY, "N");
+        JdbcTestSupport.setHypersonicSettings(settings);
+        // do not initialize the SQL tables so that the JdbcLog will fail
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER-sessionRegister", "TARGET-sessionRegister");
+        settings.setString(sessionID, "ConnectionType", "acceptor");
+        DefaultSessionFactory factory = new DefaultSessionFactory(new UnitTestApplication(), new MemoryStoreFactory(),
+                                                                    new JdbcLogFactory(settings));
+        try {
+            Session session = factory.create(sessionID, settings);
+            assertNotNull(session);
+        } catch(NullPointerException nex) {
+            fail("Session not registering correctly so JdbcLog fails while printing an error: "+nex.getMessage());
+        }
+    }
+
     private Session setUpSession(Application application) {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         Session session = SessionFactoryTestSupport.createSession(sessionID, application, false);

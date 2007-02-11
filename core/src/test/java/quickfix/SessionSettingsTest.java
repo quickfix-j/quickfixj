@@ -31,8 +31,6 @@ import junit.framework.TestCase;
 
 public class SessionSettingsTest extends TestCase {
 
-    private String settingsString;
-
     public SessionSettingsTest(String name) {
         super(name);
     }
@@ -101,8 +99,8 @@ public class SessionSettingsTest extends TestCase {
         return setUpSession(null);
     }
 
-    private SessionSettings setUpSession(String extra) throws ConfigError {
-        settingsString = new String();
+    public static SessionSettings setUpSession(String extra) throws ConfigError {
+        String settingsString = "";
         settingsString += "#comment\n";
         settingsString += "[DEFAULT]\n";
         settingsString += "Empty=\n";
@@ -134,8 +132,7 @@ public class SessionSettingsTest extends TestCase {
         }
         ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
 
-        SessionSettings settings = new SessionSettings(cfg);
-        return settings;
+        return new SessionSettings(cfg);
     }
 
     public void testSessionKeyIterator() throws Exception {

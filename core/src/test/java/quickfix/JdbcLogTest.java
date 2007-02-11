@@ -27,31 +27,35 @@ import java.sql.Statement;
 import junit.framework.TestCase;
 
 public class JdbcLogTest extends TestCase {
-    protected void tearDown() throws Exception {
-        JdbcTestSupport.assertNoActiveConnections();
-        super.tearDown();
-    }
+    private JdbcLog log;
+    private JdbcLogFactory logFactory;
+    private Connection connection;
+    private SessionID sessionID;
 
-    public void testLog() throws Exception {
-        Connection connection = JdbcTestSupport.getConnection();
+    protected void setUp() throws Exception {
+        super.setUp();
+        connection = JdbcTestSupport.getConnection();
         SessionSettings settings = new SessionSettings();
         JdbcTestSupport.setHypersonicSettings(settings);
         initializeTableDefinitions(connection);
-        JdbcLogFactory logFactory = new JdbcLogFactory(settings);
+        logFactory = new JdbcLogFactory(settings);
         long now = System.currentTimeMillis();
-        SessionID sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
+        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         settings.setString(sessionID, "ConnectionType", "acceptor");
-        JdbcLog log = (JdbcLog) logFactory.create(sessionID);
+        log = (JdbcLog) logFactory.create(sessionID);
+        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+    }
 
+    public void testLog() throws Exception {
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING");
         assertEquals(1, getRowCount(connection, "messages_log"));
-        assertLogData(connection, 0, sessionID, "INCOMING", "messages_log");
+        assertLogData(connection, 0, sessionID, "INCOMING", JdbcLog.MESSAGES_LOG_TABLE);
 
         log.onOutgoing("OUTGOING");
-        assertEquals(2, getRowCount(connection, "messages_log"));
-        assertLogData(connection, 0, sessionID, "INCOMING", "messages_log");
-        assertLogData(connection, 1, sessionID, "OUTGOING", "messages_log");
+        assertEquals(2, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+        assertLogData(connection, 0, sessionID, "INCOMING", JdbcLog.MESSAGES_LOG_TABLE);
+        assertLogData(connection, 1, sessionID, "OUTGOING", JdbcLog.MESSAGES_LOG_TABLE);
 
         assertEquals(0, getRowCount(connection, "event_log"));
         log.onEvent("EVENT");
@@ -59,8 +63,35 @@ public class JdbcLogTest extends TestCase {
         assertLogData(connection, 0, sessionID, "EVENT", "event_log");
         
         log.clear();
-        assertEquals(0, getRowCount(connection, "messages_log"));
+        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
         assertEquals(0, getRowCount(connection, "event_log"));
+    }
+
+    /** Make sure the logger handles the situation where the underlying JdbcLog is misconfigured
+     * (such as we can't connect ot the DB, or the tables are missing) and doesn't try
+     * to print failing exceptions recursively until the stack overflows
+     */
+    public void testHandlesRecursivelyFailingException() throws Exception {
+        // need to register the session since we are going to log errors through LogUtil
+        Session.registerSession(new Session(new UnitTestApplication(), new MemoryStoreFactory(), sessionID,
+                                new DataDictionary("FIX42.xml"), null, logFactory, new DefaultMessageFactory(), 0));
+
+        // remove the messages and events tables
+        connection.prepareStatement("DROP TABLE IF EXISTS "+JdbcLog.MESSAGES_LOG_TABLE+";").execute();
+        connection.prepareStatement("DROP TABLE IF EXISTS "+JdbcLog.EVENT_LOG_TABLE+";").execute();
+
+        // now try to log an error
+        try {
+            log.onIncoming("DB is messed up");
+        } catch(OutOfMemoryError err) {
+            fail("We seem to get an out of memory error b/c of stack overflow b/c we" +
+                    "keep calling jdbc logger recursively in case of misconfiguration: "+err.getMessage());
+        } finally {
+            // put the tables back so they can be cleaned up in tearDown()
+            initializeTableDefinitions(connection);
+        }
+
+
     }
 
     private void assertLogData(Connection connection, int rowOffset, SessionID sessionID,
@@ -82,7 +113,7 @@ public class JdbcLogTest extends TestCase {
         s.close();
     }
 
-    private int getRowCount(Connection connection, String tableName) throws SQLException {
+    private static int getRowCount(Connection connection, String tableName) throws SQLException {
         Statement s = connection.createStatement();
         ResultSet rs = s.executeQuery("select count(*) from " + tableName);
         if (rs.next()) {
@@ -93,7 +124,7 @@ public class JdbcLogTest extends TestCase {
         return 0;
     }
 
-    private void initializeTableDefinitions(Connection connection) throws ConfigError {
+    private static void initializeTableDefinitions(Connection connection) throws ConfigError {
         try {
             JdbcTestSupport.loadSQL(connection, "core/src/main/config/sql/mysql/messages_log_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(null));

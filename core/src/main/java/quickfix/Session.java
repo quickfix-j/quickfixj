@@ -268,7 +268,7 @@ public class Session {
             state.setHeartBeatInterval(heartbeatInterval);
             state.setInitiator(heartbeatInterval != 0);
             state.setMessageStore(messageStoreFactory.create(sessionID));
-
+            registerSession(this);
             getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
             try {
                 if (!checkSessionTime()) {

@@ -168,7 +168,6 @@ public class DefaultSessionFactory implements SessionFactory {
             // accessing the session before it's fully constructed.
             //
 
-            Session.registerSession(session);
             application.onCreate(sessionID);
 
             return session;

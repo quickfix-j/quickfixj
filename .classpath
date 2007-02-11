@@ -4,6 +4,7 @@
 	<classpathentry kind="src" path="core/src/test/java"/>
 	<classpathentry kind="src" path="examples/src/main/java"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/resources"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/jcl104-over-slf4j-1.2.jar"/>
 	<classpathentry kind="src" path="core/target/src-generated"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/mina-core-1.0.1.jar"/>

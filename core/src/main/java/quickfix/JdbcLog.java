@@ -27,10 +27,11 @@ import java.sql.Timestamp;
 import javax.sql.DataSource;
 
 class JdbcLog implements quickfix.Log {
-    private static final String MESSAGES_LOG_TABLE = "messages_log";
-    private static final String EVENT_LOG_TABLE = "event_log";
+    public static final String MESSAGES_LOG_TABLE = "messages_log";
+    public static final String EVENT_LOG_TABLE = "event_log";
     private final SessionID sessionID;
     private final DataSource dataSource;
+    private boolean recursiveException = false;
     
     public JdbcLog(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
@@ -51,9 +52,21 @@ class JdbcLog implements quickfix.Log {
         insert(MESSAGES_LOG_TABLE, value);
     }
 
+    /** Protect from the situation when you have recursive calls
+     * into the logger b/c the previous one failed (in case of a failed DB connection, for example).
+     * In case of going into a failure mode set a flag, ignore the recursive request and reset the flag.
+     * @param tableName
+     * @param value
+     */
     private void insert(String tableName, String value) {
         Connection connection = null;
         PreparedStatement insert = null;
+        if(recursiveException) {
+            recursiveException = false;
+            // todo: should we print to stderr here or somewhere else? Need to at least log to something!
+            return;
+        }
+        recursiveException = false;
         try {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement("INSERT INTO " + tableName
@@ -67,6 +80,7 @@ class JdbcLog implements quickfix.Log {
             insert.setString(6, value);
             insert.execute();
         } catch (SQLException e) {
+            recursiveException = true;
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, insert);
