@@ -87,7 +87,9 @@ public class SLF4JLog implements quickfix.Log {
     }
 
     private void log(Logger log, String text) {
-        log.info(logPrefix != null ? (logPrefix + text) : text);
+        if (log.isInfoEnabled()) {
+            log.info(logPrefix != null ? (logPrefix + text) : text);
+        }
     }
 
     public void clear() {
