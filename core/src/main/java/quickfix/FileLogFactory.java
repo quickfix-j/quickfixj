@@ -42,7 +42,13 @@ public class FileLogFactory implements LogFactory {
      * default.
      */
     public static final String SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES = "FileIncludeTimeStampForMessages";
-    
+
+    /**
+     * Specify whether to include time stamps for message input and output. Off, by
+     * default.
+     */
+    public static final String SETTING_LOG_HEARTBEATS = "FileLogHeatbeats";
+
     private SessionSettings settings;
 
     /**
@@ -71,9 +77,14 @@ public class FileLogFactory implements LogFactory {
             if (settings.isSetting(sessionID, SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES)) {
                 includeTimestampInMessages = settings.getBool(sessionID, SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES);
             }
-            
+       
+            boolean logHeartbeats = true;
+            if (settings.isSetting(sessionID, SETTING_LOG_HEARTBEATS)) {
+                includeTimestampInMessages = settings.getBool(sessionID, SETTING_LOG_HEARTBEATS);
+            }
+
             return new FileLog(settings.getString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH),
-                    sessionID, includeMillis, includeTimestampInMessages);
+                    sessionID, includeMillis, includeTimestampInMessages, logHeartbeats);
         } catch (Exception e) {
             throw new RuntimeError(e);
         }

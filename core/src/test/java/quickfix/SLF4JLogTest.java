@@ -84,7 +84,39 @@ public class SLF4JLogTest extends TestCase {
 
     }
 
-    public void testLogFiltered() throws Exception {
+    public void testLogHeartbeatFiltering() throws Exception {
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
+                "TARGET" + System.currentTimeMillis());
+        long systemTime = SystemTime.currentTimeMillis();
+        SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
+        SessionSettings settings = new SessionSettings();
+        SLF4JLogFactory factory = new SLF4JLogFactory(settings);
+        SLF4JLog log = (SLF4JLog) factory.create(sessionID);
+
+        String loggedText = "HEARTBEAT\00135=0\001";
+
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        log.onIncoming(loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
+
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        log.onOutgoing(loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
+
+        settings.setBool(sessionID, SLF4JLogFactory.SETTING_LOG_HEARTBEATS, false);
+        log = (SLF4JLog) factory.create(sessionID);
+
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        log.onIncoming(loggedText);
+        assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        log.onOutgoing(loggedText);
+        assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+
+    }
+
+    public void testLogFilteredByLevel() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis());
         long systemTime = SystemTime.currentTimeMillis();

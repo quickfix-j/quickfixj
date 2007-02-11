@@ -20,6 +20,7 @@
 package quickfix;
 
 import quickfix.field.BeginString;
+import quickfix.field.MsgType;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
 import quickfix.Message.Header;
@@ -104,6 +105,14 @@ public class MessageUtils {
 		return value;
 	}
 
+    public static boolean isHeartbeat(String message) {
+        try {
+            return MsgType.HEARTBEAT.equals(MessageUtils.getMessageType(message));
+        } catch (InvalidMessage e) {
+            return false;
+        }
+    }
+    
 	public static String getMessageType(String messageString)
 			throws InvalidMessage {
 		int messageTypeTagStart = messageString.indexOf("35=");

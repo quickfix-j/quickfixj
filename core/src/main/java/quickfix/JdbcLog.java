@@ -26,30 +26,37 @@ import java.sql.Timestamp;
 
 import javax.sql.DataSource;
 
-class JdbcLog implements quickfix.Log {
+class JdbcLog extends AbstractLog {
     public static final String MESSAGES_LOG_TABLE = "messages_log";
     public static final String EVENT_LOG_TABLE = "event_log";
     private final SessionID sessionID;
     private final DataSource dataSource;
-    private boolean recursiveException = false;
-    
+    private final boolean logHeartbeats;
+    private Throwable recursiveException = null;
+
     public JdbcLog(SessionSettings settings, SessionID sessionID) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
-
         dataSource = JdbcUtil.getDataSource(settings, sessionID);
+        
+        if (settings.isSetting(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS)) {
+            logHeartbeats = settings.getBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS);
+        } else {
+            logHeartbeats = true;
+        }
+        setLogHeartbeats(logHeartbeats);
     }
 
     public void onEvent(String value) {
         insert(EVENT_LOG_TABLE, value);
     }
 
-    public void onIncoming(String value) {
-        insert(MESSAGES_LOG_TABLE, value);
+    protected void logIncoming(String message) {
+        insert(MESSAGES_LOG_TABLE, message);
     }
 
-    public void onOutgoing(String value) {
-        insert(MESSAGES_LOG_TABLE, value);
+    protected void logOutgoing(String message) {
+        insert(MESSAGES_LOG_TABLE, message);
     }
 
     /** Protect from the situation when you have recursive calls
@@ -61,12 +68,13 @@ class JdbcLog implements quickfix.Log {
     private void insert(String tableName, String value) {
         Connection connection = null;
         PreparedStatement insert = null;
-        if(recursiveException) {
-            recursiveException = false;
-            // todo: should we print to stderr here or somewhere else? Need to at least log to something!
+        if (recursiveException != null) {
+            System.err.println("JdbcLog cannot log SQLException due to recursive log errors!");
+            recursiveException.printStackTrace();
+            recursiveException = null;
             return;
         }
-        recursiveException = false;
+        recursiveException = null;
         try {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement("INSERT INTO " + tableName
@@ -80,7 +88,7 @@ class JdbcLog implements quickfix.Log {
             insert.setString(6, value);
             insert.execute();
         } catch (SQLException e) {
-            recursiveException = true;
+            recursiveException = e;
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, insert);

@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @see SLF4JLogFactory
  */
-public class SLF4JLog implements quickfix.Log {
+public class SLF4JLog extends AbstractLog {
     public static final String DEFAULT_EVENT_CATEGORY = "quickfixj.event";
     public static final String DEFAULT_INCOMING_MSG_CATEGORY = "quickfixj.msg.incoming";
     public static final String DEFAULT_OUTGOING_MSG_CATEGORY = "quickfixj.msg.outgoing";
@@ -39,7 +39,8 @@ public class SLF4JLog implements quickfix.Log {
     private final String logPrefix;
     
     public SLF4JLog(SessionID sessionID, String eventCategory, String incomingMsgCategory,
-            String outgoingMsgCategory, boolean prependSessionID) {
+            String outgoingMsgCategory, boolean prependSessionID, boolean logHeartbeats) {
+        setLogHeartbeats(logHeartbeats);
         logPrefix = prependSessionID ? (sessionID + ": ") : null;
         eventLog = getLogger(sessionID, eventCategory, DEFAULT_EVENT_CATEGORY);
         incomingMsgLog = getLogger(sessionID, incomingMsgCategory, DEFAULT_INCOMING_MSG_CATEGORY);
@@ -78,11 +79,11 @@ public class SLF4JLog implements quickfix.Log {
         log(eventLog, text);
     }
 
-    public void onIncoming(String message) {
+    protected void logIncoming(String message) {
         log(incomingMsgLog, message);
     }
 
-    public void onOutgoing(String message) {
+    protected void logOutgoing(String message) {
         log(outgoingMsgLog, message);
     }
 

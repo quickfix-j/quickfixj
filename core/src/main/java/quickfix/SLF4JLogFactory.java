@@ -27,18 +27,27 @@ public class SLF4JLogFactory implements LogFactory {
      * Log category for events.
      */
     public final static String SETTING_EVENT_CATEGORY = "SLF4JLogEventCategory";
+
     /**
      * Log category for incoming messages.
      */
     public final static String SETTING_INMSG_CATEGORY = "SLF4JLogIncomingMessageCategory";
+
     /**
      * Log category for outgoing messages.
      */
     public final static String SETTING_OUTMSG_CATEGORY = "SLF4JLogOutgoingMessageCategory";
+
     /**
      * Flag for prepending session ID to log output
      */
     public final static String SETTING_PREPEND_SESSION_ID = "SLF4JLogPrependSessionID";
+    
+    /**
+     * Controls logging of heartbeats (Y or N)
+     */
+    public final static String SETTING_LOG_HEARTBEATS = "SLF4JLogHeartbeats";
+    
     private final SessionSettings settings;
 
     public SLF4JLogFactory(SessionSettings settings) {
@@ -50,6 +59,7 @@ public class SLF4JLogFactory implements LogFactory {
         String incomingMsgCategory = null;
         String outgoingMsgCategory = null;
         boolean prependSessionID = true;
+        boolean logHeartbeats = true;
         try {
             if (settings.isSetting(sessionID, SETTING_EVENT_CATEGORY)) {
                 eventCategory = settings.getString(sessionID, SETTING_EVENT_CATEGORY);
@@ -63,13 +73,16 @@ public class SLF4JLogFactory implements LogFactory {
             if (settings.isSetting(sessionID, SETTING_PREPEND_SESSION_ID)) {
                 prependSessionID = settings.getBool(sessionID, SETTING_PREPEND_SESSION_ID);
             }
+            if ( settings.isSetting(sessionID, SETTING_LOG_HEARTBEATS)) {
+                logHeartbeats = settings.getBool(sessionID, SETTING_LOG_HEARTBEATS);
+            }
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory,
-                prependSessionID);
+                prependSessionID, logHeartbeats);
     }
     
     public Log create() {

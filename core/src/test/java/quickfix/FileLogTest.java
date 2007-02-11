@@ -79,6 +79,47 @@ public class FileLogTest extends TestCase {
                 .getEventFileName()));
     }
 
+    public void testHeartbeatFiltering() throws Exception {
+        long systemTime = System.currentTimeMillis();
+        SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
+
+        File path = File.createTempFile("test", "");
+        SessionSettings settings = new SessionSettings();
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
+                .getAbsolutePath());
+        FileLogFactory factory = new FileLogFactory(settings);
+        FileLog log = (FileLog) factory.create(sessionID);
+        log.setSyncAfterWrite(true);
+
+        String prefix = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
+                + sessionID.getTargetCompID();
+
+        String loggedText = "HEARTBEAT\00135=0\001";
+        
+        log.onIncoming(loggedText);
+        assertEquals("wrong message", loggedText + "\n", readLog(log.getMessagesFileName()));
+        assertEquals(prefix + ".messages.log", new File(log.getMessagesFileName()).getName());
+        log.clear();
+
+        log.onOutgoing(loggedText);
+        assertEquals("wrong message", loggedText + "\n", readLog(log.getMessagesFileName()));
+        log.clear();
+        
+        settings.setBool(FileLogFactory.SETTING_LOG_HEARTBEATS, false);
+        log = (FileLog) factory.create(sessionID);
+        
+        log.onIncoming(loggedText);
+        assertEquals("wrong message", "", readLog(log.getMessagesFileName()));
+
+        log.onOutgoing(loggedText);
+        assertEquals("wrong message", "", readLog(log.getMessagesFileName()));
+
+        log = (FileLog) factory.create(sessionID);
+        log.setSyncAfterWrite(true);
+
+    }
+
     public void testLogWithMessageTimestamps() throws Exception {
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));

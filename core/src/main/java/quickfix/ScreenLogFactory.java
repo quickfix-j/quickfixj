@@ -36,43 +36,32 @@ public class ScreenLogFactory implements LogFactory {
     /**
      * Enables incoming message logging.
      * 
-     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
-     * 
-     * 
      */
     public static final String SETTING_LOG_INCOMING = "ScreenLogShowIncoming";
+
     /**
      * Enables outgoing message logging.
      * 
-     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
-     * 
-     * 
      */
     public static final String SETTING_LOG_OUTGOING = "ScreenLogShowOutgoing";
 
     /**
      * Enables session event logging.
      * 
-     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
-     * 
-     * 
      */
     public static final String SETTING_LOG_EVENTS = "ScreenLogShowEvents";
 
     /**
      * Flag for controlling output of heartbeat messages.
      * 
-     * 
      * Valid values: "Y" or "N"<br/>
      * Default Value: "Y"
-     * 
-     * 
      */
     public static final String SETTING_LOG_HEARTBEATS = "ScreenLogShowHeartBeats";
 

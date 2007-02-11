@@ -21,7 +21,6 @@ package quickfix;
 
 import java.io.PrintStream;
 
-import quickfix.field.MsgType;
 import quickfix.field.converter.UtcTimestampConverter;
 
 /**
@@ -31,7 +30,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  * @see quickfix.ScreenLogFactory
  */
-public class ScreenLog implements Log {
+public class ScreenLog extends AbstractLog {
     private static final String EVENT_CATEGORY = "event";
     private static final String OUTGOING_CATEGORY = "outgoing";
     private static final String INCOMING_CATEGORY = "incoming";
@@ -40,38 +39,30 @@ public class ScreenLog implements Log {
     private final boolean incoming;
     private final boolean outgoing;
     private final boolean events;
-    private final boolean heartBeats;
 
-    ScreenLog(boolean incoming, boolean outgoing, boolean events, boolean heartBeats,
+    ScreenLog(boolean incoming, boolean outgoing, boolean events, boolean logHeartbeats,
             SessionID sessionID, PrintStream out) {
+        setLogHeartbeats(logHeartbeats);
         this.out = out;
         this.incoming = incoming;
         this.outgoing = outgoing;
         this.events = events;
-        this.heartBeats = heartBeats;
         this.sessionID = sessionID;
     }
 
-    public void onIncoming(String message) {
+    protected void logIncoming(String message) {
         if (incoming) {
             logMessage(message, INCOMING_CATEGORY);
         }
     }
 
-    public void onOutgoing(String message) {
+    protected void logOutgoing(String message) {
         if (outgoing) {
             logMessage(message, OUTGOING_CATEGORY);
         }
     }
 
     private void logMessage(String message, String type) {
-        try {
-            if (!heartBeats && MsgType.HEARTBEAT.equals(MessageUtils.getMessageType(message))) {
-                return;
-            }
-        } catch (InvalidMessage e) {
-            // ignore
-        }
         log(message, type);
     }
 

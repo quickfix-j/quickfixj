@@ -33,7 +33,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  * @see quickfix.FileLogFactory
  */
-public class FileLog implements Log {
+public class FileLog extends AbstractLog {
     private static final byte[] TIME_STAMP_DELIMETER = ": ".getBytes();
     private SessionID sessionID;
     private String messagesFileName;
@@ -46,10 +46,13 @@ public class FileLog implements Log {
     private boolean includeMillis;
     private boolean includeTimestampForMessages;
     
-    FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages) throws FileNotFoundException {
+    FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages, boolean logHeartbeats) throws FileNotFoundException {
         String sessionName = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
         this.sessionID = sessionID;
+        
+        setLogHeartbeats(logHeartbeats);
+        
         if (sessionID.getSessionQualifier() != null && sessionID.getSessionQualifier().length() > 0) {
             sessionName += "-" + sessionID.getSessionQualifier();
         }
@@ -74,11 +77,11 @@ public class FileLog implements Log {
         events = new FileOutputStream(eventFileName, append);
     }
 
-    public void onIncoming(String message) {
+    protected void logIncoming(String message) {
         writeMessage(message);
     }
 
-    public void onOutgoing(String message) {
+    protected void logOutgoing(String message) {
         writeMessage(message);
     }
 

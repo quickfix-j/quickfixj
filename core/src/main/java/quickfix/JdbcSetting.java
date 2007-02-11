@@ -75,4 +75,9 @@ public class JdbcSetting {
      * The JNDI provider URL.
      */
     public static final String SETTING_JNDI_PROVIDER_URL = "JndiProviderURL";
+
+    /**
+     * Flag for controlling logging of heartbeat messages.
+     */
+    public static final String SETTING_JDBC_LOG_HEARTBEATS = "JdbcLogHeartBeats";
 }

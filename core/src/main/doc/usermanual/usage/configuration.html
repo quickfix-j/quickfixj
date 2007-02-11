@@ -2,7 +2,7 @@
 
 <html>
   <head>
-    <title>Configuring QuickFIX</title>
+    <title>Configuring QuickFIX/J</title>
     <link href="../style.css" rel="stylesheet" type="text/css"/>
 	</head>
   <body>
@@ -487,29 +487,17 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Storage">Storage</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>PersistMessages</I> </TD>
+    <TD>PersistMessages</TD>
     <TD> If set to N, no messages will be persisted. This will force QFJ to always send GapFills instead of resending messages. Use this if you know you never want to resend a message. Useful for market data streams.</TD>
     <TD> Y<br>N</TD>
     <TD> N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>FileStorePath</I> </TD>
+    <TD>FileStorePath</TD>
     <TD> Directory to store sequence number and message files. Only used with FileStoreFactory. </TD>
     <TD> valid directory for storing files, must have write access </TD>
 
     <TD>&nbsp; </TD>
-  </TR>
-  <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>FileIncludeMilliseconds</I> </TD>
-    <TD> Controls whether milliseconds are included in log time stamps. </TD>
-    <TD>"Y" or "N"</TD>
-    <TD>"N"</TD>
-  </TR>
-  <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>FileIncludeTimeStampForMessages</I> </TD>
-    <TD> Controls whether time stamps are included on message log entries. </TD>
-    <TD>"Y" or "N"</TD>
-    <TD>"N"</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD>JndiContextFactory</TD>
@@ -562,6 +550,11 @@
     <TD>Table name for sessions table. This also works for the MySQL store.</TD>
     <TD>A valid SQL table name.</TD>
     <TD>sessions</TD>  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcLogHeartBeats</TD>
+    <TD>Controls filtering of heartbeats for message logging (both in and out).</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>  
 	  
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>MySQLStoreDatabase</I> </TD>
@@ -604,6 +597,31 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD>FileLogPath</TD>
+    <TD> Directory to store logs. Only used with FileLogFactory. </TD>
+    <TD> valid directory for storing files, must have write access </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileLogHeartbeats</TD>
+    <TD> Controls logging of heartbeat messages.</TD>
+    <TD>Y or N </TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileIncludeMilliseconds</TD>
+    <TD> Controls whether milliseconds are included in log time stamps. </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>"N"</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileIncludeTimeStampForMessages</TD>
+    <TD> Controls whether time stamps are included on message log entries. </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>"N"</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD>SLF4JLogEventCategory</TD>
     <TD>Log category for logged events.</TD>
     <TD>Depends on log engine. The SLF4J adapter for JDK 1.4 logging is included by default.
@@ -643,13 +661,12 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>FileLogPath</I> </TD>
-    <TD> Directory to store logs. Only used with FileLogFactory. </TD>
-    <TD> valid directory for storing files, must have write access </TD>
-
-    <TD>&nbsp; </TD>
+    <TD>SLF4JLogHeartbeats</TD>
+    <TD>Controls whether heartbeats are logged.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
   </TR>
-  <TR ALIGN="left" VALIGN="middle">
+   <TR ALIGN="left" VALIGN="middle">
     <TD>JdbcDriver</TD>
     <TD>JDBC driver for JDBC logger. Also used for JDBC message store.</TD>
     <TD>Classname for the JDBC driver.</TD>
