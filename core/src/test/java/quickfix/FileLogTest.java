@@ -109,6 +109,8 @@ public class FileLogTest extends TestCase {
         settings.setBool(FileLogFactory.SETTING_LOG_HEARTBEATS, false);
         log = (FileLog) factory.create(sessionID);
         
+        loggedText = "FILTERED_HEARTBEAT\00135=0\001";
+        
         log.onIncoming(loggedText);
         assertEquals("wrong message", "", readLog(log.getMessagesFileName()));
 
