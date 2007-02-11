@@ -204,9 +204,9 @@ public class Session {
     // @GuardedBy(this)
     private final SessionState state = new SessionState();
 
-    private volatile boolean enabled;
-    private volatile Responder responder;
-    private volatile DataDictionary dataDictionary;
+    private boolean enabled;
+    private Responder responder;
+    private DataDictionary dataDictionary;
 
     //
     // The session time checks were causing performance problems
@@ -294,7 +294,7 @@ public class Session {
      *
      * @param responder a responder implementation
      */
-    public void setResponder(Responder responder) {
+    public synchronized void setResponder(Responder responder) {
         this.responder = responder;
     }
 
@@ -303,7 +303,7 @@ public class Session {
      *
      * @return the Session's connection responder
      */
-    public boolean hasResponder() {
+    public synchronized boolean hasResponder() {
         return responder != null;
     }
 
@@ -467,7 +467,7 @@ public class Session {
     /**
      * This method can be used to manually logout of a FIX session.
      */
-    public void logout() {
+    public synchronized void logout() {
         enabled = false;
     }
 
@@ -485,7 +485,7 @@ public class Session {
      *
      * @return true if session is enabled, false otherwise.
      */
-    public boolean isEnabled() {
+    public synchronized boolean isEnabled() {
         return enabled;
     }
 
@@ -1641,11 +1641,11 @@ public class Session {
      * @deprecated
      * @param dataDictionary
      */
-    public void setDataDictionary(DataDictionary dataDictionary) {
+    public synchronized void setDataDictionary(DataDictionary dataDictionary) {
         this.dataDictionary = dataDictionary;
     }
     
-    public DataDictionary getDataDictionary() {
+    public synchronized DataDictionary getDataDictionary() {
         return dataDictionary;
     }
 
@@ -1709,7 +1709,7 @@ public class Session {
         state.setHeartBeatInterval(heartbeatInterval);
     }
 
-    public Responder getResponder() {
+    public synchronized Responder getResponder() {
         return responder;
     }
 
@@ -1773,7 +1773,7 @@ public class Session {
         return state.isLogonTimedOut();
     }
 
-    public boolean isUsingDataDictionary() {
+    public synchronized boolean isUsingDataDictionary() {
         return dataDictionary != null;
     }
 
