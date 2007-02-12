@@ -19,8 +19,15 @@
 
 package quickfix.mina.message;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
@@ -273,4 +280,65 @@ public class FIXMessageDecoder implements MessageDecoder {
         // empty
     }
 
+    /**
+     * Used to process streamed messages from a file
+     */
+    public interface MessageListener {
+        void onMessage(String message);
+    }
+
+    /**
+     * Utility method to extract messages from files. This method loads all
+     * extracted messages into memory so if the expected number of extracted
+     * messages is large, do not use this method or your application may run
+     * out of memory. Use the streaming version of the method instead.
+     * 
+     * @param file
+     * @return a list of extracted messages
+     * @throws IOException
+     * @throws ProtocolCodecException
+     * @see #extractMessages(File, quickfix.mina.message.FIXMessageDecoder.MessageListener)
+     */
+    public List extractMessages(File file) throws IOException, ProtocolCodecException {
+        final List messages = new ArrayList();
+        extractMessages(file, new MessageListener() {
+
+            public void onMessage(String message) {
+                messages.add(message);
+            }
+
+        });
+        return messages;
+    }
+
+    /**
+     * Utility to extract messages from a file. This method will return each
+     * message found to a provided listener. The message file will also be
+     * memory mapped rather than fully loaded into physical memory. Therefore, 
+     * a large message file can be processed without using excessive memory.
+     * 
+     * @param file
+     * @param listener
+     * @throws IOException
+     * @throws ProtocolCodecException
+     */
+    public void extractMessages(File file, final MessageListener listener) throws IOException,
+            ProtocolCodecException {
+        // Set up a read-only memory-mapped file
+        FileChannel readOnlyChannel = new RandomAccessFile(file, "r").getChannel();
+        MappedByteBuffer memoryMappedBuffer = readOnlyChannel.map(FileChannel.MapMode.READ_ONLY, 0,
+                (int) readOnlyChannel.size());
+
+        decode(null, ByteBuffer.wrap(memoryMappedBuffer), new ProtocolDecoderOutput() {
+
+            public void write(Object message) {
+                listener.onMessage((String) message);
+            }
+
+            public void flush() {
+                // ignored
+            }
+
+        });
+    }
 }

@@ -19,6 +19,10 @@
 
 package quickfix.mina.message;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -154,6 +158,54 @@ public class FIXMessageDecoderTest extends TestCase {
         assertMessageFound(goodMessage, 3);
     }
 
+    public void testMessageExtraction() throws Exception {
+        File testFile = setUpTestFile();
+
+        FIXMessageDecoder decoder = new FIXMessageDecoder();
+        List messages = decoder.extractMessages(testFile);
+        assertCorrectlyExtractedMessages(messages);
+    }
+
+    private void assertCorrectlyExtractedMessages(List messages) {
+        assertEquals("wrong # of messages", 4, messages.size());
+        for (int i = 0; i < messages.size(); i++) {
+            assertEquals("wrong message", "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001",
+                    messages.get(i));
+        }
+    }
+    
+    public void testMessageStreamingExtraction() throws Exception {
+        File testFile = setUpTestFile();
+
+        FIXMessageDecoder decoder = new FIXMessageDecoder();
+        final List messages = new ArrayList();
+        decoder.extractMessages(testFile, new FIXMessageDecoder.MessageListener() {
+        
+            public void onMessage(String message) {
+                messages.add(message);
+            }
+        
+        });
+        assertCorrectlyExtractedMessages(messages);
+    }
+
+    private File setUpTestFile() throws IOException, FileNotFoundException {
+        String text = "This is a test case for FixMessageDecoder message";
+        text += "extraction. There are four messages to extract...\n";
+        text += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001\n";
+        text += "and 8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001 (two)\n";
+        text += "and 8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001 (three)\n";
+        text += "and 8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001\n";
+        text += "and that's all.\n";
+
+        File f = File.createTempFile("test", ".txt");
+        f.deleteOnExit();
+        FileOutputStream out = new FileOutputStream(f);
+        out.write(text.getBytes());
+        out.close();
+        return f;
+    }
+
     public void testBadLengthTooShort() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
@@ -240,8 +292,8 @@ public class FIXMessageDecoderTest extends TestCase {
 
             });
             mockSessionControl.setReturnValue(null, MockControl.ZERO_OR_MORE);
-            mockSessionControl.replay();            
-            
+            mockSessionControl.replay();
+
             decoder.decode(mockSession, buffer, output);
             buffer.compact();
 
