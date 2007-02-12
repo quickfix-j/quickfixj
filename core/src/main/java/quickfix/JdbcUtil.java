@@ -39,34 +39,6 @@ class JdbcUtil {
 
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
 
-    static SessionSettings convertMySQLStoreSettings(SessionSettings settings, SessionID sessionID)
-            throws ConfigError, FieldConvertError {
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER, "com.mysql.jdbc.Driver");
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_URL, "jdbc:mysql://"
-                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_STORE_HOST) + ":"
-                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_STORE_PORT) + "/"
-                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_STORE_DATABASE));
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_USER, settings.getString(sessionID,
-                MySQLSetting.SETTING_MYSQL_STORE_USER));
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_PASSWORD, settings.getString(
-                sessionID, MySQLSetting.SETTING_MYSQL_STORE_PASSWORD));
-        return settings;
-    }
-
-    static SessionSettings convertMySQLLogSettings(SessionSettings settings, SessionID sessionID)
-            throws ConfigError, FieldConvertError {
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER, "com.mysql.jdbc.Driver");
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_URL, "jdbc:mysql://"
-                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_LOG_HOST) + ":"
-                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_LOG_PORT) + "/"
-                + settings.getString(sessionID, MySQLSetting.SETTING_MYSQL_LOG_DATABASE));
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_USER, settings.getString(sessionID,
-                MySQLSetting.SETTING_MYSQL_LOG_USER));
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_PASSWORD, settings.getString(
-                sessionID, MySQLSetting.SETTING_MYSQL_LOG_PASSWORD));
-        return settings;
-    }
-
     private static Map dataSources = new ConcurrentHashMap();
     private static int dataSourceCounter = 1;
     
