@@ -294,6 +294,12 @@
 	Custom Exports
 	================================================================= -->
 
+	<target name="export_binary_src" depends="module.export_binary_src">
+		<copy todir="${release.bin_src.staging.dir}" includeEmptyDirs="false">
+			<fileset dir="${basedir}/target/src-generated"/>
+		</copy>
+	</target>
+
 	<target name="export_binaries" depends="module.export_binaries">
 		<copy todir="${release.bin.staging.dir}/lib">
 			<fileset dir="src/main/lib"/>

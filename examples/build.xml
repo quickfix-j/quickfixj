@@ -17,19 +17,17 @@
     <property name="jar.output.file" value="quickfixj-examples.jar"/>
 
 	<path id="compile.classpath">
-		<fileset dir="../core/src/main/lib/*"/>
+		<fileset dir="../core/src/main/lib">
+			<include name="*.jar"/>
+			<include name="optional/mx4j-*.jar"/>
+		</fileset>
 		<pathelement location="../core/target/quickfixj.jar" />
 	</path>
 
 	<target name="compile" description="compile source code">
 		<mkdir dir="${main.classes.dir}" />
 		<javac destdir="${main.classes.dir}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes">
-			<classpath>
-				<fileset dir="../core/src/main/lib">
-					<include name="*.jar"/>
-				</fileset>
-				<pathelement location="../core/${main.classes.dir}"/>
-			</classpath>
+			<classpath refid="compile.classpath"/>
 			<compilerarg line="${javac.args}" />
 			<src path="${main.src.dir}"/>
 		</javac>

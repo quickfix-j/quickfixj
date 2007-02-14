@@ -120,12 +120,65 @@
 		          value="${basedir}/${release.output.dir}/staging/bin/quickfixj" />
 	</target>
 
-	<target name="release.shared" 
-		depends="define.src.staging.dir,define.bin.staging.dir,jar,test,javadoc">
+	<target name="define.bin_src.staging.dir" unless="release.bin_src.staging.dir">
+		<property name="release.bin_src.staging.dir"
+		          value="${basedir}/${release.output.dir}/staging/bin_src" />
+	</target>
+
+	<target name="release.shared" depends="jar,test,javadoc">
 		<initdir dir="${release.output.dir}" />
 
-		<!-- Source release staging -->
+		<antcall target="release.source"/>
+		<antcall target="release.binaries"/>
 		
+		<antcall target="test_zip_bin_release"/>
+		<antcall target="test_tar_bin_release"/>
+		<antcall target="test_tar_src_release"/>
+		<antcall target="test_zip_src_release"/>
+	</target>
+
+	<target name="release.binaries" depends="define.bin.staging.dir,define.bin_src.staging.dir">
+		<copy todir="${release.bin.staging.dir}">
+			<fileset dir="." includes="LICENSE"/>
+			<fileset dir="." includes="NEWS"/>
+		</copy>
+			
+		<mkdir dir="${release.bin.staging.dir}" />
+		<iterate target="export_binaries">
+			<properties>
+				<property name="release.bin.staging.dir" value="${release.bin.staging.dir}"/>
+			</properties>
+		</iterate>
+
+		<mkdir dir="${release.bin_src.staging.dir}" />
+		<iterate target="export_binary_src">
+			<properties>
+				<property name="release.bin_src.staging.dir" value="${release.bin_src.staging.dir}"/>
+			</properties>
+		</iterate>
+
+		<property name="release.bin_src.zip" value="${release.bin.staging.dir}/src.zip"/>
+		<zip destfile="${release.bin_src.zip}"
+		     basedir="${release.bin_src.staging.dir}" />
+
+		<convertUnixScripts dir="${release.bin.staging.dir}"/>
+
+		<!-- Create binary releases -->
+		<property name="release.bin"
+		          value="${release.output.dir}/${release.prefix}-bin" />
+
+		<property name="release.bin.tar" value="${release.bin}.tar" />
+		<tar destfile="${release.bin.tar}.gz"
+		     longfile="gnu"
+		     compression="gzip"
+		     basedir="${release.bin.staging.dir}/.." />
+
+		<property name="release.bin.zip" value="${release.bin}.zip" />
+		<zip destfile="${release.bin.zip}"
+		     basedir="${release.bin.staging.dir}/.." />
+	</target>
+		
+	<target name="release.source" depends="define.src.staging.dir">
 		<mkdir dir="${release.src.staging.dir}" />
 
 		<copy todir="${release.src.staging.dir}">
@@ -152,45 +205,8 @@
 		<property name="release.src.zip" value="${release.src}.zip" />
 		<zip destfile="${release.src.zip}"
 		     basedir="${release.src.staging.dir}/.." />
-
-		<!-- Binary release staging -->
-
-		<copy todir="${release.bin.staging.dir}">
-			<fileset dir="." includes="LICENSE"/>
-			<fileset dir="." includes="NEWS"/>
-		</copy>
-			
-		<mkdir dir="${release.bin.staging.dir}" />
-		<iterate target="export_binaries">
-			<properties>
-				<property name="release.bin.staging.dir" value="${release.bin.staging.dir}"/>
-			</properties>
-		</iterate>
-
-		<convertUnixScripts dir="${release.bin.staging.dir}"/>
-
-		<!-- Create binary releases -->
-		<property name="release.bin"
-		          value="${release.output.dir}/${release.prefix}-bin" />
-
-		<property name="release.bin.tar" value="${release.bin}.tar" />
-		<tar destfile="${release.bin.tar}.gz"
-		     longfile="gnu"
-		     compression="gzip"
-		     basedir="${release.bin.staging.dir}/.." />
-
-		<property name="release.bin.zip" value="${release.bin}.zip" />
-		<zip destfile="${release.bin.zip}"
-		     basedir="${release.bin.staging.dir}/.." />
-
-		<!-- Test the releases -->
-		
-		<antcall target="test_zip_bin_release"/>
-		<antcall target="test_tar_bin_release"/>
-		<antcall target="test_tar_src_release"/>
-		<antcall target="test_zip_src_release"/>
 	</target>
-
+	
 	<macrodef name="test_executor">
 		<attribute name="dir"/>
 		<sequential>
@@ -198,6 +214,7 @@
 				<classpath>
 					<fileset dir="@{dir}">
 						<include name="lib/*.jar"/>
+						<include name="lib/optional/mx4j-*.jar"/>
 						<include name="*.jar"/>
 					</fileset>
 				</classpath>

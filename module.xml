@@ -32,9 +32,6 @@
 	<available file="src/test/java" property="test.java.available"/>
 	
 	<target name="export_sources">
-		<echo message="${basedir}"/>
-		<echo message="${user.dir}"/>
-		<echo message="${release.src.staging.dir}"/>
 		<description>Export source code from a module to the staging directory.
 			The root directory should be the module base.</description>
 		<copy todir="${release.src.staging.dir}/${ant.project.name}" includeEmptyDirs="false">
@@ -42,6 +39,15 @@
 				<exclude name="target/*"/>
 				<exclude name="target/**/*"/>
 			</fileset>
+		</copy>
+	</target>
+
+	<target name="export_binary_src">
+		<description>Export source code for binaries. This is used for associating
+		sources with class files rather than being able to build the distribution from source.
+		</description>
+		<copy todir="${release.bin_src.staging.dir}" includeEmptyDirs="false">
+			<fileset dir="${basedir}/src/main/java"/>
 		</copy>
 	</target>
 
