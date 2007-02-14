@@ -64,8 +64,4 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         throw new UnsupportedOperationException("Blocking not supported: " + getClass());
     }
 
-    // TODO Remove poll() when it's removed from JNI
-    public boolean poll() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: " + getClass());
-    }
 }

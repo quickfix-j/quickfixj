@@ -121,7 +121,7 @@ public interface SessionAdminMBean {
     
     String getMessageStoreClassName();
     
-    // TODO
+    // TODO JMX Add schedule support
     //String getSchedule();
 
     boolean isUsingDataDictionary();

@@ -17,6 +17,7 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -25,8 +26,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
+import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 
 import quickfix.SessionID;
@@ -74,7 +77,7 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
         }
     }
 
-    public TabularData getAcceptorAddresses() {
+    public TabularData getAcceptorAddresses() throws IOException {
         List rows = new ArrayList();
         Iterator entries = acceptor.getAcceptorAddresses().entrySet().iterator();
         while (entries.hasNext()) {
@@ -86,7 +89,11 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
                 rows.add(new SessionAcceptorAddressRow(sessionID, address, getSessionName(sessionID)));
             }
         }
-        return tabularDataAdapter.fromBeanList("AcceptorAddresses", "AddressInfo", "sessionID", rows);
+        try {
+            return tabularDataAdapter.fromBeanList("AcceptorAddresses", "AddressInfo", "sessionID", rows);
+        } catch (OpenDataException e) {
+            throw JmxSupport.toIOException(e);
+        }
     }
 
 }

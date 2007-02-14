@@ -19,9 +19,6 @@
 
 package quickfix.mina;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
@@ -34,11 +31,10 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
  * Processes messages for all sessions in a single thread.
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
-    private Logger log = LoggerFactory.getLogger(getClass());
-    private BlockingQueue eventQueue = new LinkedBlockingQueue();
-    private volatile boolean isStopped;
+    private final BlockingQueue eventQueue = new LinkedBlockingQueue();
+    private final SessionConnector sessionConnector;
+    private boolean isStopped;
     private long stopTime = 0L;
-    private SessionConnector sessionConnector;
 
     public SingleThreadedEventHandlingStrategy(SessionConnector connector) {
         sessionConnector = connector;
@@ -54,14 +50,16 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     public void block() {
         while (true) {
-            if (isStopped) {
-                if (stopTime == 0) {
-                    stopTime = SystemTime.currentTimeMillis();
-                }
-                if (!sessionConnector.isLoggedOn()
-                        || SystemTime.currentTimeMillis() - stopTime > 5000L) {
-                    sessionConnector.stopSessionTimer();
-                    return;
+            synchronized (this) {
+                if (isStopped) {
+                    if (stopTime == 0) {
+                        stopTime = SystemTime.currentTimeMillis();
+                    }
+                    if (!sessionConnector.isLoggedOn()
+                            || SystemTime.currentTimeMillis() - stopTime > 5000L) {
+                        sessionConnector.stopSessionTimer();
+                        return;
+                    }
                 }
             }
             try {
@@ -91,31 +89,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         messageProcessingThread.start();
     }
 
-    public boolean poll() {
-        if (isStopped) {
-            if (stopTime == 0) {
-                stopTime = SystemTime.currentTimeMillis();
-            }
-            if (!sessionConnector.isLoggedOn() || SystemTime.currentTimeMillis() - stopTime > 5000L) {
-                sessionConnector.stopSessionTimer();
-                return false;
-            }
-        }
-
-        try {
-            SessionMessageEvent event = getMessage();
-            if (event != null) {
-                event.processMessage();
-            }
-        } catch (InterruptedException e) {
-            log.error("Unexpected exception: " + e);
-        }
-        return true;
-    }
-
     private static class SessionMessageEvent {
-        private Session quickfixSession;
-        private Message message;
+        private final Session quickfixSession;
+        private final Message message;
 
         public SessionMessageEvent(Session session, Message message) {
             this.message = message;
@@ -133,7 +109,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
-    public void stopHandlingMessages() {
+    public synchronized void stopHandlingMessages() {
         isStopped = true;
     }
 

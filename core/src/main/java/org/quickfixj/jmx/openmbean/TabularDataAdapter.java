@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
@@ -33,62 +34,57 @@ import javax.management.openmbean.TabularType;
 
 public class TabularDataAdapter {
 
-    public TabularData fromArray(String tableTypeName, String rowTypeName, Object[] objects) {
+    public TabularData fromArray(String tableTypeName, String rowTypeName, Object[] objects)
+            throws OpenDataException {
         TabularData table = null;
-        try {
-            CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
-            rowTypeFactory.defineItem(rowTypeName, SimpleType.STRING);
-            CompositeType rowType = rowTypeFactory.createCompositeType();
-            TabularType tableType = new TabularType(tableTypeName, tableTypeName, rowType, new String[] { rowTypeName });
-            CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
-            table = new TabularDataSupport(tableType);
-            for (int i = 0; i < objects.length; i++) {
-                rowDataFactory.clear();
-                rowDataFactory.setValue(rowTypeName, objects[i].toString());
-                table.put(rowDataFactory.createCompositeData());
-            }
-        } catch (Exception e) {
-            // TODO
-            e.printStackTrace();
+        CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
+        rowTypeFactory.defineItem(rowTypeName, SimpleType.STRING);
+        CompositeType rowType = rowTypeFactory.createCompositeType();
+        TabularType tableType = new TabularType(tableTypeName, tableTypeName, rowType,
+                new String[] { rowTypeName });
+        CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
+        table = new TabularDataSupport(tableType);
+        for (int i = 0; i < objects.length; i++) {
+            rowDataFactory.clear();
+            rowDataFactory.setValue(rowTypeName, objects[i].toString());
+            table.put(rowDataFactory.createCompositeData());
         }
         return table;
     }
 
-    public TabularData fromMap(String keyLabel, String valueLabel, Map data) {
+    public TabularData fromMap(String keyLabel, String valueLabel, Map data)
+            throws OpenDataException {
         TabularData table = null;
-        try {
-            CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory("row", "row");
-            rowTypeFactory.defineItem(keyLabel, SimpleType.STRING);
-            rowTypeFactory.defineItem(valueLabel, SimpleType.STRING);
-            CompositeType rowType = rowTypeFactory.createCompositeType();
-            TabularType tableType = new TabularType("TabularData", "TabularData", rowType, new String[] { keyLabel, valueLabel });
-            CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
-            table = new TabularDataSupport(tableType);
-            Iterator entries = data.entrySet().iterator();
-            while (entries.hasNext()) {
-                Map.Entry entry = (Map.Entry) entries.next();
-                rowDataFactory.clear();
-                rowDataFactory.setValue(keyLabel, entry.getKey().toString());
-                rowDataFactory.setValue(valueLabel, entry.getValue().toString());
-                table.put(rowDataFactory.createCompositeData());
-            }
-        } catch (Exception e) {
-            // TODO
-            e.printStackTrace();
+        CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory("row", "row");
+        rowTypeFactory.defineItem(keyLabel, SimpleType.STRING);
+        rowTypeFactory.defineItem(valueLabel, SimpleType.STRING);
+        CompositeType rowType = rowTypeFactory.createCompositeType();
+        TabularType tableType = new TabularType("TabularData", "TabularData", rowType,
+                new String[] { keyLabel, valueLabel });
+        CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
+        table = new TabularDataSupport(tableType);
+        Iterator entries = data.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry entry = (Map.Entry) entries.next();
+            rowDataFactory.clear();
+            rowDataFactory.setValue(keyLabel, entry.getKey().toString());
+            rowDataFactory.setValue(valueLabel, entry.getValue().toString());
+            table.put(rowDataFactory.createCompositeData());
         }
         return table;
     }
 
-    public TabularData fromBean(String keyLabel, String valueLabel, Object bean) {
+    public TabularData fromBean(String keyLabel, String valueLabel, Object bean) throws OpenDataException {
         TabularData table = null;
+        CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory("row", "row");
+        rowTypeFactory.defineItem(keyLabel, SimpleType.STRING);
+        rowTypeFactory.defineItem(valueLabel, SimpleType.STRING);
+        CompositeType rowType = rowTypeFactory.createCompositeType();
+        TabularType tableType = new TabularType("TabularData", "TabularData", rowType,
+                new String[] { keyLabel, valueLabel });
+        CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
+        table = new TabularDataSupport(tableType);
         try {
-            CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory("row", "row");
-            rowTypeFactory.defineItem(keyLabel, SimpleType.STRING);
-            rowTypeFactory.defineItem(valueLabel, SimpleType.STRING);
-            CompositeType rowType = rowTypeFactory.createCompositeType();
-            TabularType tableType = new TabularType("TabularData", "TabularData", rowType, new String[] { keyLabel, valueLabel });
-            CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
-            table = new TabularDataSupport(tableType);
             BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
             PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
             for (int i = 0; i < pds.length; i++) {
@@ -104,14 +100,18 @@ public class TabularDataAdapter {
                     table.put(rowDataFactory.createCompositeData());
                 }
             }
+        } catch (OpenDataException e) {
+            throw e;
         } catch (Exception e) {
-            // TODO
-            e.printStackTrace();
+            OpenDataException ode = new OpenDataException(e.getMessage());
+            ode.setStackTrace(e.getStackTrace());
+            throw ode;
         }
         return table;
     }
 
-    public TabularData fromBeanList(String tableTypeName, String rowTypeName, String keyProperty, List beans) {
+    public TabularData fromBeanList(String tableTypeName, String rowTypeName, String keyProperty,
+            List beans) throws OpenDataException {
         TabularData table = null;
         try {
             CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
@@ -125,14 +125,16 @@ public class TabularDataAdapter {
                 for (int p = 0; p < pds.length; p++) {
                     PropertyDescriptor descriptor = pds[p];
                     String propertyName = descriptor.getName();
-                    if (descriptor.getReadMethod() != null && !"class".equals(propertyName) && !indexNames.contains(propertyName)) {
+                    if (descriptor.getReadMethod() != null && !"class".equals(propertyName)
+                            && !indexNames.contains(propertyName)) {
                         indexNames.add(propertyName);
                         rowTypeFactory.defineItem(formatHeader(propertyName), SimpleType.STRING);
                     }
                 }
             }
             CompositeType rowType = rowTypeFactory.createCompositeType();
-            TabularType tableType = new TabularType(tableTypeName, tableTypeName, rowType, createTableHeaders(indexNames));
+            TabularType tableType = new TabularType(tableTypeName, tableTypeName, rowType,
+                    createTableHeaders(indexNames));
             CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
             table = new TabularDataSupport(tableType);
             for (int i = 0; i < beans.size(); i++) {
@@ -154,9 +156,12 @@ public class TabularDataAdapter {
                 }
                 table.put(rowDataFactory.createCompositeData());
             }
+        } catch (OpenDataException e) {
+            throw e;
         } catch (Exception e) {
-            // TODO
-            e.printStackTrace();
+            OpenDataException ode = new OpenDataException(e.getMessage());
+            ode.setStackTrace(e.getStackTrace());
+            throw ode;
         }
         return table;
     }
@@ -171,7 +176,7 @@ public class TabularDataAdapter {
     }
 
     private String formatHeader(String name) {
-        return name.substring(0,1).toUpperCase() + name.substring(1);
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
 }

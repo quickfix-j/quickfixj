@@ -84,7 +84,7 @@ class JdbcUtil {
             ds.setUser(user);
             ds.setPassword(password);
             
-            // TODO Make these configurable
+            // TODO JDBC Make these configurable
             ds.setMaximumActiveTime(5000);
             ds.setMaximumConnectionLifetime(28800000);
             ds.setMaximumConnectionCount(10);

@@ -28,7 +28,7 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private Boolean isStarted = Boolean.FALSE;
     private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
         new SingleThreadedEventHandlingStrategy(this);
 

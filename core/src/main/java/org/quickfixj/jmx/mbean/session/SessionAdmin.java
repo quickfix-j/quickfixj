@@ -81,25 +81,6 @@ public class SessionAdmin implements SessionAdminMBean, MBeanRegistration {
     }
 
     /* (non-Javadoc)
-     * @see quickfix.jmx.SessionMBean#getIncomingMessageCount()
-     */
-    public int getIncomingMessageCount() {
-        return getCallCount("fromAdmin") + getCallCount("fromApp");
-    }
-
-    // TODO JMX Complete statistics
-    private int getCallCount(String methodName) {
-        return 0;
-    }
-
-    /* (non-Javadoc)
-     * @see quickfix.jmx.SessionMBean#getOutgoingMessageCount()
-     */
-    public int getOutgoingMessageCount() {
-        return getCallCount("toAdmin") + getCallCount("toApp");
-    }
-
-    /* (non-Javadoc)
      * @see quickfix.jmx.SessionMBean#getRemoteIPAddress()
      */
     public String getRemoteIPAddress() {
@@ -318,15 +299,9 @@ public class SessionAdmin implements SessionAdminMBean, MBeanRegistration {
         try {
             return mbeanServer.getAttribute(connectorName, "Role").toString();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return "[ERROR]";
+            return "[ERROR: " + e.getMessage() + "]";
         }
     }
-
-//    private void logAttributeChange(String attributeName, boolean flag) {
-//        session.getLog().onEvent("JMX: setting " + attributeName + " to " + flag);
-//    }
 
     private void logAttributeChange(String attributeName, int value) {
         session.getLog().onEvent("JMX: setting " + attributeName + " to " + value);

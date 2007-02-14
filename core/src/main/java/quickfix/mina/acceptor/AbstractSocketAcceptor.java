@@ -64,8 +64,8 @@ import quickfix.mina.ssl.SSLSupport;
  */
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
     private final SessionFactory sessionFactory;
-    private Map socketDescriptorForAddress = new HashMap();
-    private Map ioAcceptorForTransport = new HashMap();
+    private final Map socketDescriptorForAddress = new HashMap();
+    private final Map ioAcceptorForTransport = new HashMap();
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -92,6 +92,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 messageFactory));
     }
 
+    // TODO SYNC Does this method really need synchronization?
     protected synchronized void startAcceptingConnections(
             EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {

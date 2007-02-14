@@ -17,6 +17,8 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import java.io.IOException;
+
 import javax.management.openmbean.TabularData;
 
 public interface ConnectorAdminMBean {
@@ -24,24 +26,29 @@ public interface ConnectorAdminMBean {
      * The connection role.
      * @return "ACCEPTOR" if acceptor, "INITIATOR" if initiator.
      */
-    String getRole();
+    String getRole() throws IOException;
     
     /**
      * Stop the connector.
      * @param force don't wait for normal logout from counterparty
      */
-    void stop(boolean force);
+    void stop(boolean force) throws IOException;
 
     /**
      * Stop the connector after waiting for logouts.
      */
-    void stop();
+    void stop() throws IOException;
 
     /**
      * Get all session who may be connected through this connector.
      * @return an array of MBean object names for the sessions.
      */
-    TabularData getSessions();
+    TabularData getSessions() throws IOException;
     
-    String  getHostName();
+    /**
+     * Get the host name of the connector.
+     * @return the name of the connector host
+     * @throws IOException
+     */
+    String  getHostName() throws IOException;
 }

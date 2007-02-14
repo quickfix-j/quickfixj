@@ -40,7 +40,7 @@ import quickfix.SessionSettings;
 /**
  * This is a read-only view of a sessions settings.
  * 
- * TODO Add ability to identify defaults
+ * TODO JMX Add ability to identify defaults
  */
 public class SessionSettingsAdmin implements DynamicMBean {
 

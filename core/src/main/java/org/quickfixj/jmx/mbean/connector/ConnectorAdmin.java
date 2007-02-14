@@ -17,6 +17,7 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -25,8 +26,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
+import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +98,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
         }
     }
 
-    public TabularData getSessions() {
+    public TabularData getSessions() throws IOException {
         List sessions = new ArrayList();
         Iterator sessionItr = connector.getSessions().iterator();
         while (sessionItr.hasNext()) {
@@ -103,10 +106,14 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
             Session session = Session.lookupSession(sessionID);
             sessions.add(new ConnectorSession(session, (ObjectName) sessionNames.get(sessionID)));
         }
-        return tabularDataAdapter.fromBeanList("Sessions", "Session", "sessionID", sessions);
+        try {
+            return tabularDataAdapter.fromBeanList("Sessions", "Session", "sessionID", sessions);
+        } catch (OpenDataException e) {
+            throw JmxSupport.toIOException(e);
+        }
     }
 
-    public TabularData getLoggedOnSessions() {
+    public TabularData getLoggedOnSessions() throws OpenDataException {
         List names = new ArrayList();
         Iterator sessionItr = connector.getSessions().iterator();
         while (sessionItr.hasNext()) {

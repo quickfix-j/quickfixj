@@ -1430,7 +1430,7 @@ public class Session {
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
                 state.incrNextTargetMsgSeqNum();
             } else {
-                // TODO Is it necessary to convert the queued message to a string?
+                // TODO SESSION Is it necessary to convert the queued message to a string?
                 next(msg.toString());
             }
             return true;

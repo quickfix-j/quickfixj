@@ -17,6 +17,8 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import java.io.IOException;
+
 import javax.management.openmbean.TabularData;
 
 /**
@@ -27,6 +29,6 @@ public interface SocketAcceptorAdminMBean extends ConnectorAdminMBean {
     /**
      * @return the acceptor addresses configured for this connector's sessions.
      */
-    TabularData getAcceptorAddresses();
+    TabularData getAcceptorAddresses() throws IOException;
 
 }

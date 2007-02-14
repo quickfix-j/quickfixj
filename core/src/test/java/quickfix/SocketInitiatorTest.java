@@ -38,9 +38,6 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 public class SocketInitiatorTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final TransportType transportProtocol = TransportType.SOCKET;
-    // TODO Change this back to VM_PIPE after MINA 1.0 upgrade
-    // Bug in MINA 0.9.5 caused sessionCreated to not be called with VM_PIPE.
-    //private final TransportType transportProtocol = TransportType.VM_PIPE;
 
     protected void setUp() throws Exception {
         SystemTime.setTimeSource(null);

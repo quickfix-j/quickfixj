@@ -15,19 +15,14 @@
  *
  ******************************************************************************/
 
-package org.quickfixj.jmx.mbean.connector;
+package org.quickfixj.jmx.mbean;
 
 import java.io.IOException;
 
-import javax.management.openmbean.TabularData;
-
-public interface SocketInitiatorAdminMBean extends ConnectorAdminMBean {
-
-    /**
-     * Get initiator communication endpoints
-     * @return a table of endpoint information
-     * @throws IOException
-     */
-    TabularData getEndpoints() throws IOException;
-
+public class JmxSupport {
+    public static IOException toIOException(Exception e) throws IOException {
+        IOException ioe = new IOException(e.getMessage());
+        ioe.setStackTrace(e.getStackTrace());
+        return ioe;
+    }
 }

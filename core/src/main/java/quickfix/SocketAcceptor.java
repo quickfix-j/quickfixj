@@ -28,7 +28,7 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
  * sessions.
  */
 public class SocketAcceptor extends AbstractSocketAcceptor {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private Boolean isStarted = Boolean.FALSE;
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
