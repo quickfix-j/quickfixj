@@ -310,6 +310,10 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.OdbcLogFactory"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.OdbcStore"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.OdbcStoreFactory"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MySQLLog"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MySQLLogFactory"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MySQLStore"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MySQLStoreFactory"));
 
             // The following string is split so that CVS will not insert log data
             // during commit
@@ -318,8 +322,6 @@ public class ApiCompatibilityTest {
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { long.class });
             ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { long.class });
-            ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", null);
-            ignoreConstructor(jniClassLoader, "quickfix.MySQLStore", new Class[] { long.class });
             ignoreConstructor(jniClassLoader, "quickfix.Message$Header", new Class[] {
                     Message.class, Message.class });
             ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
