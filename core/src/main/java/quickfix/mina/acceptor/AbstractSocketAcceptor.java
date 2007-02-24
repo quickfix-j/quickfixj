@@ -199,9 +199,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         SocketAddress acceptorAddress = ProtocolFactory.createSocketAddress(acceptTransportType,
                 acceptHost, acceptPort);
 
-        //
         // Check for cached descriptor
-        //
         AcceptorSocketDescriptor descriptor = (AcceptorSocketDescriptor) socketDescriptorForAddress
                 .get(acceptorAddress);
         if (descriptor != null) {

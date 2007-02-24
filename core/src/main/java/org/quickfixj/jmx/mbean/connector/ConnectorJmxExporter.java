@@ -18,9 +18,6 @@
 package org.quickfixj.jmx.mbean.connector;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -41,23 +38,21 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
 
 public class ConnectorJmxExporter {
     private Logger log = LoggerFactory.getLogger(getClass());
-    private Map sessionObjectNames = new HashMap();
     private SessionJmxExporter sessionExporter = new SessionJmxExporter();
 
     public void export(MBeanServer mbeanServer, SessionConnector connector) {
         try {
             ConnectorAdmin connectorAdmin;
             if (connector instanceof AbstractSocketAcceptor) {
-                connectorAdmin = new SocketAcceptorAdmin((AbstractSocketAcceptor) connector,
-                        Collections.unmodifiableMap(sessionObjectNames));
+                connectorAdmin = new SocketAcceptorAdmin((AbstractSocketAcceptor) connector, sessionExporter);
             } else if (connector instanceof AbstractSocketInitiator) {
-                connectorAdmin = new SocketInitiatorAdmin((AbstractSocketInitiator) connector,
-                        Collections.unmodifiableMap(sessionObjectNames));
+                connectorAdmin = new SocketInitiatorAdmin((AbstractSocketInitiator) connector, sessionExporter);
             } else {
                 throw new QFJException("Unknown connector type: " + connector.getClass().getName());
             }
 
             ObjectName connectorName = getConnectorName(connector);
+            
             mbeanServer.registerMBean(connectorAdmin, connectorName);
             ArrayList sessionIDs = connector.getSessions();
             for (int i = 0; i < sessionIDs.size(); i++) {
@@ -72,7 +67,6 @@ public class ConnectorJmxExporter {
 
     private ObjectName getConnectorName(SessionConnector connector)
             throws MalformedObjectNameException {
-        // org.quickfixj:type=Connector,role=Acceptor,id=12343232
         ObjectNameFactory nameFactory = new ObjectNameFactory();
         nameFactory.addProperty("type", "Connector");
         nameFactory.addProperty("role", connector instanceof Acceptor ? "Acceptor" : "Initiator");
@@ -80,6 +74,6 @@ public class ConnectorJmxExporter {
     }
 
     public ObjectName lookupSessionName(SessionID sessionID) {
-        return (ObjectName) sessionObjectNames.get(sessionID);
+        return (ObjectName) sessionExporter.getSessionName(sessionID);
     }
 }

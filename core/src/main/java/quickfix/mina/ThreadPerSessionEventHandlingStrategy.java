@@ -33,7 +33,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
-    private Map dispatchers = new ConcurrentHashMap();
+    private final Map dispatchers = new ConcurrentHashMap();
 
     public void onMessage(Session quickfixSession, Message message) {
         MessageDispatchingThread dispatcher = (MessageDispatchingThread) dispatchers
@@ -52,7 +52,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
     class MessageDispatchingThread extends Thread {
         private final Session quickfixSession;
-        final BlockingQueue messages = new LinkedBlockingQueue();
+        private final BlockingQueue messages = new LinkedBlockingQueue();
 
         public MessageDispatchingThread(Session session) {
             super("QF/J Session dispatcher: " + session.getSessionID());

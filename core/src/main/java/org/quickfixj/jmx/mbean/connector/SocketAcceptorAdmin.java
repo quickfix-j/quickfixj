@@ -30,6 +30,7 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
 import org.quickfixj.jmx.mbean.JmxSupport;
+import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 
 import quickfix.SessionID;
@@ -44,8 +45,11 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
     private static final TabularDataAdapter tabularDataAdapter = new TabularDataAdapter();
 
-    public SocketAcceptorAdmin(AbstractSocketAcceptor connector, Map sessionNames) {
-        super(connector, sessionNames);
+    private final SessionJmxExporter sessionExporter;
+
+    public SocketAcceptorAdmin(AbstractSocketAcceptor connector, SessionJmxExporter sessionExporter) {
+        super(connector, sessionExporter);
+        this.sessionExporter = sessionExporter;
         acceptor = (AbstractSocketAcceptor) connector;
     }
 
@@ -57,7 +61,8 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
         private final ObjectName sessionName;
 
-        public SessionAcceptorAddressRow(SessionID sessionID, SocketAddress accceptorAddress, ObjectName sessionName) {
+        public SessionAcceptorAddressRow(SessionID sessionID, SocketAddress accceptorAddress,
+                ObjectName sessionName) {
             this.sessionID = sessionID;
             this.acceptorAddress = accceptorAddress;
             this.sessionName = sessionName;
@@ -65,7 +70,8 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
         public String getAcceptorAddress() {
             InetSocketAddress inetSocketAddress = (InetSocketAddress) acceptorAddress;
-            return inetSocketAddress.getAddress().getHostAddress() + ":" + inetSocketAddress.getPort();
+            return inetSocketAddress.getAddress().getHostAddress() + ":"
+                    + inetSocketAddress.getPort();
         }
 
         public SessionID getSessionID() {
@@ -82,15 +88,13 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
         Iterator entries = acceptor.getAcceptorAddresses().entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry entry = (Map.Entry) entries.next();
-            SocketAddress address = (SocketAddress) entry.getKey();
-            Iterator sessionIDs = ((Map) entry.getValue()).keySet().iterator();
-            while (sessionIDs.hasNext()) {
-                SessionID sessionID = (SessionID) sessionIDs.next();
-                rows.add(new SessionAcceptorAddressRow(sessionID, address, getSessionName(sessionID)));
-            }
+            SessionID sessionID = (SessionID) entry.getKey();
+            SocketAddress address = (SocketAddress) entry.getValue();
+            rows.add(new SessionAcceptorAddressRow(sessionID, address, sessionExporter.getSessionName(sessionID)));
         }
         try {
-            return tabularDataAdapter.fromBeanList("AcceptorAddresses", "AddressInfo", "sessionID", rows);
+            return tabularDataAdapter.fromBeanList("AcceptorAddresses", "AddressInfo", "sessionID",
+                    rows);
         } catch (OpenDataException e) {
             throw JmxSupport.toIOException(e);
         }

@@ -50,7 +50,10 @@ public class SessionSettingsAdmin implements DynamicMBean {
 
     public SessionSettingsAdmin(SessionID sessionID, SessionSettings settings) throws ConfigError {
         this.sessionID = sessionID;
-        this.settings = settings.getSessionProperties(sessionID);
+        Properties p = new Properties();
+        p.putAll(settings.getDefaultProperties());
+        p.putAll(settings.getSessionProperties(sessionID));
+        this.settings = p;
     }
 
     public Object getAttribute(String attribute) {
@@ -73,9 +76,8 @@ public class SessionSettingsAdmin implements DynamicMBean {
             String name = (String) entry.getKey();
             attributeInfos.add(new MBeanAttributeInfo(name, "Setting for " + name, entry.getValue().getClass().getName(), true, false,
                     false));
-
+        
         }
-
         return new MBeanInfo(SessionSettings.class.getName(), "Session Settings", (MBeanAttributeInfo[]) attributeInfos
                 .toArray(new MBeanAttributeInfo[attributeInfos.size()]), null, null, null);
     }

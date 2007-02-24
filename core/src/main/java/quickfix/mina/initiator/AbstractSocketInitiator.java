@@ -32,9 +32,6 @@ import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.emory.mathcs.backport.java.util.concurrent.Future;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
-
 import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
@@ -54,16 +51,13 @@ import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.ssl.SSLSupport;
 
-//TODO SYNC Review for thread safety
-
 /**
  * Abstract base class for socket initiators.
  */
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private Set initiators = new HashSet();
-    private Future reconnectFuture;
+    private final Set initiators = new HashSet();
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -89,16 +83,26 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 Session quickfixSession = (Session) sessionItr.next();
                 SessionID sessionID = quickfixSession.getSessionID();
                 int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
+                
                 SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
+                if (socketAddresses.length == 0) {
+                    throw new ConfigError("Must specify at least one socket address");
+                }
+
                 NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
                         .getSessionProperties(sessionID));
-                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(quickfixSession,
-                                        socketAddresses, reconnectingInterval, getScheduledExecutorService(),
-                                        networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder());
+                
+                boolean sslEnabled = false;
                 if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)) {
-                    ioSessionInitiator.setSslEnabled(
-                            BooleanConverter.convert(getSettings().getString(sessionID, SSLSupport.SETTING_USE_SSL)));
+                    sslEnabled = BooleanConverter.convert(getSettings().getString(sessionID,
+                            SSLSupport.SETTING_USE_SSL));
                 }
+                
+                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(quickfixSession,
+                        socketAddresses, reconnectingInterval, getScheduledExecutorService(),
+                        networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder(),
+                        sslEnabled);
+                
                 initiators.add(ioSessionInitiator);
             }
             startTimers();
@@ -205,32 +209,25 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     private void startTimers() {
         startSessionTimer();
-        startReconnectTimer();
+        startInitiators();
     }
 
-    public void stopSessionTimer() {
-        stopReconnectTimer();
-        super.stopSessionTimer();
-    }
-
-    public void startReconnectTimer() {
-        reconnectFuture = getScheduledExecutorService().scheduleWithFixedDelay(new ReconnectTask(), 0, 1,
-                TimeUnit.SECONDS);
-    }
-
-    public void stopReconnectTimer() {
-        if (reconnectFuture != null) {
-            reconnectFuture.cancel(true);
+    private void startInitiators() {
+        Iterator i = initiators.iterator();
+        while (i.hasNext()) {
+            ((IoSessionInitiator)i.next()).start();
         }
     }
 
-    private class ReconnectTask implements Runnable {
-        public void run() {
-            Iterator initiatorItr = initiators.iterator();
-            while (initiatorItr.hasNext()) {
-                IoSessionInitiator initiator = (IoSessionInitiator) initiatorItr.next();
-                initiator.checkConnection();
-            }
+    public void stopSessionTimer() {
+        stopInitiators();
+        super.stopSessionTimer();
+    }
+
+    private void stopInitiators() {
+        Iterator i = initiators.iterator();
+        while (i.hasNext()) {
+            ((IoSessionInitiator)i.next()).stop();
         }
     }
 

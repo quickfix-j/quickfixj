@@ -23,13 +23,13 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
 import org.quickfixj.jmx.mbean.JmxSupport;
+import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +52,12 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
 
     private final Connector connector;
 
-    private final Map sessionNames;
-
     private static final TabularDataAdapter tabularDataAdapter = new TabularDataAdapter();
 
-    public ConnectorAdmin(Connector connector, Map sessionNames) {
-        this.sessionNames = sessionNames;
+    private final SessionJmxExporter sessionExporter;
+
+    public ConnectorAdmin(Connector connector, SessionJmxExporter sessionExporter) {
+        this.sessionExporter = sessionExporter;
         if (connector instanceof Acceptor) {
             role = ACCEPTOR_ROLE;
         } else if (connector instanceof Initiator) {
@@ -87,7 +87,6 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
             return session.getSessionID();
         }
 
-
         public ObjectName getSessionName() {
             return sessionName;
         }
@@ -104,7 +103,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
         while (sessionItr.hasNext()) {
             SessionID sessionID = (SessionID) sessionItr.next();
             Session session = Session.lookupSession(sessionID);
-            sessions.add(new ConnectorSession(session, (ObjectName) sessionNames.get(sessionID)));
+            sessions.add(new ConnectorSession(session, sessionExporter.getSessionName(sessionID)));
         }
         try {
             return tabularDataAdapter.fromBeanList("Sessions", "Session", "sessionID", sessions);
@@ -120,7 +119,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
             SessionID sessionID = (SessionID) sessionItr.next();
             Session session = Session.lookupSession(sessionID);
             if (session.isLoggedOn()) {
-                names.add(sessionNames.get(sessionID));
+                names.add(sessionExporter.getSessionName(sessionID));
             }
         }
         return tabularDataAdapter.fromArray("Sessions", "SessionID", toObjectNameArray(names));
@@ -131,7 +130,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
     }
 
     public void stop(boolean force) {
-        log.info("JMX operation: stop "+getRole()+" "+this);
+        log.info("JMX operation: stop " + getRole() + " " + this);
         connector.stop(force);
     }
 
@@ -147,7 +146,4 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
         stop(false);
     }
 
-    protected ObjectName getSessionName(SessionID sessionID) {
-        return (ObjectName) sessionNames.get(sessionID);
-    }
 }
