@@ -145,6 +145,43 @@ public class DataDictionaryTest extends TestCase {
     	assertConfigErrorForMissingAttributeRequired(data);
     }
 
+    public void testHeaderTrailerRequired() throws Exception {
+        String data = "";
+    	data += "<fix major=\"4\" minor=\"0\">";
+    	data += "  <header>";
+    	data += "    <field name=\"BeginString\" required=\"Y\"/>";
+    	data += "    <field name=\"OnBehalfOfCompID\" required=\"N\"/>";
+    	data += "  </header>";
+    	data += "  <trailer>";
+    	data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+    	data += "    <field name=\"Signature\" required=\"N\"/>";
+    	data += "  </trailer>";
+    	data += "  <fields>";
+    	data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+    	data += "    <field number=\"115\" name=\"OnBehalfOfCompID\" type=\"STRING\"/>";
+    	data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+    	data += "    <field number=\"89\" name=\"Signature\" type=\"STRING\"/>";
+    	data += "    <field number=\"37\" name=\"TestReqID\" type=\"STRING\"/>";
+    	data += "  </fields>";
+    	data += "  <messages>";
+        data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
+        data += "      <group name=\"TestReqID\" required=\"N\"/>";
+        data += "    </message>";
+        data += "  </messages>";
+        data += "</fix>";
+
+        DataDictionary dd = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertTrue("BeginString should be required", dd.isRequiredHeaderField(8));
+        assertFalse("OnBehalfOfCompID should not be required", dd.isRequiredHeaderField(115));
+        assertTrue("Checksum should be required", dd.isRequiredTrailerField(10));
+        assertFalse("Signature should not be required", dd.isRequiredTrailerField(89));
+
+        // now tests for fields that aren't actually in the dictionary - should come back false
+        assertFalse("Unknown header field shows up as required", dd.isRequiredHeaderField(666));
+        assertFalse("Unknown trailer field shows up as required", dd.isRequiredTrailerField(666));
+    }
+
+
     // QF C++ treats the string argument as a filename although it's
     // named 'url'. QFJ string argument can be either but this test
     // ensures the DD works correctly with a regular file path.

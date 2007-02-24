@@ -330,6 +330,28 @@ public class DataDictionary {
         return fields != null && fields.contains(new Integer(field));
     }
 
+    /**
+     * Predicate for determining if a header field is a required field
+     * @param field the tag
+     * @return true if field s required, false otherwise
+     */
+    public boolean isRequiredHeaderField(int field)
+    {
+        return (isHeaderField(field) &&
+                (((Boolean) headerFields.get(new Integer(field))) == Boolean.TRUE));
+    }
+
+    /**
+     * Predicate for determining if a trailer field is a required field
+     * @param field the tag
+     * @return true if field s required, false otherwise
+     */
+    public boolean isRequiredTrailerField(int field)
+    {
+        return (isTrailerField(field) &&
+                (((Boolean) trailerFields.get(new Integer(field))) == Boolean.TRUE));
+    }
+
     private void addFieldValue(int field, String value) {
         Integer key = new Integer(field);
         Set values = (Set) fieldValues.get(key);
@@ -886,8 +908,12 @@ public class DataDictionary {
                 if (name == null) {
                     throw new ConfigError("<" + nodeName + "> does not have a name attribute");
                 }
-                String required = "false";
-                addHeaderField(lookupXMLFieldNumber(document, name), required.equals("true"));
+                String required = getAttribute(headerFieldNode, "required", NO);
+                if (required == null) {
+                    throw new ConfigError("<" + headerFieldNode.getNodeName()
+                            + "> does not have a 'required' attribute");
+                }
+                addHeaderField(lookupXMLFieldNumber(document, name), required.equalsIgnoreCase("Y"));
             }
 
         }
@@ -907,8 +933,12 @@ public class DataDictionary {
                 if (name == null) {
                     throw new ConfigError("<" + nodeName + "> does not have a name attribute");
                 }
-                String required = "false";
-                addTrailerField(lookupXMLFieldNumber(document, name), required.equals("true"));
+                String required = getAttribute(trailerFieldNode, "required", NO);
+                if (required == null) {
+                    throw new ConfigError("<" + trailerFieldNode.getNodeName()
+                            + "> does not have a 'required' attribute");
+                }
+                addTrailerField(lookupXMLFieldNumber(document, name), required.equalsIgnoreCase("Y"));
             }
 
         }
