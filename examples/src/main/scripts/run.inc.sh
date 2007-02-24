@@ -10,8 +10,9 @@ CP=$CP:classes
 CP=$CP:quickfixj.jar
 
 # Supporting libraries
-CP=$CP:core/src/main/lib/mina-core-0.9.3.jar
+CP=$CP:core/src/main/lib/mina-core-1.0.1.jar
 CP=$CP:core/src/main/lib/backport-util-concurrent-2.1.jar
-CP=$CP:core/src/main/lib/slf4j-jdk14-1.0.1.jar
+CP=$CP:core/src/main/lib/slf4j-api-1.2.jar
+CP=$CP:core/src/main/lib/slf4j-jdk14-1.2.jar
 
 java -classpath "$CP" $*

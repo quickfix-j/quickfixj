@@ -26,7 +26,6 @@ import java.security.GeneralSecurityException;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoConnector;
 import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoService;
 import org.apache.mina.common.IoServiceConfig;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.ThreadModel;
@@ -63,6 +62,7 @@ public class IoSessionInitiator {
     private final Session quickfixSession;
     private final IoFilterChainBuilder userIoFilterChainBuilder;
     private boolean sslEnabled;
+    private IoConnector ioConnector;
 
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
             long reconnectIntervalInSeconds, ScheduledExecutorService executor,
@@ -83,21 +83,22 @@ public class IoSessionInitiator {
         lastConnectAttemptTime = SystemTime.currentTimeMillis();
         try {
             final SocketAddress nextSocketAddress = getNextSocketAddress();
-            IoConnector ioConnector = ProtocolFactory.createIoConnector(nextSocketAddress);
-            IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioConnector);
-            CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
-                    userIoFilterChainBuilder);
-
-            if (sslEnabled) {
-                installSSLFilter(nextSocketAddress, ioFilterChainBuilder);
+            if (ioConnector == null) {
+                ioConnector = ProtocolFactory.createIoConnector(nextSocketAddress);
+                CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
+                        userIoFilterChainBuilder);
+                
+                if (sslEnabled) {
+                    installSSLFilter(nextSocketAddress, ioFilterChainBuilder);
+                }
+                ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
+                        new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
+                
+                IoServiceConfig serviceConfig = ioConnector.getDefaultConfig();
+                serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
+                serviceConfig.setThreadModel(ThreadModel.MANUAL);
             }
-            ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
-                    new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
-
-            serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
-            serviceConfig.setThreadModel(ThreadModel.MANUAL);
-            ConnectFuture connectFuture = ioConnector.connect(nextSocketAddress, ioHandler,
-                    serviceConfig);
+            ConnectFuture connectFuture = ioConnector.connect(nextSocketAddress, ioHandler);
             connectFuture.join();
             ioSession = connectFuture.getSession();
             connectionFailureCount = 0;
@@ -135,15 +136,12 @@ public class IoSessionInitiator {
         return ioSession != null && ioSession.isConnected();
     }
 
-    private void installSSLFilter(SocketAddress address, CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
-        log.info("Installing SSL filter for "+address);
+    private void installSSLFilter(SocketAddress address,
+            CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
+        log.info("Installing SSL filter for " + address);
         SSLFilter sslFilter = new SSLFilter(InitiatorSSLContextFactory.getInstance());
         sslFilter.setUseClientMode(true);
         ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
-    }
-
-    private IoServiceConfig copyDefaultIoServiceConfig(IoService ioService) {
-        return (IoServiceConfig) ioService.getDefaultConfig().clone();
     }
 
     private SocketAddress getNextSocketAddress() {
@@ -170,7 +168,7 @@ public class IoSessionInitiator {
             connect();
         }
     }
-    
+
     public SessionID getSessionID() {
         return quickfixSession.getSessionID();
     }

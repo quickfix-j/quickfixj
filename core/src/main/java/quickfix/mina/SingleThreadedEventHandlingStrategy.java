@@ -31,6 +31,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
  * Processes messages for all sessions in a single thread.
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
+    private static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
     private final BlockingQueue eventQueue = new LinkedBlockingQueue();
     private final SessionConnector sessionConnector;
     private boolean isStopped;
@@ -84,7 +85,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 block();
             }
 
-        }, "QFJ Socket Acceptor " + Integer.toHexString(System.identityHashCode(this)));
+        }, MESSAGE_PROCESSOR_THREAD_NAME);
         messageProcessingThread.setDaemon(true);
         messageProcessingThread.start();
     }

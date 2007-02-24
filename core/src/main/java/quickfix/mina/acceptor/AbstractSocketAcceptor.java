@@ -30,8 +30,8 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 
 import org.apache.mina.common.IoAcceptor;
-import org.apache.mina.common.IoService;
 import org.apache.mina.common.IoServiceConfig;
+import org.apache.mina.common.ThreadModel;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.SSLFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
@@ -104,7 +104,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 AcceptorSocketDescriptor socketDescriptor = (AcceptorSocketDescriptor) descriptors
                         .next();
                 IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor.getAddress());
-                IoServiceConfig serviceConfig = copyDefaultIoServiceConfig(ioAcceptor);
+                IoServiceConfig serviceConfig = ioAcceptor.getDefaultConfig();
                 CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                         getIoFilterChainBuilder());
 
@@ -116,9 +116,10 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                         new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
                 serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
+                serviceConfig.setThreadModel(ThreadModel.MANUAL);
                 ioAcceptor.bind(socketDescriptor.getAddress(), new AcceptorIoHandler(
                         socketDescriptor.getAcceptedSessions(), new NetworkingOptions(settings
-                                .getDefaultProperties()), eventHandlingStrategy), serviceConfig);
+                                .getDefaultProperties()), eventHandlingStrategy));
                 log.info("Listening for connections at " + socketDescriptor.getAddress());
             }
         } catch (FieldConvertError e) {
@@ -136,10 +137,6 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         SSLFilter sslFilter = new SSLFilter(sslContext);
         sslFilter.setUseClientMode(false);
         ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
-    }
-
-    private IoServiceConfig copyDefaultIoServiceConfig(IoService ioService) {
-        return (IoServiceConfig) ioService.getDefaultConfig().clone();
     }
 
     private IoAcceptor getIoAcceptor(SocketAddress address) {

@@ -48,6 +48,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class TestConnection {
+    private static HashMap connectors = new HashMap();
     private Logger log = LoggerFactory.getLogger(getClass());
     private HashMap ioHandlers = new HashMap();
 
@@ -81,17 +82,27 @@ public class TestConnection {
 
     public void connect(int clientId, TransportType transportType, int port)
             throws UnknownHostException, IOException {
-        IoConnector connector;
+        IoConnector connector = (IoConnector) connectors.get(transportType);
+        if (connector == null) {
+            if (transportType == TransportType.SOCKET) {
+                connector = new SocketConnector();
+            } else if (transportType == TransportType.VM_PIPE) {
+                connector = new VmPipeConnector();
+            } else {
+                throw new RuntimeException("Unsupported transport type: " + transportType);
+            }
+            connectors.put(transportType, connector);
+        }
+        
         SocketAddress address;
         if (transportType == TransportType.SOCKET) {
-            connector = new SocketConnector();
             address = new InetSocketAddress("localhost", port);
         } else if (transportType == TransportType.VM_PIPE) {
-            connector = new VmPipeConnector();
             address = new VmPipeAddress(port);
         } else {
             throw new RuntimeException("Unsupported transport type: " + transportType);
         }
+
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {
             ioHandlers.put(new Integer(clientId), testIoHandler);
