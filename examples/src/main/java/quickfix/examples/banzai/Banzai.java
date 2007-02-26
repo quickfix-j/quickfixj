@@ -21,6 +21,7 @@ package quickfix.examples.banzai;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.Iterator;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -35,6 +36,8 @@ import quickfix.LogFactory;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.ScreenLogFactory;
+import quickfix.Session;
+import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketInitiator;
 import quickfix.examples.banzai.ui.BanzaiFrame;
@@ -47,11 +50,12 @@ public class Banzai {
     /** enable logging for this class */
     private static Logger log = LoggerFactory.getLogger(Banzai.class);
     private static Banzai banzai;
+    private boolean initiatorStarted = false;
     private Initiator initiator = null;
     private JFrame frame = null;
 
     public Banzai(String[] args) throws Exception {
-        InputStream inputStream = null; 
+        InputStream inputStream = null;
         if (args.length == 0) {
             inputStream = Banzai.class.getResourceAsStream("banzai.cfg");
         } else if (args.length == 1) {
@@ -77,16 +81,29 @@ public class Banzai {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void logon() {
-        try {
-            initiator.start();
-        } catch (Exception e) {
-            log.error("error starting initiator", e);
+    public synchronized void logon() {
+        if (!initiatorStarted) {
+            try {
+                initiator.start();
+                initiatorStarted = true;
+            } catch (Exception e) {
+                log.error("Logon failed", e);
+            }
+        } else {
+            Iterator sessionIds = initiator.getSessions().iterator();
+            while (sessionIds.hasNext()) {
+                SessionID sessionId = (SessionID) sessionIds.next();
+                Session.lookupSession(sessionId).logon();
+            }
         }
     }
 
     public void logout() {
-        initiator.stop();
+        Iterator sessionIds = initiator.getSessions().iterator();
+        while (sessionIds.hasNext()) {
+            SessionID sessionId = (SessionID) sessionIds.next();
+            Session.lookupSession(sessionId).logout("user requested");
+        }
     }
 
     public void stop() {
