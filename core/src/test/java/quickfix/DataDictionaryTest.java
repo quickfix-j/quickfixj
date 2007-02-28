@@ -24,6 +24,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
+import quickfix.util.ExpectedTestFailure;
+import quickfix.field.*;
 
 public class DataDictionaryTest extends TestCase {
 
@@ -179,6 +181,28 @@ public class DataDictionaryTest extends TestCase {
         // now tests for fields that aren't actually in the dictionary - should come back false
         assertFalse("Unknown header field shows up as required", dd.isRequiredHeaderField(666));
         assertFalse("Unknown trailer field shows up as required", dd.isRequiredTrailerField(666));
+    }
+
+    public void testMessageValidateBodyOnly() throws Exception {
+        final quickfix.fix44.NewOrderSingle newSingle =
+                new quickfix.fix44.NewOrderSingle(new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(OrdType.LIMIT));
+        newSingle.setField(new OrderQty(42));
+        newSingle.setField(new Price(42.37));
+        newSingle.setField(new HandlInst());
+        newSingle.setField(new Symbol("QFJ"));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
+        newSingle.setField(new TimeInForce(TimeInForce.DAY));
+        newSingle.setField(new Account("testAccount"));
+
+        final DataDictionary dd = getDictionary();
+        new ExpectedTestFailure(FieldException.class, "field="+ SenderCompID.FIELD) {
+            protected void execute() throws Throwable {
+                dd.validate(newSingle);
+            }
+        }.run();
+
+        dd.validate(newSingle, true);
+
     }
 
 

@@ -530,17 +530,34 @@ public class DataDictionary {
     }
 
     /**
-     * Validate a mesasge.
-     * 
+     * Validate a mesasge, including the header and trailer fields.
+     *
      * @param message
      *            the message
      * @throws IncorrectTagValue
      *             if a field value is not valid
      * @throws FieldNotFound
      *             if a field cannot be found
-     * @throws IncorrectDataFormat 
+     * @throws IncorrectDataFormat
      */
     public void validate(Message message) throws IncorrectTagValue, FieldNotFound, IncorrectDataFormat {
+        validate(message, false);
+
+    }
+    /**
+     * Validate the message body, with header and trailer fields being validated conditionally.
+     *
+     * @param message
+     *            the message
+     * @param bodyOnly
+     *            whether to validate just the message body, or to validate the header and trailer sections as well.
+     * @throws IncorrectTagValue
+     *             if a field value is not valid
+     * @throws FieldNotFound
+     *             if a field cannot be found
+     * @throws IncorrectDataFormat 
+     */
+    public void validate(Message message, boolean bodyOnly) throws IncorrectTagValue, FieldNotFound, IncorrectDataFormat {
         if (hasVersion && !getVersion().equals(message.getHeader().getString(BeginString.FIELD))) {
             throw new UnsupportedVersion();
         }
@@ -553,12 +570,14 @@ public class DataDictionary {
         String msgType = message.getHeader().getString(MsgType.FIELD);
         if (hasVersion) {
             checkMsgType(msgType);
-            checkHasRequired(message.getHeader(), message, message.getTrailer(), msgType);
+            checkHasRequired(message.getHeader(), message, message.getTrailer(), msgType, bodyOnly);
         }
 
-        iterate(message.getHeader(), msgType);
+        if(!bodyOnly) {
+            iterate(message.getHeader(), msgType);
+            iterate(message.getTrailer(), msgType);
+        }
         iterate(message, msgType);
-        iterate(message.getTrailer(), msgType);
     }
 
     private void iterate(FieldMap map, String msgType) throws IncorrectTagValue, IncorrectDataFormat {
@@ -712,22 +731,24 @@ public class DataDictionary {
     }
 
     // / Check if a message has all required fields.
-    void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType) {
-        Iterator headerItr = headerFields.entrySet().iterator();
-        while (headerItr.hasNext()) {
-            Map.Entry entry = (Map.Entry) headerItr.next();
-            int field = ((Integer) entry.getKey()).intValue();
-            if (entry.getValue() == Boolean.TRUE && !header.isSetField(field)) {
-                throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
+    void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType, boolean bodyOnly) {
+        if(!bodyOnly) {
+            Iterator headerItr = headerFields.entrySet().iterator();
+            while (headerItr.hasNext()) {
+                Map.Entry entry = (Map.Entry) headerItr.next();
+                int field = ((Integer) entry.getKey()).intValue();
+                if (entry.getValue() == Boolean.TRUE && !header.isSetField(field)) {
+                    throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
+                }
             }
-        }
 
-        Iterator trailerItr = trailerFields.entrySet().iterator();
-        while (trailerItr.hasNext()) {
-            Map.Entry entry = (Map.Entry) trailerItr.next();
-            int field = ((Integer) entry.getKey()).intValue();
-            if (entry.getValue() == Boolean.TRUE && !trailer.isSetField(field)) {
-                throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
+            Iterator trailerItr = trailerFields.entrySet().iterator();
+            while (trailerItr.hasNext()) {
+                Map.Entry entry = (Map.Entry) trailerItr.next();
+                int field = ((Integer) entry.getKey()).intValue();
+                if (entry.getValue() == Boolean.TRUE && !trailer.isSetField(field)) {
+                    throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
+                }
             }
         }
 
@@ -754,7 +775,7 @@ public class DataDictionary {
                 for (int i = 0; i < groupInstances.size(); i++) {
                     FieldMap groupFields = (FieldMap) groupInstances.get(i);
                     p.getDataDictionary().checkHasRequired(groupFields, groupFields, groupFields,
-                            msgType);
+                            msgType, bodyOnly);
                 }
             }
         }
