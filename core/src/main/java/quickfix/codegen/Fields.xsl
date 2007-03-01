@@ -58,7 +58,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
    
   public <xsl:value-of select="@name"/>(<xsl:call-template name="get-type"/> data) 
   { 
-     super(<xsl:value-of select="@number"/>, data);
+     super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'">, true</xsl:if>);
   } 
 } 
   </xsl:if>

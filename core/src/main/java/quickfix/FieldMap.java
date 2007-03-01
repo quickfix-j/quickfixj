@@ -302,11 +302,11 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setField(UtcTimeStampField field) {
-        setUtcTimeStamp(field.getField(), field.getValue());
+        setUtcTimeStamp(field.getField(), field.getValue(), field.showMilliseconds());
     }
 
     public void setField(UtcTimeOnlyField field) {
-        setUtcTimeOnly(field.getField(), field.getValue());
+        setUtcTimeOnly(field.getField(), field.getValue(), field.showMilliseconds());
     }
 
     public void setField(UtcDateOnlyField field) {
