@@ -2152,8 +2152,8 @@
     <field number="195" name="LastForwardPoints" type="PRICEOFFSET"/>
     <field number="196" name="AllocLinkID" type="STRING"/>
     <field number="197" name="AllocLinkType" type="INT">
-      <value enum="0" description="F_X_NETTING"/>
-      <value enum="1" description="F_X_SWAP"/>
+      <value enum="0" description="FX_NETTING"/>
+      <value enum="1" description="FX_SWAP"/>
     </field>
     <field number="198" name="SecondaryOrderID" type="STRING"/>
     <field number="199" name="NoIOIQualifiers" type="INT"/>
