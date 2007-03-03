@@ -454,8 +454,10 @@ public abstract class FieldMap implements Serializable {
         if (preFields != null) {
             for (int i = 0; i < preFields.length; i++) {
                 Field field = getField(preFields[i], null);
-                field.toString(buffer);
-                buffer.append('\001');
+                if(field != null) {
+                    field.toString(buffer);
+                    buffer.append('\001');
+                }
             }
         }
 

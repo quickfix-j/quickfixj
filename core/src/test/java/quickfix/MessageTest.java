@@ -855,6 +855,13 @@ public class MessageTest extends TestCase {
         }
     }
 
+    /** Verify that an empty message can still be "printed" and doesn't result in any exceptions */
+    public void testEmptyMessageToString() throws Exception {
+        Message msg = new quickfix.Message();
+        assertNotNull(msg.toString());
+        assertTrue("empty message contains no checksum", msg.toString().length() > 0);
+    }
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
