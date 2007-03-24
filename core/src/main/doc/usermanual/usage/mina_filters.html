@@ -8,13 +8,16 @@
 <h1>QuickFIX/J User Manual</h1>
 </div>
 <h2>Using MINA Filters</h2>
-<p>
-As of version 1.1.0 quickfixj allows custom I/O filters. MINA's javadoc for 
-<code><a href="http://mina.apache.org/report/1.1/apidocs/org/apache/mina/common/IoFilter.html">IoFilter</a></code>
-gives some examples of how this could be useful:
+<p>Adding a custom MINA IO Filter allows you to inspect and manipulate:</p>
+<ul>
+<li>Network events such as connects and disconnects,</li>
+<li>FIX messages after they are sent by the QuickFIX/J engine but before they are sent on the network, and</li>
+<li>FIX messages after they are received from the network but before they are processed by the QuickFIX/J engine.</li>
+</ul>
 
-A filter which intercepts <code>IoHandler</code> events like servlet filters. 
-Filters can be used for these purposes like these:
+<p>MINA's javadoc for <code><a href="http://mina.apache.org/report/1.1/apidocs/org/apache/mina/common/IoFilter.html">IoFilter</a></code>
+gives some examples of how this could be useful:
+<blockquote>
 <ul>
 <li>Event logging</li>
 <li>Performance measurement</li>
@@ -22,26 +25,50 @@ Filters can be used for these purposes like these:
 <li>Overload control</li>
 <li>Message transformation (e.g. encryption and decryption, ...)</li>
 </ul>
+</blockquote>
 
-<i>Note: Please NEVER implement your filters to wrap a MINA <code>IoSession</code>. 
-Users can cache the reference to the session, which might malfunction if 
-any filters are added or removed later.</i>
+<p>To add a filter, you need to insert it into the filter chain by supplying an IoFilterChainBuilder to
+ the connector or acceptor with setIoFilterChainBuilder().  
+</p> 
+<pre class="code">
+final BlacklistFilter blacklistFilter = new BlacklistFilter();  
+...
+ /*
+  * setIoFilterChainBuilder is defined on the SessionConnector abstract class 
+  */
+((SessionConnector) acceptor).setIoFilterChainBuilder(new IoFilterChainBuilder() {
+
+    public void buildFilterChain(IoFilterChain chain) {
+        chain.addBefore(FIXProtocolCodecFactory.FILTER_NAME, "BlacklistFilter", blacklistFilter);
+    }});
+</pre>
+
+<p>Note the reference to FIXProtocolCodecFactory.FILTER_NAME.  QuickFIX/J uses a ProtocolCodecFilter 
+to transform between streamed byte data on the wire and quickfix.Message objects, as shown below. 
+</p>
+
+<img src="protocol codec filter.png"/>
+
+<p>You should add your filter before this one to have it act on the byte stream, or after it to act on
+quickfix.Message data.</p> 
+<p>Following are some examples showing how to add filters to the example order executor application</p>
 
 <hr/>
 <h3>Blacklist Filter</h3>
 <p>
 MINA comes with a Blacklist filter which closes incoming connections from blacklisted addresses.
-
-<p>
-Lets add this filter to the order executor and make it block connections from localhost. 
-To do this, change:
+Lets add this filter to the order executor and make it block connections from localhost. We will add it
+before the protocol codec filter.
+</p>
+<img src='blacklist filter.png'/>
+<p>To do this, change:</p>
 
 <pre class="code">
 acceptor = new SocketAcceptor (application, messageStoreFactory, settings, logFactory, messageFactory);
 acceptor.start();
 </pre>
 
-to this (plus the appropriate imports):
+<p>to this (plus the appropriate imports):</p>
 
 <pre class="code">
 acceptor = new SocketAcceptor (application, messageStoreFactory, settings, logFactory, messageFactory);
@@ -61,16 +88,15 @@ acceptor.start();
 </pre>
 <p>
 Now when you start the executor and banzai apps you'll see this:
-
-<p>
+</p>
 <b style="color=#404080">Executor Log</b>
 <pre class="code">
-<20060913-10:54:22, FIX.4.2:EXEC->BANZAI, event> (Session FIX.4.2:EXEC->BANZAI schedule is daily, 00:00:00 UTC - 00:00:00 UTC)
-<20060913-10:54:22, FIX.4.2:EXEC->BANZAI, event> (Valid order types: [F, 2])
-<20060913-10:54:22, FIX.4.2:EXEC->BANZAI, event> (Created session: FIX.4.2:EXEC->BANZAI)
+&lt;20060913-10:54:22, FIX.4.2:EXEC-&gt;BANZAI, event&gt; (Session FIX.4.2:EXEC-&gt;BANZAI schedule is daily, 00:00:00 UTC - 00:00:00 UTC)
+&lt;20060913-10:54:22, FIX.4.2:EXEC-&gt;BANZAI, event&gt; (Valid order types: [F, 2])
+&lt;20060913-10:54:22, FIX.4.2:EXEC-&gt;BANZAI, event&gt; (Created session: FIX.4.2:EXEC-&gt;BANZAI)
 13/09/2006 20:54:22 quickfix.mina.acceptor.AbstractSocketAcceptor startAcceptingConnections
 INFO: Listening for connections at 0.0.0.0/0.0.0.0:9876
-press &lt;enter> to quit
+press &lt;enter&gt; to quit
 13/09/2006 20:54:26 quickfix.mina.acceptor.AcceptorIoHandler sessionCreated
 INFO: MINA session created: /127.0.0.1:4538
 13/09/2006 20:54:26 org.apache.mina.util.SessionLog info
@@ -79,26 +105,30 @@ INFO: [/127.0.0.1:4538] Remote address in the blacklist; closing.
 INFO: [/127.0.0.1:4538] Remote address in the blacklist; closing.
 </pre>
 
-<p>
+<p/>
 <b style="color=#404080">Banzai Log</b>
 <pre class="code">
-<20060913-10:54:26, FIX.4.2:BANZAI->EXEC, event> (Session FIX.4.2:BANZAI->EXEC schedule is daily, 00:00:00 UTC - 00:00:00 UTC)
-<20060913-10:54:26, FIX.4.2:BANZAI->EXEC, event> (Created session: FIX.4.2:BANZAI->EXEC)
-<20060913-10:54:26, FIX.4.2:BANZAI->EXEC, outgoing> (8=FIX.4.29=6535=A34=449=BANZAI52=20060913-10:54:26.75056=EXEC98=0108=3010=223)
-<20060913-10:54:26, FIX.4.2:BANZAI->EXEC, event> (Initiated logon request)
-<20060913-10:54:26, FIX.4.2:BANZAI->EXEC, event> (Disconnecting)
+&lt;20060913-10:54:26, FIX.4.2:BANZAI-&gt;EXEC, event&gt; (Session FIX.4.2:BANZAI-&gt;EXEC schedule is daily, 00:00:00 UTC - 00:00:00 UTC)
+&lt;20060913-10:54:26, FIX.4.2:BANZAI-&gt;EXEC, event&gt; (Created session: FIX.4.2:BANZAI-&gt;EXEC)
+&lt;20060913-10:54:26, FIX.4.2:BANZAI-&gt;EXEC, outgoing&gt; (8=FIX.4.29=6535=A34=449=BANZAI52=20060913-10:54:26.75056=EXEC98=0108=3010=223)
+&lt;20060913-10:54:26, FIX.4.2:BANZAI-&gt;EXEC, event&gt; (Initiated logon request)
+&lt;20060913-10:54:26, FIX.4.2:BANZAI-&gt;EXEC, event&gt; (Disconnecting)
 13/09/2006 20:54:26 quickfix.mina.initiator.InitiatorIoHandler sessionCreated
 INFO: MINA session created: /127.0.0.1:4538
 </pre>
 
 <hr/>
 <h3>Whitelist Filter</h3>
-The code changes required to use it are similar to the Blacklist filter, except that:
+<p>A whitelist filter is available at <a href='http://www.quickfixj.org/confluence/download/attachments/530/WhitelistFilter.java'>
+http://www.quickfixj.org/confluence/download/attachments/530/WhitelistFilter.java</a>.  
+The code changes required to use it are similar to the Blacklist filter, except that:</p>
 <ul>
 <li>The filter is configured from SessionSettings.</li>
-<li>You have to add the filter after FIXProtocolCodecFactory.FILTER_NAME as it relies 
-     on this to parse received messages.</li>
+<li>You have to add the filter after FIXProtocolCodecFactory.FILTER_NAME as the filter needs to see
+quickfix.Message object, not just a stream of bytes.</li>
 </ul>
+<p/>
+<img src='whitelist filter.png'/>
 
 <pre class="code">
 acceptor = new SocketAcceptor (application, messageStoreFactory, settings, logFactory, messageFactory);
@@ -111,10 +141,10 @@ final WhitelistFilter whitelistFilter = new WhitelistFilter(settings);
     
 acceptor.start();
 </pre>
-
+<p>
 Specify valid IP addresses with the WhitelistHost setting, at either the default 
 or session levels as required.
-
+</p>
 <pre class="code">
 [default]
 ...
@@ -136,16 +166,19 @@ TargetCompID=FREEFORALL
 WhitelistHost=
 </pre>
 
+<p>
 On startup the valid hosts will be logged:
-
+</p>
 <pre class="code">
-INFO: Authorised IPs for FIX.4.2:EXEC->FREEFORALL: [Any]
-INFO: Authorised IPs for FIX.4.2:EXEC->BANZAI: [www.quickfixj.org/213.246.61.101]
-INFO: Authorised IPs for FIX.4.2:EXEC->SONOFBANZAI: [/192.168.0.1, /127.0.0.1, www.quickfixj.org/213.246.61.101, /192.168.0.2]
-
+INFO: Authorised IPs for FIX.4.2:EXEC-&gt;FREEFORALL: [Any]
+INFO: Authorised IPs for FIX.4.2:EXEC-&gt;BANZAI: [www.quickfixj.org/213.246.61.101]
+INFO: Authorised IPs for FIX.4.2:EXEC-&gt;SONOFBANZAI: [/192.168.0.1, /127.0.0.1, www.quickfixj.org/213.246.61.101, /192.168.0.2]
+</pre>
+<p>
 New connections will be validated against the authorised IPs once the first message is received and closed if they are not valid:
-
-WARNING: [/127.0.0.1:2633] Closing FIX.4.2:EXEC->BANZAI connection from unauthorised address.
+</p>
+<pre class="code">
+WARNING: [/127.0.0.1:2633] Closing FIX.4.2:EXEC-&gt;BANZAI connection from unauthorised address.
 </pre>
 
 </body>
