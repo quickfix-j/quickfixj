@@ -1066,7 +1066,6 @@
       <value enum="N" description="SEQUENCE_RESET_IGNORE_MSGSEQNUM"/>
     </field>
     <field number="124" name="NoExecs" type="INT"/>
-    <field number="125" name="CxlType" type="STRING"/>
     <field number="126" name="ExpireTime" type="TIME"/>
     <field number="127" name="DKReason" type="STRING">
       <value enum="A" description="UNKNOWN_SYMBOL"/>

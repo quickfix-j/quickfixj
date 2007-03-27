@@ -384,7 +384,7 @@ public class BanzaiApplication implements Application {
     public void cancel40(Order order) {
         String id = order.generateID();
         quickfix.fix40.OrderCancelRequest message = new quickfix.fix40.OrderCancelRequest(
-                new OrigClOrdID(order.getID()), new ClOrdID(id), new CxlType('F'), new Symbol(order
+                new OrigClOrdID(order.getID()), new ClOrdID(id), new CxlType(CxlType.FULL_REMAINING_QUANTITY), new Symbol(order
                         .getSymbol()), sideToFIXSide(order.getSide()), new OrderQty(order
                         .getQuantity()));
 

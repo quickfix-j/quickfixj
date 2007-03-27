@@ -2699,7 +2699,6 @@
     <field number="122" name="OrigSendingTime" type="UTCTIMESTAMP" />
     <field number="123" name="GapFillFlag" type="BOOLEAN" />
     <field number="124" name="NoExecs" type="NUMINGROUP" />
-    <field number="125" name="CxlType" type="CHAR" />
     <field number="126" name="ExpireTime" type="UTCTIMESTAMP" />
     <field number="127" name="DKReason" type="CHAR">
       <value enum="A" description="UNKNOWN_SYMBOL" />
