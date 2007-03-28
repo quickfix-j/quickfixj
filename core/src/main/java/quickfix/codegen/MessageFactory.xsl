@@ -23,11 +23,12 @@
 
  <xsl:template match="text()"/>
 
- <xsl:template match="/">/* -*- C++ -*- */
+ <xsl:template match="/">/* -*- Generated Java -*- */
  <xsl:copy-of select="document('COPYRIGHT.xml')"/>
 package quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>;
 
 import quickfix.Message;
+import quickfix.Group;
 
 public class MessageFactory implements quickfix.MessageFactory
 {
@@ -35,16 +36,41 @@ public class MessageFactory implements quickfix.MessageFactory
   <xsl:call-template name="if-statement"/>
   return new quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>.Message();
   }
+
+     public Group create(String beginString, String msgType, int correspondingFieldID) {
+         <xsl:call-template name="group-if-statement"/>
+        return null;
+     }
 }
 
-</xsl:template>
-
-<xsl:template name="if-statement">
- <xsl:for-each select="//fix/messages/message">
-   if("<xsl:value-of select="@msgtype"/>".equals(msgType)) {
-     return new quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>.<xsl:value-of select="@name"/>();
-   }
- </xsl:for-each>
-</xsl:template>
+  </xsl:template>
+    <xsl:template name="if-statement">
+     <xsl:for-each select="//fix/messages/message">
+       if("<xsl:value-of select="@msgtype"/>".equals(msgType)) {
+         return new quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>.<xsl:value-of select="@name"/>();
+       }
+     </xsl:for-each>
+    </xsl:template>
+    <xsl:template name="group-if-statement">
+     <xsl:for-each select="//fix/messages/message[group]">
+       if("<xsl:value-of select="@msgtype"/>".equals(msgType)) {
+         switch(correspondingFieldID) {
+         <xsl:for-each select="group">
+            <xsl:call-template name="group-type"><xsl:with-param name="fullPath" select="../@name"/></xsl:call-template>
+         </xsl:for-each>
+         }
+       }
+     </xsl:for-each>
+    </xsl:template>
+    <xsl:template name="group-type">
+        <xsl:param name="fullPath"/>
+            case quickfix.field.<xsl:value-of select="@name"/>.FIELD:
+                return new quickfix.fix<xsl:value-of select="concat(//fix/@major, //fix/@minor, '.', $fullPath, '.', @name)"/>();
+        <xsl:for-each select="group">
+            <xsl:call-template name="group-type">
+                <xsl:with-param name="fullPath" select='concat($fullPath, ".", ../@name)'/>
+            </xsl:call-template>
+        </xsl:for-each>
+    </xsl:template>
 
 </xsl:stylesheet>

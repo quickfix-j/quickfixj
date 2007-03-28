@@ -36,4 +36,21 @@ public interface MessageFactory {
      * @return a message instance
      */
     Message create(String beginString, String msgType);
+
+    /**
+     * Creates a group for the specified parent message type and
+     * for the fields with the corresponding field ID
+     *
+     * Example: to create a {@link quickfix.fix42.MarketDataRequest.NoMDEntryTypes}
+     * you need to call
+     *       create({@link quickfix.field.MsgType#MARKET_DATA_REQUEST, {@link quickfix.field.NoMDEntryTypes#FIELD}) 
+     *
+     * Function returns null if the group cannot be created.
+     * @param beginString
+     *            the FIX version (for example, "FIX.4.2")
+     * @param msgType   Message type of the enclosing message
+     * @param correspondingFieldID  the fieldID of the field in the group
+     * @return  group, or null if the group can't be created.
+     */
+    public Group create(String beginString, String msgType, int correspondingFieldID);
 }

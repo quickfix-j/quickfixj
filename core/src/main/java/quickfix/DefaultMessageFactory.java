@@ -54,4 +54,23 @@ public class DefaultMessageFactory implements quickfix.MessageFactory {
         }
         return new Message();
     }
+
+    public Group create(String beginString, String msgType, int correspondingFieldID) {
+        if("FIX.4.0".equals(beginString)) {
+            return fix40Factory.create(beginString, msgType, correspondingFieldID);
+        }
+        if("FIX.4.1".equals(beginString)) {
+            return fix41Factory.create(beginString, msgType, correspondingFieldID);
+        }
+        if("FIX.4.2".equals(beginString)) {
+            return fix42Factory.create(beginString, msgType, correspondingFieldID);
+        }
+        if("FIX.4.3".equals(beginString)) {
+            return fix43Factory.create(beginString, msgType, correspondingFieldID);
+        }
+        if("FIX.4.4".equals(beginString)) {
+		    return fix44Factory.create(beginString, msgType, correspondingFieldID);
+        }
+        throw new IllegalArgumentException("Unsupported FIX version: "+beginString);
+    }
 }
