@@ -29,14 +29,10 @@ import java.util.Map;
 public class DefaultSessionFactory implements SessionFactory {
 
     private static Map dictionaryCache = new Hashtable(); // synchronized
-
-    private Application application;
-
-    private MessageStoreFactory messageStoreFactory;
-
-    private LogFactory logFactory;
-
-    private MessageFactory messageFactory;
+    private final Application application;
+    private final MessageStoreFactory messageStoreFactory;
+    private final LogFactory logFactory;
+    private final MessageFactory messageFactory;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
             LogFactory logFactory) {

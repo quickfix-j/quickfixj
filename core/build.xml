@@ -273,10 +273,12 @@
 	Generate Javadocs
 	================================================================= -->
 
-	<target name="javadoc" depends="check.javadoc.uptodate"  unless="javadoc.uptodate" description="generate Javadocs">
+	<target name="javadoc" depends="check.javadoc.uptodate" 
+			unless="javadoc.uptodate" description="generate Javadocs">
 		<description>Generate the Javadocs for the main sources.</description>
 		<mkdir dir="${javadoc.output.dir}" />
 		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html"
+				 noindex="yes"
 		         stylesheetfile="${javadoc.input.dir}/javadoc.css"
 		         destdir="${javadoc.output.dir}"
 		         protected="yes"

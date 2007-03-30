@@ -33,7 +33,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class MultiAcceptorTest extends TestCase {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private TestAcceptorApplication testAcceptorApplication;
 
     protected void tearDown() throws Exception {
