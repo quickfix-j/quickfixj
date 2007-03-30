@@ -78,6 +78,8 @@ public class DataDictionary {
 
     private Set messages = new HashSet();
 
+    private Map messageTypeForName = new HashMap();
+    
     private LinkedHashSet fields = new LinkedHashSet();
 
     private Map headerFields = new HashMap();
@@ -209,10 +211,22 @@ public class DataDictionary {
         return (FieldType) fieldTypes.get(new Integer(field));
     }
 
-    private void addMsgType(String msgType) {
+    private void addMsgType(String msgType, String msgName) {
         messages.add(msgType);
+        if (msgName != null) {
+            messageTypeForName.put(msgName, msgType);
+        }
     }
 
+    /**
+     * Return the message type for the specified name.
+     * @param msgName The message name.
+     * @return the message type
+     */
+    public String getMsgType(String msgName) {
+        return (String) messageTypeForName.get(msgName);
+    }
+    
     /**
      * Predicate for determining if message type is valid for a specified FIX
      * version.
@@ -982,9 +996,10 @@ public class DataDictionary {
                 if (msgtype == null) {
                     throw new ConfigError("<message> does not have a msgtype attribute");
                 }
-                addMsgType(msgtype);
 
                 String name = getAttribute(messageNode, "name");
+                addMsgType(msgtype, name);
+
                 if (name != null) {
                     addValueName(MsgType.FIELD, msgtype, name);
                 }
