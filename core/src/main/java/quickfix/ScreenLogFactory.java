@@ -92,6 +92,14 @@ public class ScreenLogFactory implements LogFactory {
     }
 
     /**
+     * Default constructor that logs incoming, outgoing, and events without heartbeats.
+     *
+     */
+    public ScreenLogFactory() {
+        this(true, true, true, false);
+    }
+    
+    /**
      * 
      * Create factory with explicit control of message categories.
      * 
