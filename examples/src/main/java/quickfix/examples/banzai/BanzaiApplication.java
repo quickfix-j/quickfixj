@@ -203,7 +203,7 @@ public class BanzaiApplication implements Application {
         if (order == null)
             return;
 
-        LastShares lastShares = new LastShares(0);
+        double fillSize = 0;
 
         try {
             OrderQty orderQty = (OrderQty) message.getField(new OrderQty());
@@ -218,14 +218,20 @@ public class BanzaiApplication implements Application {
         } catch (FieldNotFound e) {
         }
         try {
+            LastShares lastShares = new LastShares();
             message.getField(lastShares);
+            fillSize = lastShares.getValue();
         } catch (FieldNotFound e) {
+            LeavesQty leavesQty = new LeavesQty();
+            message.getField(leavesQty);
+            fillSize = order.getQuantity() - leavesQty.getValue();
         }
 
-        if (lastShares.getValue() > 0) {
+        if (fillSize > 0) {
             order.setExecuted((int) message.getField(new CumQty()).getValue());
             order.setAvgPx(message.getField(new AvgPx()).getValue());
         }
+        
         OrdStatus ordStatus = (OrdStatus) message.getField(new OrdStatus());
 
         try {
@@ -241,7 +247,7 @@ public class BanzaiApplication implements Application {
                     order.setNew(false);
                 }
             }
-            order.setOpen(order.getOpen() - (int) lastShares.getValue());
+            //order.setOpen(order.getOpen() - (int) lastShares.getValue());
         }
 
         if (ordStatus.valueEquals(OrdStatus.REJECTED))
@@ -259,11 +265,11 @@ public class BanzaiApplication implements Application {
         orderTableModel.updateOrder(order, id);
         observableOrder.update(order);
 
-        if (lastShares.getValue() > 0) {
+        if (fillSize > 0) {
             Execution execution = new Execution();
             execution.setExchangeID(sessionID + message.getField(new ExecID()).getValue());
             execution.setSymbol(message.getField(new Symbol()).getValue());
-            execution.setQuantity((int) lastShares.getValue());
+            execution.setQuantity((int) fillSize);
             execution.setPrice(message.getField(new LastPx()).getValue());
             Side side = (Side) message.getField(new Side());
             execution.setSide(FIXSideToSide(side));
@@ -318,6 +324,10 @@ public class BanzaiApplication implements Application {
             send41(order);
         else if (beginString.equals("FIX.4.2"))
             send42(order);
+        else if (beginString.equals("FIX.4.3"))
+            send43(order);
+        else if (beginString.equals("FIX.4.4"))
+            send44(order);
         return;
     }
 
@@ -345,6 +355,25 @@ public class BanzaiApplication implements Application {
                 sideToFIXSide(order.getSide()), new TransactTime(), typeToFIXType(order.getType()));
         newOrderSingle.set(new OrderQty(order.getQuantity()));
 
+        send(populateOrder(order, newOrderSingle), order.getSessionID());
+    }
+
+    public void send43(Order order) {
+        quickfix.fix43.NewOrderSingle newOrderSingle = new quickfix.fix43.NewOrderSingle(
+                new ClOrdID(order.getID()), new HandlInst('1'), sideToFIXSide(order.getSide()),
+                new TransactTime(), typeToFIXType(order.getType()));
+        newOrderSingle.set(new OrderQty(order.getQuantity()));
+        newOrderSingle.set(new Symbol(order.getSymbol()));
+        send(populateOrder(order, newOrderSingle), order.getSessionID());
+    }
+
+    public void send44(Order order) {
+        quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID(order.getID()), sideToFIXSide(order.getSide()),
+                new TransactTime(), typeToFIXType(order.getType()));
+        newOrderSingle.set(new OrderQty(order.getQuantity()));
+        newOrderSingle.set(new Symbol(order.getSymbol()));
+        newOrderSingle.set(new HandlInst('1'));
         send(populateOrder(order, newOrderSingle), order.getSessionID());
     }
 
