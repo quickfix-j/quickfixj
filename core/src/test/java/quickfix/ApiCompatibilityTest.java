@@ -116,7 +116,8 @@ public class ApiCompatibilityTest {
                     Assert.assertTrue("missing interface: class=" + jniClass.getName()
                             + ", interface/superclass="
                             + ((Class) jniInheritedClasses.get(i)).getName(), javaInheritedClasses
-                            .contains(translatedClass((Class) jniInheritedClasses.get(i))));
+                            .contains(translatedClass((Class) jniInheritedClasses.get(i), javaClass
+                                    .getClassLoader())));
                 }
             }
         }
@@ -146,7 +147,7 @@ public class ApiCompatibilityTest {
                     if ((constructors[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
                         try {
                             javaClass.getDeclaredConstructor(translateClassArray(constructors[i]
-                                    .getParameterTypes()));
+                                    .getParameterTypes(), javaClass.getClassLoader()));
                         } catch (SecurityException e) {
                             Assert.fail(e.getMessage());
                         } catch (NoSuchMethodException e) {
@@ -159,6 +160,9 @@ public class ApiCompatibilityTest {
 
         private void assertCompatibleMethods() {
             Method[] methods = jniClass.getDeclaredMethods();
+            if (jniClass.isInterface()) {
+                assertNoExtraJavaInterfaceMethods();
+            }
             for (int i = 0; i < methods.length; i++) {
                 if ((methods[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
                     Method m = null;
@@ -166,7 +170,7 @@ public class ApiCompatibilityTest {
                         if (ignoredItems.isIgnoredMethod(methods[i])) {
                             return;
                         }
-                        m = findCompatibleMethod(methods[i]);
+                        m = findCompatibleJavaMethod(methods[i]);
                     } catch (SecurityException e) {
                         Assert.fail(e.getMessage());
                     } catch (NoSuchMethodException e) {
@@ -174,18 +178,64 @@ public class ApiCompatibilityTest {
                     }
                     List jniExceptionTypes = Arrays.asList(methods[i].getExceptionTypes());
                     List javaExceptionTypes = Arrays.asList(m.getExceptionTypes());
-                    Assert.assertEquals(m + ": wrong method return type",
-                            translatedClass(methods[i].getReturnType()), m.getReturnType());
+                    Assert.assertEquals(m + ": wrong method return type", translatedClass(
+                            methods[i].getReturnType(), javaClass.getClassLoader()), m
+                            .getReturnType());
                     assertExceptionsExist(methods[i], jniExceptionTypes, javaExceptionTypes);
                     assertNoExtraExceptions(methods[i], jniExceptionTypes, javaExceptionTypes);
                 }
             }
         }
 
-        private Method findCompatibleMethod(Method jniMethod) throws NoSuchMethodException {
+        private void assertNoExtraJavaInterfaceMethods() {
+            assertNoExtraJavaInterfaceMethods(javaClass);
+        }
+
+        private void assertNoExtraJavaInterfaceMethods(Class javaInterface) {
+            Method[] methods = javaInterface.getDeclaredMethods();
+            for (int i = 0; i < methods.length; i++) {
+                try {
+                    findCompatibleJniMethod(methods[i]);
+                } catch (NoSuchMethodException e) {
+                    Assert.fail("Extra interface method: " + methods[i]);
+                }
+            }
+            Class[] interfaces = javaInterface.getInterfaces();
+            for (int i = 0; i < interfaces.length; i++) {
+                assertNoExtraJavaInterfaceMethods(interfaces[i]);
+            }
+        }
+
+        public Method findCompatibleJniMethod(Method javaMethod) throws NoSuchMethodException {
+            Method method = null;
+            final String methodName = javaMethod.getName();
+            final Class[] parameterTypes = translateClassArray(javaMethod.getParameterTypes(),
+                    jniClass.getClassLoader());
+            if ((javaMethod.getModifiers() & Modifier.PUBLIC) != 0) {
+                method = jniClass.getMethod(methodName, parameterTypes);
+            } else {
+                // Search for a protected method
+                Class clazz = jniClass;
+                while (clazz != null) {
+                    try {
+                        method = clazz.getDeclaredMethod(methodName, parameterTypes);
+                        break;
+                    } catch (NoSuchMethodException e) {
+                        clazz = clazz.getSuperclass();
+                        if (clazz == null) {
+                            throw e;
+                        }
+                    }
+                }
+            }
+            return method;
+        }
+
+        private Method findCompatibleJavaMethod(Method jniMethod) throws NoSuchMethodException {
             Method method = null;
             final String methodName = jniMethod.getName();
-            final Class[] parameterTypes = translateClassArray(jniMethod.getParameterTypes());
+            final Class[] parameterTypes = translateClassArray(jniMethod.getParameterTypes(),
+                    javaClass.getClassLoader());
             if ((jniMethod.getModifiers() & Modifier.PUBLIC) != 0) {
                 method = javaClass.getMethod(methodName, parameterTypes);
             } else {
@@ -221,8 +271,8 @@ public class ApiCompatibilityTest {
             for (int j = 0; j < jniExceptionTypes.size(); j++) {
                 boolean foundException = false;
                 for (int k = 0; k < javaExceptionTypes.size(); k++) {
-                    if (translatedClass((Class) jniExceptionTypes.get(j)).equals(
-                            javaExceptionTypes.get(k))) {
+                    if (translatedClass((Class) jniExceptionTypes.get(j),
+                            javaClass.getClassLoader()).equals(javaExceptionTypes.get(k))) {
                         foundException = true;
                         break;
                     }
@@ -253,29 +303,29 @@ public class ApiCompatibilityTest {
         private List translateClassList(List jniClasses) {
             ArrayList classes = new ArrayList();
             for (int i = 0; i < jniClasses.size(); i++) {
-                classes.add(translatedClass((Class) jniClasses.get(i)));
+                classes.add(translatedClass((Class) jniClasses.get(i), javaClass.getClassLoader()));
             }
             return classes;
         }
 
-        private Class[] translateClassArray(Class[] classArray) {
+        private Class[] translateClassArray(Class[] classArray, ClassLoader toClassloader) {
             if (classArray == null) {
                 return null;
             }
             Class[] types = new Class[classArray.length];
             for (int i = 0; i < types.length; i++) {
-                types[i] = translatedClass(classArray[i]);
+                types[i] = translatedClass(classArray[i], toClassloader);
             }
             return types;
         }
 
-        private Class translatedClass(Class jniType) {
-            Package pkg = jniType.getPackage();
+        private Class translatedClass(Class type, ClassLoader toClassLoader) {
+            Package pkg = type.getPackage();
             if (pkg == null || pkg.getName().startsWith("java.")) {
-                return jniType;
+                return type;
             } else {
                 try {
-                    return Class.forName(jniType.getName());
+                    return toClassLoader.loadClass(type.getName());
                 } catch (ClassNotFoundException e) {
                     Assert.fail("class not found: " + e.getMessage());
                     return null;
@@ -335,13 +385,13 @@ public class ApiCompatibilityTest {
             return ignoredMethods.contains(m);
         }
 
-//        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
-//                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
-//                NoSuchMethodException {
-//            Class c = jniClassLoader.loadClass(className);
-//            Method m = c.getDeclaredMethod(methodName, argumentTypes);
-//            ignoredMethods.add(m);
-//        }
+        //        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
+        //                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
+        //                NoSuchMethodException {
+        //            Class c = jniClassLoader.loadClass(className);
+        //            Method m = c.getDeclaredMethod(methodName, argumentTypes);
+        //            ignoredMethods.add(m);
+        //        }
 
         private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)
                 throws ClassNotFoundException, NoSuchMethodException {
@@ -379,7 +429,7 @@ public class ApiCompatibilityTest {
         try {
             String jarPath = System.getProperty("utest.jnijar");
             if (jarPath == null) {
-                jarPath= "core/src/test/lib/quickfix-jni.jar";
+                jarPath = "core/src/test/lib/quickfix-jni.jar";
             }
             URL[] urls = new URL[] { new URL("file:" + jarPath) };
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
@@ -419,7 +469,7 @@ public class ApiCompatibilityTest {
             this.cause = e;
         }
 
-        public void testInitializationFailure () {
+        public void testInitializationFailure() {
             throw new RuntimeException("error during initialization, see cause below", cause);
         }
     }
