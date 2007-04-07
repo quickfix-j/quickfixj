@@ -69,8 +69,11 @@ public class LogUtilTest extends TestCase {
 
     private LogFactory createLogFactory(ByteArrayOutputStream data) {
         final ScreenLog log = new ScreenLog(true, true, true, true, null, new PrintStream(data));
-        LogFactory mockLogFactory = new LogFactory() {
+        return new LogFactory() {
             public Log create(SessionID sessionID) {
+                return create(sessionID, log.getClass().getName());
+            }
+            public Log create(SessionID sessionID, String callerFQCN) {
                 return log;
             }
 
@@ -79,7 +82,6 @@ public class LogUtilTest extends TestCase {
             }
 
         };
-        return mockLogFactory;
     }
 
 }

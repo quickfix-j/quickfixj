@@ -44,9 +44,19 @@ public class CompositeLogFactory implements LogFactory {
      * @see SessionFactory
      */
     public Log create(SessionID sessionID) {
+        return create(sessionID, CompositeLog.class.getName());
+    }
+    /**
+     * Create the composite Log. This is typically used by the SessionFactory.
+     * @param sessionID the session associated with the log
+     * @param callerFQCN    fully-qualified name of the parent logger that's creating everything
+     * @return the composite log
+     * @see SessionFactory
+     */
+    public Log create(SessionID sessionID, String callerFQCN) {
         Log[] logs = new Log[logFactories.length];
         for (int i = 0; i < logFactories.length; i++) {
-            logs[i] = logFactories[i].create(sessionID);
+            logs[i] = logFactories[i].create(sessionID, callerFQCN);
         }
         return new CompositeLog(logs);
     }

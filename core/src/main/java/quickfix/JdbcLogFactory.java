@@ -31,6 +31,9 @@ public class JdbcLogFactory implements LogFactory {
      * @param sessionID the sessionID for the message store.
      */
     public Log create(SessionID sessionID) {
+        return create(sessionID, JdbcLog.class.getName());
+    }
+    public Log create(SessionID sessionID, String callerFQCN) {
         try {
             return new JdbcLog(settings, sessionID);
         } catch (Exception e) {

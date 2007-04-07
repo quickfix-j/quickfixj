@@ -67,6 +67,10 @@ public class FileLogFactory implements LogFactory {
      *            session ID for the logger
      */
     public Log create(SessionID sessionID) {
+        return create(sessionID, FileLog.class.getName());
+    }
+
+    public Log create(SessionID sessionID, String callerFQCN) {
         try {
             boolean includeMillis = false;
             if (settings.isSetting(sessionID, SETTING_INCLUDE_MILLIS_IN_TIMESTAMP)) {

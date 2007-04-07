@@ -173,7 +173,7 @@
 		       errorproperty="utests.failed"
 		       failureproperty="utests.failed"
 		       haltonfailure="${junit.haltonfailure}">
-			<formatter type="xml" usefile="true" />
+			<formatter type="plain" usefile="true" />
 			<classpath refid="test.classpath" />
 			<batchtest todir="${junit.output.dir}">
 				<fileset dir="${test.src.dir}">
@@ -189,7 +189,7 @@
 	</target>
 
 	<target name="test.one.junit"
-	        depends="compile, test.init"
+	        depends="compile, test.init,jar"
 	        unless="utests.uptodate"
             description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
         <echo message="Testing class (${onejunit.testname})" />

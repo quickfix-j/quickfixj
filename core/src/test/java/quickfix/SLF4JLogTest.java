@@ -20,12 +20,15 @@
 package quickfix;
 
 import java.util.ArrayList;
+import java.util.Vector;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import junit.framework.TestCase;
+import org.slf4j.spi.LocationAwareLogger;
+import org.slf4j.Marker;
 
 public class SLF4JLogTest extends TestCase {
     public SLF4JLogTest(String name) {
@@ -144,6 +147,21 @@ public class SLF4JLogTest extends TestCase {
 
     }
 
+    /** Check to make sure that if we use log4j underneath with SLF4J we use
+     * the right wrapper function so that the appropriate calling location shows up
+     * instead of our wrapper SLF4JLog class itself
+     */
+    public void testLog4j_correctFQCN() throws Exception {
+        MyLog4JLog myLog4j = new MyLog4JLog();
+        SLF4JLog slf4jLog = new MySLF4JLog(new SessionID("FIX.4.2", "sender", "target"), "my-caller-fqcn", myLog4j);
+
+        String loggedText = "TEST123";
+        slf4jLog.onEvent(loggedText);
+        assertEquals(1, myLog4j.messages.size());
+        assertEquals("my-caller-fqcn", myLog4j.fqcns.get(0));
+        assertEquals("TEST123", myLog4j.messages.get(0));
+    }
+
     private void assertMessageNotLogged(SessionID sessionID, String categoryName) {
         TestHandler testHandler = getTestHandler(categoryName);
         assertEquals(0, testHandler.records.size());
@@ -204,5 +222,34 @@ public class SLF4JLogTest extends TestCase {
             }
         }
 
+    }
+
+    public class MySLF4JLog extends SLF4JLog
+    {
+        private org.slf4j.Logger underlyingLog;
+
+        public MySLF4JLog(SessionID sessionID, String inCallerFQCN, org.slf4j.Logger inUnderlyingLog) {
+            super(sessionID, "test-event-cat", "test-incoming-msg-cat", "test-outgoing-msg-cat", false,
+                    false, inCallerFQCN);
+            underlyingLog = inUnderlyingLog;
+        }
+
+        protected void log(org.slf4j.Logger log, String text) {
+            super.log(underlyingLog,  text);
+        }
+    }
+
+    private class MyLog4JLog extends DummySLF4JLogger implements LocationAwareLogger {
+        Vector messages = new Vector();
+        Vector fqcns = new Vector();
+
+        public void log(Marker marker, String fqcn, int level, String message, Throwable t) {
+            messages.add(message);
+            fqcns.add(fqcn);
+        }
+
+        public boolean isInfoEnabled() {
+            return true;
+        }
     }
 }

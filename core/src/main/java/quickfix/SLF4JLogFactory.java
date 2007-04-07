@@ -55,6 +55,9 @@ public class SLF4JLogFactory implements LogFactory {
     }
 
     public Log create(SessionID sessionID) {
+        return create(sessionID, SLF4JLog.class.getName());
+    }
+    public Log create(SessionID sessionID, String callerFQCN) {
         String eventCategory = null;
         String incomingMsgCategory = null;
         String outgoingMsgCategory = null;
@@ -82,7 +85,7 @@ public class SLF4JLogFactory implements LogFactory {
             throw new RuntimeException(e);
         }
         return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory,
-                prependSessionID, logHeartbeats);
+                prependSessionID, logHeartbeats, callerFQCN);
     }
     
     public Log create() {

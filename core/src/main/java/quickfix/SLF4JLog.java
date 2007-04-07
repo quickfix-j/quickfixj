@@ -21,6 +21,7 @@ package quickfix;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.spi.LocationAwareLogger;
 
 /**
  * A Log using the SLFJ wrapper that supports JDK 1.4 logging, Log4J and others.
@@ -37,14 +38,17 @@ public class SLF4JLog extends AbstractLog {
     private final Logger incomingMsgLog;
     private final Logger outgoingMsgLog;
     private final String logPrefix;
-    
+    private final String callerFQCN;
+
     public SLF4JLog(SessionID sessionID, String eventCategory, String incomingMsgCategory,
-            String outgoingMsgCategory, boolean prependSessionID, boolean logHeartbeats) {
+            String outgoingMsgCategory, boolean prependSessionID, boolean logHeartbeats,
+            String inCallerFQCN) {
         setLogHeartbeats(logHeartbeats);
         logPrefix = prependSessionID ? (sessionID + ": ") : null;
         eventLog = getLogger(sessionID, eventCategory, DEFAULT_EVENT_CATEGORY);
         incomingMsgLog = getLogger(sessionID, incomingMsgCategory, DEFAULT_INCOMING_MSG_CATEGORY);
         outgoingMsgLog = getLogger(sessionID, outgoingMsgCategory, DEFAULT_OUTGOING_MSG_CATEGORY);
+        callerFQCN = inCallerFQCN;
     }
 
     private Logger getLogger(SessionID sessionID, String category, String defaultCategory) {
@@ -87,9 +91,17 @@ public class SLF4JLog extends AbstractLog {
         log(outgoingMsgLog, message);
     }
 
-    private void log(Logger log, String text) {
+    /** Made protected to enable unit testing of callerFQCN coming through correctly */
+    protected void log(org.slf4j.Logger log, String text) {
         if (log.isInfoEnabled()) {
-            log.info(logPrefix != null ? (logPrefix + text) : text);
+            String message = logPrefix != null ? (logPrefix + text) : text;
+            if (log instanceof LocationAwareLogger) {
+                LocationAwareLogger la = (LocationAwareLogger) log;
+                la.log(null, callerFQCN, LocationAwareLogger.INFO_INT,
+                        message, null);
+            } else {
+                log.info(message);
+            }
         }
     }
 
