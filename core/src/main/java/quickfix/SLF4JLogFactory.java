@@ -22,7 +22,7 @@ package quickfix;
 /**
  * Simple Logging Facade for Java (SLF4J) log factory (<a href="http://slfj4.org">slfj.org</a>).
  */
-public class SLF4JLogFactory implements LogFactory {
+public class SLF4JLogFactory implements LocationAwareLogFactory {
     /**
      * Log category for events.
      */
@@ -57,6 +57,10 @@ public class SLF4JLogFactory implements LogFactory {
     public Log create(SessionID sessionID) {
         return create(sessionID, SLF4JLog.class.getName());
     }
+    
+    /**
+     * This supports use of this log in a CompositeLogFactory.
+     */
     public Log create(SessionID sessionID, String callerFQCN) {
         String eventCategory = null;
         String incomingMsgCategory = null;

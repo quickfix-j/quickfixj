@@ -39,15 +39,4 @@ public interface LogFactory {
      */
     Log create(SessionID sessionID);
 
-    /**
-     * Create a log implementation.
-     *
-     * @param sessionID
-     *            session ID usually used for configuration access
-     * @param callerFQCN
-     *            fully-qualified class name of the parent logger
-     *            in case we are being constructed as part of a composite logger
-     * @return the log implementation
-     */
-    Log create(SessionID sessionID, String callerFQCN);
 }

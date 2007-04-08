@@ -121,9 +121,6 @@ public class ScreenLogFactory implements LogFactory {
     }
 
     public Log create(SessionID sessionID) {
-        return create(sessionID, ScreenLog.class.getName());
-    }
-    public Log create(SessionID sessionID, String callerFQCN) {
         try {
             incoming = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_INCOMING, incoming);
             outgoing = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_OUTGOING, outgoing);
