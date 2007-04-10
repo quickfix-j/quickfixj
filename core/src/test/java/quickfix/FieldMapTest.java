@@ -50,15 +50,4 @@ public class FieldMapTest extends TestCase {
                      UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
     }
 
-    /** Try a subclass of {@link UtcTimeOnlyField} and {@link UtcTimeStampField} directly */
-    public void testSpecificFields() throws Exception {
-        FieldMap map = new Message();
-        Date aDate = new Date();
-        map.setField(new EffectiveTime(aDate));
-        assertEquals("milliseconds should be preserved", aDate.getTime(),
-                     map.getField(new EffectiveTime()).getValue().getTime());
-        map.setField(new MDEntryTime(aDate));
-        assertEquals("milliseconds should be preserved",  UtcTimeOnlyConverter.convert(aDate, true),
-                     UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
-    }
 }
