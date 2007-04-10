@@ -350,6 +350,11 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Iterator"));
 
             //
+            // TEMPORARY
+            //
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.MessageFactory"));
+            
+            //
             // Ignore C++ database adapters
             //
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.PostgreSQLLog"));
