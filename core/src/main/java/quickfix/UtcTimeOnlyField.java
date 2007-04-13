@@ -26,7 +26,7 @@ import java.util.Date;
  * A time-valued message field.
  */
 public class UtcTimeOnlyField extends DateField {
-    private boolean includeMilliseconds;
+    private boolean includeMilliseconds = true;
     
     public UtcTimeOnlyField(int field) {
         super(field);
