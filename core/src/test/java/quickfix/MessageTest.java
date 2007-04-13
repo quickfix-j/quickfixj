@@ -26,6 +26,7 @@ import java.util.TimeZone;
 import junit.framework.TestCase;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
+import quickfix.field.AvgPx;
 import quickfix.field.BeginString;
 import quickfix.field.BidType;
 import quickfix.field.BodyLength;
@@ -35,16 +36,25 @@ import quickfix.field.CountryOfIssue;
 import quickfix.field.CrossID;
 import quickfix.field.CrossPrioritization;
 import quickfix.field.CrossType;
+import quickfix.field.CumQty;
+import quickfix.field.EncodedText;
+import quickfix.field.EncodedTextLen;
 import quickfix.field.EncryptMethod;
+import quickfix.field.ExecID;
+import quickfix.field.ExecType;
+import quickfix.field.HandlInst;
 import quickfix.field.Headline;
 import quickfix.field.IOIid;
+import quickfix.field.LeavesQty;
 import quickfix.field.ListID;
 import quickfix.field.ListSeqNo;
 import quickfix.field.MsgDirection;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NoOrders;
+import quickfix.field.OrdStatus;
 import quickfix.field.OrdType;
+import quickfix.field.OrderID;
 import quickfix.field.OrderQty;
 import quickfix.field.PartyID;
 import quickfix.field.PartyIDSource;
@@ -80,6 +90,22 @@ import quickfix.fix44.component.Parties;
 
 public class MessageTest extends TestCase {
 
+    public void testEmbeddedMessage() throws Exception {
+        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), 
+                new HandlInst(HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
+                new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+
+        ExecutionReport report = new ExecutionReport(new OrderID("ORDER"), new ExecID("EXEC"),
+                new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.FILLED), new Side(Side.BUY),
+                new LeavesQty(100), new CumQty(100), new AvgPx(50));
+        
+        report.set(new EncodedTextLen(order.toString().length()));
+        report.set(new EncodedText(order.toString()));
+        
+        Message msg = new Message(report.toString(), DataDictionaryTest.getDictionary());
+        assertEquals("embedded order", order.toString(), msg.getString(EncodedText.FIELD));
+    }
+    
     public void testParsing() throws Exception {
         // checksum is not verified in these tests
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
