@@ -22,6 +22,7 @@ package quickfix;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Date;
 
 /**
  * A field type enum class. 
@@ -79,7 +80,7 @@ public class FieldType {
     public final static FieldType Currency = new FieldType("CURRENCY");
     public final static FieldType MultipleValueString = new FieldType("MULTIPLEVALUESTRING");
     public final static FieldType Exchange = new FieldType("EXCHANGE");
-    public final static FieldType UtcTimeStamp = new FieldType("UTCTIMESTAMP", Calendar.class);
+    public final static FieldType UtcTimeStamp = new FieldType("UTCTIMESTAMP", Date.class);
     public final static FieldType Boolean = new FieldType("BOOLEAN", Boolean.class);
     public final static FieldType LocalMktDate = new FieldType("LOCALMKTDATE");
     public final static FieldType Data = new FieldType("DATA");
@@ -87,9 +88,9 @@ public class FieldType {
     public final static FieldType PriceOffset = new FieldType("PRICEOFFSET", Double.class);
     public final static FieldType MonthYear = new FieldType("MONTHYEAR");
     public final static FieldType DayOfMonth = new FieldType("DAYOFMONTH", Integer.class);
-    public final static FieldType UtcDateOnly = new FieldType("UTCDATEONLY", Calendar.class);
-    public final static FieldType UtcDate = new FieldType("UTCDATEONLY", Calendar.class);
-    public final static FieldType UtcTimeOnly = new FieldType("UTCTIMEONLY", Calendar.class);
+    public final static FieldType UtcDateOnly = new FieldType("UTCDATEONLY", Date.class);
+    public final static FieldType UtcDate = new FieldType("UTCDATEONLY", Date.class);
+    public final static FieldType UtcTimeOnly = new FieldType("UTCTIMEONLY", Date.class);
     public final static FieldType Time = new FieldType("TIME");
     public final static FieldType NumInGroup = new FieldType("NUMINGROUP", Integer.class);
     public final static FieldType Percentage = new FieldType("PERCENTAGE", Double.class);
