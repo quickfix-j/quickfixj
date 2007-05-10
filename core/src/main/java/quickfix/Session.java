@@ -22,8 +22,9 @@ package quickfix;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
@@ -194,7 +195,7 @@ public class Session {
     public static final String SETTING_PERSIST_MESSAGES = "PersistMessages";
 
     // @GuardedBy(sessions)
-    private static final Map sessions = new WeakHashMap();
+    private static final Map sessions = new HashMap();
 
     private final Application application;
     private final SessionID sessionID;
@@ -429,6 +430,12 @@ public class Session {
         }
     }
 
+    static void unregisterSessions(List sessionIds) {
+        for (int i = 0; i < sessionIds.size(); i++) {
+            sessions.remove((SessionID) sessionIds.get(i));
+        }
+    }
+    
     /**
      * Locates a session specified by the provided session ID.
      *

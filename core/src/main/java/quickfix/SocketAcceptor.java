@@ -75,5 +75,6 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         stopAcceptingConnections();
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
+        Session.unregisterSessions(getSessions());
     }
 }

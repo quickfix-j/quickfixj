@@ -53,6 +53,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         stopAcceptingConnections();
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
+        Session.unregisterSessions(getSessions());
     }
 
     public void block() throws ConfigError, RuntimeError {

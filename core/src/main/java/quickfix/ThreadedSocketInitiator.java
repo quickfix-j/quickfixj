@@ -58,6 +58,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         if (!forceDisconnect) {
             waitForLogout();
         }
+        Session.unregisterSessions(getSessions());
     }
 
     public void block() throws ConfigError, RuntimeError {
