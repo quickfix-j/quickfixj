@@ -44,6 +44,7 @@ public class Executor {
 
             SessionSettings settings =
                 new SessionSettings(inputStream);
+            inputStream.close();
             Application application = new Application(settings);
             MessageStoreFactory messageStoreFactory =
                 new FileStoreFactory(settings);

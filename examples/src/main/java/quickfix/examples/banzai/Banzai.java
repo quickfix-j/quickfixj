@@ -66,7 +66,8 @@ public class Banzai {
             return;
         }
         SessionSettings settings = new SessionSettings(inputStream);
-
+        inputStream.close();
+        
         boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true")).booleanValue();
         
         OrderTableModel orderTableModel = new OrderTableModel();
