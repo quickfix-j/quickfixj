@@ -39,6 +39,10 @@ public class SessionID {
     public SessionID() {
         this("", "", "");
     }
+    
+    public SessionID(String id) {
+        fromString(id);
+    }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID) {
         this(beginString, senderCompID, targetCompID, "");
@@ -46,12 +50,12 @@ public class SessionID {
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID,
             String sessionQualifier) {
-        create(beginString.getValue(), senderCompID.getValue(), targetCompID.getValue(),
+        init(beginString.getValue(), senderCompID.getValue(), targetCompID.getValue(),
                 sessionQualifier);
     }
 
     public SessionID(String beginString, String senderCompID, String targetCompID) {
-        create(beginString, senderCompID, targetCompID, "");
+        init(beginString, senderCompID, targetCompID, "");
     }
 
     public SessionID(String beginString, String senderCompID, String targetCompID,
@@ -59,7 +63,7 @@ public class SessionID {
         if (sessionQualifier == null) {
             sessionQualifier = "";
         }
-        create(beginString, senderCompID, targetCompID, sessionQualifier);
+        init(beginString, senderCompID, targetCompID, sessionQualifier);
     }
 
     public String getBeginString() {
@@ -96,7 +100,7 @@ public class SessionID {
         return toString().hashCode();
     }
 
-    private void create(String beginString, String senderCompID, String targetCompID,
+    private void init(String beginString, String senderCompID, String targetCompID,
             String sessionQualifier) {
         this.beginString = beginString;
         this.senderCompID = senderCompID;
@@ -138,15 +142,14 @@ public class SessionID {
         }
         String targetCompID = sessionIDString.substring(start, end);
 
+        String sessionQualifier = "";
         if (end < sessionIDString.length()) {
             start = end + 1;
             end = sessionIDString.length();
             sessionQualifier = end != -1 ? sessionIDString.substring(start, end) : "";
         }
 
-        this.beginString = beginString;
-        this.senderCompID = senderCompID;
-        this.targetCompID = targetCompID;
+        init(beginString, senderCompID, targetCompID, sessionQualifier);
 
         return sessionIDString;
     }

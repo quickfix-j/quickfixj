@@ -50,6 +50,16 @@ public class SessionIDTest extends TestCase {
         assertEquals("SENDER", sessionID.getSenderCompID());
         assertEquals("TARGET", sessionID.getTargetCompID());
         assertEquals("QUALIFIER", sessionID.getSessionQualifier());
+        assertEquals("FIX.4.2:SENDER->TARGET:QUALIFIER", sessionID.toString());
+    }
+
+    public void testStringConstructor() throws Exception {
+        SessionID sessionID = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
+        assertEquals("FIX.4.2", sessionID.getBeginString());
+        assertEquals("SENDER", sessionID.getSenderCompID());
+        assertEquals("TARGET", sessionID.getTargetCompID());
+        assertEquals("QUALIFIER", sessionID.getSessionQualifier());
+        assertEquals("FIX.4.2:SENDER->TARGET:QUALIFIER", sessionID.toString());
     }
 
     public void testFromStringNoQualifier() throws Exception {
@@ -59,6 +69,7 @@ public class SessionIDTest extends TestCase {
         assertEquals("SENDER", sessionID.getSenderCompID());
         assertEquals("TARGET", sessionID.getTargetCompID());
         assertEquals("", sessionID.getSessionQualifier());
+        assertEquals("FIX.4.2:SENDER->TARGET", sessionID.toString());
     }
 
     public void testFromStringError1() throws Exception {
