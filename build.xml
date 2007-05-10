@@ -8,6 +8,7 @@
 		<sequential>
 			<subant target="@{target}" verbose="yes">
 				<fileset dir="." includes="*/build.xml" />
+				<property name="version" value="${version}"/>
 				<properties/>
 			</subant>
 		</sequential>

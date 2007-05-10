@@ -1,6 +1,12 @@
 <project name="core" basedir="." default="jar">
 	<import file="../module.xml"/>
 	
+	<tstamp>
+	   <format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
+	</tstamp>
+
+	<property name="version" value="SNAPSHOT ${timestamp}"/>
+	
 	<!-- =============================================================
 	Generate FIX Message Code
 	================================================================= -->
@@ -78,7 +84,13 @@
 
 	<target name="jar" description="build jar files" depends="compile">
 		<mkdir dir="${target.dir}" />
-		<jar destfile="${jar.output.dir}/${quickfixj.jar}">
+		<manifest file="${jar.output.dir}/MANIFEST.MF">
+			<attribute name="Main-Class" value="org.quickfixj.Version"/> 
+			<attribute name="Implementation-Title" value="QuickFIX/J Core"/> 
+			<attribute name="Implementation-Version" value="${version}"/> 
+		</manifest>
+		<jar destfile="${jar.output.dir}/${quickfixj.jar}" 
+				manifest="${jar.output.dir}/MANIFEST.MF">
 			<fileset dir="${main.classes.dir}" />
 			<fileset dir="${main.resources.dir}" includes="*" />
 			<fileset dir="${main.src.dir}">

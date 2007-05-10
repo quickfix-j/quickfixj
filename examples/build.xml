@@ -35,7 +35,12 @@
 	
 	<target name="jar" description="build jar files" depends="compile">
 		<mkdir dir="${target.dir}" />
-		<jar destfile="${jar.output.dir}/${jar.output.file}">
+		<manifest file="${jar.output.dir}/MANIFEST.MF">
+			<attribute name="Implementation-Title" value="QuickFIX/J Examples"/> 
+			<attribute name="Implementation-Version" value="${version}"/> 
+		</manifest>
+		<jar destfile="${jar.output.dir}/${jar.output.file}"
+				manifest="${jar.output.dir}/MANIFEST.MF">
 			<fileset dir="${main.classes.dir}" />
 			<fileset dir="${main.src.dir}">
 				<include name="**/*.cfg"/>
