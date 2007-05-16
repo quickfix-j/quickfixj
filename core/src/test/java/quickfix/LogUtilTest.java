@@ -45,9 +45,7 @@ public class LogUtilTest extends TestCase {
     private void createSessionAndGenerateException(LogFactory mockLogFactory) throws ConfigError,
             FieldConvertError {
         SessionSettings settings = new SessionSettings();
-        settings.setString(Session.SETTING_START_DAY, "Fri");
         settings.setString(Session.SETTING_START_TIME, "16:00:00");
-        settings.setString(Session.SETTING_END_DAY, "Fri");
         settings.setString(Session.SETTING_END_TIME, "13:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
