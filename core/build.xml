@@ -68,7 +68,7 @@
 		<attribute name="output"/>
 		<sequential>
 			<mkdir dir="@{output}" />
-			<javac destdir="@{output}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes">
+			<javac destdir="@{output}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}"/>
 				<src refid="@{srcref}" />
@@ -185,7 +185,8 @@
 		       errorproperty="utests.failed"
 		       failureproperty="utests.failed"
 		       haltonfailure="${junit.haltonfailure}">
-			<formatter type="plain" usefile="true" />
+			<!-- The plain formatter is breaking the Pulse CI report generator -->
+			<!-- <formatter type="plain" usefile="true" /> -->
 			<formatter type="xml" usefile="true" />
 			<classpath refid="test.classpath" />
 			<batchtest todir="${junit.output.dir}">
