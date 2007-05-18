@@ -207,7 +207,6 @@ public class Session {
 
     private boolean enabled;
     private Responder responder;
-    private DataDictionary dataDictionary;
 
     //
     // The session time checks were causing performance problems
@@ -219,6 +218,7 @@ public class Session {
     private long lastSessionTimeCheck = 0;
     private boolean lastSessionTimeResult = false;
 
+    private final DataDictionary dataDictionary;
     private final boolean checkLatency;
     private final int maxLatency;
     private final boolean resetOnLogon;
@@ -1648,11 +1648,11 @@ public class Session {
      * @deprecated
      * @param dataDictionary
      */
-    public synchronized void setDataDictionary(DataDictionary dataDictionary) {
-        this.dataDictionary = dataDictionary;
+    public void setDataDictionary(DataDictionary dataDictionary) {
+        throw new UnsupportedOperationException("Modification of session dictionary is not supported in QFJ");
     }
     
-    public synchronized DataDictionary getDataDictionary() {
+    public DataDictionary getDataDictionary() {
         return dataDictionary;
     }
 
