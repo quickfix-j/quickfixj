@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.quickfixj.CharsetSupport;
+
 import quickfix.field.converter.UtcTimestampConverter;
 
 /**
@@ -60,6 +62,10 @@ public class FileStore implements MessageStore {
     private DataOutputStream headerDataOutputStream;
     private RandomAccessFile sequenceNumberFile;
     private final boolean syncWrites;
+
+    private HashMap messageIndex = new HashMap();
+    private FileOutputStream headerFileOutputStream;
+    private String charsetEncoding = CharsetSupport.getCharset();
 
     FileStore(String path, SessionID sessionID, boolean syncWrites) throws IOException {
         this.syncWrites = syncWrites;
@@ -156,9 +162,6 @@ public class FileStore implements MessageStore {
             cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 1)));
         }
     }
-
-    private HashMap messageIndex = new HashMap();
-    private FileOutputStream headerFileOutputStream;
 
     private void initializeMessageIndex() throws IOException {
         File headerFile = new File(headerFileName);
@@ -297,7 +300,7 @@ public class FileStore implements MessageStore {
             messageFile.seek(offsetAndSize[0]);
             byte[] data = new byte[(int) offsetAndSize[1]];
             messageFile.read(data);
-            message = new String(data);
+            message = new String(data, charsetEncoding);
             messageFile.seek(messageFile.length());
         }
         return message;
@@ -317,7 +320,7 @@ public class FileStore implements MessageStore {
         if (syncWrites) {
             headerFileOutputStream.getFD().sync();
         }
-        messageFile.write(message.getBytes());
+        messageFile.write(message.getBytes(CharsetSupport.getCharset()));
         return true;
     }
 

@@ -19,34 +19,22 @@
 
 package quickfix.mina.message;
 
+import java.io.UnsupportedEncodingException;
+
+import junit.framework.ComparisonFailure;
 import junit.framework.TestCase;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.WriteFuture;
 import org.apache.mina.filter.codec.ProtocolCodecException;
-import org.apache.mina.filter.codec.ProtocolEncoderOutput;
+import org.quickfixj.CharsetSupport;
 
 import quickfix.Message;
+import quickfix.field.Headline;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
 import quickfix.fix40.Logon;
+import quickfix.fix44.News;
 
 public class FIXMessageEncoderTest extends TestCase {
-    private final class ProtocolEncoderOutputForTest implements ProtocolEncoderOutput {
-        public ByteBuffer buffer;
-        
-        public void mergeAll() {
-        }
-
-        public void write(ByteBuffer buf) {
-            buffer = buf;
-        }
-        
-        public WriteFuture flush() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     public void testEncoding() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         Message message = new Logon();
@@ -57,6 +45,35 @@ public class FIXMessageEncoderTest extends TestCase {
         assertTrue(protocolEncoderOutputForTest.buffer.limit() > 0);
     }
 
+    public void testWesternEuropeanEncoding() throws Exception {
+            // Default encoding, should work
+            doEncodingTest();
+            
+            try {
+                // This will break because of European characters
+                CharsetSupport.setCharset("US-ASCII");
+                doEncodingTest();
+            } catch (ComparisonFailure e) {
+                // expected
+            } finally {
+                CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+            }
+    }
+
+    private void doEncodingTest() throws ProtocolCodecException, UnsupportedEncodingException {
+        Headline headline = new Headline("äbcfödçé");
+        News news = new News();
+        news.set(headline);
+System.out.println(news);
+        FIXMessageEncoder encoder = new FIXMessageEncoder();
+        ProtocolEncoderOutputForTest encoderOut = new ProtocolEncoderOutputForTest();
+        encoder.encode(null, news, encoderOut);
+        byte[] bytes = new byte[encoderOut.buffer.limit()-encoderOut.buffer.position()];
+        encoderOut.buffer.get(bytes);
+        
+        assertEquals("wrong encoding", new String(bytes, CharsetSupport.getCharset()), news.toString());
+    }
+    
     public void testEncodingBadType() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         try {

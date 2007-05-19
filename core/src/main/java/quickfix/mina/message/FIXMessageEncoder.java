@@ -19,6 +19,7 @@
 
 package quickfix.mina.message;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.apache.mina.filter.codec.demux.MessageEncoder;
+import org.quickfixj.CharsetSupport;
 
 import quickfix.Message;
 import edu.emory.mathcs.backport.java.util.Collections;
@@ -38,7 +40,8 @@ import edu.emory.mathcs.backport.java.util.Collections;
 public class FIXMessageEncoder implements MessageEncoder {
 
     private static final Set TYPES;
-
+    private final String charsetEncoding;
+    
     static {
         Set types = new HashSet();
         types.add(Message.class);
@@ -46,6 +49,10 @@ public class FIXMessageEncoder implements MessageEncoder {
         TYPES = Collections.unmodifiableSet(types);
     }
 
+    public FIXMessageEncoder() {
+        charsetEncoding = CharsetSupport.getCharset();
+    }
+    
     public Set getMessageTypes() {
         return TYPES;
     }
@@ -65,9 +72,12 @@ public class FIXMessageEncoder implements MessageEncoder {
         }
 
         ByteBuffer buffer = ByteBuffer.allocate(fixMessageString.length());
-        buffer.put(fixMessageString.getBytes());
+        try {
+            buffer.put(fixMessageString.getBytes(charsetEncoding));
+        } catch (UnsupportedEncodingException e) {
+            throw new ProtocolCodecException(e);
+        }
         buffer.flip();
         out.write(buffer);
     }
-
 }

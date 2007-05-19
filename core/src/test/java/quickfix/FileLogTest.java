@@ -24,9 +24,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
 
-import quickfix.field.converter.UtcTimestampConverter;
-
 import junit.framework.TestCase;
+
+import org.quickfixj.CharsetSupport;
+
+import quickfix.field.converter.UtcTimestampConverter;
 
 public class FileLogTest extends TestCase {
     public FileLogTest(String name) {
@@ -43,12 +45,11 @@ public class FileLogTest extends TestCase {
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
 
-        File path = File.createTempFile("test", "");
         SessionSettings settings = new SessionSettings();
-        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
-                .getAbsolutePath());
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, getTempDirectory());
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog) factory.create(sessionID);
+        log.clear();
         log.setSyncAfterWrite(true);
 
         String prefix = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
@@ -59,24 +60,33 @@ public class FileLogTest extends TestCase {
         assertEquals(prefix + ".messages.log", new File(log.getMessagesFileName()).getName());
         log.clear();
 
-        log.onOutgoing("OUTTEST");
-        assertEquals("wrong message", "OUTTEST\n", readLog(log.getMessagesFileName()));
+        // Also, tests encoding
+        String outgoingText = "OUTTEST äbcfödçé";
+        log.onOutgoing(outgoingText);
+        assertEquals("wrong message", outgoingText + "\n", readLog(log.getMessagesFileName()));
 
         // Bug #140
         assertEquals(prefix + ".event.log", new File(log.getEventFileName()).getName());
 
         log.onEvent("EVENTTEST");
+        log.close();
+
         String formattedTime = UtcTimestampConverter.convert(new Date(systemTime), false);
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
                 .getEventFileName()));
 
         // Test append - Bug #140
         // The last output should still be in the file
-        log.close();
         log = (FileLog) factory.create(sessionID);
-        assertEquals("wrong message", "OUTTEST\n", readLog(log.getMessagesFileName()));
+        assertEquals("wrong message", outgoingText + "\n", readLog(log.getMessagesFileName()));
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
                 .getEventFileName()));
+    }
+
+    private String getTempDirectory() throws IOException {
+        File path = File.createTempFile("test", "");
+        File tempdir = path.getParentFile();
+        return tempdir.getAbsolutePath();
     }
 
     public void testHeartbeatFiltering() throws Exception {
@@ -84,19 +94,18 @@ public class FileLogTest extends TestCase {
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
 
-        File path = File.createTempFile("test", "");
         SessionSettings settings = new SessionSettings();
-        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
-                .getAbsolutePath());
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, getTempDirectory());
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog) factory.create(sessionID);
+        log.clear();
         log.setSyncAfterWrite(true);
 
         String prefix = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
                 + sessionID.getTargetCompID();
 
         String loggedText = "HEARTBEAT\00135=0\001";
-        
+
         log.onIncoming(loggedText);
         assertEquals("wrong message", loggedText + "\n", readLog(log.getMessagesFileName()));
         assertEquals(prefix + ".messages.log", new File(log.getMessagesFileName()).getName());
@@ -105,12 +114,12 @@ public class FileLogTest extends TestCase {
         log.onOutgoing(loggedText);
         assertEquals("wrong message", loggedText + "\n", readLog(log.getMessagesFileName()));
         log.clear();
-        
+
         settings.setBool(FileLogFactory.SETTING_LOG_HEARTBEATS, false);
         log = (FileLog) factory.create(sessionID);
-        
+
         loggedText = "FILTERED_HEARTBEAT\00135=0\001";
-        
+
         log.onIncoming(loggedText);
         assertEquals("wrong message", "", readLog(log.getMessagesFileName()));
 
@@ -127,12 +136,10 @@ public class FileLogTest extends TestCase {
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
 
-        File path = File.createTempFile("test", "");
         SessionSettings settings = new SessionSettings();
-        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
-                .getAbsolutePath());
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, getTempDirectory());
         settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_TIMESTAMP_FOR_MESSAGES, true);
-        
+
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog) factory.create(sessionID);
         log.setSyncAfterWrite(true);
@@ -143,12 +150,14 @@ public class FileLogTest extends TestCase {
                 + sessionID.getTargetCompID();
 
         log.onIncoming("INTEST");
-        assertEquals("wrong message", formattedTime + ": " + "INTEST\n", readLog(log.getMessagesFileName()));
+        assertEquals("wrong message", formattedTime + ": " + "INTEST\n", readLog(log
+                .getMessagesFileName()));
         assertEquals(prefix + ".messages.log", new File(log.getMessagesFileName()).getName());
         log.clear();
 
         log.onOutgoing("OUTTEST");
-        assertEquals("wrong message", formattedTime + ": " + "OUTTEST\n", readLog(log.getMessagesFileName()));
+        assertEquals("wrong message", formattedTime + ": " + "OUTTEST\n", readLog(log
+                .getMessagesFileName()));
     }
 
     public void testLogWithMillisInTimestamp() throws Exception {
@@ -156,12 +165,10 @@ public class FileLogTest extends TestCase {
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
 
-        File path = File.createTempFile("test", "");
         SessionSettings settings = new SessionSettings();
-        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, path.getParentFile()
-                .getAbsolutePath());
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, getTempDirectory());
         settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, true);
-        
+
         FileLogFactory factory = new FileLogFactory(settings);
         FileLog log = (FileLog) factory.create(sessionID);
         log.setSyncAfterWrite(true);
@@ -171,13 +178,13 @@ public class FileLogTest extends TestCase {
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
                 .getEventFileName()));
     }
-    
+
     private String readLog(String path) throws IOException {
         File file = new File(path);
         FileInputStream in = new FileInputStream(file);
         byte[] data = new byte[(int) file.length()];
         in.read(data);
-        return new String(data);
+        return new String(data, CharsetSupport.getCharset());
 
     }
 }

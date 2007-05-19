@@ -25,7 +25,6 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +34,7 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.MessageDecoder;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
+import org.quickfixj.CharsetSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +45,13 @@ import quickfix.mina.CriticalProtocolCodecException;
  * message string is then passed to MINA IO handlers for further processing.
  */
 public class FIXMessageDecoder implements MessageDecoder {
+    private static final String FIELD_DELIMITER = "\001";
+
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final byte[] HEADER_PATTERN = "8=FIX.?.?\0019=".getBytes();
-    private static final byte[] CHECKSUM_PATTERN = "10=???\001".getBytes();
-    private static final byte[] LOGON_PATTERN = "\00135=A\001".getBytes();
+    private final byte[] HEADER_PATTERN;
+    private final byte[] CHECKSUM_PATTERN;
+    private final byte[] LOGON_PATTERN;
 
     // Parsing states
     private static final int SEEKING_HEADER = 1;
@@ -61,7 +63,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     private int bodyLength;
     private int position;
     private int headerOffset;
-    private String charsetName = "ISO_8859-1";
+    private final String charsetEncoding;
 
     private void resetState() {
         state = SEEKING_HEADER;
@@ -69,7 +71,19 @@ public class FIXMessageDecoder implements MessageDecoder {
         position = 0;
     }
 
-    public FIXMessageDecoder() {
+    public FIXMessageDecoder() throws UnsupportedEncodingException {
+        this(CharsetSupport.getCharset(), FIELD_DELIMITER);
+    }
+
+    public FIXMessageDecoder(String charset) throws UnsupportedEncodingException {
+        this(charset, FIELD_DELIMITER);
+    }
+
+    public FIXMessageDecoder(String charset, String delimiter) throws UnsupportedEncodingException {
+        charsetEncoding = CharsetSupport.validate(charset);
+        HEADER_PATTERN = getBytes("8=FIX.?.?" + delimiter + "9=");
+        CHECKSUM_PATTERN = getBytes("10=???" + delimiter);
+        LOGON_PATTERN = getBytes("\00135=A" + delimiter);
         resetState();
     }
 
@@ -226,7 +240,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     private String getMessageString(ByteBuffer buffer) throws UnsupportedEncodingException {
         byte[] data = new byte[position - buffer.position()];
         buffer.get(data);
-        return new String(data, charsetName);
+        return new String(data, charsetEncoding);
     }
 
     private void handleError(ByteBuffer buffer, int recoveryPosition, String text,
@@ -266,14 +280,6 @@ public class FIXMessageDecoder implements MessageDecoder {
             }
         }
         return true;
-    }
-
-    public void setCharsetName(String charsetName) throws UnsupportedEncodingException {
-        if (Charset.isSupported(charsetName)) {
-            this.charsetName = charsetName;
-        } else {
-            throw new UnsupportedEncodingException();
-        }
     }
 
     public void finishDecode(IoSession arg0, ProtocolDecoderOutput arg1) throws Exception {
@@ -340,5 +346,13 @@ public class FIXMessageDecoder implements MessageDecoder {
             }
 
         });
+    }
+
+    private static byte[] getBytes(String s) {
+        try {
+            return s.getBytes(CharsetSupport.getDefaultCharset());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

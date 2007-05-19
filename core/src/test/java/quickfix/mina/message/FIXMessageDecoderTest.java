@@ -33,15 +33,19 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 import org.easymock.ArgumentsMatcher;
 import org.easymock.MockControl;
+import org.quickfixj.CharsetSupport;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
-
+import quickfix.DataDictionaryTest;
+import quickfix.FieldNotFound;
+import quickfix.InvalidMessage;
+import quickfix.Message;
+import quickfix.field.Headline;
 import quickfix.mina.CriticalProtocolCodecException;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class FIXMessageDecoderTest extends TestCase {
     private FIXMessageDecoder decoder;
@@ -62,7 +66,7 @@ public class FIXMessageDecoderTest extends TestCase {
 
     public void testInvalidStringCharset() throws Exception {
         try {
-            decoder.setCharsetName("BOGUS");
+            decoder = new FIXMessageDecoder("BOGUS");
             fail("no exception thrown");
         } catch (UnsupportedEncodingException e) {
             // expected
@@ -71,11 +75,42 @@ public class FIXMessageDecoderTest extends TestCase {
     }
 
     public void testStringDecoding() throws Exception {
-        decoder.setCharsetName("UTF-16");
+        decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001");
         MessageDecoderResult decoderResult = decoder.decode(null, buffer, decoderOutput);
         assertEquals("wrong decoder result", MessageDecoderResult.OK, decoderResult);
         assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
+    }
+
+    public void testWesternEuropeanDecoding() throws Exception {
+        // Should work with default encoding
+        doWesternEuropeanDecodingTest();
+        
+        try {
+            // Should break
+            CharsetSupport.setCharset("US-ASCII");
+            doWesternEuropeanDecodingTest();
+        } catch (InvalidMessage e) {
+            // expected
+        } finally {
+            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+        }
+    }
+
+    private void doWesternEuropeanDecodingTest() throws UnsupportedEncodingException, ProtocolCodecException, InvalidMessage, Exception, FieldNotFound {
+        FIXMessageDecoder decoder = new FIXMessageDecoder();
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        String headline = "äbcfödçé";
+        byteBuffer.put(("8=FIX.4.49=1835=B148=" + headline + "10=253").getBytes("ISO-8859-1"));
+        byteBuffer.flip();
+
+        ProtocolDecoderOutputForTest decoderOutput = new ProtocolDecoderOutputForTest();
+        decoder.decode(null, byteBuffer, decoderOutput);
+
+        Message decodedMessage = new Message(decoderOutput.getMessage(), DataDictionaryTest
+                .getDictionary(), true);
+
+        assertEquals("wrong text", headline, decodedMessage.getString(Headline.FIELD));
     }
 
     public void testPartialHeader() throws Exception {
@@ -173,18 +208,18 @@ public class FIXMessageDecoderTest extends TestCase {
                     messages.get(i));
         }
     }
-    
+
     public void testMessageStreamingExtraction() throws Exception {
         File testFile = setUpTestFile();
 
         FIXMessageDecoder decoder = new FIXMessageDecoder();
         final List messages = new ArrayList();
         decoder.extractMessages(testFile, new FIXMessageDecoder.MessageListener() {
-        
+
             public void onMessage(String message) {
                 messages.add(message);
             }
-        
+
         });
         assertCorrectlyExtractedMessages(messages);
     }
@@ -333,36 +368,5 @@ public class FIXMessageDecoderTest extends TestCase {
         buffer.put(bytes);
         buffer.flip();
         return new String(bytes, charsetName);
-    }
-
-    private class ProtocolDecoderOutputForTest implements ProtocolDecoderOutput {
-        public List messages = new ArrayList();
-
-        public void write(Object message) {
-            messages.add(message);
-        }
-
-        public int getMessageCount() {
-            return messages.size();
-        }
-
-        public String getMessage() {
-            if (messages.isEmpty()) {
-                return null;
-            }
-            return getMessage(0);
-        }
-
-        public String getMessage(int n) {
-            return (String) messages.get(n);
-        }
-
-        public void reset() {
-            messages.clear();
-        }
-
-        public void flush() {
-            // empty
-        }
     }
 }

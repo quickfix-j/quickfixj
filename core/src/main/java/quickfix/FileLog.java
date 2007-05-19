@@ -24,6 +24,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+
+import org.quickfixj.CharsetSupport;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -34,7 +37,15 @@ import quickfix.field.converter.UtcTimestampConverter;
  * @see quickfix.FileLogFactory
  */
 public class FileLog extends AbstractLog {
-    private static final byte[] TIME_STAMP_DELIMETER = ": ".getBytes();
+    private static final byte[] TIME_STAMP_DELIMETER;
+    static {
+        try {
+            TIME_STAMP_DELIMETER = ": ".getBytes(CharsetSupport.getCharset());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     private SessionID sessionID;
     private String messagesFileName;
     private String eventFileName;
@@ -78,23 +89,23 @@ public class FileLog extends AbstractLog {
     }
 
     protected void logIncoming(String message) {
-        writeMessage(message);
+        writeMessage(messages, message, false);
     }
 
     protected void logOutgoing(String message) {
-        writeMessage(message);
+        writeMessage(messages, message, false);
     }
 
-    private void writeMessage(String message) {
+    private void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
         try {
-            if (includeTimestampForMessages) {
-                writeTimeStamp(messages);
+            if (forceTimestamp || includeTimestampForMessages) {
+                writeTimeStamp(stream);
             }
-            messages.write(message.getBytes());
-            messages.write('\n');
-            messages.flush();
+            stream.write(message.getBytes(CharsetSupport.getCharset()));
+            stream.write('\n');
+            stream.flush();
             if (syncAfterWrite) {
-                messages.getFD().sync();
+                stream.getFD().sync();
             }
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, "error writing message to log", e);
@@ -102,22 +113,12 @@ public class FileLog extends AbstractLog {
     }
 
     public void onEvent(String message) {
-        try {
-            writeTimeStamp(events);
-            events.write(message.getBytes());
-            events.write('\n');
-            events.flush();
-            if (syncAfterWrite) {
-                events.getFD().sync();
-            }
-        } catch (IOException e) {
-            LogUtil.logThrowable(sessionID, "error writing event to log", e);
-        }
+        writeMessage(events, message, true);
     }
 
     private void writeTimeStamp(OutputStream out) throws IOException {
         String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis);
-        out.write(formattedTime.getBytes());
+        out.write(formattedTime.getBytes(CharsetSupport.getCharset()));
         out.write(TIME_STAMP_DELIMETER);
     }
 

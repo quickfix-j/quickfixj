@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
+import org.quickfixj.CharsetSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +63,10 @@ public class SleepycatStore implements MessageStore {
     private SessionIDTupleBinding sessionIDBinding = new SessionIDTupleBinding();
     private SessionInfoTupleBinding sessionInfoBinding = new SessionInfoTupleBinding();
     private Environment environment;
+
+    private final DatabaseEntry sessionIDKey = new DatabaseEntry();
+    private final DatabaseEntry sessionInfoBytes = new DatabaseEntry();
+    private String charsetEncoding = CharsetSupport.getCharset();
 
     private static class SessionIDTupleBinding extends TupleBinding {
         /*
@@ -215,10 +220,10 @@ public class SleepycatStore implements MessageStore {
             } else {
                 Integer sequenceNumber = (Integer) sequenceBinding.entryToObject(sequenceKey);
                 while (sequenceNumber.intValue() <= endSequence) {
-                    messages.add(new String(messageBytes.getData()));
+                    messages.add(new String(messageBytes.getData(), charsetEncoding));
                     if (log.isDebugEnabled()) {
                         log.debug("Found record " + sequenceNumber + "=>"
-                                + new String(messageBytes.getData()) + " for search key/data: "
+                                + new String(messageBytes.getData(), charsetEncoding) + " for search key/data: "
                                 + sequenceKey + "=>" + messageBytes);
                     }
                     cursor.getNext(sequenceKey, messageBytes, LockMode.DEFAULT);
@@ -287,7 +292,7 @@ public class SleepycatStore implements MessageStore {
             DatabaseEntry sequenceKey = new DatabaseEntry();
             EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
             sequenceBinding.objectToEntry(new Integer(sequence), sequenceKey);
-            DatabaseEntry messageBytes = new DatabaseEntry(message.getBytes("UTF-8"));
+            DatabaseEntry messageBytes = new DatabaseEntry(message.getBytes(CharsetSupport.getCharset()));
             messageDatabase.put(null, sequenceKey, messageBytes);
         } catch (Exception e) {
             convertToIOExceptionAndRethrow(e);
@@ -304,9 +309,6 @@ public class SleepycatStore implements MessageStore {
         info.setNextTargetMsgSeqNum(next);
         storeSessionInfo();
     }
-
-    private final DatabaseEntry sessionIDKey = new DatabaseEntry();
-    private final DatabaseEntry sessionInfoBytes = new DatabaseEntry();
 
     private void loadSessionInfo() throws IOException {
         synchronized (sessionIDKey) {
