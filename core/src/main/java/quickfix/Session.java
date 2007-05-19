@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import quickfix.Message.Header;
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
 import quickfix.field.BusinessRejectReason;
@@ -203,9 +204,12 @@ public class Session {
     private final MessageFactory messageFactory;
 
     // @GuardedBy(this)
-    private final SessionState state = new SessionState();
+    private final SessionState state;
 
     private boolean enabled;
+
+    private String responderSync = "SessionResponderSync";
+    // @GuardedBy(responderSync)
     private Responder responder;
 
     //
@@ -260,28 +264,27 @@ public class Session {
         this.checkCompID = checkCompID;
         this.redundantResentRequestsAllowed = redundantResentRequestsAllowed;
         this.persistMessages = persistMessages;
+        this.state = new SessionState(this, logFactory != null
+                ? logFactory.create(sessionID)
+                : null, heartbeatInterval, heartbeatInterval != 0, messageStoreFactory
+                .create(sessionID));
 
-        synchronized (this) {
-            if (logFactory != null) {
-                state.setLog(logFactory.create(sessionID));
-            }
+        registerSession(this);
 
-            state.setHeartBeatInterval(heartbeatInterval);
-            state.setInitiator(heartbeatInterval != 0);
-            state.setMessageStore(messageStoreFactory.create(sessionID));
-            registerSession(this);
-            getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
-            try {
-                if (!checkSessionTime()) {
-                    getLog().onEvent("Session state is not current; resetting " + sessionID);
-                    reset();
-                }
-            } catch (IOException e) {
-                LogUtil.logThrowable(getLog(), "error during session construction", e);
+        getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
+        try {
+            if (!checkSessionTime()) {
+                getLog().onEvent("Session state is not current; resetting " + sessionID);
+                reset();
             }
+        } catch (IOException e) {
+            LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
 
-        enabled = true;
+        synchronized (this) {
+            enabled = true;
+        }
+
         getLog().onEvent("Created session: " + sessionID);
     }
 
@@ -295,8 +298,16 @@ public class Session {
      *
      * @param responder a responder implementation
      */
-    public synchronized void setResponder(Responder responder) {
-        this.responder = responder;
+    public void setResponder(Responder responder) {
+        synchronized (responderSync) {
+            this.responder = responder;
+        }
+    }
+
+    public Responder getResponder() {
+        synchronized (responderSync) {
+            return responder;
+        }
     }
 
     /**
@@ -304,15 +315,11 @@ public class Session {
      *
      * @return the Session's connection responder
      */
-    public synchronized boolean hasResponder() {
-        return responder != null;
+    public boolean hasResponder() {
+        return getResponder() != null;
     }
 
-    private boolean checkSessionTime() throws IOException {
-        return checkSessionTime(SystemTime.getDate());
-    }
-
-    private boolean checkSessionTime(Date date) throws IOException {
+    private synchronized boolean checkSessionTime() throws IOException {
         if (sessionSchedule == null) {
             return true;
         }
@@ -321,6 +328,7 @@ public class Session {
         // Only check the session time once per second at most. It isn't
         // necessary to do for every message received.
         //
+        Date date = SystemTime.getDate();
         if ((date.getTime() - lastSessionTimeCheck) >= 1000L) {
             Date getSessionCreationTime = state.getCreationTime();
             lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date),
@@ -435,7 +443,7 @@ public class Session {
             sessions.remove((SessionID) sessionIds.get(i));
         }
     }
-    
+
     /**
      * Locates a session specified by the provided session ID.
      *
@@ -629,16 +637,15 @@ public class Session {
      * Get the message store. (QF Compatibility)
      * @return the message store
      */
-    public synchronized MessageStore getStore() {
+    public MessageStore getStore() {
         return state.getMessageStore();
     }
 
     /**
      * (Internal use only)
      */
-    public synchronized void next(Message message) throws FieldNotFound, RejectLogon,
-            IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException,
-            InvalidMessage {
+    public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
+            IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
         if (!checkSessionTime()) {
             reset();
@@ -677,7 +684,9 @@ public class Session {
                 if (!verify(message)) {
                     return;
                 }
-                state.incrNextTargetMsgSeqNum();
+                synchronized (this) {
+                    state.incrNextTargetMsgSeqNum();
+                }
             }
         } catch (FieldException e) {
             generateReject(message, e.getSessionRejectReason(), e.getField());
@@ -760,17 +769,19 @@ public class Session {
         getLog().onEvent("Received ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
 
         String beginString = sessionID.getBeginString();
+        int expectedSenderNum = getExpectedSenderNum();
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0 && endSeqNo == 0
                 || beginString.compareTo(FixVersions.BEGINSTRING_FIX42) <= 0 && endSeqNo == 999999
-                || endSeqNo >= getExpectedSenderNum()) {
-            endSeqNo = getExpectedSenderNum() - 1;
+                || endSeqNo >= expectedSenderNum) {
+            endSeqNo = expectedSenderNum - 1;
         }
 
         if (!persistMessages) {
             endSeqNo += 1;
             int next = state.getNextSenderMsgSeqNum();
-            if (endSeqNo > next)
+            if (endSeqNo > next) {
                 endSeqNo = next;
+            }
             generateSequenceReset(beginSeqNo, endSeqNo);
             return;
         }
@@ -810,6 +821,7 @@ public class Session {
             }
             current = msgSeqNum + 1;
         }
+
         if (begin != 0) {
             generateSequenceReset(begin, msgSeqNum + 1);
         }
@@ -824,7 +836,9 @@ public class Session {
 
         msgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
         if (!isTargetTooHigh(msgSeqNum) && !isTargetTooLow(msgSeqNum)) {
-            state.incrNextTargetMsgSeqNum();
+            synchronized (this) {
+                state.incrNextTargetMsgSeqNum();
+            }
         }
     }
 
@@ -843,12 +857,12 @@ public class Session {
         Message sequenceReset = messageFactory.create(sessionID.getBeginString(),
                 MsgType.SEQUENCE_RESET);
         int newSeqNo = endSeqNo;
-        sequenceReset.getHeader().setBoolean(PossDupFlag.FIELD, true);
+        Header header = sequenceReset.getHeader();
+        header.setBoolean(PossDupFlag.FIELD, true);
+        initializeHeader(header);
+        header.setUtcTimeStamp(OrigSendingTime.FIELD, header.getUtcTimeStamp(SendingTime.FIELD));
+        header.setInt(MsgSeqNum.FIELD, beginSeqNo);
         sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
-        initializeHeader(sequenceReset.getHeader());
-        sequenceReset.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD,
-                sequenceReset.getHeader().getUtcTimeStamp(SendingTime.FIELD));
-        sequenceReset.getHeader().setInt(MsgSeqNum.FIELD, beginSeqNo);
         sequenceReset.setBoolean(GapFillFlag.FIELD, true);
         sendRaw(sequenceReset, beginSeqNo);
         getLog().onEvent("Sent SequenceReset TO: " + newSeqNo);
@@ -1006,10 +1020,10 @@ public class Session {
         }
 
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
-            populateRejectReason(reject, field, reason, true);
+            setRejectReason(reject, field, reason, true);
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
         } else if (reason != null) {
-            populateRejectReason(reject, reason);
+            setRejectReason(reject, reason);
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason);
         } else
             getLog().onEvent("Message " + msgSeqNum + " Rejected");
@@ -1017,11 +1031,11 @@ public class Session {
         sendRaw(reject, 0);
     }
 
-    private void populateRejectReason(Message reject, String reason) {
+    private void setRejectReason(Message reject, String reason) {
         reject.setString(Text.FIELD, reason);
     }
 
-    private void populateRejectReason(Message reject, int field, String reason,
+    private void setRejectReason(Message reject, int field, String reason,
             boolean includeFieldInReason) {
         boolean isRejectMessage;
         try {
@@ -1051,7 +1065,7 @@ public class Session {
         state.incrNextTargetMsgSeqNum();
 
         String reason = BusinessRejectReasonText.getMessage(err);
-        populateRejectReason(reject, field, reason, false);
+        setRejectReason(reject, field, reason, false);
         getLog().onEvent(
                 "Message " + msgSeqNum + (reason != null ? (" Rejected: " + reason) : "")
                         + (field != 0 ? (": tag=" + field) : ""));
@@ -1113,6 +1127,7 @@ public class Session {
                 doBadTime(msg);
                 return false;
             }
+
             if (!isCorrectCompID(senderCompID, targetCompID)) {
                 doBadCompID(msg);
                 return false;
@@ -1127,13 +1142,14 @@ public class Session {
             }
 
             if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
-                int[] range = state.getResendRange();
-
-                if (msgSeqNum >= range[1]) {
-                    getLog().onEvent(
-                            "ResendRequest for messages FROM: " + range[0] + " TO: " + range[1]
-                                    + " has been satisfied.");
-                    state.setResendRange(0, 0);
+                synchronized (this) {
+                    int[] range = state.getResendRange();
+                    if (msgSeqNum >= range[1]) {
+                        getLog().onEvent(
+                                "ResendRequest for messages FROM: " + range[0] + " TO: " + range[1]
+                                        + " has been satisfied.");
+                        state.setResendRange(0, 0);
+                    }
                 }
             }
         } catch (FieldNotFound e) {
@@ -1197,7 +1213,7 @@ public class Session {
         }
     }
 
-    private boolean validLogonState(String msgType) {
+    private synchronized boolean validLogonState(String msgType) {
         if (msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived()) {
             return true;
         }
@@ -1231,7 +1247,7 @@ public class Session {
      *
      * @throws IOException IO error
      */
-    public synchronized void next() throws IOException {
+    public void next() throws IOException {
         if (!enabled) {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
@@ -1328,14 +1344,16 @@ public class Session {
      *
      * @throws IOException IO error
      */
-    public synchronized void disconnect() throws IOException {
+    public void disconnect() throws IOException {
         if (hasResponder()) {
             getLog().onEvent("Disconnecting");
-            responder.disconnect();
+            getResponder().disconnect();
             setResponder(null);
         }
 
-        if (state.isLogonReceived() || state.isLogonSent()) {
+        boolean logonReceived = state.isLogonReceived();
+        boolean logonSent = state.isLogonSent();
+        if (logonReceived || logonSent) {
             state.setLogonReceived(false);
             state.setLogonSent(false);
             application.onLogout(sessionID);
@@ -1348,11 +1366,12 @@ public class Session {
 
         state.clearQueue();
         state.clearLogoutReason();
+        state.setResendRange(0, 0);
+
         if (resetOnDisconnect) {
             state.reset();
         }
 
-        state.setResendRange(0, 0);
     }
 
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -1362,7 +1381,7 @@ public class Session {
 
         if (isStateRefreshNeeded(MsgType.LOGON)) {
             getLog().onEvent("Refreshing message/state store at logon");
-            getStore().refresh();
+            state.getMessageStore().refresh();
         }
 
         if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
@@ -1619,7 +1638,7 @@ public class Session {
      * @return a status flag indicating whether the write to the network layer was successful.
      * 
      */
-    public synchronized boolean send(Message message) {
+    public boolean send(Message message) {
         message.getHeader().removeField(PossDupFlag.FIELD);
         message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
@@ -1627,11 +1646,11 @@ public class Session {
 
     private boolean send(String messageString) {
         getLog().onOutgoing(messageString);
-        if (responder == null) {
+        if (!hasResponder()) {
             getLog().onEvent("No responder, not sending message");
             return false;
         }
-        return responder.send(messageString);
+        return getResponder().send(messageString);
     }
 
     private boolean isCorrectCompID(String senderCompID, String targetCompID) {
@@ -1649,9 +1668,10 @@ public class Session {
      * @param dataDictionary
      */
     public void setDataDictionary(DataDictionary dataDictionary) {
-        throw new UnsupportedOperationException("Modification of session dictionary is not supported in QFJ");
+        throw new UnsupportedOperationException(
+                "Modification of session dictionary is not supported in QFJ");
     }
-    
+
     public DataDictionary getDataDictionary() {
         return dataDictionary;
     }
@@ -1714,10 +1734,6 @@ public class Session {
      */
     public synchronized void setHeartBeatInterval(int heartbeatInterval) {
         state.setHeartBeatInterval(heartbeatInterval);
-    }
-
-    public synchronized Responder getResponder() {
-        return responder;
     }
 
     public boolean getCheckCompID() {
@@ -1787,6 +1803,15 @@ public class Session {
     public synchronized Date getStartTime() throws IOException {
         return state.getCreationTime();
     }
-    
-    
+
+    public String toString() {
+        String s = sessionID.toString();
+        try {
+            s += "[in:" + state.getNextTargetMsgSeqNum() + ",out:"
+                    + state.getNextSenderMsgSeqNum() + "]";
+        } catch (IOException e) {
+            LogUtil.logThrowable(sessionID, e.getMessage(), e);
+        }
+        return s;
+    }
 }

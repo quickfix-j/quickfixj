@@ -34,7 +34,7 @@ public class SessionStateTest extends TestCase {
     }
     
     public void testTimeoutDefaultsAreNonzero() throws Exception {
-        SessionState state = new SessionState();
+        SessionState state = new SessionState(new Object(), null, 0, false, null);
         state.setLastReceivedTime(900);
         assertFalse("logon timeout not init'ed", state.isLogonTimedOut());
         

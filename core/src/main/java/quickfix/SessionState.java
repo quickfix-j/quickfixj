@@ -17,7 +17,6 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
 import java.io.IOException;
@@ -28,77 +27,104 @@ import java.util.HashMap;
 /**
  * Used by the session communications code. Not intended to be used by
  * applications.
+ * 
+ * All dynamic data is protected by the session's intrinsic lock. The
+ * log and message store implementation must be thread safe.
  */
-public class SessionState {
-    private Log log;
+public final class SessionState {
+    private final Object lock;
+    private final Log log;
+    private final MessageStore messageStore;
+    private final boolean initiator;
+
+    private long logonTimeoutMs = 10000L;
+    private long logoutTimeoutMs = 2000L;
+
     private boolean logonSent;
     private boolean logonReceived;
     private boolean logoutSent;
     private boolean logoutReceived = false;
-    private boolean initiator;
-    private long logonTimeoutMs = 10000L;
-    private long logoutTimeoutMs = 2000L;
     private int testRequestCounter;
-    private MessageStore messageStore;
     private long lastSentTime;
     private long lastReceivedTime;
     private boolean withinHeartBeat;
-    private long heartbeatMillis = Long.MAX_VALUE;
+    private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
     private HashMap messageQueue = new HashMap();
-    private int[] resendRange = new int[]{ 0, 0 };
+    private int[] resendRange = new int[] { 0, 0 };
     private boolean resetSent;
     private boolean resetReceived;
     private String logoutReason;
-    
-    public SessionState() {
-        log = new NullLog();
+
+    public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator,
+            MessageStore messageStore) {
+        this.lock = lock;
+        this.initiator = initiator;
+        this.messageStore = messageStore;
+        this.heartBeatInterval = heartBeatInterval;
+        this.log = log == null ? new NullLog() : log;
     }
-    
+
     public int getHeartBeatInterval() {
-        return heartBeatInterval;
+        synchronized (lock) {
+            return heartBeatInterval;
+        }
     }
 
     public void setHeartBeatInterval(int heartBeatInterval) {
-        this.heartBeatInterval = heartBeatInterval;
-        heartbeatMillis = heartBeatInterval * 1000L;
+        synchronized (lock) {
+            this.heartBeatInterval = heartBeatInterval;
+        }
+        setHeartBeatMillis(heartBeatInterval * 1000L);
+    }
+
+    private void setHeartBeatMillis(long heartBeatMillis) {
+        synchronized (lock) {
+            this.heartBeatMillis = heartBeatMillis;
+        }
+    }
+
+    private long getHeartBeatMillis() {
+        synchronized (lock) {
+            return heartBeatMillis;
+        }
     }
 
     public boolean isHeartBeatNeeded() {
         long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
-        return millisSinceLastSentTime >= heartbeatMillis && getTestRequestCounter() == 0;
+        return millisSinceLastSentTime >= getHeartBeatMillis() && getTestRequestCounter() == 0;
     }
 
     public boolean isInitiator() {
         return initiator;
     }
 
-    public void setInitiator(boolean initiator) {
-        this.initiator = initiator;
-    }
-
     public long getLastReceivedTime() {
-        return lastReceivedTime;
+        synchronized (lock) {
+            return lastReceivedTime;
+        }
     }
 
     public void setLastReceivedTime(long lastReceivedTime) {
-        this.lastReceivedTime = lastReceivedTime;
+        synchronized (lock) {
+            this.lastReceivedTime = lastReceivedTime;
+        }
     }
 
     public long getLastSentTime() {
-        return lastSentTime;
+        synchronized (lock) {
+            return lastSentTime;
+        }
     }
 
     public void setLastSentTime(long lastSentTime) {
-        this.lastSentTime = lastSentTime;
+        synchronized (lock) {
+            this.lastSentTime = lastSentTime;
+        }
     }
 
     public Log getLog() {
         return log;
-    }
-
-    public void setLog(Log log) {
-        this.log = log;
     }
 
     public boolean isLogonAlreadySent() {
@@ -106,11 +132,15 @@ public class SessionState {
     }
 
     public boolean isLogonReceived() {
-        return logonReceived;
+        synchronized (lock) {
+            return logonReceived;
+        }
     }
 
     public void setLogonReceived(boolean logonReceived) {
-        this.logonReceived = logonReceived;
+        synchronized (lock) {
+            this.logonReceived = logonReceived;
+        }
     }
 
     public boolean isLogonSendNeeded() {
@@ -118,77 +148,119 @@ public class SessionState {
     }
 
     public boolean isLogonSent() {
-        return logonSent;
+        synchronized (lock) {
+            return logonSent;
+        }
     }
 
     public void setLogonSent(boolean logonSent) {
-        this.logonSent = logonSent;
+        synchronized (lock) {
+            this.logonSent = logonSent;
+        }
     }
 
     public boolean isLogonTimedOut() {
-        return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= logonTimeoutMs;
+        synchronized (lock) {
+            return isLogonSent()
+                    && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+        }
     }
 
     public void setLogonTimeout(int logonTimeout) {
-        this.logonTimeoutMs = logonTimeout * 1000L;
+        setLogonTimeoutMs(logonTimeout * 1000L);
     }
 
     public int getLogonTimeout() {
-        return (int)(logonTimeoutMs / 1000L);
+        return (int) (getLogonTimeoutMs() / 1000L);
     }
-    
+
     public void setLogoutTimeout(int logoutTimeout) {
-        this.logoutTimeoutMs = logoutTimeout * 1000L;
+        setLogoutTimeoutMs(logoutTimeout * 1000L);
     }
 
     public int getLogoutTimeout() {
-        return (int)(logoutTimeoutMs / 1000L);
+        return (int) (getLogoutTimeoutMs() / 1000L);
     }
-    
+
+    private void setLogoutTimeoutMs(long logoutTimeoutMs) {
+        synchronized (lock) {
+            this.logoutTimeoutMs = logoutTimeoutMs;
+        }
+    }
+
+    private long getLogoutTimeoutMs() {
+        synchronized (lock) {
+            return logoutTimeoutMs;
+        }
+    }
+
+    private void setLogonTimeoutMs(long logonTimeoutMs) {
+        synchronized (lock) {
+            this.logonTimeoutMs = logonTimeoutMs;
+        }
+    }
+
+    private long getLogonTimeoutMs() {
+        synchronized (lock) {
+            return logonTimeoutMs;
+        }
+    }
+
     public boolean isLogoutSent() {
-        return logoutSent;
+        synchronized (lock) {
+            return logoutSent;
+        }
     }
 
     public void setLogoutSent(boolean logoutSent) {
-        this.logoutSent = logoutSent;
+        synchronized (lock) {
+            this.logoutSent = logoutSent;
+        }
     }
 
     public boolean isLogoutReceived() {
-        return logoutReceived;
+        synchronized (lock) {
+            return logoutReceived;
+        }
     }
 
     public void setLogoutReceived(boolean logoutReceived) {
-        this.logoutReceived = logoutReceived;
+        synchronized (lock) {
+            this.logoutReceived = logoutReceived;
+        }
     }
 
     public boolean isLogoutTimedOut() {
-        return isLogoutSent() && ( ( SystemTime.currentTimeMillis() - getLastSentTime() ) >= logoutTimeoutMs );
+        return isLogoutSent()
+                && ((SystemTime.currentTimeMillis() - getLastSentTime()) >= getLogoutTimeoutMs());
     }
 
     public MessageStore getMessageStore() {
         return messageStore;
     }
 
-    public void setMessageStore(MessageStore messageStore) {
-        this.messageStore = messageStore;
-    }
-
     public int getTestRequestCounter() {
-        return testRequestCounter;
+        synchronized (lock) {
+            return testRequestCounter;
+        }
     }
 
     public void clearTestRequestCounter() {
-        testRequestCounter = 0;
+        synchronized (lock) {
+            testRequestCounter = 0;
+        }
     }
 
     public void incrementTestRequestCounter() {
-        testRequestCounter++;
+        synchronized (lock) {
+            testRequestCounter++;
+        }
     }
 
     public boolean isTestRequestNeeded() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
         return millisSinceLastReceivedTime >= (1.5 * (getTestRequestCounter() + 1))
-                * heartbeatMillis;
+                * getHeartBeatMillis();
     }
 
     private long timeSinceLastReceivedMessage() {
@@ -197,11 +269,13 @@ public class SessionState {
 
     public boolean isTimedOut() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
-        return millisSinceLastReceivedTime >= 2.4 * heartbeatMillis;
+        return millisSinceLastReceivedTime >= 2.4 * getHeartBeatMillis();
     }
 
     public boolean isWithinHeartBeat() {
-        return withinHeartBeat;
+        synchronized (lock) {
+            return withinHeartBeat;
+        }
     }
 
     public boolean set(int sequence, String message) throws IOException {
@@ -257,44 +331,64 @@ public class SessionState {
     }
 
     public void setResendRange(int low, int high) {
-        resendRange[0] = low;
-        resendRange[1] = high;
+        synchronized (lock) {
+            resendRange[0] = low;
+            resendRange[1] = high;
+        }
     }
-    
+
     public boolean isResendRequested() {
-        return !(resendRange[0] == 0 && resendRange[1] == 0);
+        synchronized (lock) {
+            return !(resendRange[0] == 0 && resendRange[1] == 0);
+        }
     }
 
     public int[] getResendRange() {
-        return resendRange;
+        synchronized (lock) {
+            return resendRange;
+        }
     }
 
     public boolean isResetReceived() {
-        return resetReceived;
+        synchronized (lock) {
+            return resetReceived;
+        }
     }
 
     public void setResetReceived(boolean resetReceived) {
-        this.resetReceived = resetReceived;
+        synchronized (lock) {
+            this.resetReceived = resetReceived;
+        }
     }
 
     public boolean isResetSent() {
-        return resetSent;
+        synchronized (lock) {
+            return resetSent;
+        }
     }
 
     public void setResetSent(boolean resetSent) {
-        this.resetSent = resetSent;
+        synchronized (lock) {
+            this.resetSent = resetSent;
+        }
     }
 
     public void setLogoutReason(String reason) {
-        logoutReason = reason;
+        synchronized (lock) {
+            logoutReason = reason;
+        }
     }
-    
+
     public String getLogoutReason() {
-        return logoutReason;
+        synchronized (lock) {
+            return logoutReason;
+        }
     }
 
     public void clearLogoutReason() {
-        logoutReason = "";
+        synchronized (lock) {
+            logoutReason = "";
+        }
     }
 
     private final class NullLog implements Log {
