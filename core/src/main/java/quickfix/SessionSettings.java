@@ -19,12 +19,13 @@
 
 package quickfix;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -654,8 +655,7 @@ public class SessionSettings {
         getDefaultProperties().putAll(dictionary.toMap());
     }
 
-    public void toStream(OutputStream out) {
-        PrintWriter writer = new PrintWriter(out);
+    public void toString(PrintWriter writer) {
         try {
             writeSection("[DEFAULT]", writer, getDefaultProperties());
             Iterator s = sectionIterator();
@@ -671,6 +671,10 @@ public class SessionSettings {
         }
     }
 
+    public void toStream(OutputStream out) {
+        toString(new PrintWriter(new OutputStreamWriter(out)));
+    }
+    
     private void writeSection(String sectionName, PrintWriter writer, Properties properties) {
         writer.println(sectionName);
         Iterator p = properties.keySet().iterator();
@@ -683,8 +687,8 @@ public class SessionSettings {
     }
     
     public String toString() {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        toStream(out);
-        return new String(out.toByteArray());
+        StringWriter writer = new StringWriter();
+        toString(new PrintWriter(writer));
+        return writer.toString();
     }
 }
