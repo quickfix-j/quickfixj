@@ -21,6 +21,8 @@ package quickfix.test.acceptance;
 
 import java.io.IOException;
 
+import junit.framework.Assert;
+
 import quickfix.Application;
 import quickfix.DoNotSend;
 import quickfix.FieldNotFound;
@@ -39,6 +41,7 @@ public class ATApplication implements Application {
 
     public void onCreate(SessionID sessionID) {
         try {
+            assertNoSessionLock(sessionID);
             Session.lookupSession(sessionID).reset();
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,16 +49,25 @@ public class ATApplication implements Application {
     }
 
     public void onLogon(SessionID sessionID) {
+        assertNoSessionLock(sessionID);
+    }
+
+    private void assertNoSessionLock(SessionID sessionID) {
+        Assert.assertFalse("Application is holding session lock", 
+                Thread.holdsLock(Session.lookupSession(sessionID)));
     }
 
     public void onLogout(SessionID sessionID) {
+        assertNoSessionLock(sessionID);
         inboundCracker.reset();
     }
 
     public void toAdmin(Message message, SessionID sessionID) {
+        assertNoSessionLock(sessionID);
     }
 
     public void toApp(Message message, SessionID sessionID) throws DoNotSend {
+        assertNoSessionLock(sessionID);
         try {
             outboundCracker.crack(message, sessionID);
         } catch (ClassCastException e) {
@@ -67,10 +79,12 @@ public class ATApplication implements Application {
 
     public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        assertNoSessionLock(sessionID);
     }
 
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+        assertNoSessionLock(sessionID);
         inboundCracker.crack(message, sessionID);
     }
 }
