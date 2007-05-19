@@ -73,7 +73,7 @@ public abstract class ExpectedTestFailure
              (inError.getMessage().indexOf(mContains)==-1))) &&
             (inError.toString().indexOf(mContains) == -1)) {
             Assert.fail("Thrown throwable contained incorrect message: "+
-                        inError.getMessage()+": "+inError);
+                        "looking for '" + mContains + "' in '" + inError.getMessage() + "'");
         }
     }
 }
