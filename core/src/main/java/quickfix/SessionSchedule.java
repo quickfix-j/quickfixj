@@ -163,68 +163,39 @@ class SessionSchedule {
 
     private TimeInterval theMostRecentIntervalBefore(Calendar t) {
         TimeInterval timeInterval = new TimeInterval();
-        Calendar startCal = timeInterval.getStart();
-        startCal.setTimeInMillis(t.getTimeInMillis());
-        startCal.set(Calendar.MILLISECOND, 0);
+        Calendar intervalStart = timeInterval.getStart();
 
-        int scheduleStartDay = startTime.getDay();
-        int scheduleStartHour = startTime.getHour();
-
-        int day = t.get(Calendar.DAY_OF_WEEK);
-
-        if (isSet(scheduleStartDay)) {
-            startCal.set(Calendar.DAY_OF_WEEK, scheduleStartDay);
-            if (day < scheduleStartDay
-                    || (isSameDay(day, scheduleStartDay) && isTimeBefore(t, startTime))) {
-                startCal.add(Calendar.WEEK_OF_YEAR, -1);
+        intervalStart.setTimeInMillis(t.getTimeInMillis());
+        intervalStart.set(Calendar.HOUR_OF_DAY, startTime.getHour());
+        intervalStart.set(Calendar.MINUTE, startTime.getMinute());
+        intervalStart.set(Calendar.SECOND, startTime.getSecond());
+        intervalStart.set(Calendar.MILLISECOND, 0);
+        if (isSet(startTime.getDay())) {
+            intervalStart.set(Calendar.DAY_OF_WEEK, startTime.getDay());
+            if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
+                intervalStart.add(Calendar.WEEK_OF_YEAR, -1);
             }
-        } else {
-            if (isTimeBefore(t, startTime)) {
-                startCal.add(Calendar.DATE, -1);
-            }
+        } else if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
+            intervalStart.add(Calendar.DAY_OF_YEAR, -1);
         }
 
-        startCal.set(Calendar.HOUR_OF_DAY, scheduleStartHour);
-        startCal.set(Calendar.MINUTE, startTime.getMinute());
-        startCal.set(Calendar.SECOND, startTime.getSecond());
-
-        Calendar endCal = timeInterval.getEnd();
-        endCal.setTimeInMillis(startCal.getTimeInMillis());
-
-        int scheduleEndDay = endTime.getDay();
-
-        if (isSet(scheduleEndDay)) {
-            endCal.set(Calendar.DAY_OF_WEEK, scheduleEndDay);
-            if (scheduleStartDay > scheduleEndDay
-                    || (isSameDay(scheduleStartDay, scheduleEndDay) && isTimeAfter(startTime,
-                            endTime))) {
-                endCal.add(Calendar.WEEK_OF_YEAR, 1);
+        Calendar intervalEnd = timeInterval.getEnd();
+        intervalEnd.setTimeInMillis(intervalStart.getTimeInMillis());
+        intervalEnd.set(Calendar.HOUR_OF_DAY, endTime.getHour());
+        intervalEnd.set(Calendar.MINUTE, endTime.getMinute());
+        intervalEnd.set(Calendar.SECOND, endTime.getSecond());
+        intervalEnd.set(Calendar.MILLISECOND, 0);
+        if (isSet(endTime.getDay())) {
+            intervalEnd.set(Calendar.DAY_OF_WEEK, endTime.getDay());
+            if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
+                intervalEnd.add(Calendar.WEEK_OF_MONTH, 1);
             }
+        } else if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
+            intervalEnd.add(Calendar.DAY_OF_WEEK, 1);
         }
-
-        if (!isSet(scheduleEndDay)
-                && (isTimeAfter(startTime, endTime) || startTime.equals(endTime))) {
-            endCal.add(Calendar.DATE, 1);
-        }
-
-        endCal.set(Calendar.HOUR_OF_DAY, endTime.getHour());
-        endCal.set(Calendar.MINUTE, endTime.getMinute());
-        endCal.set(Calendar.SECOND, endTime.getSecond());
 
         return timeInterval;
-    }
-
-    private boolean isSameDay(int day1, int day2) {
-        return day1 == day2;
-    }
-
-    private boolean isTimeBefore(Calendar calendar, TimeEndPoint timeEndPoint) {
-        return timeInSeconds(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
-                calendar.get(Calendar.SECOND)) < timeEndPoint.getTimeInSeconds();
-    }
-
-    private boolean isTimeAfter(TimeEndPoint timeEndPoint, TimeEndPoint timeEndPoint2) {
-        return timeEndPoint.getTimeInSeconds() > timeEndPoint2.getTimeInSeconds();
+        
     }
 
     private class TimeInterval {
