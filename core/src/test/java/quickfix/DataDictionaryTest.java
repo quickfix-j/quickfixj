@@ -24,8 +24,17 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
+import quickfix.field.Account;
+import quickfix.field.ClOrdID;
+import quickfix.field.HandlInst;
+import quickfix.field.OrdType;
+import quickfix.field.OrderQty;
+import quickfix.field.Price;
+import quickfix.field.Side;
+import quickfix.field.Symbol;
+import quickfix.field.TimeInForce;
+import quickfix.field.TransactTime;
 import quickfix.util.ExpectedTestFailure;
-import quickfix.field.*;
 
 public class DataDictionaryTest extends TestCase {
 
@@ -197,7 +206,7 @@ public class DataDictionaryTest extends TestCase {
         newSingle.setField(new Account("testAccount"));
 
         final DataDictionary dd = getDictionary();
-        new ExpectedTestFailure(FieldException.class, "field="+ SenderCompID.FIELD) {
+        new ExpectedTestFailure(FieldException.class, "field=") {
             protected void execute() throws Throwable {
                 dd.validate(newSingle);
             }
