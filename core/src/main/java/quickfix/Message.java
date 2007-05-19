@@ -239,7 +239,6 @@ public class Message extends FieldMap {
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer serializer = tf.newTransformer();
             serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
-            // serializer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM,"users.dtd");
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.transform(domSource, streamResult);
             return out.toString();
@@ -267,7 +266,7 @@ public class Message extends FieldMap {
                     fieldElement.setAttribute("enum", enumValue);
                 }
             }
-            fieldElement.setAttribute("number", Integer.toString(field.getTag()));
+            fieldElement.setAttribute("tag", Integer.toString(field.getTag()));
             CDATASection value = document.createCDATASection(field.getValue());
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
@@ -275,11 +274,20 @@ public class Message extends FieldMap {
         Iterator groupKeyItr = fieldMap.groupKeyIterator();
         while (groupKeyItr.hasNext()) {
             int groupKey = ((Integer) groupKeyItr.next()).intValue();
+            Element groupsElement = document.createElement("groups");
+            fields.appendChild(groupsElement);
+            if (dataDictionary != null) {
+                String name = dataDictionary.getFieldName(groupKey);
+                if (name != null) {
+                    groupsElement.setAttribute("name", name);
+                }
+            }
+            groupsElement.setAttribute("tag", Integer.toString(groupKey));
             List groups = fieldMap.getGroups(groupKey);
             Iterator groupItr = groups.iterator();
             while (groupItr.hasNext()) {
                 Group group = (Group) groupItr.next();
-                toXMLFields(fields, "group", group, dataDictionary);
+                toXMLFields(groupsElement, "group", group, dataDictionary);
             }
         }
     }
