@@ -20,9 +20,8 @@
 package quickfix;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * A field type enum class. 
