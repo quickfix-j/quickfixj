@@ -194,7 +194,7 @@
 					<include name="quickfix/*Test.java" />
 					<include name="quickfix/mina/**/*Test.java" />
 					<include name="quickfix/util/**/*Test.java" />
-					<exclude name="**/Abstract*Test.java" />
+					<exclude name="**/*ForTest.java"/>
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>
