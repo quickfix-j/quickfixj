@@ -61,10 +61,10 @@ public class FIXMessageEncoderTest extends TestCase {
     }
 
     private void doEncodingTest() throws ProtocolCodecException, UnsupportedEncodingException {
-        Headline headline = new Headline("äbcfödçé");
+        // äbcfödçé
+        String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
         News news = new News();
-        news.set(headline);
-System.out.println(news);
+        news.set(new Headline(headline));
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         ProtocolEncoderOutputForTest encoderOut = new ProtocolEncoderOutputForTest();
         encoder.encode(null, news, encoderOut);
