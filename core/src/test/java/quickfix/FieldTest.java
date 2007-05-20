@@ -176,9 +176,10 @@ public class FieldTest extends TestCase {
         assertEqualsAndHash(new StringField(11, "foo"), new StringField(11, "foo"));
         assertEqualsAndHash(new BooleanField(11, true), new BooleanField(11, true));
         assertEqualsAndHash(new CharField(11, 'x'), new CharField(11, 'x'));
-        assertEqualsAndHash(new UtcDateOnlyField(11, new Date()), new UtcDateOnlyField(11, new Date()));
-        assertEqualsAndHash(new UtcTimeOnlyField(11, new Date()), new UtcTimeOnlyField(11, new Date()));
-        assertEqualsAndHash(new UtcTimeStampField(11, new Date()), new UtcTimeStampField(11, new Date()));
+        Date date = new Date();
+        assertEqualsAndHash(new UtcDateOnlyField(11, date), new UtcDateOnlyField(11, date));
+        assertEqualsAndHash(new UtcTimeOnlyField(11, date), new UtcTimeOnlyField(11, date));
+        assertEqualsAndHash(new UtcTimeStampField(11, date), new UtcTimeStampField(11, date));
     }
 
     private void assertEqualsAndHash(Field field1, Field field2) {
