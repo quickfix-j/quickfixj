@@ -98,15 +98,15 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         if (!testEnabled) {
             return;
         }
-
-        assertTrue("set failed", store.set(111, "äbcfödçé"));
+        // message 111 == äbcfödçé
+        assertTrue("set failed", store.set(111, "\u00E4bcf\u00F6d\u00E7\u00E9"));
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
 
         ArrayList messages = new ArrayList();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
-        assertEquals("wrong message", "äbcfödçé", messages.get(0));
+        assertEquals("wrong message", "\u00E4bcf\u00F6d\u00E7\u00E9", messages.get(0));
         assertEquals("wrong message", "message1", messages.get(1));
     }
 
