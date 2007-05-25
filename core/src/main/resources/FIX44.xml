@@ -3248,7 +3248,7 @@
     </group>
     <component name="PositionQty" required="Y"/>
     <component name="PositionAmountData" required="Y"/>
-    <field name="RegistStatus" required="N"/>   RegNonRegInd
+    <field name="RegistStatus" required="N"/> 
     <field name="DeliveryDate" required="N"/>   
     <field name="Text" required="N"/>   
     <field name="EncodedTextLen" required="N"/>
@@ -6249,7 +6249,27 @@
     <field number="758" name="Nested2PartyIDSource" type="CHAR"/>
     <field number="759" name="Nested2PartyRole" type="INT"/>
     <field number="760" name="Nested2PartySubID" type="STRING"/>
-    <field number="761" name="BenchmarkSecurityIDSource" type="STRING"/>
+    <field number="761" name="BenchmarkSecurityIDSource" type="STRING">
+      <value enum="1" description="CUSIP"/>
+      <value enum="2" description="SEDOL"/>
+      <value enum="3" description="QUIK"/>
+      <value enum="4" description="ISIN_NUMBER"/>
+      <value enum="5" description="RIC_CODE"/>
+      <value enum="6" description="ISO_CURRENCY_CODE"/>
+      <value enum="7" description="ISO_COUNTRY_CODE"/>
+      <value enum="8" description="EXCHANGE_SYMBOL"/>
+      <value enum="9" description="CONSOLIDATED_TAPE_ASSOCIATION"/>
+      <value enum="A" description="BLOOMBERG_SYMBOL"/>
+      <value enum="B" description="WERTPAPIER"/>
+      <value enum="C" description="DUTCH"/>
+      <value enum="D" description="VALOREN"/>
+      <value enum="E" description="SICOVAM"/>
+      <value enum="F" description="BELGIAN"/>
+      <value enum="G" description="COMMON"/>
+      <value enum="H" description="CLEARING_HOUSE_CLEARING_ORGANIZATION"/>
+      <value enum="I" description="ISDA_FPML_PRODUCT_SPECIFICATION"/>
+      <value enum="J" description="OPTIONS_PRICE_REPORTING_AUTHORITY"/>
+    </field>
     <field number="762" name="SecuritySubType" type="STRING"/>
     <field number="763" name="UnderlyingSecuritySubType" type="STRING"/>
     <field number="764" name="LegSecuritySubType" type="STRING"/>
