@@ -29,6 +29,8 @@ import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
+
 import quickfix.Acceptor;
 import quickfix.Session;
 import quickfix.SessionID;
@@ -37,10 +39,15 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.initiator.AbstractSocketInitiator;
 
 public class ConnectorJmxExporter {
-    private Logger log = LoggerFactory.getLogger(getClass());
-    private SessionJmxExporter sessionExporter = new SessionJmxExporter();
-
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final SessionJmxExporter sessionExporter = new SessionJmxExporter();
+    private final static AtomicInteger connectorIdCounter = new AtomicInteger();
+    
     public void export(MBeanServer mbeanServer, SessionConnector connector) {
+        export(mbeanServer, connector, Integer.toString(connectorIdCounter.incrementAndGet()));
+    }
+    
+    public void export(MBeanServer mbeanServer, SessionConnector connector, String connectorId) {
         try {
             ConnectorAdmin connectorAdmin;
             if (connector instanceof AbstractSocketAcceptor) {
@@ -51,7 +58,7 @@ public class ConnectorJmxExporter {
                 throw new QFJException("Unknown connector type: " + connector.getClass().getName());
             }
 
-            ObjectName connectorName = getConnectorName(connector);
+            ObjectName connectorName = getConnectorName(connector, connectorId);
             
             mbeanServer.registerMBean(connectorAdmin, connectorName);
             ArrayList sessionIDs = connector.getSessions();
@@ -65,11 +72,12 @@ public class ConnectorJmxExporter {
         }
     }
 
-    private ObjectName getConnectorName(SessionConnector connector)
+    private ObjectName getConnectorName(SessionConnector connector, String connectorId)
             throws MalformedObjectNameException {
         ObjectNameFactory nameFactory = new ObjectNameFactory();
         nameFactory.addProperty("type", "Connector");
         nameFactory.addProperty("role", connector instanceof Acceptor ? "Acceptor" : "Initiator");
+        nameFactory.addProperty("id", connectorId);
         return nameFactory.createName();
     }
 
