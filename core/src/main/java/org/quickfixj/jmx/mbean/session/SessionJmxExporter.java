@@ -36,17 +36,12 @@ public class SessionJmxExporter {
     }
 
     private ObjectName createSessionName(Session session) throws MalformedObjectNameException {
-        // org.quickfixj:type=Session,BeginString=FIX.4.2,SenderCompID=SENDER,TargetCompID=TARGET
         TreeMap properties = new TreeMap();
         properties.put("type", "Session");
         SessionID sessionID = session.getSessionID();
         ObjectNameFactory nameFactory = new ObjectNameFactory();
         nameFactory.addProperty("type", "Session");
         addSessionIdProperties(sessionID, nameFactory);
-        String sessionQualifier = sessionID.getSessionQualifier();
-        if (!"".equals(sessionQualifier)) {
-            nameFactory.addProperty("qualifier", sessionQualifier);
-        }
         return nameFactory.createName();
     }
 
@@ -54,7 +49,10 @@ public class SessionJmxExporter {
         nameFactory.addProperty("beginString", sessionID.getBeginString());
         nameFactory.addProperty("senderCompID", sessionID.getSenderCompID());
         nameFactory.addProperty("targetCompID", sessionID.getTargetCompID());
-        nameFactory.addProperty("qualifier", sessionID.getSessionQualifier());
+        String sessionQualifier = sessionID.getSessionQualifier();
+        if (!"".equals(sessionQualifier)) {
+            nameFactory.addProperty("qualifier", sessionQualifier);
+        }
     }
 
 }
