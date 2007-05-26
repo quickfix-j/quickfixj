@@ -20,11 +20,16 @@
 package quickfix;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.sql.DataSource;
+
 import junit.framework.TestCase;
+
+import org.easymock.MockControl;
 
 public class JdbcLogTest extends TestCase {
     private JdbcLog log;
@@ -32,24 +37,42 @@ public class JdbcLogTest extends TestCase {
     private Connection connection;
     private SessionID sessionID;
 
-    private void setUpJdbcLog(boolean filterHeartbeats) throws ClassNotFoundException, SQLException, ConfigError {
-        connection = JdbcTestSupport.getConnection();
-        SessionSettings settings = new SessionSettings();
-        if (filterHeartbeats) {
-            settings.setBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS, false);
-        }
-        JdbcTestSupport.setHypersonicSettings(settings);
-        initializeTableDefinitions(connection);
-        logFactory = new JdbcLogFactory(settings);
-        long now = System.currentTimeMillis();
-        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
-        settings.setString(sessionID, "ConnectionType", "acceptor");
-        log = (JdbcLog) logFactory.create(sessionID);
-        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+    public void testLog() throws Exception {
+        doLogTest(null);
     }
 
-    public void testLog() throws Exception {
-        setUpJdbcLog(false);
+    public void testLogWithDataSource() throws Exception {
+        // Set up mock data source
+        MockControl mockDataSourceControl = MockControl.createControl(DataSource.class);
+        DataSource mockDataSource = (DataSource) mockDataSourceControl.getMock();
+        MockControl mockConnectionControl = MockControl.createControl(Connection.class);
+        Connection mockConnection = (Connection) mockConnectionControl.getMock();
+        MockControl mockPreparedStatementControl = MockControl.createNiceControl(PreparedStatement.class);
+        PreparedStatement mockPreparedStatement = (PreparedStatement) mockPreparedStatementControl.getMock();
+
+        mockDataSourceControl.expectAndReturn(mockDataSource.getConnection(), mockConnection);
+        
+        mockConnection.prepareStatement("");
+        mockConnectionControl.setMatcher(MockControl.ALWAYS_MATCHER);
+        mockConnectionControl.setReturnValue(mockPreparedStatement);
+
+        mockConnection.close();
+        
+        mockDataSourceControl.replay();
+        mockConnectionControl.replay();
+        mockPreparedStatementControl.replay();
+        
+        // Invoke a log method to verify expected behavior
+        setUpJdbcLog(false, mockDataSource);
+        log.onIncoming("INCOMING");
+        
+        mockPreparedStatementControl.verify();
+        mockConnectionControl.verify();
+        mockDataSourceControl.verify();
+    }
+
+    private void doLogTest(DataSource dataSource) throws ClassNotFoundException, SQLException, ConfigError {
+        setUpJdbcLog(false, dataSource);
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING");
         assertEquals(1, getRowCount(connection, "messages_log"));
@@ -71,7 +94,7 @@ public class JdbcLogTest extends TestCase {
     }
 
     public void testLogWithHeartbeatFiltering() throws Exception {
-        setUpJdbcLog(false);
+        setUpJdbcLog(false, null);
         
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING\00135=0\001");
@@ -79,21 +102,21 @@ public class JdbcLogTest extends TestCase {
         log.onOutgoing("OUTGOING\00135=0\001");
         assertEquals(2, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
 
-        setUpJdbcLog(true);
+        setUpJdbcLog(true, null);
         
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING\00135=0\001");
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onOutgoing("OUTGOING\00135=0\001");
         assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
-}
+    }
 
     /** Make sure the logger handles the situation where the underlying JdbcLog is misconfigured
      * (such as we can't connect ot the DB, or the tables are missing) and doesn't try
      * to print failing exceptions recursively until the stack overflows
      */
     public void testHandlesRecursivelyFailingException() throws Exception {
-        setUpJdbcLog(false);
+        setUpJdbcLog(false, null);
 
         // need to register the session since we are going to log errors through LogUtil
         Session.registerSession(new Session(new UnitTestApplication(), new MemoryStoreFactory(),
@@ -118,6 +141,23 @@ public class JdbcLogTest extends TestCase {
             initializeTableDefinitions(connection);
         }
 
+    }
+
+    private void setUpJdbcLog(boolean filterHeartbeats, DataSource dataSource) throws ClassNotFoundException, SQLException, ConfigError {
+        connection = JdbcTestSupport.getConnection();
+        SessionSettings settings = new SessionSettings();
+        if (filterHeartbeats) {
+            settings.setBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS, false);
+        }
+        JdbcTestSupport.setHypersonicSettings(settings);
+        initializeTableDefinitions(connection);
+        logFactory = new JdbcLogFactory(settings);
+        logFactory.setDataSource(dataSource);
+        long now = System.currentTimeMillis();
+        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
+        settings.setString(sessionID, "ConnectionType", "acceptor");
+        log = (JdbcLog) logFactory.create(sessionID);
+        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
     }
 
     private void assertLogData(Connection connection, int rowOffset, SessionID sessionID,

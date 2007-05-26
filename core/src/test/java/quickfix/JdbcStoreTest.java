@@ -32,30 +32,37 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 public class JdbcStoreTest extends AbstractMessageStoreTest {
+    private String initialContextFactory;
+    private String providerUrl;
 
     protected void setUp() throws Exception {
+        initialContextFactory = System.getProperty(Context.INITIAL_CONTEXT_FACTORY);
+        initialContextFactory = System.getProperty(Context.PROVIDER_URL);
+        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "tyrex.naming.MemoryContextFactory");
+        System.setProperty(Context.PROVIDER_URL, "TEST");
         bindDataSource();
         super.setUp();
     }
 
     protected void tearDown() throws Exception {
         JdbcTestSupport.assertNoActiveConnections();
+        if (initialContextFactory != null) {
+            System.setProperty(Context.INITIAL_CONTEXT_FACTORY, initialContextFactory);
+        }
+        if (providerUrl != null) {
+            System.setProperty(Context.PROVIDER_URL, providerUrl);
+        }
         super.tearDown();
     }
 
     private void bindDataSource() throws NamingException {
-        Hashtable env = new Hashtable();
-        env.put(Context.INITIAL_CONTEXT_FACTORY, "tyrex.naming.MemoryContextFactory");
-        env.put(Context.PROVIDER_URL, "TEST");
-        new InitialContext(env).rebind("TestDataSource", getDataSource());
+        new InitialContext().rebind("TestDataSource", getDataSource());
     }
 
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, SQLException,
             IOException {
-        
+
         SessionSettings settings = new SessionSettings();
-        settings.setString(JdbcSetting.SETTING_JNDI_CONTEXT_FACTORY, "tyrex.naming.MemoryContextFactory");
-        settings.setString(JdbcSetting.SETTING_JNDI_PROVIDER_URL, "TEST");
         settings.setString(JdbcSetting.SETTING_JDBC_DS_NAME, "TestDataSource");
 
         initializeTableDefinitions(null, null);
@@ -63,6 +70,13 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         return new JdbcStoreFactory(settings);
     }
 
+    public void testExplicitDataSource() throws Exception {
+        // No JNDI data source name is set up here
+        JdbcStoreFactory factory = new JdbcStoreFactory(new SessionSettings());
+        factory.setDataSource(getDataSource());
+        factory.create(new SessionID("FIX4.4", "SENDER", "TARGET"));
+    }
+    
     public void testSequenceNumbersWithCustomSessionsTableName() throws Exception {
         JdbcStore store = (JdbcStore) getStore();
         initializeTableDefinitions("xsessions", "messages");
@@ -93,9 +107,11 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         Connection connection = null;
         try {
             connection = getDataSource().getConnection();
-            JdbcTestSupport.loadSQL(connection, "core/src/main/config/sql/mysql/messages_table.sql",
+            JdbcTestSupport.loadSQL(connection,
+                    "core/src/main/config/sql/mysql/messages_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(messagesTableName));
-            JdbcTestSupport.loadSQL(connection, "core/src/main/config/sql/mysql/sessions_table.sql",
+            JdbcTestSupport.loadSQL(connection,
+                    "core/src/main/config/sql/mysql/sessions_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(sessionsTableName));
         } finally {
             JdbcUtil.close(null, connection);
