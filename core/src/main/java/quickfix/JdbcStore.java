@@ -48,7 +48,7 @@ class JdbcStore implements MessageStore {
     private String SQL_UPDATE_SESSION;
     private String SQL_DELETE_MESSAGES;
 
-    public JdbcStore(SessionSettings settings, SessionID sessionID) throws Exception {
+    public JdbcStore(SessionSettings settings, SessionID sessionID, DataSource dataSource) throws Exception {
         this.sessionID = sessionID;
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME)) {
             sessionTableName = settings.getString(sessionID,
@@ -60,7 +60,9 @@ class JdbcStore implements MessageStore {
         }
         setSqlStrings();
 
-        dataSource = JdbcUtil.getDataSource(settings, sessionID);
+        this.dataSource = dataSource == null
+                ? JdbcUtil.getDataSource(settings, sessionID)
+                : dataSource;
 
         loadCache();
     }

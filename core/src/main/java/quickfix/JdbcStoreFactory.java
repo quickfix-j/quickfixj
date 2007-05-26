@@ -19,12 +19,15 @@
 
 package quickfix;
 
+import javax.sql.DataSource;
+
 /**
  * Creates a generic JDBC message store.
  */
 public class JdbcStoreFactory implements MessageStoreFactory {
     private final SessionSettings settings;
-
+    private DataSource dataSource;
+    
     /**
      * Create a factory using session settings.
      */
@@ -39,7 +42,7 @@ public class JdbcStoreFactory implements MessageStoreFactory {
      */
     public MessageStore create(SessionID sessionID) {
         try {
-            return new JdbcStore(settings, sessionID);
+            return new JdbcStore(settings, sessionID, dataSource);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -53,5 +56,9 @@ public class JdbcStoreFactory implements MessageStoreFactory {
      */
     protected SessionSettings getSettings() {
         return settings;
+    }
+    
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 }

@@ -34,10 +34,11 @@ class JdbcLog extends AbstractLog {
     private final boolean logHeartbeats;
     private Throwable recursiveException = null;
 
-    public JdbcLog(SessionSettings settings, SessionID sessionID) throws SQLException,
+    public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource dataSource) throws SQLException,
             ClassNotFoundException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
-        dataSource = JdbcUtil.getDataSource(settings, sessionID);
+        this.dataSource = dataSource == null ?
+                JdbcUtil.getDataSource(settings, sessionID) : dataSource;
         
         if (settings.isSetting(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS)) {
             logHeartbeats = settings.getBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS);

@@ -19,12 +19,15 @@
 
 package quickfix;
 
+import javax.sql.DataSource;
+
 /**
  * Creates a generic JDBC logger.
  */
 public class JdbcLogFactory implements LogFactory {
     private SessionSettings settings;
-    
+    private DataSource dataSource;
+
     /**
      * Create a JDBC logger.
      * 
@@ -32,7 +35,7 @@ public class JdbcLogFactory implements LogFactory {
      */
     public Log create(SessionID sessionID) {
         try {
-            return new JdbcLog(settings, sessionID);
+            return new JdbcLog(settings, sessionID, dataSource);
         } catch (Exception e) {
             throw new RuntimeError(e);
         }
@@ -44,19 +47,28 @@ public class JdbcLogFactory implements LogFactory {
     public JdbcLogFactory(SessionSettings settings) {
         this.settings = settings;
     }
-    
-	/**
-	 * Used to support the MySQL-specific class (JNI compatibility)
-	 * 
-	 * @return the session settings
-	 * 
-	 */
+
+    /**
+     * Used to support the MySQL-specific class (JNI compatibility)
+     * 
+     * @return the session settings
+     * 
+     */
     protected SessionSettings getSettings() {
         return settings;
     }
-    
+
     public Log create() {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Set a data source to be used by the JdbcLog to access
+     * the database.
+     * 
+     * @param dataSource
+     */
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 }
