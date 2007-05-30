@@ -46,8 +46,7 @@ class JdbcUtil {
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME)) {
             String jndiName = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME);
             try {
-                Hashtable env = new Hashtable();
-                return (DataSource) new InitialContext(env).lookup(jndiName);
+                return (DataSource) new InitialContext().lookup(jndiName);
             } catch (NamingException e) {
                 throw new ConfigError(e);
             }
