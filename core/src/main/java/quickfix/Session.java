@@ -684,9 +684,7 @@ public class Session {
                 if (!verify(message)) {
                     return;
                 }
-                synchronized (this) {
-                    state.incrNextTargetMsgSeqNum();
-                }
+                state.incrNextTargetMsgSeqNum();
             }
         } catch (FieldException e) {
             generateReject(message, e.getSessionRejectReason(), e.getField());
@@ -1793,7 +1791,7 @@ public class Session {
     }
 
     public synchronized boolean isLogoutTimedOut() {
-        return state.isLogonTimedOut();
+        return state.isLogoutTimedOut();
     }
 
     public synchronized boolean isUsingDataDictionary() {
@@ -1807,8 +1805,8 @@ public class Session {
     public String toString() {
         String s = sessionID.toString();
         try {
-            s += "[in:" + state.getNextTargetMsgSeqNum() + ",out:"
-                    + state.getNextSenderMsgSeqNum() + "]";
+            s += "[in:" + state.getNextTargetMsgSeqNum() + ",out:" + state.getNextSenderMsgSeqNum()
+                    + "]";
         } catch (IOException e) {
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
         }
