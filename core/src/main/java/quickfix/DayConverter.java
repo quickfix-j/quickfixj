@@ -37,14 +37,12 @@ public class DayConverter {
      */
     public static int toInteger(String dayName) throws ConfigError {
         String dayNames[] = new DateFormatSymbols(Locale.getDefault()).getWeekdays();
-        if (dayName.length() >= 2) {
-            String abbr = dayName.substring(0, 2).toLowerCase();
-            for (int i = 1; i < dayNames.length; i++) {
-                if (dayNames[i].toLowerCase().startsWith(abbr)) {
-                    return i;
-                }
-            }
-        }
+        dayName = dayName.toLowerCase();
+    	for (int i = 1; i < dayNames.length; i++) {
+    	    if (dayNames[i].toLowerCase().startsWith(dayName)) {
+    	        return i;
+    	    }
+    	}
         throw new ConfigError("invalid format for day (valid values: "
                 + Arrays.asList(dayNames).subList(1, dayNames.length)
                 + " or prefix); actual value was '" + dayName + "'");

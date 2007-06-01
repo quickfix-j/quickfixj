@@ -22,9 +22,11 @@ package quickfix;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -362,7 +364,8 @@ public class SessionSettings {
             Properties currentSection = null;
             String currentSectionId = null;
             Tokenizer tokenizer = new Tokenizer();
-            Tokenizer.Token token = tokenizer.getToken(inputStream);
+            Reader reader = new InputStreamReader(inputStream);
+            Tokenizer.Token token = tokenizer.getToken(reader);
             while (token != null) {
                 if (token.getType() == Tokenizer.SECTION_TOKEN) {
                     storeSection(currentSectionId, currentSection);
@@ -374,12 +377,12 @@ public class SessionSettings {
                         currentSection = new Properties(getSessionProperties(DEFAULT_SESSION_ID));
                     }
                 } else if (token.getType() == Tokenizer.ID_TOKEN) {
-                    Tokenizer.Token valueToken = tokenizer.getToken(inputStream);
+                    Tokenizer.Token valueToken = tokenizer.getToken(reader);
                     if (currentSection != null && token != null) {
                         currentSection.put(token.getValue(), valueToken.getValue());
                     }
                 }
-                token = tokenizer.getToken(inputStream);
+                token = tokenizer.getToken(reader);
             }
             storeSection(currentSectionId, currentSection);
         } catch (IOException e) {
@@ -465,39 +468,39 @@ public class SessionSettings {
 
         private StringBuffer sb = new StringBuffer();
 
-        private Token getToken(InputStream inputStream) throws IOException {
+        private Token getToken(Reader reader) throws IOException {
             if (ch == '\0') {
-                ch = nextCharacter(inputStream);
+                ch = nextCharacter(reader);
             }
-            skipWhitespace(inputStream);
+            skipWhitespace(reader);
             if (isLabelCharacter(ch)) {
                 sb.setLength(0);
                 do {
                     sb.append(ch);
-                    ch = nextCharacter(inputStream);
+                    ch = nextCharacter(reader);
                 } while (isLabelCharacter(ch));
                 return new Token(ID_TOKEN, sb.toString());
             } else if (ch == '=') {
-                ch = nextCharacter(inputStream);
+                ch = nextCharacter(reader);
                 sb.setLength(0);
                 if (isValueCharacter(ch)) {
                     do {
                         sb.append(ch);
-                        ch = nextCharacter(inputStream);
+                        ch = nextCharacter(reader);
                     } while (isValueCharacter(ch));
                 }
                 return new Token(VALUE_TOKEN, sb.toString().trim());
             } else if (ch == '[') {
-                ch = nextCharacter(inputStream);
-                Token id = getToken(inputStream);
+                ch = nextCharacter(reader);
+                Token id = getToken(reader);
                 // check ]
-                ch = nextCharacter(inputStream); // skip ]
+                ch = nextCharacter(reader); // skip ]
                 return new Token(SECTION_TOKEN, id.getValue());
             } else if (ch == '#') {
                 do {
-                    ch = nextCharacter(inputStream);
+                    ch = nextCharacter(reader);
                 } while (!isNewLineCharacter(ch));
-                return getToken(inputStream);
+                return getToken(reader);
             }
             return null;
         }
@@ -518,14 +521,14 @@ public class SessionSettings {
             return (byte) ch == -1;
         }
 
-        private char nextCharacter(InputStream inputStream) throws IOException {
-            return (char) inputStream.read();
+        private char nextCharacter(Reader reader) throws IOException {
+            return (char) reader.read();
         }
 
-        private void skipWhitespace(InputStream inputStream) throws IOException {
+        private void skipWhitespace(Reader reader) throws IOException {
             if (Character.isWhitespace(ch)) {
                 do {
-                    ch = nextCharacter(inputStream);
+                    ch = nextCharacter(reader);
                 } while (Character.isWhitespace(ch));
             }
         }
