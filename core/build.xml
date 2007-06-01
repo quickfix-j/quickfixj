@@ -21,6 +21,10 @@
 	</target>
 
 	<target name="generate.code" unless="generated.isuptodate" depends="check.generated.isuptodate" description="generate FIX message code">
+		<antcall target="regenerate.code"/>
+	</target>
+
+	<target name="regenerate.code">
 		<mkdir dir="${main.classes.dir}" />
 		<javac srcdir="${main.src.dir}/quickfix/codegen" 
 			includes="JavaCodeGenerator.java,CodeGenerationException.java" 
@@ -40,7 +44,7 @@
 			</classpath>
 		</java>
 	</target>
-
+	
 	<!-- =============================================================
 	Compile Sources
 	================================================================= -->

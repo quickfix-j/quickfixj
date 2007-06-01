@@ -51,26 +51,41 @@ public class MessageFactory implements quickfix.MessageFactory
        }
      </xsl:for-each>
     </xsl:template>
+    
     <xsl:template name="group-if-statement">
      <xsl:for-each select="//fix/messages/message[group]">
        if("<xsl:value-of select="@msgtype"/>".equals(msgType)) {
          switch(correspondingFieldID) {
-         <xsl:for-each select="group">
-            <xsl:call-template name="group-type"><xsl:with-param name="fullPath" select="../@name"/></xsl:call-template>
-         </xsl:for-each>
+         <xsl:apply-templates mode="group-factories" select="group">
+            <xsl:with-param name="fullPath" select="@name"/>
+         </xsl:apply-templates>
+         <xsl:apply-templates mode="group-factories" select="component">
+            <xsl:with-param name="fullPath" select="@name"/>
+         </xsl:apply-templates>
          }
        }
      </xsl:for-each>
     </xsl:template>
-    <xsl:template name="group-type">
-        <xsl:param name="fullPath"/>
-            case quickfix.field.<xsl:value-of select="@name"/>.FIELD:
+    
+    <xsl:template mode="group-factories" match="group">
+    	<xsl:param name="fullPath"/>
+           case quickfix.field.<xsl:value-of select="@name"/>.FIELD:
                 return new quickfix.fix<xsl:value-of select="concat(//fix/@major, //fix/@minor, '.', $fullPath, '.', @name)"/>();
-        <xsl:for-each select="group">
-            <xsl:call-template name="group-type">
-                <xsl:with-param name="fullPath" select='concat($fullPath, ".", ../@name)'/>
-            </xsl:call-template>
-        </xsl:for-each>
+		 <xsl:variable name="groupPath" select="concat($fullPath, '.', @name)"/>
+         <xsl:apply-templates mode="group-factories" select="group">
+           <xsl:with-param name="fullPath" select='$groupPath'/>
+         </xsl:apply-templates>
+         <xsl:apply-templates mode="group-factories" select="component">
+         	<xsl:with-param name="fullPath" select="$groupPath"/>
+         </xsl:apply-templates>
     </xsl:template>
 
+    <xsl:template mode="group-factories" match="component">
+    	<xsl:param name="fullPath"/>
+  	    <xsl:variable name="name" select="@name"/>  
+  		<xsl:apply-templates mode="group-factories" select="/fix/components/component[@name=$name]/group">
+  			<xsl:with-param name="fullPath" select='$fullPath'/>
+  		</xsl:apply-templates>
+    </xsl:template>
+    
 </xsl:stylesheet>
