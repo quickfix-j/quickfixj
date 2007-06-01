@@ -28,7 +28,7 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private Boolean isStarted = Boolean.FALSE;
+    private boolean isInitialized;
     private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
         new SingleThreadedEventHandlingStrategy(this);
 
@@ -75,12 +75,10 @@ public class SocketInitiator extends AbstractSocketInitiator {
         Session.unregisterSessions(getSessions());
     }
 
-    private void initialize() throws ConfigError {
-        synchronized (isStarted) {
-            if (isStarted == Boolean.FALSE) {
-                initiateSessions(eventHandlingStrategy);
-            }
-            isStarted = Boolean.TRUE;
+    private synchronized void initialize() throws ConfigError {
+        if (!isInitialized) {
+            initiateSessions(eventHandlingStrategy);
         }
+        isInitialized = true;
     }
 }
