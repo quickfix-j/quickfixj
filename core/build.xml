@@ -84,7 +84,8 @@
 	Build JAR
 	================================================================= -->
 	
-	<property name="quickfixj.jar" value="quickfixj.jar" />
+	<property name="quickfixj.jar" value="quickfixj-core.jar" />
+	<property name="quickfixj.msg.jar-prefix" value="quickfixj-msg" />
 
 	<target name="jar" description="build jar files" depends="compile">
 		<mkdir dir="${target.dir}" />
@@ -95,14 +96,38 @@
 		</manifest>
 		<jar destfile="${jar.output.dir}/${quickfixj.jar}" 
 				manifest="${jar.output.dir}/MANIFEST.MF">
-			<fileset dir="${main.classes.dir}" />
-			<fileset dir="${main.resources.dir}" includes="*" />
+			<fileset dir="${main.classes.dir}">
+				<exclude name="quickfix/fix4?/**"/>
+			</fileset>
+			<fileset dir="${main.resources.dir}">
+				<exclude name="FIX??.xml"/>
+			</fileset>
 			<fileset dir="${main.src.dir}">
 				<include name="**/*.cert" />
 			</fileset>
 		</jar>
+		<create-message-jar version="40"/>
+		<create-message-jar version="41"/>
+		<create-message-jar version="42"/>
+		<create-message-jar version="43"/>
+		<create-message-jar version="44"/>
 	</target>
 
+	<macrodef name="create-message-jar">
+		<attribute name="version"/>
+		<sequential>
+			<jar destfile="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix@{version}.jar" 
+				manifest="${jar.output.dir}/MANIFEST.MF">
+				<fileset dir="${main.resources.dir}">
+					<include name="FIX@{version}.xml"/>
+				</fileset>
+				<fileset dir="${main.classes.dir}">
+					<include name="quickfix/fix@{version}/**"/>
+				</fileset>
+			</jar>
+		</sequential>
+	</macrodef>
+	
 	<!-- =============================================================
 	Run Tests
 	================================================================= -->
@@ -385,6 +410,11 @@
 
 	<path id="test.classpath">
 		<pathelement location="${jar.output.dir}/${quickfixj.jar}" />
+		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix40.jar" />
+		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix41.jar" />
+		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix42.jar" />
+		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix43.jar" />
+		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix44.jar" />
 		<pathelement location="${test.classes.dir}" />
 		<pathelement location="${test.src.dir}" />
 		<!-- for FIX_Custom*.xml -->
