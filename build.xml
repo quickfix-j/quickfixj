@@ -245,7 +245,12 @@
 					<available file="@{dir}/quickfixj/etc/sql/mysql"/>
 					<available file="@{dir}/quickfixj/etc/sql/postgresql"/>
 					<available file="@{dir}/quickfixj/lib"/>
-					<available file="@{dir}/quickfixj/quickfixj.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-core.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-msg-fix40.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-msg-fix41.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-msg-fix42.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-msg-fix43.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-msg-fix44.jar"/>
 					<available file="@{dir}/quickfixj/quickfixj-examples.jar"/>
 					<available file="@{dir}/quickfixj/LICENSE"/>
 					<available file="@{dir}/quickfixj/NEWS"/>
