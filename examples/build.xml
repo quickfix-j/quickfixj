@@ -21,7 +21,9 @@
 			<include name="*.jar"/>
 			<include name="optional/mx4j-*.jar"/>
 		</fileset>
-		<pathelement location="../core/target/quickfixj.jar" />
+		<fileset dir="../core/target">
+			<include name="quickfixj*.jar"/>
+		</fileset>
 	</path>
 
 	<target name="compile" description="compile source code">
