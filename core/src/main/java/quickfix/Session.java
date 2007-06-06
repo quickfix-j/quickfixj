@@ -439,8 +439,10 @@ public class Session {
     }
 
     static void unregisterSessions(List sessionIds) {
-        for (int i = 0; i < sessionIds.size(); i++) {
-            sessions.remove((SessionID) sessionIds.get(i));
+        synchronized (sessions) {
+            for (int i = 0; i < sessionIds.size(); i++) {
+                sessions.remove((SessionID) sessionIds.get(i));
+            }
         }
     }
 

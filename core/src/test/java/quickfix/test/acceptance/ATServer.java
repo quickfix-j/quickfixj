@@ -50,6 +50,7 @@ import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
+    private final CountDownLatch tearDownLatch = new CountDownLatch(1);
     private final Set fixVersions = new HashSet();
     private final SessionSettings settings = new SessionSettings();
     private boolean resetOnDisconnect;
@@ -160,6 +161,8 @@ public class ATServer implements Runnable {
                         acceptor.stop(true);
                     } catch (RuntimeException e) {
                         e.printStackTrace();
+                    } finally {
+                        tearDownLatch.countDown();
                     }
                     log.info("server exiting");
                 }
@@ -189,6 +192,10 @@ public class ATServer implements Runnable {
         initializationLatch.await();
     }
 
+    public void waitForTearDown() throws InterruptedException {
+        tearDownLatch.await();
+    }
+    
     public void stop() {
         acceptor.stop();
     }

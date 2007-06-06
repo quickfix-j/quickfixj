@@ -53,8 +53,10 @@ public class ATApplication implements Application {
     }
 
     private void assertNoSessionLock(SessionID sessionID) {
+        Session session = Session.lookupSession(sessionID);
+        Assert.assertNotNull("Can not find session: " + Thread.currentThread(), session);
         Assert.assertFalse("Application is holding session lock", 
-                Thread.holdsLock(Session.lookupSession(sessionID)));
+                Thread.holdsLock(session));
     }
 
     public void onLogout(SessionID sessionID) {

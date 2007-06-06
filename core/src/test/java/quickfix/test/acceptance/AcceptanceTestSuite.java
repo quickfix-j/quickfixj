@@ -34,7 +34,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private boolean skipSlowTests;
     private static TransportType transportType = TransportType.SOCKET;
     private static int port = 9887;
-    
+
     private final class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -84,9 +84,9 @@ public class AcceptanceTestSuite extends TestSuite {
             try {
                 for (int i = 0; i < aliases.length; i++) {
                     SnapshotIF snapshot = ProxoolFacade.getSnapshot(aliases[i], true);
-                    System.out.println("active:"+snapshot.getActiveConnectionCount()+
-                            ",max:"+snapshot.getMaximumConnectionCount()+
-                            ",served:"+snapshot.getServedCount());
+                    System.out.println("active:" + snapshot.getActiveConnectionCount() + ",max:"
+                            + snapshot.getMaximumConnectionCount() + ",served:"
+                            + snapshot.getServedCount());
                 }
             } catch (ProxoolException e) {
                 e.printStackTrace();
@@ -189,6 +189,8 @@ public class AcceptanceTestSuite extends TestSuite {
 
         private Thread serverThread;
 
+        private ATServer server;
+
         private AcceptanceTestServerSetUp(AcceptanceTestSuite suite, boolean threaded) {
             super(suite);
             this.threaded = threaded;
@@ -196,7 +198,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
         protected void setUp() throws Exception {
             super.setUp();
-            ATServer server = new ATServer((TestSuite) getTest(), threaded, transportType, port);
+            server = new ATServer((TestSuite) getTest(), threaded, transportType, port);
             server.setUsingMemoryStore(true);
             serverThread = new Thread(server, "ATServer");
             serverThread.start();
@@ -204,7 +206,10 @@ public class AcceptanceTestSuite extends TestSuite {
         }
 
         protected void tearDown() throws Exception {
-            serverThread.interrupt();
+            if (serverThread != null) {
+                serverThread.interrupt();
+                server.waitForTearDown();
+            }
             super.tearDown();
         }
 
@@ -214,7 +219,8 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public static Test suite() {
-        transportType = TransportType.getInstance(System.getProperty(ATEST_TRANSPORT_KEY, "SOCKET"));
+        transportType = TransportType
+                .getInstance(System.getProperty(ATEST_TRANSPORT_KEY, "SOCKET"));
         port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite();
         final AcceptanceTestSuite scriptedTests = new AcceptanceTestSuite();
