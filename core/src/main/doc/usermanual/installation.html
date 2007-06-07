@@ -22,15 +22,33 @@
     <th>Description</th>
   </tr>
   <tr>
-    <td nowrap="nowrap">quickfixj.jar</td>
+    <td nowrap="nowrap">quickfixj-core.jar</td>
     <td>Main QuickFIX/J library</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">mina-0.8.2.jar</td>
+    <td>One or more message JARs, if needed. QFJ can work without special
+    message objects by using the quickfix.Message object directly (less convenient and type
+    safe).
+    <ul>
+    <li> quickfixj-msg-fix40.jar
+    <li> quickfixj-msg-fix41.jar
+    <li> quickfixj-msg-fix42.jar
+    <li> quickfixj-msg-fix43.jar
+    <li> quickfixj-msg-fix44.jar
+    </ul>
+    </td>
+    <td>Main QuickFIX/J library</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">mina-core-1.0.1.jar</td>
     <td>Socket handling (Java NIO)</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-jdk14-1.0-rc5.jar</td>
+    <td nowrap="nowrap">slf4j-api-1.3.0.jar</td>
+    <td>SLF4J library for JDK 1.4+ logging.</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">slf4j-jdk14-1.3.0.jar</td>
     <td>SLF4J library for JDK 1.4+ logging.</td>
   </tr>
   <tr>
@@ -49,7 +67,7 @@
     <td>If Log4J logging is desired. The JDK logging is the default.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-log4j12.jar</td>
+    <td nowrap="nowrap">slf4j-log4j12-1.3.0.jar</td>
     <td>Use this JAR file instead of slf4j-jdk14-1.0-rc5.jar if you want to
 	use Log4J logging.</td>
   </tr>
@@ -59,16 +77,10 @@
 		if you are using the JDBC store or log.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">jdcl104-over-slf4j.jar</td>
+    <td nowrap="nowrap">jdcl104-over-slf4j-1.3.0.jar</td>
     <td>Adapts Jakarta Commons Logging to SLF4J. Required if you are using an optional
 		library that depends on Jakarta Commons Logging. Currently, this include Proxool
 		(needed by JDBC store and log for connection pooling).</td>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">mysql-connector-java-3.1.12-bin.jar </td>
-    <td>If MySQL message storage or logging is used. In general, if you are using
-		the generic JDBC store or log, you must include whatever driver library
-		is required for that database.</td>
   </tr>
   <tr>
     <td nowrap="nowrap">sleepycat-je_2.1.30.jar</td>
