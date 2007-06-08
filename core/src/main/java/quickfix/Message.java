@@ -213,11 +213,11 @@ public class Message extends FieldMap {
     }
 
     public boolean trailerHasGroup(int num, Group group) {
-        return trailerHasGroup(num, group.field());
+        return trailerHasGroup(num, group.getFieldTag());
     }
 
     public boolean trailerHasGroup(Group group) {
-        return trailerHasGroup(group.field());
+        return trailerHasGroup(group.getFieldTag());
     }
 
     public String toXML() {
