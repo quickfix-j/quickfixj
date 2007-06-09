@@ -146,6 +146,9 @@ public class DefaultSessionFactory implements SessionFactory {
             boolean persistMessages = getSetting(settings, sessionID,
                     Session.SETTING_PERSIST_MESSAGES, true);
 
+            boolean useClosedIntervalForResend = getSetting(settings, sessionID,
+                    Session.USE_CLOSED_RESEND_INTERVAL, false);
+
             int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 2);
 
@@ -153,7 +156,8 @@ public class DefaultSessionFactory implements SessionFactory {
                     dataDictionary, new SessionSchedule(settings, sessionID), logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, resetOnLogon, refreshAtLogon,
-                    checkCompID, redundantResentRequestAllowed, persistMessages, refreshAtLogon);
+                    checkCompID, redundantResentRequestAllowed, persistMessages, refreshAtLogon,
+                    useClosedIntervalForResend);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);

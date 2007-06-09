@@ -195,6 +195,13 @@ public class Session {
      */
     public static final String SETTING_PERSIST_MESSAGES = "PersistMessages";
 
+    /**
+     * Use actual end of sequence gap for resend requests rather than using "infinity"
+     * as the end sequence of the gap. Not recommended by the FIX specification, but
+     * needed for some counterparties.
+     */
+    public static final String USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
+
     // @GuardedBy(sessions)
     private static final Map sessions = new HashMap();
 
@@ -233,13 +240,14 @@ public class Session {
     private final boolean redundantResentRequestsAllowed;
     private final boolean persistMessages;
     private final boolean checkCompID;
+    private final boolean useClosedRangeForResend;
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
         this(application, messageStoreFactory, sessionID, dataDictionary, sessionSchedule,
                 logFactory, messageFactory, heartbeatInterval, true, 120, true, false, false,
-                false, false, false, true, false, true, false);
+                false, false, false, true, false, true, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -248,7 +256,8 @@ public class Session {
             int maxLatency, boolean millisecondsInTimeStamp, boolean resetOnLogon,
             boolean resetOnLogout, boolean resetOnDisconnect, boolean resetWhenInitiatingLogon,
             boolean refreshMessageStoreAtLogon, boolean checkCompID,
-            boolean redundantResentRequestsAllowed, boolean persistMessages, boolean refreshOnLogon) {
+            boolean redundantResentRequestsAllowed, boolean persistMessages, boolean refreshOnLogon,
+            boolean useClosedRangeForResend) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -264,6 +273,7 @@ public class Session {
         this.checkCompID = checkCompID;
         this.redundantResentRequestsAllowed = redundantResentRequestsAllowed;
         this.persistMessages = persistMessages;
+        this.useClosedRangeForResend = useClosedRangeForResend;
         this.state = new SessionState(this, logFactory != null
                 ? logFactory.create(sessionID)
                 : null, heartbeatInterval, heartbeatInterval != 0, messageStoreFactory
@@ -1506,13 +1516,16 @@ public class Session {
     private void generateResendRequest(String beginString, int msgSeqNum) {
         Message resendRequest = messageFactory.create(beginString, MsgType.RESEND_REQUEST);
         int beginSeqNo = getExpectedTargetNum();
-        int endSeqNo = msgSeqNum - 1; // Why initialized when it will be
-        // overwritten
-        if (beginString.compareTo("FIX.4.2") >= 0) {
-            endSeqNo = 0;
-        } else if (beginString.compareTo("FIX.4.1") <= 0) {
-            endSeqNo = 999999;
+        
+        int endSeqNo = msgSeqNum - 1; 
+        if (!useClosedRangeForResend) {
+            if (beginString.compareTo("FIX.4.2") >= 0) {
+                endSeqNo = 0;
+            } else if (beginString.compareTo("FIX.4.1") <= 0) {
+                endSeqNo = 999999;
+            }
         }
+        
         resendRequest.setInt(BeginSeqNo.FIELD, beginSeqNo);
         resendRequest.setInt(EndSeqNo.FIELD, endSeqNo);
         initializeHeader(resendRequest.getHeader());
