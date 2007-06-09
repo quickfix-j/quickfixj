@@ -27,12 +27,12 @@
 	<target name="regenerate.code">
 		<mkdir dir="${main.classes.dir}" />
 		<javac srcdir="${main.src.dir}/quickfix/codegen" 
-			includes="JavaCodeGenerator.java,CodeGenerationException.java" 
+			includes="MessageCodeGenerator.java,CodeGenerationException.java" 
 			destdir="${main.classes.dir}" 
 			classpathref="main.lib.classpath">
 			<compilerarg line="${javac.args}" />
 		</javac>
-		<java classname="quickfix.codegen.JavaCodeGenerator" fork="yes">
+		<java classname="quickfix.codegen.MessageCodeGenerator" fork="yes">
 			<jvmarg value="-Xms128m" />
 			<jvmarg value="-Xmx256m" />
 			<arg value="${main.resources.dir}" />

@@ -86,6 +86,10 @@ public class Message extends FieldMap {
         // empty
     }
 
+    protected Message(int[] fieldOrder) {
+        super(fieldOrder);
+    }
+
     public Message(String string) throws InvalidMessage {
         fromString(string, null, true);
     }

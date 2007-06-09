@@ -20,7 +20,8 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
  <xsl:output  method="text" encoding="UTF-8"/>
-
+ <xsl:param name="fieldPackage"/>
+ 
  <xsl:template match="text()"/>
 
  <xsl:template match="/">/* -*- C++ -*- */
@@ -28,7 +29,7 @@
 package quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>;
 
 import quickfix.*;
-import quickfix.field.*;
+import <xsl:value-of select="$fieldPackage"/>.*;
 
 public class MessageCracker <xsl:call-template name="base-class"/>
 {

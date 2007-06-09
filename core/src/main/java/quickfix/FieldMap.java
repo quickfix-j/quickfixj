@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -34,6 +35,7 @@ import quickfix.field.CheckSum;
 import quickfix.field.SessionRejectReason;
 import quickfix.field.converter.BooleanConverter;
 import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DecimalConverter;
 import quickfix.field.converter.DoubleConverter;
 import quickfix.field.converter.IntConverter;
 import quickfix.field.converter.UtcDateOnlyConverter;
@@ -167,6 +169,15 @@ public abstract class FieldMap implements Serializable {
         setField(new StringField(field, s));
     }
 
+    public void setDecimal(int field, BigDecimal value) {
+        setDecimal(field, value, 0);
+    }
+
+    public void setDecimal(int field, BigDecimal value, int padding) {
+        String s = DecimalConverter.convert(value, padding);
+        setField(new StringField(field, s));
+    }
+
     public void setUtcTimeStamp(int field, Date value) {
         setUtcTimeStamp(field, value, false);
     }
@@ -246,6 +257,15 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
+    public BigDecimal getDecimal(int field) throws FieldNotFound {
+        String value = getField(field).getValue();
+        try {
+            return DecimalConverter.convert(value);
+        } catch (FieldConvertError e) {
+            throw newIncorrectDataException(e, field);
+        }
+    }
+
     public Date getUtcTimeStamp(int field) throws FieldNotFound {
         String value = getField(field).getValue();
         try {
@@ -301,6 +321,10 @@ public abstract class FieldMap implements Serializable {
         setDouble(field.getField(), field.getValue());
     }
 
+    public void setField(DecimalField field) {
+        setDecimal(field.getField(), field.getValue());
+    }
+    
     public void setField(UtcTimeStampField field) {
         setUtcTimeStamp(field.getField(), field.getValue(), field.showMilliseconds());
     }
@@ -362,6 +386,18 @@ public abstract class FieldMap implements Serializable {
         try {
             String value = getField(field.getField()).getValue();
             field.setObject(new Double(DoubleConverter.convert(value)));
+        } catch (FieldConvertError e) {
+            throw newIncorrectDataException(e, field.getField());
+        } catch (FieldNotFound e) {
+            throw e;
+        }
+        return field;
+    }
+
+    public DecimalField getField(DecimalField field) throws FieldNotFound {
+        try {
+            String value = getField(field.getField()).getValue();
+            field.setObject(DecimalConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {

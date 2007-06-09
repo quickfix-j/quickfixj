@@ -20,15 +20,17 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
  <xsl:output  method="text" encoding="UTF-8"/>
-	
+ <xsl:param name="serialVersionUID"/>
+ <xsl:param name="messagePackage"/>
+ <xsl:param name="fieldPackage"/>
+ 
  <xsl:template match="text()"/>
 
- <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param>
 
  <xsl:template match="/">/* -*- C++ -*- */
  <xsl:copy-of select="document('COPYRIGHT.xml')"/>
   
-package quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>;
+package <xsl:value-of select="$messagePackage"/>;
 
 import quickfix.FieldNotFound;
 import quickfix.field.*;
@@ -38,7 +40,11 @@ public class Message extends quickfix.Message
   static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
 
   public Message() {
-    super();
+  	this(null);
+  }
+  
+  protected Message(int[] fieldOrder) {
+    super(fieldOrder);
     header = new Header(this);
     trailer = new Trailer();
     getHeader().setField(new BeginString("FIX.<xsl:value-of select="//fix/@major"/>.<xsl:value-of select="//fix/@minor"/>"));
@@ -137,25 +143,25 @@ public class Message extends quickfix.Message
   </xsl:template>
   
   <xsl:template name="field-accessor-template">
-  public void set(quickfix.field.<xsl:value-of select="@name"/> value)
+  public void set(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value)
   { 
     setField(value); 
   }
   
-  public quickfix.field.<xsl:value-of select="@name"/> get(quickfix.field.<xsl:value-of select="@name"/>  value) throws FieldNotFound
+  public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>  value) throws FieldNotFound
   { 
     getField(value); 
     return value; 
   }
   
-  public quickfix.field.<xsl:value-of select="@name"/> get<xsl:value-of select="@name"/>() throws FieldNotFound
+  public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get<xsl:value-of select="@name"/>() throws FieldNotFound
   { 
-    quickfix.field.<xsl:value-of select="@name"/> value = new quickfix.field.<xsl:value-of select="@name"/>();
+    <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value = new <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>();
     getField(value); 
     return value; 
   }
   
-  public boolean isSet(quickfix.field.<xsl:value-of select="@name"/> field)
+  public boolean isSet(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> field)
   { 
     return isSetField(field); 
   }
@@ -167,7 +173,7 @@ public class Message extends quickfix.Message
   </xsl:template>
 
   <xsl:template name="component-accessor-template">
-  <xsl:variable name="type" select="concat('quickfix.fix',/fix/@major,/fix/@minor,'.component.',@name)"/>
+  <xsl:variable name="type" select="concat($messagePackage,'.component.',@name)"/>
   public void set(<xsl:value-of select="$type"/> component) 
   { 
     setComponent(component); 

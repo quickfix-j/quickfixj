@@ -20,6 +20,11 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
  <xsl:output  method="text" encoding="UTF-8"/>
+ <xsl:param name="fieldName"/>
+ <xsl:param name="fieldPackage"/>
+ <xsl:param name="decimalType">double</xsl:param>
+ <xsl:param name="decimalConverter">Double</xsl:param>
+ <xsl:param name="serialVersionUID"/> 
 
  <xsl:template match="text()"/>
 
@@ -34,13 +39,8 @@
 	<xsl:apply-templates/>
  </xsl:template>
 
- <xsl:param name="fieldName">PLACEHOLDER</xsl:param>
- 
- <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param> 
- 
- <xsl:template match="fix/fields/field">
- <xsl:if test="@name=$fieldName">
-package quickfix.field;
+ <xsl:template match="fix/fields/field[@name=$fieldName]">
+package <xsl:value-of select="$fieldPackage"/>;
 import quickfix.<xsl:call-template name="get-field-type"/>Field;
 <xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY' or @type='UTCDATE' or @type='UTCDATEONLY'">
 import java.util.Date;</xsl:if>
@@ -60,8 +60,17 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
   { 
      super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'">, true</xsl:if>);
   } 
-} 
+  
+  <xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable>
+  
+  <xsl:if test="$dataType = 'java.math.BigDecimal'">
+  public <xsl:value-of select="@name"/>(double data) 
+  { 
+     super(<xsl:value-of select="@number"/>, new <xsl:value-of select="$dataType"/>(data));
+  } 
   </xsl:if>
+}
+
   </xsl:template>
 
 <xsl:template name="get-type">
@@ -69,10 +78,10 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
    <xsl:choose>
      <xsl:when test="@type='STRING'">String</xsl:when>
      <xsl:when test="@type='CHAR'">char</xsl:when>
-     <xsl:when test="@type='PRICE'">double</xsl:when>
+     <xsl:when test="@type='PRICE'"><xsl:value-of select="$decimalType"/></xsl:when>
      <xsl:when test="@type='INT'">int</xsl:when>
-     <xsl:when test="@type='AMT'">double</xsl:when>
-     <xsl:when test="@type='QTY'">double</xsl:when>
+     <xsl:when test="@type='AMT'"><xsl:value-of select="$decimalType"/></xsl:when>
+     <xsl:when test="@type='QTY'"><xsl:value-of select="$decimalType"/></xsl:when>
      <xsl:when test="@type='CURRENCY'">String</xsl:when>
      <xsl:when test="@type='UTCTIMESTAMP'">Date</xsl:when>
      <xsl:when test="@type='UTCTIMEONLY'">Date</xsl:when>
@@ -80,7 +89,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='UTCDATEONLY'">Date</xsl:when>
      <xsl:when test="@type='BOOLEAN'">boolean</xsl:when>
      <xsl:when test="@type='FLOAT'">double</xsl:when>
-     <xsl:when test="@type='PRICEOFFSET'">double</xsl:when>
+     <xsl:when test="@type='PRICEOFFSET'"><xsl:value-of select="$decimalType"/></xsl:when>
      <xsl:when test="@type='NUMINGROUP'">int</xsl:when>
      <xsl:when test="@type='PERCENTAGE'">double</xsl:when>
      <xsl:when test="@type='SEQNUM'">int</xsl:when>
@@ -95,10 +104,10 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
    <xsl:choose>
      <xsl:when test="@type='STRING'">String</xsl:when>
      <xsl:when test="@type='CHAR'">Char</xsl:when>
-     <xsl:when test="@type='PRICE'">Double</xsl:when>
+     <xsl:when test="@type='PRICE'"><xsl:value-of select="$decimalConverter"/></xsl:when>
      <xsl:when test="@type='INT'">Int</xsl:when>
-     <xsl:when test="@type='AMT'">Double</xsl:when>
-     <xsl:when test="@type='QTY'">Double</xsl:when>
+     <xsl:when test="@type='AMT'"><xsl:value-of select="$decimalConverter"/></xsl:when>
+     <xsl:when test="@type='QTY'"><xsl:value-of select="$decimalConverter"/></xsl:when>
      <xsl:when test="@type='CURRENCY'">String</xsl:when>
      <xsl:when test="@type='UTCTIMESTAMP'">UtcTimeStamp</xsl:when>
      <xsl:when test="@type='UTCTIMEONLY'">UtcTimeOnly</xsl:when>
@@ -106,7 +115,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='UTCDATEONLY'">UtcDateOnly</xsl:when>
      <xsl:when test="@type='BOOLEAN'">Boolean</xsl:when>
      <xsl:when test="@type='FLOAT'">Double</xsl:when>
-     <xsl:when test="@type='PRICEOFFSET'">Double</xsl:when>
+     <xsl:when test="@type='PRICEOFFSET'"><xsl:value-of select="$decimalConverter"/></xsl:when>
      <xsl:when test="@type='NUMINGROUP'">Int</xsl:when>
      <xsl:when test="@type='PERCENTAGE'">Double</xsl:when>
      <xsl:when test="@type='SEQNUM'">Int</xsl:when>

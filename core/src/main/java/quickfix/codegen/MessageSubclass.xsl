@@ -21,6 +21,13 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	version="1.0">
 	<xsl:output method="text" encoding="UTF-8" />
+    <xsl:param name="orderedFields"/>
+    <xsl:param name="itemName"/>
+    <xsl:param name="baseClass">Message</xsl:param>
+    <xsl:param name="subpackage"/>
+    <xsl:param name="fieldPackage"/>
+    <xsl:param name="messagePackage"/>
+    <xsl:param name="serialVersionUID"/>
 	
 	<xsl:template match="text()"/>
 
@@ -34,13 +41,6 @@
 	<xsl:apply-templates/>
   </xsl:template>
 
-  <xsl:param name="itemName">PLACEHOLDER</xsl:param>
-
-  <xsl:param name="baseClass">Message</xsl:param>
-  
-  <xsl:param name="subpackage"/>
-
-  <xsl:param name="serialVersionUID">PLACEHOLDER</xsl:param>
  
 	
   <!-- *********************************************************************
@@ -58,7 +58,7 @@
   </xsl:template>
 	
   <xsl:template match="fix/messages/message|fix/components/component">
-  <xsl:variable name="package" select="concat('quickfix.fix',/fix/@major,/fix/@minor,$subpackage)"/>
+  <xsl:variable name="package" select="concat($messagePackage,$subpackage)"/>
 package <xsl:value-of select="$package"/>;
 import quickfix.FieldNotFound;
 <xsl:call-template name="extra-imports"/>
@@ -76,8 +76,10 @@ public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseC
 		  
   public <xsl:value-of select="@name"/>()
   {
-    super();<xsl:if test="$baseClass = 'Message'">
-    getHeader().setField(new quickfix.field.MsgType("<xsl:value-of select="@msgtype"/>"));</xsl:if>
+    <xsl:choose><xsl:when test="$orderedFields = 'true'">
+    super(new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/> 0 } );
+    </xsl:when><xsl:otherwise>super();</xsl:otherwise></xsl:choose><xsl:if test="$baseClass = 'Message'">
+    getHeader().setField(new <xsl:value-of select="$fieldPackage"/>.MsgType("<xsl:value-of select="@msgtype"/>"));</xsl:if>
   }
   <xsl:if test="count(field[@required='Y']) > 0">
   public <xsl:value-of select="@name"/>(<xsl:for-each select="field[@required='Y']">
@@ -85,7 +87,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseC
   	  'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 	  'abcdefghijklmnopqrstuvwxyz'), 
 	  substring(@name, 2, string-length(@name)-1))"/>
-    <xsl:if test="position() > 1">, </xsl:if>quickfix.field.<xsl:value-of select="concat(@name, ' ', $varname)"/></xsl:for-each>) {
+    <xsl:if test="position() > 1">, </xsl:if><xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="concat(@name, ' ', $varname)"/></xsl:for-each>) {
     this();<xsl:for-each select="field[@required='Y']">
       <xsl:variable name="varname" select="concat(translate(substring(@name, 1, 1),
   		'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -215,25 +217,25 @@ import quickfix.Group;</xsl:when>
   </xsl:template>
   
   <xsl:template name="field-accessor-template">
-  public void set(quickfix.field.<xsl:value-of select="@name"/> value)
+  public void set(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value)
   { 
     setField(value); 
   }
   
-  public quickfix.field.<xsl:value-of select="@name"/> get(quickfix.field.<xsl:value-of select="@name"/>  value) throws FieldNotFound
+  public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>  value) throws FieldNotFound
   { 
     getField(value); 
     return value; 
   }
   
-  public quickfix.field.<xsl:value-of select="@name"/> get<xsl:value-of select="@name"/>() throws FieldNotFound
+  public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get<xsl:value-of select="@name"/>() throws FieldNotFound
   { 
-    quickfix.field.<xsl:value-of select="@name"/> value = new quickfix.field.<xsl:value-of select="@name"/>();
+    <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value = new <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>();
     getField(value); 
     return value; 
   }
   
-  public boolean isSet(quickfix.field.<xsl:value-of select="@name"/> field)
+  public boolean isSet(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> field)
   { 
     return isSetField(field); 
   }

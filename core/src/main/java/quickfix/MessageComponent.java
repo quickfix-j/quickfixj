@@ -7,6 +7,14 @@ public abstract class MessageComponent extends FieldMap {
     protected abstract int[] getFields();
     protected abstract int[] getGroupFields();
     
+    protected MessageComponent() {
+        super();
+    }
+    
+    protected MessageComponent(int[] fieldOrder) {
+        super(fieldOrder);
+    }
+    
     public void copyFrom(FieldMap fields) {
         try {
             int[] componentFields = getFields();

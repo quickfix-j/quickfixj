@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -930,12 +931,13 @@ public class MessageTest extends TestCase {
         assertTrue(!i.hasNext());
 
         try {
+            String accountId = numAllocs.getField(new AllocAccount()).getValue();
+            Object shares = numAllocs.getField(new AllocShares()).getObject();
             message.getGroup(1, numAllocs);
-            assertEquals("AllocACC1", numAllocs.getField(new AllocAccount()).getValue());
-            assertTrue(1010.10 == numAllocs.getField(new AllocShares()).getValue());
+            assertAllocation(accountId, shares);
             message.getGroup(2, numAllocs);
-            assertEquals("AllocACC2", numAllocs.getField(new AllocAccount()).getValue());
-            assertTrue(2020.20 == numAllocs.getField(new AllocShares()).getValue());
+            assertEquals("AllocACC2", accountId);
+            assertAllocation(accountId, shares);
         } catch (FieldNotFound e) {
             fail("no exception should be thrown");
         }
@@ -947,6 +949,26 @@ public class MessageTest extends TestCase {
         }
     }
 
+    private void assertAllocation(String accountId, Object shares) {
+        if (accountId.equals("AllocACC1")) {
+            assertTrue(equals(1010.10, shares));
+        } else if (accountId.equals("AllocACC2")) {
+            assertTrue(equals(2020.20, shares));
+        } else {
+            fail("Unknown account");
+        }
+    }
+    
+    private boolean equals(double expected, Object actual) {
+        if (actual instanceof Double) {
+            return ((Double)actual).compareTo(new Double(expected)) == 0;
+        } else {
+            // BigDecimal
+            return ((BigDecimal)actual).compareTo(new BigDecimal(expected)) == 0;
+        }
+            
+    }
+    
     private NewOrderSingle.NoAllocs setUpGroups(Message message) {
         NewOrderSingle.NoAllocs numAllocs = new NewOrderSingle.NoAllocs();
         numAllocs.set(new AllocAccount("AllocACC1"));

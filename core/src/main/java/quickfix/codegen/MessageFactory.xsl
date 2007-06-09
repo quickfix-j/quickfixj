@@ -20,6 +20,8 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
  <xsl:output  method="text" encoding="UTF-8"/>
+ <xsl:param name="fieldPackage"/>
+ <xsl:param name="messagePackage"/>
 
  <xsl:template match="text()"/>
 
@@ -47,7 +49,7 @@ public class MessageFactory implements quickfix.MessageFactory
     <xsl:template name="if-statement">
      <xsl:for-each select="//fix/messages/message">
        if("<xsl:value-of select="@msgtype"/>".equals(msgType)) {
-         return new quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>.<xsl:value-of select="@name"/>();
+         return new <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>();
        }
      </xsl:for-each>
     </xsl:template>
@@ -69,8 +71,8 @@ public class MessageFactory implements quickfix.MessageFactory
     
     <xsl:template mode="group-factories" match="group">
     	<xsl:param name="fullPath"/>
-           case quickfix.field.<xsl:value-of select="@name"/>.FIELD:
-                return new quickfix.fix<xsl:value-of select="concat(//fix/@major, //fix/@minor, '.', $fullPath, '.', @name)"/>();
+           case <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>.FIELD:
+                return new <xsl:value-of select="concat($messagePackage, '.', $fullPath, '.', @name)"/>();
 		 <xsl:variable name="groupPath" select="concat($fullPath, '.', @name)"/>
          <xsl:apply-templates mode="group-factories" select="group">
            <xsl:with-param name="fullPath" select='$groupPath'/>
