@@ -958,23 +958,20 @@ public class Session {
     private void generateReject(Message message, String str) throws FieldNotFound, IOException {
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
-        reject.reverseRoute(message.getHeader());
+        Header header = message.getHeader();
+        
+        reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
 
-        String msgType = message.getHeader().getString(MsgType.FIELD);
-        String msgSeqNum = message.getHeader().getString(MsgSeqNum.FIELD);
+        String msgType = header.getString(MsgType.FIELD);
+        String msgSeqNum = header.getString(MsgSeqNum.FIELD);
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
             reject.setString(RefMsgType.FIELD, msgType);
         }
         reject.setString(RefSeqNum.FIELD, msgSeqNum);
 
-        boolean isPossibleDuplicate = false;
-        if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
-            isPossibleDuplicate = message.getHeader().getBoolean(PossDupFlag.FIELD);
-        }
-
         if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
-                && !isPossibleDuplicate) {
+                && !isPossibleDuplicate(message)) {
             state.incrNextTargetMsgSeqNum();
         }
 
@@ -982,6 +979,11 @@ public class Session {
         sendRaw(reject, 0);
         getLog().onEvent("Message " + msgSeqNum + " Rejected: " + str);
 
+    }
+
+    private boolean isPossibleDuplicate(Message message) throws FieldNotFound {
+        Header header = message.getHeader();
+        return header.isSetField(PossDupFlag.FIELD) && header.getBoolean(PossDupFlag.FIELD);
     }
 
     private void generateReject(Message message, int err, int field) throws IOException,
@@ -996,23 +998,20 @@ public class Session {
 
         String beginString = sessionID.getBeginString();
         Message reject = messageFactory.create(beginString, MsgType.REJECT);
-        reject.reverseRoute(message.getHeader());
+        Header header = message.getHeader();
+        
+        reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
 
         String msgType = "";
-        if (message.getHeader().isSetField(MsgType.FIELD)) {
-            msgType = message.getHeader().getString(MsgType.FIELD);
+        if (header.isSetField(MsgType.FIELD)) {
+            msgType = header.getString(MsgType.FIELD);
         }
 
         int msgSeqNum = 0;
-        if (message.getHeader().isSetField(MsgSeqNum.FIELD)) {
-            msgSeqNum = message.getHeader().getInt(MsgSeqNum.FIELD);
+        if (header.isSetField(MsgSeqNum.FIELD)) {
+            msgSeqNum = header.getInt(MsgSeqNum.FIELD);
             reject.setInt(RefSeqNum.FIELD, msgSeqNum);
-        }
-
-        boolean possDupFlag = false;
-        if (message.getHeader().isSetField(PossDupFlag.FIELD)) {
-            possDupFlag = message.getHeader().getBoolean(PossDupFlag.FIELD);
         }
 
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
@@ -1024,8 +1023,9 @@ public class Session {
                 reject.setInt(SessionRejectReason.FIELD, err);
             }
         }
+        
         if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
-                && (msgSeqNum == getExpectedTargetNum() || !possDupFlag)) {
+                && (msgSeqNum == getExpectedTargetNum() || !isPossibleDuplicate(message))) {
             state.incrNextTargetMsgSeqNum();
         }
 
@@ -1150,6 +1150,12 @@ public class Session {
                 doTargetTooLow(msg);
                 return false;
             }
+            
+            // Handle poss dup where msgSeq is as expected
+            // FIX 4.4 Vol 2, test case 2f&g
+            if (isPossibleDuplicate(msg) && !validatePossDup(msg)) {
+                return false;
+            }
 
             if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
                 synchronized (this) {
@@ -1178,22 +1184,15 @@ public class Session {
     }
 
     private boolean doTargetTooLow(Message msg) throws FieldNotFound, IOException {
-        Message.Header header = msg.getHeader();
-
-        boolean possDupFlag = false;
-        if (header.isSetField(PossDupFlag.FIELD)) {
-            possDupFlag = header.getBoolean(PossDupFlag.FIELD);
-        }
-
-        if (!possDupFlag) {
-            int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
+        if (!isPossibleDuplicate(msg)) {
+            int msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
             String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
                     + " but received " + msgSeqNum;
             generateLogout(text);
             throw new SessionException(text);
         }
 
-        return doPossDup(msg);
+        return validatePossDup(msg);
     }
 
     private void doBadCompID(Message msg) throws IOException, FieldNotFound {
@@ -1534,7 +1533,7 @@ public class Session {
         state.setResendRange(beginSeqNo, msgSeqNum - 1);
     }
 
-    private boolean doPossDup(Message msg) throws FieldNotFound, IOException {
+    private boolean validatePossDup(Message msg) throws FieldNotFound, IOException {
         Message.Header header = msg.getHeader();
         String msgType = header.getString(MsgType.FIELD);
         Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
