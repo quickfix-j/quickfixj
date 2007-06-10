@@ -30,10 +30,9 @@ import java.util.regex.Pattern;
  */
 class SessionSchedule {
     private static final int NOT_SET = -1;
-    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})");
+    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})(.*)");
     private final TimeEndPoint startTime;
     private final TimeEndPoint endTime;
-    private final TimeZone sessionTimeZone;
 
     SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
@@ -53,6 +52,7 @@ class SessionSchedule {
         String startTimeString = settings.getString(sessionID, Session.SETTING_START_TIME);
         String endTimeString = settings.getString(sessionID, Session.SETTING_END_TIME);
 
+        TimeZone sessionTimeZone;
         if (settings.isSetting(sessionID, Session.SETTING_TIMEZONE)) {
             String sessionTimeZoneID = settings.getString(sessionID, Session.SETTING_TIMEZONE);
             sessionTimeZone = TimeZone.getTimeZone(sessionTimeZoneID);
@@ -70,7 +70,8 @@ class SessionSchedule {
                     + startTimeString + "'.");
         }
         Calendar localTime = SystemTime.getUtcCalendar();
-        localTime.setTimeZone(sessionTimeZone);
+        TimeZone startTimeZone = getTimeZone(matcher.group(4), sessionTimeZone);
+        localTime.setTimeZone(startTimeZone);
         localTime.set(Calendar.MILLISECOND, 0);
         localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
         localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
@@ -87,6 +88,9 @@ class SessionSchedule {
             throw new ConfigError("Session " + sessionID + ": could not parse end time '"
                     + endTimeString + "'.");
         }
+        localTime = SystemTime.getUtcCalendar();
+        TimeZone endTimeZone = getTimeZone(matcher.group(4), sessionTimeZone);
+        localTime.setTimeZone(endTimeZone);
         localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
         localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
         localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
@@ -97,26 +101,32 @@ class SessionSchedule {
             endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, NOT_SET);
         }
 
-        this.startTime = new TimeEndPoint(startDay, startTime);
-        this.endTime = new TimeEndPoint(endDay, endTime);
+        this.startTime = new TimeEndPoint(startDay, startTime,startTimeZone);
+        this.endTime = new TimeEndPoint(endDay, endTime, endTimeZone);
     }
 
+    private TimeZone getTimeZone(String tz, TimeZone defaultZone) {
+        return "".equals(tz) ? defaultZone : TimeZone.getTimeZone(tz.trim());
+    }
+    
     private class TimeEndPoint {
         private final int weekDay;
         private final int hour;
         private final int minute;
         private final int second;
         private final int timeInSeconds;
+        private final TimeZone tz;
 
-        public TimeEndPoint(int day, Calendar c) {
-            this(day, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND));
+        public TimeEndPoint(int day, Calendar c, TimeZone tz) {
+            this(day, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), tz);
         }
 
-        public TimeEndPoint(int day, int hour, int minute, int second) {
+        public TimeEndPoint(int day, int hour, int minute, int second, TimeZone tz) {
             weekDay = day;
             this.hour = hour;
             this.minute = minute;
             this.second = second;
+            this.tz = tz;
             timeInSeconds = timeInSeconds(hour, minute, second);
         }
 
@@ -135,7 +145,7 @@ class SessionSchedule {
         public String toString() {
             try {
                 return (isSet(weekDay) ? "d=" + DayConverter.toString(weekDay) + "," : "") + hour
-                        + ":" + minute + ":" + second;
+                        + ":" + minute + ":" + second + " " + tz;
             } catch (ConfigError e) {
                 return "ERROR: " + e.getMessage();
             }
@@ -158,6 +168,10 @@ class SessionSchedule {
                 return timeInSeconds == otherTime.timeInSeconds;
             }
             return false;
+        }
+
+        public TimeZone getTimeZone() {
+            return tz;
         }
     }
 
@@ -264,15 +278,13 @@ class SessionSchedule {
 
         TimeInterval ti = theMostRecentIntervalBefore(SystemTime.getUtcCalendar());
 
-        formatTimeInterval(buf, ti, timeFormat);
+        formatTimeInterval(buf, ti, timeFormat, false);
 
         // Now the localized equivalents, if necessary
-        if (sessionTimeZone != null && !TimeZone.getTimeZone("UTC").equals(sessionTimeZone)) {
-            dowFormat.setTimeZone(sessionTimeZone);
-            timeFormat.setTimeZone(sessionTimeZone);
-
+        if (startTime.getTimeZone() != SystemTime.UTC_TIMEZONE
+                || endTime.getTimeZone() != SystemTime.UTC_TIMEZONE) {
             buf.append(" (");
-            formatTimeInterval(buf, ti, timeFormat);
+            formatTimeInterval(buf, ti, timeFormat, true);
             buf.append(")");
         }
 
@@ -280,7 +292,7 @@ class SessionSchedule {
     }
 
     private void formatTimeInterval(StringBuffer buf, TimeInterval timeInterval,
-            SimpleDateFormat timeFormat) {
+            SimpleDateFormat timeFormat, boolean local) {
         if (!isDailySession()) {
             buf.append("weekly, ");
             formatDayOfWeek(buf, startTime.getDay());
@@ -289,6 +301,9 @@ class SessionSchedule {
             buf.append("daily, ");
         }
 
+        if (local) {
+            timeFormat.setTimeZone(startTime.getTimeZone());
+        }
         buf.append(timeFormat.format(timeInterval.getStart().getTime()));
 
         buf.append(" - ");
@@ -296,6 +311,9 @@ class SessionSchedule {
         if (!isDailySession()) {
             formatDayOfWeek(buf, endTime.getDay());
             buf.append(" ");
+        }
+        if (local) {
+            timeFormat.setTimeZone(endTime.getTimeZone());
         }
         buf.append(timeFormat.format(timeInterval.getEnd().getTime()));
     }
