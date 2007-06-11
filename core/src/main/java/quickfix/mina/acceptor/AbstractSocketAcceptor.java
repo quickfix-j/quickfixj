@@ -56,7 +56,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
-import quickfix.mina.ssl.AcceptorSSLContextFactory;
+import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
 
 /**
@@ -132,7 +132,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private void installSSL(AcceptorSocketDescriptor descriptor,
             CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
         log.info("Installing SSL filter for " + descriptor.getAddress());
-        SSLContext sslContext = AcceptorSSLContextFactory.getInstance(descriptor.getKeyStoreName(),
+        SSLContext sslContext = SSLContextFactory.getInstance(descriptor.getKeyStoreName(),
                 descriptor.getKeyStorePassword().toCharArray());
         SSLFilter sslFilter = new SSLFilter(sslContext);
         sslFilter.setUseClientMode(false);
@@ -169,20 +169,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 && getSettings().getBool(sessionID, SSLSupport.SETTING_USE_SSL)) {
             if (acceptTransportType == TransportType.SOCKET) {
                 useSSL = true;
-
-                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_NAME)) {
-                    keyStoreName = getSettings().getString(sessionID,
-                            SSLSupport.SETTING_KEY_STORE_NAME);
-                } else {
-                    keyStoreName = "quickfixj.cert";
-                }
-
-                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_PWD)) {
-                    keyStorePassword = getSettings().getString(sessionID,
-                            SSLSupport.SETTING_KEY_STORE_PWD);
-                } else {
-                    keyStorePassword = "quickfixjpw";
-                }
+                keyStoreName = SSLSupport.getKeystoreName(getSettings(),  sessionID);
+                keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(),  sessionID);
             } else {
                 log.warn("SSL will not be enabled for transport type=" + acceptTransportType
                         + ", session=" + sessionID);

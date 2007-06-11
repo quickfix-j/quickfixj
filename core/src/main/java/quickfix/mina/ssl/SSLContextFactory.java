@@ -1,43 +1,23 @@
-/*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
- * are not clear to you.
- ******************************************************************************/
-
 package quickfix.mina.ssl;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.KeyManagerFactory;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
+/**
+ * SSL context factory that deals with Keystores.
+ * Caches the created SSL contexts for future reuse.
+ */
 
-public class AcceptorSSLContextFactory {
+public class SSLContextFactory {
     private static final String PROTOCOL = "TLS";
-
     private static final String KEY_MANAGER_FACTORY_ALGORITHM;
+    final private static Map contextCache = new HashMap();
 
     static {
         String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
@@ -48,8 +28,7 @@ public class AcceptorSSLContextFactory {
         KEY_MANAGER_FACTORY_ALGORITHM = algorithm;
     }
 
-    private static Map contextCache = new HashMap();
-
+    /** Creates an {@link SSLContext} with a specified keystore and password for that keystore */
     public static synchronized SSLContext getInstance(String keyStoreName, char[] keyStorePassword)
             throws GeneralSecurityException {
         synchronized (contextCache) {
@@ -59,7 +38,7 @@ public class AcceptorSSLContextFactory {
                     context = createSSLContext(keyStoreName, keyStorePassword);
                     contextCache.put(keyStoreName, context);
                 } catch (Exception ioe) {
-                    throw new GeneralSecurityException("Can't create Server SSLContext:" + ioe);
+                    throw new GeneralSecurityException("Can't create SSLContext:" + ioe);
                 }
             }
             return context;
@@ -90,9 +69,9 @@ public class AcceptorSSLContextFactory {
         KeyStore keyStore = KeyStore.getInstance("JKS");
         InputStream in = null;
         try {
-            in = AcceptorSSLContextFactory.class.getResourceAsStream(keyStoreName);
+            in = SSLContextFactory.class.getResourceAsStream(keyStoreName);
             if (in == null) {
-                in = AcceptorSSLContextFactory.class.getClassLoader().getResourceAsStream(
+                in = SSLContextFactory.class.getClassLoader().getResourceAsStream(
                         keyStoreName);
             }
             keyStore.load(in, keyStorePassword);

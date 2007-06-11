@@ -19,6 +19,11 @@
 
 package quickfix.mina.ssl;
 
+import quickfix.SessionID;
+import quickfix.SessionSettings;
+import quickfix.ConfigError;
+import quickfix.FieldConvertError;
+
 public class SSLSupport {
     // This will be moved else when settings mechanism is refactored.
 
@@ -26,5 +31,31 @@ public class SSLSupport {
     public static final String SETTING_KEY_STORE_PWD = "SocketKeyStorePassword";
     public static final String SETTING_KEY_STORE_NAME = "SocketKeyStore";
     public static final String SETTING_USE_SSL = "SocketUseSSL";
+    /* package */ static final String QUICKFIXJ_CERT = "quickfixj.cert";
+    /* package */ static final String QUICKFIXJ_PW = "quickfixjpw";
+
+    public static String getKeystoreName(SessionSettings settings, SessionID sessionID) {
+        String keyStoreName = QUICKFIXJ_CERT;
+        if (settings.isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_NAME)) {
+            try {
+                keyStoreName = settings.getString(sessionID, SSLSupport.SETTING_KEY_STORE_NAME);
+            } catch (ConfigError ignored) {
+            } catch (FieldConvertError ignored) {
+            }
+        }
+        return keyStoreName;
+    }
+
+    public static String getKeystorePasswd(SessionSettings settings, SessionID sessionID) {
+        String keyStorePassword = QUICKFIXJ_PW;
+        if (settings.isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_PWD)) {
+            try {
+                keyStorePassword = settings.getString(sessionID, SSLSupport.SETTING_KEY_STORE_PWD);
+            } catch (ConfigError ignored) {
+            } catch (FieldConvertError ignored) {
+            }
+        }
+        return keyStorePassword;
+    }
     
 }

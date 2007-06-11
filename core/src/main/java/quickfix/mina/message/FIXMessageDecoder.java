@@ -62,7 +62,6 @@ public class FIXMessageDecoder implements MessageDecoder {
     private int state;
     private int bodyLength;
     private int position;
-    private int headerOffset;
     private final String charsetEncoding;
 
     private void resetState() {
@@ -88,7 +87,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     }
 
     public MessageDecoderResult decodable(IoSession session, ByteBuffer in) {
-        headerOffset = indexOf(in, in.position(), HEADER_PATTERN);
+        int headerOffset = indexOf(in, in.position(), HEADER_PATTERN);
         return headerOffset != -1 ? MessageDecoderResult.OK : MessageDecoderResult.NEED_DATA;
     }
 

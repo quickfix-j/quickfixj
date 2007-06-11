@@ -30,7 +30,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactorySpi;
 import javax.net.ssl.X509TrustManager;
 
-class SimpleTrustManagerFactory extends TrustManagerFactorySpi
+public class SimpleTrustManagerFactory extends TrustManagerFactorySpi
 {
 
     static final X509TrustManager X509 = new X509TrustManager()
@@ -51,7 +51,7 @@ class SimpleTrustManagerFactory extends TrustManagerFactorySpi
         }
     };
 
-    static final TrustManager[] X509_MANAGERS = new TrustManager[] { X509 };
+    public static final TrustManager[] X509_MANAGERS = new TrustManager[] { X509 };
 
     public SimpleTrustManagerFactory()
     {

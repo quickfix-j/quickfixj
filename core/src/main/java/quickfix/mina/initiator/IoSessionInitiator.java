@@ -19,19 +19,12 @@
 
 package quickfix.mina.initiator;
 
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.security.GeneralSecurityException;
-
-import org.apache.mina.common.ConnectFuture;
-import org.apache.mina.common.IoConnector;
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoServiceConfig;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.ThreadModel;
+import edu.emory.mathcs.backport.java.util.concurrent.Future;
+import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
+import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
+import org.apache.mina.common.*;
 import org.apache.mina.filter.SSLFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-
 import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
@@ -41,11 +34,12 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
-import quickfix.mina.ssl.InitiatorSSLContextFactory;
+import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
-import edu.emory.mathcs.backport.java.util.concurrent.Future;
-import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
+
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.security.GeneralSecurityException;
 
 public class IoSessionInitiator {
     private final ScheduledExecutorService executor;
@@ -54,14 +48,15 @@ public class IoSessionInitiator {
     private Future reconnectFuture;
 
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
-            long reconnectIntervalInSeconds, ScheduledExecutorService executor,
-            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
-            IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled) throws ConfigError {
+                              long reconnectIntervalInSeconds, ScheduledExecutorService executor,
+                              NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
+                              IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled,
+                              String keyStoreName, String keyStorePassword) throws ConfigError {
         this.executor = executor;
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, userIoFilterChainBuilder,
                     qfSession, reconnectIntervalInSeconds * 1000L, networkingOptions,
-                    eventHandlingStrategy);
+                    eventHandlingStrategy, keyStoreName, keyStorePassword);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
         }
@@ -72,6 +67,8 @@ public class IoSessionInitiator {
         private final IoConnector ioConnector;
         private final Session quickfixSession;
         private final long reconnectIntervalInMillis;
+        private String keyStoreName;
+        private String keyStorePassword;
         private final InitiatorIoHandler ioHandler;
 
         private IoSession ioSession;
@@ -81,13 +78,16 @@ public class IoSessionInitiator {
         private int connectionFailureCount;
 
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
-                IoFilterChainBuilder userIoFilterChainBuilder, Session quickfixSession,
-                long reconnectIntervalInMillis, NetworkingOptions networkingOptions,
-                EventHandlingStrategy eventHandlingStrategy) throws ConfigError,
+                           IoFilterChainBuilder userIoFilterChainBuilder, Session quickfixSession,
+                           long reconnectIntervalInMillis, NetworkingOptions networkingOptions,
+                           EventHandlingStrategy eventHandlingStrategy,
+                           String keyStoreName, String keyStorePassword) throws ConfigError,
                 GeneralSecurityException {
             this.socketAddresses = socketAddresses;
             this.quickfixSession = quickfixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
+            this.keyStoreName = keyStoreName;
+            this.keyStorePassword = keyStorePassword;
             ioConnector = ProtocolFactory.createIoConnector(socketAddresses[0]);
             CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                     userIoFilterChainBuilder);
@@ -108,7 +108,7 @@ public class IoSessionInitiator {
 
         private void installSSLFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
-            SSLFilter sslFilter = new SSLFilter(InitiatorSSLContextFactory.getInstance());
+            SSLFilter sslFilter = new SSLFilter(SSLContextFactory.getInstance(keyStoreName, keyStorePassword.toCharArray()));
             sslFilter.setUseClientMode(true);
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
         }

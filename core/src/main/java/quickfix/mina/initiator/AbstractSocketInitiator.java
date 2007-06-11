@@ -97,11 +97,13 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     sslEnabled = BooleanConverter.convert(getSettings().getString(sessionID,
                             SSLSupport.SETTING_USE_SSL));
                 }
-                
+                String keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
+                String keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
+
                 IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(quickfixSession,
                         socketAddresses, reconnectingInterval, getScheduledExecutorService(),
                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder(),
-                        sslEnabled);
+                        sslEnabled, keyStoreName, keyStorePassword);
                 
                 initiators.add(ioSessionInitiator);
             }
