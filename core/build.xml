@@ -22,6 +22,7 @@
 
 	<target name="generate.code" unless="generated.isuptodate" depends="check.generated.isuptodate" description="generate FIX message code">
 		<antcall target="regenerate.code"/>
+        <antcall target="format.generated.code"/>
 	</target>
 
 	<target name="regenerate.code">
@@ -45,6 +46,25 @@
 		</java>
 	</target>
 	
+    <!-- ==================================================================== -->
+    <!-- Defines the Jalopy task -->
+    <!-- ==================================================================== -->
+
+    <taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.classpath"/>
+
+    <target name="format.generated.code" 
+            description="Format the generated FIX message code using Jalopy. Mostly interested in getting all the tabbing right.">
+        <jalopy
+                classpathref="main.lib.classpath"
+                fileformat="unix">
+            <fileset dir="${target.generated.src.dir}">
+                <include name="**/*.java"/>
+            </fileset>
+        </jalopy>
+
+    </target>
+
+
 	<!-- =============================================================
 	Compile Sources
 	================================================================= -->
@@ -431,5 +451,14 @@
 	<path id="test.src.path">
 		<pathelement location="${test.src.dir}" />
 	</path>
+
+    <path id="jalopy.classpath" description="Jalopy tool path">
+        <fileset dir="${main.lib.dir}/build">
+            <include name="jalopy*.jar"/>
+        </fileset>
+        <fileset dir="${main.optional.lib.dir}">
+            <include name="log4j*.jar"/>
+        </fileset>
+    </path>
 
 </project>
