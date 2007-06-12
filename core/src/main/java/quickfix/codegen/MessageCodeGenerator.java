@@ -55,6 +55,7 @@ import org.xml.sax.SAXException;
  * 
  */
 public class MessageCodeGenerator {
+    private static final String BIGDECIMAL_TYPE_OPTION = "generator.decimal";
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
 
@@ -396,7 +397,7 @@ public class MessageCodeGenerator {
             
             boolean overwrite = getOption(OVERWRITE_OPTION, true);
             boolean orderedFields = getOption(ORDERED_FIELDS_OPTION, false);
-            boolean useDecimal = getOption("generator.decimal", false);
+            boolean useDecimal = getOption(BIGDECIMAL_TYPE_OPTION, false);
             
             long start = System.currentTimeMillis();
             for (int i = 4; i >= 0; i--) {
