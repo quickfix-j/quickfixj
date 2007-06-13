@@ -37,7 +37,7 @@
     <li> quickfixj-msg-fix44.jar
     </ul>
     </td>
-    <td>Main QuickFIX/J library</td>
+    <td>Version-specific FIX messages libraries</td>
   </tr>
   <tr>
     <td nowrap="nowrap">mina-core-1.0.1.jar</td>
@@ -63,7 +63,7 @@
     <th>Description</th>
   </tr>
   <tr>
-    <td nowrap="nowrap">log4j-1.2.4.jar</td>
+    <td nowrap="nowrap">log4j-1.2.14.jar</td>
     <td>If Log4J logging is desired. The JDK logging is the default.</td>
   </tr>
   <tr>
@@ -121,6 +121,50 @@ is included.</p>
    out the project directly from Eclipse. A message generator item will be present
 	on the external tools menu for generating Java message-related classes. If you are seeing
   compile errors related to message classes, use this tool to generate the classes.</p>
+<h3>Maven Integration:</h3>
+<p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
+    the pre-built Quickfix/J libraries hosted at the <a href="http://www.marketcetera.org">Marketcetera</a>
+    repository.</p>
+<ol>
+    <li>Add the following to your <em>dependencies</em> section, with appropriate modifications based on
+        the logging subsystem you choose:<br>
+        <pre class="code">
+&lt;!-- QuickFIX/J dependencies --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj&lt;/artifactId&gt;
+    &lt;version&gt;1.1.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.apache.mina&lt;/groupId&gt;
+    &lt;artifactId&gt;mina-core&lt;/artifactId&gt;
+    &lt;version&gt;1.0.1&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+    &lt;version&gt;1.3.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+    &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
+    &lt;version&gt;1.3.0&lt;/version&gt;
+&lt;/dependency&gt;</pre>           
+    </li>
+    <li>And add the Marketcetera Repository to your repository list:<br>
+        <pre class="code">
+&lt;repositories&gt;
+    &lt;repository&gt;
+        &lt;id&gt;MarketceteraRepo&lt;/id&gt;
+        &lt;url&gt;http://repo.marketcetera.org/maven&lt;/url&gt;
+            &lt;releases&gt;
+                &lt;enabled&gt;true&lt;/enabled&gt;
+            &lt;/releases&gt;
+    &lt;/repository&gt;
+&lt;/repositories&gt;</pre>
+    </li>
+</ol>
+There's an <a href="http://trac.marketcetera.org/trac.fcgi/browser/platform/trunk/pom.xml">example POM file</a> if you need it.
 <h2><a name="mysql"></a>Setting up the MySQL database</h2>
 <p> Everything needed to generate your MySQL database is in the <code>etc/sql/mysql</code> directory.
   Here, there are the script and batch files <code>create_mysql.sh</code> and <code>create_mysql.bat</code>.
