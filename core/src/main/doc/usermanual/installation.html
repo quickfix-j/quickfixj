@@ -165,15 +165,34 @@ is included.</p>
     </li>
 </ol>
 There's an <a href="http://trac.marketcetera.org/trac.fcgi/browser/platform/trunk/pom.xml">example POM file</a> if you need it.
-<h2><a name="mysql"></a>Setting up the MySQL database</h2>
-<p> Everything needed to generate your MySQL database is in the <code>etc/sql/mysql</code> directory.
-  Here, there are the script and batch files <code>create_mysql.sh</code> and <code>create_mysql.bat</code>.
+<h2><a name="database"></a>Generating the database for JDBC based store and log</h2>
+<p> Everything needed to generate your database is in the <code>etc/sql</code> subdirectories.
+  For MySQL, there are the script and batch files <code>create_mysql.sh</code> and <code>create_mysql.bat</code>.
   These scripts will work on a newly installed mysql database with default permisions.
   The scripts will try to generate the database using the root MySQL account
   with no password. If you need to use a different account or need a password,
   you will have to edit the script. To select a different user, simply change
   'root' to another user. To add a password, use pass the -p option after the
-username. Similar scripts are provided for MSSQL and PostgreSQL.</p>
+username. Similar scripts are provided for MSSQL, PostgreSQL and Oracle.
+</p>
+<h3><a name="oracle">Special notes for Oracle</h3>
+<p>
+Oracle treats empty strings as null values. Null values are not allowed for primary key
+fields. The fields used in the primary keys are:
+<ul>
+	<li>beginstring
+	<li>sendercompid
+	<li>targetcompid
+	<li>session_qualifier
+	<li>msgseqnum
+</ul>
+If any of these keys contains an empty string, null constraint violations will occur.
+Therefore, the session_qualifier has been set to a non-empty string for Oracle.
+</p>
+<p>
+Please also not, that for string fields always the VARCHAR2 data type should be used.
+If CHAR fields are used, they always have to be spaced-padded to the full length.
+</p>
 <h2><a name="testing"></a>Testing QuickFIX/J</h2>
 <p> The development of QuickFIX has been driven by a suite of functional acceptance
   tests and unit tests. We have been working incrementally, functional test by
