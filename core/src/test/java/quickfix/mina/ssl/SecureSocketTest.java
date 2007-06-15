@@ -19,32 +19,17 @@
 
 package quickfix.mina.ssl;
 
-import java.util.HashMap;
-
-import junit.framework.TestCase;
-
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TransportType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.ApplicationAdapter;
-import quickfix.ConfigError;
-import quickfix.DefaultMessageFactory;
-import quickfix.FixVersions;
-import quickfix.Initiator;
-import quickfix.MemoryStoreFactory;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.SystemTime;
-import quickfix.ThreadedSocketInitiator;
-import quickfix.test.acceptance.ATServer;
 import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
+import junit.framework.TestCase;
+import org.apache.mina.common.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.*;
+import quickfix.test.acceptance.ATServer;
+import quickfix.util.ExpectedTestFailure;
+
+import java.util.HashMap;
 
 public class SecureSocketTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -105,7 +90,37 @@ public class SecureSocketTest extends TestCase {
         doLogonTest("test.cert", "testpassword");
     }
 
-    
+    /** This is more of an anti-test. To verify that the client-side initiator adds the
+     * specified keystore/pwd to the SSL context, reset the pwd to be invalid.
+     * During startup, the socket iniator should fail b/c ssl context is misconfigured
+     * Thus, we verify that we use SSL keystore/pwd in client connection, since
+     * we don't have any easy way to get to any of the vars inside the client-side initiator
+     * Note that we have to use a unique cert here (not same as test.cert) so that it's not cached
+     * by another test so that there are no false failures.
+     */
+    public void testLogonWithBadCertificateOnInitiatorSide() throws Exception {
+        if (Double.parseDouble(System.getProperty("java.specification.version")) < 1.5) {
+            log.warn("Test was not run because java.specification.version < 1.5");
+            return;
+        }
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        // reset client side to invalid certs
+        settings.setString(SSLSupport.SETTING_KEY_STORE_NAME, "test-client.cert");
+        settings.setString(SSLSupport.SETTING_KEY_STORE_PWD, "bogus-pwd");
+        ClientApplication clientApplication = new ClientApplication();
+        final ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
+                new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+
+        log.info("Start initator and try logon");
+        new ExpectedTestFailure(ConfigError.class, "Can't create SSLContext") {
+            protected void execute() throws Throwable {
+                initiator.start();
+            }
+        }.run();
+    }
+
+
     private void doLogonTest(String keyStoreName, String keyStorePassword) throws InterruptedException, ConfigError {
         if (Double.parseDouble(System.getProperty("java.specification.version")) < 1.5) {
             log.warn("Test was not run because java.specification.versionn < 1.5");
