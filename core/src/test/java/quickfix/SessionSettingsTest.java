@@ -182,6 +182,13 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("This is a test? Yes, it is.", settings.getString(sessionID2, "label"));
     }
 
+    public void testFinalCommentWithoutTrailingNewline() throws Exception {
+        SessionSettings settings = setUpSession("label=no trailing newline\n# a comment without trailing newline");
+        SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
+        
+        assertEquals("no trailing newline", settings.getString(sessionID2, "label"));
+    }
+    
     public void testDefaultSetters() throws Exception {
     	SessionSettings settings = setUpSession();
     	settings.setBool("bool", true);

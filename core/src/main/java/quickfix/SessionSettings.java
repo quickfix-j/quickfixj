@@ -499,7 +499,7 @@ public class SessionSettings {
             } else if (ch == '#') {
                 do {
                     ch = nextCharacter(reader);
-                } while (!isNewLineCharacter(ch));
+                } while (isValueCharacter(ch));
                 return getToken(reader);
             }
             return null;
