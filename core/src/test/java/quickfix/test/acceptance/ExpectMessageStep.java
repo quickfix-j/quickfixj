@@ -32,6 +32,8 @@ import junit.framework.TestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import quickfix.test.ReflectionUtil;
+
 public class ExpectMessageStep implements TestStep {
     public static long TIMEOUT_IN_MS = 10000;
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -73,6 +75,7 @@ public class ExpectMessageStep implements TestStep {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
+            ReflectionUtil.dumpStackTraces();
             Assert.fail("message timeout: expected=" + expectedFields);
         }
         Map actualFields = simpleParse(message.toString());
