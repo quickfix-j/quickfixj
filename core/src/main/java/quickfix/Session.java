@@ -1023,12 +1023,20 @@ public class Session {
                 reject.setInt(SessionRejectReason.FIELD, err);
             }
         }
-        
-        if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
-                && (msgSeqNum == getExpectedTargetNum() || !isPossibleDuplicate(message))) {
-            state.incrNextTargetMsgSeqNum();
-        }
 
+        // This is a set and increment of target msg sequence number, the sequence
+        // number must be locked to guard against race conditions.
+        
+        state.lockTargetMsgSeqNum();
+        try {
+            if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
+                    && (msgSeqNum == getExpectedTargetNum() || !isPossibleDuplicate(message))) {
+                state.incrNextTargetMsgSeqNum();
+            }
+        } finally {
+            state.unlockTargetMsgSeqNum();
+        }
+        
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             setRejectReason(reject, field, reason, true);
             getLog().onEvent("Message " + msgSeqNum + " Rejected: " + reason + ":" + field);
@@ -1572,11 +1580,16 @@ public class Session {
     }
 
     private boolean sendRaw(Message message, int num) {
+        // sequence number must be locked until application
+        // callback returns since it may be effectively rolled
+        // back if the callback fails.
+        state.lockSenderMsgSeqNum();
         try {
             boolean result = false;
             Message.Header header = message.getHeader();
             String msgType = header.getString(MsgType.FIELD);
 
+            
             initializeHeader(header);
 
             if (num > 0) {
@@ -1632,6 +1645,8 @@ public class Session {
         } catch (FieldNotFound e) {
             LogUtil.logThrowable(state.getLog(), "Error accessing message fields", e);
             return false;
+        } finally {
+            state.unlockSenderMsgSeqNum();
         }
     }
 

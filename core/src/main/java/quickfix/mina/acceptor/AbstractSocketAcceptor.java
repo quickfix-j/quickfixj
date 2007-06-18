@@ -169,8 +169,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 && getSettings().getBool(sessionID, SSLSupport.SETTING_USE_SSL)) {
             if (acceptTransportType == TransportType.SOCKET) {
                 useSSL = true;
-                keyStoreName = SSLSupport.getKeystoreName(getSettings(),  sessionID);
-                keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(),  sessionID);
+                keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
+                keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
             } else {
                 log.warn("SSL will not be enabled for transport type=" + acceptTransportType
                         + ", session=" + sessionID);
@@ -237,7 +237,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             SocketAddress acceptorSocketAddress = socketDescriptor.getAddress();
             log.info("No longer accepting connections on " + acceptorSocketAddress);
             IoAcceptor ioAcceptor = getIoAcceptor(acceptorSocketAddress);
-            ioAcceptor.unbind(acceptorSocketAddress);
+            if (ioAcceptor.isManaged(acceptorSocketAddress)) {
+                ioAcceptor.unbind(acceptorSocketAddress);
+            }
         }
         ioAcceptorForTransport.clear();
     }

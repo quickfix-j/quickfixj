@@ -72,6 +72,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
     public void stop(boolean forceDisconnect) {
         eventHandlingStrategy.stopHandlingMessages();
         logoutAllSessions(forceDisconnect);
+        stopSessionTimer();
         Session.unregisterSessions(getSessions());
     }
 

@@ -24,6 +24,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
+import edu.emory.mathcs.backport.java.util.concurrent.locks.Lock;
+import edu.emory.mathcs.backport.java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Used by the session communications code. Not intended to be used by
  * applications.
@@ -34,7 +37,12 @@ import java.util.HashMap;
 public final class SessionState {
     private final Object lock;
     private final Log log;
+
+    // MessageStore implementation must be thread safe
     private final MessageStore messageStore;
+    private final Lock senderMsgSeqNumLock = new ReentrantLock();
+    private final Lock targetMsgSeqNumLock = new ReentrantLock();
+
     private final boolean initiator;
 
     private long logonTimeoutMs = 10000L;
@@ -296,6 +304,22 @@ public final class SessionState {
 
     public void clearQueue() {
         messageQueue.clear();
+    }
+
+    public void lockSenderMsgSeqNum() {
+        senderMsgSeqNumLock.lock();
+    }
+
+    public void unlockSenderMsgSeqNum() {
+        senderMsgSeqNumLock.unlock();
+    }
+
+    public void lockTargetMsgSeqNum() {
+        targetMsgSeqNumLock.lock();
+    }
+
+    public void unlockTargetMsgSeqNum() {
+        targetMsgSeqNumLock.unlock();
     }
 
     public int getNextSenderMsgSeqNum() throws IOException {

@@ -79,9 +79,6 @@ public class ExpectMessageStep implements TestStep {
             Assert.fail("message timeout: expected=" + expectedFields);
         }
         Map actualFields = simpleParse(message.toString());
-        if (actualFields.size() == 0) {
-            System.out.println("FOO!!!!!");
-        }
         log.debug("actual: " + message);
         assertMessageEqual(actualFields);
     }
