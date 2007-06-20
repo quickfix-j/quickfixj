@@ -259,7 +259,7 @@ public class DataDictionary {
      */
     public boolean isMsgField(String msgType, int field) {
         Set fields = (Set) messageFields.get(msgType);
-        return fields != null & fields.contains(new Integer(field));
+        return fields != null && fields.contains(new Integer(field));
     }
 
     private void addHeaderField(int field, boolean required) {

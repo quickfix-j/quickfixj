@@ -75,6 +75,7 @@ public class DataDictionaryTest extends TestCase {
         assertEquals("incorrect field name", "Account", dd.getFieldName(1));
         assertEquals("incorrect msg type", "0", dd.getMsgType("Heartbeat"));
         assertEquals("incorrect msg type", "B", dd.getMsgType("News"));
+        assertFalse(dd.isMsgField("UNKNOWN_TYPE", 1)); 
     }
 
     public void testMissingFieldAttributeForRequired() throws Exception {
