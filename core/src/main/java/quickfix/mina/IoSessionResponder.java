@@ -25,7 +25,7 @@ import quickfix.Responder;
 
 /**
  * The class that partially integrates the QuickFIX/J Session to a 
- * the MINA networking  * code.
+ * the MINA networking code.
  */
 public class IoSessionResponder implements Responder {
     private IoSession ioSession;
