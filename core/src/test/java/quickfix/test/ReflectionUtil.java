@@ -44,8 +44,7 @@ public class ReflectionUtil {
                 return ctors[i];
             }
         }
-        throw new NoSuchMethodException("No constructor for " + targetClass
-                + " compatible with args " + Arrays.toString(args));
+        throw new NoSuchMethodException("No constructor for " + targetClass);
     }
 
     /**
