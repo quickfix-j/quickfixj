@@ -118,13 +118,17 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>StartTime</I> </TD>
     <TD> Time of day that this FIX session becomes activated </TD>
-    <TD> time in the format of HH:MM:SS -- in UTC by default, or in the time zone specified by TimeZone </TD>
+    <TD> time in the format of HH:MM:SS [timezone]. The time zone is optional. The TimeZone setting
+    will be used, if set, or UTC will be used by default. The timezone string should be one that
+    the Java TimeZone class can resolve. For example, "15:00:00 US/Central".</TD>
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EndTime</I> </TD>
     <TD> Time of day that this FIX session becomes deactivated </TD>
-    <TD> time in the format of HH:MM:SS -- in UTC by default, or in the time zone specified by TimeZone  </TD>
+    <TD> time in the format of HH:MM:SS [timezone]. The time zone is optional. The TimeZone setting
+    will be used, if set, or UTC will be used by default. The timezone string should be one that
+    the Java TimeZone class can resolve. For example, "09:00:00 US/Eastern".</TD>
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
