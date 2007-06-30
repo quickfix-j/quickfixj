@@ -1056,7 +1056,7 @@ public class DataDictionary {
 
     private int[] orderedFieldsArray;
 
-    int[] getOrderedFields() {
+    public int[] getOrderedFields() {
 
         if (orderedFieldsArray == null) {
             orderedFieldsArray = new int[fields.size()];
