@@ -1265,7 +1265,7 @@ public class Session {
      * @throws IOException IO error
      */
     public void next() throws IOException {
-        if (!enabled) {
+        if (!isEnabled()) {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
                     getLog().onEvent("Initiated logout request");
