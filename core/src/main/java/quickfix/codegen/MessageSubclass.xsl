@@ -247,7 +247,7 @@ import quickfix.Group;</xsl:when>
   </xsl:template>
 
   <xsl:template name="component-accessor-template">
-  <xsl:variable name="type" select="concat('quickfix.fix',/fix/@major,/fix/@minor,'.component.',@name)"/>
+  <xsl:variable name="type" select="concat($messagePackage,'.component.',@name)"/>
   public void set(<xsl:value-of select="$type"/> component) 
   { 
     setComponent(component); 

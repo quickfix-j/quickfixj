@@ -27,7 +27,7 @@
 
  <xsl:template match="/">/* -*- Generated Java -*- */
  <xsl:copy-of select="document('COPYRIGHT.xml')"/>
-package quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>;
+package <xsl:value-of select="$messagePackage"/>;
 
 import quickfix.Message;
 import quickfix.Group;
@@ -36,7 +36,7 @@ public class MessageFactory implements quickfix.MessageFactory
 {
   public Message create( String beginString, String msgType ) {
   <xsl:call-template name="if-statement"/>
-  return new quickfix.fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>.Message();
+  return new <xsl:value-of select="$messagePackage"/>.Message();
   }
 
      public Group create(String beginString, String msgType, int correspondingFieldID) {

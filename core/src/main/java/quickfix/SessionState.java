@@ -69,7 +69,7 @@ public final class SessionState {
         this.lock = lock;
         this.initiator = initiator;
         this.messageStore = messageStore;
-        this.heartBeatInterval = heartBeatInterval;
+        setHeartBeatInterval(heartBeatInterval);
         this.log = log == null ? new NullLog() : log;
     }
 
