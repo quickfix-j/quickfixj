@@ -19,8 +19,6 @@
 
 package quickfix.mina.acceptor;
 
-import java.util.Map;
-
 import org.apache.mina.common.IoSession;
 
 import quickfix.Log;
@@ -37,14 +35,14 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
 class AcceptorIoHandler extends AbstractIoHandler {
-    private final Map acceptorSessions;
-
     private final EventHandlingStrategy eventHandlingStrategy;
 
-    public AcceptorIoHandler(Map acceptorSessions, NetworkingOptions networkingOptions,
+    private final AcceptorSessionProvider sessionProvider;
+
+    public AcceptorIoHandler(AcceptorSessionProvider sessionProvider, NetworkingOptions networkingOptions,
             EventHandlingStrategy eventHandingStrategy) {
         super(networkingOptions);
-        this.acceptorSessions = acceptorSessions;
+        this.sessionProvider = sessionProvider;
         this.eventHandlingStrategy = eventHandingStrategy;
     }
 
@@ -58,7 +56,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
         Session qfSession = (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
-                qfSession = (Session) acceptorSessions.get(sessionID);
+                qfSession = sessionProvider.getSession(sessionID);
                 if (qfSession != null) {
                     Log sessionLog = qfSession.getLog();
                     if (qfSession.hasResponder()) {
@@ -96,4 +94,14 @@ class AcceptorIoHandler extends AbstractIoHandler {
             eventHandlingStrategy.onMessage(qfSession, message);
         }
     }
+
+    protected Session findQFSession(IoSession protocolSession, SessionID sessionID) {
+        Session s = super.findQFSession(protocolSession, sessionID);
+        if (s == null) {
+            s = sessionProvider.getSession(sessionID);
+        }
+        return s;
+    }
+    
+    
 }

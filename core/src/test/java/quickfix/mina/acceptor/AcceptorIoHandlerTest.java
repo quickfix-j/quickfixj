@@ -34,6 +34,7 @@ import quickfix.field.TargetCompID;
 import quickfix.fix44.Logout;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
+import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
 public class AcceptorIoHandlerTest extends TestCase {
     public void testMessageBeforeLogon() throws Exception {
@@ -49,8 +50,8 @@ public class AcceptorIoHandlerTest extends TestCase {
 
         HashMap acceptorSessions = new HashMap();
 
-        AcceptorIoHandler handler = new AcceptorIoHandler(acceptorSessions, new NetworkingOptions(
-                new Properties()), mockEventHandlingStrategy);
+        AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
+                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
         mockIoSessionControl.replay();
         mockEventHandlingStrategyControl.replay();
@@ -61,10 +62,14 @@ public class AcceptorIoHandlerTest extends TestCase {
         mockEventHandlingStrategyControl.verify();
     }
 
+    private StaticAcceptorSessionProvider createSessionProvider(HashMap acceptorSessions) {
+        return new AbstractSocketAcceptor.StaticAcceptorSessionProvider(acceptorSessions);
+    }
+
     public void testMessageBeforeLogonWithBoundSession() throws Exception {
         MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
         IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
-        
+
         Session qfSession = SessionFactoryTestSupport.createSession();
         mockIoSession.getAttribute("QF_SESSION");
         mockIoSessionControl.setReturnValue(qfSession);
@@ -75,20 +80,21 @@ public class AcceptorIoHandlerTest extends TestCase {
                 .getMock();
 
         Logout logout = new Logout();
-        logout.getHeader().setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
-        logout.getHeader().setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
+        logout.getHeader()
+                .setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
+        logout.getHeader()
+                .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
 
         mockEventHandlingStrategy.onMessage(qfSession, logout);
-        
+
         HashMap acceptorSessions = new HashMap();
 
-        AcceptorIoHandler handler = new AcceptorIoHandler(acceptorSessions, new NetworkingOptions(
-                new Properties()), mockEventHandlingStrategy);
+        AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
+                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
         mockIoSessionControl.replay();
         mockEventHandlingStrategyControl.replay();
 
-        
         handler.processMessage(mockIoSession, logout);
 
         mockIoSessionControl.verify();
@@ -98,7 +104,7 @@ public class AcceptorIoHandlerTest extends TestCase {
     public void testMessageBeforeLogonWithKnownButUnboundSession() throws Exception {
         MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
         IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
-        
+
         mockIoSession.getAttribute("QF_SESSION");
         mockIoSessionControl.setReturnValue(null);
 
@@ -110,21 +116,23 @@ public class AcceptorIoHandlerTest extends TestCase {
         Session qfSession = SessionFactoryTestSupport.createSession();
 
         Logout logout = new Logout();
-        logout.getHeader().setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
-        logout.getHeader().setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
+        logout.getHeader()
+                .setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
+        logout.getHeader()
+                .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
 
         // Expect that onMessage will not be called
         //mockEventHandlingStrategy.onMessage(qfSession, logout);
-        
+
         HashMap acceptorSessions = new HashMap();
         acceptorSessions.put(qfSession.getSessionID(), qfSession);
-        
-        AcceptorIoHandler handler = new AcceptorIoHandler(acceptorSessions, new NetworkingOptions(
-                new Properties()), mockEventHandlingStrategy);
+
+        AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
+                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
         mockIoSessionControl.replay();
         mockEventHandlingStrategyControl.replay();
-        
+
         handler.processMessage(mockIoSession, logout);
 
         mockIoSessionControl.verify();

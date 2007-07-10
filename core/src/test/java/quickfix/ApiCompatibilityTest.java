@@ -56,7 +56,7 @@ public class ApiCompatibilityTest {
         testedDirectories.add("quickfix/fix44");
     }
 
-    public static class ApiTest implements Test {
+    private static class ApiTest implements Test {
         private final Class jniClass;
         private final IgnoredItems ignoredItems;
         private Class javaClass;

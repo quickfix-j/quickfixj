@@ -37,4 +37,9 @@ public interface Acceptor extends Connector {
      * Acceptor setting specifying local IP interface address for accepting connections.
      */
     public static final String SETTING_SOCKET_ACCEPT_ADDRESS = "SocketAcceptAddress";    
+
+    /**
+     * Acceptor setting specifying local IP interface address for accepting connections.
+     */
+    public static final String SETTING_ACCEPTOR_TEMPLATE = "AcceptorTemplate";    
 }

@@ -63,6 +63,7 @@ import quickfix.mina.ssl.SSLSupport;
  * Abstract base class for socket acceptors.
  */
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
+    private final Map sessionProviders = new HashMap();
     private final SessionFactory sessionFactory;
     private final Map socketDescriptorForAddress = new HashMap();
     private final Map ioAcceptorForTransport = new HashMap();
@@ -117,9 +118,17 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
                 serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
                 serviceConfig.setThreadModel(ThreadModel.MANUAL);
+
+                AcceptorSessionProvider sessionProvider = (AcceptorSessionProvider) sessionProviders
+                        .get(socketDescriptor.getAddress());
+                if (sessionProvider == null) {
+                    sessionProvider = new StaticAcceptorSessionProvider(socketDescriptor
+                            .getAcceptedSessions());
+                }
+
                 ioAcceptor.bind(socketDescriptor.getAddress(), new AcceptorIoHandler(
-                        socketDescriptor.getAcceptedSessions(), new NetworkingOptions(settings
-                                .getDefaultProperties()), eventHandlingStrategy));
+                        sessionProvider, new NetworkingOptions(settings.getDefaultProperties()),
+                        eventHandlingStrategy));
                 log.info("Listening for connections at " + socketDescriptor.getAddress());
             }
         } catch (FieldConvertError e) {
@@ -216,10 +225,19 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             SessionID sessionID = (SessionID) i.next();
             String connectionType = settings.getString(sessionID,
                     SessionFactory.SETTING_CONNECTION_TYPE);
+            
+            boolean isTemplate = false;
+            if (settings.isSetting(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE)) {
+                isTemplate = settings.getBool(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE);
+            }
+            
             if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-                Session session = sessionFactory.create(sessionID, settings);
-                getAcceptorSocketDescriptor(settings, sessionID).acceptSession(session);
-                allSessions.put(sessionID, session);
+                AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
+                if (!isTemplate) {
+                    Session session = sessionFactory.create(sessionID, settings);
+                    descriptor.acceptSession(session);
+                    allSessions.put(sessionID, session);
+                }
             }
         }
         setSessions(allSessions);
@@ -300,5 +318,21 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             }
         }
         return sessionIdToAddressMap;
+    }
+
+    public void setSessionProvider(SocketAddress address, AcceptorSessionProvider provider) {
+        sessionProviders.put(address, provider);
+    }
+
+    static class StaticAcceptorSessionProvider implements AcceptorSessionProvider {
+        private final Map acceptorSessions;
+
+        public StaticAcceptorSessionProvider(final Map acceptorSessions) {
+            this.acceptorSessions = acceptorSessions;
+        }
+
+        public Session getSession(SessionID sessionID) {
+            return (Session) acceptorSessions.get(sessionID);
+        }
     }
 }

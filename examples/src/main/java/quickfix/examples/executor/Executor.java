@@ -18,18 +18,27 @@
  ******************************************************************************/
 
 package quickfix.examples.executor;
-import quickfix.*;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 
 import org.quickfixj.jmx.JmxExporter;
 
+import quickfix.DefaultMessageFactory;
+import quickfix.FileStoreFactory;
+import quickfix.LogFactory;
+import quickfix.MessageFactory;
+import quickfix.MessageStoreFactory;
+import quickfix.ScreenLogFactory;
+import quickfix.SessionSettings;
+import quickfix.SocketAcceptor;
+
 public class Executor {
 
-    private static Acceptor acceptor = null;
+    private static SocketAcceptor acceptor = null;
 
     public static void main(String args[]) throws Exception {
-        InputStream inputStream = null; 
+        InputStream inputStream = null;
         if (args.length == 0) {
             inputStream = Executor.class.getResourceAsStream("executor.cfg");
         } else if (args.length == 1) {
@@ -42,28 +51,32 @@ public class Executor {
 
         try {
 
-            SessionSettings settings =
-                new SessionSettings(inputStream);
+            SessionSettings settings = new SessionSettings(inputStream);
             inputStream.close();
             Application application = new Application(settings);
-            MessageStoreFactory messageStoreFactory =
-                new FileStoreFactory(settings);
+            MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
             LogFactory logFactory = new ScreenLogFactory(true, true, true);
             MessageFactory messageFactory = new DefaultMessageFactory();
-            
-            acceptor = new SocketAcceptor
-                       (application, messageStoreFactory, settings, logFactory, messageFactory);
+
+            acceptor = new SocketAcceptor(application, messageStoreFactory, settings, logFactory,
+                    messageFactory);
+
+            // Uncomment this section to support dynamic sessions
+            // See the executor_dynamic.cfg file for the associated configuration
+//            acceptor.setSessionProvider(new InetSocketAddress("0.0.0.0", 9876),
+//                    new DynamicAcceptorSessionProvider(settings, new SessionID("FIX.4.0",
+//                            "INITIATOR", "ACCEPTOR"), application, messageStoreFactory, logFactory,
+//                            messageFactory));
 
             JmxExporter jmxExporter = new JmxExporter();
             jmxExporter.export(acceptor);
 
             acceptor.start();
-            
+
             System.out.println("press <enter> to quit");
             System.in.read();
             acceptor.stop();
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
     }

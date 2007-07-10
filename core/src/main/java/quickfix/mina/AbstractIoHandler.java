@@ -122,7 +122,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         }
     }
 
-    private Session findQFSession(IoSession protocolSession, SessionID sessionID) {
+    protected Session findQFSession(IoSession protocolSession, SessionID sessionID) {
         Session quickfixSession = findQFSession(protocolSession);
         if (quickfixSession == null) {
             quickfixSession = Session.lookupSession(sessionID);
