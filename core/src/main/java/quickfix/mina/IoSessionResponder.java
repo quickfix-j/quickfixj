@@ -40,7 +40,18 @@ public class IoSessionResponder implements Responder {
     }
 
     public void disconnect() {
-        ioSession.close();
+        waitForScheduleMessagesToBeWritten();
+        ioSession.close().join();
+    }
+
+    private void waitForScheduleMessagesToBeWritten() {
+        while (ioSession.getScheduledWriteRequests() > 0) {
+            try {
+                Thread.sleep(10L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     public String getRemoteIPAddress() {
