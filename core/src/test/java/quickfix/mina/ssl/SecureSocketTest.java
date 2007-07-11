@@ -19,17 +19,33 @@
 
 package quickfix.mina.ssl;
 
-import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import junit.framework.TestCase;
-import org.apache.mina.common.*;
+
+import org.apache.mina.common.IoFilterAdapter;
+import org.apache.mina.common.IoFilterChain;
+import org.apache.mina.common.IoFilterChainBuilder;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.*;
+
+import quickfix.ApplicationAdapter;
+import quickfix.ConfigError;
+import quickfix.DefaultMessageFactory;
+import quickfix.FixVersions;
+import quickfix.Initiator;
+import quickfix.MemoryStoreFactory;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
+import quickfix.SystemTime;
+import quickfix.ThreadedSocketInitiator;
 import quickfix.test.acceptance.ATServer;
 import quickfix.util.ExpectedTestFailure;
-
-import java.util.HashMap;
 
 public class SecureSocketTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -154,7 +170,7 @@ public class SecureSocketTest extends TestCase {
 
     private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
         SessionSettings settings = new SessionSettings();
-        HashMap defaults = new HashMap();
+        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("SocketConnectProtocol", transportProtocol.toString());
         defaults.put("SocketUseSSL", "Y");

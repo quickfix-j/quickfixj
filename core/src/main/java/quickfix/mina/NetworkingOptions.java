@@ -61,7 +61,7 @@ public class NetworkingOptions {
     public static final String IPTOC_RELIABILITY = "IPTOS_RELIABILITY";
     public static final String IPTOC_THROUGHPUT = "IPTOS_THROUGHPUT";
     public static final String IPTOC_LOWDELAY = "IPTOS_LOWDELAY";
-    public static final Map trafficClasses = new HashMap();
+    public static final Map<String, Integer> trafficClasses = new HashMap<String, Integer>();
     static {
         trafficClasses.put(IPTOC_LOWCOST, new Integer(0x02));
         trafficClasses.put(IPTOC_RELIABILITY, new Integer(0x04));
@@ -87,7 +87,7 @@ public class NetworkingOptions {
             String[] trafficClassEnums = trafficClassEnumString.split("[,|]");
             for (int i = 0; i < trafficClassEnums.length; i++) {
                 if (trafficClasses.containsKey(trafficClassEnums[i])) {
-                    trafficClassBits |= ((Integer) trafficClasses.get(trafficClassEnums[i]))
+                    trafficClassBits |= trafficClasses.get(trafficClassEnums[i])
                             .intValue();
                 } else {
                     throw new FieldConvertError("Can't parse traffic class: "

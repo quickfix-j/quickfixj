@@ -29,6 +29,7 @@ import org.easymock.MockControl;
 
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
+import quickfix.SessionID;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
 import quickfix.fix44.Logout;
@@ -48,7 +49,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         EventHandlingStrategy mockEventHandlingStrategy = (EventHandlingStrategy) mockEventHandlingStrategyControl
                 .getMock();
 
-        HashMap acceptorSessions = new HashMap();
+        HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
@@ -87,7 +88,7 @@ public class AcceptorIoHandlerTest extends TestCase {
 
         mockEventHandlingStrategy.onMessage(qfSession, logout);
 
-        HashMap acceptorSessions = new HashMap();
+        HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
@@ -124,7 +125,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         // Expect that onMessage will not be called
         //mockEventHandlingStrategy.onMessage(qfSession, logout);
 
-        HashMap acceptorSessions = new HashMap();
+        HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
         acceptorSessions.put(qfSession.getSessionID(), qfSession);
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),

@@ -94,7 +94,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
 
-        ArrayList messages = new ArrayList();
+        ArrayList<String> messages = new ArrayList<String>();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "message2", messages.get(0));
@@ -132,7 +132,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         assertEquals("creation time not stored correctly", creationTime, creationTime2);
     }
 
-    protected Class getMessageStoreClass() {
+    protected Class<JdbcStore> getMessageStoreClass() {
         return JdbcStore.class;
     }
 

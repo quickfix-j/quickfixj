@@ -130,11 +130,11 @@ public class Application extends MessageCracker implements quickfix.Application 
         if (orderMatcher.insert(order)) {
             acceptOrder(order);
 
-            ArrayList orders = new ArrayList();
+            ArrayList<Order> orders = new ArrayList<Order>();
             orderMatcher.match(order.getSymbol(), orders);
 
             while (orders.size() > 0) {
-                fillOrder((Order) orders.remove(0));
+                fillOrder(orders.remove(0));
             }
             orderMatcher.display(order.getSymbol());
         } else {

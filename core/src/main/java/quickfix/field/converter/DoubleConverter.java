@@ -33,7 +33,7 @@ import quickfix.RuntimeError;
  */
 public class DoubleConverter {
     private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
-    private static ThreadLocal threadDecimalFormats = new ThreadLocal();
+    private static ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>();
 
     /**
      * Converts a double to a string with no padding.
@@ -50,7 +50,7 @@ public class DoubleConverter {
             // FieldConvertError not supported in setDouble methods on Message
             throw new RuntimeError("maximum padding of 14 zeroes is supported: " + padding);
         }
-        DecimalFormat[] decimalFormats = (DecimalFormat[]) threadDecimalFormats.get();
+        DecimalFormat[] decimalFormats = threadDecimalFormats.get();
         if (decimalFormats == null) {
             decimalFormats = new DecimalFormat[14];
             threadDecimalFormats.set(decimalFormats);

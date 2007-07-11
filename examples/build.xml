@@ -50,6 +50,18 @@
 		</jar>
 	</target>
 
+	<target name="jar-1.4" description="build jar files for Java 1.4" depends="jar">
+		<taskdef name="retrotranslator" classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
+			<classpath id="retrotranslator.classpath">
+				<fileset dir="../core/src/main/lib/java4" includes="*.jar" />
+			</classpath>
+		</taskdef>
+		<mkdir dir="${jar.output.dir}/java4"/>
+		<retrotranslator destjar="${jar.output.dir}/java4/${jar.output.file}" srcjar="${jar.output.dir}/${jar.output.file}" target="1.4" uptodatecheck="On" verify="false" lazy="false" embed="org.quickfixj.java4">
+			<classpath refid="retrotranslator.classpath"/>
+		</retrotranslator>
+	</target>
+
 	<!-- =============================================================
 	Custom Exports
 	================================================================= -->

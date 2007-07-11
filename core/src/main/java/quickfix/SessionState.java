@@ -23,9 +23,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-
-import edu.emory.mathcs.backport.java.util.concurrent.locks.Lock;
-import edu.emory.mathcs.backport.java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Used by the session communications code. Not intended to be used by
@@ -58,7 +57,7 @@ public final class SessionState {
     private boolean withinHeartBeat;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
-    private HashMap messageQueue = new HashMap();
+    private HashMap<Integer, Message> messageQueue = new HashMap<Integer, Message>();
     private int[] resendRange = new int[] { 0, 0 };
     private boolean resetSent;
     private boolean resetReceived;
@@ -290,7 +289,7 @@ public final class SessionState {
         return messageStore.set(sequence, message);
     }
 
-    public void get(int first, int last, Collection messages) throws IOException {
+    public void get(int first, int last, Collection<String> messages) throws IOException {
         messageStore.get(first, last, messages);
     }
 
@@ -299,7 +298,7 @@ public final class SessionState {
     }
 
     public Message dequeue(int sequence) {
-        return (Message) messageQueue.get(new Integer(sequence));
+        return messageQueue.get(new Integer(sequence));
     }
 
     public void clearQueue() {

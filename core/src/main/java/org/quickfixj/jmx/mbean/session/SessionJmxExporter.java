@@ -17,7 +17,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 public class SessionJmxExporter {
-    private Map sessionObjectNames = new HashMap();
+    private Map<SessionID, ObjectName> sessionObjectNames = new HashMap<SessionID, ObjectName>();
 
     public void export(MBeanServer mbeanServer, Session session, ObjectName connectorName,
             SessionSettings settings) throws JMException, ConfigError {
@@ -32,11 +32,11 @@ public class SessionJmxExporter {
     }
 
     public ObjectName getSessionName(SessionID sessionID) {
-        return (ObjectName) sessionObjectNames.get(sessionID);
+        return sessionObjectNames.get(sessionID);
     }
 
     private ObjectName createSessionName(Session session) throws MalformedObjectNameException {
-        TreeMap properties = new TreeMap();
+        TreeMap<String, String> properties = new TreeMap<String, String>();
         properties.put("type", "Session");
         SessionID sessionID = session.getSessionID();
         ObjectNameFactory nameFactory = new ObjectNameFactory();

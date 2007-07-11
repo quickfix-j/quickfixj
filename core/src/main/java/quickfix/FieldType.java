@@ -30,8 +30,8 @@ public class FieldType {
     private int ordinal;
     private String name;
     private Class javaType;
-    private static HashMap values = new HashMap();
-    private static ArrayList ordinalToValue = new ArrayList();
+    private static HashMap<String, FieldType> values = new HashMap<String, FieldType>();
+    private static ArrayList<FieldType> ordinalToValue = new ArrayList<FieldType>();
 
     private FieldType(String name) {
         this(name, String.class);
@@ -61,11 +61,11 @@ public class FieldType {
         if (ordinal < 0 || ordinal >= ordinalToValue.size()) {
             throw new RuntimeError("invalid field type ordinal: " + ordinal);
         }
-        return (FieldType) ordinalToValue.get(ordinal);
+        return ordinalToValue.get(ordinal);
     }
 
     public static FieldType fromName(String fixVersion, String name) {
-        FieldType type = (FieldType) values.get(name);
+        FieldType type = values.get(name);
         return type != null ? type : FieldType.Unknown;
     }
 

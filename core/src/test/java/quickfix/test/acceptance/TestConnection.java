@@ -25,6 +25,10 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 
@@ -42,15 +46,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.mina.message.FIXProtocolCodecFactory;
-import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
-import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class TestConnection {
-    private static HashMap connectors = new HashMap();
+    private static HashMap<TransportType, IoConnector> connectors = new HashMap<TransportType, IoConnector>();
     private Logger log = LoggerFactory.getLogger(getClass());
-    private HashMap ioHandlers = new HashMap();
+    private HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -59,14 +59,14 @@ public class TestConnection {
 
     private TestIoHandler getIoHandler(int clientId) {
         synchronized (ioHandlers) {
-            return (TestIoHandler) ioHandlers.get(new Integer(clientId));
+            return ioHandlers.get(new Integer(clientId));
         }
     }
 
     public void tearDown() {
-        Iterator handlerItr = ioHandlers.values().iterator();
+        Iterator<TestIoHandler> handlerItr = ioHandlers.values().iterator();
         while (handlerItr.hasNext()) {
-            CloseFuture closeFuture = ((TestIoHandler) handlerItr.next()).getSession().close();
+            CloseFuture closeFuture = handlerItr.next().getSession().close();
             closeFuture.join();
         }
         ioHandlers.clear();
@@ -82,7 +82,7 @@ public class TestConnection {
 
     public void connect(int clientId, TransportType transportType, int port)
             throws UnknownHostException, IOException {
-        IoConnector connector = (IoConnector) connectors.get(transportType);
+        IoConnector connector = connectors.get(transportType);
         if (connector == null) {
             if (transportType == TransportType.SOCKET) {
                 connector = new SocketConnector();
@@ -114,7 +114,7 @@ public class TestConnection {
 
     private class TestIoHandler extends IoHandlerAdapter {
         private IoSession session;
-        private BlockingQueue messages = new LinkedBlockingQueue();
+        private BlockingQueue<Object> messages = new LinkedBlockingQueue<Object>();
         private CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
         private CountDownLatch disconnectLatch = new CountDownLatch(1);
 
@@ -139,7 +139,7 @@ public class TestConnection {
         public void messageReceived(IoSession session, Object message) throws Exception {
             messages.add(message);
         }
-
+        
         public IoSession getSession() {
             try {
                 sessionCreatedLatch.await();

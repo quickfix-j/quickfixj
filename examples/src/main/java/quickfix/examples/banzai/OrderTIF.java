@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrderTIF {
-    static private Map known = new HashMap();
+    static private Map<String, OrderTIF> known = new HashMap<String, OrderTIF>();
     static public final OrderTIF DAY = new OrderTIF("Day");
     static public final OrderTIF IOC = new OrderTIF("IOC");
     static public final OrderTIF OPG = new OrderTIF("OPG");
@@ -54,7 +54,7 @@ public class OrderTIF {
 
     public static OrderTIF parse(String type)
     throws IllegalArgumentException {
-        OrderTIF result = (OrderTIF)known.get(type);
+        OrderTIF result = known.get(type);
         if(result == null) {
             throw new IllegalArgumentException
             ("OrderTIF:  " + type + " is unknown.");

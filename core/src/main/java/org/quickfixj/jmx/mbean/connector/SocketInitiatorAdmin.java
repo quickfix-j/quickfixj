@@ -11,6 +11,7 @@ import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 
 import quickfix.mina.initiator.AbstractSocketInitiator;
+import quickfix.mina.initiator.IoSessionInitiator;
 
 class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdminMBean {
     private final TabularDataAdapter tabularDataAdapter = new TabularDataAdapter();
@@ -23,7 +24,7 @@ class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdmi
     
     public TabularData getEndpoints() throws IOException {
         try {
-            return tabularDataAdapter.fromBeanList("Endpoints", "Endpoint", "sessionID", new ArrayList(
+            return tabularDataAdapter.fromBeanList("Endpoints", "Endpoint", "sessionID", new ArrayList<IoSessionInitiator>(
                     initiator.getInitiators()));
         } catch (OpenDataException e) {
             throw JmxSupport.toIOException(e);

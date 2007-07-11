@@ -44,7 +44,7 @@ import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
 public class ApiCompatibilityTest {
-    static Set testedDirectories = new HashSet();
+    static Set<String> testedDirectories = new HashSet<String>();
 
     static {
         testedDirectories.add("quickfix");
@@ -109,26 +109,26 @@ public class ApiCompatibilityTest {
         }
 
         private void assertCompatibleInheritance() {
-            List jniInheritedClasses = getInheritedClasses(jniClass);
-            List javaInheritedClasses = getInheritedClasses(javaClass);
+            List<Class> jniInheritedClasses = getInheritedClasses(jniClass);
+            List<Class> javaInheritedClasses = getInheritedClasses(javaClass);
             for (int i = 0; i < jniInheritedClasses.size(); i++) {
-                if (!ignoredItems.isIgnoredClass(((Class) jniInheritedClasses.get(i)))) {
+                if (!ignoredItems.isIgnoredClass(jniInheritedClasses.get(i))) {
                     Assert.assertTrue("missing interface: class=" + jniClass.getName()
                             + ", interface/superclass="
-                            + ((Class) jniInheritedClasses.get(i)).getName(), javaInheritedClasses
-                            .contains(translatedClass((Class) jniInheritedClasses.get(i), javaClass
+                            + jniInheritedClasses.get(i).getName(), javaInheritedClasses
+                            .contains(translatedClass(jniInheritedClasses.get(i), javaClass
                                     .getClassLoader())));
                 }
             }
         }
 
-        private List getInheritedClasses(Class clazz) {
-            HashSet classSet = new HashSet();
+        private List<Class> getInheritedClasses(Class clazz) {
+            HashSet<Class> classSet = new HashSet<Class>();
             getInheritedClasses(clazz, classSet);
-            return new ArrayList(classSet);
+            return new ArrayList<Class>(classSet);
         }
 
-        private void getInheritedClasses(Class clazz, HashSet classSet) {
+        private void getInheritedClasses(Class clazz, HashSet<Class> classSet) {
             while (clazz != null) {
                 classSet.add(clazz);
                 Class[] interfaces = clazz.getInterfaces();
@@ -176,8 +176,8 @@ public class ApiCompatibilityTest {
                     } catch (NoSuchMethodException e) {
                         Assert.fail("missing method: " + e.getMessage());
                     }
-                    List jniExceptionTypes = Arrays.asList(methods[i].getExceptionTypes());
-                    List javaExceptionTypes = Arrays.asList(m.getExceptionTypes());
+                    List<Class<?>> jniExceptionTypes = Arrays.asList(methods[i].getExceptionTypes());
+                    List<Class<?>> javaExceptionTypes = Arrays.asList(m.getExceptionTypes());
                     Assert.assertEquals(m + ": wrong method return type", translatedClass(
                             methods[i].getReturnType(), javaClass.getClassLoader()), m
                             .getReturnType());
@@ -256,18 +256,18 @@ public class ApiCompatibilityTest {
             return method;
         }
 
-        private void assertNoExtraExceptions(Method jniMethod, List jniExceptionTypes,
-                List javaExceptionTypes) {
+        private void assertNoExtraExceptions(Method jniMethod, List<Class<?>> jniExceptionTypes,
+                List<Class<?>> javaExceptionTypes) {
             // original list is unmodifiable
-            javaExceptionTypes = new ArrayList(javaExceptionTypes);
+            javaExceptionTypes = new ArrayList<Class<?>>(javaExceptionTypes);
             javaExceptionTypes.removeAll(translateClassList(jniExceptionTypes));
             Assert.assertTrue(
                     "extra exceptions: " + jniMethod.getName() + " " + javaExceptionTypes,
                     javaExceptionTypes.size() == 0);
         }
 
-        private void assertExceptionsExist(Method jniMethod, List jniExceptionTypes,
-                List javaExceptionTypes) {
+        private void assertExceptionsExist(Method jniMethod, List<Class<?>> jniExceptionTypes,
+                List<Class<?>> javaExceptionTypes) {
             for (int j = 0; j < jniExceptionTypes.size(); j++) {
                 boolean foundException = false;
                 for (int k = 0; k < javaExceptionTypes.size(); k++) {
@@ -300,8 +300,8 @@ public class ApiCompatibilityTest {
             }
         }
 
-        private List translateClassList(List jniClasses) {
-            ArrayList classes = new ArrayList();
+        private List<Class> translateClassList(List jniClasses) {
+            ArrayList<Class> classes = new ArrayList<Class>();
             for (int i = 0; i < jniClasses.size(); i++) {
                 classes.add(translatedClass((Class) jniClasses.get(i), javaClass.getClassLoader()));
             }
@@ -335,8 +335,8 @@ public class ApiCompatibilityTest {
     }
 
     private static class IgnoredItems {
-        private HashSet ignoredClasses = new HashSet();
-        private HashSet ignoredConstructors = new HashSet();
+        private HashSet<Class> ignoredClasses = new HashSet<Class>();
+        private HashSet<Constructor> ignoredConstructors = new HashSet<Constructor>();
         private HashSet ignoredMethods = new HashSet();
 
         public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,

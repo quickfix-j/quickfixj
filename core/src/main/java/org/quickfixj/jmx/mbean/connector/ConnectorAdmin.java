@@ -98,7 +98,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
     }
 
     public TabularData getSessions() throws IOException {
-        List sessions = new ArrayList();
+        List<ConnectorSession> sessions = new ArrayList<ConnectorSession>();
         Iterator sessionItr = connector.getSessions().iterator();
         while (sessionItr.hasNext()) {
             SessionID sessionID = (SessionID) sessionItr.next();
@@ -113,7 +113,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
     }
 
     public TabularData getLoggedOnSessions() throws OpenDataException {
-        List names = new ArrayList();
+        List<ObjectName> names = new ArrayList<ObjectName>();
         Iterator sessionItr = connector.getSessions().iterator();
         while (sessionItr.hasNext()) {
             SessionID sessionID = (SessionID) sessionItr.next();
@@ -125,8 +125,8 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
         return tabularDataAdapter.fromArray("Sessions", "SessionID", toObjectNameArray(names));
     }
 
-    private ObjectName[] toObjectNameArray(List sessions) {
-        return (ObjectName[]) sessions.toArray(new ObjectName[sessions.size()]);
+    private ObjectName[] toObjectNameArray(List<ObjectName> sessions) {
+        return sessions.toArray(new ObjectName[sessions.size()]);
     }
 
     public void stop(boolean force) {

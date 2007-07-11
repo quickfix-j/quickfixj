@@ -20,6 +20,7 @@
 package quickfix.mina;
 
 import java.util.Date;
+import java.util.concurrent.BlockingQueue;
 
 import junit.framework.TestCase;
 import quickfix.ConfigError;
@@ -40,7 +41,6 @@ import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
 import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix40.Logon;
-import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
 
 public class ThreadPerSessionEventHandlingStrategyTest extends TestCase {
     private final class ThreadPerSessionEventHandlingStrategyUnderTest extends
@@ -54,7 +54,7 @@ public class ThreadPerSessionEventHandlingStrategyTest extends TestCase {
             dispatcherThreadStarted = true;
         }
 
-        Message getNextMessage(BlockingQueue messages) throws InterruptedException {
+        Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
             if (getMessageCount-- == 0) {
                 throw new InterruptedException("END COUNT");
             }

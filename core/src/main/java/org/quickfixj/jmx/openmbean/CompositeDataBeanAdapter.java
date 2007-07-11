@@ -70,7 +70,7 @@ public class CompositeDataBeanAdapter {
         for (int i = 0; i < propertyDescriptors.length; i++) {
             PropertyDescriptor pd = propertyDescriptors[i];
             if (isExposed(pd)) {
-                Object value = pd.getReadMethod().invoke(bean, null);
+                Object value = pd.getReadMethod().invoke(bean, (Object[])null);
                 if (value == null && defaultPropertyValue != null) {
                     value = defaultPropertyValue;
                 }

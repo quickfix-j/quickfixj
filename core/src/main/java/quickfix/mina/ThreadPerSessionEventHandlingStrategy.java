@@ -20,23 +20,23 @@
 package quickfix.mina;
 
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.SessionID;
-import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap;
-import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
-    private final Map dispatchers = new ConcurrentHashMap();
+    private final Map<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
 
     public void onMessage(Session quickfixSession, Message message) {
-        MessageDispatchingThread dispatcher = (MessageDispatchingThread) dispatchers
+        MessageDispatchingThread dispatcher = dispatchers
                 .get(quickfixSession.getSessionID());
         if (dispatcher == null) {
             dispatcher = new MessageDispatchingThread(quickfixSession);
@@ -52,7 +52,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
     class MessageDispatchingThread extends Thread {
         private final Session quickfixSession;
-        private final BlockingQueue messages = new LinkedBlockingQueue();
+        private final BlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
 
         public MessageDispatchingThread(Session session) {
             super("QF/J Session dispatcher: " + session.getSessionID());
@@ -84,17 +84,17 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
     }
 
-    BlockingQueue getMessages(SessionID sessionID) {
+    BlockingQueue<Message> getMessages(SessionID sessionID) {
         MessageDispatchingThread dispatcher = getDispatcher(sessionID);
         return dispatcher.messages;
     }
 
     MessageDispatchingThread getDispatcher(SessionID sessionID) {
-        return (MessageDispatchingThread) dispatchers.get(sessionID);
+        return dispatchers.get(sessionID);
     }
 
-    Message getNextMessage(BlockingQueue messages) throws InterruptedException {
-        return (Message) messages.take();
+    Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
+        return messages.take();
     }
     
 

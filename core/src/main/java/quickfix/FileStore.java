@@ -63,7 +63,7 @@ public class FileStore implements MessageStore {
     private RandomAccessFile sequenceNumberFile;
     private final boolean syncWrites;
 
-    private HashMap messageIndex = new HashMap();
+    private HashMap<Long, long[]> messageIndex = new HashMap<Long, long[]>();
     private FileOutputStream headerFileOutputStream;
     private String charsetEncoding = CharsetSupport.getCharset();
 
@@ -274,7 +274,7 @@ public class FileStore implements MessageStore {
     /* (non-Javadoc)
      * @see quickfix.MessageStore#get(int, int, java.util.Collection)
      */
-    public void get(int startSequence, int endSequence, Collection messages) throws IOException {
+    public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
         for (int i = startSequence; i <= endSequence; i++) {
             String message = getMessage(i);
             if (message != null) {
@@ -294,7 +294,7 @@ public class FileStore implements MessageStore {
     }
 
     private String getMessage(int i) throws IOException {
-        long[] offsetAndSize = (long[]) messageIndex.get(new Long(i));
+        long[] offsetAndSize = messageIndex.get(new Long(i));
         String message = null;
         if (offsetAndSize != null) {
             messageFile.seek(offsetAndSize[0]);

@@ -20,6 +20,8 @@
 package quickfix;
 
 import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
@@ -32,8 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.test.acceptance.ATServer;
-import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 public class SocketInitiatorTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -126,7 +126,7 @@ public class SocketInitiatorTest extends TestCase {
 
     private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
         SessionSettings settings = new SessionSettings();
-        HashMap defaults = new HashMap();
+        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("SocketConnectProtocol", transportProtocol.toString());
         defaults.put("SocketConnectHost", "localhost");

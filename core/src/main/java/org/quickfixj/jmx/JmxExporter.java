@@ -44,8 +44,8 @@ public class JmxExporter {
         try {
             Class factoryClass = Class.forName("java.lang.management.ManagementFactory");
             try {
-                return (MBeanServer) factoryClass.getMethod("getPlatformMBeanServer", null).invoke(
-                        factoryClass, null);
+                return (MBeanServer) factoryClass.getMethod("getPlatformMBeanServer", (Class[])null).invoke(
+                        factoryClass, (Object[])null);
             } catch (Exception e) {
                 JMException jme = new JMException(e.getMessage());
                 jme.setStackTrace(e.getStackTrace());

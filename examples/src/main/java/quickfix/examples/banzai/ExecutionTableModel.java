@@ -30,18 +30,18 @@ public class ExecutionTableModel extends AbstractTableModel {
     private final static int SIDE = 2;
     private final static int PRICE = 3;
 
-    private HashMap rowToExecution;
-    private HashMap idToRow;
-    private HashMap idToExecution;
-    private HashMap exchangeIdToExecution;
+    private HashMap<Integer, Execution> rowToExecution;
+    private HashMap<String, Integer> idToRow;
+    private HashMap<String, Execution> idToExecution;
+    private HashMap<String, Execution> exchangeIdToExecution;
 
     private String[] headers;
 
     public ExecutionTableModel() {
-        rowToExecution = new HashMap();
-        idToRow = new HashMap();
-        idToExecution = new HashMap();
-        exchangeIdToExecution = new HashMap();
+        rowToExecution = new HashMap<Integer, Execution>();
+        idToRow = new HashMap<String, Integer>();
+        idToExecution = new HashMap<String, Execution>();
+        exchangeIdToExecution = new HashMap<String, Execution>();
 
         headers = new String[]
                   {"Symbol", "Quantity", "Side", "Price"};
@@ -66,17 +66,17 @@ public class ExecutionTableModel extends AbstractTableModel {
     }
 
     public Execution getExchangeExecution(String exchangeID) {
-        return (Execution)exchangeIdToExecution.get(exchangeID);
+        return exchangeIdToExecution.get(exchangeID);
     }
 
     public Execution getExecution(int row) {
-        return (Execution)rowToExecution.get(new Integer(row));
+        return rowToExecution.get(new Integer(row));
     }
 
     public void setValueAt(Object value, int rowIndex,
                            int columnIndex) {}
 
-    public Class getColumnClass(int columnIndex) {
+    public Class<String> getColumnClass(int columnIndex) {
         return String.class;
     }
 
@@ -93,7 +93,7 @@ public class ExecutionTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Execution execution = (Execution)rowToExecution.get
+        Execution execution = rowToExecution.get
                               (new Integer(rowIndex));
 
         switch(columnIndex) {

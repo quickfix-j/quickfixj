@@ -20,6 +20,7 @@
 package quickfix.mina;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Map;
 
 import junit.framework.TestCase;
@@ -35,7 +36,6 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SessionState;
 import quickfix.UnitTestApplication;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 public class SessionConnectorTest extends TestCase {
     public void testConnector() throws Exception {
@@ -49,7 +49,7 @@ public class SessionConnectorTest extends TestCase {
         Session session = connector.createSession(sessionID);
         assertNotNull(session);
         
-        Map sessions = Collections.singletonMap(session.getSessionID(), session);
+        Map<SessionID, Session> sessions = Collections.singletonMap(session.getSessionID(), session);
         connector.setSessions(sessions);
         assertEquals(1, connector.getManagedSessions().size());
         assertEquals(session, connector.getManagedSessions().get(0));

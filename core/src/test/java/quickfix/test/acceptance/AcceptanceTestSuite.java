@@ -62,9 +62,9 @@ public class AcceptanceTestSuite extends TestSuite {
             TestConnection connection = null;
             try {
                 connection = new TestConnection();
-                List testSteps = load(filename);
+                List<TestStep> testSteps = load(filename);
                 for (int i = 0; i < testSteps.size(); i++) {
-                    ((TestStep) testSteps.get(i)).run(result, connection);
+                    testSteps.get(i).run(result, connection);
                 }
             } catch (AssertionFailedError e) {
                 result.addFailure(this, e);
@@ -93,8 +93,8 @@ public class AcceptanceTestSuite extends TestSuite {
             }
         }
 
-        private List load(String filename) throws IOException {
-            ArrayList steps = new ArrayList();
+        private List<TestStep> load(String filename) throws IOException {
+            ArrayList<TestStep> steps = new ArrayList<TestStep>();
             log.info("load test: " + filename);
             BufferedReader in = null;
             try {

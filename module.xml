@@ -13,6 +13,7 @@
 	<property name="test.src.dir" value="${test.dir}/java" />
 
 	<property name="main.lib.dir" value="${main.dir}/lib" />
+	<property name="main-1.4.lib.dir" value="${main.dir}/lib/java4" />
 	<property name="main.optional.lib.dir" value="${main.dir}/lib/optional" />
 	<property name="test.lib.dir" value="${test.dir}/lib" />
 
@@ -86,7 +87,7 @@
 	<!-- Setting the jvm.ok property on the command line will bypass this check -->
 	<target name="jvm_identification" unless="jvm.ok">
 		<condition property="jvm.ok">
-			<equals arg1="${ant.java.version}" arg2="1.4" />
+			<equals arg1="${ant.java.version}" arg2="1.5" />
 		</condition>
 	</target>
 

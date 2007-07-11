@@ -24,10 +24,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class OrderMatcher {
-    private HashMap markets = new HashMap();
+    private HashMap<String, Market> markets = new HashMap<String, Market>();
 
     private Market getMarket(String symbol) {
-        Market m = (Market) markets.get(symbol);
+        Market m = markets.get(symbol);
         if (m == null) {
             m = new Market();
             markets.put(symbol, m);
@@ -39,7 +39,7 @@ public class OrderMatcher {
         return getMarket(order.getSymbol()).insert(order);
     }
 
-    public void match(String symbol, ArrayList orders) {
+    public void match(String symbol, ArrayList<Order> orders) {
         getMarket(symbol).match(symbol, orders);
     }
 
@@ -52,8 +52,8 @@ public class OrderMatcher {
     }
 
     public void display() {
-        for (Iterator iter = markets.keySet().iterator(); iter.hasNext();) {
-            String symbol = (String) iter.next();
+        for (Iterator<String> iter = markets.keySet().iterator(); iter.hasNext();) {
+            String symbol = iter.next();
             System.out.println("MARKET: " + symbol);
             display(symbol);
         }

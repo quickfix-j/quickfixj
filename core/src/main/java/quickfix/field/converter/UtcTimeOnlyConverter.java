@@ -31,7 +31,7 @@ import quickfix.FieldConvertError;
 public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static ThreadLocal utcTimeConverter = new ThreadLocal();
+    private static ThreadLocal<UtcTimeOnlyConverter> utcTimeConverter = new ThreadLocal<UtcTimeOnlyConverter>();
     private DateFormat utcTimeFormat = createDateFormat("HH:mm:ss");
     private DateFormat utcTimeFormatMillis = createDateFormat("HH:mm:ss.SSS");
 
@@ -46,7 +46,7 @@ public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
     }
 
     private static DateFormat getFormatter(boolean includeMillis) {
-        UtcTimeOnlyConverter converter = (UtcTimeOnlyConverter) utcTimeConverter.get();
+        UtcTimeOnlyConverter converter = utcTimeConverter.get();
         if (converter == null) {
             converter = new UtcTimeOnlyConverter();
             utcTimeConverter.set(converter);

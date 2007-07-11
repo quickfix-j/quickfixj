@@ -25,6 +25,11 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoSession;
@@ -38,11 +43,6 @@ import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.field.converter.IntConverter;
-import edu.emory.mathcs.backport.java.util.concurrent.Executors;
-import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
-import edu.emory.mathcs.backport.java.util.concurrent.ScheduledFuture;
-import edu.emory.mathcs.backport.java.util.concurrent.ThreadFactory;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support
@@ -53,7 +53,7 @@ public abstract class SessionConnector {
     public final static String QF_SESSION = "QF_SESSION";
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Map sessions;
+    private Map<SessionID, Session> sessions;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
     private final static ScheduledExecutorService scheduledExecutorService = Executors
@@ -70,7 +70,7 @@ public abstract class SessionConnector {
         }
     }
 
-    protected void setSessions(Map sessions) {
+    protected void setSessions(Map<SessionID, Session> sessions) {
         this.sessions = sessions;
     }
 
@@ -80,8 +80,8 @@ public abstract class SessionConnector {
      * 
      * @see quickfix.Session
      */
-    public List getManagedSessions() {
-        return new ArrayList(sessions.values());
+    public List<Session> getManagedSessions() {
+        return new ArrayList<Session>(sessions.values());
     }
 
     /**
@@ -89,7 +89,7 @@ public abstract class SessionConnector {
      * 
      * @return a map of sessions keys by session ID
      */
-    protected Map getSessionMap() {
+    protected Map<SessionID, Session> getSessionMap() {
         return Collections.unmodifiableMap(sessions);
     }
 
@@ -100,8 +100,8 @@ public abstract class SessionConnector {
      * 
      * @return list of session identifiers
      */
-    public ArrayList getSessions() {
-        return new ArrayList(sessions.keySet());
+    public ArrayList<SessionID> getSessions() {
+        return new ArrayList<SessionID>(sessions.keySet());
     }
 
     public SessionSettings getSettings() {

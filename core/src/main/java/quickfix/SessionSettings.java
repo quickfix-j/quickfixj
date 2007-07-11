@@ -160,7 +160,7 @@ public class SessionSettings {
      * @see java.util.Properties
      */
     public Properties getSessionProperties(SessionID sessionID) throws ConfigError {
-        Properties p = (Properties) sections.get(sessionID);
+        Properties p = sections.get(sessionID);
         if (p == null) {
             throw new ConfigError("Session not found");
         }
@@ -216,9 +216,9 @@ public class SessionSettings {
     }
 
     private Properties getOrCreateSessionProperties(SessionID sessionID) {
-        Properties p = (Properties) sections.get(sessionID);
+        Properties p = sections.get(sessionID);
         if (p == null) {
-            p = new Properties((Properties) sections.get(DEFAULT_SESSION_ID));
+            p = new Properties(sections.get(DEFAULT_SESSION_ID));
             sections.put(sessionID, p);
         }
         return p;
@@ -351,10 +351,10 @@ public class SessionSettings {
 
     }
 
-    private HashMap sections = new HashMap();
+    private HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();
 
-    public Iterator sectionIterator() {
-        HashSet nondefaultSessions = new HashSet(sections.keySet());
+    public Iterator<SessionID> sectionIterator() {
+        HashSet<SessionID> nondefaultSessions = new HashSet<SessionID>(sections.keySet());
         nondefaultSessions.remove(DEFAULT_SESSION_ID);
         return nondefaultSessions.iterator();
     }
@@ -661,10 +661,10 @@ public class SessionSettings {
     public void toString(PrintWriter writer) {
         try {
             writeSection("[DEFAULT]", writer, getDefaultProperties());
-            Iterator s = sectionIterator();
+            Iterator<SessionID> s = sectionIterator();
             while (s.hasNext()) {
                 try {
-                    writeSection("[SESSION]", writer, getSessionProperties((SessionID)s.next()));
+                    writeSection("[SESSION]", writer, getSessionProperties(s.next()));
                 } catch (ConfigError e) {
                     log.error("Invalid session", e);
                 }

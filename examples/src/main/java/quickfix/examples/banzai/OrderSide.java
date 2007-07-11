@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrderSide {
-    static private Map known = new HashMap();
+    static private Map<String, OrderSide> known = new HashMap<String, OrderSide>();
     static public final OrderSide BUY = new OrderSide("Buy");
     static public final OrderSide SELL = new OrderSide("Sell");
     static public final OrderSide SHORT_SELL = new OrderSide("Short Sell");
@@ -60,7 +60,7 @@ public class OrderSide {
 
     public static OrderSide parse(String type)
     throws IllegalArgumentException {
-        OrderSide result = (OrderSide)known.get(type);
+        OrderSide result = known.get(type);
         if(result == null) {
             throw new IllegalArgumentException
             ("OrderSide:  " + type + " is unknown.");

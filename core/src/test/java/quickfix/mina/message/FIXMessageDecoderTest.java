@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -45,7 +46,6 @@ import quickfix.InvalidMessage;
 import quickfix.Message;
 import quickfix.field.Headline;
 import quickfix.mina.CriticalProtocolCodecException;
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class FIXMessageDecoderTest extends TestCase {
     private FIXMessageDecoder decoder;
@@ -198,11 +198,11 @@ public class FIXMessageDecoderTest extends TestCase {
         File testFile = setUpTestFile();
 
         FIXMessageDecoder decoder = new FIXMessageDecoder();
-        List messages = decoder.extractMessages(testFile);
+        List<String> messages = decoder.extractMessages(testFile);
         assertCorrectlyExtractedMessages(messages);
     }
 
-    private void assertCorrectlyExtractedMessages(List messages) {
+    private void assertCorrectlyExtractedMessages(List<String> messages) {
         assertEquals("wrong # of messages", 4, messages.size());
         for (int i = 0; i < messages.size(); i++) {
             assertEquals("wrong message", "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001",
@@ -214,7 +214,7 @@ public class FIXMessageDecoderTest extends TestCase {
         File testFile = setUpTestFile();
 
         FIXMessageDecoder decoder = new FIXMessageDecoder();
-        final List messages = new ArrayList();
+        final List<String> messages = new ArrayList<String>();
         decoder.extractMessages(testFile, new FIXMessageDecoder.MessageListener() {
 
             public void onMessage(String message) {

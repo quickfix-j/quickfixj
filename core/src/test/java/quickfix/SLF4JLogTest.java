@@ -170,7 +170,7 @@ public class SLF4JLogTest extends TestCase {
     private void assertMessageLogged(SessionID sessionID, String categoryName, String message) {
         TestHandler testHandler = getTestHandler(categoryName);
         assertEquals(1, testHandler.records.size());
-        LogRecord r = (LogRecord) testHandler.records.get(0);
+        LogRecord r = testHandler.records.get(0);
         if (r.getLoggerName() != null) {
             // The conditional is required because of a bug in SLF4J 1.0
             // when used with JDK 1.4 logging. The wrapper does not pass
@@ -208,7 +208,7 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class TestHandler extends java.util.logging.Handler {
-        public ArrayList records = new ArrayList();
+        public ArrayList<LogRecord> records = new ArrayList<LogRecord>();
 
         public void close() throws SecurityException {
         }
@@ -240,8 +240,8 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class MyLog4JLog extends DummySLF4JLogger implements LocationAwareLogger {
-        Vector messages = new Vector();
-        Vector fqcns = new Vector();
+        Vector<String> messages = new Vector<String>();
+        Vector<String> fqcns = new Vector<String>();
 
         public void log(Marker marker, String fqcn, int level, String message, Throwable t) {
             messages.add(message);

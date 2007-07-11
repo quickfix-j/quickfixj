@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrderType {
-    static private Map known = new HashMap();
+    static private Map<String, OrderType> known = new HashMap<String, OrderType>();
     static public final OrderType MARKET = new OrderType("Market");
     static public final OrderType LIMIT = new OrderType("Limit");
     static public final OrderType STOP = new OrderType("Stop");
@@ -51,7 +51,7 @@ public class OrderType {
     }
 
     public static OrderType parse(String type) throws IllegalArgumentException {
-        OrderType result = (OrderType)known.get(type);
+        OrderType result = known.get(type);
         if(result == null) {
             throw new IllegalArgumentException
             ("OrderType:  " + type + " is unknown.");

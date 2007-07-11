@@ -1,12 +1,12 @@
 <project name="core" basedir="." default="jar">
-	<import file="../module.xml"/>
-	
+	<import file="../module.xml" />
+
 	<tstamp>
-	   <format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
+		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
 	</tstamp>
 
-	<property name="version" value="SNAPSHOT ${timestamp}"/>
-	
+	<property name="version" value="SNAPSHOT ${timestamp}" />
+
 	<!-- =============================================================
 	Generate FIX Message Code
 	================================================================= -->
@@ -21,19 +21,16 @@
 	</target>
 
 	<target name="generate.code" unless="generated.isuptodate" depends="check.generated.isuptodate" description="generate FIX message code">
-		<antcall target="regenerate.code"/>
-        <antcall target="format.generated.code"/>
+		<antcall target="regenerate.code" />
+		<antcall target="format.generated.code" />
 	</target>
 
-	<property name="generator.decimal" value="false"/>
-	<property name="generator.orderedFields" value="false"/>
-	
+	<property name="generator.decimal" value="false" />
+	<property name="generator.orderedFields" value="false" />
+
 	<target name="regenerate.code">
 		<mkdir dir="${main.classes.dir}" />
-		<javac srcdir="${main.src.dir}/quickfix/codegen" 
-			includes="MessageCodeGenerator.java,CodeGenerationException.java" 
-			destdir="${main.classes.dir}" 
-			classpathref="main.lib.classpath">
+		<javac srcdir="${main.src.dir}/quickfix/codegen" includes="MessageCodeGenerator.java,CodeGenerationException.java" destdir="${main.classes.dir}" classpathref="main.lib.classpath">
 			<compilerarg line="${javac.args}" />
 		</javac>
 		<java classname="quickfix.codegen.MessageCodeGenerator" fork="yes">
@@ -51,56 +48,54 @@
 			</classpath>
 		</java>
 	</target>
-	
-    <!-- ==================================================================== -->
-    <!-- Defines the Jalopy task -->
-    <!-- ==================================================================== -->
 
-    <taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.classpath"/>
+	<!-- ==================================================================== -->
+	<!-- Defines the Jalopy task -->
+	<!-- ==================================================================== -->
 
-    <target name="format.generated.code" 
-            description="Format the generated FIX message code using Jalopy. Mostly interested in getting all the tabbing right.">
-        <jalopy
-                classpathref="main.lib.classpath"
-                fileformat="unix">
-            <fileset dir="${target.generated.src.dir}">
-                <include name="**/*.java"/>
-            </fileset>
-        </jalopy>
+	<taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.classpath" />
 
-    </target>
+	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy. Mostly interested in getting all the tabbing right.">
+		<jalopy classpathref="main.lib.classpath" fileformat="unix">
+			<fileset dir="${target.generated.src.dir}">
+				<include name="**/*.java" />
+			</fileset>
+		</jalopy>
+
+	</target>
 
 
 	<!-- =============================================================
 	Compile Sources
 	================================================================= -->
-	
+
 	<target name="compile" depends="generate.code" description="compile the sources">
-		<antcall target="assert_jvm"/>
-		<antcall target="compile_main"/>
-		<antcall target="compile_test"/>
+		<antcall target="assert_jvm" />
+		<antcall target="compile_main" />
+		<antcall target="compile_test" />
 	</target>
-		
+
 	<target name="compile_main" if="main.java.available">
-		<do_compile srcref="main.src.path" classpathref="compile.classpath" output="${main.classes.dir}"/>
+		<do_compile srcref="main.src.path" classpathref="compile.classpath" output="${main.classes.dir}" />
 	</target>
 
 	<target name="compile_test" if="test.java.available">
-		<do_compile srcref="test.src.path" classpathref="compile.classpath" output="${test.classes.dir}"/>
+		<do_compile srcref="test.src.path" classpathref="compile.classpath" output="${test.classes.dir}" />
 	</target>
 
 	<property name="javac.debug" value="true" />
-	<property name="javac.args" value="" /> <!-- overridden by CruiseControl on command line -->
+	<property name="javac.args" value="" />
+	<!-- overridden by CruiseControl on command line -->
 
 	<macrodef name="do_compile">
-		<attribute name="srcref"/>
-		<attribute name="classpathref"/>
-		<attribute name="output"/>
+		<attribute name="srcref" />
+		<attribute name="classpathref" />
+		<attribute name="output" />
 		<sequential>
 			<mkdir dir="@{output}" />
 			<javac destdir="@{output}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
-				<classpath refid="@{classpathref}"/>
+				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />
 			</javac>
 		</sequential>
@@ -109,71 +104,90 @@
 	<!-- =============================================================
 	Build JAR
 	================================================================= -->
-	
+
 	<property name="quickfixj.jar" value="quickfixj-core.jar" />
 	<property name="quickfixj.msg.jar-prefix" value="quickfixj-msg" />
 
 	<target name="jar" description="build jar files" depends="compile">
 		<mkdir dir="${target.dir}" />
 		<manifest file="${jar.output.dir}/MANIFEST.MF">
-			<attribute name="Main-Class" value="org.quickfixj.Version"/> 
-			<attribute name="Implementation-Title" value="QuickFIX/J Core"/> 
-			<attribute name="Implementation-Version" value="${version}"/> 
+			<attribute name="Main-Class" value="org.quickfixj.Version" />
+			<attribute name="Implementation-Title" value="QuickFIX/J Core" />
+			<attribute name="Implementation-Version" value="${version}" />
 		</manifest>
-		<jar destfile="${jar.output.dir}/${quickfixj.jar}" 
-				manifest="${jar.output.dir}/MANIFEST.MF">
+		<jar destfile="${jar.output.dir}/${quickfixj.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
 			<fileset dir="${main.classes.dir}">
-				<exclude name="quickfix/fix4?/**"/>
+				<exclude name="quickfix/fix4?/**" />
 			</fileset>
 			<fileset dir="${main.resources.dir}">
-				<exclude name="FIX??.xml"/>
+				<exclude name="FIX??.xml" />
 			</fileset>
 			<fileset dir="${main.src.dir}">
 				<include name="**/*.cert" />
 			</fileset>
 		</jar>
-		<create-message-jar version="40"/>
-		<create-message-jar version="41"/>
-		<create-message-jar version="42"/>
-		<create-message-jar version="43"/>
-		<create-message-jar version="44"/>
+		<create-message-jar version="40" />
+		<create-message-jar version="41" />
+		<create-message-jar version="42" />
+		<create-message-jar version="43" />
+		<create-message-jar version="44" />
 	</target>
 
 	<macrodef name="create-message-jar">
-		<attribute name="version"/>
+		<attribute name="version" />
 		<sequential>
-			<jar destfile="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix@{version}.jar" 
-				manifest="${jar.output.dir}/MANIFEST.MF">
+			<jar destfile="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix@{version}.jar" manifest="${jar.output.dir}/MANIFEST.MF">
 				<fileset dir="${main.resources.dir}">
-					<include name="FIX@{version}.xml"/>
+					<include name="FIX@{version}.xml" />
 				</fileset>
 				<fileset dir="${main.classes.dir}">
-					<include name="quickfix/fix@{version}/**"/>
+					<include name="quickfix/fix@{version}/**" />
 				</fileset>
 			</jar>
 		</sequential>
 	</macrodef>
+
+	<taskdef name="retrotranslator" classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
+		<classpath id="retrotranslator.classpath">
+			<fileset dir="${main-1.4.lib.dir}" includes="**/*.jar" />
+		</classpath>
+	</taskdef>
 	
+	<target name="jar-1.4" description="build jar files for Java 1.4" depends="jar">
+		<mkdir dir="${jar.output.dir}/java4"/>
+		<create-jar-1.4 srcjar="core"/>
+		<create-jar-1.4 srcjar="msg-fix40"/>
+		<create-jar-1.4 srcjar="msg-fix41"/>
+		<create-jar-1.4 srcjar="msg-fix42"/>
+		<create-jar-1.4 srcjar="msg-fix43"/>
+		<create-jar-1.4 srcjar="msg-fix44"/>
+	</target>
+
+	<macrodef name="create-jar-1.4">
+		<attribute name="srcjar" />
+		<sequential>
+			<retrotranslator destjar="${jar.output.dir}/java4/quickfixj-@{srcjar}.jar" srcjar="${jar.output.dir}/quickfixj-@{srcjar}.jar" target="1.4" uptodatecheck="On" verify="false" lazy="false" embed="org.quickfixj.java4">				
+				<classpath refid="retrotranslator.classpath"/>
+			</retrotranslator>
+		</sequential>
+	</macrodef>
+
 	<!-- =============================================================
 	Run Tests
 	================================================================= -->
-	
-	<property name="junit.fork.dir" value="${basedir}/.."/>
-	<property name="junit.output.dir" value="${target.dir}/test/junit"/>
-	<property name="junit.haltonfailure" value="true"/>
 
-	<target name="test"
-	        description="run all tests, if needed"
-	        depends="check.tests.uptodate"
-	        unless="tests.uptodate">
-		<antcall target="test.clean"/>
-		<antcall target="test.unit"/>
-		<antcall target="test.acceptance"/>
-		<antcall target="test.report"/>
+	<property name="junit.fork.dir" value="${basedir}/.." />
+	<property name="junit.output.dir" value="${target.dir}/test/junit" />
+	<property name="junit.haltonfailure" value="true" />
+
+	<target name="test" description="run all tests, if needed" depends="check.tests.uptodate" unless="tests.uptodate">
+		<antcall target="test.clean" />
+		<antcall target="test.unit" />
+		<antcall target="test.acceptance" />
+		<antcall target="test.report" />
 	</target>
 
-	<target name="test.clean" description="Clean test output, forces tests to be run." 
-		unless="tests.uptodate">
+	<target name="test.clean" description="Clean test output, forces tests to be run." unless="tests.uptodate">
 		<delete dir="${test.output.dir}" />
 	</target>
 
@@ -188,8 +202,7 @@
 		</junitreport>
 	</target>
 
-	<target name="check.tests.uptodate"
-	        depends="check.utests.uptodate,check.atests.uptodate">
+	<target name="check.tests.uptodate" depends="check.utests.uptodate,check.atests.uptodate">
 		<description>Check if utest or atest timestamps are older than the QFJ classes</description>
 		<condition property="tests.uptodate">
 			<and>
@@ -200,8 +213,8 @@
 	</target>
 
 	<target name="test.init">
-		<mkdir dir="${test.output.dir}/junit"/>
-		<mkdir dir="${test.output.dir}/reports"/>
+		<mkdir dir="${test.output.dir}/junit" />
+		<mkdir dir="${test.output.dir}/reports" />
 		<!-- copy non-class files that are needed in the classpath -->
 		<copy todir="${test.classes.dir}">
 			<fileset dir="${test.src.dir}">
@@ -211,7 +224,7 @@
 	</target>
 
 	<!-- Run Unit Tests	-->
-	
+
 	<target name="check.utests.uptodate">
 		<description>Check if any classes are newer than the timestamp file</description>
 		<uptodate property="utests.uptodate" targetfile="${utest.timestamp}">
@@ -222,24 +235,13 @@
 	<property name="utest.fork" value="yes" />
 	<property name="utest.timestamp" value="${target.dir}/test/.utest_timestamp" />
 
-	<target name="test.unit"
-	        description="run unit tests"
-	        depends="jar,check.utests.uptodate,test.unit.junit"
-	        unless="utests.failed">
+	<target name="test.unit" description="run unit tests" depends="jar,check.utests.uptodate,test.unit.junit" unless="utests.failed">
 		<description>Update test timestamp if tests passed.</description>
 		<touch file="${utest.timestamp}" />
 	</target>
 
-	<target name="test.unit.junit"
-	        depends="compile, test.init"
-	        unless="utests.uptodate">
-		<junit fork="${utest.fork}" dir="${junit.fork.dir}"
-		       tempdir="${junit.output.dir}"
-		       printsummary="true"
-		       showoutput="false"
-		       errorproperty="utests.failed"
-		       failureproperty="utests.failed"
-		       haltonfailure="${junit.haltonfailure}">
+	<target name="test.unit.junit" depends="compile, test.init" unless="utests.uptodate">
+		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="false" errorproperty="utests.failed" failureproperty="utests.failed" haltonfailure="${junit.haltonfailure}">
 			<!-- The plain formatter is breaking the Pulse CI report generator -->
 			<!-- <formatter type="plain" usefile="true" /> -->
 			<formatter type="xml" usefile="true" />
@@ -249,45 +251,34 @@
 					<include name="quickfix/*Test.java" />
 					<include name="quickfix/mina/**/*Test.java" />
 					<include name="quickfix/util/**/*Test.java" />
-					<exclude name="**/*ForTest.java"/>
+					<exclude name="**/*ForTest.java" />
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>
 		</junit>
 	</target>
 
-	<target name="test.one.junit"
-	        depends="compile, test.init,jar"
-	        unless="utests.uptodate"
-            description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
-        <echo message="Testing class (${onejunit.testname})" />
-        <junit fork="${utest.fork}" dir="${junit.fork.dir}"
-		       tempdir="${junit.output.dir}"
-		       printsummary="true"
-		       showoutput="true"
-		       errorproperty="utests.failed"
-		       failureproperty="utests.failed">
+	<target name="test.one.junit" depends="compile, test.init,jar" unless="utests.uptodate" description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
+		<echo message="Testing class (${onejunit.testname})" />
+		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="true" errorproperty="utests.failed" failureproperty="utests.failed">
 			<formatter type="plain" usefile="true" />
 			<classpath refid="test.classpath" />
-            <test name="${onejunit.testname}" todir="${junit.output.dir}"/>
+			<test name="${onejunit.testname}" todir="${junit.output.dir}" />
 		</junit>
-        <exec executable="cat">
-            <arg value="${junit.output.dir}/TEST-${onejunit.testname}.txt"/>
-        </exec>
+		<exec executable="cat">
+			<arg value="${junit.output.dir}/TEST-${onejunit.testname}.txt" />
+		</exec>
 		<fail if="utests.failed" message="Unit test failed" />
 	</target>
 
 	<!-- Run Acceptance Tests -->
-	
+
 	<property name="atest.fork" value="yes" />
 	<property name="atest.showoutput" value="yes" />
-	<property name="atest.skipslow" value="false"/>
-	<property name="atest.classname"
-	          value="quickfix.test.acceptance.AcceptanceTestSuite" />
-	<property name="atest.report"
-	          value="${junit.output.dir}/TEST-${atest.classname}.xml" />
-	<property name="atest.timestamp"
-	          value="${target.dir}/test/.atest_timestamp" />
+	<property name="atest.skipslow" value="false" />
+	<property name="atest.classname" value="quickfix.test.acceptance.AcceptanceTestSuite" />
+	<property name="atest.report" value="${junit.output.dir}/TEST-${atest.classname}.xml" />
+	<property name="atest.timestamp" value="${target.dir}/test/.atest_timestamp" />
 	<property name="atest.heartbeat" value="5" />
 	<property name="atest.timeout" value="60000" />
 	<property name="atest.reconnectDelay" value="5" />
@@ -302,20 +293,10 @@
 	</target>
 
 
-	<target name="test.acceptance"
-	        description="run acceptance tests"
-	        depends="jar,check.atests.uptodate,test.acceptance.junit"/>
+	<target name="test.acceptance" description="run acceptance tests" depends="jar,check.atests.uptodate,test.acceptance.junit" />
 
-	<target name="test.acceptance.junit"
-	        unless="atests.uptodate"
-	        depends="compile, test.init">
-		<junit fork="${atest.fork}" dir="${junit.fork.dir}"
-		       tempdir="${junit.output.dir}"
-		       printsummary="true"
-		       showoutput="${atest.showoutput}"
-		       errorproperty="atests.failed"
-		       failureproperty="atests.failed"
-			   maxmemory="512m">
+	<target name="test.acceptance.junit" unless="atests.uptodate" depends="compile, test.init">
+		<junit fork="${atest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="${atest.showoutput}" errorproperty="atests.failed" failureproperty="atests.failed" maxmemory="512m">
 			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
 			<sysproperty key="atest.timeout" value="${atest.timeout}" />
 			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
@@ -325,12 +306,8 @@
 			<test todir="${junit.output.dir}" name="${atest.classname}" />
 		</junit>
 		<!-- remove the logged output because it's too large for junitreport -->
-		<replaceregexp file="${atest.report}"
-		               flags="s"
-		               byline="false"
-		               match="system-err>.*&lt;/system-err"
-		               replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
-		<antcall target="create.atest.timestamp"/>
+		<replaceregexp file="${atest.report}" flags="s" byline="false" match="system-err>.*&lt;/system-err" replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
+		<antcall target="create.atest.timestamp" />
 	</target>
 
 	<target name="create.atest.timestamp" unless="atests.failed">
@@ -342,21 +319,13 @@
 	Generate Javadocs
 	================================================================= -->
 
-	<target name="javadoc" depends="check.javadoc.uptodate" 
-			unless="javadoc.uptodate" description="generate Javadocs">
+	<target name="javadoc" depends="check.javadoc.uptodate" unless="javadoc.uptodate" description="generate Javadocs">
 		<description>Generate the Javadocs for the main sources.</description>
 		<mkdir dir="${javadoc.output.dir}" />
-		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html"
-				 noindex="yes"
-		         stylesheetfile="${javadoc.input.dir}/javadoc.css"
-		         destdir="${javadoc.output.dir}"
-		         protected="yes"
-		         maxmemory="256m"
-		         breakiterator="yes"
-		         classpathref="compile.classpath">
+		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html" noindex="yes" stylesheetfile="${javadoc.input.dir}/javadoc.css" destdir="${javadoc.output.dir}" protected="yes" maxmemory="256m" breakiterator="yes" classpathref="compile.classpath">
 			<sourcepath>
-				<pathelement location="${main.src.dir}"/>
-				<pathelement location="${target.generated.src.dir}"/>
+				<pathelement location="${main.src.dir}" />
+				<pathelement location="${target.generated.src.dir}" />
 			</sourcepath>
 			<packageset dir="${main.src.dir}">
 				<include name="quickfix" />
@@ -376,8 +345,8 @@
 
 	<target name="check.javadoc.uptodate">
 		<uptodate property="javadoc.uptodate" targetfile="${javadoc.output.dir}/index.html">
-			<srcfiles  dir="${main.src.dir}" includes="**/*.java"/>
-			<srcfiles dir="${target.generated.src.dir}" includes="**/*.java"/>
+			<srcfiles dir="${main.src.dir}" includes="**/*.java" />
+			<srcfiles dir="${target.generated.src.dir}" includes="**/*.java" />
 		</uptodate>
 	</target>
 
@@ -387,23 +356,23 @@
 
 	<target name="export_binary_src" depends="module.export_binary_src">
 		<copy todir="${release.bin_src.staging.dir}" includeEmptyDirs="false">
-			<fileset dir="${basedir}/target/src-generated"/>
+			<fileset dir="${basedir}/target/src-generated" />
 		</copy>
 	</target>
 
 	<target name="export_binaries" depends="module.export_binaries">
 		<copy todir="${release.bin.staging.dir}/lib">
-			<fileset dir="src/main/lib"/>
+			<fileset dir="src/main/lib" />
 		</copy>
 		<copy todir="${release.bin.staging.dir}/doc">
-			<fileset dir="src/main/doc" includes="usermanual/**/*"/>
+			<fileset dir="src/main/doc" includes="usermanual/**/*" />
 		</copy>
 		<copy todir="${release.bin.staging.dir}/etc">
-			<fileset dir="src/main/resources" includes="**/*"/>
-			<fileset dir="src/main/config" includes="**/*"/>
+			<fileset dir="src/main/resources" includes="**/*" />
+			<fileset dir="src/main/config" includes="**/*" />
 		</copy>
 	</target>
-	
+
 	<!-- =============================================================
 	Path References
 	================================================================= -->
@@ -458,13 +427,13 @@
 		<pathelement location="${test.src.dir}" />
 	</path>
 
-    <path id="jalopy.classpath" description="Jalopy tool path">
-        <fileset dir="${main.lib.dir}/build">
-            <include name="jalopy*.jar"/>
-        </fileset>
-        <fileset dir="${main.optional.lib.dir}">
-            <include name="log4j*.jar"/>
-        </fileset>
-    </path>
+	<path id="jalopy.classpath" description="Jalopy tool path">
+		<fileset dir="${main.lib.dir}/build">
+			<include name="jalopy*.jar" />
+		</fileset>
+		<fileset dir="${main.optional.lib.dir}">
+			<include name="log4j*.jar" />
+		</fileset>
+	</path>
 
 </project>

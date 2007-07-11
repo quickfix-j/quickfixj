@@ -82,7 +82,7 @@ public class BanzaiApplication implements Application {
     static private TwoWayMap sideMap = new TwoWayMap();
     static private TwoWayMap typeMap = new TwoWayMap();
     static private TwoWayMap tifMap = new TwoWayMap();
-    static private HashMap execIDs = new HashMap();
+    static private HashMap<SessionID, HashSet<ExecID>> execIDs = new HashMap<SessionID, HashSet<ExecID>>();
 
     public BanzaiApplication(OrderTableModel orderTableModel,
             ExecutionTableModel executionTableModel) {
@@ -294,9 +294,9 @@ public class BanzaiApplication implements Application {
     }
 
     private boolean alreadyProcessed(ExecID execID, SessionID sessionID) {
-        HashSet set = (HashSet) execIDs.get(sessionID);
+        HashSet<ExecID> set = execIDs.get(sessionID);
         if (set == null) {
-            set = new HashSet();
+            set = new HashSet<ExecID>();
             set.add(execID);
             execIDs.put(sessionID, set);
             return false;
@@ -542,7 +542,7 @@ public class BanzaiApplication implements Application {
     }
 
     public class ObservableLogon extends Observable {
-        private HashSet set = new HashSet();
+        private HashSet<SessionID> set = new HashSet<SessionID>();
 
         public void logon(SessionID sessionID) {
             set.add(sessionID);

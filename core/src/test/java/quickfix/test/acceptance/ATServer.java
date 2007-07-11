@@ -24,6 +24,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import junit.framework.Assert;
 import junit.framework.TestSuite;
@@ -45,13 +46,12 @@ import quickfix.SocketAcceptor;
 import quickfix.ThreadedSocketAcceptor;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.ssl.SSLSupport;
-import edu.emory.mathcs.backport.java.util.concurrent.CountDownLatch;
 
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final CountDownLatch tearDownLatch = new CountDownLatch(1);
-    private final Set fixVersions = new HashSet();
+    private final Set<String> fixVersions = new HashSet<String>();
     private final SessionSettings settings = new SessionSettings();
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
@@ -82,10 +82,11 @@ public class ATServer implements Runnable {
     
     public void run() {
         try {
-            HashMap defaults = new HashMap();
+            HashMap<Object, Object> defaults = new HashMap<Object, Object>();
             defaults.put("ConnectionType", "acceptor");
             defaults.put("SocketAcceptProtocol", transportType.toString());
             defaults.put("SocketAcceptPort", Integer.toString(port));
+            defaults.put("SocketTcpNoDelay", "Y");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
@@ -221,7 +222,7 @@ public class ATServer implements Runnable {
     public void setIoFilterChainBuilder(IoFilterChainBuilder builder) {
         ioFilterChainBuilder = builder;
     }
-    
+
     public void setUseSSL(boolean useSSL) {
         this.useSSL = useSSL;
     }

@@ -19,12 +19,22 @@
 
 package quickfix.mina.initiator;
 
-import edu.emory.mathcs.backport.java.util.concurrent.Future;
-import edu.emory.mathcs.backport.java.util.concurrent.ScheduledExecutorService;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
-import org.apache.mina.common.*;
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.security.GeneralSecurityException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.mina.common.ConnectFuture;
+import org.apache.mina.common.IoConnector;
+import org.apache.mina.common.IoFilterChainBuilder;
+import org.apache.mina.common.IoServiceConfig;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.common.ThreadModel;
 import org.apache.mina.filter.SSLFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+
 import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
@@ -36,10 +46,6 @@ import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
-
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.security.GeneralSecurityException;
 
 public class IoSessionInitiator {
     private final ScheduledExecutorService executor;

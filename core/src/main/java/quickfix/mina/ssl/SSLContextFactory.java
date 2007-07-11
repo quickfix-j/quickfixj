@@ -17,7 +17,7 @@ import java.util.HashMap;
 public class SSLContextFactory {
     private static final String PROTOCOL = "TLS";
     private static final String KEY_MANAGER_FACTORY_ALGORITHM;
-    final private static Map contextCache = new HashMap();
+    final private static Map<String, SSLContext> contextCache = new HashMap<String, SSLContext>();
 
     static {
         String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
@@ -32,7 +32,7 @@ public class SSLContextFactory {
     public static synchronized SSLContext getInstance(String keyStoreName, char[] keyStorePassword)
             throws GeneralSecurityException {
         synchronized (contextCache) {
-            SSLContext context = (SSLContext) contextCache.get(keyStoreName);
+            SSLContext context = contextCache.get(keyStoreName);
             if (context == null) {
                 try {
                     context = createSSLContext(keyStoreName, keyStorePassword);

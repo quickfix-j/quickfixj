@@ -133,9 +133,9 @@ public class SessionAdmin implements SessionAdminMBean, MBeanRegistration {
      * @see quickfix.jmx.SessionMBean#getMessages(int, int)
      */
     public String[] getMessages(int startSequence, int endSequence) throws IOException {
-        ArrayList messages = new ArrayList();
+        ArrayList<String> messages = new ArrayList<String>();
         session.getStore().get(startSequence, endSequence, messages);
-        return (String[]) messages.toArray(new String[messages.size()]);
+        return messages.toArray(new String[messages.size()]);
     }
 
     /* (non-Javadoc)

@@ -19,20 +19,21 @@
 
 package quickfix.mina;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.SystemTime;
-import edu.emory.mathcs.backport.java.util.concurrent.BlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.LinkedBlockingQueue;
-import edu.emory.mathcs.backport.java.util.concurrent.TimeUnit;
 
 /**
  * Processes messages for all sessions in a single thread.
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
     private static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
-    private final BlockingQueue eventQueue = new LinkedBlockingQueue();
+    private final BlockingQueue<SessionMessageEvent> eventQueue = new LinkedBlockingQueue<SessionMessageEvent>();
     private final SessionConnector sessionConnector;
     private boolean isStopped;
     private long stopTime = 0L;

@@ -58,7 +58,7 @@ public interface MessageStore {
      * @throws IOException
      *             IO error
      */
-    void get(int startSequence, int endSequence, Collection messages) throws IOException;
+    void get(int startSequence, int endSequence, Collection<String> messages) throws IOException;
 
     int getNextSenderMsgSeqNum() throws IOException;
 

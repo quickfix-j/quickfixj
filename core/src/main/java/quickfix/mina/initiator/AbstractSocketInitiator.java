@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +59,7 @@ import quickfix.mina.ssl.SSLSupport;
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private final Set initiators = new HashSet();
+    private final Set<IoSessionInitiator> initiators = new HashSet<IoSessionInitiator>();
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -70,6 +72,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             throws ConfigError {
         super(settings, sessionFactory);
         try {
+            ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
+            ByteBuffer.setUseDirectBuffers(false);
             createSessions();
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
@@ -120,7 +124,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
         }
 
-        Map initiatorSessions = new HashMap();
+        Map<SessionID, Session> initiatorSessions = new HashMap<SessionID, Session>();
         for (Iterator i = settings.sectionIterator(); i.hasNext();) {
             SessionID sessionID = (SessionID) i.next();
             if (isInitiatorSession(sessionID)) {
@@ -159,7 +163,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     private SocketAddress[] getSocketAddresses(SessionID sessionID) throws ConfigError {
         SessionSettings settings = getSettings();
-        ArrayList addresses = new ArrayList();
+        ArrayList<SocketAddress> addresses = new ArrayList<SocketAddress>();
         for (int index = 0;; index++) {
             try {
                 String protocolKey = Initiator.SETTING_SOCKET_CONNECT_PROTOCOL
@@ -195,7 +199,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             }
         }
 
-        return (SocketAddress[]) addresses.toArray(new SocketAddress[addresses.size()]);
+        return addresses.toArray(new SocketAddress[addresses.size()]);
     }
 
     private boolean isHostRequired(TransportType transportType) {
@@ -215,9 +219,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private void startInitiators() {
-        Iterator i = initiators.iterator();
+        Iterator<IoSessionInitiator> i = initiators.iterator();
         while (i.hasNext()) {
-            ((IoSessionInitiator)i.next()).start();
+            i.next().start();
         }
     }
 
@@ -227,13 +231,13 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private void stopInitiators() {
-        Iterator i = initiators.iterator();
+        Iterator<IoSessionInitiator> i = initiators.iterator();
         while (i.hasNext()) {
-            ((IoSessionInitiator)i.next()).stop();
+            i.next().stop();
         }
     }
 
-    public Set getInitiators() {
+    public Set<IoSessionInitiator> getInitiators() {
         return Collections.unmodifiableSet(initiators);
     }
 }

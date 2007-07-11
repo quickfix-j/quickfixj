@@ -100,7 +100,7 @@ public class ReflectionUtil {
         return true;
     }
 
-    private static boolean isAssignable(Class assignee, Class assigned) {
+    private static boolean isAssignable(Class<?> assignee, Class<?> assigned) {
         if (assignee.isPrimitive()) {
             if (assignee == int.class || assignee == short.class || assignee == long.class
                     || assignee == byte.class) {
@@ -154,7 +154,7 @@ public class ReflectionUtil {
                 PropertyDescriptor[] parameters = info.getPropertyDescriptors();
                 for (int p = 0; p < parameters.length; p++) {
                     if (parameters[p].getReadMethod() != null) {
-                        Object value = parameters[p].getReadMethod().invoke(threadInfos[i], null);
+                        Object value = parameters[p].getReadMethod().invoke(threadInfos[i], (Object[])null);
                         if (value != null && value.getClass().isArray()) {
                             System.out.println("  " + parameters[p].getName() + ":");
                             for (int a = 0; a < Array.getLength(value); a++) {

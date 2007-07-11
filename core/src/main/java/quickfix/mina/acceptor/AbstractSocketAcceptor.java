@@ -29,8 +29,10 @@ import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoAcceptor;
 import org.apache.mina.common.IoServiceConfig;
+import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.ThreadModel;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.SSLFilter;
@@ -63,14 +65,16 @@ import quickfix.mina.ssl.SSLSupport;
  * Abstract base class for socket acceptors.
  */
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
-    private final Map sessionProviders = new HashMap();
+    private final Map<SocketAddress, AcceptorSessionProvider> sessionProviders = new HashMap<SocketAddress, AcceptorSessionProvider>();
     private final SessionFactory sessionFactory;
-    private final Map socketDescriptorForAddress = new HashMap();
-    private final Map ioAcceptorForTransport = new HashMap();
+    private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<SocketAddress, AcceptorSocketDescriptor>();
+    private final Map<TransportType, IoAcceptor> ioAcceptorForTransport = new HashMap<TransportType, IoAcceptor>();
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
+        ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
+        ByteBuffer.setUseDirectBuffers(false);
         this.sessionFactory = sessionFactory;
         try {
             createSessions(settings);
@@ -100,9 +104,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             startSessionTimer();
             SessionSettings settings = getSettings();
 
-            Iterator descriptors = socketDescriptorForAddress.values().iterator();
+            Iterator<AcceptorSocketDescriptor> descriptors = socketDescriptorForAddress.values().iterator();
             while (descriptors.hasNext()) {
-                AcceptorSocketDescriptor socketDescriptor = (AcceptorSocketDescriptor) descriptors
+                AcceptorSocketDescriptor socketDescriptor = descriptors
                         .next();
                 IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor.getAddress());
                 IoServiceConfig serviceConfig = ioAcceptor.getDefaultConfig();
@@ -119,7 +123,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
                 serviceConfig.setThreadModel(ThreadModel.MANUAL);
 
-                AcceptorSessionProvider sessionProvider = (AcceptorSessionProvider) sessionProviders
+                AcceptorSessionProvider sessionProvider = sessionProviders
                         .get(socketDescriptor.getAddress());
                 if (sessionProvider == null) {
                     sessionProvider = new StaticAcceptorSessionProvider(socketDescriptor
@@ -150,7 +154,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     private IoAcceptor getIoAcceptor(SocketAddress address) {
         TransportType transportType = ProtocolFactory.getAddressTransportType(address);
-        IoAcceptor ioAcceptor = (IoAcceptor) ioAcceptorForTransport.get(transportType);
+        IoAcceptor ioAcceptor = ioAcceptorForTransport.get(transportType);
         if (ioAcceptor == null) {
             ioAcceptor = ProtocolFactory.createIoAcceptor(transportType);
             ioAcceptorForTransport.put(transportType, ioAcceptor);
@@ -197,7 +201,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 acceptHost, acceptPort);
 
         // Check for cached descriptor
-        AcceptorSocketDescriptor descriptor = (AcceptorSocketDescriptor) socketDescriptorForAddress
+        AcceptorSocketDescriptor descriptor = socketDescriptorForAddress
                 .get(acceptorAddress);
         if (descriptor != null) {
             if (descriptor.isUseSSL() && !useSSL
@@ -220,7 +224,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
-        HashMap allSessions = new HashMap();
+        HashMap<SessionID, Session> allSessions = new HashMap<SessionID, Session>();
         for (Iterator i = settings.sectionIterator(); i.hasNext();) {
             SessionID sessionID = (SessionID) i.next();
             String connectionType = settings.getString(sessionID,
@@ -248,9 +252,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     protected void stopAcceptingConnections() {
-        Iterator descriptors = socketDescriptorForAddress.values().iterator();
+        Iterator<AcceptorSocketDescriptor> descriptors = socketDescriptorForAddress.values().iterator();
         while (descriptors.hasNext()) {
-            AcceptorSocketDescriptor socketDescriptor = (AcceptorSocketDescriptor) descriptors
+            AcceptorSocketDescriptor socketDescriptor = descriptors
                     .next();
             SocketAddress acceptorSocketAddress = socketDescriptor.getAddress();
             log.info("No longer accepting connections on " + acceptorSocketAddress);
@@ -267,7 +271,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         private final boolean useSSL;
         private final String keyStoreName;
         private final String keyStorePassword;
-        private final Map acceptedSessions = new HashMap();
+        private final Map<SessionID, Session> acceptedSessions = new HashMap<SessionID, Session>();
 
         public AcceptorSocketDescriptor(SocketAddress address, boolean useSSL, String keyStoreName,
                 String keyStorePassword) {
@@ -281,7 +285,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             acceptedSessions.put(session.getSessionID(), session);
         }
 
-        public Map getAcceptedSessions() {
+        public Map<SessionID, Session> getAcceptedSessions() {
             return Collections.unmodifiableMap(acceptedSessions);
         }
 
@@ -303,16 +307,16 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     }
 
-    public Collection getEndpoints() {
+    public Collection<IoAcceptor> getEndpoints() {
         return ioAcceptorForTransport.values();
     }
 
-    public Map getAcceptorAddresses() {
-        Map sessionIdToAddressMap = new HashMap();
-        Iterator descriptors = socketDescriptorForAddress.values().iterator();
+    public Map<SessionID, SocketAddress> getAcceptorAddresses() {
+        Map<SessionID, SocketAddress> sessionIdToAddressMap = new HashMap<SessionID, SocketAddress>();
+        Iterator<AcceptorSocketDescriptor> descriptors = socketDescriptorForAddress.values().iterator();
         while (descriptors.hasNext()) {
-            AcceptorSocketDescriptor descriptor = (AcceptorSocketDescriptor) descriptors.next();
-            Iterator sessionIDs = descriptor.getAcceptedSessions().keySet().iterator();
+            AcceptorSocketDescriptor descriptor = descriptors.next();
+            Iterator<SessionID> sessionIDs = descriptor.getAcceptedSessions().keySet().iterator();
             while (sessionIDs.hasNext()) {
                 sessionIdToAddressMap.put(sessionIDs.next(), descriptor.getAddress());
             }

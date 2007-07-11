@@ -24,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -31,13 +32,11 @@ import javax.sql.DataSource;
 
 import org.logicalcobwebs.proxool.ProxoolDataSource;
 
-import edu.emory.mathcs.backport.java.util.concurrent.ConcurrentHashMap;
-
 class JdbcUtil {
 
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
 
-    private static Map dataSources = new ConcurrentHashMap();
+    private static Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<String, ProxoolDataSource>();
     private static int dataSourceCounter = 1;
     
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
@@ -62,7 +61,7 @@ class JdbcUtil {
 
     static DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
-        ProxoolDataSource ds = cache ? (ProxoolDataSource) dataSources.get(key) : null;
+        ProxoolDataSource ds = cache ? dataSources.get(key) : null;
         
         if (ds == null) {
             ds = new ProxoolDataSource(JdbcUtil.CONNECTION_POOL_ALIAS + "-" + dataSourceCounter++);

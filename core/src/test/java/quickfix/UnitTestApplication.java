@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UnitTestApplication implements Application {
-    public List fromAppMessages = new ArrayList();
-    public List toAppMessages = new ArrayList();
-    public List fromAdminMessages = new ArrayList();
-    public List toAdminMessages = new ArrayList();
-    public List logonSessions = new ArrayList();
-    public List logoutSessions = new ArrayList();
-    public List createSessions = new ArrayList();
+    public List<Message> fromAppMessages = new ArrayList<Message>();
+    public List<Message> toAppMessages = new ArrayList<Message>();
+    public List<Message> fromAdminMessages = new ArrayList<Message>();
+    public List<Message> toAdminMessages = new ArrayList<Message>();
+    public List<SessionID> logonSessions = new ArrayList<SessionID>();
+    public List<SessionID> logoutSessions = new ArrayList<SessionID>();
+    public List<SessionID> createSessions = new ArrayList<SessionID>();
     
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {

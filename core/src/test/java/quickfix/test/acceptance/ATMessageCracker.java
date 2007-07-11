@@ -25,7 +25,7 @@ import quickfix.field.*;
 
 class ATMessageCracker extends quickfix.MessageCracker {
 
-    private HashSet orderIDs = new HashSet();
+    private HashSet<Pair> orderIDs = new HashSet<Pair>();
 
     public void reset() {
         orderIDs.clear();

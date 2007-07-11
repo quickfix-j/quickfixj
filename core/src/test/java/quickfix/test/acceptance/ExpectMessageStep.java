@@ -38,7 +38,7 @@ public class ExpectMessageStep implements TestStep {
     public static long TIMEOUT_IN_MS = 10000;
     private Logger log = LoggerFactory.getLogger(getClass());
     private final String data;
-    private final Map expectedFields;
+    private final Map<String, String> expectedFields;
     private static final Pattern headerPattern = Pattern.compile("^E(\\d+),.*");
     private static final Pattern fieldPattern = Pattern.compile("(\\d+)=([^\\001]+)\\001");
     private int clientId = 0;
@@ -62,8 +62,8 @@ public class ExpectMessageStep implements TestStep {
         expectedFields = simpleParse(data);
     }
 
-    private Map simpleParse(String data) {
-        HashMap fields = new HashMap();
+    private Map<String, String> simpleParse(String data) {
+        HashMap<String, String> fields = new HashMap<String, String>();
         Matcher fieldMatcher = fieldPattern.matcher(data);
         while (fieldMatcher.find()) {
             fields.put(fieldMatcher.group(1), fieldMatcher.group(2));
@@ -78,19 +78,19 @@ public class ExpectMessageStep implements TestStep {
             ReflectionUtil.dumpStackTraces();
             Assert.fail("message timeout: expected=" + expectedFields);
         }
-        Map actualFields = simpleParse(message.toString());
+        Map<String, String> actualFields = simpleParse(message.toString());
         log.debug("actual: " + message);
         assertMessageEqual(actualFields);
     }
 
-    private static HashSet timeFields = new HashSet();
+    private static HashSet<String> timeFields = new HashSet<String>();
     static {
         timeFields.add("52");
         timeFields.add("60");
         timeFields.add("122");
     }
 
-    private void assertMessageEqual(Map actualFields) {
+    private void assertMessageEqual(Map<String, String> actualFields) {
         Assert.assertEquals("wrong msg type", expectedFields.get("35"), actualFields.get("35"));
         Iterator fieldIterator = actualFields.entrySet().iterator();
         while (fieldIterator.hasNext()) {
@@ -104,24 +104,24 @@ public class ExpectMessageStep implements TestStep {
             }
             if (key.equals("58")) {
                 Assert.assertTrue("field " + key + " not equal: ", entry.getValue().toString()
-                        .startsWith((String) expectedFields.get(key)));
+                        .startsWith(expectedFields.get(key)));
 
             } else {
                 Assert.assertEquals("field " + key + " not equal: ", expectedFields.get(key), entry
                         .getValue());
             }
         }
-        Iterator expectedKey = expectedFields.keySet().iterator();
+        Iterator<String> expectedKey = expectedFields.keySet().iterator();
         while (expectedKey.hasNext()) {
-            String key = (String) expectedKey.next();
+            String key = expectedKey.next();
             Assert.assertTrue("missing expected field: " + key, actualFields.containsKey(key));
         }
-        Iterator timeFieldItr = timeFields.iterator();
+        Iterator<String> timeFieldItr = timeFields.iterator();
         boolean dateLengthMismatch = false;
         while (timeFieldItr.hasNext()) {
-            String key = (String) timeFieldItr.next();
+            String key = timeFieldItr.next();
             if (expectedFields.containsKey(key)) {
-                if (((String) expectedFields.get(key)).length() != ((String) actualFields.get(key))
+                if (expectedFields.get(key).length() != actualFields.get(key)
                         .length()) {
                     dateLengthMismatch = true;
                 }

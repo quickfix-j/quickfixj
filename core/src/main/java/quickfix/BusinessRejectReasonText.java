@@ -28,7 +28,7 @@ import quickfix.field.BusinessRejectReason;
  * @see BusinessRejectReason
  */
 public class BusinessRejectReasonText extends BusinessRejectReason {
-    private static HashMap rejectReasonText = new HashMap();
+    private static HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
     
     static {
         rejectReasonText.put(new Integer(FIELD), "Field");
@@ -49,7 +49,7 @@ public class BusinessRejectReasonText extends BusinessRejectReason {
      * @return the description or null if there isn't a description for that reason
      */
     public static String getMessage(int rejectReason) {
-        return (String)rejectReasonText.get(new Integer(rejectReason));
+        return rejectReasonText.get(new Integer(rejectReason));
     }
     
 }

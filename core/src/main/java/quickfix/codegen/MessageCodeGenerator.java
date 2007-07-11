@@ -74,7 +74,7 @@ public class MessageCodeGenerator {
     private void generateMessageBaseClass(Task task) throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
-        Map parameters = new HashMap();
+        Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
         generateClassCode(task, "Message", parameters);
     }
@@ -91,13 +91,13 @@ public class MessageCodeGenerator {
         generateClassCode(task, "MessageCracker", null);
     }
 
-    private void generateClassCode(Task task, String className, Map parameters)
+    private void generateClassCode(Task task, String className, Map<String, String> parameters)
             throws ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
         log.debug("generating " + className + " for " + task.getName());
         if (parameters == null) {
-            parameters = new HashMap();
+            parameters = new HashMap<String, String>();
         }
         parameters.put("messagePackage", task.getMessagePackage());
         parameters.put("fieldPackage", task.getFieldPackage());
@@ -114,15 +114,15 @@ public class MessageCodeGenerator {
                 + "/";
         writePackageDocumentation(outputDirectory, "FIX field definitions for " + task.getName());
         Document document = getSpecification(task);
-        List fieldNames = getNames(document.getDocumentElement(), "fields/field");
+        List<String> fieldNames = getNames(document.getDocumentElement(), "fields/field");
         try {
             Transformer transformer = createTransformer(task, "Fields.xsl");
             for (int i = 0; i < fieldNames.size(); i++) {
-                String fieldName = (String) fieldNames.get(i);
+                String fieldName = fieldNames.get(i);
                 String outputFile = outputDirectory + fieldName + ".java";
                 if (!new File(outputFile).exists()) {
                     log.debug("field: " + fieldName);
-                    Map parameters = new HashMap();
+                    Map<String, String> parameters = new HashMap<String, String>();
                     parameters.put("fieldName", fieldName);
                     parameters.put("fieldPackage", task.getFieldPackage());
                     if (task.isDecimalGenerated()) {
@@ -146,12 +146,12 @@ public class MessageCodeGenerator {
                 + "/";
         writePackageDocumentation(outputDirectory, "Message classes");
         Document document = getSpecification(task);
-        List messageNames = getNames(document.getDocumentElement(), "messages/message");
+        List<String> messageNames = getNames(document.getDocumentElement(), "messages/message");
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
         for (int i = 0; i < messageNames.size(); i++) {
-            String messageName = (String) messageNames.get(i);
+            String messageName = messageNames.get(i);
             log.debug("generating message class: " + messageName);
-            Map parameters = new HashMap();
+            Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", messageName);
             parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
             parameters.put(ORDERED_FIELDS_OPTION, Boolean.toString(task.isOrderedFields()));
@@ -169,15 +169,15 @@ public class MessageCodeGenerator {
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
                 + "/component/";
         Document document = getSpecification(task);
-        List componentNames = getNames(document.getDocumentElement(), "components/component");
+        List<String> componentNames = getNames(document.getDocumentElement(), "components/component");
         if (componentNames.size() > 0) {
             writePackageDocumentation(outputDirectory, "Message component classes");
         }
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
         for (int i = 0; i < componentNames.size(); i++) {
-            String componentName = (String) componentNames.get(i);
+            String componentName = componentNames.get(i);
             log.debug("generating component class: " + componentName);
-            Map parameters = new HashMap();
+            Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", componentName);
             parameters.put("baseClass", "quickfix.MessageComponent");
             parameters.put("subpackage", ".component");
@@ -199,11 +199,11 @@ public class MessageCodeGenerator {
         return transformer;
     }
 
-    private Map specificationCache = new HashMap();
+    private Map<String, Document> specificationCache = new HashMap<String, Document>();
 
     private Document getSpecification(Task task) throws ParserConfigurationException, SAXException,
             IOException {
-        Document document = (Document) specificationCache.get(task.getName());
+        Document document = specificationCache.get(task.getName());
         if (document == null) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -228,11 +228,11 @@ public class MessageCodeGenerator {
         out.close();
     }
 
-    private List getNames(Element element, String path) {
-        return getNames(element, path, new ArrayList());
+    private List<String> getNames(Element element, String path) {
+        return getNames(element, path, new ArrayList<String>());
     }
 
-    private List getNames(Element element, String path, List names) {
+    private List<String> getNames(Element element, String path, List<String> names) {
         int separatorOffset = path.indexOf("/");
         if (separatorOffset == -1) {
             NodeList fieldNodeList = element.getElementsByTagName(path);
@@ -249,7 +249,7 @@ public class MessageCodeGenerator {
         return names;
     }
 
-    private void generateCodeFile(Task task, Document document, Map parameters,
+    private void generateCodeFile(Task task, Document document, Map<String, String> parameters,
             String outputFileName, Transformer transformer)
             throws TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {

@@ -18,6 +18,7 @@
 package org.quickfixj.jmx.mbean.connector;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -28,8 +29,6 @@ import org.quickfixj.jmx.mbean.ObjectNameFactory;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 
 import quickfix.Acceptor;
 import quickfix.Session;

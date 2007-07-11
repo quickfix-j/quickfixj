@@ -69,7 +69,7 @@ public class SessionSettingsAdmin implements DynamicMBean {
     }
 
     public MBeanInfo getMBeanInfo() {
-        List attributeInfos = new ArrayList();
+        List<MBeanAttributeInfo> attributeInfos = new ArrayList<MBeanAttributeInfo>();
         Iterator entries = settings.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry entry = (Map.Entry) entries.next();
@@ -78,7 +78,7 @@ public class SessionSettingsAdmin implements DynamicMBean {
                     false));
         
         }
-        return new MBeanInfo(SessionSettings.class.getName(), "Session Settings", (MBeanAttributeInfo[]) attributeInfos
+        return new MBeanInfo(SessionSettings.class.getName(), "Session Settings", attributeInfos
                 .toArray(new MBeanAttributeInfo[attributeInfos.size()]), null, null, null);
     }
 

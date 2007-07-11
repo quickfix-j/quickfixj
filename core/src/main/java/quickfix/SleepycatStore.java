@@ -199,7 +199,7 @@ public class SleepycatStore implements MessageStore {
         }
     }
 
-    public synchronized void get(int startSequence, int endSequence, Collection messages)
+    public synchronized void get(int startSequence, int endSequence, Collection<String> messages)
             throws IOException {
         Cursor cursor = null;
         try {

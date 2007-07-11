@@ -46,7 +46,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     private final SessionSettings settings;
     private final SessionID templateID;
     private final SessionFactory sessionFactory;
-    private final Map acceptorSessions = new HashMap();
+    private final Map<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
 
     /**
      * 
@@ -71,7 +71,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     }
 
     public synchronized Session getSession(SessionID sessionID) {
-        Session s = (Session) acceptorSessions.get(sessionID);
+        Session s = acceptorSessions.get(sessionID);
         if (s == null) {
             try {
                 SessionSettings dynamicSettings = new SessionSettings();

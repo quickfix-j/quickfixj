@@ -196,7 +196,7 @@ class JdbcStore implements MessageStore {
         }
     }
 
-    public void get(int startSequence, int endSequence, Collection messages) throws IOException {
+    public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
         Connection connection = null;
         PreparedStatement query = null;
         ResultSet rs = null;

@@ -26,8 +26,8 @@ import javax.management.openmbean.OpenDataException;
 
 public class CompositeDataFactory {
     private CompositeType compositeType;
-    private ArrayList itemNames = new ArrayList();
-    private ArrayList itemValues = new ArrayList();
+    private ArrayList<String> itemNames = new ArrayList<String>();
+    private ArrayList<Object> itemValues = new ArrayList<Object>();
 
     public CompositeDataFactory(CompositeType compositeType) {
         this.compositeType = compositeType;
@@ -49,7 +49,7 @@ public class CompositeDataFactory {
     }
 
     public CompositeData createCompositeData() throws OpenDataException {
-        return new CompositeDataSupport(compositeType, (String[]) itemNames
+        return new CompositeDataSupport(compositeType, itemNames
                 .toArray(new String[itemNames.size()]), itemValues.toArray());
     }
 

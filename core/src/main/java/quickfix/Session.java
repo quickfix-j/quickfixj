@@ -203,7 +203,7 @@ public class Session {
     public static final String USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
 
     // @GuardedBy(sessions)
-    private static final Map sessions = new HashMap();
+    private static final Map<SessionID, Session> sessions = new HashMap<SessionID, Session>();
 
     private final Application application;
     private final SessionID sessionID;
@@ -464,7 +464,7 @@ public class Session {
      */
     public static Session lookupSession(SessionID sessionID) {
         synchronized (sessions) {
-            return (Session) sessions.get(sessionID);
+            return sessions.get(sessionID);
         }
     }
 

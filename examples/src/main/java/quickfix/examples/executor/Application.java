@@ -19,6 +19,7 @@
 
 package quickfix.examples.executor;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -51,17 +52,16 @@ import quickfix.field.OrderQty;
 import quickfix.field.Price;
 import quickfix.field.Side;
 import quickfix.field.Symbol;
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class Application extends quickfix.MessageCracker implements quickfix.Application {
     private static final String VALID_ORDER_TYPES_KEY = "ValidOrderTypes";
     
-    private HashSet validOrderTypes = new HashSet();
+    private HashSet<String> validOrderTypes = new HashSet<String>();
     private double defaultMarketPrice = 10.00;
     
     public Application(SessionSettings settings) throws ConfigError, FieldConvertError {
         if (settings.isSetting(VALID_ORDER_TYPES_KEY)) {
-            List orderTypes = Arrays.asList(settings.getString(VALID_ORDER_TYPES_KEY).trim().split("\\s*,\\s*"));
+            List<String> orderTypes = Arrays.asList(settings.getString(VALID_ORDER_TYPES_KEY).trim().split("\\s*,\\s*"));
             validOrderTypes.addAll(orderTypes);
         } else {
             validOrderTypes.add(OrdType.LIMIT+"");

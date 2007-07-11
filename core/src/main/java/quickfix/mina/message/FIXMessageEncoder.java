@@ -20,6 +20,7 @@
 package quickfix.mina.message;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,7 +32,6 @@ import org.apache.mina.filter.codec.demux.MessageEncoder;
 import org.quickfixj.CharsetSupport;
 
 import quickfix.Message;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * Encodes a Message object or message string as a byte array to be
@@ -39,11 +39,11 @@ import edu.emory.mathcs.backport.java.util.Collections;
  */
 public class FIXMessageEncoder implements MessageEncoder {
 
-    private static final Set TYPES;
+    private static final Set<Class> TYPES;
     private final String charsetEncoding;
     
     static {
-        Set types = new HashSet();
+        Set<Class> types = new HashSet<Class>();
         types.add(Message.class);
         types.add(String.class);
         TYPES = Collections.unmodifiableSet(types);
@@ -53,7 +53,7 @@ public class FIXMessageEncoder implements MessageEncoder {
         charsetEncoding = CharsetSupport.getCharset();
     }
     
-    public Set getMessageTypes() {
+    public Set<Class> getMessageTypes() {
         return TYPES;
     }
 

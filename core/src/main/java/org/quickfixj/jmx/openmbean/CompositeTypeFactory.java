@@ -26,9 +26,9 @@ import javax.management.openmbean.OpenType;
 public class CompositeTypeFactory {
     private String name;
     private String description;
-    private ArrayList itemNames = new ArrayList();
-    private ArrayList itemDescriptions = new ArrayList();
-    private ArrayList itemTypes = new ArrayList();
+    private ArrayList<String> itemNames = new ArrayList<String>();
+    private ArrayList<String> itemDescriptions = new ArrayList<String>();
+    private ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
 
     public CompositeTypeFactory(String name, String description) {
         this.name = name;
@@ -46,9 +46,9 @@ public class CompositeTypeFactory {
     }
 
     public CompositeType createCompositeType() throws OpenDataException {
-        return new CompositeType(name, description, (String[]) itemNames
-                .toArray(new String[itemNames.size()]), (String[]) itemNames
-                .toArray(new String[itemDescriptions.size()]), (OpenType[]) itemTypes
+        return new CompositeType(name, description, itemNames
+                .toArray(new String[itemNames.size()]), itemNames
+                .toArray(new String[itemDescriptions.size()]), itemTypes
                 .toArray(new OpenType[itemTypes.size()]));
     }
 

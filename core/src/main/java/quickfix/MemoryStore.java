@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @see quickfix.MemoryStoreFactory
  */
 public class MemoryStore implements MessageStore {
-    private HashMap messages = new HashMap();
+    private HashMap<Integer, String> messages = new HashMap<Integer, String>();
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
     private SessionID sessionID;
@@ -47,9 +47,9 @@ public class MemoryStore implements MessageStore {
         this.sessionID = sessionID;
     }
 
-    public void get(int startSequence, int endSequence, Collection messages) throws IOException {
+    public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
         for (int i = startSequence; i <= endSequence; i++) {
-            String message = (String) this.messages.get(new Integer(i));
+            String message = this.messages.get(new Integer(i));
             if (message != null) {
                 messages.add(message);
             }

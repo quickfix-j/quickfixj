@@ -36,16 +36,16 @@ public class OrderTableModel extends AbstractTableModel {
     private final static int AVGPX = 8;
     private final static int TARGET = 9;
 
-    private HashMap rowToOrder;
-    private HashMap idToRow;
-    private HashMap idToOrder;
+    private HashMap<Integer, Order> rowToOrder;
+    private HashMap<String, Integer> idToRow;
+    private HashMap<String, Order> idToOrder;
 
     private String[] headers;
 
     public OrderTableModel() {
-        rowToOrder = new HashMap();
-        idToRow = new HashMap();
-        idToOrder = new HashMap();
+        rowToOrder = new HashMap<Integer, Order>();
+        idToRow = new HashMap<String, Integer>();
+        idToOrder = new HashMap<String, Order>();
 
         headers = new String[]
                   {"Symbol", "Quantity", "Open", "Executed",
@@ -76,7 +76,7 @@ public class OrderTableModel extends AbstractTableModel {
             return;
         }
 
-        Integer row = (Integer)idToRow.get(order.getID());
+        Integer row = idToRow.get(order.getID());
         if(row == null)
             return;
         fireTableRowsUpdated(row.intValue(), row.intValue());
@@ -84,7 +84,7 @@ public class OrderTableModel extends AbstractTableModel {
 
     public void replaceOrder(Order order, String originalID) {
 
-        Integer row = (Integer)idToRow.get(originalID);
+        Integer row = idToRow.get(originalID);
         if(row == null)
             return;
 
@@ -100,18 +100,18 @@ public class OrderTableModel extends AbstractTableModel {
     }
 
     public Order getOrder(String id) {
-        Order order = (Order)idToOrder.get(id);
+        Order order = idToOrder.get(id);
         return order;
     }
 
     public Order getOrder(int row) {
-        return (Order)rowToOrder.get(new Integer(row));
+        return rowToOrder.get(new Integer(row));
     }
 
     public void setValueAt(Object value, int rowIndex,
                            int columnIndex) {}
 
-    public Class getColumnClass(int columnIndex) {
+    public Class<String> getColumnClass(int columnIndex) {
         return String.class;
     }
 
@@ -128,7 +128,7 @@ public class OrderTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Order order = (Order)rowToOrder.get(new Integer(rowIndex));
+        Order order = rowToOrder.get(new Integer(rowIndex));
         switch(columnIndex) {
         case SYMBOL:
             return order.getSymbol();

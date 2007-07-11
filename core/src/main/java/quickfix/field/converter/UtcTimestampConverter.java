@@ -33,10 +33,10 @@ import quickfix.SystemTime;
  * and a time.
  */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
-    private static ThreadLocal utcTimestampConverter = new ThreadLocal();
+    private static ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
-    private static HashMap dateCache = new HashMap();
+    private static HashMap<String, Calendar> dateCache = new HashMap<String, Calendar>();
 
     /**
      * Convert a timestamp (represented as a Date) to a String.
@@ -49,7 +49,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     }
 
     private static DateFormat getFormatter(boolean includeMillis) {
-        UtcTimestampConverter converter = (UtcTimestampConverter) utcTimestampConverter.get();
+        UtcTimestampConverter converter = utcTimestampConverter.get();
         if (converter == null) {
             converter = new UtcTimestampConverter();
             utcTimestampConverter.set(converter);
@@ -83,7 +83,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     }
 
     private static Calendar getCalendarForDay(String value, String dateString) {
-        Calendar c = (Calendar) dateCache.get(dateString);
+        Calendar c = dateCache.get(dateString);
         if (c == null) {
             c = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
             c.setTimeZone(SystemTime.UTC_TIMEZONE);

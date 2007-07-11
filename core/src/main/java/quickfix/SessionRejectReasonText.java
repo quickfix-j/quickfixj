@@ -24,7 +24,7 @@ import java.util.HashMap;
 import quickfix.field.SessionRejectReason;
 
 class SessionRejectReasonText extends SessionRejectReason {
-    private static HashMap rejectReasonText = new HashMap();
+    private static HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
     
     static {
         rejectReasonText.put(new Integer(INVALID_TAG_NUMBER), "Invalid tag number");
@@ -46,7 +46,7 @@ class SessionRejectReasonText extends SessionRejectReason {
     }
 
     public static String getMessage(int sessionRejectReason) {
-        return (String)rejectReasonText.get(new Integer(sessionRejectReason));
+        return rejectReasonText.get(new Integer(sessionRejectReason));
     }
 
 }

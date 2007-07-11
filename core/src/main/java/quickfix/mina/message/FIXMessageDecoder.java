@@ -304,8 +304,8 @@ public class FIXMessageDecoder implements MessageDecoder {
      * @throws ProtocolCodecException
      * @see #extractMessages(File, quickfix.mina.message.FIXMessageDecoder.MessageListener)
      */
-    public List extractMessages(File file) throws IOException, ProtocolCodecException {
-        final List messages = new ArrayList();
+    public List<String> extractMessages(File file) throws IOException, ProtocolCodecException {
+        final List<String> messages = new ArrayList<String>();
         extractMessages(file, new MessageListener() {
 
             public void onMessage(String message) {

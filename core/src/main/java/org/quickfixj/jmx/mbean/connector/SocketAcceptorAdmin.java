@@ -84,7 +84,7 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
     }
 
     public TabularData getAcceptorAddresses() throws IOException {
-        List rows = new ArrayList();
+        List<SessionAcceptorAddressRow> rows = new ArrayList<SessionAcceptorAddressRow>();
         Iterator entries = acceptor.getAcceptorAddresses().entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry entry = (Map.Entry) entries.next();

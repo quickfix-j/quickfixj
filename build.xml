@@ -17,6 +17,10 @@
 	<target name="jar" description="Create module jar files">
 		<iterate target="jar"/>
 	</target>
+	
+	<target name="jar-1.4" description="Create module jar files fo Java 1.4">
+		<iterate target="jar-1.4"/>
+	</target>
 
 	<target name="clean" description="Clean files">
 		<iterate target="clean"/>
@@ -35,7 +39,7 @@
 			<include name="*.jar"/>
 		</fileset>
 	</path>
-
+	
 	<path id="optional.lib.classpath">
 		<fileset dir="${optional.lib.dir}">
 			<include name="**/*.jar" />

@@ -92,7 +92,7 @@ public class TabularDataAdapter {
                 if (descriptor.getReadMethod() != null && !"class".equals(descriptor.getName())) {
                     rowDataFactory.clear();
                     rowDataFactory.setValue(keyLabel, descriptor.getName());
-                    Object value = descriptor.getReadMethod().invoke(bean, null);
+                    Object value = descriptor.getReadMethod().invoke(bean, (Object[])null);
                     if (value == null) {
                         value = "(null)";
                     }
@@ -115,7 +115,7 @@ public class TabularDataAdapter {
         TabularData table = null;
         try {
             CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
-            List indexNames = new ArrayList();
+            List<String> indexNames = new ArrayList<String>();
             indexNames.add(keyProperty);
             rowTypeFactory.defineItem(formatHeader(keyProperty), SimpleType.STRING);
             for (int i = 0; i < beans.size(); i++) {
@@ -147,7 +147,7 @@ public class TabularDataAdapter {
                     String propertyName = descriptor.getName();
                     String headerName = formatHeader(propertyName);
                     if (descriptor.getReadMethod() != null && !"class".equals(propertyName)) {
-                        Object value = descriptor.getReadMethod().invoke(bean, null);
+                        Object value = descriptor.getReadMethod().invoke(bean, (Object[])null);
                         if (value == null) {
                             value = "(null)";
                         }
@@ -166,10 +166,10 @@ public class TabularDataAdapter {
         return table;
     }
 
-    private String[] createTableHeaders(List indexNames) {
+    private String[] createTableHeaders(List<String> indexNames) {
         String[] headers = new String[indexNames.size()];
         for (int i = 0; i < indexNames.size(); i++) {
-            String name = (String) indexNames.get(i);
+            String name = indexNames.get(i);
             headers[i] = formatHeader(name);
         }
         return headers;
