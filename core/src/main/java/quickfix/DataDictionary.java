@@ -72,33 +72,33 @@ public class DataDictionary {
 
     private String beginString;
 
-    private Map messageFields = new HashMap();
+    private Map<String,Set<Integer>> messageFields = new HashMap<String,Set<Integer>>();
 
-    private Map requiredFields = new HashMap();
+    private Map<String,Set<Integer>> requiredFields = new HashMap<String,Set<Integer>>();
 
-    private Set messages = new HashSet();
+    private Set<String> messages = new HashSet<String>();
 
-    private Map messageTypeForName = new HashMap();
+    private Map<String,String> messageTypeForName = new HashMap<String,String>();
     
-    private LinkedHashSet fields = new LinkedHashSet();
+    private LinkedHashSet<Integer> fields = new LinkedHashSet<Integer>();
 
-    private Map headerFields = new HashMap();
+    private Map<Integer,Boolean> headerFields = new HashMap<Integer,Boolean>();
 
-    private Map trailerFields = new HashMap();
+    private Map<Integer,Boolean> trailerFields = new HashMap<Integer,Boolean>();
 
-    private Map fieldTypes = new HashMap();
+    private Map<Integer,FieldType> fieldTypes = new HashMap<Integer,FieldType>();
 
-    private Map fieldValues = new HashMap();
+    private Map<Integer,Set<String>> fieldValues = new HashMap<Integer,Set<String>>();
 
-    private Map fieldNames = new HashMap();
+    private Map<Integer,String> fieldNames = new HashMap<Integer,String>();
 
-    private Map names = new HashMap();
+    private Map<String,Integer> names = new HashMap<String,Integer>();
 
-    private Map valueNames = new HashMap();
+    private Map<IntStringPair,String> valueNames = new HashMap<IntStringPair,String>();
 
-    private Map groups = new HashMap();
+    private Map<IntStringPair,GroupInfo> groups = new HashMap<IntStringPair,GroupInfo>();
 
-    private Map components = new HashMap();
+    private Map<String,Node> components = new HashMap<String,Node>();
 
     private DataDictionary() {
     }
@@ -151,14 +151,14 @@ public class DataDictionary {
     }
 
     private void addField(int field) {
-        fields.add(new Integer(field));
+        fields.add(field);
     }
 
     private void addFieldName(int field, String name) throws ConfigError {
-        if (names.put(name, new Integer(field)) != null) {
+        if (names.put(name, field) != null) {
             throw new ConfigError("Field named " + name + " defined multiple times");
         }
-        fieldNames.put(new Integer(field), name);
+        fieldNames.put(field, name);
     }
 
     /**
@@ -240,12 +240,12 @@ public class DataDictionary {
     }
 
     private void addMsgField(String msgType, int field) {
-        Set fields = (Set) messageFields.get(msgType);
+        Set<Integer> fields = messageFields.get(msgType);
         if (fields == null) {
-            fields = new HashSet();
+            fields = new HashSet<Integer>();
             messageFields.put(msgType, fields);
         }
-        fields.add(new Integer(field));
+        fields.add(field);
     }
 
     /**
@@ -263,7 +263,7 @@ public class DataDictionary {
     }
 
     private void addHeaderField(int field, boolean required) {
-        headerFields.put(new Integer(field), required ? Boolean.TRUE : Boolean.FALSE);
+        headerFields.put(field, required);
     }
 
     /**
@@ -290,11 +290,11 @@ public class DataDictionary {
      * @return true if field is a trailer field, false otherwise.
      */
     public boolean isTrailerField(int field) {
-        return trailerFields.containsKey(new Integer(field));
+        return trailerFields.containsKey(field);
     }
 
     private void addFieldType(int field, FieldType fieldType) {
-        fieldTypes.put(new Integer(field), fieldType);
+        fieldTypes.put(field, fieldType);
     }
 
     /**
@@ -322,12 +322,12 @@ public class DataDictionary {
     }
 
     private void addRequiredField(String msgType, int field) {
-        Set fields = (Set) requiredFields.get(msgType);
+        Set<Integer> fields = requiredFields.get(msgType);
         if (fields == null) {
-            fields = new HashSet();
+            fields = new HashSet<Integer>();
             requiredFields.put(msgType, fields);
         }
-        fields.add(new Integer(field));
+        fields.add(field);
     }
 
     /**
@@ -367,11 +367,10 @@ public class DataDictionary {
     }
 
     private void addFieldValue(int field, String value) {
-        Integer key = new Integer(field);
-        Set values = (Set) fieldValues.get(key);
+        Set<String> values = fieldValues.get(field);
         if (values == null) {
-            values = new HashSet();
-            fieldValues.put(key, values);
+            values = new HashSet<String>();
+            fieldValues.put(field, values);
         }
         values.add(value);
     }
@@ -384,7 +383,7 @@ public class DataDictionary {
      * @return true if field is enumerated, false otherwise
      */
     public boolean hasFieldValue(int field) {
-        Set values = (Set) fieldValues.get(new Integer(field));
+        Set values = (Set) fieldValues.get(field);
         return values != null && values.size() > 0;
     }
 
@@ -516,7 +515,8 @@ public class DataDictionary {
         copyMap(components, rhs.components);
     }
 
-    private void copyMap(Map lhs, Map rhs) {
+    @SuppressWarnings("unchecked")
+    private void  copyMap(Map lhs, Map rhs) {
         lhs.clear();
         Iterator entries = rhs.entrySet().iterator();
         while (entries.hasNext()) {
@@ -538,6 +538,7 @@ public class DataDictionary {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void copyCollection(Collection lhs, Collection rhs) {
         lhs.clear();
         lhs.addAll(rhs);

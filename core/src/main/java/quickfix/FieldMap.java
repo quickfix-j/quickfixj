@@ -51,13 +51,13 @@ public abstract class FieldMap implements Serializable {
 
     private final int[] fieldOrder;
 
-    private final TreeMap fields;
+    private final TreeMap<Integer,Field> fields;
 
-    private final TreeMap groups = new TreeMap();
+    private final TreeMap<Integer,List<Group>> groups = new TreeMap<Integer,List<Group>>();
 
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        fields = new TreeMap(fieldOrder != null ? new FieldOrderComparator() : null);
+        fields = new TreeMap<Integer,Field>(fieldOrder != null ? new FieldOrderComparator() : null);
     }
 
     protected FieldMap() {
@@ -77,12 +77,10 @@ public abstract class FieldMap implements Serializable {
         return fields.size() == 0;
     }
 
-    private class FieldOrderComparator implements Comparator, Serializable {
+    private class FieldOrderComparator implements Comparator<Integer>, Serializable {
         static final long serialVersionUID = 3416006398018829270L;
 
-        public int compare(Object o1, Object o2) {
-            Integer tag1 = (Integer) o1;
-            Integer tag2 = (Integer) o2;
+        public int compare(Integer tag1, Integer tag2) {
             int index1 = indexOf(tag1.intValue(), getFieldOrder());
             int index2 = indexOf(tag2.intValue(), getFieldOrder());
 
@@ -137,7 +135,7 @@ public abstract class FieldMap implements Serializable {
         groups.putAll(fieldMap.groups);
     }
 
-    protected void setGroups(int key, List groupList) {
+    protected void setGroups(int key, List<Group> groupList) {
         groups.put(new Integer(key), groupList);
     }
 
@@ -293,16 +291,15 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
-    protected void setField(int key, Object field) {
-        fields.put(new Integer(key), field);
+    protected void setField(int key, Field field) {
+        fields.put(key, field);
     }
 
     public void setField(StringField field) {
         if (field.getValue() == null) {
             throw new NullPointerException("Null field values are not allowed.");
         }
-        Integer key = new Integer(field.getField());
-        fields.put(key, field);
+        fields.put(field.getField(), field);
     }
 
     public void setField(BooleanField field) {
@@ -466,11 +463,11 @@ public abstract class FieldMap implements Serializable {
     protected void initializeFrom(FieldMap source) {
         fields.clear();
         fields.putAll(source.fields);
-        Iterator groupItr = source.groups.entrySet().iterator();
+        Iterator<Map.Entry<Integer,List<Group>>> groupItr = source.groups.entrySet().iterator();
         while (groupItr.hasNext()) {
-            Map.Entry entry = (Map.Entry) groupItr.next();
-            ArrayList clonedMembers = new ArrayList();
-            List groupMembers = ((List) entry.getValue());
+            Map.Entry<Integer,List<Group>> entry = groupItr.next();
+            List<Group> clonedMembers = new ArrayList<Group>();
+            List<Group> groupMembers = entry.getValue();
             for (int i = 0; i < groupMembers.size(); i++) {
                 Group originalGroup = (Group) groupMembers.get(i);
                 Group clonedGroup = new Group(originalGroup.getFieldTag(), originalGroup.delim(),
@@ -623,7 +620,7 @@ public abstract class FieldMap implements Serializable {
 
     public void addGroup(Group group) {
         int countTag = group.getFieldTag();
-        List currentGroups = getGroups(countTag);
+        List<Group> currentGroups = getGroups(countTag);
         currentGroups.add(new Group(group));
         setGroupCount(countTag, currentGroups.size());
     }
@@ -644,11 +641,12 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
-    /* package */List getGroups(int field) {
-        List groupList = (List) groups.get(new Integer(field));
+    /* package */ 
+    List<Group> getGroups(int field) {
+        List<Group> groupList = groups.get(field);
         if (groupList == null) {
-            groupList = new ArrayList();
-            groups.put(new Integer(field), groupList);
+            groupList = new ArrayList<Group>();
+            groups.put(field, groupList);
         }
         return groupList;
     }
@@ -666,7 +664,7 @@ public abstract class FieldMap implements Serializable {
     public void replaceGroup( int num, Group group )
     { 
         final int offset = num - 1;
-        List groupList = getGroups(group.getFieldTag());
+        List<Group> groupList = getGroups(group.getFieldTag());
         if (offset < 0 || offset >= groupList.size()) {
             return;
         }

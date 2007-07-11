@@ -57,11 +57,11 @@ public class ApiCompatibilityTest {
     }
 
     private static class ApiTest implements Test {
-        private final Class jniClass;
+        private final Class<?> jniClass;
         private final IgnoredItems ignoredItems;
-        private Class javaClass;
+        private Class<?> javaClass;
 
-        public ApiTest(Class jniClass, IgnoredItems ignoredItems) {
+        public ApiTest(Class<?> jniClass, IgnoredItems ignoredItems) {
             this.jniClass = jniClass;
             this.ignoredItems = ignoredItems;
         }
@@ -215,7 +215,7 @@ public class ApiCompatibilityTest {
                 method = jniClass.getMethod(methodName, parameterTypes);
             } else {
                 // Search for a protected method
-                Class clazz = jniClass;
+                Class<?> clazz = jniClass;
                 while (clazz != null) {
                     try {
                         method = clazz.getDeclaredMethod(methodName, parameterTypes);
@@ -234,13 +234,13 @@ public class ApiCompatibilityTest {
         private Method findCompatibleJavaMethod(Method jniMethod) throws NoSuchMethodException {
             Method method = null;
             final String methodName = jniMethod.getName();
-            final Class[] parameterTypes = translateClassArray(jniMethod.getParameterTypes(),
+            final Class<?>[] parameterTypes = translateClassArray(jniMethod.getParameterTypes(),
                     javaClass.getClassLoader());
             if ((jniMethod.getModifiers() & Modifier.PUBLIC) != 0) {
                 method = javaClass.getMethod(methodName, parameterTypes);
             } else {
                 // Search for a protected method
-                Class clazz = javaClass;
+                Class<?> clazz = javaClass;
                 while (clazz != null) {
                     try {
                         method = clazz.getDeclaredMethod(methodName, parameterTypes);
@@ -400,9 +400,9 @@ public class ApiCompatibilityTest {
 
         private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)
                 throws ClassNotFoundException, NoSuchMethodException {
-            Class c = jniClassLoader.loadClass(classname);
+            Class<?> c = jniClassLoader.loadClass(classname);
             if (args != null) {
-                Class[] jniClasses = new Class[args.length];
+                Class<?>[] jniClasses = new Class<?>[args.length];
                 for (int i = 0; i < args.length; i++) {
                     Package pkg = args[i].getPackage();
                     if (pkg != null && pkg.getName().startsWith("quickfix")) {

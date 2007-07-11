@@ -42,9 +42,9 @@ public class JmxExporter {
 
     private MBeanServer createMBeanServer() throws JMException {
         try {
-            Class factoryClass = Class.forName("java.lang.management.ManagementFactory");
+            Class<?> factoryClass = Class.forName("java.lang.management.ManagementFactory");
             try {
-                return (MBeanServer) factoryClass.getMethod("getPlatformMBeanServer", (Class[])null).invoke(
+                return (MBeanServer) factoryClass.getMethod("getPlatformMBeanServer").invoke(
                         factoryClass, (Object[])null);
             } catch (Exception e) {
                 JMException jme = new JMException(e.getMessage());

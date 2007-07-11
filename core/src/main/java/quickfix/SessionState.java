@@ -91,7 +91,7 @@ public final class SessionState {
         }
     }
 
-    private long getHeartBeatMillis() {
+    long getHeartBeatMillis() {
         synchronized (lock) {
             return heartBeatMillis;
         }

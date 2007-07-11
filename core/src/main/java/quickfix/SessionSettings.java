@@ -595,7 +595,7 @@ public class SessionSettings {
      *
      * @param defaults
      */
-    public void set(Map defaults) {
+    public void set(Map<Object,Object> defaults) {
         getOrCreateSessionProperties(DEFAULT_SESSION_ID).putAll(defaults);
     }
 

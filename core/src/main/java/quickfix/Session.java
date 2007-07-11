@@ -291,9 +291,7 @@ public class Session {
             LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
 
-        synchronized (this) {
-            enabled = true;
-        }
+        setEnabled(true);
 
         getLog().onEvent("Created session: " + sessionID);
     }
@@ -471,9 +469,13 @@ public class Session {
     /**
      * This method can be used to manually logon to a FIX session.
      */
-    public synchronized void logon() {
+    public void logon() {
         state.clearLogoutReason();
-        enabled = true;
+        setEnabled(true);
+    }
+
+    private synchronized void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     private void initializeHeader(Message.Header header) {
@@ -494,7 +496,7 @@ public class Session {
     /**
      * This method can be used to manually logout of a FIX session.
      */
-    public synchronized void logout() {
+    public void logout() {
         enabled = false;
     }
 
@@ -502,7 +504,7 @@ public class Session {
      * This method can be used to manually logout of a FIX session.
      * @param reason this will be included in the logout message
      */
-    public synchronized void logout(String reason) {
+    public void logout(String reason) {
         state.setLogoutReason(reason);
         logout();
     }
@@ -523,7 +525,7 @@ public class Session {
      *
      * @return true if logon message was sent, false otherwise.
      */
-    public synchronized boolean sentLogon() {
+    public boolean sentLogon() {
         return state.isLogonSent();
     }
 
@@ -534,7 +536,7 @@ public class Session {
      *
      * @return true if logon message was received, false otherwise.
      */
-    public synchronized boolean receivedLogon() {
+    public boolean receivedLogon() {
         return state.isLogonReceived();
     }
 
@@ -545,7 +547,7 @@ public class Session {
      *
      * @return true if logout message was sent, false otherwise.
      */
-    public synchronized boolean sentLogout() {
+    public boolean sentLogout() {
         return state.isLogoutSent();
     }
 
@@ -555,7 +557,7 @@ public class Session {
      *  
      * @return true if logout message has been received, false otherwise.
      */
-    public synchronized boolean receivedLogout() {
+    public boolean receivedLogout() {
         return state.isLogoutReceived();
     }
 
@@ -564,7 +566,7 @@ public class Session {
      * 
      * @return true if logged on, false otherwise.
      */
-    public synchronized boolean isLoggedOn() {
+    public boolean isLoggedOn() {
         return sentLogon() && receivedLogon();
     }
 
@@ -581,7 +583,7 @@ public class Session {
      * @see #disconnect()
      * @see SessionState#reset()
      */
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         if (hasResponder()) {
             generateLogout();
             disconnect();
@@ -596,7 +598,7 @@ public class Session {
      * @param num next outgoing sequence number
      * @throws IOException IO error
      */
-    public synchronized void setNextSenderMsgSeqNum(int num) throws IOException {
+    public void setNextSenderMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextSenderMsgSeqNum(num);
     }
 
@@ -607,7 +609,7 @@ public class Session {
      * @param num next expected target sequence number
      * @throws IOException IO error
      */
-    public synchronized void setNextTargetMsgSeqNum(int num) throws IOException {
+    public void setNextTargetMsgSeqNum(int num) throws IOException {
         state.getMessageStore().setNextTargetMsgSeqNum(num);
     }
 
@@ -617,7 +619,7 @@ public class Session {
      *
      * @return next expected sender sequence number
      */
-    public synchronized int getExpectedSenderNum() {
+    public int getExpectedSenderNum() {
         try {
             return state.getMessageStore().getNextSenderMsgSeqNum();
         } catch (IOException e) {
@@ -632,7 +634,7 @@ public class Session {
      *
      * @return next expected target sequence number
      */
-    public synchronized int getExpectedTargetNum() {
+    public int getExpectedTargetNum() {
         try {
             return state.getMessageStore().getNextTargetMsgSeqNum();
         } catch (IOException e) {
@@ -796,7 +798,7 @@ public class Session {
             return;
         }
 
-        ArrayList messages = new ArrayList();
+        ArrayList<String> messages = new ArrayList<String>();
         state.get(beginSeqNo, endSeqNo, messages);
 
         int msgSeqNum = 0;
@@ -1308,6 +1310,8 @@ public class Session {
             return;
         }
 
+        getLog().onEvent("@@@@@ "+sessionID+" "+" "+state.getHeartBeatMillis()+" "+
+                (SystemTime.currentTimeMillis() - state.getLastReceivedTime()));
         if (state.isTimedOut()) {
             getLog().onEvent("Timed out waiting for heartbeat");
             disconnect();
@@ -1742,7 +1746,7 @@ public class Session {
      * Sets the timeout for waiting for a logon response.
      * @param seconds the timeout in seconds
      */
-    public synchronized void setLogonTimeout(int seconds) {
+    public void setLogonTimeout(int seconds) {
         state.setLogonTimeout(seconds);
     }
 
@@ -1750,7 +1754,7 @@ public class Session {
      * Sets the timeout for waiting for a logout response.
      * @param seconds the timeout in seconds
      */
-    public synchronized void setLogoutTimeout(int seconds) {
+    public void setLogoutTimeout(int seconds) {
         state.setLogoutTimeout(seconds);
     }
 
@@ -1759,7 +1763,7 @@ public class Session {
      * 
      * @param heartbeatInterval
      */
-    public synchronized void setHeartBeatInterval(int heartbeatInterval) {
+    public void setHeartBeatInterval(int heartbeatInterval) {
         state.setHeartBeatInterval(heartbeatInterval);
     }
 
@@ -1767,11 +1771,11 @@ public class Session {
         return checkCompID;
     }
 
-    public synchronized int getLogonTimeout() {
+    public int getLogonTimeout() {
         return state.getLogonTimeout();
     }
 
-    public synchronized int getLogoutTimeout() {
+    public int getLogoutTimeout() {
         return state.getLogoutTimeout();
     }
 
@@ -1791,43 +1795,43 @@ public class Session {
         return resetOnLogout;
     }
 
-    public synchronized boolean isLogonAlreadySent() {
+    public boolean isLogonAlreadySent() {
         return state.isLogonAlreadySent();
     }
 
-    public synchronized boolean isLogonReceived() {
+    public boolean isLogonReceived() {
         return state.isLogonReceived();
     }
 
-    public synchronized boolean isLogonSendNeeded() {
+    public boolean isLogonSendNeeded() {
         return state.isLogonSendNeeded();
     }
 
-    public synchronized boolean isLogonSent() {
+    public boolean isLogonSent() {
         return state.isLogonSent();
     }
 
-    public synchronized boolean isLogonTimedOut() {
+    public boolean isLogonTimedOut() {
         return state.isLogonTimedOut();
     }
 
-    public synchronized boolean isLogoutReceived() {
+    public boolean isLogoutReceived() {
         return state.isLogoutReceived();
     }
 
-    public synchronized boolean isLogoutSent() {
+    public boolean isLogoutSent() {
         return state.isLogoutSent();
     }
 
-    public synchronized boolean isLogoutTimedOut() {
+    public boolean isLogoutTimedOut() {
         return state.isLogoutTimedOut();
     }
 
-    public synchronized boolean isUsingDataDictionary() {
+    public boolean isUsingDataDictionary() {
         return dataDictionary != null;
     }
 
-    public synchronized Date getStartTime() throws IOException {
+    public Date getStartTime() throws IOException {
         return state.getCreationTime();
     }
 

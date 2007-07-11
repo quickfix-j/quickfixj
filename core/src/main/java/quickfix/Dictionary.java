@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,20 +28,20 @@ import java.util.Map;
  */
 public class Dictionary {
     private String name;
-    private HashMap data = new HashMap();
+    private HashMap<Object,Object> data = new HashMap<Object,Object>();
 
     public Dictionary() {
     }
 
     public Dictionary(String name) {
-        this(name, Collections.EMPTY_MAP);
+        this(name, new HashMap<Object,Object>());
     }
 
     public Dictionary(Dictionary dictionary) {
         this(dictionary.name, dictionary.data);
     }
 
-    public Dictionary(String name, Map data) {
+    public Dictionary(String name, Map<Object,Object> data) {
         this.name = name;
         this.data.putAll(data);
     }
@@ -146,7 +145,7 @@ public class Dictionary {
         data.putAll(toMerge.data);
     }
 
-    public Map toMap() {
+    public Map<Object,Object> toMap() {
         return data;
     }
 }

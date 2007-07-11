@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class DefaultSessionFactory implements SessionFactory {
 
-    private static Map dictionaryCache = new Hashtable(); // synchronized
+    private static Map<String,DataDictionary> dictionaryCache = new Hashtable<String,DataDictionary>(); // synchronized
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
     private final LogFactory logFactory;

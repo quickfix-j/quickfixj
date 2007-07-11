@@ -222,18 +222,18 @@ public class SerializationTest extends TestCase {
     }
 
     // Default values creation
-    private Message createMessageWithDefaultValues(Class cl, int maxGroupElts) throws InstantiationException, IllegalAccessException {
+    private Message createMessageWithDefaultValues(Class<?> cl, int maxGroupElts) throws InstantiationException, IllegalAccessException {
         // Setting Fields
         Message res = (Message) createFieldMapWithDefaultValues(cl);
 
         // Setting Groups
         final String ADD_GROUP = "addGroup";
-        Class[] classes = cl.getDeclaredClasses();
+        Class<?>[] classes = cl.getDeclaredClasses();
         for (int k = 0; k < classes.length; k++) {
             if (classes[k].getSuperclass().getName().equals("quickfix.Group")) {
                 for (int l = 0; l < maxGroupElts; l++) {
                     Group g = createGroupWithDefaultValues(classes[k]);
-                    Class[] signature = new Class[1];
+                    Class<?>[] signature = new Class<?>[1];
                     signature[0] = g.getClass().getSuperclass();
                     try {
                         Method addGroup = cl.getMethod(ADD_GROUP, signature);
@@ -262,7 +262,7 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private FieldMap createFieldMapWithDefaultValues(Class cl) throws InstantiationException, IllegalAccessException {
+    private FieldMap createFieldMapWithDefaultValues(Class<?> cl) throws InstantiationException, IllegalAccessException {
         FieldMap res = (FieldMap) cl.newInstance();
 
         final String SET_METHOD = "set";
@@ -271,7 +271,7 @@ public class SerializationTest extends TestCase {
         for (int k = 0; k < methods.length; k++) {
             if (methods[k].getName().equals(GET_METHOD)) {
                 Object f = objectFromClassName(methods[k].getReturnType().getName());
-                Class[] signature = new Class[1];
+                Class<?>[] signature = new Class<?>[1];
                 signature[0] = f.getClass();
                 try {
                     Method setter = cl.getMethod(SET_METHOD, signature);
