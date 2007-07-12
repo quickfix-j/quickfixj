@@ -37,6 +37,7 @@ import quickfix.Message;
  * Encodes a Message object or message string as a byte array to be
  * transmitted on MINA connection.
  */
+@SuppressWarnings("unchecked")
 public class FIXMessageEncoder implements MessageEncoder {
 
     private static final Set<Class> TYPES;

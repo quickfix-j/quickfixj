@@ -446,7 +446,7 @@ public class Session {
         }
     }
 
-    static void unregisterSessions(List sessionIds) {
+    static void unregisterSessions(List<SessionID> sessionIds) {
         synchronized (sessions) {
             for (int i = 0; i < sessionIds.size(); i++) {
                 sessions.remove((SessionID) sessionIds.get(i));
@@ -1310,8 +1310,6 @@ public class Session {
             return;
         }
 
-        getLog().onEvent("@@@@@ "+sessionID+" "+" "+state.getHeartBeatMillis()+" "+
-                (SystemTime.currentTimeMillis() - state.getLastReceivedTime()));
         if (state.isTimedOut()) {
             getLog().onEvent("Timed out waiting for heartbeat");
             disconnect();

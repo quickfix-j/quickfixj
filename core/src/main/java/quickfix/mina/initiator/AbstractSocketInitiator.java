@@ -82,9 +82,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected void initiateSessions(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
-            Iterator sessionItr = getSessionMap().values().iterator();
+            Iterator<Session> sessionItr = getSessionMap().values().iterator();
             while (sessionItr.hasNext()) {
-                Session quickfixSession = (Session) sessionItr.next();
+                Session quickfixSession = sessionItr.next();
                 SessionID sessionID = quickfixSession.getSessionID();
                 int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
                 
@@ -125,8 +125,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         }
 
         Map<SessionID, Session> initiatorSessions = new HashMap<SessionID, Session>();
-        for (Iterator i = settings.sectionIterator(); i.hasNext();) {
-            SessionID sessionID = (SessionID) i.next();
+        for (Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
+            SessionID sessionID = i.next();
             if (isInitiatorSession(sessionID)) {
                 try {
                     Session quickfixSession = createSession(sessionID);

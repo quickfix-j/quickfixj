@@ -456,7 +456,7 @@ public abstract class FieldMap implements Serializable {
         fields.remove(new Integer(field));
     }
 
-    public Iterator iterator() {
+    public Iterator<Field> iterator() {
         return fields.values().iterator();
     }
 
@@ -494,7 +494,7 @@ public abstract class FieldMap implements Serializable {
             }
         }
 
-        for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
+        for (Iterator<Field> iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
             int tag = field.getField();
             if (!isOrderedField(tag, preFields) && !isOrderedField(tag, postFields)
@@ -502,7 +502,7 @@ public abstract class FieldMap implements Serializable {
                 field.toString(buffer);
                 buffer.append('\001');
             } else if (isGroupField(tag) && isOrderedField(tag, fieldOrder) && getGroupCount(tag) > 0) {
-                List groups = getGroups(tag);
+                List<Group> groups = getGroups(tag);
                 field.toString(buffer);
                 buffer.append('\001');
                 for (int i = 0; i < groups.size(); i++) {
@@ -512,11 +512,11 @@ public abstract class FieldMap implements Serializable {
             }
         }
 
-        for (Iterator iter = groups.entrySet().iterator(); iter.hasNext();) {
-            Map.Entry entry = (Map.Entry) iter.next();
+        for (Iterator<Map.Entry<Integer,List<Group>>> iter = groups.entrySet().iterator(); iter.hasNext();) {
+            Map.Entry<Integer,List<Group>> entry = iter.next();
             Integer groupCountTag = (Integer) entry.getKey();
             if (!isOrderedField(groupCountTag.intValue(), fieldOrder)) {
-                List groups = (List) entry.getValue();
+                List<Group> groups = entry.getValue();
                 IntField countField = new IntField(groupCountTag.intValue(), groups.size());
                 countField.toString(buffer);
                 buffer.append('\001');
@@ -550,8 +550,8 @@ public abstract class FieldMap implements Serializable {
     int calculateLength() {
         int result = 0;
         int length = 0;
-        for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
-            Field field = (Field) iter.next();
+        for (Iterator<Field> iter = fields.values().iterator(); iter.hasNext();) {
+            Field field = iter.next();
             if (field.getField() == BeginString.FIELD || field.getField() == BodyLength.FIELD
                     || field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
                 continue;
@@ -560,10 +560,10 @@ public abstract class FieldMap implements Serializable {
             result += length;
         }
 
-        Iterator iterator = groups.entrySet().iterator();
+        Iterator<Map.Entry<Integer, List<Group>>> iterator = groups.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            List groupList = (List) entry.getValue();
+            Map.Entry<Integer, List<Group>> entry = iterator.next();
+            List<Group> groupList = entry.getValue();
             IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
             groupField.setValue(groupList.size());
             length = groupField.getLength();
@@ -582,7 +582,7 @@ public abstract class FieldMap implements Serializable {
     int calculateTotal() {
 
         int result = 0;
-        for (Iterator iter = fields.values().iterator(); iter.hasNext();) {
+        for (Iterator<Field> iter = fields.values().iterator(); iter.hasNext();) {
             Field field = (Field) iter.next();
             if (field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
                 continue;
@@ -590,10 +590,10 @@ public abstract class FieldMap implements Serializable {
             result += field.getTotal();
         }
 
-        Iterator iterator = groups.entrySet().iterator();
+        Iterator<Map.Entry<Integer, List<Group>>> iterator = groups.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            List groupList = (List) entry.getValue();
+            Map.Entry<Integer, List<Group>> entry = iterator.next();
+            List<Group> groupList = entry.getValue();
             IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
             groupField.setValue(groupList.size());
             result += groupField.getTotal();
@@ -610,11 +610,11 @@ public abstract class FieldMap implements Serializable {
         return getGroups(tag).size();
     }
 
-    public Iterator groupKeyIterator() {
+    public Iterator<Integer> groupKeyIterator() {
         return groups.keySet().iterator();
     }
 
-    Map getGroups() {
+    Map<Integer,List<Group>> getGroups() {
         return groups;
     }
 
@@ -652,7 +652,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public Group getGroup(int num, Group group) throws FieldNotFound {
-        List groupList = getGroups(group.getFieldTag());
+        List<Group> groupList = getGroups(group.getFieldTag());
         if (num > groupList.size()) {
             throw new FieldNotFound(group.getFieldTag() + ", index=" + num);
         }
@@ -677,7 +677,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void removeGroup(int num, int field) {
-        List groupList = getGroups(field);
+        List<Group> groupList = getGroups(field);
         if (num <= groupList.size()) {
             groupList.remove(num - 1);
         }

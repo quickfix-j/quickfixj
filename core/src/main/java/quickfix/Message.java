@@ -256,7 +256,7 @@ public class Message extends FieldMap {
         Document document = message.getOwnerDocument();
         Element fields = document.createElement(section);
         message.appendChild(fields);
-        Iterator fieldItr = fieldMap.iterator();
+        Iterator<Field> fieldItr = fieldMap.iterator();
         while (fieldItr.hasNext()) {
             StringField field = (StringField) fieldItr.next();
             Element fieldElement = document.createElement("field");
@@ -275,7 +275,7 @@ public class Message extends FieldMap {
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
         }
-        Iterator groupKeyItr = fieldMap.groupKeyIterator();
+        Iterator<Integer> groupKeyItr = fieldMap.groupKeyIterator();
         while (groupKeyItr.hasNext()) {
             int groupKey = ((Integer) groupKeyItr.next()).intValue();
             Element groupsElement = document.createElement("groups");
@@ -287,8 +287,8 @@ public class Message extends FieldMap {
                 }
             }
             groupsElement.setAttribute("tag", Integer.toString(groupKey));
-            List groups = fieldMap.getGroups(groupKey);
-            Iterator groupItr = groups.iterator();
+            List<Group> groups = fieldMap.getGroups(groupKey);
+            Iterator<Group> groupItr = groups.iterator();
             while (groupItr.hasNext()) {
                 Group group = (Group) groupItr.next();
                 toXMLFields(groupsElement, "group", group, dataDictionary);

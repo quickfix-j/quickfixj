@@ -70,5 +70,5 @@ public interface Connector {
      * Returns the sessions managed by this acceptor.
      * @return the sessions associated with this acceptor
      */
-    ArrayList getSessions();
+    ArrayList<SessionID> getSessions();
 }

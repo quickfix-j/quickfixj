@@ -51,7 +51,7 @@ public class IoSessionInitiator {
     private final ScheduledExecutorService executor;
     private final ConnectTask reconnectTask;
 
-    private Future reconnectFuture;
+    private Future<?> reconnectFuture;
 
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
                               long reconnectIntervalInSeconds, ScheduledExecutorService executor,

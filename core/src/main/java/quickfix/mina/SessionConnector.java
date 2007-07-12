@@ -58,7 +58,7 @@ public abstract class SessionConnector {
     private final SessionFactory sessionFactory;
     private final static ScheduledExecutorService scheduledExecutorService = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
-    private ScheduledFuture sessionTimerFuture;
+    private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
     
     public SessionConnector(SessionSettings settings, SessionFactory sessionFactory)
@@ -121,10 +121,9 @@ public abstract class SessionConnector {
     }
 
     public boolean isLoggedOn() {
-        Iterator sessionItr = sessions.values().iterator();
+        Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
         while (sessionItr.hasNext()) {
-            quickfix.Session s = (quickfix.Session) sessionItr.next();
-            if (s.isLoggedOn()) {
+            if (sessionItr.next().isLoggedOn()) {
                 return true;
             }
         }
@@ -137,9 +136,9 @@ public abstract class SessionConnector {
             log.error("Attempt to logout all sessions before intialization is complete.");
             return;
         }
-        Iterator sessionItr = sessions.values().iterator();
+        Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
         while (sessionItr.hasNext()) {
-            quickfix.Session session = (quickfix.Session) sessionItr.next();
+            quickfix.Session session = sessionItr.next();
             try {
                 session.logout();
             } catch (Throwable e) {
@@ -214,9 +213,9 @@ public abstract class SessionConnector {
     private class SessionTimerTask implements Runnable {
         public void run() {
             try {
-                Iterator sessionItr = sessions.values().iterator();
+                Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
                 while (sessionItr.hasNext()) {
-                    quickfix.Session session = (quickfix.Session) sessionItr.next();
+                    quickfix.Session session = sessionItr.next();
                     try {
                         if (session.hasResponder()) {
                             session.next();

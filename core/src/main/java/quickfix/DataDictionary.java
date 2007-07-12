@@ -169,7 +169,7 @@ public class DataDictionary {
      * @return the field name
      */
     public String getFieldName(int field) {
-        return (String) fieldNames.get(new Integer(field));
+        return (String) fieldNames.get(field);
     }
 
     private void addValueName(int field, String value, String name) {
@@ -197,7 +197,7 @@ public class DataDictionary {
      * @return true if the field is defined, false otherwise
      */
     public boolean isField(int field) {
-        return fields.contains(new Integer(field));
+        return fields.contains(field);
     }
 
     /**
@@ -208,7 +208,7 @@ public class DataDictionary {
      * @return the field type
      */
     public FieldType getFieldTypeEnum(int field) {
-        return (FieldType) fieldTypes.get(new Integer(field));
+        return (FieldType) fieldTypes.get(field);
     }
 
     private void addMsgType(String msgType, String msgName) {
@@ -258,8 +258,8 @@ public class DataDictionary {
      * @return true if field is defined for message, false otherwise.
      */
     public boolean isMsgField(String msgType, int field) {
-        Set fields = (Set) messageFields.get(msgType);
-        return fields != null && fields.contains(new Integer(field));
+        Set<Integer> fields = messageFields.get(msgType);
+        return fields != null && fields.contains(field);
     }
 
     private void addHeaderField(int field, boolean required) {
@@ -274,11 +274,11 @@ public class DataDictionary {
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
-        return headerFields.containsKey(new Integer(field));
+        return headerFields.containsKey(field);
     }
 
     private void addTrailerField(int field, boolean required) {
-        trailerFields.put(new Integer(field), required ? Boolean.TRUE : Boolean.FALSE);
+        trailerFields.put(field, required ? Boolean.TRUE : Boolean.FALSE);
 
     }
 
@@ -340,8 +340,8 @@ public class DataDictionary {
      * @return true if field is required, false otherwise
      */
     public boolean isRequiredField(String msgType, int field) {
-        Set fields = (Set) requiredFields.get(msgType);
-        return fields != null && fields.contains(new Integer(field));
+        Set<Integer> fields = requiredFields.get(msgType);
+        return fields != null && fields.contains(field);
     }
 
     /**
@@ -352,7 +352,7 @@ public class DataDictionary {
     public boolean isRequiredHeaderField(int field)
     {
         return (isHeaderField(field) &&
-                (((Boolean) headerFields.get(new Integer(field))) == Boolean.TRUE));
+                (((Boolean) headerFields.get(field)) == Boolean.TRUE));
     }
 
     /**
@@ -363,7 +363,7 @@ public class DataDictionary {
     public boolean isRequiredTrailerField(int field)
     {
         return (isTrailerField(field) &&
-                (((Boolean) trailerFields.get(new Integer(field))) == Boolean.TRUE));
+                (((Boolean) trailerFields.get(field)) == Boolean.TRUE));
     }
 
     private void addFieldValue(int field, String value) {
@@ -383,7 +383,7 @@ public class DataDictionary {
      * @return true if field is enumerated, false otherwise
      */
     public boolean hasFieldValue(int field) {
-        Set values = (Set) fieldValues.get(field);
+        Set<String> values = fieldValues.get(field);
         return values != null && values.size() > 0;
     }
 
@@ -397,7 +397,7 @@ public class DataDictionary {
      * @return true if field value is valid, false otherwise
      */
     public boolean isFieldValue(int field, String value) {
-        Set validValues = (Set) fieldValues.get(new Integer(field));
+        Set<String> validValues = fieldValues.get(field);
         if (validValues == null || validValues.size() == 0) {
             return false;
         }
@@ -456,11 +456,11 @@ public class DataDictionary {
      * @return true if field is a raw data field, false otherwise
      */
     public boolean isDataField(int field) {
-        return fieldTypes.get(new Integer(field)) == FieldType.Data;
+        return fieldTypes.get(field) == FieldType.Data;
     }
 
     private boolean isMultipleValueStringField(int field) {
-        return fieldTypes.get(new Integer(field)) == FieldType.MultipleValueString;
+        return fieldTypes.get(field) == FieldType.MultipleValueString;
     }
 
     /**
@@ -597,7 +597,7 @@ public class DataDictionary {
 
     private void iterate(FieldMap map, String msgType) throws IncorrectTagValue, IncorrectDataFormat {
         Field previousField = null;
-        Iterator iterator = map.iterator();
+        Iterator<Field> iterator = map.iterator();
         while (iterator.hasNext()) {
             StringField field = (StringField) iterator.next();
             if (previousField != null && field.getTag() == previousField.getTag()) {
@@ -748,18 +748,18 @@ public class DataDictionary {
     // / Check if a message has all required fields.
     void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType, boolean bodyOnly) {
         if(!bodyOnly) {
-            Iterator headerItr = headerFields.entrySet().iterator();
+            Iterator<Map.Entry<Integer, Boolean>> headerItr = headerFields.entrySet().iterator();
             while (headerItr.hasNext()) {
-                Map.Entry entry = (Map.Entry) headerItr.next();
-                int field = ((Integer) entry.getKey()).intValue();
-                if (entry.getValue() == Boolean.TRUE && !header.isSetField(field)) {
+                Map.Entry<Integer, Boolean> entry = headerItr.next();
+                int field = entry.getKey();
+                if (entry.getValue() && !header.isSetField(field)) {
                     throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
                 }
             }
 
-            Iterator trailerItr = trailerFields.entrySet().iterator();
+            Iterator<Map.Entry<Integer, Boolean>> trailerItr = trailerFields.entrySet().iterator();
             while (trailerItr.hasNext()) {
-                Map.Entry entry = (Map.Entry) trailerItr.next();
+                Map.Entry<Integer, Boolean> entry = trailerItr.next();
                 int field = ((Integer) entry.getKey()).intValue();
                 if (entry.getValue() == Boolean.TRUE && !trailer.isSetField(field)) {
                     throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
@@ -767,12 +767,12 @@ public class DataDictionary {
             }
         }
 
-        Set requiredFieldsForMessage = (Set) requiredFields.get(msgType);
+        Set<Integer> requiredFieldsForMessage = requiredFields.get(msgType);
         if (requiredFieldsForMessage == null || requiredFieldsForMessage.size() == 0) {
             return;
         }
 
-        Iterator fieldItr = requiredFieldsForMessage.iterator();
+        Iterator<Integer> fieldItr = requiredFieldsForMessage.iterator();
         while (fieldItr.hasNext()) {
             int field = ((Integer) fieldItr.next()).intValue();
             if (!body.isSetField(field)) {
@@ -780,13 +780,13 @@ public class DataDictionary {
             }
         }
 
-        Map groups = body.getGroups();
+        Map<Integer,List<Group>> groups = body.getGroups();
         if (groups.size() > 0) {
-            Iterator groupIter = groups.entrySet().iterator();
+            Iterator<Map.Entry<Integer,List<Group>>> groupIter = groups.entrySet().iterator();
             while (groupIter.hasNext()) {
-                Map.Entry entry = (Map.Entry) groupIter.next();
+                Map.Entry<Integer,List<Group>> entry = groupIter.next();
                 GroupInfo p = getGroup(msgType, ((Integer) entry.getKey()).intValue());
-                List groupInstances = ((List) entry.getValue());
+                List<Group> groupInstances = entry.getValue();
                 for (int i = 0; i < groupInstances.size(); i++) {
                     FieldMap groupFields = (FieldMap) groupInstances.get(i);
                     p.getDataDictionary().checkHasRequired(groupFields, groupFields, groupFields,
@@ -1062,10 +1062,10 @@ public class DataDictionary {
         if (orderedFieldsArray == null) {
             orderedFieldsArray = new int[fields.size()];
 
-            Iterator fieldItr = fields.iterator();
+            Iterator<Integer> fieldItr = fields.iterator();
             int i = 0;
             while (fieldItr.hasNext()) {
-                orderedFieldsArray[i++] = ((Integer) fieldItr.next()).intValue();
+                orderedFieldsArray[i++] = fieldItr.next();
             }
         }
         

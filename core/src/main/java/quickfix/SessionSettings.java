@@ -680,7 +680,7 @@ public class SessionSettings {
     
     private void writeSection(String sectionName, PrintWriter writer, Properties properties) {
         writer.println(sectionName);
-        Iterator p = properties.keySet().iterator();
+        Iterator<Object> p = properties.keySet().iterator();
         while (p.hasNext()) {
             String key = (String) p.next();
             writer.print(key);

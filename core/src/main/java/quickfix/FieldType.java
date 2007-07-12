@@ -29,7 +29,7 @@ import java.util.HashMap;
 public class FieldType {
     private int ordinal;
     private String name;
-    private Class javaType;
+    private Class<?> javaType;
     private static HashMap<String, FieldType> values = new HashMap<String, FieldType>();
     private static ArrayList<FieldType> ordinalToValue = new ArrayList<FieldType>();
 
@@ -37,7 +37,7 @@ public class FieldType {
         this(name, String.class);
     }
 
-    private FieldType(String name, Class javaType) {
+    private FieldType(String name, Class<?> javaType) {
         this.javaType = javaType;
         this.name = name;
         ordinal = ordinalToValue.size();
@@ -53,7 +53,7 @@ public class FieldType {
         return ordinal;
     }
 
-    public Class getJavaType() {
+    public Class<?> getJavaType() {
         return javaType;
     }
     
