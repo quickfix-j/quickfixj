@@ -43,7 +43,7 @@ public interface MessageFactory {
      *
      * Example: to create a {@link quickfix.fix42.MarketDataRequest.NoMDEntryTypes}
      * you need to call
-     *       create({@link quickfix.field.MsgType#MARKET_DATA_REQUEST, {@link quickfix.field.NoMDEntryTypes#FIELD}) 
+     *       create({@link quickfix.field.MsgType#MARKET_DATA_REQUEST}, {@link quickfix.field.NoMDEntryTypes#FIELD}) 
      *
      * Function returns null if the group cannot be created.
      * @param beginString

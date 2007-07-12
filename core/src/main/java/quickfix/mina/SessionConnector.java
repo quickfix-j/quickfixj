@@ -249,7 +249,6 @@ public abstract class SessionConnector {
      * 
      * @param ioFilterChainBuilder
      * @see IoFilterChainBuilder
-     * @see CompositeIoFilterChainBuilder#FIX_CODEC_FILTER_NAME
      */
     public void setIoFilterChainBuilder(IoFilterChainBuilder ioFilterChainBuilder) {
         this.ioFilterChainBuilder = ioFilterChainBuilder;
