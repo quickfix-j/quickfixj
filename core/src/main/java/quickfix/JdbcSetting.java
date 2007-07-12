@@ -80,4 +80,19 @@ public class JdbcSetting {
      * Flag for controlling logging of heartbeat messages.
      */
     public static final String SETTING_JDBC_LOG_HEARTBEATS = "JdbcLogHeartBeats";
+
+    /**
+     * Specifies name of table for logging outgoing messages
+     */
+    public static final String SETTING_LOG_OUTGOING_TABLE = "JdbcLogOutgoingTable";
+    
+    /**
+     * Specifies name of table for logging incoming messages
+     */
+    public static final String SETTING_LOG_INCOMING_TABLE = "JdbcLogIncomingTable";
+    
+    /**
+     * Specifies name of table for logging events
+     */
+    public static final String SETTING_LOG_EVENT_TABLE = "JdbcLogEventTable";
 }

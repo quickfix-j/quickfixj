@@ -76,12 +76,11 @@ public class JdbcLogTest extends TestCase {
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING");
         assertEquals(1, getRowCount(connection, "messages_log"));
-        assertLogData(connection, 0, sessionID, "INCOMING", JdbcLog.MESSAGES_LOG_TABLE);
+        assertLogData(connection, 0, sessionID, "INCOMING", log.getIncomingMessagesTableName());
 
         log.onOutgoing("OUTGOING");
-        assertEquals(2, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
-        assertLogData(connection, 0, sessionID, "INCOMING", JdbcLog.MESSAGES_LOG_TABLE);
-        assertLogData(connection, 1, sessionID, "OUTGOING", JdbcLog.MESSAGES_LOG_TABLE);
+        assertEquals(2, getRowCount(connection, log.getOutgoingMessagesTableName()));
+        assertLogData(connection, 0, sessionID, "OUTGOING", log.getOutgoingMessagesTableName());
 
         assertEquals(0, getRowCount(connection, "event_log"));
         log.onEvent("EVENT");
@@ -89,7 +88,8 @@ public class JdbcLogTest extends TestCase {
         assertLogData(connection, 0, sessionID, "EVENT", "event_log");
 
         log.clear();
-        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+        assertEquals(0, getRowCount(connection, log.getIncomingMessagesTableName()));
+        assertEquals(0, getRowCount(connection, log.getOutgoingMessagesTableName()));
         assertEquals(0, getRowCount(connection, "event_log"));
     }
 
@@ -100,7 +100,7 @@ public class JdbcLogTest extends TestCase {
         log.onIncoming("INCOMING\00135=0\001");
         assertEquals(1, getRowCount(connection, "messages_log"));
         log.onOutgoing("OUTGOING\00135=0\001");
-        assertEquals(2, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+        assertEquals(2, getRowCount(connection, log.getOutgoingMessagesTableName()));
 
         setUpJdbcLog(true, null);
         
@@ -108,7 +108,7 @@ public class JdbcLogTest extends TestCase {
         log.onIncoming("INCOMING\00135=0\001");
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onOutgoing("OUTGOING\00135=0\001");
-        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+        assertEquals(0, getRowCount(connection, log.getOutgoingMessagesTableName()));
     }
 
     /** Make sure the logger handles the situation where the underlying JdbcLog is misconfigured
@@ -124,10 +124,7 @@ public class JdbcLogTest extends TestCase {
                 new DefaultMessageFactory(), 0));
 
         // remove the messages and events tables
-        connection.prepareStatement("DROP TABLE IF EXISTS " + JdbcLog.MESSAGES_LOG_TABLE + ";")
-                .execute();
-        connection.prepareStatement("DROP TABLE IF EXISTS " + JdbcLog.EVENT_LOG_TABLE + ";")
-                .execute();
+        dropTable(log.getIncomingMessagesTableName());
 
         // now try to log an error
         try {
@@ -141,6 +138,11 @@ public class JdbcLogTest extends TestCase {
             initializeTableDefinitions(connection);
         }
 
+    }
+
+    private void dropTable(String tableName) throws SQLException {
+        connection.prepareStatement("DROP TABLE IF EXISTS " + tableName + ";")
+                .execute();
     }
 
     private void setUpJdbcLog(boolean filterHeartbeats, DataSource dataSource) throws ClassNotFoundException, SQLException, ConfigError {
@@ -157,7 +159,8 @@ public class JdbcLogTest extends TestCase {
         sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         settings.setString(sessionID, "ConnectionType", "acceptor");
         log = (JdbcLog) logFactory.create(sessionID);
-        assertEquals(0, getRowCount(connection, JdbcLog.MESSAGES_LOG_TABLE));
+        assertEquals(0, getRowCount(connection, log.getIncomingMessagesTableName()));
+        assertEquals(0, getRowCount(connection, log.getOutgoingMessagesTableName()));
     }
 
     private void assertLogData(Connection connection, int rowOffset, SessionID sessionID,
@@ -165,10 +168,12 @@ public class JdbcLogTest extends TestCase {
         Statement s = connection.createStatement();
         ResultSet rs = s
                 .executeQuery("select time,beginstring,sendercompid,targetcompid,session_qualifier,text from "
-                        + tableName);
+                        + tableName + " WHERE text = '"+text+"'");
         int n = 0;
-        while (rs.next() && n < rowOffset)
+        boolean rowFound = false;
+        while ((rowFound = rs.next()) && n < rowOffset)
             n++;
+        assertTrue("No row found: "+text, rowFound);
         assertNotNull(sessionID.getBeginString(), rs.getDate("time"));
         assertEquals(sessionID.getBeginString(), rs.getString("beginstring"));
         assertEquals(sessionID.getSenderCompID(), rs.getString("sendercompid"));

@@ -27,37 +27,61 @@ import java.sql.Timestamp;
 import javax.sql.DataSource;
 
 class JdbcLog extends AbstractLog {
-    public static final String MESSAGES_LOG_TABLE = "messages_log";
-    public static final String EVENT_LOG_TABLE = "event_log";
+    private static final String DEFAULT_MESSAGES_LOG_TABLE = "messages_log";
+    private static final String DEFAULT_EVENT_LOG_TABLE = "event_log";
+    private final String outgoingMessagesTableName;
+    private final String incomingMessagesTableName;
+    private final String eventTableName;
     private final SessionID sessionID;
     private final DataSource dataSource;
     private final boolean logHeartbeats;
     private Throwable recursiveException = null;
 
-    public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource dataSource) throws SQLException,
-            ClassNotFoundException, ConfigError, FieldConvertError {
+    public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource dataSource)
+            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
-        this.dataSource = dataSource == null ?
-                JdbcUtil.getDataSource(settings, sessionID) : dataSource;
-        
+        this.dataSource = dataSource == null
+                ? JdbcUtil.getDataSource(settings, sessionID)
+                : dataSource;
+
         if (settings.isSetting(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS)) {
             logHeartbeats = settings.getBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS);
         } else {
             logHeartbeats = true;
         }
         setLogHeartbeats(logHeartbeats);
+
+        if (settings.isSetting(JdbcSetting.SETTING_LOG_OUTGOING_TABLE)) {
+            outgoingMessagesTableName = settings.getString(sessionID,
+                    JdbcSetting.SETTING_LOG_OUTGOING_TABLE);
+        } else {
+            outgoingMessagesTableName = DEFAULT_MESSAGES_LOG_TABLE;
+        }
+
+        if (settings.isSetting(JdbcSetting.SETTING_LOG_INCOMING_TABLE)) {
+            incomingMessagesTableName = settings.getString(sessionID,
+                    JdbcSetting.SETTING_LOG_INCOMING_TABLE);
+        } else {
+            incomingMessagesTableName = DEFAULT_MESSAGES_LOG_TABLE;
+        }
+
+        if (settings.isSetting(JdbcSetting.SETTING_LOG_EVENT_TABLE)) {
+            eventTableName = settings.getString(sessionID, JdbcSetting.SETTING_LOG_EVENT_TABLE);
+        } else {
+            eventTableName = DEFAULT_EVENT_LOG_TABLE;
+        }
     }
 
     public void onEvent(String value) {
-        insert(EVENT_LOG_TABLE, value);
+        insert(eventTableName, value);
     }
 
     protected void logIncoming(String message) {
-        insert(MESSAGES_LOG_TABLE, message);
+        insert(incomingMessagesTableName, message);
     }
 
     protected void logOutgoing(String message) {
-        insert(MESSAGES_LOG_TABLE, message);
+        insert(outgoingMessagesTableName, message);
     }
 
     /** Protect from the situation when you have recursive calls
@@ -101,8 +125,11 @@ class JdbcLog extends AbstractLog {
      * Deletes all rows from the log tables.
      */
     public void clear() {
-        clearTable(EVENT_LOG_TABLE);
-        clearTable(MESSAGES_LOG_TABLE);
+        clearTable(eventTableName);
+        clearTable(incomingMessagesTableName);
+        if (!incomingMessagesTableName.equals(outgoingMessagesTableName)) {
+            clearTable(outgoingMessagesTableName);
+        }
     }
 
     private void clearTable(String tableName) {
@@ -124,5 +151,17 @@ class JdbcLog extends AbstractLog {
             JdbcUtil.close(sessionID, statement);
             JdbcUtil.close(sessionID, connection);
         }
+    }
+    
+    public String getIncomingMessagesTableName() {
+        return incomingMessagesTableName;
+    }
+    
+    public String getOutgoingMessagesTableName() {
+        return outgoingMessagesTableName;
+    }
+    
+    public String getEventTableName() {
+        return eventTableName;
     }
 }
