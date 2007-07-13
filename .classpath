@@ -4,13 +4,14 @@
 	<classpathentry kind="src" path="core/src/test/java"/>
 	<classpathentry kind="src" path="examples/src/main/java"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/resources"/>
-	<classpathentry exported="true" kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-1.1.0.jar"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-1.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/mina-core-1.1.0.jar" sourcepath="core/src/main/lib/mina-core-1.1.0-sources.jar"/>
 	<classpathentry kind="src" path="core/target/src-generated"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/slf4j-api-1.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/slf4j-jdk14-1.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/optional/jcl104-over-slf4j-1.3.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/mx4j-3.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/test/lib/easymock-1.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/optional/proxool-0.9.0RC2.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/optional/sleepycat-je_2.1.30.jar"/>
