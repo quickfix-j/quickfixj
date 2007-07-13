@@ -208,8 +208,8 @@ public class MultiAcceptorTest extends TestCase {
         defaults.put("ConnectionType", "acceptor");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
-        defaults.put("SenderCompID", "ISLD");
-        defaults.put("TargetCompID", "TW");
+        defaults.put(SessionSettings.SENDERCOMPID, "ISLD");
+        defaults.put(SessionSettings.TARGETCOMPID, "TW");
         defaults.put("BeginString", "FIX.4.2");
         defaults.put("ResetOnDisconnect", "Y");
         settings.set(defaults);

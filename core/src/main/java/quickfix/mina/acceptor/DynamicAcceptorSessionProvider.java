@@ -78,8 +78,8 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
                 copySettings(dynamicSettings, settings.getDefaultProperties());
                 copySettings(dynamicSettings, settings.getSessionProperties(templateID));
                 dynamicSettings.setString("BeginString", sessionID.getBeginString());
-                dynamicSettings.setString("SenderCompID", sessionID.getSenderCompID());
-                dynamicSettings.setString("TargetCompID", sessionID.getTargetCompID());
+                dynamicSettings.setString(SessionSettings.SENDERCOMPID, sessionID.getSenderCompID());
+                dynamicSettings.setString(SessionSettings.TARGETCOMPID, sessionID.getTargetCompID());
                 s = sessionFactory.create(sessionID, dynamicSettings);
             } catch (ConfigError e) {
                 throw new QFJException(e);
