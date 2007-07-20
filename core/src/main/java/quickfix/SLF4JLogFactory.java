@@ -55,7 +55,9 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
     }
 
     public Log create(SessionID sessionID) {
-        return create(sessionID, SLF4JLog.class.getName());
+        // it's actually code in AbstractLog that makes the final code to Log4J and not SLF4JLog itself
+        // so send the AbstractLog here
+        return create(sessionID, AbstractLog.class.getName());
     }
     
     /**
