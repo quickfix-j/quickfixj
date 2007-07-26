@@ -49,12 +49,8 @@ public class IoSessionResponderTest extends TestCase {
         mockProtocolSession.getScheduledWriteRequests();
         mockProtocolSessionControl.setReturnValue(0);
         
-        MockControl mockCloseFutureControl = MockControl.createControl(CloseFuture.class);
-        CloseFuture mockCloseFuture = (CloseFuture) mockCloseFutureControl.getMock();
-        mockCloseFuture.join();
-        
         mockProtocolSession.close();
-        mockProtocolSessionControl.setReturnValue(mockCloseFuture);
+        mockProtocolSessionControl.setReturnValue(null);
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession);
 

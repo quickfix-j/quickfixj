@@ -1364,12 +1364,13 @@ public class Session {
      * @throws IOException IO error
      */
     public void disconnect() throws IOException {
-        if (hasResponder()) {
+        Responder responder = getResponder();
+        if (responder != null) {
             getLog().onEvent("Disconnecting");
-            getResponder().disconnect();
+            responder.disconnect();
             setResponder(null);
         }
-
+        
         boolean logonReceived = state.isLogonReceived();
         boolean logonSent = state.isLogonSent();
         if (logonReceived || logonSent) {

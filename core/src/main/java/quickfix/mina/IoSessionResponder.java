@@ -41,7 +41,12 @@ public class IoSessionResponder implements Responder {
 
     public void disconnect() {
         waitForScheduleMessagesToBeWritten();
-        ioSession.close().join();
+        // We cannot call join() on the CloseFuture returned
+        // by the following call. We are using a minimal
+        // threading model and calling join will prevent the
+        // close event from being processed by this thread (if
+        // this thread is the MINA IO processor thread.
+        ioSession.close();
     }
 
     private void waitForScheduleMessagesToBeWritten() {
