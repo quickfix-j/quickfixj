@@ -380,7 +380,8 @@ public class SessionSettings {
                 } else if (token.getType() == Tokenizer.ID_TOKEN) {
                     Tokenizer.Token valueToken = tokenizer.getToken(reader);
                     if (currentSection != null && token != null) {
-                        currentSection.put(token.getValue(), valueToken.getValue());
+                        String value = interpolate(valueToken.getValue());
+                        currentSection.put(token.getValue(), value);
                     }
                 }
                 token = tokenizer.getToken(reader);

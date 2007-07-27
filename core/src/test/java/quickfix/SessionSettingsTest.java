@@ -88,7 +88,7 @@ public class SessionSettingsTest extends TestCase {
 
         assertTrue("wrong setting", settings.isSetting(sessionID1, "StartTime"));
 
-        Iterator sectionIterator = settings.sectionIterator();
+        Iterator<SessionID> sectionIterator = settings.sectionIterator();
         assertNotNull(sectionIterator.next());
         assertNotNull(sectionIterator.next());
         assertNotNull(sectionIterator.next());
@@ -115,29 +115,31 @@ public class SessionSettingsTest extends TestCase {
         settingsString += "TestDouble2=abcd\n";
         settingsString += "TestBoolTrue=Y\n";
         settingsString += "TestBoolFalse=N\n";
+        settingsString += "SenderCompID=TW\n";
         settingsString += "\r\n";
         settingsString += "[SESSION]\n";
         settingsString += "BeginString=FIX.4.2\n";
-        settingsString += "SenderCompID=TW\n";
         settingsString += "TargetCompID=CLIENT1\n";
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
         settingsString += "\n";
         settingsString += "[SESSION]\n";
         settingsString += "BeginString=FIX.4.2\n";
-        settingsString += "SenderCompID=TW\n";
         settingsString += "TargetCompID=CLIENT2\n";
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
         if (extra != null) {
             settingsString += extra;
         }
-        ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
+        return createSettingsFromString(settingsString);
+    }
 
+    private static SessionSettings createSettingsFromString(String settingsString) throws ConfigError {
+        ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
         return new SessionSettings(cfg);
     }
 
     public void testSessionKeyIterator() throws Exception {
         SessionSettings settings = setUpSession();
-        Iterator itr = settings.sectionIterator();
+        Iterator<SessionID> itr = settings.sectionIterator();
         while (itr.hasNext()) {
             SessionID id = (SessionID) itr.next();
             assertEquals("FIX", id.getBeginString().substring(0, 3));
@@ -211,6 +213,24 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("wrong default value", "ABC FOO XYZ FOOBAR 123", settings.getString("VariableTest"));
     }
     
+    // QFJ-204
+    public void testVariableInterpolationInDefaultSection() throws Exception {
+        System.setProperty("sender", "SENDER");
+        System.setProperty("target", "TARGET");
+        String settingsString = "";
+        settingsString += "[DEFAULT]\n";
+        settingsString += "SenderCompID=${sender}\n";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "TargetCompID=${target}\n";
+        SessionSettings settings = createSettingsFromString(settingsString);
+        assertEquals("wrong value", "SENDER", settings.getString("SenderCompID"));
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        assertEquals("wrong value", "SENDER", settings.getString(sessionID, "SenderCompID"));
+        assertEquals("wrong value", "TARGET", settings.getString(sessionID, "TargetCompID"));
+        
+
+    }
     public void testVariableInterpolationWithNoSysProps() throws Exception {
         System.setProperty("test.1", "FOO");
         System.setProperty("test.2", "BAR");
@@ -263,7 +283,7 @@ public class SessionSettingsTest extends TestCase {
     private void assertSettingsEqual(SessionSettings expectedSettings, String actualSettingsString) throws ConfigError {
         SessionSettings actualSettings = new SessionSettings(new ByteArrayInputStream(actualSettingsString.getBytes()));
         assertSectionEquals(expectedSettings.getDefaultProperties(), actualSettings.getDefaultProperties());
-        Iterator sessionIDs = expectedSettings.sectionIterator();
+        Iterator<SessionID> sessionIDs = expectedSettings.sectionIterator();
         while (sessionIDs.hasNext()) {
             SessionID sessionID = (SessionID) sessionIDs.next();
             assertSectionEquals(expectedSettings.getSessionProperties(sessionID), 
@@ -272,9 +292,9 @@ public class SessionSettingsTest extends TestCase {
     }
 
     private void assertSectionEquals(Properties expectedProperties, Properties actualProperties) {
-        Set keySet = actualProperties.keySet();
+        Set<Object> keySet = actualProperties.keySet();
         assertEquals("Key sets don't match", expectedProperties.keySet(), keySet);
-        Iterator p = keySet.iterator();
+        Iterator<Object> p = keySet.iterator();
         while (p.hasNext()) {
             String key = (String) p.next();
             assertEquals("property doesn't match", expectedProperties.getProperty(key), actualProperties.getProperty(key));
