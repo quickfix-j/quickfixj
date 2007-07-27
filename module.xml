@@ -87,11 +87,11 @@
 	<!-- Setting the jvm.ok property on the command line will bypass this check -->
 	<target name="jvm_identification" unless="jvm.ok">
 		<condition property="jvm.ok">
-			<equals arg1="${ant.java.version}" arg2="1.5" />
+			<equals arg1="${ant.java.version}" arg2="1.4" />
 		</condition>
 	</target>
 
-	<target name="assert_jvm" depends="jvm_identification" unless="jvm.ok">
+	<target name="assert_jdk14" depends="jvm_identification" unless="jvm.ok">
 		<fail message="Wrong JVM - ${ant.java.version}" />
 	</target>
 

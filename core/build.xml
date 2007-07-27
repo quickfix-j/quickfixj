@@ -70,7 +70,6 @@
 	================================================================= -->
 
 	<target name="compile" depends="generate.code" description="compile the sources">
-		<antcall target="assert_jvm" />
 		<antcall target="compile_main" />
 		<antcall target="compile_test" />
 	</target>
