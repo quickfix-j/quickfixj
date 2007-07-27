@@ -23,12 +23,16 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quickfix.ConfigError;
 import quickfix.DoNotSend;
 import quickfix.FieldConvertError;
 import quickfix.FieldNotFound;
 import quickfix.IncorrectDataFormat;
 import quickfix.IncorrectTagValue;
+import quickfix.Message;
 import quickfix.RejectLogon;
 import quickfix.Session;
 import quickfix.SessionID;
@@ -36,7 +40,6 @@ import quickfix.SessionNotFound;
 import quickfix.SessionSettings;
 import quickfix.UnsupportedMessageType;
 import quickfix.field.AvgPx;
-import quickfix.field.ClOrdID;
 import quickfix.field.CumQty;
 import quickfix.field.ExecID;
 import quickfix.field.ExecTransType;
@@ -50,26 +53,30 @@ import quickfix.field.OrdType;
 import quickfix.field.OrderID;
 import quickfix.field.OrderQty;
 import quickfix.field.Price;
-import quickfix.field.Side;
-import quickfix.field.Symbol;
 
 public class Application extends quickfix.MessageCracker implements quickfix.Application {
+    private static final String DEFAULT_MARKET_PRICE_KEY = "DefaultMarketPrice";
     private static final String VALID_ORDER_TYPES_KEY = "ValidOrderTypes";
-    
-    private HashSet<String> validOrderTypes = new HashSet<String>();
-    private double defaultMarketPrice = 10.00;
-    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final HashSet<String> validOrderTypes = new HashSet<String>();
+    private Double defaultMarketPrice;
+
     public Application(SessionSettings settings) throws ConfigError, FieldConvertError {
         if (settings.isSetting(VALID_ORDER_TYPES_KEY)) {
-            List<String> orderTypes = Arrays.asList(settings.getString(VALID_ORDER_TYPES_KEY).trim().split("\\s*,\\s*"));
+            List<String> orderTypes = Arrays.asList(settings.getString(VALID_ORDER_TYPES_KEY)
+                    .trim().split("\\s*,\\s*"));
             validOrderTypes.addAll(orderTypes);
         } else {
-            validOrderTypes.add(OrdType.LIMIT+"");
+            validOrderTypes.add(OrdType.LIMIT + "");
+        }
+        
+        if (settings.isSetting(DEFAULT_MARKET_PRICE_KEY)) {
+            defaultMarketPrice = new Double(settings.getDouble(DEFAULT_MARKET_PRICE_KEY));
         }
     }
 
     public void onCreate(SessionID sessionID) {
-        Session.lookupSession(sessionID).getLog().onEvent("Valid order types: "+validOrderTypes);
+        Session.lookupSession(sessionID).getLog().onEvent("Valid order types: " + validOrderTypes);
     }
 
     public void onLogon(SessionID sessionID) {
@@ -95,189 +102,136 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
     public void onMessage(quickfix.fix40.NewOrderSingle order, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        Symbol symbol = new Symbol();
-        Side side = new Side();
-        OrdType ordType = new OrdType();
-        OrderQty orderQty = new OrderQty();
-        Price price = new Price();
-        ClOrdID clOrdID = new ClOrdID();
+        validateOrder(order);
 
-        order.get(ordType);
+   
+        OrderQty orderQty = order.getOrderQty();
+        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
+                defaultMarketPrice);
 
-        assertValidOrderType(ordType);
-
-        order.get(symbol);
-        order.get(side);
-        order.get(orderQty);
-        order.get(price);
-        order.get(clOrdID);
-
-        quickfix.fix40.ExecutionReport executionReport = new quickfix.fix40.ExecutionReport(
+        quickfix.fix40.ExecutionReport accept = new quickfix.fix40.ExecutionReport(
                 genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new OrdStatus(
-                        OrdStatus.FILLED), symbol, side, orderQty, new LastShares(orderQty
-                        .getValue()), new LastPx(price.getValue()),
-                new CumQty(orderQty.getValue()), new AvgPx(price.getValue()));
+                        OrdStatus.NEW), order.getSymbol(), order.getSide(), orderQty,
+                new LastShares(0), new LastPx(0), new CumQty(0), new AvgPx(0));
 
-        executionReport.set(clOrdID);
+        accept.set(order.getClOrdID());
+        sendMessage(sessionID, accept);
 
+        quickfix.fix40.ExecutionReport fill = new quickfix.fix40.ExecutionReport(
+                genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new OrdStatus(
+                        OrdStatus.FILLED), order.getSymbol(), order.getSide(), orderQty,
+                new LastShares(orderQty.getValue()), new LastPx(price.getValue()), new CumQty(
+                        orderQty.getValue()), new AvgPx(price.getValue()));
+
+        fill.set(order.getClOrdID());
+
+        sendMessage(sessionID, fill);
+    }
+
+    private void sendMessage(SessionID sessionID, Message message) {
         try {
-            Session.sendToTarget(executionReport, sessionID);
+            Session.sendToTarget(message, sessionID);
         } catch (SessionNotFound e) {
+            log.error(e.getMessage(), e);
         }
     }
 
     public void onMessage(quickfix.fix41.NewOrderSingle order, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        Symbol symbol = new Symbol();
-        Side side = new Side();
-        OrdType ordType = new OrdType();
-        OrderQty orderQty = new OrderQty();
-        Price price = new Price();
-        ClOrdID clOrdID = new ClOrdID();
+        validateOrder(order);
 
-        order.get(ordType);
-
-        assertValidOrderType(ordType);
-
-        order.get(symbol);
-        order.get(side);
-        order.get(orderQty);
-        order.get(price);
-        order.get(clOrdID);
+        OrderQty orderQty = order.getOrderQty();
+        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
+                defaultMarketPrice);
 
         quickfix.fix41.ExecutionReport executionReport = new quickfix.fix41.ExecutionReport(
                 genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(
-                        ExecType.FILL), new OrdStatus(OrdStatus.FILLED), symbol, side, orderQty,
-                new LastShares(orderQty.getValue()), new LastPx(price.getValue()),
-                new LeavesQty(0), new CumQty(orderQty.getValue()), new AvgPx(price.getValue()));
+                        ExecType.FILL), new OrdStatus(OrdStatus.FILLED), order.getSymbol(), order
+                        .getSide(), orderQty, new LastShares(orderQty.getValue()), new LastPx(price
+                        .getValue()), new LeavesQty(0), new CumQty(orderQty.getValue()), new AvgPx(
+                        price.getValue()));
 
-        executionReport.set(clOrdID);
+        executionReport.set(order.getClOrdID());
 
-        try {
-            Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFound e) {
-        }
+        sendMessage(sessionID, executionReport);
     }
 
     public void onMessage(quickfix.fix42.NewOrderSingle order, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        Symbol symbol = new Symbol();
-        Side side = new Side();
-        OrdType ordType = new OrdType();
-        OrderQty orderQty = new OrderQty();
-        Price price = new Price();
-        ClOrdID clOrdID = new ClOrdID();
+        validateOrder(order);
 
-        order.get(ordType);
-
-        assertValidOrderType(ordType);
-
-        readFields(order, symbol, side, orderQty, price, clOrdID);
+        OrderQty orderQty = order.getOrderQty();
+        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
+                defaultMarketPrice);
 
         quickfix.fix42.ExecutionReport executionReport = new quickfix.fix42.ExecutionReport(
                 genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(
-                        ExecType.FILL), new OrdStatus(OrdStatus.FILLED), symbol, side,
-                new LeavesQty(0), new CumQty(orderQty.getValue()), new AvgPx(price.getValue()));
+                        ExecType.FILL), new OrdStatus(OrdStatus.FILLED), order.getSymbol(), order
+                        .getSide(), new LeavesQty(0), new CumQty(orderQty.getValue()), new AvgPx(
+                        price.getValue()));
 
-        executionReport.set(clOrdID);
+        executionReport.set(order.getClOrdID());
         executionReport.set(orderQty);
         executionReport.set(new LastShares(orderQty.getValue()));
         executionReport.set(new LastPx(price.getValue()));
 
-        try {
-            Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFound e) {
-        }
+        sendMessage(sessionID, executionReport);
     }
 
-    private void readFields(quickfix.fix42.NewOrderSingle order, Symbol symbol, Side side, OrderQty orderQty, Price price, ClOrdID clOrdID) throws FieldNotFound {
-        order.get(symbol);
-        order.get(side);
-        order.get(orderQty);
-        if (order.isSet(price)) {
-            order.get(price);
-        } else {
-            price.setValue(defaultMarketPrice);
+    private void validateOrder(Message order) throws IncorrectTagValue, FieldNotFound {
+        OrdType ordType = new OrdType(order.getChar(OrdType.FIELD));
+        if (!validOrderTypes.contains(Character.toString(ordType.getValue()))) {
+            log.error("Order type not in ValidOrderTypes setting");
+            throw new IncorrectTagValue(ordType.getField());
         }
-        order.get(clOrdID);
-    }
-
-    private void assertValidOrderType(OrdType ordType) throws IncorrectTagValue {
-        if (!validOrderTypes.contains(""+ordType.getValue())) {
+        if (ordType.getValue() == OrdType.MARKET && defaultMarketPrice == null) {
+            log.error("DefaultMarketPrice setting not specified for market order");
             throw new IncorrectTagValue(ordType.getField());
         }
     }
 
     public void onMessage(quickfix.fix43.NewOrderSingle order, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        Symbol symbol = new Symbol();
-        Side side = new Side();
-        OrdType ordType = new OrdType();
-        OrderQty orderQty = new OrderQty();
-        Price price = new Price();
-        ClOrdID clOrdID = new ClOrdID();
+        validateOrder(order);
 
-        order.get(ordType);
-
-        assertValidOrderType(ordType);
-
-        order.get(symbol);
-        order.get(side);
-        order.get(orderQty);
-        order.get(price);
-        order.get(clOrdID);
+        OrderQty orderQty = order.getOrderQty();
+        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
+                defaultMarketPrice);
 
         quickfix.fix43.ExecutionReport executionReport = new quickfix.fix43.ExecutionReport(
                 genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
-                        OrdStatus.FILLED), side, new LeavesQty(0), new CumQty(orderQty.getValue()),
-                new AvgPx(price.getValue()));
+                        OrdStatus.FILLED), order.getSide(), new LeavesQty(0), new CumQty(orderQty
+                        .getValue()), new AvgPx(price.getValue()));
 
-        executionReport.set(clOrdID);
-        executionReport.set(symbol);
+        executionReport.set(order.getClOrdID());
+        executionReport.set(order.getSymbol());
         executionReport.set(orderQty);
         executionReport.set(new LastQty(orderQty.getValue()));
         executionReport.set(new LastPx(price.getValue()));
 
-        try {
-            Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFound e) {
-        }
+        sendMessage(sessionID, executionReport);
     }
 
     public void onMessage(quickfix.fix44.NewOrderSingle order, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        Symbol symbol = new Symbol();
-        Side side = new Side();
-        OrdType ordType = new OrdType();
-        OrderQty orderQty = new OrderQty();
-        Price price = new Price();
-        ClOrdID clOrdID = new ClOrdID();
+        validateOrder(order);
 
-        order.get(ordType);
-
-        assertValidOrderType(ordType);
-
-        order.get(symbol);
-        order.get(side);
-        order.get(orderQty);
-        order.get(price);
-        order.get(clOrdID);
+        OrderQty orderQty = order.getOrderQty();
+        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
+                defaultMarketPrice);
 
         quickfix.fix44.ExecutionReport executionReport = new quickfix.fix44.ExecutionReport(
                 genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
-                        OrdStatus.FILLED), side, new LeavesQty(0), new CumQty(orderQty.getValue()),
-                new AvgPx(price.getValue()));
+                        OrdStatus.FILLED), order.getSide(), new LeavesQty(0), new CumQty(orderQty
+                        .getValue()), new AvgPx(price.getValue()));
 
-        executionReport.set(clOrdID);
-        executionReport.set(symbol);
+        executionReport.set(order.getClOrdID());
+        executionReport.set(order.getSymbol());
         executionReport.set(orderQty);
         executionReport.set(new LastQty(orderQty.getValue()));
         executionReport.set(new LastPx(price.getValue()));
 
-        try {
-            Session.sendToTarget(executionReport, sessionID);
-        } catch (SessionNotFound e) {
-        }
+        sendMessage(sessionID, executionReport);
     }
 
     public OrderID genOrderID() {

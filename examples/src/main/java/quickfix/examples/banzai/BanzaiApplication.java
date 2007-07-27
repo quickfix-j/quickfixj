@@ -198,71 +198,51 @@ public class BanzaiApplication implements Application {
         if (alreadyProcessed(execID, sessionID))
             return;
 
-        String id = message.getField(new ClOrdID()).getValue();
-        Order order = orderTableModel.getOrder(id);
-        if (order == null)
+        Order order = orderTableModel.getOrder(message.getField(new ClOrdID()).getValue());
+        if (order == null) {
             return;
+        }
 
         double fillSize = 0;
 
-        try {
-            OrderQty orderQty = (OrderQty) message.getField(new OrderQty());
-            int diff = order.getQuantity() - (int) orderQty.getValue();
-            order.setQuantity((int) orderQty.getValue());
-            order.setOpen(order.getOpen() - diff);
-        } catch (FieldNotFound e) {
-        }
-        try {
-            Price price = (Price) message.getField(new Price());
-            order.setLimit(new Double(price.getValue()));
-        } catch (FieldNotFound e) {
-        }
         try {
             LastShares lastShares = new LastShares();
             message.getField(lastShares);
             fillSize = lastShares.getValue();
         } catch (FieldNotFound e) {
+            // FIX 4.0
             LeavesQty leavesQty = new LeavesQty();
             message.getField(leavesQty);
             fillSize = order.getQuantity() - leavesQty.getValue();
         }
 
         if (fillSize > 0) {
+            order.setOpen((int)(order.getOpen() - fillSize));
             order.setExecuted((int) message.getField(new CumQty()).getValue());
             order.setAvgPx(message.getField(new AvgPx()).getValue());
         }
         
         OrdStatus ordStatus = (OrdStatus) message.getField(new OrdStatus());
 
-        try {
-            order.setOpen((int) message.getField(new LeavesQty()).getValue());
-        } catch (FieldNotFound e) {
-            // FIX40 doesn't have LeavesQty
-            if (ordStatus.valueEquals(OrdStatus.REJECTED)
-                    || ordStatus.valueEquals(OrdStatus.CANCELED))
-                order.setOpen(0);
-            else if (ordStatus.valueEquals(OrdStatus.NEW)) {
-                if (order.isNew()) {
-                    order.setOpen(order.getQuantity());
-                    order.setNew(false);
-                }
-            }
-            //order.setOpen(order.getOpen() - (int) lastShares.getValue());
-        }
-
-        if (ordStatus.valueEquals(OrdStatus.REJECTED))
+        if (ordStatus.valueEquals(OrdStatus.REJECTED)) {
             order.setRejected(true);
-        else if (ordStatus.valueEquals(OrdStatus.CANCELED)
-                || ordStatus.valueEquals(OrdStatus.DONE_FOR_DAY))
+            order.setOpen(0);
+        } else if (ordStatus.valueEquals(OrdStatus.CANCELED)
+                || ordStatus.valueEquals(OrdStatus.DONE_FOR_DAY)) {
             order.setCanceled(true);
+            order.setOpen(0);
+        } else if (ordStatus.valueEquals(OrdStatus.NEW)) {
+            if (order.isNew()) {
+                order.setNew(false);
+            }
+        }
 
         try {
             order.setMessage(message.getField(new Text()).getValue());
         } catch (FieldNotFound e) {
-            order.setMessage(null);
         }
 
-        orderTableModel.updateOrder(order, id);
+        orderTableModel.updateOrder(order, message.getField(new ClOrdID()).getValue());
         observableOrder.update(order);
 
         if (fillSize > 0) {

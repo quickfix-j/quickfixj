@@ -254,7 +254,8 @@ public class OrderEntryPanel extends JPanel implements Observer {
             order.setSymbol(symbolTextField.getText());
             order.setQuantity(Integer.parseInt
                               (quantityTextField.getText()));
-
+            order.setOpen(order.getQuantity());
+            
             OrderType type = order.getType();
             if(type == OrderType.LIMIT || type == OrderType.STOP_LIMIT)
                 order.setLimit(limitPriceTextField.getText());
