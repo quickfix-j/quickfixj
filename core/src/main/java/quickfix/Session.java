@@ -215,7 +215,7 @@ public class Session {
 
     private boolean enabled;
 
-    private String responderSync = "SessionResponderSync";
+    private final String responderSync = "SessionResponderSync";
     // @GuardedBy(responderSync)
     private Responder responder;
 
@@ -1366,11 +1366,11 @@ public class Session {
     public void disconnect() throws IOException {
         Responder responder = getResponder();
         if (responder != null) {
-            getLog().onEvent("Disconnecting");
+                getLog().onEvent("Disconnecting");
             responder.disconnect();
-            setResponder(null);
-        }
-        
+                setResponder(null);
+            }
+
         boolean logonReceived = state.isLogonReceived();
         boolean logonSent = state.isLogonSent();
         if (logonReceived || logonSent) {
