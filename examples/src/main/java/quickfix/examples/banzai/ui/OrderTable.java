@@ -29,7 +29,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class OrderTable extends JTable implements MouseListener {
-    private BanzaiApplication application;
+    private transient BanzaiApplication application;
 
     public OrderTable(OrderTableModel orderTableModel,
                       BanzaiApplication application) {

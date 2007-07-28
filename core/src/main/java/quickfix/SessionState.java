@@ -294,11 +294,11 @@ public final class SessionState {
     }
 
     public void enqueue(int sequence, Message message) {
-        messageQueue.put(new Integer(sequence), message);
+        messageQueue.put(Integer.valueOf(sequence), message);
     }
 
     public Message dequeue(int sequence) {
-        return messageQueue.get(new Integer(sequence));
+        return messageQueue.get(Integer.valueOf(sequence));
     }
 
     public void clearQueue() {
@@ -414,7 +414,7 @@ public final class SessionState {
         }
     }
 
-    private final class NullLog implements Log {
+    private final static class NullLog implements Log {
         public void onOutgoing(String message) {
         }
 

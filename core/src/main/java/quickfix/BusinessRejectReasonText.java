@@ -31,15 +31,15 @@ public class BusinessRejectReasonText extends BusinessRejectReason {
     private static HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
     
     static {
-        rejectReasonText.put(new Integer(FIELD), "Field");
-        rejectReasonText.put(new Integer(OTHER), "Other");
-        rejectReasonText.put(new Integer(UNKOWN_ID), "Unknown ID");
-        rejectReasonText.put(new Integer(UNKNOWN_SECURITY), "Unknown Security");
-        rejectReasonText.put(new Integer(UNSUPPORTED_MESSAGE_TYPE), "Unsupported Message Type");
-        rejectReasonText.put(new Integer(APPLICATION_NOT_AVAILABLE), "Application Not Available");
-        rejectReasonText.put(new Integer(CONDITIONALLY_REQUIRED_FIELD_MISSING), "Conditionally Required Field Missing");
-        rejectReasonText.put(new Integer(NOT_AUTHORIZED), "Not authorized");
-        rejectReasonText.put(new Integer(DELIVERTO_FIRM_NOT_AVAILABLE_AT_THIS_TIME), "DeliverTo Firm Not Available At This Time");
+        rejectReasonText.put(Integer.valueOf(FIELD), "Field");
+        rejectReasonText.put(Integer.valueOf(OTHER), "Other");
+        rejectReasonText.put(Integer.valueOf(UNKOWN_ID), "Unknown ID");
+        rejectReasonText.put(Integer.valueOf(UNKNOWN_SECURITY), "Unknown Security");
+        rejectReasonText.put(Integer.valueOf(UNSUPPORTED_MESSAGE_TYPE), "Unsupported Message Type");
+        rejectReasonText.put(Integer.valueOf(APPLICATION_NOT_AVAILABLE), "Application Not Available");
+        rejectReasonText.put(Integer.valueOf(CONDITIONALLY_REQUIRED_FIELD_MISSING), "Conditionally Required Field Missing");
+        rejectReasonText.put(Integer.valueOf(NOT_AUTHORIZED), "Not authorized");
+        rejectReasonText.put(Integer.valueOf(DELIVERTO_FIRM_NOT_AVAILABLE_AT_THIS_TIME), "DeliverTo Firm Not Available At This Time");
 
     }
 
@@ -49,7 +49,7 @@ public class BusinessRejectReasonText extends BusinessRejectReason {
      * @return the description or null if there isn't a description for that reason
      */
     public static String getMessage(int rejectReason) {
-        return rejectReasonText.get(new Integer(rejectReason));
+        return rejectReasonText.get(Integer.valueOf(rejectReason));
     }
     
 }

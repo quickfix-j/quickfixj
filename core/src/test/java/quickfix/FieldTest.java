@@ -47,7 +47,7 @@ public class FieldTest extends TestCase {
     }
 
     public void testFieldCalculations() {
-        Field object = new Field(12, "VALUE");
+        Field<String> object = new Field<String>(12, "VALUE");
         object.setObject("VALUE");
         assertEquals("12=VALUE", object.toString());
         assertEquals(542, object.getTotal());
@@ -143,13 +143,13 @@ public class FieldTest extends TestCase {
         field.setValue('x');
         assertEquals(11, field.getTag());
         assertEquals('x', field.getValue());
-        field.setValue(new Character('X'));
+        field.setValue(Character.valueOf('X'));
         assertEquals(11, field.getTag());
         assertEquals('X', field.getValue());
         field = new CharField(22, 'a');
         assertEquals(22, field.getTag());
         assertEquals('a', field.getValue());
-        field = new CharField(33, new Character('A'));
+        field = new CharField(33, Character.valueOf('A'));
         assertEquals(33, field.getTag());
         assertEquals('A', field.getValue());
     }
@@ -159,13 +159,13 @@ public class FieldTest extends TestCase {
         field.setValue(12);
         assertEquals(11, field.getTag());
         assertEquals(12, field.getValue());
-        field.setValue(new Integer(23));
+        field.setValue(Integer.valueOf(23));
         assertEquals(11, field.getTag());
         assertEquals(23, field.getValue());
         field = new IntField(22, 23);
         assertEquals(22, field.getTag());
         assertEquals(23, field.getValue());
-        field = new IntField(33, new Integer(44));
+        field = new IntField(33, Integer.valueOf(44));
         assertEquals(33, field.getTag());
         assertEquals(44, field.getValue());
     }
@@ -182,7 +182,7 @@ public class FieldTest extends TestCase {
         assertEqualsAndHash(new UtcTimeStampField(11, date), new UtcTimeStampField(11, date));
     }
 
-    private void assertEqualsAndHash(Field field1, Field field2) {
+    private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {
         assertEquals("fields not equal", field1, field2);
         assertEquals("fields hashcode not equal", field1.hashCode(), field2.hashCode());
     }

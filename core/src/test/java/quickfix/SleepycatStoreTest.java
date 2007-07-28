@@ -44,7 +44,7 @@ public class SleepycatStoreTest extends AbstractMessageStoreTest {
         }
     }
 
-    protected Class getMessageStoreClass() {
+    protected Class<?> getMessageStoreClass() {
         return SleepycatStore.class;
     }
 

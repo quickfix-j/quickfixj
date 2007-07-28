@@ -180,17 +180,8 @@ public class IoSessionInitiator {
 
     synchronized void start() {
         if (reconnectFuture == null) {
-            try {
-                reconnectFuture = executor.scheduleWithFixedDelay(reconnectTask, 1, 1,
-                        TimeUnit.SECONDS);
-            } catch (Exception e) {
-                if (e instanceof RuntimeException) {
-                    throw (RuntimeException) e;
-
-                } else {
-                    throw new RuntimeException(e);
-                }
-            }
+            reconnectFuture = executor
+                    .scheduleWithFixedDelay(reconnectTask, 1, 1, TimeUnit.SECONDS);
         }
     }
 

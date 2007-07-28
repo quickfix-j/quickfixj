@@ -45,7 +45,7 @@ public class CompositeDataFactory {
 
     public void setValue(String itemName, boolean itemValue) {
         itemNames.add(itemName);
-        itemValues.add(new Boolean(itemValue));
+        itemValues.add(Boolean.valueOf(itemValue));
     }
 
     public CompositeData createCompositeData() throws OpenDataException {

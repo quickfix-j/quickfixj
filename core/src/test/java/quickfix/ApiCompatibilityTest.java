@@ -32,6 +32,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -84,8 +85,14 @@ public class ApiCompatibilityTest {
                 if (!ignoredItems.isIgnoredClass(jniClass)) {
                     try {
                         javaClass = Class.forName(jniClass.getName());
+                        int jniModifiers = jniClass.getModifiers();
+                        int javaModifiers = javaClass.getModifiers();
+                        if (!Modifier.isStatic(jniModifiers)) {
+                            // ignore additional static declarations on classes
+                            javaModifiers = javaModifiers & ~Modifier.STATIC; 
+                        }
                         Assert.assertEquals("different class modifiers: " + jniClass.getName(),
-                                jniClass.getModifiers(), javaClass.getModifiers());
+                                jniModifiers, javaModifiers);
                     } catch (ClassNotFoundException e) {
                         Assert.fail("class not found: " + e.getMessage());
                     }
@@ -109,8 +116,8 @@ public class ApiCompatibilityTest {
         }
 
         private void assertCompatibleInheritance() {
-            List<Class> jniInheritedClasses = getInheritedClasses(jniClass);
-            List<Class> javaInheritedClasses = getInheritedClasses(javaClass);
+            List<Class<?>> jniInheritedClasses = getInheritedClasses(jniClass);
+            List<Class<?>> javaInheritedClasses = getInheritedClasses(javaClass);
             for (int i = 0; i < jniInheritedClasses.size(); i++) {
                 if (!ignoredItems.isIgnoredClass(jniInheritedClasses.get(i))) {
                     Assert.assertTrue("missing interface: class=" + jniClass.getName()
@@ -122,16 +129,16 @@ public class ApiCompatibilityTest {
             }
         }
 
-        private List<Class> getInheritedClasses(Class clazz) {
-            HashSet<Class> classSet = new HashSet<Class>();
+        private List<Class<?>> getInheritedClasses(Class<?> clazz) {
+            HashSet<Class<?>> classSet = new HashSet<Class<?>>();
             getInheritedClasses(clazz, classSet);
-            return new ArrayList<Class>(classSet);
+            return new ArrayList<Class<?>>(classSet);
         }
 
-        private void getInheritedClasses(Class clazz, HashSet<Class> classSet) {
+        private void getInheritedClasses(Class<?> clazz, HashSet<Class<?>> classSet) {
             while (clazz != null) {
                 classSet.add(clazz);
-                Class[] interfaces = clazz.getInterfaces();
+                Class<?>[] interfaces = clazz.getInterfaces();
                 for (int i = 0; i < interfaces.length; i++) {
                     classSet.add(interfaces[i]);
                     getInheritedClasses(interfaces[i], classSet);
@@ -141,7 +148,7 @@ public class ApiCompatibilityTest {
         }
 
         private void assertCompatibleConstructors() {
-            Constructor[] constructors = jniClass.getDeclaredConstructors();
+            Constructor<?>[] constructors = jniClass.getDeclaredConstructors();
             for (int i = 0; i < constructors.length; i++) {
                 if (!ignoredItems.isIgnoredConstructor(constructors[i])) {
                     if ((constructors[i].getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) != 0) {
@@ -191,7 +198,7 @@ public class ApiCompatibilityTest {
             assertNoExtraJavaInterfaceMethods(javaClass);
         }
 
-        private void assertNoExtraJavaInterfaceMethods(Class javaInterface) {
+        private void assertNoExtraJavaInterfaceMethods(Class<?> javaInterface) {
             Method[] methods = javaInterface.getDeclaredMethods();
             for (int i = 0; i < methods.length; i++) {
                 try {
@@ -200,7 +207,7 @@ public class ApiCompatibilityTest {
                     Assert.fail("Extra interface method: " + methods[i]);
                 }
             }
-            Class[] interfaces = javaInterface.getInterfaces();
+            Class<?>[] interfaces = javaInterface.getInterfaces();
             for (int i = 0; i < interfaces.length; i++) {
                 assertNoExtraJavaInterfaceMethods(interfaces[i]);
             }
@@ -209,7 +216,7 @@ public class ApiCompatibilityTest {
         public Method findCompatibleJniMethod(Method javaMethod) throws NoSuchMethodException {
             Method method = null;
             final String methodName = javaMethod.getName();
-            final Class[] parameterTypes = translateClassArray(javaMethod.getParameterTypes(),
+            final Class<?>[] parameterTypes = translateClassArray(javaMethod.getParameterTypes(),
                     jniClass.getClassLoader());
             if ((javaMethod.getModifiers() & Modifier.PUBLIC) != 0) {
                 method = jniClass.getMethod(methodName, parameterTypes);
@@ -271,7 +278,7 @@ public class ApiCompatibilityTest {
             for (int j = 0; j < jniExceptionTypes.size(); j++) {
                 boolean foundException = false;
                 for (int k = 0; k < javaExceptionTypes.size(); k++) {
-                    if (translatedClass((Class) jniExceptionTypes.get(j),
+                    if (translatedClass((Class<?>) jniExceptionTypes.get(j),
                             javaClass.getClassLoader()).equals(javaExceptionTypes.get(k))) {
                         foundException = true;
                         break;
@@ -300,26 +307,26 @@ public class ApiCompatibilityTest {
             }
         }
 
-        private List<Class> translateClassList(List jniClasses) {
-            ArrayList<Class> classes = new ArrayList<Class>();
+        private List<Class<?>> translateClassList(List<Class<?>> jniClasses) {
+            ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
             for (int i = 0; i < jniClasses.size(); i++) {
-                classes.add(translatedClass((Class) jniClasses.get(i), javaClass.getClassLoader()));
+                classes.add(translatedClass((Class<?>) jniClasses.get(i), javaClass.getClassLoader()));
             }
             return classes;
         }
 
-        private Class[] translateClassArray(Class[] classArray, ClassLoader toClassloader) {
+        private Class<?>[] translateClassArray(Class<?>[] classArray, ClassLoader toClassloader) {
             if (classArray == null) {
                 return null;
             }
-            Class[] types = new Class[classArray.length];
+            Class<?>[] types = new Class[classArray.length];
             for (int i = 0; i < types.length; i++) {
                 types[i] = translatedClass(classArray[i], toClassloader);
             }
             return types;
         }
 
-        private Class translatedClass(Class type, ClassLoader toClassLoader) {
+        private Class<?> translatedClass(Class<?> type, ClassLoader toClassLoader) {
             Package pkg = type.getPackage();
             if (pkg == null || pkg.getName().startsWith("java.")) {
                 return type;
@@ -327,7 +334,7 @@ public class ApiCompatibilityTest {
                 try {
                     return toClassLoader.loadClass(type.getName());
                 } catch (ClassNotFoundException e) {
-                    Assert.fail("class not found: " + e.getMessage());
+                    Assert.fail("Class not found: " + e.getMessage());
                     return null;
                 }
             }
@@ -335,13 +342,13 @@ public class ApiCompatibilityTest {
     }
 
     private static class IgnoredItems {
-        private HashSet<Class> ignoredClasses = new HashSet<Class>();
-        private HashSet<Constructor> ignoredConstructors = new HashSet<Constructor>();
-        private HashSet ignoredMethods = new HashSet();
+        private HashSet<Class<?>> ignoredClasses = new HashSet<Class<?>>();
+        private HashSet<Constructor<?>> ignoredConstructors = new HashSet<Constructor<?>>();
+        private HashSet<Method> ignoredMethods = new HashSet<Method>();
 
         public IgnoredItems(ClassLoader jniClassLoader) throws ClassNotFoundException,
                 SecurityException, NoSuchMethodException {
-            ignoreConstructor(jniClassLoader, "quickfix.Message", new Class[] {
+            ignoreConstructor(jniClassLoader, "quickfix.Message", new Class<?>[] {
                     Message.Header.class, Message.Trailer.class });
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppLog"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppMessageStore"));
@@ -375,11 +382,11 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header" + "$Iterator"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Trailer$Iterator"));
             ignoreConstructor(jniClassLoader, "quickfix.FileStore", null);
-            ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class[] { long.class });
-            ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class[] { long.class });
-            ignoreConstructor(jniClassLoader, "quickfix.Message$Header", new Class[] {
+            ignoreConstructor(jniClassLoader, "quickfix.FileStore", new Class<?>[] { long.class });
+            ignoreConstructor(jniClassLoader, "quickfix.MemoryStore", new Class<?>[] { long.class });
+            ignoreConstructor(jniClassLoader, "quickfix.Message$Header", new Class<?>[] {
                     Message.class, Message.class });
-            ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class[] {
+            ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class<?>[] {
                     Message.class, Message.class });
         }
 
@@ -391,14 +398,14 @@ public class ApiCompatibilityTest {
         }
 
         //        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
-        //                Class[] argumentTypes) throws ClassNotFoundException, SecurityException,
+        //                Class<?>[] argumentTypes) throws ClassNotFoundException, SecurityException,
         //                NoSuchMethodException {
         //            Class c = jniClassLoader.loadClass(className);
         //            Method m = c.getDeclaredMethod(methodName, argumentTypes);
         //            ignoredMethods.add(m);
         //        }
 
-        private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class[] args)
+        private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class<?>[] args)
                 throws ClassNotFoundException, NoSuchMethodException {
             Class<?> c = jniClassLoader.loadClass(classname);
             if (args != null) {
@@ -416,11 +423,11 @@ public class ApiCompatibilityTest {
             ignoredConstructors.add(c.getDeclaredConstructor(args));
         }
 
-        public boolean isIgnoredClass(Class jniClass) {
+        public boolean isIgnoredClass(Class<?> jniClass) {
             return ignoredClasses.contains(jniClass);
         }
 
-        public boolean isIgnoredConstructor(Constructor jniConstructor) {
+        public boolean isIgnoredConstructor(Constructor<?> jniConstructor) {
             return ignoredConstructors.contains(jniConstructor);
         }
     }
@@ -440,7 +447,7 @@ public class ApiCompatibilityTest {
             ClassLoader jniClassLoader = new URLClassLoader(urls, null);
             IgnoredItems ignoredItems = new IgnoredItems(jniClassLoader);
             JarFile jar = new JarFile(new File(jarPath), false, ZipFile.OPEN_READ);
-            Enumeration entries = jar.entries();
+            Enumeration<JarEntry> entries = jar.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = (ZipEntry) entries.nextElement();
                 String path = entry.getName();
@@ -449,7 +456,7 @@ public class ApiCompatibilityTest {
                 if (testedDirectories.contains(directory) && !name.equals("")) {
                     String classname = path.substring(0, path.lastIndexOf(".class")).replace('/',
                             '.');
-                    Class jniClass = jniClassLoader.loadClass(classname);
+                    Class<?> jniClass = jniClassLoader.loadClass(classname);
                     if (!ignoredItems.isIgnoredClass(jniClass)) {
                         suite.addTest(new ApiTest(jniClass, ignoredItems));
                     }

@@ -108,7 +108,7 @@ class ATMessageCracker extends quickfix.MessageCracker {
         process(message, sessionID);
     }
 
-    private class Pair {
+    private static class Pair {
 
         private ClOrdID clOrdID;
         private SessionID sessionID;
@@ -121,8 +121,12 @@ class ATMessageCracker extends quickfix.MessageCracker {
         }
 
         public boolean equals(Object object) {
-            if (object == null)
+            if (object == null) {
                 return false;
+            }
+            if (object instanceof Pair == false) {
+                return false;
+            }
             Pair pair = (Pair) object;
 
             return clOrdID.equals(pair.clOrdID) && sessionID.equals(pair.sessionID);

@@ -224,10 +224,29 @@ public class Message extends FieldMap {
         return trailerHasGroup(group.getFieldTag());
     }
 
+    /**
+     * Converts the message into a simple XML format. This format is
+     * probably not sufficient for production use, but it more intended
+     * for diagnostics and debugging. THIS IS NOT FIXML.
+     * 
+     * To get names instead of tag number, use toXML(DataDictionary)
+     * instead.
+     * 
+     * @return an XML representation of the message.
+     * @see #toXML(DataDictionary)
+     */
     public String toXML() {
         return toXML(null);
     }
 
+    /**
+     * Converts the message into a simple XML format. This format is
+     * probably not sufficient for production use, but it more intended
+     * for diagnostics and debugging. THIS IS NOT FIXML.
+     * 
+     * @param dataDictionary
+     * @return
+     */
     public String toXML(DataDictionary dataDictionary) {
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
@@ -256,7 +275,7 @@ public class Message extends FieldMap {
         Document document = message.getOwnerDocument();
         Element fields = document.createElement(section);
         message.appendChild(fields);
-        Iterator<Field> fieldItr = fieldMap.iterator();
+        Iterator<Field<?>> fieldItr = fieldMap.iterator();
         while (fieldItr.hasNext()) {
             StringField field = (StringField) fieldItr.next();
             Element fieldElement = document.createElement("field");
@@ -330,7 +349,7 @@ public class Message extends FieldMap {
         trailer.clear();
     }
 
-    public class Header extends FieldMap {
+    public static class Header extends FieldMap {
 
         static final long serialVersionUID = -3193357271891865972L;
 
@@ -341,7 +360,7 @@ public class Message extends FieldMap {
 
     }
 
-    public class Trailer extends FieldMap {
+    public static class Trailer extends FieldMap {
 
         static final long serialVersionUID = -3193357271891865972L;
 
@@ -560,7 +579,7 @@ public class Message extends FieldMap {
         }
     }
 
-    static boolean isHeaderField(Field field, DataDictionary dd) {
+    static boolean isHeaderField(Field<?> field, DataDictionary dd) {
         return isHeaderField(field.getField())
                 || (dd != null && dd.isHeaderField(field.getField()));
     }
@@ -599,7 +618,7 @@ public class Message extends FieldMap {
         }
     }
 
-    static boolean isTrailerField(Field field, DataDictionary dd) {
+    static boolean isTrailerField(Field<?> field, DataDictionary dd) {
         return isTrailerField(field.getField())
                 || (dd != null && dd.isTrailerField(field.getField()));
     }

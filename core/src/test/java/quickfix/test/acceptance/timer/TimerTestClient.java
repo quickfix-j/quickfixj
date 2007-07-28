@@ -22,6 +22,7 @@ package quickfix.test.acceptance.timer;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class TimerTestClient extends MessageCracker implements Application {
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
     private boolean stop = false;
-    private final Object shutdownLatch = new Object();
+    private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean failed;
 
     public void crack(Message message, SessionID sessionID) throws UnsupportedMessageType,
@@ -128,11 +129,9 @@ public class TimerTestClient extends MessageCracker implements Application {
             }, 5000);
 
             while (!stop) {
-                synchronized (shutdownLatch) {
-                    try {
-                        shutdownLatch.wait();
-                    } catch (InterruptedException e) {
-                    }
+                try {
+                    shutdownLatch.await();
+                } catch (InterruptedException e) {
                 }
             }
 

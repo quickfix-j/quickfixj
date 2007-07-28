@@ -355,7 +355,7 @@ public class FIXMessageDecoderTest extends TestCase {
                 decoderOutput));
         assertEquals("wrong message count", count, decoderOutput.getMessageCount());
         for (int i = 0; i < count; i++) {
-            assertEquals("incorrect msg framing", data, decoderOutput.getMessage(i).toString());
+            assertEquals("incorrect msg framing", data, decoderOutput.getMessage(i));
         }
     }
 

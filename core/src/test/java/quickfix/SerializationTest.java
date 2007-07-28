@@ -129,8 +129,7 @@ public class SerializationTest extends TestCase {
     public Message messageFromClassNameWithDefaultValues(String className, int maxGroupElts) {
         Message res = null;
         try {
-            Class cl = Class.forName(className);
-            // res = cl.newInstance();
+            Class<?> cl = Class.forName(className);
             res = createMessageWithDefaultValues(cl, maxGroupElts);
         } catch (ClassNotFoundException e) {
             fail(e.getMessage());
@@ -145,7 +144,7 @@ public class SerializationTest extends TestCase {
     public Object objectFromClassName(String className) {
         Object res = null;
         try {
-            Class cl = Class.forName(className);
+            Class<?> cl = Class.forName(className);
             res = cl.newInstance();
         } catch (ClassNotFoundException e) {
             fail(e.getMessage());
@@ -207,10 +206,10 @@ public class SerializationTest extends TestCase {
     private final class FieldSerializationAssertion implements SerializationAssertion {
 
         public void assertSerialization(String fieldClassName) {
-            Field sourceField = (Field) objectFromClassName(fieldClassName);
+            Field<?> sourceField = (Field<?>) objectFromClassName(fieldClassName);
             String sourceFIXString = sourceField.toString();
 
-            Field serializedField = (Field) buildSerializedObject(sourceField);
+            Field<?> serializedField = (Field<?>) buildSerializedObject(sourceField);
             String serializedFIXString = null;
             if (serializedField != null) {
                 serializedFIXString = serializedField.toString();
@@ -257,7 +256,7 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private Group createGroupWithDefaultValues(Class cl) throws InstantiationException, IllegalAccessException {
+    private Group createGroupWithDefaultValues(Class<?> cl) throws InstantiationException, IllegalAccessException {
         Group res = (Group) createFieldMapWithDefaultValues(cl);
         return res;
     }

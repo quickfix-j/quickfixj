@@ -49,7 +49,7 @@ public class MemoryStore implements MessageStore {
 
     public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
         for (int i = startSequence; i <= endSequence; i++) {
-            String message = this.messages.get(new Integer(i));
+            String message = this.messages.get(i);
             if (message != null) {
                 messages.add(message);
             }
@@ -98,7 +98,7 @@ public class MemoryStore implements MessageStore {
     }
 
     public boolean set(int sequence, String message) throws IOException {
-        return messages.put(new Integer(sequence), message) == null;
+        return messages.put(sequence, message) == null;
     }
 
     public void setNextSenderMsgSeqNum(int next) throws IOException {

@@ -23,7 +23,6 @@ import java.net.InetSocketAddress;
 
 import junit.framework.TestCase;
 
-import org.apache.mina.common.CloseFuture;
 import org.apache.mina.common.IoSession;
 import org.easymock.MockControl;
 

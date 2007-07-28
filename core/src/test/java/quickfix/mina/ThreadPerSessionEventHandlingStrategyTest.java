@@ -43,7 +43,7 @@ import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix40.Logon;
 
 public class ThreadPerSessionEventHandlingStrategyTest extends TestCase {
-    private final class ThreadPerSessionEventHandlingStrategyUnderTest extends
+    private final static class ThreadPerSessionEventHandlingStrategyUnderTest extends
             ThreadPerSessionEventHandlingStrategy {
         public boolean dispatcherThreadStarted;
         public Exception getNextMessageException;
@@ -101,6 +101,7 @@ public class ThreadPerSessionEventHandlingStrategyTest extends TestCase {
             }
         
         });
+        // run called directly for testing purposes
         strategy.getDispatcher(sessionID).run();
     }
 

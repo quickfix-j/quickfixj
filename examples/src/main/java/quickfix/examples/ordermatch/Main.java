@@ -34,7 +34,7 @@ import quickfix.SocketAcceptor;
 public class Main {
     public static void main(String[] args) {
         try {
-            InputStream inputStream = null; 
+            InputStream inputStream = null;
             if (args.length == 0) {
                 inputStream = OrderMatcher.class.getResourceAsStream("ordermatch.cfg");
             } else if (args.length == 1) {
@@ -57,12 +57,14 @@ public class Main {
             while (true) {
                 System.out.println("type #quit to quit");
                 String value = in.readLine();
-                if (value.equals("#symbols")) {
-                    application.orderMatcher().display();
-                } else if (value.equals("#quit")) {
-                    break;
-                } else {
-                    application.orderMatcher().display();
+                if (value != null) {
+                    if (value.equals("#symbols")) {
+                        application.orderMatcher().display();
+                    } else if (value.equals("#quit")) {
+                        break;
+                    } else {
+                        application.orderMatcher().display();
+                    }
                 }
             }
             acceptor.stop();

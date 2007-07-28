@@ -35,7 +35,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private static TransportType transportType = TransportType.SOCKET;
     private static int port = 9887;
 
-    private final class TestDefinitionFilter implements FileFilter {
+    private static class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
                     "future"))
@@ -43,7 +43,7 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
-    static class AcceptanceTest extends TestCase {
+    private static class AcceptanceTest extends TestCase {
         private final String filename;
         private final String testname;
 

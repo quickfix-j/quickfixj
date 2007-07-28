@@ -63,10 +63,10 @@ public class NetworkingOptions {
     public static final String IPTOC_LOWDELAY = "IPTOS_LOWDELAY";
     public static final Map<String, Integer> trafficClasses = new HashMap<String, Integer>();
     static {
-        trafficClasses.put(IPTOC_LOWCOST, new Integer(0x02));
-        trafficClasses.put(IPTOC_RELIABILITY, new Integer(0x04));
-        trafficClasses.put(IPTOC_THROUGHPUT, new Integer(0x08));
-        trafficClasses.put(IPTOC_LOWDELAY, new Integer(0x10));
+        trafficClasses.put(IPTOC_LOWCOST, Integer.valueOf(0x02));
+        trafficClasses.put(IPTOC_RELIABILITY, Integer.valueOf(0x04));
+        trafficClasses.put(IPTOC_THROUGHPUT, Integer.valueOf(0x08));
+        trafficClasses.put(IPTOC_LOWDELAY, Integer.valueOf(0x10));
     }
 
     public NetworkingOptions(Properties properties) throws FieldConvertError {
@@ -94,14 +94,14 @@ public class NetworkingOptions {
                             + trafficClassEnums[i]);
                 }
             }
-            trafficClass = new Integer(trafficClassBits);
+            trafficClass = Integer.valueOf(trafficClassBits);
             log.info("Socket option: " + SETTING_SOCKET_TRAFFIC_CLASS + "= 0x"
                     + Integer.toHexString(trafficClassBits) + " (" + trafficClassEnumString + ")");
         }
     }
 
     private Boolean getBoolean(Properties properties, String key) throws FieldConvertError {
-        Boolean value = properties.containsKey(key) ? new Boolean(BooleanConverter
+        Boolean value = properties.containsKey(key) ? Boolean.valueOf(BooleanConverter
                 .convert(properties.getProperty(key))) : null;
         logOption(key, value);
         return value;
@@ -114,7 +114,7 @@ public class NetworkingOptions {
     }
 
     private Integer getInteger(Properties properties, String key) throws FieldConvertError {
-        Integer value = properties.containsKey(key) ? new Integer(IntConverter.convert(properties
+        Integer value = properties.containsKey(key) ? Integer.valueOf(IntConverter.convert(properties
                 .getProperty(key))) : null;
         logOption(key, value);
         return value;

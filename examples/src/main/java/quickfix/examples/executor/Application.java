@@ -235,11 +235,11 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
     }
 
     public OrderID genOrderID() {
-        return new OrderID(new Integer(++m_orderID).toString());
+        return new OrderID(Integer.valueOf(++m_orderID).toString());
     }
 
     public ExecID genExecID() {
-        return new ExecID(new Integer(++m_execID).toString());
+        return new ExecID(Integer.valueOf(++m_execID).toString());
     }
 
     private int m_orderID = 0;

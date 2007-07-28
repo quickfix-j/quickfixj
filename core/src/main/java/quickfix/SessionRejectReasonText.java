@@ -27,26 +27,26 @@ class SessionRejectReasonText extends SessionRejectReason {
     private static HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
     
     static {
-        rejectReasonText.put(new Integer(INVALID_TAG_NUMBER), "Invalid tag number");
-        rejectReasonText.put(new Integer(REQUIRED_TAG_MISSING), "Required tag missing");
-        rejectReasonText.put(new Integer(TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE), "Tag not defined for this message type");
-        rejectReasonText.put(new Integer(UNDEFINED_TAG), "Undefined Tag");
-        rejectReasonText.put(new Integer(TAG_SPECIFIED_WITHOUT_A_VALUE), "Tag specified without a value");
-        rejectReasonText.put(new Integer(VALUE_IS_INCORRECT), "Value is incorrect (out of range) for this tag");
-        rejectReasonText.put(new Integer(INCORRECT_DATA_FORMAT_FOR_VALUE), "Incorrect data format for value");
-        rejectReasonText.put(new Integer(DECRYPTION_PROBLEM), "Decryption problem");
-        rejectReasonText.put(new Integer(SIGNATURE_PROBLEM), "Signature problem");
-        rejectReasonText.put(new Integer(COMPID_PROBLEM), "CompID problem");
-        rejectReasonText.put(new Integer(SENDINGTIME_ACCURACY_PROBLEM), "SendingTime accuracy problem");
-        rejectReasonText.put(new Integer(INVALID_MSGTYPE), "Invalid MsgType");
-        rejectReasonText.put(new Integer(TAG_APPEARS_MORE_THAN_ONCE), "Tag appears more than once");
-        rejectReasonText.put(new Integer(TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER), "Tag specified out of required order");
-        rejectReasonText.put(new Integer(INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP), "Incorrect NumInGroup count for repeating group");
+        rejectReasonText.put(Integer.valueOf(INVALID_TAG_NUMBER), "Invalid tag number");
+        rejectReasonText.put(Integer.valueOf(REQUIRED_TAG_MISSING), "Required tag missing");
+        rejectReasonText.put(Integer.valueOf(TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE), "Tag not defined for this message type");
+        rejectReasonText.put(Integer.valueOf(UNDEFINED_TAG), "Undefined Tag");
+        rejectReasonText.put(Integer.valueOf(TAG_SPECIFIED_WITHOUT_A_VALUE), "Tag specified without a value");
+        rejectReasonText.put(Integer.valueOf(VALUE_IS_INCORRECT), "Value is incorrect (out of range) for this tag");
+        rejectReasonText.put(Integer.valueOf(INCORRECT_DATA_FORMAT_FOR_VALUE), "Incorrect data format for value");
+        rejectReasonText.put(Integer.valueOf(DECRYPTION_PROBLEM), "Decryption problem");
+        rejectReasonText.put(Integer.valueOf(SIGNATURE_PROBLEM), "Signature problem");
+        rejectReasonText.put(Integer.valueOf(COMPID_PROBLEM), "CompID problem");
+        rejectReasonText.put(Integer.valueOf(SENDINGTIME_ACCURACY_PROBLEM), "SendingTime accuracy problem");
+        rejectReasonText.put(Integer.valueOf(INVALID_MSGTYPE), "Invalid MsgType");
+        rejectReasonText.put(Integer.valueOf(TAG_APPEARS_MORE_THAN_ONCE), "Tag appears more than once");
+        rejectReasonText.put(Integer.valueOf(TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER), "Tag specified out of required order");
+        rejectReasonText.put(Integer.valueOf(INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP), "Incorrect NumInGroup count for repeating group");
 
     }
 
     public static String getMessage(int sessionRejectReason) {
-        return rejectReasonText.get(new Integer(sessionRejectReason));
+        return rejectReasonText.get(Integer.valueOf(sessionRejectReason));
     }
 
 }

@@ -170,6 +170,11 @@ class SessionSchedule {
             return false;
         }
 
+        public int hashCode() {
+            assert false : "hashCode not supported";
+            return 0;
+        }
+        
         public TimeZone getTimeZone() {
             return tz;
         }
@@ -212,7 +217,7 @@ class SessionSchedule {
         
     }
 
-    private class TimeInterval {
+    private static class TimeInterval {
         private Calendar start = SystemTime.getUtcCalendar();
         private Calendar end = SystemTime.getUtcCalendar();
 
@@ -235,6 +240,11 @@ class SessionSchedule {
             return start.equals(otherInterval.start) && end.equals(otherInterval.end);
         }
 
+        public int hashCode() {
+            assert false : "hashCode not supported";
+            return 0;
+        }
+        
         public Calendar getStart() {
             return start;
         }

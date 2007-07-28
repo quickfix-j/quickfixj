@@ -97,7 +97,7 @@ public class CancelReplacePanel extends JPanel {
             return;
         this.order = order;
         quantityTextField.setText
-        (new Integer(order.getOpen()).toString());
+        (Integer.toString(order.getOpen()));
 
         Double limit = order.getLimit();
         if(limit != null)

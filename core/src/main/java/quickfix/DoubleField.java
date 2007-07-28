@@ -24,12 +24,12 @@ import java.lang.Double;
 /**
  * A double-values message field.
  */
-public class DoubleField extends Field {
+public class DoubleField extends Field<Double> {
 
     private int padding = 0;
 
     public DoubleField(int field) {
-        super(field, new Double(0));
+        super(field, 0d);
     }
 
     public DoubleField(int field, Double data) {
@@ -37,11 +37,11 @@ public class DoubleField extends Field {
     }
 
     public DoubleField(int field, double data) {
-        super(field, new Double(data));
+        super(field, data);
     }
 
     public DoubleField(int field, double data, int padding) {
-        super(field, new Double(data));
+        super(field, data);
         this.padding = padding;
     }
 
@@ -50,11 +50,11 @@ public class DoubleField extends Field {
     }
 
     public void setValue(double value) {
-        setObject(new Double(value));
+        setObject(value);
     }
 
     public double getValue() {
-        return ((Double) getObject()).doubleValue();
+        return getObject();
     }
 
     public int getPadding() {
@@ -62,10 +62,10 @@ public class DoubleField extends Field {
     }
 
     public boolean valueEquals(Double value) {
-        return getValue() == value.doubleValue();
+        return getObject().equals(value);
     }
 
     public boolean valueEquals(double value) {
-        return getValue() == value;
+        return getObject().equals(value);
     }
 }

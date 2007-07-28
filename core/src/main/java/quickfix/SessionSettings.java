@@ -442,7 +442,7 @@ public class SessionSettings {
 
         public static final int SECTION_TOKEN = 4;
 
-        private class Token {
+        private static class Token {
             private int type;
 
             private String value;

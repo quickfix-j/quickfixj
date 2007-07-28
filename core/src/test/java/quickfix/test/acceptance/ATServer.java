@@ -68,6 +68,7 @@ public class ATServer implements Runnable {
         // defaults
     }
 
+    @SuppressWarnings("unchecked")
     public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port) {
         this.threaded = threaded;
         this.transportType = transportType;
@@ -154,19 +155,18 @@ public class ATServer implements Runnable {
             assertSessionIds();
 
             initializationLatch.countDown();
-            synchronized (application) {
+            CountDownLatch shutdownLatch = new CountDownLatch(1);
+            try {
+                shutdownLatch.await();
+            } catch (InterruptedException e1) {
                 try {
-                    application.wait();
-                } catch (InterruptedException e1) {
-                    try {
-                        acceptor.stop(true);
-                    } catch (RuntimeException e) {
-                        e.printStackTrace();
-                    } finally {
-                        tearDownLatch.countDown();
-                    }
-                    log.info("server exiting");
+                    acceptor.stop(true);
+                } catch (RuntimeException e) {
+                    e.printStackTrace();
+                } finally {
+                    tearDownLatch.countDown();
                 }
+                log.info("server exiting");
             }
         } catch (Throwable e) {
             log.error("error in AT server", e);
@@ -176,7 +176,7 @@ public class ATServer implements Runnable {
     private void assertSessionIds() {
         // This is a strange place for this test, but it wasn't convenient
         // to put it elsewhere. Bug #153
-        ArrayList sessionIDs = acceptor.getSessions();
+        ArrayList<SessionID> sessionIDs = acceptor.getSessions();
         for (int i = 0; i < sessionIDs.size(); i++) {
             Assert.assertTrue(sessionIDs.get(i) instanceof SessionID);
         }

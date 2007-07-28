@@ -113,15 +113,15 @@ public class Dictionary {
     }
 
     public void setLong(String key, long value) {
-        data.put(key, new Long(value));
+        data.put(key, Long.valueOf(value));
     }
 
     public void setDouble(String key, double value) {
-        data.put(key, new Double(value));
+        data.put(key, Double.valueOf(value));
     }
 
     public void setBool(String key, boolean value) {
-        data.put(key, new Boolean(value));
+        data.put(key, Boolean.valueOf(value));
     }
 
     public void setDay( String key, int value ) {

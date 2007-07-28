@@ -352,7 +352,7 @@ public class DataDictionary {
     public boolean isRequiredHeaderField(int field)
     {
         return (isHeaderField(field) &&
-                (((Boolean) headerFields.get(field)) == Boolean.TRUE));
+                (((Boolean) headerFields.get(field)).equals(Boolean.TRUE)));
     }
 
     /**
@@ -363,7 +363,7 @@ public class DataDictionary {
     public boolean isRequiredTrailerField(int field)
     {
         return (isTrailerField(field) &&
-                (((Boolean) trailerFields.get(field)) == Boolean.TRUE));
+                (((Boolean) trailerFields.get(field)).equals(Boolean.TRUE)));
     }
 
     private void addFieldValue(int field, String value) {
@@ -596,8 +596,8 @@ public class DataDictionary {
     }
 
     private void iterate(FieldMap map, String msgType) throws IncorrectTagValue, IncorrectDataFormat {
-        Field previousField = null;
-        Iterator<Field> iterator = map.iterator();
+        Field<?> previousField = null;
+        Iterator<Field<?>> iterator = map.iterator();
         while (iterator.hasNext()) {
             StringField field = (StringField) iterator.next();
             if (previousField != null && field.getTag() == previousField.getTag()) {
@@ -632,7 +632,7 @@ public class DataDictionary {
     }
 
     // / If we need to check for the tag in the dictionary
-    private boolean shouldCheckTag(Field field) {
+    private boolean shouldCheckTag(Field<?> field) {
         if (!checkUserDefinedFields && field.getField() >= USER_DEFINED_TAG_MIN) {
             return false;
         } else {
@@ -641,8 +641,8 @@ public class DataDictionary {
     }
 
     // / Check if field tag number is defined in spec.
-    void checkValidTagNumber(Field field) {
-        if (!fields.contains(new Integer(field.getTag()))) {
+    void checkValidTagNumber(Field<?> field) {
+        if (!fields.contains(Integer.valueOf(field.getTag()))) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
         }
     }
@@ -727,7 +727,7 @@ public class DataDictionary {
     }
 
     // / Check if a field is in this message type.
-    private void checkIsInMessage(Field field, String msgType) {
+    private void checkIsInMessage(Field<?> field, String msgType) {
         if (!isMsgField(msgType, field.getField())) {
             throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE,
                     field.getField());
@@ -1194,7 +1194,7 @@ public class DataDictionary {
     /**
      * Data dictionary-related exception.
      */
-    public class Exception extends RuntimeException {
+    public static class Exception extends RuntimeException {
 
         public Exception(Throwable cause) {
             super(cause);

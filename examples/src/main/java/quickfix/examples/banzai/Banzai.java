@@ -22,6 +22,7 @@ package quickfix.examples.banzai;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -46,6 +47,7 @@ import quickfix.examples.banzai.ui.BanzaiFrame;
  * Entry point for the Banzai application.
  */
 public class Banzai {
+    private static final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     /** enable logging for this class */
     private static Logger log = LoggerFactory.getLogger(Banzai.class);
@@ -53,7 +55,7 @@ public class Banzai {
     private boolean initiatorStarted = false;
     private Initiator initiator = null;
     private JFrame frame = null;
-
+    
     public Banzai(String[] args) throws Exception {
         InputStream inputStream = null;
         if (args.length == 0) {
@@ -93,7 +95,7 @@ public class Banzai {
                 log.error("Logon failed", e);
             }
         } else {
-            Iterator sessionIds = initiator.getSessions().iterator();
+            Iterator<SessionID> sessionIds = initiator.getSessions().iterator();
             while (sessionIds.hasNext()) {
                 SessionID sessionId = (SessionID) sessionIds.next();
                 Session.lookupSession(sessionId).logon();
@@ -102,7 +104,7 @@ public class Banzai {
     }
 
     public void logout() {
-        Iterator sessionIds = initiator.getSessions().iterator();
+        Iterator<SessionID> sessionIds = initiator.getSessions().iterator();
         while (sessionIds.hasNext()) {
             SessionID sessionId = (SessionID) sessionIds.next();
             Session.lookupSession(sessionId).logout("user requested");
@@ -110,9 +112,7 @@ public class Banzai {
     }
 
     public void stop() {
-        synchronized (banzai) {
-            banzai.notify();
-        }
+        shutdownLatch.countDown();
     }
 
     public JFrame getFrame() {
@@ -133,9 +133,7 @@ public class Banzai {
         if (!System.getProperties().containsKey("openfix")) {
             banzai.logon();
         }
-        synchronized (banzai) {
-            banzai.wait();
-        }
+        shutdownLatch.await();
     }
 
 }

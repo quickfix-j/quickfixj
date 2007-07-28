@@ -700,7 +700,7 @@ public class MessageTest extends TestCase {
 
     public void testMessageIterator() {
         Message message = new Message();
-        java.util.Iterator i = message.iterator();
+        java.util.Iterator<Field<?>> i = message.iterator();
         assertEquals(false, i.hasNext());
         try {
             assertNull(i.next());
@@ -723,7 +723,7 @@ public class MessageTest extends TestCase {
             } catch (java.util.NoSuchElementException e) {
             }
     
-            java.util.Iterator j = message.getHeader().iterator();
+            java.util.Iterator<Field<?>> j = message.getHeader().iterator();
             assertTrue(j.hasNext());
             field = (StringField) j.next();
             assertEquals(8, field.getField());
@@ -921,7 +921,7 @@ public class MessageTest extends TestCase {
 
     private void assertGroupContent(Message message, NewOrderSingle.NoAllocs numAllocs) {
         StringField field = null;
-        java.util.Iterator i = numAllocs.iterator();
+        java.util.Iterator<Field<?>> i = numAllocs.iterator();
         assertTrue(i.hasNext());
         field = (StringField) i.next();
         assertEquals("AllocACC2", field.getValue());

@@ -32,13 +32,13 @@ public class ReflectionUtil {
             throws IllegalArgumentException, SecurityException, InstantiationException,
             IllegalAccessException, InvocationTargetException, NoSuchMethodException,
             ClassNotFoundException {
-        Class targetClass = Thread.currentThread().getContextClassLoader().loadClass(className);
+        Class<?> targetClass = Thread.currentThread().getContextClassLoader().loadClass(className);
         return getMatchingConstructor(targetClass, args).newInstance(args);
     }
 
-    private static Constructor getMatchingConstructor(Class targetClass, Object[] args)
+    private static Constructor<?> getMatchingConstructor(Class<?> targetClass, Object[] args)
             throws NoSuchMethodException {
-        Constructor[] ctors = targetClass.getConstructors();
+        Constructor<?>[] ctors = targetClass.getConstructors();
         for (int i = 0; i < ctors.length; i++) {
             if (isMatchingArgs(ctors[i].getParameterTypes(), args)) {
                 return ctors[i];
@@ -67,13 +67,13 @@ public class ReflectionUtil {
         return getMatchingMethod(target.getClass(), method, args).invoke(target, args);
     }
 
-    public static Object callMethod(Object target, Class interfaceClass, String method,
+    public static Object callMethod(Object target, Class<?> interfaceClass, String method,
             Object[] args) throws IllegalArgumentException, SecurityException,
             IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         return getMatchingMethod(interfaceClass, method, args).invoke(target, args);
     }
 
-    private static Method getMatchingMethod(Class targetClass, String methodName, Object[] args)
+    private static Method getMatchingMethod(Class<?> targetClass, String methodName, Object[] args)
             throws NoSuchMethodException {
         Method[] methods = targetClass.getMethods();
         for (int i = 0; i < methods.length; i++) {
@@ -85,7 +85,7 @@ public class ReflectionUtil {
         throw new NoSuchMethodException(methodName);
     }
 
-    private static boolean isMatchingArgs(Class[] targetArgTypes, Object[] args) {
+    private static boolean isMatchingArgs(Class<?>[] targetArgTypes, Object[] args) {
         if (args == null && targetArgTypes.length == 0) {
             return true;
         }
@@ -134,7 +134,7 @@ public class ReflectionUtil {
         int n = methodFqn.lastIndexOf('.');
         String className = methodFqn.substring(0, n);
         String methodName = methodFqn.substring(n + 1, methodFqn.length());
-        Class targetClass = Thread.currentThread().getContextClassLoader().loadClass(className);
+        Class<?> targetClass = Thread.currentThread().getContextClassLoader().loadClass(className);
         return getMatchingMethod(targetClass, methodName, args).invoke(null, args);
     }
 
@@ -142,11 +142,11 @@ public class ReflectionUtil {
         try {
             Object threadMXBean = ReflectionUtil.callStaticMethod(
                     "java.lang.management.ManagementFactory.getThreadMXBean", null);
-            Class threadMXBeanInterface = Class.forName("java.lang.management.ThreadMXBean");
+            Class<?> threadMXBeanInterface = Class.forName("java.lang.management.ThreadMXBean");
             long[] threadIds = (long[]) ReflectionUtil.callMethod(threadMXBean,
                     threadMXBeanInterface, "getAllThreadIds", null);
             Object[] threadInfos = (Object[]) ReflectionUtil.callMethod(threadMXBean,
-                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, new Integer(10)});
+                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, Integer.valueOf(10)});
             for (int i = 0; i < threadInfos.length; i++) {
                 System.out.println((String) ReflectionUtil.callMethod(threadInfos[i],
                         "getThreadName", null));

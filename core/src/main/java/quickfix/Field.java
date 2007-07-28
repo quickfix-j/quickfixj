@@ -25,18 +25,15 @@ import java.io.Serializable;
  * Base class for FIX message fields. This class should be
  * abstract but that would break compatibility with the QF JNI
  * classes.
- * 
- * @author sbate
- *  
  */
-public /*abstract*/ class Field implements Serializable{
+public /*abstract*/ class Field<T> implements Serializable{
     static final long serialVersionUID = 7098326013456432197L;
     private int tag;
-    private Object object;
+    private T object;
     private boolean isCalculated = false;
     private String data;
     
-    public Field(int field, Object object) {
+    public Field(int field, T object) {
         this.tag = field;
         this.object = object;
     }
@@ -64,7 +61,7 @@ public /*abstract*/ class Field implements Serializable{
      * Sets the field's value to the given object.
      * @param object
      */
-    protected void setObject(Object object) {
+    protected void setObject(T object) {
         this.object = object;
         isCalculated = false;
     }
@@ -73,7 +70,7 @@ public /*abstract*/ class Field implements Serializable{
      * Get the field value
      * @return an object representing the field's value
      */
-    public Object getObject() {
+    public T getObject() {
         return object;
     }
 
@@ -96,8 +93,8 @@ public /*abstract*/ class Field implements Serializable{
             return true;
         if (!(object instanceof Field))
             return false;
-        return tag == ((Field) object).getField()
-                && getObject().equals(((Field) object).getObject());
+        return tag == ((Field<?>) object).getField()
+                && getObject().equals(((Field<?>) object).getObject());
     }
 
     public int hashCode() {

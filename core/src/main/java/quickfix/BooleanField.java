@@ -21,10 +21,10 @@ package quickfix;
 
 import java.lang.Boolean;
 
-public class BooleanField extends Field {
+public class BooleanField extends Field<Boolean> {
 
     public BooleanField(int field) {
-        super(field, new Boolean(false));
+        super(field, false);
     }
 
     public BooleanField(int field, Boolean data) {
@@ -32,7 +32,7 @@ public class BooleanField extends Field {
     }
 
     public BooleanField(int field, boolean data) {
-        super(field, new Boolean(data));
+        super(field, data);
     }
 
     public void setValue(Boolean value) {
@@ -40,18 +40,18 @@ public class BooleanField extends Field {
     }
 
     public void setValue(boolean value) {
-        setObject(new Boolean(value));
+        setObject(value);
     }
 
     public boolean getValue() {
-        return ((Boolean)getObject()).booleanValue();
+        return ((Boolean)getObject());
     }
 
     public boolean valueEquals(Boolean value) {
-        return getValue() == value.booleanValue();
+        return getObject().equals(value);
     }
 
     public boolean valueEquals(boolean value) {
-        return getValue() == value;
+        return getObject().equals(value);
     }
 }

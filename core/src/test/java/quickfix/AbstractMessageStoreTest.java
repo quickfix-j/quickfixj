@@ -53,7 +53,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
     protected abstract MessageStoreFactory getMessageStoreFactory() throws Exception;
 
-    protected abstract Class getMessageStoreClass();
+    protected abstract Class<?> getMessageStoreClass();
 
     protected MessageStore getStore() {
         return store;

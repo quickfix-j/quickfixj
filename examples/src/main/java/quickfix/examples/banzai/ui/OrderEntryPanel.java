@@ -81,7 +81,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
     private JButton submitButton = new JButton("Submit");
 
     private OrderTableModel orderTableModel = null;
-    private BanzaiApplication application = null;
+    private transient BanzaiApplication application = null;
 
     private GridBagConstraints constraints = new GridBagConstraints();
 
@@ -292,7 +292,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
         private boolean testField(Object o) {
             String value = ((JTextField)o).getText();
-            value.trim();
+            value = value.trim();
             return value.length() > 0;
         }
 

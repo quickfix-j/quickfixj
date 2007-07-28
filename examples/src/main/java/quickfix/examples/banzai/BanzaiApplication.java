@@ -114,16 +114,16 @@ public class BanzaiApplication implements Application {
     public void fromApp(quickfix.Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         try {
-            SwingUtilities.invokeLater(new doFromApp(message, sessionID));
+            SwingUtilities.invokeLater(new MessageProcessor(message, sessionID));
         } catch (Exception e) {
         }
     }
 
-    public class doFromApp implements Runnable {
+    public class MessageProcessor implements Runnable {
         private quickfix.Message message;
         private SessionID sessionID;
 
-        public doFromApp(quickfix.Message message, SessionID sessionID) {
+        public MessageProcessor(quickfix.Message message, SessionID sessionID) {
             this.message = message;
             this.sessionID = sessionID;
         }
@@ -468,7 +468,7 @@ public class BanzaiApplication implements Application {
 
         if (order.getQuantity() != newOrder.getQuantity())
             message.setField(new OrderQty(newOrder.getQuantity()));
-        if (order.getLimit() != newOrder.getLimit())
+        if (!order.getLimit().equals(newOrder.getLimit()))
             message.setField(new Price(newOrder.getLimit().doubleValue()));
         return message;
     }
@@ -513,7 +513,7 @@ public class BanzaiApplication implements Application {
         observableOrder.deleteObserver(observer);
     }
 
-    public class ObservableOrder extends Observable {
+    private static class ObservableOrder extends Observable {
         public void update(Order order) {
             setChanged();
             notifyObservers(order);
@@ -521,7 +521,7 @@ public class BanzaiApplication implements Application {
         }
     }
 
-    public class ObservableLogon extends Observable {
+    private static class ObservableLogon extends Observable {
         private HashSet<SessionID> set = new HashSet<SessionID>();
 
         public void logon(SessionID sessionID) {

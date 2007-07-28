@@ -42,7 +42,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         return new FileStoreFactory(settings);
     }
 
-    protected Class getMessageStoreClass() {
+    protected Class<?> getMessageStoreClass() {
         return FileStore.class;
     }
 

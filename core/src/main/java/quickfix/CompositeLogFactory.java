@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import java.util.Arrays;
+
 /**
  * Allows multiple log factories to be used with QuickFIX/J. For example,
  * you could log events to the console and also log all events and messages to
@@ -34,7 +36,7 @@ public class CompositeLogFactory implements LogFactory {
      * @see LogFactory
      */
     public CompositeLogFactory(LogFactory[] logFactories) {
-        this.logFactories = logFactories;
+        this.logFactories = Arrays.copyOf(logFactories, logFactories.length);
     }
 
     /**

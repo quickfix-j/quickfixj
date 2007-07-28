@@ -24,7 +24,7 @@ public class MemoryStoreTest extends AbstractMessageStoreTest {
         return new MemoryStoreFactory();
     }
 
-    protected Class getMessageStoreClass() {
+    protected Class<?> getMessageStoreClass() {
         return MemoryStore.class;
     }
 }

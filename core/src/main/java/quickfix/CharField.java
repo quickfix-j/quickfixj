@@ -24,10 +24,10 @@ import java.lang.Character;
 /**
  * A character message field.
  */
-public class CharField extends Field {
+public class CharField extends Field<Character> {
 
     public CharField(int field) {
-        super(field, new Character(' '));
+        super(field, ' ');
     }
 
     public CharField(int field, Character data) {
@@ -35,7 +35,7 @@ public class CharField extends Field {
     }
 
     public CharField(int field, char data) {
-        super(field, new Character(data));
+        super(field, data);
     }
 
     public void setValue(Character value) {
@@ -43,18 +43,18 @@ public class CharField extends Field {
     }
 
     public void setValue(char value) {
-        setObject(new Character(value));
+        setObject(value);
     }
 
     public char getValue() {
-        return ((Character)getObject()).charValue();
+        return getObject();
     }
 
     public boolean valueEquals(Character value) {
-        return getValue() == value.charValue();
+        return getObject().equals(value);
     }
 
     public boolean valueEquals(char value) {
-        return getValue() == value;
+        return getObject().equals(value);
     }
 }

@@ -173,7 +173,7 @@ public class FileStore implements MessageStore {
                     int sequenceNumber = headerDataInputStream.readInt();
                     long offset = headerDataInputStream.readLong();
                     int size = headerDataInputStream.readInt();
-                    messageIndex.put(new Long(sequenceNumber), new long[] { offset, size });
+                    messageIndex.put(Long.valueOf(sequenceNumber), new long[] { offset, size });
                 }
             } finally {
                 headerDataInputStream.close();
@@ -294,12 +294,15 @@ public class FileStore implements MessageStore {
     }
 
     private String getMessage(int i) throws IOException {
-        long[] offsetAndSize = messageIndex.get(new Long(i));
+        long[] offsetAndSize = messageIndex.get(Long.valueOf(i));
         String message = null;
         if (offsetAndSize != null) {
             messageFile.seek(offsetAndSize[0]);
-            byte[] data = new byte[(int) offsetAndSize[1]];
-            messageFile.read(data);
+            int size = (int) offsetAndSize[1];
+            byte[] data = new byte[size];
+            if (messageFile.read(data) != size) {
+                throw new IOException("Truncated input while reading message");
+            }
             message = new String(data, charsetEncoding);
             messageFile.seek(messageFile.length());
         }
@@ -312,7 +315,7 @@ public class FileStore implements MessageStore {
     public boolean set(int sequence, String message) throws IOException {
         long offset = messageFile.getFilePointer();
         int size = message.length();
-        messageIndex.put(new Long(sequence), new long[] { offset, size });
+        messageIndex.put(Long.valueOf(sequence), new long[] { offset, size });
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
         headerDataOutputStream.writeInt(size);

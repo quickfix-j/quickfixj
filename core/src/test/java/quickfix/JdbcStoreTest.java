@@ -32,7 +32,6 @@ import javax.sql.DataSource;
 
 public class JdbcStoreTest extends AbstractMessageStoreTest {
     private String initialContextFactory;
-    private String providerUrl;
 
     protected void setUp() throws Exception {
         initialContextFactory = System.getProperty(Context.INITIAL_CONTEXT_FACTORY);
@@ -47,9 +46,6 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         JdbcTestSupport.assertNoActiveConnections();
         if (initialContextFactory != null) {
             System.setProperty(Context.INITIAL_CONTEXT_FACTORY, initialContextFactory);
-        }
-        if (providerUrl != null) {
-            System.setProperty(Context.PROVIDER_URL, providerUrl);
         }
         super.tearDown();
     }

@@ -24,12 +24,12 @@ import java.math.BigDecimal;
 /**
  * A double-values message field.
  */
-public class DecimalField extends Field {
+public class DecimalField extends Field<BigDecimal> {
 
     private int padding = 0;
 
     public DecimalField(int field) {
-        super(field, new BigDecimal(0));
+        super(field, BigDecimal.ZERO);
     }
 
     public DecimalField(int field, BigDecimal data) {
@@ -37,7 +37,7 @@ public class DecimalField extends Field {
     }
 
     public DecimalField(int field, double data) {
-        super(field, new BigDecimal(data));
+        super(field, BigDecimal.valueOf(data));
     }
 
     public DecimalField(int field, BigDecimal data, int padding) {
@@ -50,11 +50,11 @@ public class DecimalField extends Field {
     }
 
     public void setValue(double value) {
-        setObject(new BigDecimal(value));
+        setObject(BigDecimal.valueOf(value));
     }
 
     public BigDecimal getValue() {
-        return (BigDecimal) getObject();
+        return getObject();
     }
 
     public int getPadding() {

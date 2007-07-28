@@ -59,7 +59,7 @@ public class TestConnection {
 
     private TestIoHandler getIoHandler(int clientId) {
         synchronized (ioHandlers) {
-            return ioHandlers.get(new Integer(clientId));
+            return ioHandlers.get(Integer.valueOf(clientId));
         }
     }
 
@@ -105,7 +105,7 @@ public class TestConnection {
 
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {
-            ioHandlers.put(new Integer(clientId), testIoHandler);
+            ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
             ConnectFuture future = connector.connect(address, testIoHandler);
             future.join();
             Assert.assertTrue("connection to server failed", future.isConnected());

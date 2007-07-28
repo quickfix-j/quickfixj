@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.Arrays;
 import java.util.Calendar;
 
 public class MockSystemTimeSource implements SystemTimeSource {
@@ -34,7 +35,7 @@ public class MockSystemTimeSource implements SystemTimeSource {
     }
 
     public void setSystemTimes(long[] times) {
-        systemTimes = times;
+        systemTimes = Arrays.copyOf(times, times.length);
     }
 
     private void setSystemTimes(long time) {

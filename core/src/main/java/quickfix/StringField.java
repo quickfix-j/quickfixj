@@ -23,10 +23,10 @@ package quickfix;
 /**
  * A string-valued message field.
  */
-public class StringField extends Field {
+public class StringField extends Field<String> {
 
     public StringField(int field) {
-        super(field, new String());
+        super(field, "");
     }
 
     public StringField(int field, String data) {
@@ -38,7 +38,7 @@ public class StringField extends Field {
     }
 
     public String getValue() {
-        return (String)getObject();
+        return getObject();
     }
 
     public boolean valueEquals(String value) {

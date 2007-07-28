@@ -92,9 +92,9 @@ public class ExpectMessageStep implements TestStep {
 
     private void assertMessageEqual(Map<String, String> actualFields) {
         Assert.assertEquals("wrong msg type", expectedFields.get("35"), actualFields.get("35"));
-        Iterator fieldIterator = actualFields.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> fieldIterator = actualFields.entrySet().iterator();
         while (fieldIterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) fieldIterator.next();
+            Map.Entry<String, String> entry = fieldIterator.next();
             Object key = entry.getKey();
             if (timeFields.contains(key) || key.equals("10") || key.equals("9")) {
                 continue;
@@ -125,8 +125,6 @@ public class ExpectMessageStep implements TestStep {
                         .length()) {
                     dateLengthMismatch = true;
                 }
-                //                Assert.assertEquals("tag " + key + " size is wrong: ", ((String) expectedFields
-                //                        .get(key)).length(), ((String) actualFields.get(key)).length());
             }
         }
         if (expectedFields.get("9") != null && !dateLengthMismatch && heartBeatOverride < 0) {

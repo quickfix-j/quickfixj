@@ -34,9 +34,9 @@ import org.logicalcobwebs.proxool.ProxoolFacade;
 import org.logicalcobwebs.proxool.admin.SnapshotIF;
 
 public class JdbcTestSupport {
-    public static String HSQL_DRIVER = "org.hsqldb.jdbcDriver";
-    public static String HSQL_CONNECTION_URL = "jdbc:hsqldb:mem:quickfixj";
-    public static String HSQL_USER = "sa";
+    public static final String HSQL_DRIVER = "org.hsqldb.jdbcDriver";
+    public static final String HSQL_CONNECTION_URL = "jdbc:hsqldb:mem:quickfixj";
+    public static final String HSQL_USER = "sa";
 
     public static void setHypersonicSettings(SessionSettings settings) {
         settings.setString(JdbcSetting.SETTING_JDBC_DRIVER, HSQL_DRIVER);

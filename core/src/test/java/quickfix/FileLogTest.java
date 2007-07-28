@@ -186,6 +186,7 @@ public class FileLogTest extends TestCase {
         FileInputStream in = new FileInputStream(file);
         byte[] data = new byte[(int) file.length()];
         in.read(data);
+        in.close();
         return new String(data, CharsetSupport.getCharset());
 
     }

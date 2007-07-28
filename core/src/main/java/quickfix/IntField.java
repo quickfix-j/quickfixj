@@ -24,10 +24,10 @@ import java.lang.Integer;
 /**
  * A integer message field.
  */
-public class IntField extends Field {
+public class IntField extends Field<Integer> {
 
     public IntField(int field) {
-        super(field, new Integer(0));
+        super(field, 0);
     }
 
     public IntField(int field, Integer data) {
@@ -35,7 +35,7 @@ public class IntField extends Field {
     }
 
     public IntField(int field, int data) {
-        super(field, new Integer(data));
+        super(field, data);
     }
 
     public void setValue(Integer value) {
@@ -43,18 +43,18 @@ public class IntField extends Field {
     }
 
     public void setValue(int value) {
-        setObject(new Integer(value));
+        setObject(value);
     }
 
     public int getValue() {
-        return ((Integer)getObject()).intValue();
+        return getObject();
     }
 
     public boolean valueEquals(Integer value) {
-        return getValue() == value.intValue();
+        return getObject().equals(value);
     }
 
     public boolean valueEquals(int value) {
-        return getValue() == value;
+        return getObject().equals(value);
     }
 }

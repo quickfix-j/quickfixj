@@ -25,13 +25,12 @@ import java.util.Calendar;
 /**
  * A date-valued message field.
  */
-public class DateField extends Field {
+public class DateField extends Field<Date> {
 
-    private static TimeZone timezone;
-    private static Calendar calendar;
+    private static final Calendar calendar;
 
     static {
-        timezone = TimeZone.getTimeZone("UTC");
+        calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     }
 
     protected DateField(int field) {
@@ -43,8 +42,9 @@ public class DateField extends Field {
     }
 
     private static Date createDate() {
-        calendar = Calendar.getInstance(timezone);
-        return calendar.getTime();
+        synchronized (calendar) {
+            return calendar.getTime();
+        }
     }
 
     public void setValue(Date value) {
@@ -52,7 +52,7 @@ public class DateField extends Field {
     }
 
     public Date getValue() {
-        return (Date)getObject();
+        return getObject();
     }
 
     public boolean valueEquals(Date value) {

@@ -63,7 +63,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         mockEventHandlingStrategyControl.verify();
     }
 
-    private StaticAcceptorSessionProvider createSessionProvider(HashMap acceptorSessions) {
+    private StaticAcceptorSessionProvider createSessionProvider(HashMap<SessionID,Session> acceptorSessions) {
         return new AbstractSocketAcceptor.StaticAcceptorSessionProvider(acceptorSessions);
     }
 

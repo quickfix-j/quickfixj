@@ -206,7 +206,7 @@ public class SleepycatStore implements MessageStore {
             DatabaseEntry sequenceKey = new DatabaseEntry();
             EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
             // Must start at start-1 because db will look for next record larger
-            sequenceBinding.objectToEntry(new Integer(startSequence - 1), sequenceKey);
+            sequenceBinding.objectToEntry(Integer.valueOf(startSequence - 1), sequenceKey);
 
             cursor = messageDatabase.openCursor(null, null);
             DatabaseEntry messageBytes = new DatabaseEntry();
@@ -291,7 +291,7 @@ public class SleepycatStore implements MessageStore {
         try {
             DatabaseEntry sequenceKey = new DatabaseEntry();
             EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
-            sequenceBinding.objectToEntry(new Integer(sequence), sequenceKey);
+            sequenceBinding.objectToEntry(Integer.valueOf(sequence), sequenceKey);
             DatabaseEntry messageBytes = new DatabaseEntry(message.getBytes(CharsetSupport.getCharset()));
             messageDatabase.put(null, sequenceKey, messageBytes);
         } catch (Exception e) {

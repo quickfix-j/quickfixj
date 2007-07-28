@@ -60,7 +60,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
     private boolean stop = false;
-    private final Object shutdownLatch = new Object();
+    private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private class DelayedTestRequest extends TimerTask {
         SessionID session;
@@ -134,7 +134,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
                 while (!stop) {
                     synchronized (shutdownLatch) {
                         try {
-                            shutdownLatch.wait();
+                            shutdownLatch.await();
                         } catch (InterruptedException e) {
                         }
                     }

@@ -111,7 +111,7 @@ public class MultiAcceptorTest extends TestCase {
         return new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + i, "INITIATOR");
     }
 
-    private class TestAcceptorApplication extends ApplicationAdapter {
+    private static class TestAcceptorApplication extends ApplicationAdapter {
         private final HashMap<SessionID, Message> sessionMessages = new HashMap<SessionID, Message>();
         private final CountDownLatch logonLatch;
         private CountDownLatch messageLatch;

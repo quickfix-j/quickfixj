@@ -60,7 +60,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     private void initialize() throws ConfigError {
         synchronized (isStarted) {
-            if (isStarted == Boolean.FALSE) {
+            if (isStarted.equals(Boolean.FALSE)) {
                 startAcceptingConnections(eventHandlingStrategy);
             }
             isStarted = Boolean.TRUE;

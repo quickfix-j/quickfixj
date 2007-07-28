@@ -497,7 +497,7 @@ public class Session {
      * This method can be used to manually logout of a FIX session.
      */
     public void logout() {
-        enabled = false;
+        setEnabled(false);
     }
 
     /**
