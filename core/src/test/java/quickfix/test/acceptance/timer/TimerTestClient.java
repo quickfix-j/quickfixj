@@ -57,7 +57,6 @@ import quickfix.fix44.TestRequest;
 public class TimerTestClient extends MessageCracker implements Application {
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
-    private boolean stop = false;
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean failed;
 
@@ -90,9 +89,8 @@ public class TimerTestClient extends MessageCracker implements Application {
 
     private void stop(boolean failed) {
         synchronized (shutdownLatch) {
-            stop = true;
             this.failed = failed;
-            shutdownLatch.notify();
+            shutdownLatch.countDown();
         }
     }
 
@@ -128,11 +126,9 @@ public class TimerTestClient extends MessageCracker implements Application {
                 }
             }, 5000);
 
-            while (!stop) {
-                try {
-                    shutdownLatch.await();
-                } catch (InterruptedException e) {
-                }
+            try {
+                shutdownLatch.await();
+            } catch (InterruptedException e) {
             }
 
             if (failed) {

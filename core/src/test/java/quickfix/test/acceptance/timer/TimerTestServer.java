@@ -59,7 +59,6 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
-    private boolean stop = false;
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private class DelayedTestRequest extends TimerTask {
@@ -80,14 +79,16 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         }
     }
 
-    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+            IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         // sleep to move our timer off from the client's
         if (message instanceof Logon) {
             new Timer().schedule(new DelayedTestRequest(sessionId), 3000);
         }
     }
 
-    public void fromApp(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+    public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+            IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
     }
 
     public void onCreate(SessionID sessionId) {
@@ -98,17 +99,15 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
     public void onLogout(SessionID sessionId) {
         log.info("logout");
-        synchronized (shutdownLatch) {
-            stop = true;
-            shutdownLatch.notify();
-        }
+        shutdownLatch.countDown();
     }
 
     public void run() {
         try {
             HashMap<Object, Object> defaults = new HashMap<Object, Object>();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", Integer.toString(AvailablePortFinder.getNextAvailable(10000)));
+            defaults.put("SocketAcceptPort", Integer.toString(AvailablePortFinder
+                    .getNextAvailable(10000)));
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
@@ -120,24 +119,20 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
             SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
             settings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
-//            settings.setString(sessionID, "DataDictionary", "etc/" + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "")
-//                    + ".xml");
+            //            settings.setString(sessionID, "DataDictionary", "etc/" + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "")
+            //                    + ".xml");
 
             MessageStoreFactory factory = new MemoryStoreFactory();
-            acceptor = new SocketAcceptor(this, factory, settings,
-                    new ScreenLogFactory(settings), new DefaultMessageFactory());
+            acceptor = new SocketAcceptor(this, factory, settings, new ScreenLogFactory(settings),
+                    new DefaultMessageFactory());
             acceptor.start();
             try {
                 //acceptor.waitForInitialization();
                 initializationLatch.countDown();
 
-                while (!stop) {
-                    synchronized (shutdownLatch) {
-                        try {
-                            shutdownLatch.await();
-                        } catch (InterruptedException e) {
-                        }
-                    }
+                    try {
+                    shutdownLatch.await();
+                } catch (InterruptedException e) {
                 }
 
                 log.info("TimerTestServer shutting down.");
