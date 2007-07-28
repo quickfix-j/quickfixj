@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.util.Arrays;
 
 /**
  * Allows multiple log factories to be used with QuickFIX/J. For example,
@@ -36,7 +35,7 @@ public class CompositeLogFactory implements LogFactory {
      * @see LogFactory
      */
     public CompositeLogFactory(LogFactory[] logFactories) {
-        this.logFactories = Arrays.copyOf(logFactories, logFactories.length);
+        this.logFactories = logFactories;
     }
 
     /**

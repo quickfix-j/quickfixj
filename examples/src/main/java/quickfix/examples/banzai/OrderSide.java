@@ -18,7 +18,6 @@
  ******************************************************************************/
 
 package quickfix.examples.banzai;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,7 +55,7 @@ public class OrderSide {
     }
 
     static public Object[] toArray() {
-        return Arrays.copyOf(array, array.length);
+        return array;
     }
 
     public static OrderSide parse(String type)
