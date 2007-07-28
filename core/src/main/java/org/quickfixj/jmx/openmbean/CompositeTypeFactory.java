@@ -28,18 +28,18 @@ public class CompositeTypeFactory {
     private String description;
     private ArrayList<String> itemNames = new ArrayList<String>();
     private ArrayList<String> itemDescriptions = new ArrayList<String>();
-    private ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
+    private ArrayList<OpenType<?>> itemTypes = new ArrayList<OpenType<?>>();
 
     public CompositeTypeFactory(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    public void defineItem(String itemName, OpenType itemType) {
+    public void defineItem(String itemName, OpenType<?> itemType) {
         defineItem(itemName, null, itemType);
     }
 
-    public void defineItem(String itemName, String itemDesc, OpenType itemType) {
+    public void defineItem(String itemName, String itemDesc, OpenType<?> itemType) {
         itemNames.add(itemName);
         itemDescriptions.add(itemDesc);
         itemTypes.add(itemType);
@@ -49,7 +49,7 @@ public class CompositeTypeFactory {
         return new CompositeType(name, description, itemNames
                 .toArray(new String[itemNames.size()]), itemNames
                 .toArray(new String[itemDescriptions.size()]), itemTypes
-                .toArray(new OpenType[itemTypes.size()]));
+                .toArray(new OpenType<?>[itemTypes.size()]));
     }
 
 }

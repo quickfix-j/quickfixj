@@ -32,14 +32,14 @@ import javax.management.openmbean.SimpleType;
 public class CompositeDataBeanAdapter {
 
     private CompositeType compositeType;
-    private final Class beanClass;
+    private final Class<?> beanClass;
     private final String defaultPropertyValue;
 
-    public CompositeDataBeanAdapter(Class beanClass) throws OpenDataException, IntrospectionException {
+    public CompositeDataBeanAdapter(Class<?> beanClass) throws OpenDataException, IntrospectionException {
         this(beanClass, null);
     }
 
-    public CompositeDataBeanAdapter(Class beanClass, String defaultPropertyValue)
+    public CompositeDataBeanAdapter(Class<?> beanClass, String defaultPropertyValue)
             throws IntrospectionException, OpenDataException {
         this.beanClass = beanClass;
         this.defaultPropertyValue = defaultPropertyValue;

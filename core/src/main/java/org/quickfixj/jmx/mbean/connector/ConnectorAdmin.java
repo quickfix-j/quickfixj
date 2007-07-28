@@ -99,7 +99,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
 
     public TabularData getSessions() throws IOException {
         List<ConnectorSession> sessions = new ArrayList<ConnectorSession>();
-        Iterator sessionItr = connector.getSessions().iterator();
+        Iterator<SessionID> sessionItr = connector.getSessions().iterator();
         while (sessionItr.hasNext()) {
             SessionID sessionID = (SessionID) sessionItr.next();
             Session session = Session.lookupSession(sessionID);
@@ -114,7 +114,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
 
     public TabularData getLoggedOnSessions() throws OpenDataException {
         List<ObjectName> names = new ArrayList<ObjectName>();
-        Iterator sessionItr = connector.getSessions().iterator();
+        Iterator<SessionID> sessionItr = connector.getSessions().iterator();
         while (sessionItr.hasNext()) {
             SessionID sessionID = (SessionID) sessionItr.next();
             Session session = Session.lookupSession(sessionID);

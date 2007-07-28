@@ -52,6 +52,7 @@ public class TabularDataAdapter {
         return table;
     }
 
+    @SuppressWarnings("unchecked")
     public TabularData fromMap(String keyLabel, String valueLabel, Map data)
             throws OpenDataException {
         TabularData table = null;
@@ -111,7 +112,7 @@ public class TabularDataAdapter {
     }
 
     public TabularData fromBeanList(String tableTypeName, String rowTypeName, String keyProperty,
-            List beans) throws OpenDataException {
+            List<?> beans) throws OpenDataException {
         TabularData table = null;
         try {
             CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);

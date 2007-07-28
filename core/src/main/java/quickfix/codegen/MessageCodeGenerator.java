@@ -254,9 +254,9 @@ public class MessageCodeGenerator {
             throws TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
         if (parameters != null) {
-            Iterator paramItr = parameters.entrySet().iterator();
+            Iterator<Map.Entry<String, String>> paramItr = parameters.entrySet().iterator();
             while (paramItr.hasNext()) {
-                Map.Entry entry = (Map.Entry) paramItr.next();
+                Map.Entry<String, String> entry = paramItr.next();
                 transformer.setParameter((String) entry.getKey(), entry.getValue());
             }
         }

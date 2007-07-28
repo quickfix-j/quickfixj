@@ -90,9 +90,9 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     }
 
     private void copySettings(SessionSettings settings, Properties properties) {
-        Iterator entries = properties.entrySet().iterator();
+        Iterator<Map.Entry<Object, Object>> entries = properties.entrySet().iterator();
         while (entries.hasNext()) {
-            Map.Entry e = (Map.Entry) entries.next();
+            Map.Entry<Object, Object> e = entries.next();
             settings.setString((String) e.getKey(), e.getValue().toString());
         }
     }

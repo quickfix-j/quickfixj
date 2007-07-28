@@ -225,7 +225,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
         HashMap<SessionID, Session> allSessions = new HashMap<SessionID, Session>();
-        for (Iterator i = settings.sectionIterator(); i.hasNext();) {
+        for (Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
             SessionID sessionID = (SessionID) i.next();
             String connectionType = settings.getString(sessionID,
                     SessionFactory.SETTING_CONNECTION_TYPE);
@@ -329,14 +329,14 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     static class StaticAcceptorSessionProvider implements AcceptorSessionProvider {
-        private final Map acceptorSessions;
+        private final Map<SessionID,Session> acceptorSessions;
 
-        public StaticAcceptorSessionProvider(final Map acceptorSessions) {
+        public StaticAcceptorSessionProvider(final Map<SessionID,Session> acceptorSessions) {
             this.acceptorSessions = acceptorSessions;
         }
 
         public Session getSession(SessionID sessionID) {
-            return (Session) acceptorSessions.get(sessionID);
+            return acceptorSessions.get(sessionID);
         }
     }
 }

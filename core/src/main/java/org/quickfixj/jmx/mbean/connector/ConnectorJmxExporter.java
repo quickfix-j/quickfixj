@@ -60,7 +60,7 @@ public class ConnectorJmxExporter {
             ObjectName connectorName = getConnectorName(connector, connectorId);
             
             mbeanServer.registerMBean(connectorAdmin, connectorName);
-            ArrayList sessionIDs = connector.getSessions();
+            ArrayList<SessionID> sessionIDs = connector.getSessions();
             for (int i = 0; i < sessionIDs.size(); i++) {
                 SessionID sessionID = (SessionID) sessionIDs.get(i);
                 sessionExporter.export(mbeanServer, Session.lookupSession(sessionID),
