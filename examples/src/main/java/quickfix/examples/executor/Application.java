@@ -73,11 +73,9 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             if (marketDataProvider == null) {
                 final double defaultMarketPrice = settings.getDouble(DEFAULT_MARKET_PRICE_KEY);
                 marketDataProvider = new MarketDataProvider() {
-                    @Override
                     public double getPrice(String symbol) {
                         return defaultMarketPrice;
                     }
-
                 };
             } else {
                 log.warn("Ignoring " + DEFAULT_MARKET_PRICE_KEY
