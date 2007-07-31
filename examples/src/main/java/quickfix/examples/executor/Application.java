@@ -53,25 +53,47 @@ import quickfix.field.OrdType;
 import quickfix.field.OrderID;
 import quickfix.field.OrderQty;
 import quickfix.field.Price;
+import quickfix.field.Symbol;
 
 public class Application extends quickfix.MessageCracker implements quickfix.Application {
     private static final String DEFAULT_MARKET_PRICE_KEY = "DefaultMarketPrice";
     private static final String VALID_ORDER_TYPES_KEY = "ValidOrderTypes";
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final HashSet<String> validOrderTypes = new HashSet<String>();
-    private Double defaultMarketPrice;
+    private MarketDataProvider marketDataProvider;
 
     public Application(SessionSettings settings) throws ConfigError, FieldConvertError {
+        initializeValidOrderTypes(settings);
+        initializeMarketDataProvider(settings);
+    }
+
+    private void initializeMarketDataProvider(SessionSettings settings) throws ConfigError,
+            FieldConvertError {
+        if (settings.isSetting(DEFAULT_MARKET_PRICE_KEY)) {
+            if (marketDataProvider == null) {
+                final double defaultMarketPrice = settings.getDouble(DEFAULT_MARKET_PRICE_KEY);
+                marketDataProvider = new MarketDataProvider() {
+                    @Override
+                    public double getPrice(String symbol) {
+                        return defaultMarketPrice;
+                    }
+
+                };
+            } else {
+                log.warn("Ignoring " + DEFAULT_MARKET_PRICE_KEY
+                        + " since provider is already defined.");
+            }
+        }
+    }
+
+    private void initializeValidOrderTypes(SessionSettings settings) throws ConfigError,
+            FieldConvertError {
         if (settings.isSetting(VALID_ORDER_TYPES_KEY)) {
             List<String> orderTypes = Arrays.asList(settings.getString(VALID_ORDER_TYPES_KEY)
                     .trim().split("\\s*,\\s*"));
             validOrderTypes.addAll(orderTypes);
         } else {
             validOrderTypes.add(OrdType.LIMIT + "");
-        }
-        
-        if (settings.isSetting(DEFAULT_MARKET_PRICE_KEY)) {
-            defaultMarketPrice = new Double(settings.getDouble(DEFAULT_MARKET_PRICE_KEY));
         }
     }
 
@@ -104,28 +126,40 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         validateOrder(order);
 
-   
         OrderQty orderQty = order.getOrderQty();
-        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
-                defaultMarketPrice);
 
-        quickfix.fix40.ExecutionReport accept = new quickfix.fix40.ExecutionReport(
-                genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new OrdStatus(
-                        OrdStatus.NEW), order.getSymbol(), order.getSide(), orderQty,
-                new LastShares(0), new LastPx(0), new CumQty(0), new AvgPx(0));
+        Price price = getPrice(order);
+
+        quickfix.fix40.ExecutionReport accept = new quickfix.fix40.ExecutionReport(genOrderID(),
+                genExecID(), new ExecTransType(ExecTransType.NEW), new OrdStatus(OrdStatus.NEW),
+                order.getSymbol(), order.getSide(), orderQty, new LastShares(0), new LastPx(0),
+                new CumQty(0), new AvgPx(0));
 
         accept.set(order.getClOrdID());
         sendMessage(sessionID, accept);
 
-        quickfix.fix40.ExecutionReport fill = new quickfix.fix40.ExecutionReport(
-                genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new OrdStatus(
-                        OrdStatus.FILLED), order.getSymbol(), order.getSide(), orderQty,
-                new LastShares(orderQty.getValue()), new LastPx(price.getValue()), new CumQty(
-                        orderQty.getValue()), new AvgPx(price.getValue()));
+        quickfix.fix40.ExecutionReport fill = new quickfix.fix40.ExecutionReport(genOrderID(),
+                genExecID(), new ExecTransType(ExecTransType.NEW), new OrdStatus(OrdStatus.FILLED),
+                order.getSymbol(), order.getSide(), orderQty, new LastShares(orderQty.getValue()),
+                new LastPx(price.getValue()), new CumQty(orderQty.getValue()), new AvgPx(price
+                        .getValue()));
 
         fill.set(order.getClOrdID());
 
         sendMessage(sessionID, fill);
+    }
+
+    private Price getPrice(Message message) throws FieldNotFound {
+        Price price;
+        if (message.isSetField(Price.FIELD)) {
+            price = new Price(message.getDouble(Price.FIELD));
+        } else {
+            if (marketDataProvider == null) {
+                throw new RuntimeException("No market data provider specified for market order");
+            }
+            price = new Price(marketDataProvider.getPrice(message.getString(Symbol.FIELD)));
+        }
+        return price;
     }
 
     private void sendMessage(SessionID sessionID, Message message) {
@@ -141,8 +175,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         validateOrder(order);
 
         OrderQty orderQty = order.getOrderQty();
-        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
-                defaultMarketPrice);
+        Price price = getPrice(order);
 
         quickfix.fix41.ExecutionReport executionReport = new quickfix.fix41.ExecutionReport(
                 genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(
@@ -161,8 +194,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         validateOrder(order);
 
         OrderQty orderQty = order.getOrderQty();
-        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
-                defaultMarketPrice);
+        Price price = getPrice(order);
 
         quickfix.fix42.ExecutionReport executionReport = new quickfix.fix42.ExecutionReport(
                 genOrderID(), genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(
@@ -184,7 +216,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             log.error("Order type not in ValidOrderTypes setting");
             throw new IncorrectTagValue(ordType.getField());
         }
-        if (ordType.getValue() == OrdType.MARKET && defaultMarketPrice == null) {
+        if (ordType.getValue() == OrdType.MARKET && marketDataProvider == null) {
             log.error("DefaultMarketPrice setting not specified for market order");
             throw new IncorrectTagValue(ordType.getField());
         }
@@ -195,8 +227,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         validateOrder(order);
 
         OrderQty orderQty = order.getOrderQty();
-        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
-                defaultMarketPrice);
+        Price price = getPrice(order);
 
         quickfix.fix43.ExecutionReport executionReport = new quickfix.fix43.ExecutionReport(
                 genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
@@ -217,8 +248,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         validateOrder(order);
 
         OrderQty orderQty = order.getOrderQty();
-        Price price = order.isSetField(Price.FIELD) ? order.getPrice() : new Price(
-                defaultMarketPrice);
+        Price price = getPrice(order);
 
         quickfix.fix44.ExecutionReport executionReport = new quickfix.fix44.ExecutionReport(
                 genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
@@ -242,6 +272,15 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         return new ExecID(Integer.valueOf(++m_execID).toString());
     }
 
+    /**
+     * Allows a custom market data provider to be specified.
+     * 
+     * @param marketDataProvider
+     */
+    public void setMarketDataProvider(MarketDataProvider marketDataProvider) {
+        this.marketDataProvider = marketDataProvider;
+    }
+    
     private int m_orderID = 0;
     private int m_execID = 0;
 }
