@@ -138,7 +138,7 @@ public class IoSessionInitiator {
                 while (e.getCause() != null) {
                     e = e.getCause();
                 }
-                if (e instanceof IOException) {
+				if ((e instanceof IOException) && (e.getMessage() != null)) {
                     quickfixSession.getLog().onEvent(e.getMessage());
                 } else {
                     String msg = "Exception during connection";
