@@ -35,18 +35,24 @@ import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
-import quickfix.mina.acceptor.AcceptorSessionProvider;
+
+// TODO write a unit test for this provider
 
 /**
  * Dynamically defines sessions for an acceptor. This can be useful for
  * applications like simulators that want to accept any connection and
- * dynamically create an associated session. 
+ * dynamically create an associated session.
+ * 
+ * For more complex situations, you can use this class as a starting
+ * point for implementing your own AcceptorSessionProvider.
  */
 public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
+    private static final String WILDCARD = "*";
+    private static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD);
+    
+    private final Map<SessionID, SessionID> templateIdMap;
     private final SessionSettings settings;
-    private final SessionID templateID;
     private final SessionFactory sessionFactory;
-    private final Map<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
 
     /**
      * 
@@ -64,29 +70,80 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
             final SessionID templateID, quickfix.Application application,
             MessageStoreFactory messageStoreFactory, LogFactory logFactory,
             MessageFactory messageFactory) {
+        this(settings, createSingletonTemplateIdMap(templateID), application, messageStoreFactory,
+                logFactory, messageFactory);
+    }
+
+    private static Map<SessionID, SessionID> createSingletonTemplateIdMap(SessionID templateID) {
+        Map<SessionID, SessionID> map = new HashMap<SessionID, SessionID>();
+        map.put(ANY_SESSION, templateID);
+        return map;
+    }
+
+    /**
+     * @param settings session settings
+     * @param templateIdMap this is a map of session ID patterns to session IDs in
+     * the settings file that represent a template for that session ID pattern. Use
+     * a "*" to represent a wildcard for a pattern element. For example, 
+     * new SessionID("FIX.4.2", "*", "*") would match for any FIX 4.2 session ID.
+     * This allows separate template session configurations for FIX versions (or
+     * CompIDs) being accepted dynamically on a single TCP port.
+     * @param application application for the dynamic sessions
+     * @param messageStoreFactory message store factory for the dynamic sessions
+     * @param logFactory log factory for the dynamic sessions
+     * @param messageFactory message factory for the dynamic sessions
+     */
+    public DynamicAcceptorSessionProvider(final SessionSettings settings,
+            Map<SessionID, SessionID> templateIdMap, quickfix.Application application,
+            MessageStoreFactory messageStoreFactory, LogFactory logFactory,
+            MessageFactory messageFactory) {
         this.settings = settings;
-        this.templateID = templateID;
+        this.templateIdMap = templateIdMap;
         sessionFactory = new DefaultSessionFactory(application, messageStoreFactory, logFactory,
                 messageFactory);
     }
 
     public synchronized Session getSession(SessionID sessionID) {
-        Session s = acceptorSessions.get(sessionID);
+        Session s = Session.lookupSession(sessionID);
         if (s == null) {
             try {
+                SessionID templateID = lookupTemplateID(sessionID);
+                if (templateID == null) {
+                    throw new ConfigError("Unable to find a session template for "+sessionID);
+                }
                 SessionSettings dynamicSettings = new SessionSettings();
                 copySettings(dynamicSettings, settings.getDefaultProperties());
                 copySettings(dynamicSettings, settings.getSessionProperties(templateID));
                 dynamicSettings.setString("BeginString", sessionID.getBeginString());
-                dynamicSettings.setString(SessionSettings.SENDERCOMPID, sessionID.getSenderCompID());
-                dynamicSettings.setString(SessionSettings.TARGETCOMPID, sessionID.getTargetCompID());
+                dynamicSettings
+                        .setString(SessionSettings.SENDERCOMPID, sessionID.getSenderCompID());
+                dynamicSettings
+                        .setString(SessionSettings.TARGETCOMPID, sessionID.getTargetCompID());
                 s = sessionFactory.create(sessionID, dynamicSettings);
             } catch (ConfigError e) {
                 throw new QFJException(e);
             }
-            acceptorSessions.put(sessionID, s);
         }
         return s;
+    }
+
+    private SessionID lookupTemplateID(SessionID sessionID) {
+        for (Map.Entry<SessionID, SessionID> entry : templateIdMap.entrySet()) {
+            if (isMatching(entry.getKey(), sessionID)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private boolean isMatching(SessionID pattern, SessionID sessionID) {
+        return isMatching(pattern.getBeginString(), sessionID.getBeginString())
+                && isMatching(pattern.getSenderCompID(), sessionID.getSenderCompID())
+                && isMatching(pattern.getTargetCompID(), sessionID.getTargetCompID());
+    }
+
+    private boolean isMatching(String pattern, String value) {
+        return WILDCARD.equals(pattern) || (pattern != null && pattern.equals(value));
     }
 
     private void copySettings(SessionSettings settings, Properties properties) {
