@@ -21,7 +21,7 @@ public class SessionJmxExporter {
 
     public void export(MBeanServer mbeanServer, Session session, ObjectName connectorName,
             SessionSettings settings) throws JMException, ConfigError {
-        ObjectName sessionName = createSessionName(session);
+        ObjectName sessionName = createSessionName(session.getSessionID());
         sessionObjectNames.put(session.getSessionID(), sessionName);
         mbeanServer.registerMBean(new SessionAdmin(session, connectorName), sessionName);
         ObjectNameFactory settingsNameFactory = new ObjectNameFactory();
@@ -35,10 +35,9 @@ public class SessionJmxExporter {
         return sessionObjectNames.get(sessionID);
     }
 
-    private ObjectName createSessionName(Session session) throws MalformedObjectNameException {
+    public ObjectName createSessionName(SessionID sessionID) throws MalformedObjectNameException {
         TreeMap<String, String> properties = new TreeMap<String, String>();
         properties.put("type", "Session");
-        SessionID sessionID = session.getSessionID();
         ObjectNameFactory nameFactory = new ObjectNameFactory();
         nameFactory.addProperty("type", "Session");
         addSessionIdProperties(sessionID, nameFactory);
