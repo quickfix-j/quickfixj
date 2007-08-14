@@ -1,5 +1,19 @@
 <project name="master" basedir="." default="">
-	<property name="release.output.dir" value="dist"/>
+	<property file="build.properties"/>
+
+	<property name="jvm.java4" value="C:/j2sdk1.4.2_13/bin/java"/>
+	
+	<property name="release.output.dir" value="${basedir}/dist"/>
+
+	<property name="release.src.staging.dir"
+	          value="${release.output.dir}/staging/source/quickfixj" />
+
+	<property name="release.bin.staging.dir"
+	          value="${release.output.dir}/staging/bin/quickfixj" />
+
+	<property name="release.bin_src.staging.dir"
+	          value="${release.output.dir}/staging/bin_src" />
+
 	<property name="output.dir" value="classes" />
 
 	<macrodef name="iterate">
@@ -18,19 +32,15 @@
 		<iterate target="jar"/>
 	</target>
 	
-	<target name="jar-1.4" description="Create module jar files fo Java 1.4">
-		<iterate target="jar-1.4"/>
-	</target>
-
 	<target name="clean" description="Clean files">
 		<iterate target="clean"/>
 	</target>
 
-	<target name="test" description="Run tests">
+	<target name="test" description="Run tests" unless="skip.tests">
 		<iterate target="test"/>
 	</target>
 
-	<target name="javadoc" description="Generate Javadocs">
+	<target name="javadoc" description="Generate Javadocs" unless="skip.javadocs">
 		<iterate target="javadoc"/>
 	</target>
 
@@ -97,7 +107,10 @@
 	<!-- Create release archives -->
 	<target name="release.timestamped"
 	        description="release files with timestamp for version"
-	        depends="create.timestamp.version,release.shared" />
+			depends="create.timestamp.version">
+		<antcall target="release.shared"/>
+		<antcall target="release.shared.java4"/>
+	</target>
 
 	<target name="create.timestamp.version">
 		<tstamp>
@@ -107,27 +120,15 @@
 	</target>
 
 	<target name="release.versioned"
-	        description="release files with explicit version"
-	        depends="query.version,release.shared" />
+	        description="release files with explicit version" 
+			depends="query.version">
+		<antcall target="release.shared"/>
+		<antcall target="release.shared.java4"/>
+	</target>
 
 	<target name="query.version" unless="release.prefix">
 		<input message="Enter version number" addproperty="version" />
 		<property name="release.prefix" value="quickfixj-${version}" />
-	</target>
-
-	<target name="define.src.staging.dir" unless="release.src.staging.dir">
-		<property name="release.src.staging.dir"
-		          value="${basedir}/${release.output.dir}/staging/source/quickfixj" />
-	</target>
-	
-	<target name="define.bin.staging.dir" unless="release.bin.staging.dir">
-		<property name="release.bin.staging.dir"
-		          value="${basedir}/${release.output.dir}/staging/bin/quickfixj" />
-	</target>
-
-	<target name="define.bin_src.staging.dir" unless="release.bin_src.staging.dir">
-		<property name="release.bin_src.staging.dir"
-		          value="${basedir}/${release.output.dir}/staging/bin_src" />
 	</target>
 
 	<target name="release.shared" depends="jar,test,javadoc">
@@ -142,10 +143,9 @@
 		<antcall target="test_zip_src_release"/>
 	</target>
 
-	<target name="release.binaries" depends="define.bin.staging.dir,define.bin_src.staging.dir">
+	<target name="release.binaries">
 		<copy todir="${release.bin.staging.dir}">
 			<fileset dir="." includes="LICENSE"/>
-			<fileset dir="." includes="NEWS"/>
 		</copy>
 			
 		<mkdir dir="${release.bin.staging.dir}" />
@@ -183,11 +183,11 @@
 		     basedir="${release.bin.staging.dir}/.." />
 	</target>
 		
-	<target name="release.source" depends="define.src.staging.dir">
+	<target name="release.source">
 		<mkdir dir="${release.src.staging.dir}" />
 
 		<copy todir="${release.src.staging.dir}">
-			<fileset dir="." includes="*" excludes=".settings,classes"/>
+			<fileset dir="." includes="*" excludes=".settings,classes,dist,build.properties,target"/>
 		</copy>
 
 		<iterate target="export_sources">
@@ -215,7 +215,7 @@
 	<macrodef name="test_executor">
 		<attribute name="dir"/>
 		<sequential>
-			<java fork="true" outputproperty="executor.output" classname="quickfix.examples.executor.Executor" inputstring="exit\n">
+			<java  fork="true" outputproperty="executor.output" classname="quickfix.examples.executor.Executor" inputstring="exit\n">
 				<classpath>
 					<fileset dir="@{dir}">
 						<include name="lib/*.jar"/>
@@ -247,6 +247,7 @@
 					<available file="@{dir}/quickfixj/etc/FIX44.xml"/>
 					<available file="@{dir}/quickfixj/etc/sql/mssql"/>
 					<available file="@{dir}/quickfixj/etc/sql/mysql"/>
+					<available file="@{dir}/quickfixj/etc/sql/oracle"/>
 					<available file="@{dir}/quickfixj/etc/sql/postgresql"/>
 					<available file="@{dir}/quickfixj/lib"/>
 					<available file="@{dir}/quickfixj/quickfixj-core.jar"/>
@@ -256,26 +257,19 @@
 					<available file="@{dir}/quickfixj/quickfixj-msg-fix43.jar"/>
 					<available file="@{dir}/quickfixj/quickfixj-msg-fix44.jar"/>
 					<available file="@{dir}/quickfixj/quickfixj-examples.jar"/>
+					<available file="@{dir}/quickfixj/src.zip"/>
 					<available file="@{dir}/quickfixj/LICENSE"/>
-					<available file="@{dir}/quickfixj/NEWS"/>
 				</and>
 			</condition>
 			<fail message="Missing files or directories in bin release" unless="dirs.exist"/>
 		</sequential>
 	</macrodef>
 			
-		
 	<target name="test_zip_bin_release">
 		<property name="zip.bin.dir" value="${release.output.dir}/zip-bin"/>
 		<unzip src="${release.output.dir}/${release.prefix}-bin.zip" dest="${zip.bin.dir}" />
 		<test_executor dir="${zip.bin.dir}/quickfixj"/>
 		<test_bin_contents dir="${zip.bin.dir}"/>
-	</target>
-
-	<target name="test_zip_src_release">
-		<unzip src="${release.output.dir}/${release.prefix}-src.zip" dest="${release.output.dir}/zip-src" />
-		<mkdir dir="${release.output.dir}/zip-src/quickfixj/output/ant/testreports" />
-		<test_executor dir="${release.output.dir}/zip-bin/quickfixj"/>		
 	</target>
 
 	<target name="test_tar_bin_release">
@@ -284,11 +278,229 @@
 		<test_executor dir="${tar.bin.dir}/quickfixj"/>
 		<test_bin_contents dir="${tar.bin.dir}"/>
 	</target>
+
+	<target name="test_zip_src_release">
+		<unzip src="${release.output.dir}/${release.prefix}-src.zip" dest="${release.output.dir}/zip-src" />
+		<mkdir dir="${release.output.dir}/zip-src/quickfixj/output/ant/testreports" />
+		<test_executor dir="${release.output.dir}/zip-bin/quickfixj"/>		
+	</target>
 	
 	<target name="test_tar_src_release">
 		<untar compression="gzip" src="${release.output.dir}/${release.prefix}-src.tar.gz" dest="${release.output.dir}/tar-src" />
 		<mkdir dir="${release.output.dir}/tar-src/quickfixj/output/ant/testreports" />
 		<ant dir="${release.output.dir}/tar-src/quickfixj/core" antfile="build.xml" target="test.unit" />
 	</target>
+
+	<!-- ========================================================================= -->
+	<!-- Java 4 Release Creation -->
+	<!-- ========================================================================= -->
+	
+	<!--
+	<target name="release.shared.java4.test">
+		<property name="release.prefix" value="quickfixj-TEST"/>
+		<antcall target="release.shared.java4"/>
+	</target>
+	-->
+	
+	<path id="retrotranslator.classpath">
+		<fileset dir="" includes="**/*.jar"/>
+	</path>
+
+	<target name="release.shared.java4">
+		<taskdef name="retrotranslator" classpathref="retrotranslator.classpath"
+			classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
+		</taskdef>
+		
+		<property name="staging.dir.java4" 
+			value="${release.output.dir}/java4/staging/bin/quickfixj"/>
+		
+		<property name="release.bin.java4"
+		          value="${release.output.dir}/${release.prefix}-java4-bin" />
+
+		<delete dir="${staging.dir.java4}"/> 
+		
+		<!-- Copy Java 5 binary staging -->
+		<copy todir="${staging.dir.java4}">
+			<fileset dir="${release.bin.staging.dir}">
+				<exclude name="quickfixj-*.jar"/>
+				<exclude name="lib/**"/>
+			</fileset>
+		</copy>
+		
+		<!-- Set up Java 1.4-related third-party libraries -->
+		<copy todir="${staging.dir.java4}/lib">
+			<fileset dir="core/src/main/lib/java4">
+				<exclude name="retrotranslator/**"/>
+			</fileset>
+		</copy>
+		
+		<retrotranslate-jar jar="quickfixj-core.jar"/>
+		<retrotranslate-jar jar="quickfixj-examples.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix40.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix41.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix42.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix43.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix44.jar"/>
+		
+		<!-- Create and do basic testing on binary archives -->
+
+		<tar destfile="${release.bin.java4}.tar.gz"
+		     longfile="gnu"
+		     compression="gzip"
+		     basedir="${staging.dir.java4}/.." />
+
+		<property name="tar.bin.dir.java4" value="${release.output.dir}/java4/tar-bin"/>
+		<untar compression="gzip" src="${release.bin.java4}.tar.gz" dest="${tar.bin.dir.java4}" />
+		<test_executor_java4 dir="${tar.bin.dir.java4}/quickfixj"/>
+		<test_bin_contents dir="${tar.bin.dir.java4}"/>
+
+		<zip destfile="${release.bin.java4}.zip"
+		     basedir="${staging.dir.java4}/.." />
+
+		<property name="zip.bin.dir.java4" value="${release.output.dir}/java4/zip-bin"/>
+		<unzip src="${release.bin.java4}.zip" dest="${zip.bin.dir.java4}" />
+		<test_executor_java4 dir="${zip.bin.dir.java4}/quickfixj"/>
+		<test_bin_contents dir="${zip.bin.dir.java4}"/>
+
+		<property name="test.dir.java4" value="${release.output.dir}/java4/test"/>
+		<property name="test.classes.java4" value="${test.dir.java4}/classes"/>
+		<mkdir dir="${test.classes.java4}"/>
+
+		<antcall target="test.java4"/>
+	</target>
+	
+	<target name="test.java4">
+		<!-- Retrotranslate the test classes -->
+		<retrotranslator 
+			target="1.4" 
+			destdir="${test.classes.java4}" 
+			uptodatecheck="On" 
+			lazy="false" 
+			embed="org.quickfixj.java4" 
+			verify="false">
+			<classpath>
+				<fileset dir="core/src/main/lib/java4">
+					<include name="*.jar"/>
+				</fileset>
+			</classpath>
+			<fileset dir="core/target/classes/test"/>
+		</retrotranslator>
+
+		<property name="junit.output.dir.java4" value="${test.dir.java4}/junit"/>
+
+		<antcall target="test.unit.java4"/>
+		<antcall target="test.acceptance.java4"/>
+			
+	</target>
+	
+	<target name="test.unit.java4">
+		<mkdir dir="${junit.output.dir.java4}"/>
+		<junit jvm="${jvm.java4}" fork="yes" dir="${basedir}" tempdir="${junit.output.dir.java4}" 
+				printsummary="true"	showoutput="false" 
+				errorproperty="utests.failed" failureproperty="utests.failed" 
+				haltonfailure="yes">
+			<formatter type="xml" usefile="true" />
+			<!-- TODO refactor class path -->
+			<!-- TODO refactor junit dir property -->
+			<classpath>
+				<pathelement location="core/src/test/java"/>
+				<pathelement location="${test.classes.java4}"/>
+				<fileset dir="${staging.dir.java4}/lib" includes="*.jar"/>
+				<fileset dir="${staging.dir.java4}" includes="*.jar"/>
+				<fileset dir="core/src/test/lib" includes="*.jar"/>
+				<fileset dir="core/src/main/lib/optional" 
+					includes="jcl*.jar,proxool*.jar,sleepycat*.jar"/>
+			</classpath>
+			<batchtest todir="${junit.output.dir.java4}">
+				<fileset dir="core/src/test/java">
+					<include name="quickfix/*Test.java" />
+					<include name="quickfix/mina/**/*Test.java" />
+					<include name="quickfix/util/**/*Test.java" />
+					<exclude name="**/*ForTest.java" />
+					<exclude name="**/Abstract*Test.java" />
+					<exclude name="quickfix/Api*.java" />
+				</fileset>
+			</batchtest>
+		</junit>	
+	</target>
+	
+	<target name="test.acceptance.java4">
+		<property name="atest.skipslow" value="false" />
+		<property name="atest.classname" value="quickfix.test.acceptance.AcceptanceTestSuite" />
+		<property name="atest.report" value="${junit.output.dir.java4}/TEST-${atest.classname}.xml" />
+		<property name="atest.heartbeat" value="5" />
+		<property name="atest.timeout" value="60000" />
+		<property name="atest.reconnectDelay" value="5" />
+		<property name="atest.skipslow" value="false" />
+
+		<junit fork="true" dir="${basedir}" tempdir="${junit.output.dir.java4}" 
+			printsummary="true" showoutput="yes" 
+			errorproperty="atests.failed" failureproperty="atests.failed" haltonfailure="yes" 
+			maxmemory="512m">
+			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
+			<sysproperty key="atest.timeout" value="${atest.timeout}" />
+			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
+			<sysproperty key="atest.skipslow" value="${atest.skipslow}" />
+			<formatter type="xml" usefile="true" />
+			<classpath>
+				<pathelement location="core/src/test/java"/>
+				<pathelement location="${test.classes.java4}"/>
+				<fileset dir="${staging.dir.java4}/lib" includes="*.jar"/>
+				<fileset dir="${staging.dir.java4}" includes="*.jar"/>
+				<fileset dir="core/src/test/lib" includes="*.jar"/>
+				<fileset dir="core/src/main/lib/optional" 
+					includes="jcl*.jar,proxool*.jar,sleepycat*.jar"/>
+			</classpath>
+			<test todir="${junit.output.dir.java4}" name="${atest.classname}" />
+		</junit>
+		<!-- remove the logged output because it's too large for junitreport -->
+		<replaceregexp file="${atest.report}" flags="s" byline="false" 
+			match="system-err>.*&lt;/system-err" 
+			replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />		
+	</target>
+	
+	<macrodef name="retrotranslate-jar">
+		<attribute name="jar"/>
+		<sequential>
+			<retrotranslator 
+				target="1.4" 
+				srcjar="${release.bin.staging.dir}/@{jar}"
+				destjar="${staging.dir.java4}/@{jar}" 
+				uptodatecheck="On" 
+				lazy="false" 
+				embed="org.quickfixj.java4" 
+				verify="false">
+				<classpath>
+					<fileset dir="core/src/main/lib/java4">
+						<include name="*.jar"/>
+					</fileset>
+				</classpath>
+			</retrotranslator>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="test_executor_java4">
+		<attribute name="dir"/>
+		<sequential>
+			<java jvm="${jvm.java4}" fork="true"
+				taskname="java 1.4"
+				outputproperty="executor.output" 
+				classname="quickfix.examples.executor.Executor" 
+				inputstring="exit\n">
+				<classpath>
+					<fileset dir="@{dir}">
+						<include name="lib/*.jar"/>
+						<include name="lib/optional/mx4j-3.0.2.jar"/>
+						<include name="*.jar"/>
+					</fileset>
+				</classpath>
+			</java>
+			<echo message="${executor.output}" />
+			<condition property="executor.success">
+				<contains string="${executor.output}" substring="Logging out all sessions"/>
+			</condition>
+			<fail message="Executor failed" unless="executor.success"/>
+		</sequential>
+	</macrodef>
 
 </project>

@@ -7,6 +7,15 @@
 
 	<property name="version" value="SNAPSHOT ${timestamp}" />
 
+	<path id="jalopy.classpath" description="Jalopy tool path">
+		<fileset dir="${main.lib.dir}/build">
+			<include name="jalopy*.jar" />
+		</fileset>
+		<fileset dir="${main.optional.lib.dir}">
+			<include name="log4j*.jar" />
+		</fileset>
+	</path>
+
 	<!-- =============================================================
 	Generate FIX Message Code
 	================================================================= -->
@@ -55,7 +64,8 @@
 
 	<taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.classpath" />
 
-	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy. Mostly interested in getting all the tabbing right.">
+	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy. 
+		Mostly interested in getting all the tabbing right." unless="skip.jalopy">
 		<jalopy classpathref="main.lib.classpath" fileformat="unix">
 			<fileset dir="${target.generated.src.dir}">
 				<include name="**/*.java" />
@@ -92,7 +102,8 @@
 		<attribute name="output" />
 		<sequential>
 			<mkdir dir="@{output}" />
-			<javac destdir="@{output}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes" nowarn="yes">
+			<javac destdir="@{output}" debug="${javac.debug}" 
+					memoryMaximumSize="128m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />
@@ -143,31 +154,6 @@
 					<include name="quickfix/fix@{version}/**" />
 				</fileset>
 			</jar>
-		</sequential>
-	</macrodef>
-
-	<taskdef name="retrotranslator" classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
-		<classpath id="retrotranslator.classpath">
-			<fileset dir="${main-1.4.lib.dir}" includes="**/*.jar" />
-		</classpath>
-	</taskdef>
-	
-	<target name="jar-1.4" description="build jar files for Java 1.4" depends="jar">
-		<mkdir dir="${jar.output.dir}/java4"/>
-		<create-jar-1.4 srcjar="core"/>
-		<create-jar-1.4 srcjar="msg-fix40"/>
-		<create-jar-1.4 srcjar="msg-fix41"/>
-		<create-jar-1.4 srcjar="msg-fix42"/>
-		<create-jar-1.4 srcjar="msg-fix43"/>
-		<create-jar-1.4 srcjar="msg-fix44"/>
-	</target>
-
-	<macrodef name="create-jar-1.4">
-		<attribute name="srcjar" />
-		<sequential>
-			<retrotranslator destjar="${jar.output.dir}/java4/quickfixj-@{srcjar}.jar" srcjar="${jar.output.dir}/quickfixj-@{srcjar}.jar" target="1.4" uptodatecheck="On" verify="false" lazy="false" embed="org.quickfixj.java4">				
-				<classpath refid="retrotranslator.classpath"/>
-			</retrotranslator>
 		</sequential>
 	</macrodef>
 
@@ -361,7 +347,10 @@
 
 	<target name="export_binaries" depends="module.export_binaries">
 		<copy todir="${release.bin.staging.dir}/lib">
-			<fileset dir="src/main/lib" />
+			<fileset dir="src/main/lib">
+				<include name="*.jar"/>
+				<include name="optional/*.jar"/>
+			</fileset>
 		</copy>
 		<copy todir="${release.bin.staging.dir}/doc">
 			<fileset dir="src/main/doc" includes="usermanual/**/*" />
@@ -424,15 +413,6 @@
 
 	<path id="test.src.path">
 		<pathelement location="${test.src.dir}" />
-	</path>
-
-	<path id="jalopy.classpath" description="Jalopy tool path">
-		<fileset dir="${main.lib.dir}/build">
-			<include name="jalopy*.jar" />
-		</fileset>
-		<fileset dir="${main.optional.lib.dir}">
-			<include name="log4j*.jar" />
-		</fileset>
 	</path>
 
 </project>

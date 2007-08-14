@@ -50,7 +50,14 @@ public class IoSessionResponder implements Responder {
     }
 
     private void waitForScheduleMessagesToBeWritten() {
-        while (ioSession.getScheduledWriteRequests() > 0) {
+        // This is primarily to allow logout messages to be sent before
+        // closing the socket. Future versions of MINA may have support
+        // in close() to force all pending messages to be written before
+        // the socket close is performed.
+        //
+        // Only wait for a limited time since MINA may deadlock
+        // in some rare cases where a socket dies in a strange way.
+        for (int i = 0; i < 5 && ioSession.getScheduledWriteRequests() > 0; i++) {
             try {
                 Thread.sleep(10L);
             } catch (InterruptedException e) {

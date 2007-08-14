@@ -136,7 +136,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     protected void setGroups(int key, List<Group> groupList) {
-        groups.put(Integer.valueOf(key), groupList);
+        groups.put(key, groupList);
     }
 
     public void setString(int field, String value) {
@@ -204,7 +204,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     StringField getField(int field) throws FieldNotFound {
-        StringField f = (StringField) fields.get(Integer.valueOf(field));
+        StringField f = (StringField) fields.get(field);
         if (f == null) {
             throw new FieldNotFound(field);
         }
@@ -212,7 +212,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     Field<?> getField(int field, Field<?> defaultValue) {
-        Field<?> f = (Field<?>) fields.get(Integer.valueOf(field));
+        Field<?> f = (Field<?>) fields.get(field);
         if (f == null) {
             return defaultValue;
         }
@@ -370,7 +370,7 @@ public abstract class FieldMap implements Serializable {
     public IntField getField(IntField field) throws FieldNotFound {
         try {
             String value = getField(field.getField()).getValue();
-            field.setObject(Integer.valueOf(IntConverter.convert(value)));
+            field.setObject(IntConverter.convert(value));
         } catch (FieldConvertError e) {
             throw newIncorrectDataException(e, field.getField());
         } catch (FieldNotFound e) {
@@ -445,7 +445,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public boolean isSetField(int field) {
-        return fields.containsKey(Integer.valueOf(field));
+        return fields.containsKey(field);
     }
 
     public boolean isSetField(Field<?> field) {
@@ -453,7 +453,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void removeField(int field) {
-        fields.remove(Integer.valueOf(field));
+        fields.remove(field);
     }
 
     public Iterator<Field<?>> iterator() {
@@ -480,7 +480,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     private boolean isGroupField(int field) {
-        return groups.containsKey(Integer.valueOf(field));
+        return groups.containsKey(field);
     }
 
     protected void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {
@@ -693,7 +693,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public boolean hasGroup(int field) {
-        return groups.containsKey(Integer.valueOf(field));
+        return groups.containsKey(field);
     }
 
     public boolean hasGroup(int num, int field) {

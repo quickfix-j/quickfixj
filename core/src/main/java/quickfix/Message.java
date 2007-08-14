@@ -245,7 +245,7 @@ public class Message extends FieldMap {
      * for diagnostics and debugging. THIS IS NOT FIXML.
      * 
      * @param dataDictionary
-     * @return
+     * @return the XML representation of the message
      */
     public String toXML(DataDictionary dataDictionary) {
         try {
@@ -277,20 +277,20 @@ public class Message extends FieldMap {
         message.appendChild(fields);
         Iterator<Field<?>> fieldItr = fieldMap.iterator();
         while (fieldItr.hasNext()) {
-            StringField field = (StringField) fieldItr.next();
+            Field<?> field = fieldItr.next();
             Element fieldElement = document.createElement("field");
             if (dataDictionary != null) {
                 String name = dataDictionary.getFieldName(field.getTag());
                 if (name != null) {
                     fieldElement.setAttribute("name", name);
                 }
-                String enumValue = dataDictionary.getValueName(field.getTag(), field.getValue());
+                String enumValue = dataDictionary.getValueName(field.getTag(), field.getObject().toString());
                 if (enumValue != null) {
                     fieldElement.setAttribute("enum", enumValue);
                 }
             }
             fieldElement.setAttribute("tag", Integer.toString(field.getTag()));
-            CDATASection value = document.createCDATASection(field.getValue());
+            CDATASection value = document.createCDATASection(field.getObject().toString());
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
         }
