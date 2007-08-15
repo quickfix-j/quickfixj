@@ -19,8 +19,9 @@
 
 package quickfix.mina.acceptor;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -49,10 +50,38 @@ import quickfix.SessionSettings;
 public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     private static final String WILDCARD = "*";
     private static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD);
-    
-    private final Map<SessionID, SessionID> templateIdMap;
+
+    private final List<TemplateMapping> templateMappings;
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
+
+    /**
+     * Mapping from a sessionID pattern to a session template ID.
+     */
+    public static class TemplateMapping {
+        private final SessionID pattern;
+        private final SessionID templateID;
+
+        public TemplateMapping(SessionID pattern, SessionID templateID) {
+            super();
+            this.pattern = pattern;
+            this.templateID = templateID;
+        }
+
+        public SessionID getPattern() {
+            return pattern;
+        }
+
+        public SessionID getTemplateID() {
+            return templateID;
+        }
+
+        @Override
+        public String toString() {
+            return "<" + pattern + "," + templateID + ">";
+        }
+
+    }
 
     /**
      * 
@@ -70,21 +99,16 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
             final SessionID templateID, quickfix.Application application,
             MessageStoreFactory messageStoreFactory, LogFactory logFactory,
             MessageFactory messageFactory) {
-        this(settings, createSingletonTemplateIdMap(templateID), application, messageStoreFactory,
-                logFactory, messageFactory);
-    }
-
-    private static Map<SessionID, SessionID> createSingletonTemplateIdMap(SessionID templateID) {
-        Map<SessionID, SessionID> map = new HashMap<SessionID, SessionID>();
-        map.put(ANY_SESSION, templateID);
-        return map;
+        this(settings, Collections.singletonList(new TemplateMapping(ANY_SESSION, templateID)),
+                application, messageStoreFactory, logFactory, messageFactory);
     }
 
     /**
      * @param settings session settings
-     * @param templateIdMap this is a map of session ID patterns to session IDs in
-     * the settings file that represent a template for that session ID pattern. Use
-     * a "*" to represent a wildcard for a pattern element. For example, 
+     * @param templateMappings this is a list of session ID patterns mapped to session IDs in
+     * the settings file. The session IDs represent the template for a specified session ID 
+     * pattern. The template is used to dynamically create acceptor sessions.
+     * Use "*" to represent a wildcard for a pattern element. For example, 
      * new SessionID("FIX.4.2", "*", "*") would match for any FIX 4.2 session ID.
      * This allows separate template session configurations for FIX versions (or
      * CompIDs) being accepted dynamically on a single TCP port.
@@ -92,13 +116,14 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
      * @param messageStoreFactory message store factory for the dynamic sessions
      * @param logFactory log factory for the dynamic sessions
      * @param messageFactory message factory for the dynamic sessions
+     * @see TemplateMapping
      */
     public DynamicAcceptorSessionProvider(final SessionSettings settings,
-            Map<SessionID, SessionID> templateIdMap, quickfix.Application application,
+            List<TemplateMapping> templateMappings, quickfix.Application application,
             MessageStoreFactory messageStoreFactory, LogFactory logFactory,
             MessageFactory messageFactory) {
         this.settings = settings;
-        this.templateIdMap = templateIdMap;
+        this.templateMappings = templateMappings;
         sessionFactory = new DefaultSessionFactory(application, messageStoreFactory, logFactory,
                 messageFactory);
     }
@@ -109,7 +134,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
             try {
                 SessionID templateID = lookupTemplateID(sessionID);
                 if (templateID == null) {
-                    throw new ConfigError("Unable to find a session template for "+sessionID);
+                    throw new ConfigError("Unable to find a session template for " + sessionID);
                 }
                 SessionSettings dynamicSettings = new SessionSettings();
                 copySettings(dynamicSettings, settings.getDefaultProperties());
@@ -128,9 +153,9 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     }
 
     private SessionID lookupTemplateID(SessionID sessionID) {
-        for (Map.Entry<SessionID, SessionID> entry : templateIdMap.entrySet()) {
-            if (isMatching(entry.getKey(), sessionID)) {
-                return entry.getValue();
+        for (TemplateMapping mapping : templateMappings) {
+            if (isMatching(mapping.getPattern(), sessionID)) {
+                return mapping.getTemplateID();
             }
         }
         return null;
