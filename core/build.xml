@@ -5,8 +5,6 @@
 		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
 	</tstamp>
 
-	<property name="version" value="SNAPSHOT ${timestamp}" />
-
 	<path id="jalopy.classpath" description="Jalopy tool path">
 		<fileset dir="${main.lib.dir}/build">
 			<include name="jalopy*.jar" />

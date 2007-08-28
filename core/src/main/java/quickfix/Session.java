@@ -242,6 +242,9 @@ public class Session {
     private final boolean checkCompID;
     private final boolean useClosedRangeForResend;
 
+    private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
+    private final SessionStateListener stateListener = (SessionStateListener) stateListeners.getMulticaster();
+    
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
@@ -309,6 +312,11 @@ public class Session {
     public void setResponder(Responder responder) {
         synchronized (responderSync) {
             this.responder = responder;
+            if (responder != null) {
+                stateListener.onConnect();
+            } else {
+                stateListener.onDisconnect();
+            }
         }
     }
 
@@ -588,7 +596,7 @@ public class Session {
             generateLogout();
             disconnect();
         }
-        state.reset();
+        resetState();
     }
 
     /**
@@ -848,9 +856,7 @@ public class Session {
 
         msgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
         if (!isTargetTooHigh(msgSeqNum) && !isTargetTooLow(msgSeqNum)) {
-            synchronized (this) {
-                state.incrNextTargetMsgSeqNum();
-            }
+            state.incrNextTargetMsgSeqNum();
         }
     }
 
@@ -900,6 +906,7 @@ public class Session {
         if (!verify(logout, false, false)) {
             return;
         }
+
         if (!state.isLogoutSent()) {
             getLog().onEvent("Received logout request");
             generateLogout();
@@ -907,11 +914,12 @@ public class Session {
         } else {
             getLog().onEvent("Received logout response");
         }
+
         state.setLogoutReceived(true);
 
         state.incrNextTargetMsgSeqNum();
         if (resetOnLogout) {
-            state.reset();
+            resetState();
         }
 
         disconnect();
@@ -1168,7 +1176,7 @@ public class Session {
             }
 
             if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
-                synchronized (this) {
+                synchronized (state.getLock()) {
                     int[] range = state.getResendRange();
                     if (msgSeqNum >= range[1]) {
                         getLog().onEvent(
@@ -1313,11 +1321,13 @@ public class Session {
         if (state.isTimedOut()) {
             getLog().onEvent("Timed out waiting for heartbeat");
             disconnect();
+            stateListener.onHeartBeatTimeout();
         } else {
             if (state.isTestRequestNeeded()) {
                 generateTestRequest("TEST");
                 state.incrementTestRequestCounter();
                 getLog().onEvent("Sent test request TEST");
+                stateListener.onMissedHeartBeat();
             } else if (state.isHeartBeatNeeded()) {
                 generateHeartbeat();
             }
@@ -1345,9 +1355,10 @@ public class Session {
         if (isStateRefreshNeeded(MsgType.LOGON)) {
             getLog().onEvent("Refreshing message/state store at logon");
             getStore().refresh();
+            stateListener.onRefresh();
         }
         if (resetOnLogon) {
-            state.reset();
+            resetState();
         }
         if (isResetNeeded()) {
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
@@ -1364,19 +1375,22 @@ public class Session {
      * @throws IOException IO error
      */
     public void disconnect() throws IOException {
-        Responder responder = getResponder();
-        if (responder != null) {
-                getLog().onEvent("Disconnecting");
-            responder.disconnect();
-                setResponder(null);
+        synchronized (responderSync) {
+            if (!hasResponder()) {
+                return;
             }
-
+            getLog().onEvent("Disconnecting");
+            responder.disconnect();
+            setResponder(null);
+        }
+        
         boolean logonReceived = state.isLogonReceived();
         boolean logonSent = state.isLogonSent();
         if (logonReceived || logonSent) {
             state.setLogonReceived(false);
             state.setLogonSent(false);
             application.onLogout(sessionID);
+            stateListener.onLogout();
         }
 
         state.setLogoutSent(false);
@@ -1389,7 +1403,7 @@ public class Session {
         state.setResendRange(0, 0);
 
         if (resetOnDisconnect) {
-            state.reset();
+            resetState();
         }
 
     }
@@ -1401,7 +1415,8 @@ public class Session {
 
         if (isStateRefreshNeeded(MsgType.LOGON)) {
             getLog().onEvent("Refreshing message/state store at logon");
-            state.getMessageStore().refresh();
+            getStore().refresh();
+            stateListener.onRefresh();
         }
 
         if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
@@ -1411,7 +1426,7 @@ public class Session {
         if (state.isResetReceived()) {
             getLog().onEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
             if (!state.isResetSent()) {
-                state.reset();
+                resetState();
             }
         }
 
@@ -1422,7 +1437,7 @@ public class Session {
         }
 
         if (!state.isInitiator() && resetOnLogon) {
-            state.reset();
+            resetState();
         }
 
         if (!verify(logon, false, true)) {
@@ -1456,6 +1471,7 @@ public class Session {
 
         if (isLoggedOn()) {
             application.onLogon(sessionID);
+            stateListener.onLogon();
         }
     }
 
@@ -1610,7 +1626,7 @@ public class Session {
                         resetSeqNumFlag = message.getBoolean(ResetSeqNumFlag.FIELD);
                     }
                     if (resetSeqNumFlag) {
-                        state.reset();
+                        resetState();
                         message.getHeader().setInt(MsgSeqNum.FIELD, getExpectedSenderNum());
                     }
                     state.setResetSent(resetSeqNumFlag);
@@ -1653,6 +1669,11 @@ public class Session {
         }
     }
 
+    private void resetState() {
+        state.reset();
+        stateListener.onReset();
+    }
+
     /**
      * Send a message to a counterparty. Sequence numbers and information about the sender
      * and target identification will be added automatically (or overwritten if that
@@ -1661,7 +1682,7 @@ public class Session {
      * The returned status flag is included for 
      * compatibility with the JNI API but it's usefulness is questionable.
      * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
-     * only indicates the message was succesfully queued for transmission. An error could still
+     * only indicates the message was successfully queued for transmission. An error could still
      * occur before the message data is actually sent.
      * 
      * @param message the message to send
@@ -1843,5 +1864,13 @@ public class Session {
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
         }
         return s;
+    }
+    
+    public void addStateListener(SessionStateListener listener) {
+        stateListeners.addListener(listener);
+    }
+    
+    public void removeStateListener(SessionStateListener listener) {
+        stateListeners.removeListener(listener);
     }
 }

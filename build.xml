@@ -14,6 +14,10 @@
 	<property name="release.bin_src.staging.dir"
 	          value="${release.output.dir}/staging/bin_src" />
 
+	<property name="staging.dir.java4" 
+	          value="${release.output.dir}/java4/staging/bin/quickfixj"/>
+		
+
 	<property name="output.dir" value="classes" />
 
 	<macrodef name="iterate">
@@ -117,6 +121,7 @@
 			<format property="timestamp" pattern="yyyyMMddHHmmss" />
 		</tstamp>
 		<property name="release.prefix" value="quickfixj-${timestamp}" />
+		<property name="version" value="SNAPSHOT ${timestamp}"/>
 	</target>
 
 	<target name="release.versioned"
@@ -310,9 +315,6 @@
 		<taskdef name="retrotranslator" classpathref="retrotranslator.classpath"
 			classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
 		</taskdef>
-		
-		<property name="staging.dir.java4" 
-			value="${release.output.dir}/java4/staging/bin/quickfixj"/>
 		
 		<property name="release.bin.java4"
 		          value="${release.output.dir}/${release.prefix}-java4-bin" />

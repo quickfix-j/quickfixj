@@ -414,6 +414,10 @@ public final class SessionState {
         }
     }
 
+    public Object getLock() {
+        return lock;
+    }
+    
     private final static class NullLog implements Log {
         public void onOutgoing(String message) {
         }

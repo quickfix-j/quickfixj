@@ -48,15 +48,128 @@
 				<include name="**/*.cfg"/>
 			</fileset>
 		</jar>
+		<antcall target="process.scripts.src" inheritAll="false"/>
 	</target>
 
 	<!-- =============================================================
 	Custom Exports
 	================================================================= -->
 
+	<path id="script.path">
+		<fileset dir="../core/src/main/lib">
+			<include name="mina*.jar"/>
+			<include name="slf4j*.jar"/>
+			<exclude name="*-sources.jar"/>
+		</fileset>
+		<fileset dir="../core/target">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="../examples/target">
+			<include name="quickfixj-examples.jar"/>
+		</fileset>
+	</path>
+
+	<path id="script.path.java4">
+		<fileset dir="../core/src/main/lib/java4">
+			<include name="*.jar"/>
+		</fileset>
+		<fileset dir="../core/src/main/lib/java4/optional">
+			<include name="mx4j*.jar"/>
+		</fileset>
+		<fileset dir="../examples/target">
+			<include name="quickfixj-examples.jar"/>
+		</fileset>
+		<fileset dir="../core/target">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="process.scripts.src">
+	    <dirname file="${basedir}" property="project.dir"/>
+		<property name="comment" value="Scripts for the QFJ source distribution (Java 5+)"/>
+		
+		<pathconvert targetos="unix" property="script.path.dos.src" refid="script.path" pathsep=";">
+			<map from="${project.dir}" to="%QFJ_HOME%"/>
+			<map from="${project.dir}/core/target" to="%QFJ_HOME%"/>
+		</pathconvert>
+		
+		<copy overwrite="true" todir="target/scripts">
+			<fileset dir="src/main/scripts">
+				<include name="*.bat"/>
+			</fileset>
+			<filterset>
+				<filter token="COMMENT" value="${comment}"/>
+				<filter token="QFJ_RELDIR" value="..\\..\\.."/>
+				<filter token="CLASSPATH" value="${script.path.dos.src}"/>
+			</filterset>
+		</copy>
+
+		<pathconvert targetos="unix" property="script.path.unix.src" refid="script.path">
+			<map from="${project.dir}" to="$qfjhome"/>
+			<map from="${project.dir}/core/target" to="$qfjhome"/>
+		</pathconvert>
+
+		<copy overwrite="true" todir="target/scripts">
+			<fileset dir="src/main/scripts">
+				<include name="*.sh"/>
+			</fileset>
+			<filterset>
+				<filter token="COMMENT" value="${comment}"/>
+				<filter token="QFJ_RELDIR" value="../../.."/>
+				<filter token="CLASSPATH" value="${script.path.unix.src}"/>
+			</filterset>
+		</copy>
+	</target>
+						
 	<target name="export_binaries" depends="module.export_binaries">
-		<copy todir="${release.bin.staging.dir}/bin">
-			<fileset dir="src/main/scripts"/>
+		<antcall target="process.scripts.bin" inheritAll="false">
+			<param name="classpath" value="script.path"/>
+			<param name="targetdir" value="${release.bin.staging.dir}/bin"/>
+		</antcall>
+		<antcall target="process.scripts.bin" inheritAll="false">
+			<param name="classpath" value="script.path.java4"/>
+			<param name="targetdir" value="${staging.dir.java4}/bin"/>
+		</antcall>
+	</target>
+
+	<target name="process.scripts.bin">
+		<!-- classpath -->
+		<!-- target directory -->
+	    <dirname file="${basedir}" property="project.dir"/>
+		<property name="comment" value="Scripts for the QFJ binary distribution"/>
+		
+		<pathconvert targetos="unix" property="script.path.dos.src" refid="${classpath}" pathsep=";">
+			<map from="${project.dir}/core/src/main/lib/java4" to="%QFJ_HOME%/lib"/>
+			<map from="${project.dir}/core/target" to="%QFJ_HOME%"/>
+			<map from="${project.dir}/examples/target" to="%QFJ_HOME%"/>
+		</pathconvert>
+		
+		<copy overwrite="true" todir="${targetdir}">
+			<fileset dir="src/main/scripts">
+				<include name="*.bat"/>
+			</fileset>
+			<filterset>
+				<filter token="COMMENT" value="${comment}"/>
+				<filter token="QFJ_RELDIR" value=".."/>
+				<filter token="CLASSPATH" value="${script.path.dos.src}"/>
+			</filterset>
+		</copy>
+
+		<pathconvert targetos="unix" property="script.path.unix.src" refid="${classpath}">
+			<map from="${project.dir}/core/src/main/lib/java4" to="$qfjhome/lib"/>
+			<map from="${project.dir}/core/target" to="$qfjhome"/>
+			<map from="${project.dir}/examples/target" to="$qfjhome"/>
+		</pathconvert>
+
+		<copy overwrite="true" todir="${targetdir}">
+			<fileset dir="src/main/scripts">
+				<include name="*.sh"/>
+			</fileset>
+			<filterset>
+				<filter token="COMMENT" value="${comment}"/>
+				<filter token="QFJ_RELDIR" value=".."/>
+				<filter token="CLASSPATH" value="${script.path.unix.src}"/>
+			</filterset>
 		</copy>
 	</target>
 

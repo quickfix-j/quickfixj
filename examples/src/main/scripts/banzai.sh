@@ -1,6 +1,11 @@
 #!/bin/sh
 
+# @COMMENT@
+
 scriptdir=`dirname $0`
-qfjhome=$scriptdir/../../../..
-. $scriptdir/run.inc.sh quickfix.examples.banzai.Banzai $*
+qfjhome=$scriptdir/@QFJ_RELDIR@
+
+CP=@CLASSPATH@
+
+java -classpath "$CP" quickfix.examples.banzai.Banzai $*
 
