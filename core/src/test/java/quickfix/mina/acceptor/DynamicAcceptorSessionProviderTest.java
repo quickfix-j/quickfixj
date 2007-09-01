@@ -22,11 +22,11 @@ package quickfix.mina.acceptor;
 import java.util.ArrayList;
 import java.util.List;
 
+import junit.framework.TestCase;
+
 import org.quickfixj.QFJException;
 
-import junit.framework.TestCase;
 import quickfix.Application;
-import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
 import quickfix.LogFactory;
 import quickfix.MemoryStoreFactory;
@@ -37,7 +37,6 @@ import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.UnitTestApplication;
-import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
 
 public class DynamicAcceptorSessionProviderTest extends TestCase {

@@ -83,9 +83,9 @@
 			<include name="*.jar"/>
 		</fileset>
 	</path>
-
+						
 	<target name="process.scripts.src">
-	    <dirname file="${basedir}" property="project.dir"/>
+	    <dirname file="${basedir}" property="project.dir"/>	    
 		<property name="comment" value="Scripts for the QFJ source distribution (Java 5+)"/>
 		
 		<pathconvert targetos="unix" property="script.path.dos.src" refid="script.path" pathsep=";">
@@ -120,7 +120,7 @@
 			</filterset>
 		</copy>
 	</target>
-						
+
 	<target name="export_binaries" depends="module.export_binaries">
 		<antcall target="process.scripts.bin" inheritAll="false">
 			<param name="classpath" value="script.path"/>
@@ -133,13 +133,12 @@
 	</target>
 
 	<target name="process.scripts.bin">
-		<!-- classpath -->
-		<!-- target directory -->
 	    <dirname file="${basedir}" property="project.dir"/>
 		<property name="comment" value="Scripts for the QFJ binary distribution"/>
 		
 		<pathconvert targetos="unix" property="script.path.dos.src" refid="${classpath}" pathsep=";">
 			<map from="${project.dir}/core/src/main/lib/java4" to="%QFJ_HOME%/lib"/>
+			<map from="${project.dir}/core/src/main/lib" to="%QFJ_HOME%/lib"/>
 			<map from="${project.dir}/core/target" to="%QFJ_HOME%"/>
 			<map from="${project.dir}/examples/target" to="%QFJ_HOME%"/>
 		</pathconvert>
@@ -157,6 +156,7 @@
 
 		<pathconvert targetos="unix" property="script.path.unix.src" refid="${classpath}">
 			<map from="${project.dir}/core/src/main/lib/java4" to="$qfjhome/lib"/>
+			<map from="${project.dir}/core/src/main/lib" to="$qfjhome/lib"/>
 			<map from="${project.dir}/core/target" to="$qfjhome"/>
 			<map from="${project.dir}/examples/target" to="$qfjhome"/>
 		</pathconvert>

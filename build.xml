@@ -157,6 +157,7 @@
 		<iterate target="export_binaries">
 			<properties>
 				<property name="release.bin.staging.dir" value="${release.bin.staging.dir}"/>
+				<property name="staging.dir.java4" value="${staging.dir.java4}"/>
 			</properties>
 		</iterate>
 
