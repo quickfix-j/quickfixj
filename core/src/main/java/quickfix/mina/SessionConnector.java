@@ -217,9 +217,7 @@ public abstract class SessionConnector {
                 while (sessionItr.hasNext()) {
                     quickfix.Session session = sessionItr.next();
                     try {
-                        if (session.hasResponder()) {
-                            session.next();
-                        }
+                        session.next();
                     } catch (IOException e) {
                         logError(session.getSessionID(), null, "Error in session timer processing",
                                 e);

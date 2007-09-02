@@ -1291,6 +1291,11 @@ public class Session {
             return;
         }
 
+        // Return if we are not connected
+        if (!hasResponder()) {
+            return;
+        }
+        
         if (!state.isLogonReceived()) {
             if (state.isLogonSendNeeded()) {
                 if (generateLogon()) {
