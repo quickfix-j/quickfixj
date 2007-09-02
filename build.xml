@@ -507,7 +507,7 @@
 	</macrodef>
 
 	<target name="copy.dist" if="dist.copy.dir">
-		<copy todir="${dist.copy.dir}">
+		<copy todir="${dist.copy.dir}/${version}" verbose="true" overwrite="true">
 			<fileset dir="${release.output.dir}">
 				<include name="quickfixj*.zip"/>
 				<include name="quickfixj*.gz"/>
