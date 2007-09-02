@@ -301,13 +301,6 @@
 	<!-- Java 4 Release Creation -->
 	<!-- ========================================================================= -->
 	
-	<!--
-	<target name="release.shared.java4.test">
-		<property name="release.prefix" value="quickfixj-TEST"/>
-		<antcall target="release.shared.java4"/>
-	</target>
-	-->
-	
 	<path id="retrotranslator.classpath">
 		<fileset dir="" includes="**/*.jar"/>
 	</path>
