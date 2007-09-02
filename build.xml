@@ -506,4 +506,12 @@
 		</sequential>
 	</macrodef>
 
+	<target name="copy.dist" if="dist.copy.dir">
+		<copy todir="${dist.copy.dir}">
+			<fileset dir="${release.output.dir}">
+				<include name="quickfixj*.zip"/>
+				<include name="quickfixj*.gz"/>
+			</fileset>
+		</copy>
+	</target>
 </project>
