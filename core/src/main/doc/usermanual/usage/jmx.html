@@ -79,6 +79,54 @@ MX4J includes standard RMI connector and several other options for exposing
 MBeans (including HTTP). See the MX4J documentation for more details.
 </p>
 
+<h3>JMX Notifications</h3>
+<p>
+The QFJ JMX Sesson MBean provides notifications related to state change events. 
+The JMX notification type is <code>quickfix.Session</code>. The event names are shown
+in the following table.
+</p>
+<table>
+<thead>
+  <tr>
+  	<th>Event Name</th><th>Description</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+  	<td>connect</td>
+  	<td>Socket connection associated with session</td>
+  </tr>
+  <tr>
+  	<td>disconnect</td>
+  	<td>Socket connection disassociated from session</td>
+  </tr>
+  <tr>
+  	<td>logon</td>
+  	<td>Session logged on</td>
+  </tr>
+  <tr>
+  	<td>logout</td>
+  	<td>Session logged out</td>
+  </tr>
+  <tr>
+  	<td>missedHeartBeat</td>
+  	<td>Missed heart beat (possible dead connection)</td>
+  </tr>
+  <tr>
+  	<td>heartBeatTimeout</td>
+  	<td>Second heartbeat missed</td>
+  </tr>
+  <tr>
+  	<td>refresh</td>
+  	<td>Session state refreshed from session store.</td>
+  </tr>
+  <tr>
+  	<td>reset</td>
+  	<td>Session state reset</td>
+  </tr>
+</tbody>
+</table>
+
 <h3>Related JMX Management Tools</h3>
 
 JConsole is a convenient tools for accessing JMX MBeans, but there are also 
