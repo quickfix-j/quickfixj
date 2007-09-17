@@ -23,7 +23,9 @@ public class SessionJmxExporter {
             SessionSettings settings) throws JMException, ConfigError {
         ObjectName sessionName = createSessionName(session.getSessionID());
         sessionObjectNames.put(session.getSessionID(), sessionName);
-        mbeanServer.registerMBean(new SessionAdmin(session, connectorName), sessionName);
+        SessionAdmin sessionAdmin = new SessionAdmin(session, connectorName);
+        session.addStateListener(sessionAdmin);
+        mbeanServer.registerMBean(sessionAdmin, sessionName);
         ObjectNameFactory settingsNameFactory = new ObjectNameFactory();
         settingsNameFactory.addProperty("type", "Settings");
         addSessionIdProperties(session.getSessionID(), settingsNameFactory);

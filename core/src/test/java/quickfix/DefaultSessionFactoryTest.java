@@ -97,12 +97,12 @@ public class DefaultSessionFactoryTest extends TestCase {
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_START_TIME, "xx");
         createSessionAndAssertConfigError("no exception",
-                "Session FIX.4.2:FOO->BAR: could not parse start time 'xx'.");
+                "Session FIX.4.2:FOO->BAR: could not parse time 'xx'.");
 
         setUpDefaultSettings();
         settings.setString(sessionID, Session.SETTING_END_TIME, "yy");
         createSessionAndAssertConfigError("no exception",
-                "Session FIX.4.2:FOO->BAR: could not parse end time 'yy'.");
+                "Session FIX.4.2:FOO->BAR: could not parse time 'yy'.");
     }
 
     private void createSessionAndAssertConfigError(String message, String pattern) {

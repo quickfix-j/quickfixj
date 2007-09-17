@@ -14,6 +14,10 @@
 	<property name="release.bin_src.staging.dir"
 	          value="${release.output.dir}/staging/bin_src" />
 
+	<property name="staging.dir.java4" 
+	          value="${release.output.dir}/java4/staging/bin/quickfixj"/>
+		
+
 	<property name="output.dir" value="classes" />
 
 	<macrodef name="iterate">
@@ -117,6 +121,7 @@
 			<format property="timestamp" pattern="yyyyMMddHHmmss" />
 		</tstamp>
 		<property name="release.prefix" value="quickfixj-${timestamp}" />
+		<property name="version" value="SNAPSHOT ${timestamp}"/>
 	</target>
 
 	<target name="release.versioned"
@@ -152,6 +157,7 @@
 		<iterate target="export_binaries">
 			<properties>
 				<property name="release.bin.staging.dir" value="${release.bin.staging.dir}"/>
+				<property name="staging.dir.java4" value="${staging.dir.java4}"/>
 			</properties>
 		</iterate>
 
@@ -295,13 +301,6 @@
 	<!-- Java 4 Release Creation -->
 	<!-- ========================================================================= -->
 	
-	<!--
-	<target name="release.shared.java4.test">
-		<property name="release.prefix" value="quickfixj-TEST"/>
-		<antcall target="release.shared.java4"/>
-	</target>
-	-->
-	
 	<path id="retrotranslator.classpath">
 		<fileset dir="" includes="**/*.jar"/>
 	</path>
@@ -310,9 +309,6 @@
 		<taskdef name="retrotranslator" classpathref="retrotranslator.classpath"
 			classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
 		</taskdef>
-		
-		<property name="staging.dir.java4" 
-			value="${release.output.dir}/java4/staging/bin/quickfixj"/>
 		
 		<property name="release.bin.java4"
 		          value="${release.output.dir}/${release.prefix}-java4-bin" />
@@ -503,4 +499,12 @@
 		</sequential>
 	</macrodef>
 
+	<target name="copy.dist" if="dist.copy.dir">
+		<copy todir="${dist.copy.dir}/${version}" verbose="true" overwrite="true">
+			<fileset dir="${release.output.dir}">
+				<include name="quickfixj*.zip"/>
+				<include name="quickfixj*.gz"/>
+			</fileset>
+		</copy>
+	</target>
 </project>

@@ -38,7 +38,8 @@ import quickfix.UnsupportedMessageType;
 public class ATApplication implements Application {
     private ATMessageCracker inboundCracker = new ATMessageCracker();
     private MessageCracker outboundCracker = new MessageCracker();
-
+    private boolean isLoggedOn;
+    
     public void onCreate(SessionID sessionID) {
         try {
             assertNoSessionLock(sessionID);
@@ -48,8 +49,10 @@ public class ATApplication implements Application {
         }
     }
 
-    public void onLogon(SessionID sessionID) {
+    public synchronized void onLogon(SessionID sessionID) {
         assertNoSessionLock(sessionID);
+        Assert.assertFalse(isLoggedOn);
+        isLoggedOn = true;
     }
 
     private void assertNoSessionLock(SessionID sessionID) {
@@ -59,9 +62,11 @@ public class ATApplication implements Application {
                 Thread.holdsLock(session));
     }
 
-    public void onLogout(SessionID sessionID) {
+    public synchronized void onLogout(SessionID sessionID) {
         assertNoSessionLock(sessionID);
         inboundCracker.reset();
+        Assert.assertTrue(isLoggedOn);
+        isLoggedOn = false;
     }
 
     public void toAdmin(Message message, SessionID sessionID) {

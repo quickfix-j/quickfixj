@@ -355,6 +355,21 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2006, 2, 4, 4, 30, 0);
     }
 
+    // QFJ-228
+    public void testSettingsWithStartEndDayWithDayRoll() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_TIMEZONE, "America/Chicago");
+        settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.MONDAY));
+        settings.setString(Session.SETTING_START_TIME, "01:00:00");
+        // The Friday day must roll over to Saturday when the time is converted to UTC
+        settings.setString(Session.SETTING_END_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_END_TIME, "19:30:00");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+        doIsSessionTimeTest(schedule, true, 2007, Calendar.AUGUST, 23, 0, 25, 0,
+                TimeZone.getTimeZone("America/Chicago"));
+    }
+
     public void testSettingsWithoutStartEndDayWithTimeZone() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "  US/Eastern ");
@@ -520,7 +535,7 @@ public class SessionScheduleTest extends TestCase {
             new SessionSchedule(settings, sessionID);
             fail("no exception");
         } catch (ConfigError e) {
-            assertTrue(e.getMessage().indexOf("could not parse start") != -1);
+            assertTrue(e.getMessage().indexOf("could not parse") != -1);
         }
 
         try {
@@ -529,7 +544,7 @@ public class SessionScheduleTest extends TestCase {
             new SessionSchedule(settings, sessionID);
             fail("no exception");
         } catch (ConfigError e) {
-            assertTrue(e.getMessage().indexOf("could not parse end") != -1);
+            assertTrue(e.getMessage().indexOf("could not parse") != -1);
         }
     }
 

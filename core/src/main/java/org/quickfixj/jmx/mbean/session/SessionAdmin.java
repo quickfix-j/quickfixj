@@ -22,15 +22,20 @@ import java.util.ArrayList;
 
 import javax.management.MBeanRegistration;
 import javax.management.MBeanServer;
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.Session;
+import quickfix.SessionStateListener;
 import quickfix.field.converter.UtcTimestampConverter;
 
-public class SessionAdmin implements SessionAdminMBean, MBeanRegistration {
+public class SessionAdmin extends NotificationBroadcasterSupport implements SessionAdminMBean, MBeanRegistration, SessionStateListener {
+
+    private static final String NOTIFICATION_TYPE = "quickfix.Session";
 
     private final Session session;
 
@@ -323,5 +328,47 @@ public class SessionAdmin implements SessionAdminMBean, MBeanRegistration {
     public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
         mbeanServer = server;
         return name;
+    }
+
+    //
+    // Session State Notifications
+    //
+    
+    public void onConnect() {
+        sendNotification("connect");
+    }
+
+    public void onDisconnect() {
+        sendNotification("disconnect");
+    }
+
+    public void onLogon() {
+        sendNotification("logon");
+    }
+
+    public void onLogout() {
+        sendNotification("logout");
+    }
+
+    public void onHeartBeatTimeout() {
+        sendNotification("heartBeatTimeout");
+    }
+
+    public void onMissedHeartBeat() {
+        sendNotification("missedHeartBeat");
+    }
+
+    public void onRefresh() {
+        sendNotification("refresh");
+    }
+
+    public void onReset() {
+        sendNotification("reset");
+    }
+
+    private void sendNotification(String eventName) {
+        Notification notification = new Notification(NOTIFICATION_TYPE, this,
+                -1, System.currentTimeMillis(), eventName);
+        sendNotification(notification);
     }
 }

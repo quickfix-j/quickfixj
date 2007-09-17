@@ -47,11 +47,67 @@ class SessionSchedule {
             throw new ConfigError("Session " + sessionID + ": EndDay used without StartDay");
         }
 
-        boolean weeklySession = startDayPresent && endDayPresent;
+        TimeZone defaultTimeZone = getDefaultTimeZone(settings, sessionID);
 
-        String startTimeString = settings.getString(sessionID, Session.SETTING_START_TIME);
-        String endTimeString = settings.getString(sessionID, Session.SETTING_END_TIME);
+//        boolean weeklySession = startDayPresent && endDayPresent;
+//
+//
+//        String startTimeString = settings.getString(sessionID, Session.SETTING_START_TIME);
+//        Matcher matcher = TIME_PATTERN.matcher(startTimeString);
+//        if (!matcher.find()) {
+//            throw new ConfigError("Session " + sessionID + ": could not parse start time '"
+//                    + startTimeString + "'.");
+//        }
+//        Calendar localTime = SystemTime.getUtcCalendar();
+//        TimeZone startTimeZone = getTimeZone(matcher.group(4), defaultTimeZone);
+//        localTime.setTimeZone(startTimeZone);
+//        localTime.set(Calendar.MILLISECOND, 0);
+//        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
+//        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
+//        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
+//        Calendar startTime = SystemTime.getUtcCalendar();
+//        startTime.setTime(localTime.getTime());
+//        int startDay = NOT_SET;
+//        if (weeklySession) {
+//            startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, NOT_SET);
+//        }
 
+        startTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_START_TIME, Session.SETTING_START_DAY);
+        endTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_END_TIME, Session.SETTING_END_DAY);
+    }
+
+    private TimeEndPoint getTimeEndPoint(SessionSettings settings, SessionID sessionID,
+            TimeZone defaultTimeZone, String timeSetting, String daySetting) throws ConfigError,
+            FieldConvertError {
+        
+        Matcher matcher = TIME_PATTERN.matcher(settings.getString(sessionID, timeSetting));
+        if (!matcher.find()) {
+            throw new ConfigError("Session " + sessionID + ": could not parse time '"
+                    + settings.getString(sessionID, timeSetting) + "'.");
+        }
+
+        TimeZone timeZone = getTimeZone(matcher.group(4), defaultTimeZone);
+
+        Calendar localTime = SystemTime.getUtcCalendar();
+        localTime.setTimeZone(timeZone);
+
+        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
+        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
+        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
+
+        int scheduleDay = getDay(settings, sessionID, daySetting, NOT_SET);
+        if (scheduleDay != NOT_SET) {
+            localTime.set(Calendar.DAY_OF_WEEK, scheduleDay);
+        }
+
+        Calendar utcTime = SystemTime.getUtcCalendar();
+        utcTime.setTime(localTime.getTime());
+
+        return new TimeEndPoint(scheduleDay == NOT_SET ? NOT_SET : utcTime.get(Calendar.DAY_OF_WEEK), utcTime, timeZone);
+    }
+
+    private TimeZone getDefaultTimeZone(SessionSettings settings, SessionID sessionID)
+            throws ConfigError, FieldConvertError {
         TimeZone sessionTimeZone;
         if (settings.isSetting(sessionID, Session.SETTING_TIMEZONE)) {
             String sessionTimeZoneID = settings.getString(sessionID, Session.SETTING_TIMEZONE);
@@ -63,46 +119,7 @@ class SessionSchedule {
         } else {
             sessionTimeZone = TimeZone.getTimeZone("UTC");
         }
-
-        Matcher matcher = TIME_PATTERN.matcher(startTimeString);
-        if (!matcher.find()) {
-            throw new ConfigError("Session " + sessionID + ": could not parse start time '"
-                    + startTimeString + "'.");
-        }
-        Calendar localTime = SystemTime.getUtcCalendar();
-        TimeZone startTimeZone = getTimeZone(matcher.group(4), sessionTimeZone);
-        localTime.setTimeZone(startTimeZone);
-        localTime.set(Calendar.MILLISECOND, 0);
-        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
-        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
-        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
-        Calendar startTime = SystemTime.getUtcCalendar();
-        startTime.setTime(localTime.getTime());
-        int startDay = NOT_SET;
-        if (weeklySession) {
-            startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, NOT_SET);
-        }
-
-        matcher = TIME_PATTERN.matcher(endTimeString);
-        if (!matcher.find()) {
-            throw new ConfigError("Session " + sessionID + ": could not parse end time '"
-                    + endTimeString + "'.");
-        }
-        localTime = SystemTime.getUtcCalendar();
-        TimeZone endTimeZone = getTimeZone(matcher.group(4), sessionTimeZone);
-        localTime.setTimeZone(endTimeZone);
-        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
-        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
-        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
-        Calendar endTime = SystemTime.getUtcCalendar();
-        endTime.setTime(localTime.getTime());
-        int endDay = NOT_SET;
-        if (weeklySession) {
-            endDay = getDay(settings, sessionID, Session.SETTING_END_DAY, NOT_SET);
-        }
-
-        this.startTime = new TimeEndPoint(startDay, startTime,startTimeZone);
-        this.endTime = new TimeEndPoint(endDay, endTime, endTimeZone);
+        return sessionTimeZone;
     }
 
     private TimeZone getTimeZone(String tz, TimeZone defaultZone) {
@@ -342,7 +359,9 @@ class SessionSchedule {
 
     private int getDay(SessionSettings settings, SessionID sessionID, String key, int defaultValue)
             throws ConfigError, FieldConvertError {
-        return DayConverter.toInteger(settings.getString(sessionID, key));
+        return settings.isSetting(sessionID, key) ?
+                DayConverter.toInteger(settings.getString(sessionID, key))
+                : NOT_SET;
     }
 
     private boolean isSet(int value) {
