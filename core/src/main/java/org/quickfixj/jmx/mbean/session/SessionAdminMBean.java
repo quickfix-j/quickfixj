@@ -17,6 +17,8 @@
 
 package org.quickfixj.jmx.mbean.session;
 
+import quickfix.SessionNotFound;
+
 import java.io.IOException;
 
 import javax.management.ObjectName;
@@ -149,6 +151,9 @@ public interface SessionAdminMBean {
      * Tell the session to logon.
      */
     void logon();
+
+    /** Reset current sequence number */
+    void resetSequence(int nextSeqNum) throws SessionNotFound;
 
     /**
      * Tell the session to disconnect (implies logoff)

@@ -17,21 +17,16 @@
 
 package org.quickfixj.jmx.mbean.session;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
-import javax.management.MBeanRegistration;
-import javax.management.MBeanServer;
-import javax.management.Notification;
-import javax.management.NotificationBroadcasterSupport;
-import javax.management.ObjectName;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import quickfix.Session;
-import quickfix.SessionStateListener;
+import quickfix.*;
+import quickfix.field.MsgType;
+import quickfix.field.NewSeqNo;
 import quickfix.field.converter.UtcTimestampConverter;
+
+import javax.management.*;
+import java.io.IOException;
+import java.util.ArrayList;
 
 public class SessionAdmin extends NotificationBroadcasterSupport implements SessionAdminMBean, MBeanRegistration, SessionStateListener {
 
@@ -149,6 +144,19 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     public void disconnect() throws IOException {
         logInvocation("disconnect");
         session.disconnect();
+    }
+
+    public void resetSequence(int nextSeqNum) throws SessionNotFound {
+        logInvocation("resetSequence to: "+nextSeqNum);
+        Message sequenceReset = new Message();
+        sequenceReset.getHeader().setField(new MsgType(MsgType.SEQUENCE_RESET));
+        sequenceReset.setField(new NewSeqNo(nextSeqNum));
+        doSend(sequenceReset, session.getSessionID());
+    }
+
+    /** Helper method to be overridden by tests  that handles sending out the message */
+    protected void doSend(Message message, SessionID sessionID) throws SessionNotFound {
+        Session.sendToTarget(message, sessionID);
     }
 
     /* (non-Javadoc)
