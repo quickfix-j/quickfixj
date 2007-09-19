@@ -83,6 +83,10 @@ public class Session {
     public static final String SETTING_MAX_LATENCY = "MaxLatency";
 
     /**
+     * Session setting for the test delay multiplier (0-1, as fraction of Heartbeat interval)
+     */
+    public static final String SETTING_TEST_REQUEST_DELAY_MULTIPLIER = "TestRequestDelayMultiplier";
+    /**
      * Session scheduling setting to specify first day of trading week.
      */
     public static final String SETTING_START_DAY = "StartDay";
@@ -244,23 +248,25 @@ public class Session {
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners.getMulticaster();
-    
+    public static final int DEFAULT_MAX_LATENCY = 120;
+    public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
+
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
         this(application, messageStoreFactory, sessionID, dataDictionary, sessionSchedule,
-                logFactory, messageFactory, heartbeatInterval, true, 120, true, false, false,
-                false, false, false, true, false, true, false, false);
+                logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true, false, false,
+                false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval, boolean checkLatency,
             int maxLatency, boolean millisecondsInTimeStamp, boolean resetOnLogon,
-            boolean resetOnLogout, boolean resetOnDisconnect, boolean resetWhenInitiatingLogon,
+            boolean resetOnLogout, boolean resetOnDisconnect,
             boolean refreshMessageStoreAtLogon, boolean checkCompID,
-            boolean redundantResentRequestsAllowed, boolean persistMessages, boolean refreshOnLogon,
-            boolean useClosedRangeForResend) {
+            boolean redundantResentRequestsAllowed, boolean persistMessages,
+            boolean useClosedRangeForResend, double testRequestDelayMultiplier) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -280,7 +286,7 @@ public class Session {
         this.state = new SessionState(this, logFactory != null
                 ? logFactory.create(sessionID)
                 : null, heartbeatInterval, heartbeatInterval != 0, messageStoreFactory
-                .create(sessionID));
+                .create(sessionID), testRequestDelayMultiplier);
 
         registerSession(this);
 
@@ -383,8 +389,6 @@ public class Session {
             String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
             String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
             return sendToTarget(message, senderCompID, targetCompID, qualifier);
-        } catch (SessionNotFound e) {
-            throw e;
         } catch (FieldNotFound e) {
             throw new SessionNotFound("missing sender or target company ID");
         }
@@ -456,8 +460,8 @@ public class Session {
 
     static void unregisterSessions(List<SessionID> sessionIds) {
         synchronized (sessions) {
-            for (int i = 0; i < sessionIds.size(); i++) {
-                sessions.remove((SessionID) sessionIds.get(i));
+            for (SessionID sessionId : sessionIds) {
+                sessions.remove((SessionID) sessionId);
             }
         }
     }
@@ -813,8 +817,8 @@ public class Session {
         int begin = 0;
         int current = beginSeqNo;
 
-        for (int i = 0; i < messages.size(); i++) {
-            Message msg = parseMessage((String) messages.get(i));
+        for (String message : messages) {
+            Message msg = parseMessage((String) message);
             msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
             String msgType = msg.getHeader().getString(MsgType.FIELD);
 
@@ -1858,6 +1862,10 @@ public class Session {
 
     public Date getStartTime() throws IOException {
         return state.getCreationTime();
+    }
+
+    public double getTestRequestDelayMultiplier() {
+        return state.getTestRequestDelayMultiplier();
     }
 
     public String toString() {

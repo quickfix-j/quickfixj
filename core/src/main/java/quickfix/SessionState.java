@@ -55,6 +55,7 @@ public final class SessionState {
     private long lastSentTime;
     private long lastReceivedTime;
     private boolean withinHeartBeat;
+    private double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
     private HashMap<Integer, Message> messageQueue = new HashMap<Integer, Message>();
@@ -64,12 +65,13 @@ public final class SessionState {
     private String logoutReason;
 
     public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator,
-            MessageStore messageStore) {
+                        MessageStore messageStore, double testRequestDelayMultiplier) {
         this.lock = lock;
         this.initiator = initiator;
         this.messageStore = messageStore;
         setHeartBeatInterval(heartBeatInterval);
         this.log = log == null ? new NullLog() : log;
+        this.testRequestDelayMultiplier = testRequestDelayMultiplier;
     }
 
     public int getHeartBeatInterval() {
@@ -252,6 +254,10 @@ public final class SessionState {
         }
     }
 
+    public double getTestRequestDelayMultiplier() {
+        return testRequestDelayMultiplier;
+    }
+
     public void clearTestRequestCounter() {
         synchronized (lock) {
             testRequestCounter = 0;
@@ -266,7 +272,7 @@ public final class SessionState {
 
     public boolean isTestRequestNeeded() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
-        return millisSinceLastReceivedTime >= (1.5 * (getTestRequestCounter() + 1))
+        return millisSinceLastReceivedTime >= ((1 + testRequestDelayMultiplier) * (getTestRequestCounter() + 1))
                 * getHeartBeatMillis();
     }
 
