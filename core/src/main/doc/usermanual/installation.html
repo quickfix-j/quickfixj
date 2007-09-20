@@ -145,7 +145,7 @@ By default, the XML processing is QuickFIX/J uses the XML parser included
     to download and install Ant (version 1.6.3 or newer). If you are building from
     Eclipse, Ant is included.
 
-<em>Building from source requires Java 5+. There are no Java 1.4 sources.</e>
+<em>Building from source requires Java 5+. There are no Java 1.4 sources.</em>
     
 </p>
 <ol>
@@ -158,6 +158,9 @@ By default, the XML processing is QuickFIX/J uses the XML parser included
   <li>Run <code>ant jar</code> to build the QuickFIX/J and examples jar files.
     This will also generate all the FIX message-related code for the various
     FIX versions.</li>
+  <li>There is an option for the code generator to use BigDecimal instead of double for fields like price and quantity.
+      To enable this feature pass a <code>-Dgenerator.decimal</code> option on the command line when
+      running the <code>generate.code</code> Ant target.</li>
 </ol>
 <h3>Eclipse IDE support:</h3>
 <p>The QuickFIX/J developers also use Eclipse to build the software. There is
