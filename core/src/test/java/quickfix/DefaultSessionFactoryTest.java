@@ -105,6 +105,12 @@ public class DefaultSessionFactoryTest extends TestCase {
                 "Session FIX.4.2:FOO->BAR: could not parse time 'yy'.");
     }
 
+    public void testTestRequestDeayMultiplier() throws Exception {
+        settings.setString(sessionID, Session.SETTING_TEST_REQUEST_DELAY_MULTIPLIER, "0.37");
+        Session session = factory.create(sessionID, settings);
+        assertEquals(0.37, session.getTestRequestDelayMultiplier());
+    }
+
     private void createSessionAndAssertConfigError(String message, String pattern) {
         try {
             factory.create(sessionID, settings);

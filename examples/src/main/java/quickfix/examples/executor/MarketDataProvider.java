@@ -25,5 +25,6 @@ package quickfix.examples.executor;
  *
  */
 public interface MarketDataProvider {
-    double getPrice(String symbol);
+    double getBid(String symbol);
+    double getAsk(String symbol);
 }

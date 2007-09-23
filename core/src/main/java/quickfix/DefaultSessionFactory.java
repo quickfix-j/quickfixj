@@ -81,14 +81,14 @@ public class DefaultSessionFactory implements SessionFactory {
 
             DataDictionary dataDictionary = null;
             if (useDataDictionary) {
-                String path = null;
+                String path;
                 if (settings.isSetting(sessionID, Session.SETTING_DATA_DICTIONARY)) {
                     path = settings.getString(sessionID, Session.SETTING_DATA_DICTIONARY);
                 } else {
                     path = settings.getString(sessionID, "BeginString").replaceAll("\\.", "")
                             + ".xml";
                 }
-                dataDictionary = (DataDictionary) dictionaryCache.get(path);
+                dataDictionary = dictionaryCache.get(path);
                 if (dataDictionary == null) {
                     dataDictionary = new DataDictionary(path);
                     dictionaryCache.put(path, dataDictionary);
@@ -120,7 +120,11 @@ public class DefaultSessionFactory implements SessionFactory {
 
             boolean checkLatency = getSetting(settings, sessionID, Session.SETTING_CHECK_LATENCY,
                     true);
-            int maxLatency = getSetting(settings, sessionID, Session.SETTING_MAX_LATENCY, 120);
+            int maxLatency = getSetting(settings, sessionID, Session.SETTING_MAX_LATENCY,
+                    Session.DEFAULT_MAX_LATENCY);
+            double testRequestDelayMultiplier = getSetting(settings, sessionID,
+                    Session.SETTING_TEST_REQUEST_DELAY_MULTIPLIER,
+                    Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
 
             boolean millisInTimestamp = getSetting(settings, sessionID,
                     Session.SETTING_MILLISECONDS_IN_TIMESTAMP, true);
@@ -155,9 +159,9 @@ public class DefaultSessionFactory implements SessionFactory {
             Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionary, new SessionSchedule(settings, sessionID), logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
-                    resetOnLogon, resetOnLogout, resetOnDisconnect, resetOnLogon, refreshAtLogon,
-                    checkCompID, redundantResentRequestAllowed, persistMessages, refreshAtLogon,
-                    useClosedIntervalForResend);
+                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon,
+                    checkCompID, redundantResentRequestAllowed, persistMessages,
+                    useClosedIntervalForResend, testRequestDelayMultiplier);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -171,8 +175,6 @@ public class DefaultSessionFactory implements SessionFactory {
             application.onCreate(sessionID);
 
             return session;
-        } catch (ConfigError e) {
-            throw e;
         } catch (FieldConvertError e) {
             throw new ConfigError(e.getMessage());
         }
@@ -187,6 +189,13 @@ public class DefaultSessionFactory implements SessionFactory {
             int defaultValue) throws ConfigError, FieldConvertError {
         return settings.isSetting(sessionID, key)
                 ? (int) settings.getLong(sessionID, key)
+                : defaultValue;
+    }
+
+    private double getSetting(SessionSettings settings, SessionID sessionID, String key,
+            double defaultValue) throws ConfigError, FieldConvertError {
+        return settings.isSetting(sessionID, key)
+                ? Double.parseDouble(settings.getString(sessionID, key))
                 : defaultValue;
     }
 
