@@ -3,5 +3,8 @@
 # @COMMENT@
 
 scriptdir=`dirname $0`
-qfjhome=$scriptdir/../../../..
-. $scriptdir/run.inc.sh quickfix.examples.executor.Executor $*
+qfjhome=$scriptdir/@QFJ_RELDIR@
+
+CP=@CLASSPATH@
+
+java -classpath "$CP"  quickfix.examples.executor.Executor $*
