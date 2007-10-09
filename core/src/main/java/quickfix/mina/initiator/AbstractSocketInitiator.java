@@ -82,12 +82,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected void initiateSessions(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
-            Iterator<Session> sessionItr = getSessionMap().values().iterator();
-            while (sessionItr.hasNext()) {
-                Session quickfixSession = sessionItr.next();
-                SessionID sessionID = quickfixSession.getSessionID();
+            for (Session session : getSessionMap().values()) {
+                SessionID sessionID = session.getSessionID();
                 int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
-                
+
                 SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
                 if (socketAddresses.length == 0) {
                     throw new ConfigError("Must specify at least one socket address");
@@ -95,7 +93,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
                 NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
                         .getSessionProperties(sessionID));
-                
+
                 boolean sslEnabled = false;
                 if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)) {
                     sslEnabled = BooleanConverter.convert(getSettings().getString(sessionID,
@@ -104,11 +102,11 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 String keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
                 String keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
 
-                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(quickfixSession,
+                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                         socketAddresses, reconnectingInterval, getScheduledExecutorService(),
                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder(),
                         sslEnabled, keyStoreName, keyStorePassword);
-                
+
                 initiators.add(ioSessionInitiator);
             }
             startTimers();
@@ -219,9 +217,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private void startInitiators() {
-        Iterator<IoSessionInitiator> i = initiators.iterator();
-        while (i.hasNext()) {
-            i.next().start();
+        for (IoSessionInitiator initiator : initiators) {
+            initiator.start();
         }
     }
 
@@ -231,9 +228,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private void stopInitiators() {
-        Iterator<IoSessionInitiator> i = initiators.iterator();
-        while (i.hasNext()) {
-            i.next().stop();
+        for (IoSessionInitiator initiator : initiators) {
+            initiator.stop();
         }
     }
 

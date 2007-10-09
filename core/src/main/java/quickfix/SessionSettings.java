@@ -399,7 +399,7 @@ public class SessionSettings {
             SessionID sessionId = new SessionID(currentSection.getProperty("BeginString"),
                     currentSection.getProperty(SENDERCOMPID), currentSection
                             .getProperty(TARGETCOMPID), currentSection.getProperty(
-                            "SessionQualifier", ""));
+                            SESSION_QUALIFIER, ""));
             sections.put(sessionId, currentSection);
             currentSectionId = null;
             currentSection = null;

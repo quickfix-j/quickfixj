@@ -660,7 +660,7 @@ public class MessageTest extends TestCase {
         message.setDouble(9812, 12.3443);
     
         try {
-            assertEquals(new Double(12.3443), new Double(message.getDouble(9812)));
+            assertEquals(12.3443, message.getDouble(9812));
         } catch (FieldNotFound e) {
             assertTrue("exception thrown", false);
         }
@@ -945,7 +945,7 @@ public class MessageTest extends TestCase {
         try {
             message.getGroup(3, numAllocs);
             fail("exception should be thrown");
-        } catch (FieldNotFound e) {
+        } catch (FieldNotFound ignored) {
         }
     }
 
@@ -961,7 +961,7 @@ public class MessageTest extends TestCase {
     
     private boolean equals(double expected, Object actual) {
         if (actual instanceof Double) {
-            return ((Double)actual).compareTo(new Double(expected)) == 0;
+            return ((Double) actual).compareTo(expected) == 0;
         } else {
             // BigDecimal
             return ((BigDecimal)actual).compareTo(new BigDecimal(expected)) == 0;
