@@ -32,6 +32,9 @@ public class ListenerSupport {
     @SuppressWarnings("unchecked")
     public ListenerSupport(Class<?> listenerClass) {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        if (classLoader == null) {
+            classLoader = this.getClass().getClassLoader();
+        }
         multicaster = Proxy.newProxyInstance(classLoader, new Class<?>[] { listenerClass },
                 new ListenerInvocationHandler());
     }
