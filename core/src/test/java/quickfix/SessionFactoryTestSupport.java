@@ -5,8 +5,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         if (sessionID == null) {
-            sessionID = new SessionID();
-            sessionID.fromString("FIX.4.2:SENDER->TARGET");
+            sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         }
         return createSession(sessionID, new UnitTestApplication(), false);
     }
