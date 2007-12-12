@@ -1,6 +1,5 @@
-#Sun Aug 12 23:29:07 EDT 2007
+#Tue Dec 11 08:03:50 EST 2007
 eclipse.preferences.version=1
-instance/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true
 org.eclipse.jdt.core.compiler.codegen.inlineJsrBytecode=enabled
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.5
 org.eclipse.jdt.core.compiler.codegen.unusedLocal=preserve
