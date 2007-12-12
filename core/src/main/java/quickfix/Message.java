@@ -372,24 +372,22 @@ public class Message extends FieldMap {
     public void reverseRoute(Header header) throws FieldNotFound {
         this.header.removeField(BeginString.FIELD);
         this.header.removeField(SenderCompID.FIELD);
+        this.header.removeField(SenderSubID.FIELD);
+        this.header.removeField(SenderLocationID.FIELD);
         this.header.removeField(TargetCompID.FIELD);
+        this.header.removeField(TargetSubID.FIELD);
+        this.header.removeField(TargetLocationID.FIELD);
 
         if (header.isSetField(BeginString.FIELD)) {
-            String beginString = header.getString(BeginString.FIELD);
-            if (beginString.length() > 0) {
-                this.header.setString(BeginString.FIELD, beginString);
-            }
-
-            this.header.removeField(OnBehalfOfLocationID.FIELD);
-            this.header.removeField(DeliverToLocationID.FIELD);
-
-            if (beginString.compareTo(FixVersions.BEGINSTRING_FIX41) >= 0) {
-                copyField(header, OnBehalfOfLocationID.FIELD, DeliverToLocationID.FIELD);
-                copyField(header, DeliverToLocationID.FIELD, OnBehalfOfLocationID.FIELD);
-            }
+            copyField(header, BeginString.FIELD, BeginString.FIELD);
 
             copyField(header, SenderCompID.FIELD, TargetCompID.FIELD);
+            copyField(header, SenderSubID.FIELD, TargetSubID.FIELD);
+            copyField(header, SenderLocationID.FIELD, TargetLocationID.FIELD);
+
             copyField(header, TargetCompID.FIELD, SenderCompID.FIELD);
+            copyField(header, TargetSubID.FIELD, SenderSubID.FIELD);
+            copyField(header, TargetLocationID.FIELD, SenderLocationID.FIELD);
 
             this.header.removeField(OnBehalfOfCompID.FIELD);
             this.header.removeField(OnBehalfOfSubID.FIELD);
@@ -400,6 +398,14 @@ public class Message extends FieldMap {
             copyField(header, OnBehalfOfSubID.FIELD, DeliverToSubID.FIELD);
             copyField(header, DeliverToCompID.FIELD, OnBehalfOfCompID.FIELD);
             copyField(header, DeliverToSubID.FIELD, OnBehalfOfSubID.FIELD);
+
+            this.header.removeField(OnBehalfOfLocationID.FIELD);
+            this.header.removeField(DeliverToLocationID.FIELD);
+
+            if (header.getString(BeginString.FIELD).compareTo(FixVersions.BEGINSTRING_FIX41) >= 0) {
+                copyField(header, OnBehalfOfLocationID.FIELD, DeliverToLocationID.FIELD);
+                copyField(header, DeliverToLocationID.FIELD, OnBehalfOfLocationID.FIELD);
+            }
         }
     }
 
@@ -415,7 +421,17 @@ public class Message extends FieldMap {
     void setSessionID(SessionID sessionID) {
         header.setString(BeginString.FIELD, sessionID.getBeginString());
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        optionallySetID(header, SenderSubID.FIELD, sessionID.getSenderSubID());
+        optionallySetID(header, SenderLocationID.FIELD, sessionID.getSenderLocationID());
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        optionallySetID(header, TargetSubID.FIELD, sessionID.getTargetSubID());
+        optionallySetID(header, TargetLocationID.FIELD, sessionID.getTargetLocationID());
+    }
+
+    private void optionallySetID(Header header, int field, String value) {
+        if (!value.equals(SessionID.NOT_SET)) {
+            header.setString(field, value);
+        }
     }
 
     public void fromString(String messageData, DataDictionary dd, boolean doValidation)

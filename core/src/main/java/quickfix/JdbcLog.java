@@ -103,14 +103,19 @@ class JdbcLog extends AbstractLog {
         try {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement("INSERT INTO " + tableName
-                    + " (time, beginstring, sendercompid, targetcompid, session_qualifier, text) "
-                    + "VALUES (?,?,?,?,?,?)");
+                    + " (time, beginstring, sendercompid, sendersubid, senderlocid," 
+                    + "targetcompid, targetsubid, targetlocid, session_qualifier, text) "
+                    + "VALUES (?,?,?,?,?,?,?,?,?,?)");
             insert.setTimestamp(1, new Timestamp(SystemTime.getUtcCalendar().getTimeInMillis()));
             insert.setString(2, sessionID.getBeginString());
             insert.setString(3, sessionID.getSenderCompID());
-            insert.setString(4, sessionID.getTargetCompID());
-            insert.setString(5, sessionID.getSessionQualifier());
-            insert.setString(6, value);
+            insert.setString(4, sessionID.getSenderSubID());
+            insert.setString(5, sessionID.getSenderLocationID());
+            insert.setString(6, sessionID.getTargetCompID());
+            insert.setString(7, sessionID.getTargetSubID());
+            insert.setString(8, sessionID.getTargetLocationID());
+            insert.setString(9, sessionID.getSessionQualifier());
+            insert.setString(10, value);
             insert.execute();
         } catch (SQLException e) {
             recursiveException = e;
@@ -138,12 +143,18 @@ class JdbcLog extends AbstractLog {
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement("DELETE FROM " + tableName
-                    + " WHERE beginString=? AND senderCompID=? "
-                    + "AND targetCompID=? AND session_qualifier=?");
+                    + " WHERE beginstring=? AND " 
+                    + "sendercompid=? AND sendersubid=? AND senderlocid=? AND "
+                    + "targetcompid=? AND targetsubid=? AND targetlocid=? AND " 
+                    + "session_qualifier=?");
             statement.setString(1, sessionID.getBeginString());
             statement.setString(2, sessionID.getSenderCompID());
-            statement.setString(3, sessionID.getTargetCompID());
-            statement.setString(4, sessionID.getSessionQualifier());
+            statement.setString(3, sessionID.getSenderSubID());
+            statement.setString(4, sessionID.getSenderLocationID());
+            statement.setString(5, sessionID.getTargetCompID());
+            statement.setString(6, sessionID.getTargetSubID());
+            statement.setString(7, sessionID.getTargetLocationID());
+            statement.setString(8, sessionID.getSessionQualifier());
             statement.execute();
         } catch (SQLException e) {
             LogUtil.logThrowable(sessionID, e.getMessage(), e);

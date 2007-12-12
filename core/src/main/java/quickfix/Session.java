@@ -44,9 +44,13 @@ import quickfix.field.RefSeqNum;
 import quickfix.field.RefTagID;
 import quickfix.field.ResetSeqNumFlag;
 import quickfix.field.SenderCompID;
+import quickfix.field.SenderLocationID;
+import quickfix.field.SenderSubID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionRejectReason;
 import quickfix.field.TargetCompID;
+import quickfix.field.TargetLocationID;
+import quickfix.field.TargetSubID;
 import quickfix.field.TestReqID;
 import quickfix.field.Text;
 
@@ -494,9 +498,19 @@ public class Session {
         state.setLastSentTime(SystemTime.currentTimeMillis());
         header.setString(BeginString.FIELD, sessionID.getBeginString());
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        optionallySetID(header, SenderSubID.FIELD, sessionID.getSenderSubID());
+        optionallySetID(header, SenderLocationID.FIELD, sessionID.getSenderLocationID());
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        optionallySetID(header, TargetSubID.FIELD, sessionID.getTargetSubID());
+        optionallySetID(header, TargetLocationID.FIELD, sessionID.getTargetLocationID());
         header.setInt(MsgSeqNum.FIELD, getExpectedSenderNum());
         insertSendingTime(header);
+    }
+
+    private void optionallySetID(Header header, int field, String value) {
+        if (!value.equals(SessionID.NOT_SET)) {
+            header.setString(field, value);
+        }
     }
 
     private void insertSendingTime(Message.Header header) {

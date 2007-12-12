@@ -19,9 +19,16 @@
 
 package quickfix;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import quickfix.field.BeginString;
 import quickfix.field.SenderCompID;
+import quickfix.field.SenderLocationID;
+import quickfix.field.SenderSubID;
 import quickfix.field.TargetCompID;
+import quickfix.field.TargetLocationID;
+import quickfix.field.TargetSubID;
 
 /**
  * Identifier for a session. Only supports a company ID (target, sender)
@@ -30,40 +37,87 @@ import quickfix.field.TargetCompID;
  * but using different FIX versions (and/or session qualifiers). 
  */
 public class SessionID {
-    private String beginString;
-    private String senderCompID;
-    private String targetCompID;
-    private String sessionQualifier;
-    private String id;
+    private static Pattern pattern = Pattern.compile("(.*?):(.*?)(?:/(.*?)|)(?:/(.*?)|)->(.*?)(?:/(.*?)|)(?:/(.*?)|)(?::(.*)|)");
+    public static final String NOT_SET = "";
 
-    public SessionID() {
-        this("", "", "");
-    }
-    
-    public SessionID(String id) {
-        fromString(id);
+    private final String id;
+    private final String beginString;
+    private final String senderCompID;
+    private final String senderSubID;
+    private final String senderLocationID;
+    private final String targetCompID;
+    private final String targetSubID;
+    private final String targetLocationID;
+    private final String sessionQualifier;
+
+    public SessionID(String beginString, String senderCompID, String senderSubID,
+            String senderLocationID, String targetCompID, String targetSubID,
+            String targetLocationID, String sessionQualifier) {
+        this.beginString = value(beginString);
+        this.senderCompID = value(senderCompID);
+        this.senderSubID = value(senderSubID);
+        this.senderLocationID = value(senderLocationID);
+        this.targetCompID = value(targetCompID);
+        this.targetSubID = value(targetSubID);
+        this.targetLocationID = value(targetLocationID);
+        this.sessionQualifier = value(sessionQualifier);
+        id = createID();
     }
 
-    public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID) {
-        this(beginString, senderCompID, targetCompID, "");
+    public SessionID(BeginString beginString, SenderCompID senderCompID, SenderSubID senderSubID,
+            SenderLocationID senderLocationID, TargetCompID targetCompID, TargetSubID targetSubID,
+            TargetLocationID targetLocationID, String qualifier) {
+        this(value(beginString), value(senderCompID), value(senderSubID), value(senderLocationID),
+                value(targetCompID), value(targetSubID), value(targetLocationID), value(qualifier));
+    }
+
+    public SessionID(String beginString, String senderCompID, String senderSubID,
+            String targetCompID, String targetSubID) {
+        this(beginString, senderCompID, senderSubID, NOT_SET, targetCompID, targetSubID, NOT_SET,
+                NOT_SET);
+    }
+
+    public SessionID(BeginString beginString, SenderCompID senderCompID, SenderSubID senderSubID,
+            TargetCompID targetCompID, TargetSubID targetSubID) {
+        this(value(beginString), value(senderCompID), value(senderSubID), value(targetCompID),
+                value(targetSubID));
+    }
+
+    public SessionID(String beginString, String senderCompID, String targetCompID, String qualifier) {
+        this(beginString, senderCompID, NOT_SET, NOT_SET, targetCompID, NOT_SET, NOT_SET, qualifier);
     }
 
     public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID,
-            String sessionQualifier) {
-        init(beginString.getValue(), senderCompID.getValue(), targetCompID.getValue(),
-                sessionQualifier);
+            String qualifier) {
+        this(value(beginString), value(senderCompID), value(targetCompID), value(qualifier));
     }
 
     public SessionID(String beginString, String senderCompID, String targetCompID) {
-        init(beginString, senderCompID, targetCompID, "");
+        this(beginString, senderCompID, NOT_SET, NOT_SET, targetCompID, NOT_SET, NOT_SET, NOT_SET);
     }
 
-    public SessionID(String beginString, String senderCompID, String targetCompID,
-            String sessionQualifier) {
-        if (sessionQualifier == null) {
-            sessionQualifier = "";
+    public SessionID(BeginString beginString, SenderCompID senderCompID, TargetCompID targetCompID) {
+        this(value(beginString), value(senderCompID), value(targetCompID));
+    }
+
+    public SessionID() {
+        throw new UnsupportedOperationException("Unsupported QuickFIX feature: use constructor with arguments");
+    }
+
+    public SessionID(String id) {
+        Matcher matcher = pattern.matcher(id);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid session ID string: "+id);
         }
-        init(beginString, senderCompID, targetCompID, sessionQualifier);
+        beginString = matcher.group(1);
+        senderCompID = matcher.group(2);
+        senderSubID = value(matcher.group(3));
+        senderLocationID = value(matcher.group(4));
+        targetCompID = matcher.group(5);
+        targetSubID = value(matcher.group(6));
+        targetLocationID = value(matcher.group(7));
+        sessionQualifier = value(matcher.group(8));
+        this.id = createID();
     }
 
     public String getBeginString() {
@@ -77,6 +131,23 @@ public class SessionID {
     public String getTargetCompID() {
         return targetCompID;
     }
+
+    public String getSenderSubID() {
+        return senderSubID;
+    }
+
+    public String getSenderLocationID() {
+        return senderLocationID;
+    }
+
+    public String getTargetSubID() {
+        return targetSubID;
+    }
+
+    public String getTargetLocationID() {
+        return targetLocationID;
+    }
+
 
     /**
      * Session qualifier can be used to identify different sessions
@@ -100,19 +171,30 @@ public class SessionID {
         return toString().hashCode();
     }
 
-    private void init(String beginString, String senderCompID, String targetCompID,
-            String sessionQualifier) {
-        this.beginString = beginString;
-        this.senderCompID = senderCompID;
-        this.targetCompID = targetCompID;
-        this.sessionQualifier = sessionQualifier;
-        id = beginString
+    private String createID() {
+        return beginString
                 + ":"
                 + senderCompID
+                + (isSet(senderSubID) ? "/" + senderSubID : "")
+                + (isSet(senderLocationID) ? "/" + senderLocationID : "")
                 + "->"
                 + targetCompID
-                + (sessionQualifier != null && !sessionQualifier.equals("") ? ":"
-                        + sessionQualifier : "");
+                + (isSet(targetSubID) ? "/" + targetSubID : "")
+                + (isSet(targetLocationID) ? "/" + targetLocationID : "")
+                + (sessionQualifier != null && !sessionQualifier.equals(NOT_SET) ? ":"
+                        + sessionQualifier : NOT_SET);
+    }
+
+    private boolean isSet(String value) {
+        return !value.equals(NOT_SET);
+    }
+
+    private static String value(StringField f) {
+        return f != null ? f.getValue() : NOT_SET;
+    }
+
+    private static String value(String s) {
+        return s == null ? NOT_SET : s;
     }
 
     /**
@@ -121,36 +203,6 @@ public class SessionID {
      * @return the sessionIDString
      */
     public String fromString(String sessionIDString) {
-        int start = 0;
-        int end = sessionIDString.indexOf(':');
-        if (end == -1) {
-            throw new RuntimeError("Couldn't parse session ID");
-        }
-        String beginString = sessionIDString.substring(start, end);
-
-        start = end + 1;
-        end = sessionIDString.indexOf("->", start);
-        if (end == -1) {
-            throw new RuntimeError("Couldn't parse session ID");
-        }
-        String senderCompID = sessionIDString.substring(start, end);
-
-        start = end + 2;
-        end = sessionIDString.indexOf(":", start);
-        if (end == -1) {
-            end = sessionIDString.length();
-        }
-        String targetCompID = sessionIDString.substring(start, end);
-
-        String sessionQualifier = "";
-        if (end < sessionIDString.length()) {
-            start = end + 1;
-            end = sessionIDString.length();
-            sessionQualifier = end != -1 ? sessionIDString.substring(start, end) : "";
-        }
-
-        init(beginString, senderCompID, targetCompID, sessionQualifier);
-
-        return sessionIDString;
+        throw new UnsupportedOperationException("Unsupported QuickFIX feature: use SessionID constructor instead.");
     }
 }

@@ -47,7 +47,8 @@ class JdbcStore implements MessageStore {
     private String SQL_GET_MESSAGES;
     private String SQL_UPDATE_SESSION;
     private String SQL_DELETE_MESSAGES;
-
+    private String ID_CLAUSE;
+    
     public JdbcStore(SessionSettings settings, SessionID sessionID, DataSource dataSource) throws Exception {
         this.sessionID = sessionID;
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME)) {
@@ -68,38 +69,34 @@ class JdbcStore implements MessageStore {
     }
 
     private void setSqlStrings() {
+        ID_CLAUSE = "beginstring=? and sendercompid=? and sendersubid=? and senderlocid=? and "
+                + "targetcompid=? and targetsubid=? and targetlocid=? and session_qualifier=? ";
+
         SQL_UPDATE_SEQNUMS = "UPDATE " + sessionTableName + " SET incoming_seqnum=?, "
-                + "outgoing_seqnum=? WHERE beginstring=? and sendercompid=? "
-                + "and targetcompid=? and session_qualifier=?";
+                + "outgoing_seqnum=? WHERE " + ID_CLAUSE;
 
         SQL_INSERT_SESSION = "INSERT INTO " + sessionTableName + " (beginstring, sendercompid, "
-                + "targetcompid, session_qualifier, creation_time, "
-                + "incoming_seqnum, outgoing_seqnum) VALUES(?,?,?,?,?,?,?)";
+                + "sendersubid, senderlocid, targetcompid, targetsubid, targetlocid,"
+                + "session_qualifier, creation_time, "
+                + "incoming_seqnum, outgoing_seqnum) VALUES(?,?,?,?,?,?,?,?,?,?,?)";
 
-        SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, " + "outgoing_seqnum FROM "
-                + sessionTableName + " WHERE beginstring=? and  "
-                + "sendercompid=? and targetcompid=? and session_qualifier=?";
+        SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, outgoing_seqnum FROM "
+                + sessionTableName + " WHERE " + ID_CLAUSE;
 
-        INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? "
-                + "WHERE beginstring=? and sendercompid=? "
-                + "and targetcompid=? and session_qualifier=? and msgseqnum=?";
+        INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? " + "WHERE "
+                + ID_CLAUSE + " and msgseqnum=?";
 
         SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (beginstring, "
-                + "sendercompid, targetcompid, session_qualifier, msgseqnum, "
-                + "message) VALUES (?,?,?,?,?,?)";
+                + "sendercompid, sendersubid, senderlocid, targetcompid, targetsubid, targetlocid,"
+                + "session_qualifier, msgseqnum,message) VALUES (?,?,?,?,?,?,?,?,?,?)";
 
-        SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE  "
-                + "beginstring=? and sendercompid=? and targetcompid=? and "
-                + "session_qualifier=? and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
+        SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE  " + ID_CLAUSE
+                + " and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
 
         SQL_UPDATE_SESSION = "UPDATE " + sessionTableName + " SET creation_time=?, "
-                + "incoming_seqnum=?, outgoing_seqnum=? "
-                + "WHERE beginstring=? and sendercompid=? and "
-                + "targetcompid=? and session_qualifier=?";
+                + "incoming_seqnum=?, outgoing_seqnum=? " + "WHERE " + ID_CLAUSE;
 
-        SQL_DELETE_MESSAGES = "DELETE FROM " + messageTableName + " WHERE "
-                + "beginstring=? and sendercompid=? "
-                + "and targetcompid=? and session_qualifier=?";
+        SQL_DELETE_MESSAGES = "DELETE FROM " + messageTableName + " WHERE " + ID_CLAUSE;
 
     }
 
@@ -113,8 +110,12 @@ class JdbcStore implements MessageStore {
             query = connection.prepareStatement(SQL_GET_SEQNUMS);
             query.setString(1, sessionID.getBeginString());
             query.setString(2, sessionID.getSenderCompID());
-            query.setString(3, sessionID.getTargetCompID());
-            query.setString(4, sessionID.getSessionQualifier());
+            query.setString(3, sessionID.getSenderSubID());
+            query.setString(4, sessionID.getSenderLocationID());
+            query.setString(5, sessionID.getTargetCompID());
+            query.setString(6, sessionID.getTargetSubID());
+            query.setString(7, sessionID.getTargetLocationID());
+            query.setString(8, sessionID.getSessionQualifier());
             rs = query.executeQuery();
             if (rs.next()) {
                 cache.setCreationTime(SystemTime.getUtcCalendar(rs.getTimestamp(1)));
@@ -124,11 +125,15 @@ class JdbcStore implements MessageStore {
                 insert = connection.prepareStatement(SQL_INSERT_SESSION);
                 insert.setString(1, sessionID.getBeginString());
                 insert.setString(2, sessionID.getSenderCompID());
-                insert.setString(3, sessionID.getTargetCompID());
-                insert.setString(4, sessionID.getSessionQualifier());
-                insert.setTimestamp(5, new Timestamp(cache.getCreationTime().getTime()));
-                insert.setInt(6, cache.getNextTargetMsgSeqNum());
-                insert.setInt(7, cache.getNextSenderMsgSeqNum());
+                insert.setString(3, sessionID.getSenderSubID());
+                insert.setString(4, sessionID.getSenderLocationID());
+                insert.setString(5, sessionID.getTargetCompID());
+                insert.setString(6, sessionID.getTargetSubID());
+                insert.setString(7, sessionID.getTargetLocationID());
+                insert.setString(8, sessionID.getSessionQualifier());
+                insert.setTimestamp(9, new Timestamp(cache.getCreationTime().getTime()));
+                insert.setInt(10, cache.getNextTargetMsgSeqNum());
+                insert.setInt(11, cache.getNextSenderMsgSeqNum());
                 insert.execute();
             }
         } finally {
@@ -171,8 +176,12 @@ class JdbcStore implements MessageStore {
             deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
             deleteMessages.setString(1, sessionID.getBeginString());
             deleteMessages.setString(2, sessionID.getSenderCompID());
-            deleteMessages.setString(3, sessionID.getTargetCompID());
-            deleteMessages.setString(4, sessionID.getSessionQualifier());
+            deleteMessages.setString(3, sessionID.getSenderSubID());
+            deleteMessages.setString(4, sessionID.getSenderLocationID());
+            deleteMessages.setString(5, sessionID.getTargetCompID());
+            deleteMessages.setString(6, sessionID.getTargetSubID());
+            deleteMessages.setString(7, sessionID.getTargetLocationID());
+            deleteMessages.setString(8, sessionID.getSessionQualifier());
             deleteMessages.execute();
 
             updateTime = connection.prepareStatement(SQL_UPDATE_SESSION);
@@ -182,8 +191,12 @@ class JdbcStore implements MessageStore {
             updateTime.setInt(3, getNextSenderMsgSeqNum());
             updateTime.setString(4, sessionID.getBeginString());
             updateTime.setString(5, sessionID.getSenderCompID());
-            updateTime.setString(6, sessionID.getTargetCompID());
-            updateTime.setString(7, sessionID.getSessionQualifier());
+            updateTime.setString(6, sessionID.getSenderSubID());
+            updateTime.setString(7, sessionID.getSenderLocationID());
+            updateTime.setString(8, sessionID.getTargetCompID());
+            updateTime.setString(9, sessionID.getTargetSubID());
+            updateTime.setString(10, sessionID.getTargetLocationID());
+            updateTime.setString(11, sessionID.getSessionQualifier());
             updateTime.execute();
         } catch (SQLException e) {
             throw (IOException) new IOException(e.getMessage()).initCause(e);
@@ -205,10 +218,14 @@ class JdbcStore implements MessageStore {
             query = connection.prepareStatement(SQL_GET_MESSAGES);
             query.setString(1, sessionID.getBeginString());
             query.setString(2, sessionID.getSenderCompID());
-            query.setString(3, sessionID.getTargetCompID());
-            query.setString(4, sessionID.getSessionQualifier());
-            query.setInt(5, startSequence);
-            query.setInt(6, endSequence);
+            query.setString(3, sessionID.getSenderSubID());
+            query.setString(4, sessionID.getSenderLocationID());
+            query.setString(5, sessionID.getTargetCompID());
+            query.setString(6, sessionID.getTargetSubID());
+            query.setString(7, sessionID.getTargetLocationID());
+            query.setString(8, sessionID.getSessionQualifier());
+            query.setInt(9, startSequence);
+            query.setInt(10, endSequence);
             rs = query.executeQuery();
             while (rs.next()) {
                 String message = rs.getString(1);
@@ -232,10 +249,14 @@ class JdbcStore implements MessageStore {
             insert = connection.prepareStatement(SQL_INSERT_MESSAGE);
             insert.setString(1, sessionID.getBeginString());
             insert.setString(2, sessionID.getSenderCompID());
-            insert.setString(3, sessionID.getTargetCompID());
-            insert.setString(4, sessionID.getSessionQualifier());
-            insert.setInt(5, sequence);
-            insert.setString(6, message);
+            insert.setString(3, sessionID.getSenderSubID());
+            insert.setString(4, sessionID.getSenderLocationID());
+            insert.setString(5, sessionID.getTargetCompID());
+            insert.setString(6, sessionID.getTargetSubID());
+            insert.setString(7, sessionID.getTargetLocationID());
+            insert.setString(8, sessionID.getSessionQualifier());
+            insert.setInt(9, sequence);
+            insert.setString(10, message);
             insert.execute();
         } catch (SQLException ex) {
             if (connection != null) {
@@ -244,10 +265,14 @@ class JdbcStore implements MessageStore {
                     update = connection.prepareStatement(INSERT_UPDATE_MESSAGE);
                     update.setString(1, sessionID.getBeginString());
                     update.setString(2, sessionID.getSenderCompID());
-                    update.setString(3, sessionID.getTargetCompID());
-                    update.setString(4, sessionID.getSessionQualifier());
-                    update.setInt(5, sequence);
-                    update.setString(6, message);
+                    update.setString(3, sessionID.getSenderSubID());
+                    update.setString(4, sessionID.getSenderLocationID());
+                    update.setString(5, sessionID.getTargetCompID());
+                    update.setString(6, sessionID.getTargetSubID());
+                    update.setString(7, sessionID.getTargetLocationID());
+                    update.setString(8, sessionID.getSessionQualifier());
+                    update.setInt(9, sequence);
+                    update.setString(10, message);
                     update.execute();
                     return false;
                 } catch (SQLException e) {
@@ -284,8 +309,12 @@ class JdbcStore implements MessageStore {
             update.setInt(2, cache.getNextSenderMsgSeqNum());
             update.setString(3, sessionID.getBeginString());
             update.setString(4, sessionID.getSenderCompID());
-            update.setString(5, sessionID.getTargetCompID());
-            update.setString(6, sessionID.getSessionQualifier());
+            update.setString(5, sessionID.getSenderSubID());
+            update.setString(6, sessionID.getSenderLocationID());
+            update.setString(7, sessionID.getTargetCompID());
+            update.setString(8, sessionID.getTargetSubID());
+            update.setString(9, sessionID.getTargetLocationID());
+            update.setString(10, sessionID.getSessionQualifier());
             update.execute();
         } catch (SQLException e) {
             throw (IOException) new IOException(e.getMessage()).initCause(e);

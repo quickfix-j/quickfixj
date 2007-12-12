@@ -76,7 +76,8 @@ public class SleepycatStore implements MessageStore {
          */
         public Object entryToObject(TupleInput tupleIn) {
             return new SessionID(tupleIn.readString(), tupleIn.readString(), tupleIn.readString(),
-                    tupleIn.readString());
+                    tupleIn.readString(), tupleIn.readString(), tupleIn.readString(), tupleIn
+                            .readString(), tupleIn.readString());
         }
 
         /*
@@ -89,7 +90,11 @@ public class SleepycatStore implements MessageStore {
             SessionID sessionID = (SessionID) object;
             tupleOut.writeString(sessionID.getBeginString());
             tupleOut.writeString(sessionID.getSenderCompID());
+            tupleOut.writeString(sessionID.getSenderSubID());
+            tupleOut.writeString(sessionID.getSenderLocationID());
             tupleOut.writeString(sessionID.getTargetCompID());
+            tupleOut.writeString(sessionID.getTargetSubID());
+            tupleOut.writeString(sessionID.getTargetLocationID());
             tupleOut.writeString(sessionID.getSessionQualifier());
         }
     }

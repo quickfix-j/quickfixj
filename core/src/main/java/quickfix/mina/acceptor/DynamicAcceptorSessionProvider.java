@@ -19,6 +19,8 @@
 
 package quickfix.mina.acceptor;
 
+import static quickfix.SessionSettings.*;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -140,16 +142,22 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
                 copySettings(dynamicSettings, settings.getDefaultProperties());
                 copySettings(dynamicSettings, settings.getSessionProperties(templateID));
                 dynamicSettings.setString("BeginString", sessionID.getBeginString());
-                dynamicSettings
-                        .setString(SessionSettings.SENDERCOMPID, sessionID.getSenderCompID());
-                dynamicSettings
-                        .setString(SessionSettings.TARGETCOMPID, sessionID.getTargetCompID());
+                dynamicSettings.setString(SENDERCOMPID, sessionID.getSenderCompID());
+                optionallySetValue(dynamicSettings, SENDERSUBID, sessionID.getSenderSubID());
+                optionallySetValue(dynamicSettings, SENDERLOCID, sessionID.getSenderLocationID());
+                dynamicSettings.setString(TARGETCOMPID, sessionID.getTargetCompID());
+                optionallySetValue(dynamicSettings, TARGETSUBID, sessionID.getTargetSubID());
+                optionallySetValue(dynamicSettings, TARGETLOCID, sessionID.getTargetLocationID());
                 s = sessionFactory.create(sessionID, dynamicSettings);
             } catch (ConfigError e) {
                 throw new QFJException(e);
             }
         }
         return s;
+    }
+
+    private void optionallySetValue(SessionSettings dynamicSettings, String key, String value) {
+        dynamicSettings.setString(key, value);
     }
 
     private SessionID lookupTemplateID(SessionID sessionID) {

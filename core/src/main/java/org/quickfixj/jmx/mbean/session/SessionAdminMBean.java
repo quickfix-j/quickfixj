@@ -44,11 +44,39 @@ public interface SessionAdminMBean {
     String getTargetCompID();
 
     /**
+     * Get the target subID for the session.
+     * 
+     * @return the target subID
+     */
+    String getTargetSubID();
+
+    /**
+     * Get the target location ID for the session.
+     * 
+     * @return the target location ID
+     */
+    String getTargetLocationID();
+
+    /**
      * Get the sender company ID for the session.
      * 
      * @return the sender company ID
      */
     String getSenderCompID();
+
+    /**
+     * Get the sender company subID for the session.
+     * 
+     * @return the sender subID
+     */
+    String getSenderSubID();
+
+    /**
+     * Get the sender company location ID for the session.
+     * 
+     * @return the sender location ID
+     */
+    String getSenderLocationID();
 
     /**
      * Get the session ID.

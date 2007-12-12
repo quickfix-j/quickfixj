@@ -27,4 +27,18 @@ class FileUtil {
                 + (pathPrefix.endsWith(File.separator) ? "" : File.separator)
                 + pathSuffix;
     }
+    
+    public static String sessionIdFileName(SessionID sessionID) {
+        return sessionID.getBeginString() + "-" + sessionID.getSenderCompID()
+                + optionalField("_", sessionID.getSenderSubID())
+                + optionalField("_", sessionID.getSenderLocationID()) + "-"
+                + sessionID.getTargetCompID() + optionalField("_", sessionID.getTargetSubID())
+                + optionalField("_", sessionID.getTargetLocationID())
+                + optionalField("-", sessionID.getSessionQualifier());
+    }
+
+    private static String optionalField(String delim, String value) {
+        return !value.equals(SessionID.NOT_SET) ? delim + value : "";
+    }
+
 }

@@ -1,5 +1,7 @@
 package org.quickfixj.jmx.mbean.session;
 
+import static quickfix.SessionID.NOT_SET;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -49,10 +51,17 @@ public class SessionJmxExporter {
     private void addSessionIdProperties(SessionID sessionID, ObjectNameFactory nameFactory) {
         nameFactory.addProperty("beginString", sessionID.getBeginString());
         nameFactory.addProperty("senderCompID", sessionID.getSenderCompID());
+        optionallyAddProperty(nameFactory, "senderSubID", sessionID.getSenderSubID());
+        optionallyAddProperty(nameFactory, "senderLocationID", sessionID.getSenderLocationID());
         nameFactory.addProperty("targetCompID", sessionID.getTargetCompID());
-        String sessionQualifier = sessionID.getSessionQualifier();
-        if (!"".equals(sessionQualifier)) {
-            nameFactory.addProperty("qualifier", sessionQualifier);
+        optionallyAddProperty(nameFactory, "targetSubID", sessionID.getTargetSubID());
+        optionallyAddProperty(nameFactory, "targetLocationID", sessionID.getTargetLocationID());
+        optionallyAddProperty(nameFactory, "qualifier", sessionID.getSessionQualifier());
+    }
+
+    private void optionallyAddProperty(ObjectNameFactory nameFactory, String key, String value) {
+        if (!value.equals(NOT_SET)) {
+            nameFactory.addProperty(key, value);
         }
     }
 

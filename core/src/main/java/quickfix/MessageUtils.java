@@ -19,11 +19,15 @@
 
 package quickfix;
 
+import quickfix.Message.Header;
 import quickfix.field.BeginString;
 import quickfix.field.MsgType;
 import quickfix.field.SenderCompID;
+import quickfix.field.SenderLocationID;
+import quickfix.field.SenderSubID;
 import quickfix.field.TargetCompID;
-import quickfix.Message.Header;
+import quickfix.field.TargetLocationID;
+import quickfix.field.TargetSubID;
 
 public class MessageUtils {
 	public static SessionID getSessionID(Message fixMessage) {
@@ -31,14 +35,25 @@ public class MessageUtils {
 		return new SessionID(
 				getFieldOrDefault(header, BeginString.FIELD, null),
 				getFieldOrDefault(header, SenderCompID.FIELD, null),
-				getFieldOrDefault(header, TargetCompID.FIELD, null));
+				getFieldOrDefault(header, SenderSubID.FIELD, null),
+				getFieldOrDefault(header, SenderLocationID.FIELD, null),
+				getFieldOrDefault(header, TargetCompID.FIELD, null),
+				getFieldOrDefault(header, TargetSubID.FIELD, null),
+				getFieldOrDefault(header, TargetLocationID.FIELD, null),
+				null);
 	}
 
     public static SessionID getSessionID(String messageString) {
         return new SessionID(
                 getStringField(messageString, BeginString.FIELD),
                 getStringField(messageString, SenderCompID.FIELD),
-                getStringField(messageString, TargetCompID.FIELD));
+                getStringField(messageString, SenderSubID.FIELD),
+                getStringField(messageString, SenderLocationID.FIELD),
+                getStringField(messageString, TargetCompID.FIELD),
+                getStringField(messageString, TargetSubID.FIELD),
+                getStringField(messageString, TargetLocationID.FIELD),
+                null
+                );
     }
 
 	public static SessionID getReverseSessionID(Message fixMessage) {
@@ -46,14 +61,24 @@ public class MessageUtils {
 		return new SessionID(
 				getFieldOrDefault(header, BeginString.FIELD, null),
 				getFieldOrDefault(header, TargetCompID.FIELD, null),
-				getFieldOrDefault(header, SenderCompID.FIELD, null));
+				getFieldOrDefault(header, TargetSubID.FIELD, null),
+				getFieldOrDefault(header, TargetLocationID.FIELD, null),
+				getFieldOrDefault(header, SenderCompID.FIELD, null),
+				getFieldOrDefault(header, SenderSubID.FIELD, null),
+				getFieldOrDefault(header, SenderLocationID.FIELD, null),
+				null);
 	}
 
     public static SessionID getReverseSessionID(String messageString) {
         return new SessionID(
                 getStringField(messageString, BeginString.FIELD),
                 getStringField(messageString, TargetCompID.FIELD),
-                getStringField(messageString, SenderCompID.FIELD));
+                getStringField(messageString, TargetSubID.FIELD),
+                getStringField(messageString, TargetLocationID.FIELD),
+                getStringField(messageString, SenderCompID.FIELD),
+                getStringField(messageString, SenderSubID.FIELD),
+                getStringField(messageString, SenderLocationID.FIELD),
+                null);
     }
 
 	private static String getFieldOrDefault(FieldMap fields, int tag,

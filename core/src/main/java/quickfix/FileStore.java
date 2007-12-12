@@ -75,12 +75,8 @@ public class FileStore implements MessageStore {
         }
 		path = new File(path).getAbsolutePath();
 		
-        String sessionId = sessionID.getBeginString() + "-" + sessionID.getSenderCompID() + "-"
-                + sessionID.getTargetCompID();
-        if (sessionID.getSessionQualifier() != null && !sessionID.getSessionQualifier().equals("")) {
-            sessionId += "-" + sessionID.getSessionQualifier();
-        }
-        String prefix = FileUtil.fileAppendPath(path, sessionId + ".");
+        String sessionName = FileUtil.sessionIdFileName(sessionID);
+        String prefix = FileUtil.fileAppendPath(path, sessionName + ".");
 
         msgFileName = prefix + "body";
         headerFileName = prefix + "header";

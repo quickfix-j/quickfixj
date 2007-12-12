@@ -64,8 +64,8 @@ public class MessageUtilsTest extends TestCase {
         Message message = new Logon();
         SessionID sessionID = MessageUtils.getReverseSessionID(message);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
-        assertNull(sessionID.getSenderCompID());
-        assertNull(sessionID.getTargetCompID());
+        assertEquals(sessionID.getSenderCompID(), SessionID.NOT_SET);
+        assertEquals(sessionID.getTargetCompID(), SessionID.NOT_SET);
     }
 
     public void testSessionIdFromRawMessage() throws Exception {

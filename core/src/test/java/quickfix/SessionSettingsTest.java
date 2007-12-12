@@ -35,6 +35,27 @@ public class SessionSettingsTest extends TestCase {
         super(name);
     }
 
+    public void testExtendedSettings() throws ConfigError {
+        String settingsString = "";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "SenderCompID=Company\n";
+        settingsString += "SenderSubID=FixedIncome\n";
+        settingsString += "SenderLocationID=HongKong\n";
+        settingsString += "TargetCompID=CLIENT1\n";
+        settingsString += "TargetSubID=HedgeFund\n";
+        settingsString += "TargetLocationID=NYC\n";
+        
+        SessionSettings settings = new SessionSettings(new ByteArrayInputStream(settingsString.getBytes()));
+        SessionID id = settings.sectionIterator().next();
+        assertEquals("Company", id.getSenderCompID());
+        assertEquals("FixedIncome", id.getSenderSubID());
+        assertEquals("HongKong", id.getSenderLocationID());
+        assertEquals("CLIENT1", id.getTargetCompID());
+        assertEquals("HedgeFund", id.getTargetSubID());
+        assertEquals("NYC", id.getTargetLocationID());
+    }
+   
     public void testSettings() throws Exception {
         SessionSettings settings = setUpSession();
 

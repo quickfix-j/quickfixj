@@ -60,10 +60,38 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     }
 
     /* (non-Javadoc)
+     * @see quickfix.jmx.SessionMBean#getTargetSubID()
+     */
+    public String getTargetSubID() {
+        return session.getSessionID().getTargetSubID();
+    }
+
+    /* (non-Javadoc)
+     * @see quickfix.jmx.SessionMBean#getTargetLocationID()
+     */
+    public String getTargetLocationID() {
+        return session.getSessionID().getTargetLocationID();
+    }
+
+    /* (non-Javadoc)
      * @see quickfix.jmx.SessionMBean#getSenderCompID()
      */
     public String getSenderCompID() {
         return session.getSessionID().getSenderCompID();
+    }
+
+    /* (non-Javadoc)
+     * @see quickfix.jmx.SessionMBean#getSenderSubID()
+     */
+    public String getSenderSubID() {
+        return session.getSessionID().getSenderSubID();
+    }
+
+    /* (non-Javadoc)
+     * @see quickfix.jmx.SessionMBean#getSenderLocationID()
+     */
+    public String getSenderLocationID() {
+        return session.getSessionID().getSenderLocationID();
     }
 
     /* (non-Javadoc)

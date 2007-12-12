@@ -69,8 +69,13 @@ public class SessionSettings {
 
     private static final String DEFAULT_SECTION_NAME = "default";
 
+    public static final String BEGINSTRING = "BeginString";
     public static final String SENDERCOMPID = "SenderCompID";
+    public static final String SENDERSUBID = "SenderSubID";
+    public static final String SENDERLOCID = "SenderLocationID";
     public static final String TARGETCOMPID = "TargetCompID";
+    public static final String TARGETSUBID = "TargetSubID";
+    public static final String TARGETLOCID = "TargetLocationID";
 
     public static final String SESSION_QUALIFIER = "SessionQualifier";
 
@@ -396,10 +401,15 @@ public class SessionSettings {
 
     private void storeSection(String currentSectionId, Properties currentSection) {
         if (currentSectionId != null && currentSectionId.equals(SESSION_SECTION_NAME)) {
-            SessionID sessionId = new SessionID(currentSection.getProperty("BeginString"),
-                    currentSection.getProperty(SENDERCOMPID), currentSection
-                            .getProperty(TARGETCOMPID), currentSection.getProperty(
-                            SESSION_QUALIFIER, ""));
+            SessionID sessionId = new SessionID(
+                    currentSection.getProperty(BEGINSTRING),
+                    currentSection.getProperty(SENDERCOMPID), 
+                    currentSection.getProperty(SENDERSUBID), 
+                    currentSection.getProperty(SENDERLOCID), 
+                    currentSection.getProperty(TARGETCOMPID), 
+                    currentSection.getProperty(TARGETSUBID), 
+                    currentSection.getProperty(TARGETLOCID), 
+                    currentSection.getProperty(SESSION_QUALIFIER));
             sections.put(sessionId, currentSection);
             currentSectionId = null;
             currentSection = null;
