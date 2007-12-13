@@ -1,13 +1,22 @@
 package quickfix.mina.ssl;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.KeyManagerFactory;
-import java.security.*;
-import java.security.cert.CertificateException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+
+import quickfix.FileUtil;
 
 /**
  * SSL context factory that deals with Keystores.
@@ -20,12 +29,12 @@ public class SSLContextFactory {
     final private static Map<String, SSLContext> contextCache = new HashMap<String, SSLContext>();
 
     static {
-        String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
+        KEY_MANAGER_FACTORY_ALGORITHM = getProperty("ssl.KeyManagerFactory.algorithm", "SunX509");
+    }
 
-        KEY_MANAGER_FACTORY_ALGORITHM = algorithm;
+    private static String getProperty(String key, String defaultValue) {
+        String value = Security.getProperty(key);
+        return value == null ? defaultValue : value;
     }
 
     /** Creates an {@link SSLContext} with a specified keystore and password for that keystore */
@@ -69,10 +78,9 @@ public class SSLContextFactory {
         KeyStore keyStore = KeyStore.getInstance("JKS");
         InputStream in = null;
         try {
-            in = SSLContextFactory.class.getResourceAsStream(keyStoreName);
+            in = FileUtil.open(SSLContextFactory.class, keyStoreName);
             if (in == null) {
-                in = SSLContextFactory.class.getClassLoader().getResourceAsStream(
-                        keyStoreName);
+                throw new FileNotFoundException(keyStoreName+" not found.");
             }
             keyStore.load(in, keyStorePassword);
         } finally {

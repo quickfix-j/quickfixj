@@ -19,11 +19,13 @@
 
 package quickfix;
 
-import java.io.FileInputStream;
+import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
+import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
+import static quickfix.FileUtil.Location.FILESYSTEM;
+import static quickfix.FileUtil.Location.URL;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -797,32 +799,22 @@ public class DataDictionary {
     }
 
     private void read(String location) throws ConfigError {
-        InputStream inputStream;
-        try {
-            inputStream = new URL(location).openStream();
-        } catch (MalformedURLException e) {
-            try {
-                inputStream = new FileInputStream(location);
-            } catch (/*QFJ-116*/java.lang.Exception fe) {
-                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-                if (classLoader == null) {
-                    classLoader = getClass().getClassLoader();
-                }
-                inputStream = classLoader.getResourceAsStream(location);
-                if (inputStream == null) {
-                    throw new DataDictionary.Exception("Could not find data dictionary: " + location);
-                }
-            }
-        } catch (IOException e) {
-            throw new DataDictionary.Exception(e);
+        InputStream inputStream = FileUtil.open(getClass(), location, URL, FILESYSTEM,
+                CONTEXT_RESOURCE, CLASSLOADER_RESOURCE);
+        if (inputStream == null) {
+            throw new DataDictionary.Exception("Could not find data dictionary: " + location);
         }
 
         try {
             load(inputStream);
         } catch (java.lang.Exception e) {
-            ConfigError ce = new ConfigError(location + ": " + e.getMessage());
-            ce.setStackTrace(e.getStackTrace());
-            throw ce;
+            throw new ConfigError(location + ": " + e.getMessage(), e);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                throw new ConfigError(e);
+            }
         }
     }
 
