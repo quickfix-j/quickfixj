@@ -242,6 +242,12 @@ public class DataDictionaryTest extends TestCase {
         }
     }
 
+    // QFJ-235
+    public void testWildcardEnumValue() throws Exception {
+        DataDictionary dd = getDictionary();
+        assertTrue(dd.isFieldValue(65, "FOO"));
+    }
+    
     private static DataDictionary testDataDictionary;
 
     public static DataDictionary getDictionary() throws Exception {

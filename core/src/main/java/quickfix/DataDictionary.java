@@ -60,6 +60,8 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  */
 public class DataDictionary {
+    public static final String ANY_VALUE = "__ANY__";
+
     private static final int USER_DEFINED_TAG_MIN = 5000;
 
     private static final String NO = "N";
@@ -400,6 +402,11 @@ public class DataDictionary {
      */
     public boolean isFieldValue(int field, String value) {
         Set<String> validValues = fieldValues.get(field);
+        
+        if (validValues.contains(ANY_VALUE)) {
+            return true;
+        }
+        
         if (validValues == null || validValues.size() == 0) {
             return false;
         }
@@ -711,12 +718,13 @@ public class DataDictionary {
     }
 
     private void checkValue(StringField field) throws IncorrectTagValue {
-        if (!hasFieldValue(field.getField()))
+        int tag = field.getField();
+        if (!hasFieldValue(tag))
             return;
 
         String value = field.getValue();
-        if (!isFieldValue(field.getField(), value)) {
-            throw new IncorrectTagValue(field.getField());
+        if (!isFieldValue(tag, value)) {
+            throw new IncorrectTagValue(tag);
         }
     }
 
@@ -910,6 +918,13 @@ public class DataDictionary {
                         if (description != null) {
                             addValueName(num, enumeration, description);
                         }
+                    }
+                }
+
+                if (fieldValues.containsKey(num)) {
+                    String allowOtherValues = getAttribute(fieldNode, "allowOtherValues");
+                    if (allowOtherValues != null && Boolean.parseBoolean(allowOtherValues)) {
+                        addFieldValue(num, ANY_VALUE);
                     }
                 }
 

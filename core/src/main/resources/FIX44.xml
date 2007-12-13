@@ -4313,7 +4313,7 @@
       <value enum="9" description="T_PLUS_5"/>
     </field>
     <field number="64" name="SettlDate" type="LOCALMKTDATE"/>
-    <field number="65" name="SymbolSfx" type="STRING">
+    <field number="65" name="SymbolSfx" type="STRING" allowOtherValues="true">
       <value enum="WI" description="WHEN_ISSUED"/>
       <value enum="CD" description="A_EUCP_WITH_LUMP_SUM_INTEREST"/>
     </field>
