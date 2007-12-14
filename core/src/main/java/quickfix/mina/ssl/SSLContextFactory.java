@@ -1,6 +1,5 @@
 package quickfix.mina.ssl;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -16,6 +15,9 @@ import java.util.Map;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quickfix.FileUtil;
 
 /**
@@ -24,9 +26,10 @@ import quickfix.FileUtil;
  */
 
 public class SSLContextFactory {
+    private static final Logger log = LoggerFactory.getLogger(SSLContextFactory.class);
     private static final String PROTOCOL = "TLS";
     private static final String KEY_MANAGER_FACTORY_ALGORITHM;
-    final private static Map<String, SSLContext> contextCache = new HashMap<String, SSLContext>();
+    private static final Map<String, SSLContext> contextCache = new HashMap<String, SSLContext>();
 
     static {
         KEY_MANAGER_FACTORY_ALGORITHM = getProperty("ssl.KeyManagerFactory.algorithm", "SunX509");
@@ -80,7 +83,7 @@ public class SSLContextFactory {
         try {
             in = FileUtil.open(SSLContextFactory.class, keyStoreName);
             if (in == null) {
-                throw new FileNotFoundException(keyStoreName+" not found.");
+                log.warn(keyStoreName + ": keystore not found, using empty keystore");
             }
             keyStore.load(in, keyStorePassword);
         } finally {
