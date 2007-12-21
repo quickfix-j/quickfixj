@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import static quickfix.LogUtil.logThrowable;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -913,10 +915,18 @@ public class Session {
 
         try {
             application.toApp(message, sessionID);
-            return true;
         } catch (DoNotSend e) {
             return false;
+        } catch (Throwable t) {
+            // Any exception other than DoNotSend will not stop the message from being resent
+            logApplicationException("toApp() during resend", t);
         }
+
+        return true;
+    }
+
+    private void logApplicationException(String location, Throwable t) {
+        logThrowable(getLog(), "Application exception in " + location, t);
     }
 
     private void nextLogout(Message logout) throws IOException, RejectLogon, FieldNotFound,
@@ -1251,6 +1261,9 @@ public class Session {
     private void fromCallback(String msgType, Message msg, SessionID sessionID2)
             throws RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
             UnsupportedMessageType {
+        // Application exceptions will prevent the incoming sequence number from being incremented
+        // and may result in resend requests and the next startup. This way, a buggy application
+        // can be fixed and then reprocess previously sent messages.
         if (msgType.length() == 1 && "0A12345".indexOf(msgType) != -1) {
             application.fromAdmin(msg, sessionID);
         } else {
@@ -1412,7 +1425,13 @@ public class Session {
         if (logonReceived || logonSent) {
             state.setLogonReceived(false);
             state.setLogonSent(false);
-            application.onLogout(sessionID);
+            
+            try {
+                application.onLogout(sessionID);
+            } catch (Throwable t) {
+                logApplicationException("onLogout()", t);
+            }
+            
             stateListener.onLogout();
         }
 
@@ -1493,7 +1512,11 @@ public class Session {
         }
 
         if (isLoggedOn()) {
-            application.onLogon(sessionID);
+            try {
+                application.onLogon(sessionID);
+            } catch (Throwable t) {
+                logApplicationException("onLogon()", t);
+            }
             stateListener.onLogon();
         }
     }
@@ -1641,7 +1664,11 @@ public class Session {
             String messageString = null;
 
             if (message.isAdmin()) {
-                application.toAdmin(message, sessionID);
+                try {
+                    application.toAdmin(message, sessionID);
+                } catch (Throwable t) {
+                    logApplicationException("toAdmin()", t);
+                }
 
                 if (msgType.equals(MsgType.LOGON) && !state.isResetReceived()) {
                     boolean resetSeqNumFlag = false;
@@ -1664,12 +1691,14 @@ public class Session {
             } else {
                 try {
                     application.toApp(message, sessionID);
-                    messageString = message.toString();
-                    if (isLoggedOn()) {
-                        result = send(messageString);
-                    }
                 } catch (DoNotSend e) {
                     return false;
+                } catch (Throwable t) {
+                    logApplicationException("toApp()", t);
+                }
+                messageString = message.toString();
+                if (isLoggedOn()) {
+                    result = send(messageString);
                 }
             }
 
@@ -1685,7 +1714,7 @@ public class Session {
             getLog().onEvent("Error Reading/Writing in MessageStore");
             return false;
         } catch (FieldNotFound e) {
-            LogUtil.logThrowable(state.getLog(), "Error accessing message fields", e);
+            logThrowable(state.getLog(), "Error accessing message fields", e);
             return false;
         } finally {
             state.unlockSenderMsgSeqNum();
