@@ -19,8 +19,6 @@
 
 package quickfix;
 import java.util.Date;
-import java.util.TimeZone;
-import java.util.Calendar;
 
 /**
  * A date-valued message field.
