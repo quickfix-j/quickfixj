@@ -13,10 +13,31 @@
   <H2>Configuring QuickFIX/J</H2>
   <p>
 
-  A quickfix acceptor or initiator can maintain as many FIX sessions as you would like. A FIX
-  session is defined in QuickFIX as a unique combination of a <B>BeginString</B> (the FIX version number),
-  a <B>SenderCompID</B> (your ID), and a <B>TargetCompID</B> (the ID of your counterparty). A <B>SessionQualifier</B>
-  can also be use to disambiguate otherwise identical sessions.
+  A QuickFIX/J acceptor or initiator can maintain as many FIX sessions as you would like. A FIX
+  session is identified by a group of settings defined within the configuration section for a session
+  (or inherited from the default section). The identification settings are:
+  </p>
+  
+  <table class=settings>
+  <tr>
+    <th>Setting</th><th>Required?</th>
+  </tr>
+  <tr><td>BeginString</td><td style="text-align: center; background: 8f8">Y</td></tr> 
+  <tr><td>SenderCompID</td><td style="text-align: center; background: 8f8"">Y</td></tr> 
+  <tr><td>SenderSubID</td><td style="text-align: center">N</td></tr> 
+  <tr><td>SenderLocationID</td><td style="text-align: center">N</td></tr> 
+  <tr><td>TargetCompID</td><td style="text-align: center; background: 8f8"">Y</td></tr> 
+  <tr><td>TargetSubID</td><td style="text-align: center">N</td></tr> 
+  <tr><td>TargetLocationID</td><td style="text-align: center">N</td></tr> 
+  </table>
+  
+  <p>
+  The sender settings are your identification and the target settings are for the counterparty. A 
+  <B>SessionQualifier</B> can also be use to disambiguate otherwise identical sessions. <em>Session
+  qualifier usage is not recommended. It is provided for compatibility with QuickFIX JNI and for the
+  nonstandard FIX implementations where there are multiple sessions that would otherwise have the 
+  same identification without the qualifier.</em> A <b>SessionQualifier</b> can only be used with an
+  initiator.
   </p>
   <p>
 
@@ -33,11 +54,11 @@
 
   <p>
   A settings file is set up with two types of heading, a [DEFAULT] and a [SESSION]
-    heading. [SESSION] tells QuickFIX that a new Session is being defined. [DEFAULT]
+    heading. [SESSION] tells QuickFIX/J that a new Session is being defined. [DEFAULT]
     is a place that you can define settings
   which will be inherited by sessions that don't explicitly define them.  If you
     do not provide a setting
-    that QuickFIX needs, it will
+    that QuickFIX/J needs, it will
   throw a ConfigError telling you what setting is missing or improperly formatted.
   </p>
   <p>
@@ -79,23 +100,51 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SenderCompID</I> </TD>
-    <TD> Your ID as associated with this FIX session </TD>
+    <TD> Your compID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SenderSubID</I> </TD>
+    <TD> (Optional) Your subID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SenderLocationID</I> </TD>
+    <TD> (Optional) Your locationID as associated with this FIX session </TD>
     <TD> case-sensitive alpha-numeric string </TD>
 
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>TargetCompID</I> </TD>
-    <TD> counter parties ID as associated with this FIX session </TD>
+    <TD> (Optional) counterparty's compID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TargetSubID</I> </TD>
+    <TD> (Optional)  counterparty's subID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TargetLocationID</I> </TD>
+    <TD> (Optional) counterparty's locationID as associated with this FIX session </TD>
     <TD> case-sensitive alpha-numeric string </TD>
 
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SessionQualifier</I> </TD>
-    <TD> Additional qualifier to disambiguate otherwise identical sessions.<BR>
-      <B>Note:</B> This qualifier <EM>must</EM> be non-empty if JDBC access to an
-        Oracle database is used. See <a href="../installation.html#oracle">Special
+    <TD> Additional qualifier to disambiguate otherwise identical sessions. 
+         This can only be used with initiator sessions.
+      <B>Note:</B> See <a href="../installation.html#oracle">Special
         notes for Oracle</a>.
     </TD>
     <TD> case-sensitive alpha-numeric string </TD>
@@ -176,7 +225,7 @@
 
     <TD> <I>DataDictionary</I> </TD>
     <TD> XML definition file for validating incoming FIX messages. If no DataDictionary is supplied, only basic message validation will be done</TD>
-    <TD> Valid XML data dictionary file, QuickFIX comes with the following defaults in the <code>etc</code> directory: FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
+    <TD> Valid XML data dictionary file, QuickFIX/J comes with the following defaults in the <code>etc</code> directory: FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
     <p>
     	If DataDictionary is not specified and UserDataDictionary=Y, then QuickFIX/J will look for a
     	default dictionary based on the session's BeginString (e.g., FIX.4.2 = FIX42.xml). The DataDictionary
@@ -504,7 +553,7 @@
   </TR>
   <TR ALIGN="center" VALIGN="middle">
 
-    <TD COLSPAN="4"><I>Note: The QuickFIX database-specific classes (MySQLStore, etc.)
+    <TD COLSPAN="4"><I>Note: Unlike in QuickFIX JNI, database-specific classes (MySQLStore, etc.)
     	are not included in QuickFIX/J. Use the JDBC support instead. The message store
     	and logging schema are simple and should be easily adapted to any JDBC-supported
     	database.</I>
