@@ -27,24 +27,12 @@ import java.util.Calendar;
  */
 public class DateField extends Field<Date> {
 
-    private static final Calendar calendar;
-
-    static {
-        calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    }
-
     protected DateField(int field) {
-        super(field, createDate());
+        super(field, new Date());
     }
 
     protected DateField(int field, Date data) {
         super(field, data);
-    }
-
-    private static Date createDate() {
-        synchronized (calendar) {
-            return calendar.getTime();
-        }
     }
 
     public void setValue(Date value) {
