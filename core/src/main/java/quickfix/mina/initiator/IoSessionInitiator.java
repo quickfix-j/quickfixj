@@ -20,6 +20,7 @@
 package quickfix.mina.initiator;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.Future;
@@ -150,6 +151,15 @@ public class IoSessionInitiator {
 
         private SocketAddress getNextSocketAddress() {
             SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
+            
+            // QFJ-266 Recreate socket address for unresolved addresses
+            if (socketAddress instanceof InetSocketAddress) {
+                InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
+                if (inetAddr.isUnresolved()) {
+                    socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr.getPort());
+                    socketAddresses[nextSocketAddressIndex] = socketAddress;
+                }
+            } 
             nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
             return socketAddress;
         }
