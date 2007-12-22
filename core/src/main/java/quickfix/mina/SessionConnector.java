@@ -22,9 +22,11 @@ package quickfix.mina;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -121,13 +123,19 @@ public abstract class SessionConnector {
     }
 
     public boolean isLoggedOn() {
+        return ! getLoggedOnSessions().isEmpty();
+    }
+
+    private Set<quickfix.Session> getLoggedOnSessions() {
+        Set<quickfix.Session> loggedOnSessions = new HashSet<quickfix.Session>(sessions.size());
         Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
         while (sessionItr.hasNext()) {
-            if (sessionItr.next().isLoggedOn()) {
-                return true;
+            Session session = sessionItr.next();
+            if (session.isLoggedOn()) {
+                loggedOnSessions.add(session);
             }
         }
-        return false;
+        return loggedOnSessions;
     }
 
     protected void logoutAllSessions(boolean forceDisconnect) {
@@ -167,14 +175,32 @@ public abstract class SessionConnector {
     }
 
     protected void waitForLogout() {
-        if (isLoggedOn()) {
-            log.info("Waiting for session logout");
-            for (int second = 1; second <= 10 && isLoggedOn(); ++second) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    log.error(e.getMessage(), e);
+        Set<quickfix.Session> loggedOnSessions = getLoggedOnSessions();
+        long start = System.currentTimeMillis();
+        while (!loggedOnSessions.isEmpty()) {
+            
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+            }
+            
+            long elapsed = System.currentTimeMillis() - start;
+            for (Session session : loggedOnSessions) {
+                if (elapsed >= session.getLogoutTimeout() * 1000L) {
+                    try {
+                        session.disconnect();
+                    } catch (IOException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    loggedOnSessions.remove(session);
                 }
+            }
+            
+            // Be sure we don't look forever
+            if (elapsed > 60000L) {
+                log.warn("Stopping session logout wait after 1 minute");
+                break;
             }
         }
     }
