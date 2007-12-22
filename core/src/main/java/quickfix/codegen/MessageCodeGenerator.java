@@ -74,6 +74,7 @@ public class MessageCodeGenerator {
     private void generateMessageBaseClass(Task task) throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
+        log.info(task.getName() + ": generating message base class");
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
         generateClassCode(task, "Message", parameters);

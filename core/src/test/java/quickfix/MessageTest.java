@@ -45,6 +45,7 @@ import quickfix.field.ExecID;
 import quickfix.field.ExecType;
 import quickfix.field.HandlInst;
 import quickfix.field.Headline;
+import quickfix.field.HopCompID;
 import quickfix.field.IOIid;
 import quickfix.field.LeavesQty;
 import quickfix.field.ListID;
@@ -91,22 +92,35 @@ import quickfix.fix44.component.Parties;
 
 public class MessageTest extends TestCase {
 
+    public void testHeaderGroupParsing() throws Exception {
+        Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
+                + "627=2\001628=FOO\001628=BAR\001"
+                + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=228\001",
+                DataDictionaryTest.getDictionary());
+
+        quickfix.fix44.Message.Header.NoHops hops = new quickfix.fix44.Message.Header.NoHops();
+        message.getHeader().getGroup(1, hops);
+        assertEquals("FOO", hops.getString(HopCompID.FIELD));
+        message.getHeader().getGroup(2, hops);
+        assertEquals("BAR", hops.getString(HopCompID.FIELD));
+    }
+
     public void testEmbeddedMessage() throws Exception {
-        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), 
-                new HandlInst(HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
+        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
+                HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
                 new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
 
         ExecutionReport report = new ExecutionReport(new OrderID("ORDER"), new ExecID("EXEC"),
                 new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.FILLED), new Side(Side.BUY),
                 new LeavesQty(100), new CumQty(100), new AvgPx(50));
-        
+
         report.set(new EncodedTextLen(order.toString().length()));
         report.set(new EncodedText(order.toString()));
-        
+
         Message msg = new Message(report.toString(), DataDictionaryTest.getDictionary());
         assertEquals("embedded order", order.toString(), msg.getString(EncodedText.FIELD));
     }
-    
+
     public void testParsing() throws Exception {
         // checksum is not verified in these tests
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
@@ -143,7 +157,7 @@ public class MessageTest extends TestCase {
         data += "318=CAD\001";
         data += "10=037\001";
         Message message = new Message(data, DataDictionaryTest.getDictionary());
-    
+
         assertHeaderField(message, "FIX.4.2", BeginString.FIELD);
         assertHeaderField(message, "76", BodyLength.FIELD);
         assertHeaderField(message, MsgType.INDICATION_OF_INTEREST, MsgType.FIELD);
@@ -159,28 +173,26 @@ public class MessageTest extends TestCase {
     }
 
     public void testParseEmptyString() throws Exception {
-    	String data = "";
-    
-    	// with validation
-    	try {
-    		new Message(data, DataDictionaryTest.getDictionary());
-        } catch( InvalidMessage im ) {
-        }
-        catch( Throwable e ) {
+        String data = "";
+
+        // with validation
+        try {
+            new Message(data, DataDictionaryTest.getDictionary());
+        } catch (InvalidMessage im) {
+        } catch (Throwable e) {
             e.printStackTrace();
-            fail("InvalidMessage expected, got " + e.getClass().getName() );
+            fail("InvalidMessage expected, got " + e.getClass().getName());
         }
-    
-    	// without validation
-    	try {
-    		new Message(data, DataDictionaryTest.getDictionary(), false);
-    	} catch( InvalidMessage im ) {
-    	}
-    	catch( Throwable e ) {
+
+        // without validation
+        try {
+            new Message(data, DataDictionaryTest.getDictionary(), false);
+        } catch (InvalidMessage im) {
+        } catch (Throwable e) {
             e.printStackTrace();
-    		fail("InvalidMessage expected, got " + e.getClass().getName() );
+            fail("InvalidMessage expected, got " + e.getClass().getName());
         }
-    
+
     }
 
     public void testValidation() throws Exception {
@@ -208,7 +220,7 @@ public class MessageTest extends TestCase {
         String data = order.toString();
         assertTrue("wrong field order", data.indexOf("453=1\001448=TraderName") != -1);
     }
-    
+
     public void testComponentGroupExtraction() throws Exception {
         quickfix.fix44.NewOrderSingle order = new quickfix.fix44.NewOrderSingle();
         NoPartyIDs partyIds = new NoPartyIDs();
@@ -216,7 +228,7 @@ public class MessageTest extends TestCase {
         order.addGroup(partyIds);
         partyIds.set(new PartyID("PARTY_ID_2"));
         order.addGroup(partyIds);
-        
+
         Parties parties = order.getParties();
         assertEquals("wrong # of party IDs", 2, parties.getNoPartyIDs().getValue());
     }
@@ -228,10 +240,10 @@ public class MessageTest extends TestCase {
         parties.addGroup(partyIds);
         partyIds.set(new PartyID("PARTY_ID_2"));
         parties.addGroup(partyIds);
-        
+
         quickfix.fix44.NewOrderSingle order = new quickfix.fix44.NewOrderSingle();
         order.set(parties);
-        
+
         assertEquals("wrong # of party IDs", 2, order.getNoPartyIDs().getValue());
     }
 
@@ -242,7 +254,7 @@ public class MessageTest extends TestCase {
                 DataDictionaryTest.getDictionary());
         assertEquals("ABCD", m.getHeader().getString(SecureData.FIELD));
     }
-    
+
     // QFJ-52
     public void testInvalidFirstFieldInGroup() throws Exception {
         News news = new News();
@@ -251,7 +263,7 @@ public class MessageTest extends TestCase {
         relatedSym.set(new SecurityID("SECID"));
         relatedSym.set(new SecurityIDSource("SECID_SOURCE"));
         news.addGroup(relatedSym);
-        
+
         try {
             new Message(news.toString(), DataDictionaryTest.getDictionary());
         } catch (InvalidMessage e) {
@@ -260,7 +272,7 @@ public class MessageTest extends TestCase {
             fail("Should not throw NPE when first field is missing.");
         }
     }
-    
+
     public void testRequiredGroupValidation() throws Exception {
         News news = new News();
         news.set(new Headline("Test"));
@@ -272,7 +284,7 @@ public class MessageTest extends TestCase {
             // expected
         }
     }
-    
+
     /**
      *  Test for data fields with SOH. This test is based on report from a user on
      *  the QuickFIX mailing list. The problem was the user's configuration but this
@@ -292,7 +304,7 @@ public class MessageTest extends TestCase {
                 + "11332=N\00111331=N\00111330=N\00111335=N\00111333=N\00110767=3\00110974=~\00110980=AIRTRAN HOLDINGS                \00111289=N\001"
                 + "10912=4\00110915=0501\00110914=0501\00110975=N\00110913=SLK\00110698=055\00110666=AAI\00110903=S\00111328=N\001"
                 + "10624=L\00111287=0\00110699=0\00110962=L\00111227=SUB1\00111229=5\00111228=1\00111236=16:24:41.521\00111277=16:25:11.630\001";
-        
+
         try {
             DataDictionary dictionary = DataDictionaryTest.getDictionary();
             Message m = new Message(("8=FIX.4.4\0019=1144\00135=A\001"
@@ -325,7 +337,7 @@ public class MessageTest extends TestCase {
                 + "11332=N\00111331=N\00111330=N\00111335=N\00111333=N\00110767=3\00110974=~\00110980=AIRTRAN HOLDINGS                \00111289=N\001"
                 + "10912=4\00110915=0501\00110914=0501\00110975=N\00110913=SLK\00110698=055\00110666=AAI\00110903=S\00111328=N\001"
                 + "10624=L\00111287=0\00110699=0\00110962=L\00111227=SUB1\00111229=5\00111228=1\00111236=16:24:41.521\00111277=16:25:11.630\001";
-        
+
         try {
             DataDictionary dictionary = DataDictionaryTest.getDictionary();
             Message m = new Message();
@@ -334,7 +346,7 @@ public class MessageTest extends TestCase {
             m.getHeader().setField(msgType);
             m.setInt(RawDataLength.FIELD, data.length());
             m.setString(RawData.FIELD, data);
-            assertEquals(1108+msgType.getValue().length(), m.bodyLength());
+            assertEquals(1108 + msgType.getValue().length(), m.bodyLength());
             Message m2 = new Message(m.toString(), dictionary);
             assertEquals(m.bodyLength(), m2.bodyLength());
         } catch (InvalidMessage e) {
@@ -429,7 +441,7 @@ public class MessageTest extends TestCase {
 
     public void testMessageFromString() {
         Message message = null;
-    
+
         boolean badMessage = false;
         try {
             message = new Message("8=FIX.4.2\0019=12\00135=A\001108=30\00110=036\001");
@@ -437,7 +449,7 @@ public class MessageTest extends TestCase {
             badMessage = true;
         }
         assertTrue("Message should be invalid", badMessage);
-    
+
         try {
             message = new Message("8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001");
         } catch (InvalidMessage e) {
@@ -449,7 +461,7 @@ public class MessageTest extends TestCase {
     public void testMessageGroups() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
-    
+
         assertGroupContent(message, numAllocs);
     }
 
@@ -471,11 +483,11 @@ public class MessageTest extends TestCase {
         }
 
     }
-    
+
     public void testMessageCloneWithGroups() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
-    
+
         Message clonedMessage = (Message) message.clone();
         assertGroupContent(clonedMessage, numAllocs);
     }
@@ -496,52 +508,52 @@ public class MessageTest extends TestCase {
     public void testMessageGroupRemoval() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
-    
+
         assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         message.removeGroup(numAllocs);
-    
+
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         numAllocs = setUpGroups(message);
         assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         message.removeGroup(numAllocs.getFieldTag());
-    
+
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         numAllocs = setUpGroups(message);
         assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         message.removeGroup(2, numAllocs.getFieldTag());
-    
+
         assertEquals("wrong # of group members", 1, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         message.removeGroup(1, numAllocs.getFieldTag());
-    
+
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         numAllocs = setUpGroups(message);
         assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         message.removeGroup(2, numAllocs);
-    
+
         assertEquals("wrong # of group members", 1, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         message.removeGroup(1, numAllocs);
-    
+
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-    
+
         // ensure no exception when groups are empty
         message.removeGroup(1, numAllocs);
-    
+
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
     }
 
     public void testHasGroup() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
-    
+
         assertFalse("wrong value", message.hasGroup(654));
         assertTrue("wrong value", message.hasGroup(numAllocs.getFieldTag()));
         assertTrue("wrong value", message.hasGroup(numAllocs));
@@ -572,21 +584,21 @@ public class MessageTest extends TestCase {
 
     public void testMessageSetGetString() {
         Message message = new Message();
-    
+
         try {
             message.getString(5);
             assertTrue("exception not thrown", false);
         } catch (FieldNotFound e) {
         }
-    
+
         message.setString(5, "string5");
-    
+
         try {
             assertEquals("string5", message.getString(5));
         } catch (FieldNotFound e) {
             assertTrue("exception thrown", false);
         }
-    
+
         try {
             message.setString(100, null);
             assertTrue("exception not thrown", false);
@@ -596,15 +608,15 @@ public class MessageTest extends TestCase {
 
     public void testMessagesetGetBoolean() {
         Message message = new Message();
-    
+
         try {
             message.getBoolean(7);
             assertTrue("exception not thrown", false);
         } catch (FieldNotFound e) {
         }
-    
+
         message.setBoolean(7, true);
-    
+
         try {
             assertEquals(true, message.getBoolean(7));
         } catch (FieldNotFound e) {
@@ -614,15 +626,15 @@ public class MessageTest extends TestCase {
 
     public void testMessageSetGetChar() {
         Message message = new Message();
-    
+
         try {
             message.getChar(12);
             assertTrue("exception not thrown", false);
         } catch (FieldNotFound e) {
         }
-    
+
         message.setChar(12, 'a');
-    
+
         try {
             assertEquals('a', message.getChar(12));
         } catch (FieldNotFound e) {
@@ -632,15 +644,15 @@ public class MessageTest extends TestCase {
 
     public void testMessageSetGetInt() {
         Message message = new Message();
-    
+
         try {
             message.getInt(56);
             assertTrue("exception not thrown", false);
         } catch (FieldNotFound e) {
         }
-    
+
         message.setInt(56, 23);
-    
+
         try {
             assertEquals(23, message.getInt(56));
         } catch (FieldNotFound e) {
@@ -650,15 +662,15 @@ public class MessageTest extends TestCase {
 
     public void testMessageSetGetDouble() {
         Message message = new Message();
-    
+
         try {
             message.getDouble(9812);
             assertTrue("exception not thrown", false);
         } catch (FieldNotFound e) {
         }
-    
+
         message.setDouble(9812, 12.3443);
-    
+
         try {
             assertEquals(12.3443, message.getDouble(9812));
         } catch (FieldNotFound e) {
@@ -668,21 +680,21 @@ public class MessageTest extends TestCase {
 
     public void testMessageSetGetUtcTimeStamp() {
         Message message = new Message();
-    
+
         try {
             message.getUtcTimeStamp(8);
             assertTrue("exception not thrown", false);
         } catch (FieldNotFound e) {
         }
-    
+
         TimeZone timezone = TimeZone.getTimeZone("GMT+0");
         Calendar calendar = Calendar.getInstance(timezone);
         calendar.set(2002, 8, 6, 12, 34, 56);
         calendar.set(Calendar.MILLISECOND, 0);
-    
+
         Date time = calendar.getTime();
         message.setUtcTimeStamp(8, time);
-    
+
         try {
             assertEquals(message.getUtcTimeStamp(8).getTime(), time.getTime());
         } catch (FieldNotFound e) {
@@ -707,7 +719,7 @@ public class MessageTest extends TestCase {
             fail("exception not thrown");
         } catch (java.util.NoSuchElementException e) {
         }
-    
+
         try {
             message = new Message("8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001");
             i = message.iterator();
@@ -715,14 +727,14 @@ public class MessageTest extends TestCase {
             StringField field = (StringField) i.next();
             assertEquals(108, field.getField());
             assertEquals("30", field.getValue());
-    
+
             assertEquals(false, i.hasNext());
             try {
                 assertNull(i.next());
                 fail("exception not thrown");
             } catch (java.util.NoSuchElementException e) {
             }
-    
+
             java.util.Iterator<Field<?>> j = message.getHeader().iterator();
             assertTrue(j.hasNext());
             field = (StringField) j.next();
@@ -734,14 +746,14 @@ public class MessageTest extends TestCase {
             field = (StringField) j.next();
             assertEquals(35, field.getField());
             assertEquals("A", field.getValue());
-    
+
             assertEquals(false, j.hasNext());
             try {
                 assertNull(j.next());
                 fail("exception not thrown");
             } catch (java.util.NoSuchElementException e) {
             }
-    
+
         } catch (InvalidMessage e) {
             fail("exception thrown");
         }
@@ -749,31 +761,31 @@ public class MessageTest extends TestCase {
 
     public void testIsAdmin() {
         Message message = new Message();
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.HEARTBEAT);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.LOGON);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.LOGOUT);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.SEQUENCE_RESET);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.RESEND_REQUEST);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.TEST_REQUEST);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.REJECT);
         assertTrue(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.ORDER_SINGLE);
         assertFalse(message.isAdmin());
-    
+
         message.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_RESPONSE);
         assertFalse(message.isAdmin());
     }
@@ -783,16 +795,16 @@ public class MessageTest extends TestCase {
         instrument.set(new Symbol("DELL"));
         instrument.set(new CountryOfIssue("USA"));
         instrument.set(new SecurityType(SecurityType.COMMON_STOCK));
-    
+
         quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle();
         newOrderSingle.set(instrument);
         newOrderSingle.set(new OrderQty(100));
         newOrderSingle.set(new Price(45));
-    
+
         assertEquals(new Symbol("DELL"), newOrderSingle.getSymbol());
         assertEquals(new CountryOfIssue("USA"), newOrderSingle.getCountryOfIssue());
         assertEquals(new SecurityType(SecurityType.COMMON_STOCK), newOrderSingle.getSecurityType());
-    
+
         newOrderSingle.set(new ClOrdID("CLIENT_ORDER_ID"));
         Instrument instrument2 = newOrderSingle.getInstrument();
         assertEquals(new Symbol("DELL"), instrument2.getSymbol());
@@ -804,72 +816,72 @@ public class MessageTest extends TestCase {
         } catch (FieldNotFound e) {
             // expected
         }
-    
+
     }
 
     public void testReplaceGroup() throws Exception {
         Message message = new Message();
-          message.setField(new ListID( "1" ) );
-          message.setField(new BidType( 0 ) );
-          message.setField(new TotNoOrders( 3 ) );
-    
-          NewOrderList.NoOrders group = new NewOrderList.NoOrders();
-          group.set(new ClOrdID( "A" ) );
-          group.set(new ListSeqNo( 1 ) );
-          group.set(new Symbol( "DELL" ) );
-          group.set(new Side( '1' ) );
-          message.addGroup( group );
-    
-          group.set(new ClOrdID( "B" ) );
-          group.set(new ListSeqNo( 2 ) );
-          group.set(new Symbol( "LNUX" ) );
-          group.set(new Side( '2' ) );
-          message.addGroup( group );
-    
-          group.set(new ClOrdID( "C" ) );
-          group.set(new ListSeqNo( 3 ) );
-          group.set(new Symbol( "RHAT" ) );
-          group.set(new Side( '3' ) );
-          message.addGroup( group );
-    
-          group.set(new ClOrdID( "D" ) );
-          group.set(new ListSeqNo( 4 ) );
-          group.set(new Symbol( "AAPL" ) );
-          group.set(new Side( '4' ) );
-          message.replaceGroup( 2, group );
-    
-          NoOrders noOrders = new NoOrders();
-    
-          assertTrue( message.hasGroup(1, group) );
-          assertTrue( message.hasGroup(2, group) );
-          assertTrue( message.hasGroup(3, group) );
-          assertEquals( 3, message.getGroupCount(NoOrders.FIELD));
-          message.getField( noOrders );
-          assertEquals(3, noOrders.getValue() );
-    
-          ClOrdID clOrdID = new ClOrdID();
-          message.getGroup( 1, group );
-          assertEquals("A", group.getField(clOrdID).getValue());
-          message.getGroup( 2, group );
-          assertEquals("D", group.getField(clOrdID).getValue());
-          message.getGroup( 3, group );
-          assertEquals("C", group.getField(clOrdID).getValue());
+        message.setField(new ListID("1"));
+        message.setField(new BidType(0));
+        message.setField(new TotNoOrders(3));
+
+        NewOrderList.NoOrders group = new NewOrderList.NoOrders();
+        group.set(new ClOrdID("A"));
+        group.set(new ListSeqNo(1));
+        group.set(new Symbol("DELL"));
+        group.set(new Side('1'));
+        message.addGroup(group);
+
+        group.set(new ClOrdID("B"));
+        group.set(new ListSeqNo(2));
+        group.set(new Symbol("LNUX"));
+        group.set(new Side('2'));
+        message.addGroup(group);
+
+        group.set(new ClOrdID("C"));
+        group.set(new ListSeqNo(3));
+        group.set(new Symbol("RHAT"));
+        group.set(new Side('3'));
+        message.addGroup(group);
+
+        group.set(new ClOrdID("D"));
+        group.set(new ListSeqNo(4));
+        group.set(new Symbol("AAPL"));
+        group.set(new Side('4'));
+        message.replaceGroup(2, group);
+
+        NoOrders noOrders = new NoOrders();
+
+        assertTrue(message.hasGroup(1, group));
+        assertTrue(message.hasGroup(2, group));
+        assertTrue(message.hasGroup(3, group));
+        assertEquals(3, message.getGroupCount(NoOrders.FIELD));
+        message.getField(noOrders);
+        assertEquals(3, noOrders.getValue());
+
+        ClOrdID clOrdID = new ClOrdID();
+        message.getGroup(1, group);
+        assertEquals("A", group.getField(clOrdID).getValue());
+        message.getGroup(2, group);
+        assertEquals("D", group.getField(clOrdID).getValue());
+        message.getGroup(3, group);
+        assertEquals("C", group.getField(clOrdID).getValue());
     }
 
-    
     public void testFalseMessageStructureException() {
         try {
             DataDictionary dd = DataDictionaryTest.getDictionary();
             // duplicated tag 98
             // QFJ-65
-            new Message("8=FIX.4.4\0019=22\00135=A\00198=0\00198=0\001108=30\00110=223\001", dd, true);
+            new Message("8=FIX.4.4\0019=22\00135=A\00198=0\00198=0\001108=30\00110=223\001", dd,
+                    true);
             // For now, this will not cause an exception if the length and checksum are correct
         } catch (Exception e) {
             String text = e.getMessage();
-            assertTrue("Wrong exception message: "+text, text.indexOf("Actual body length") == -1);
+            assertTrue("Wrong exception message: " + text, text.indexOf("Actual body length") == -1);
         }
     }
-    
+
     public void testFalseMessageStructureException2() {
         try {
             DataDictionary dd = DataDictionaryTest.getDictionary();
@@ -878,7 +890,8 @@ public class MessageTest extends TestCase {
             new Message("8=FIX.4.4\0019=22\00135=A\00196=X\001108=30\00110=223\001", dd, true);
         } catch (Exception e) {
             String text = e.getMessage();
-            assertTrue("Wrong exception message: "+text, text != null && text.indexOf("Actual body length") == -1);
+            assertTrue("Wrong exception message: " + text, text != null
+                    && text.indexOf("Actual body length") == -1);
         }
     }
 
@@ -958,17 +971,17 @@ public class MessageTest extends TestCase {
             fail("Unknown account");
         }
     }
-    
+
     private boolean equals(double expected, Object actual) {
         if (actual instanceof Double) {
             return ((Double) actual).compareTo(expected) == 0;
         } else {
             // BigDecimal
-            return ((BigDecimal)actual).compareTo(new BigDecimal(expected)) == 0;
+            return ((BigDecimal) actual).compareTo(new BigDecimal(expected)) == 0;
         }
-            
+
     }
-    
+
     private NewOrderSingle.NoAllocs setUpGroups(Message message) {
         NewOrderSingle.NoAllocs numAllocs = new NewOrderSingle.NoAllocs();
         numAllocs.set(new AllocAccount("AllocACC1"));

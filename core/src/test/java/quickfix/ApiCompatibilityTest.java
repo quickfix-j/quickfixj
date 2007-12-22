@@ -350,6 +350,21 @@ public class ApiCompatibilityTest {
                 SecurityException, NoSuchMethodException {
             ignoreConstructor(jniClassLoader, "quickfix.Message", new Class<?>[] {
                     Message.Header.class, Message.Trailer.class });
+            
+            // JNI has constructor for Header inner class that takes a instance
+            // to the outer class, which is redundant. The Header class has been
+            // made static in QFJ to support nested classes for repeating groups
+            ignoreConstructor(jniClassLoader, "quickfix.fix40.Message$Header", new Class<?>[] {
+                    quickfix.fix40.Message.class, quickfix.fix40.Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.fix41.Message$Header", new Class<?>[] {
+                    quickfix.fix41.Message.class, quickfix.fix41.Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.fix42.Message$Header", new Class<?>[] {
+                    quickfix.fix42.Message.class, quickfix.fix42.Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.fix43.Message$Header", new Class<?>[] {
+                    quickfix.fix43.Message.class, quickfix.fix43.Message.class });
+            ignoreConstructor(jniClassLoader, "quickfix.fix44.Message$Header", new Class<?>[] {
+                    quickfix.fix44.Message.class, quickfix.fix44.Message.class });
+            
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppLog"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.CppMessageStore"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Group$Iterator"));

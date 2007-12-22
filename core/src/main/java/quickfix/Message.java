@@ -71,15 +71,10 @@ import quickfix.field.XmlDataLen;
 public class Message extends FieldMap {
 
     static final long serialVersionUID = -3193357271891865972L;
-
     protected Header header = new Header();
-
     protected Trailer trailer = new Trailer();
-
     private boolean doValidation;
-
     private int isValidStructureTag = 0;
-
     private boolean isValidStructure = true;
 
     public Message() {
@@ -498,6 +493,12 @@ public class Message extends FieldMap {
         StringField field = extractField(dd, header);
         while (field != null && isHeaderField(field, dd)) {
             header.setField(field);
+
+            // Parse header groups
+            if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
+                parseGroup(DataDictionary.HEADER_ID, field, dd, header);
+            }
+
             field = extractField(dd, header);
         }
         pushBack(field);
@@ -531,15 +532,15 @@ public class Message extends FieldMap {
             }
             // Group case
             if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
-                parseGroup(field, dd, this);
+                parseGroup(getMsgType(), field, dd, this);
             }
             field = extractField(dd, this);
         }
     }
 
-    private void parseGroup(StringField field, DataDictionary dd, FieldMap parent)
+    private void parseGroup(String msgType, StringField field, DataDictionary dd, FieldMap parent)
             throws InvalidMessage {
-        DataDictionary.GroupInfo rg = dd.getGroup(getMsgType(), field.getField());
+        DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
         int groupCountTag = field.getField();
         int declaredGroupCount = Integer.parseInt(field.getValue());
         parent.setField(groupCountTag, field);
@@ -558,9 +559,9 @@ public class Message extends FieldMap {
                 group.setField(field);
                 firstFieldFound = true;
             } else {
-                if (rg.getDataDictionary().isGroup(getMsgType(), field.getField())) {
+                if (rg.getDataDictionary().isGroup(msgType, field.getField())) {
                     if (firstFieldFound) {
-                        parseGroup(field, rg.getDataDictionary(), group);
+                        parseGroup(msgType, field, rg.getDataDictionary(), group);
                     } else {
                         throw new InvalidMessage("The group " + groupCountTag
                                 + " must set the delimiter field " + firstField);

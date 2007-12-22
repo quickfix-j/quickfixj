@@ -27,6 +27,7 @@ import junit.framework.TestCase;
 import quickfix.field.Account;
 import quickfix.field.ClOrdID;
 import quickfix.field.HandlInst;
+import quickfix.field.NoHops;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.Price;
@@ -195,6 +196,11 @@ public class DataDictionaryTest extends TestCase {
         assertFalse("Unknown trailer field shows up as required", dd.isRequiredTrailerField(666));
     }
 
+    public void testHeaderGroupField() throws Exception {
+        DataDictionary dd = getDictionary();
+        assertTrue(dd.isHeaderGroup(NoHops.FIELD));
+    }
+    
     public void testMessageValidateBodyOnly() throws Exception {
         final quickfix.fix44.NewOrderSingle newSingle =
                 new quickfix.fix44.NewOrderSingle(new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(OrdType.LIMIT));

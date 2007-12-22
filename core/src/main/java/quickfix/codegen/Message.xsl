@@ -34,6 +34,7 @@ package <xsl:value-of select="$messagePackage"/>;
 
 import quickfix.FieldNotFound;
 import quickfix.field.*;
+<xsl:call-template name="extra-imports"/>
 	 
 public class Message extends quickfix.Message
 {
@@ -50,7 +51,7 @@ public class Message extends quickfix.Message
     getHeader().setField(new BeginString("FIX.<xsl:value-of select="//fix/@major"/>.<xsl:value-of select="//fix/@minor"/>"));
   }
   
-  public class Header extends quickfix.Message.Header {
+  public static class Header extends quickfix.Message.Header {
 	 public Header(Message msg) {
 		 // JNI compatibility
 	 }
@@ -81,6 +82,14 @@ public class Message extends quickfix.Message
 
   <xsl:template mode="field-accessors" match="group">
     <xsl:call-template name="field-accessor-template"/>
+    <xsl:variable name="groupFieldName" select="@name"/>
+  public static class <xsl:value-of select="@name"/> extends Group {
+    public <xsl:value-of select="@name"/>() {
+        super(<xsl:value-of select="/fix/fields/field[@name=$groupFieldName]/@number"/>, <xsl:apply-templates select="field|component|group" mode="group-delimeter"/>,
+            new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/> 0 } );
+    }
+    <xsl:apply-templates select="field|component|group" mode="field-accessors"/>
+  }
   </xsl:template>
 
   <!--  Find the group delimeter (first field) -->
@@ -201,5 +210,39 @@ public class Message extends quickfix.Message
   		mode="field-accessors"/>
   </xsl:template>
 	
+  <xsl:template name="extra-imports">
+    <xsl:variable name="groups" select="/fix/header/group"/>
+    <xsl:choose>
+      <xsl:when test="count($groups) > 0">
+import quickfix.Group;</xsl:when>
+      <xsl:otherwise>
+        <xsl:call-template name="extra-imports-component">
+          <xsl:with-param name="components" select="component"/>
+  	      <xsl:with-param name="position" select="1"/>
+        </xsl:call-template>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+    
+    <!--  TODO Remove this duplication from MessageSubclass.xsl -->
+  <xsl:template name="extra-imports-component">
+    <xsl:param name="components"/>
+    <xsl:param name="position"/>
+    <xsl:if test="$position &lt;= count($components)">
+      <xsl:variable name="name" select="$components[$position]/@name"/>
+   	  <xsl:variable name="group" select="/fix/components/component[@name=$name]/group[1]"/>
+      <xsl:choose>
+        <xsl:when test="$group">
+import quickfix.Group;</xsl:when>
+        <xsl:otherwise>
+          <xsl:call-template name="extra-imports-component">
+            <xsl:with-param name="components" select="$components"/>
+            <xsl:with-param name="position" select="$position + 1"/>
+          </xsl:call-template>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:if>
+  </xsl:template>
+
 </xsl:stylesheet>
 
