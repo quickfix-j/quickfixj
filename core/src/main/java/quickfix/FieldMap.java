@@ -606,7 +606,12 @@ public abstract class FieldMap implements Serializable {
         return result;
     }
 
-    int getGroupCount(int tag) {
+    /**
+     * Returns the number of groups associated with the specified count tag.
+     * @param tag the count tag number
+     * @return the number of times the group repeats
+     */
+    public int getGroupCount(int tag) {
         return getGroups(tag).size();
     }
 
