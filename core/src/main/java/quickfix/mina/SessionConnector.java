@@ -186,14 +186,16 @@ public abstract class SessionConnector {
             }
             
             long elapsed = System.currentTimeMillis() - start;
-            for (Session session : loggedOnSessions) {
+            Iterator<Session> sessionItr = loggedOnSessions.iterator();
+            while (sessionItr.hasNext()) {
+                Session session = sessionItr.next();
                 if (elapsed >= session.getLogoutTimeout() * 1000L) {
                     try {
                         session.disconnect();
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
                     }
-                    loggedOnSessions.remove(session);
+                    sessionItr.remove();
                 }
             }
             
