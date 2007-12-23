@@ -39,15 +39,17 @@ public class ScreenLog extends AbstractLog {
     private final boolean incoming;
     private final boolean outgoing;
     private final boolean events;
+    private final boolean includeMillis;
 
     ScreenLog(boolean incoming, boolean outgoing, boolean events, boolean logHeartbeats,
-            SessionID sessionID, PrintStream out) {
+            boolean includeMillis, SessionID sessionID, PrintStream out) {
         setLogHeartbeats(logHeartbeats);
         this.out = out;
         this.incoming = incoming;
         this.outgoing = outgoing;
         this.events = events;
         this.sessionID = sessionID;
+        this.includeMillis = includeMillis;
     }
 
     protected void logIncoming(String message) {
@@ -73,7 +75,7 @@ public class ScreenLog extends AbstractLog {
     }
 
     private void log(String message, String type) {
-        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), false) + ", "
+        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis) + ", "
                 + sessionID + ", " + type + "> (" + message + ")");
     }
 

@@ -66,7 +66,7 @@ public class LogUtilTest extends TestCase {
     }
 
     private LogFactory createLogFactory(ByteArrayOutputStream data) {
-        final ScreenLog log = new ScreenLog(true, true, true, true, null, new PrintStream(data));
+        final ScreenLog log = new ScreenLog(true, true, true, true, false, null, new PrintStream(data));
         return new LogFactory() {
             public Log create(SessionID sessionID) {
                 return create(sessionID, log.getClass().getName());

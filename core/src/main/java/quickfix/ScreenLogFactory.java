@@ -32,6 +32,7 @@ public class ScreenLogFactory implements LogFactory {
     private boolean outgoing;
     private boolean events;
     private boolean heartBeats;
+    private boolean includeMillis;
 
     /**
      * Enables incoming message logging.
@@ -66,6 +67,12 @@ public class ScreenLogFactory implements LogFactory {
     public static final String SETTING_LOG_HEARTBEATS = "ScreenLogShowHeartBeats";
 
     /**
+     * Specify whether to include milliseconds in log output time stamps. Off, by
+     * default.
+     */
+    public static final String SETTING_INCLUDE_MILLIS_IN_TIMESTAMP = "ScreenIncludeMilliseconds";
+
+    /**
      * Create factory using configuration in session settings.
      * 
      * @param settings
@@ -98,7 +105,7 @@ public class ScreenLogFactory implements LogFactory {
     public ScreenLogFactory() {
         this(true, true, true, false);
     }
-    
+
     /**
      * 
      * Create factory with explicit control of message categories.
@@ -127,7 +134,9 @@ public class ScreenLogFactory implements LogFactory {
             events = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_EVENTS, events);
             heartBeats = getBooleanSetting(sessionID, ScreenLogFactory.SETTING_LOG_HEARTBEATS,
                     heartBeats);
-            return new ScreenLog(incoming, outgoing, events, heartBeats, sessionID, System.out);
+            includeMillis = getBooleanSetting(sessionID,
+                    ScreenLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, false);
+            return new ScreenLog(incoming, outgoing, events, heartBeats, includeMillis, sessionID, System.out);
         } catch (FieldConvertError e) {
             throw new RuntimeError(e);
         } catch (ConfigError e) {
