@@ -88,7 +88,7 @@ public class FieldType {
     public final static FieldType MonthYear = new FieldType("MONTHYEAR");
     public final static FieldType DayOfMonth = new FieldType("DAYOFMONTH", Integer.class);
     public final static FieldType UtcDateOnly = new FieldType("UTCDATEONLY", Date.class);
-    public final static FieldType UtcDate = new FieldType("UTCDATEONLY", Date.class);
+    public final static FieldType UtcDate = new FieldType("UTCDATE", Date.class);
     public final static FieldType UtcTimeOnly = new FieldType("UTCTIMEONLY", Date.class);
     public final static FieldType Time = new FieldType("TIME");
     public final static FieldType NumInGroup = new FieldType("NUMINGROUP", Integer.class);
