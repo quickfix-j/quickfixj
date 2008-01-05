@@ -47,7 +47,7 @@ public class FileLogFactory implements LogFactory {
      * Specify whether to include time stamps for message input and output. Off, by
      * default.
      */
-    public static final String SETTING_LOG_HEARTBEATS = "FileLogHeatbeats";
+    public static final String SETTING_LOG_HEARTBEATS = "FileLogHeartbeats";
 
     private SessionSettings settings;
 
