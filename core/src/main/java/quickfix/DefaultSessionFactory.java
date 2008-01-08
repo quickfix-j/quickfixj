@@ -154,7 +154,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.USE_CLOSED_RESEND_INTERVAL, false);
 
             int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
-            int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 2);
+            int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
             Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionary, new SessionSchedule(settings, sessionID), logFactory,
