@@ -74,6 +74,17 @@ public class JdbcTestSupport {
         }
     }
 
+    public static class HypersonicLegacyPreprocessor extends HypersonicPreprocessor {
+
+        public HypersonicLegacyPreprocessor(String tableName) {
+            super(tableName);
+        }
+
+        public String preprocessSQL(String sql) {
+            return super.preprocessSQL(sql).replaceAll(" +(sender|target)(subid|locid).*,", "");
+        }
+    }
+
     public static void loadSQL(Connection connection, String resource, HypersonicPreprocessor sqlPreprocessor)
             throws SQLException, IOException {
         Statement stmt = connection.createStatement();

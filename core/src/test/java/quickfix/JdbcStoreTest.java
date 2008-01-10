@@ -19,6 +19,10 @@
 
 package quickfix;
 
+import static quickfix.JdbcSetting.SETTING_JDBC_DS_NAME;
+import static quickfix.JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME;
+import static quickfix.JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -56,9 +60,21 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
 
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, SQLException,
             IOException {
+        return getMessageStoreFactory(null, null);
+    }
 
+    private JdbcStoreFactory getMessageStoreFactory(String sessionTableName,
+            String messageTableName) throws ConfigError, SQLException, IOException {
         SessionSettings settings = new SessionSettings();
-        settings.setString(JdbcSetting.SETTING_JDBC_DS_NAME, "TestDataSource");
+        settings.setString(SETTING_JDBC_DS_NAME, "TestDataSource");
+
+        if (sessionTableName != null) {
+            settings.setString(SETTING_JDBC_STORE_SESSIONS_TABLE_NAME, sessionTableName);
+        }
+
+        if (messageTableName != null) {
+            settings.setString(SETTING_JDBC_STORE_MESSAGES_TABLE_NAME, messageTableName);
+        }
 
         initializeTableDefinitions(null, null);
 
@@ -73,9 +89,9 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
     }
     
     public void testSequenceNumbersWithCustomSessionsTableName() throws Exception {
-        JdbcStore store = (JdbcStore) getStore();
         initializeTableDefinitions("xsessions", "messages");
-        store.setSessionTableName("xsessions");
+        JdbcStore store = (JdbcStore) getMessageStoreFactory("xsessions", "messages").create(
+                getSessionID());
         store.reset();
         assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
@@ -83,8 +99,8 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
 
     public void testMessageStorageMessagesWithCustomMessagesTableName() throws Exception {
         initializeTableDefinitions("sessions", "xmessages");
-        JdbcStore store = (JdbcStore) getStore();
-        store.setMessageTableName("xmessages");
+        JdbcStore store = (JdbcStore) getMessageStoreFactory("sessions", "xmessages").create(
+                getSessionID());
 
         assertTrue("set failed", store.set(111, "message2"));
         assertTrue("set failed", store.set(113, "message1"));
@@ -97,7 +113,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         assertEquals("wrong message", "message1", messages.get(1));
     }
 
-    private void initializeTableDefinitions(String sessionsTableName, String messagesTableName)
+    protected void initializeTableDefinitions(String sessionsTableName, String messagesTableName)
             throws ConfigError, SQLException, IOException {
         Connection connection = null;
         try {
@@ -113,7 +129,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         }
     }
 
-    private DataSource getDataSource() {
+    protected DataSource getDataSource() {
         return JdbcUtil.getDataSource(JdbcTestSupport.HSQL_DRIVER,
                 JdbcTestSupport.HSQL_CONNECTION_URL, JdbcTestSupport.HSQL_USER, "", true);
     }
