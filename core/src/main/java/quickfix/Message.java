@@ -347,11 +347,11 @@ public class Message extends FieldMap {
 
     public static class Header extends FieldMap {
         static final long serialVersionUID = -3193357271891865972L;
-        private static final int[] HEADER_FIELD_ORDER = { BeginString.FIELD, BodyLength.FIELD,
+        private static final int[] EXCLUDED_HEADER_FIELDS = { BeginString.FIELD, BodyLength.FIELD,
             MsgType.FIELD };
 
         protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
-            super.calculateString(buffer, HEADER_FIELD_ORDER, postFields);
+            super.calculateString(buffer, EXCLUDED_HEADER_FIELDS, postFields);
         }
 
     }
@@ -359,10 +359,14 @@ public class Message extends FieldMap {
     public static class Trailer extends FieldMap {
         static final long serialVersionUID = -3193357271891865972L;
         private static final int[] TRAILER_FIELD_ORDER = { SignatureLength.FIELD, Signature.FIELD,
-            CheckSum.FIELD };
+                CheckSum.FIELD };
+
+        public Trailer() {
+            super(TRAILER_FIELD_ORDER);
+        }
 
         protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
-            super.calculateString(buffer, null, TRAILER_FIELD_ORDER);
+            super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
     }
 

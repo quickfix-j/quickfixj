@@ -72,6 +72,8 @@ import quickfix.field.SecurityType;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.Side;
+import quickfix.field.Signature;
+import quickfix.field.SignatureLength;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
 import quickfix.field.TotNoOrders;
@@ -92,6 +94,17 @@ import quickfix.fix44.component.Parties;
 
 public class MessageTest extends TestCase {
 
+    public void testTrailerFieldOrdering() throws Exception {
+        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
+                HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
+                new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+        
+        order.getTrailer().setField(new Signature("FOO"));
+        order.getTrailer().setField(new SignatureLength(3));
+        
+        assertTrue(order.toString().contains("93=3\00189=FOO\001"));
+    }
+    
     public void testHeaderGroupParsing() throws Exception {
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "627=2\001628=FOO\001628=BAR\001"
