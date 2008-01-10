@@ -71,7 +71,7 @@ public class FileLogTest extends TestCase {
         assertEquals(prefix + ".event.log", new File(log.getEventFileName()).getName());
 
         log.onEvent("EVENTTEST");
-        log.close();
+        log.closeFiles();
 
         String formattedTime = UtcTimestampConverter.convert(new Date(systemTime), false);
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
