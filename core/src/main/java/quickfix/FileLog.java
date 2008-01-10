@@ -129,7 +129,7 @@ public class FileLog extends AbstractLog {
         this.syncAfterWrite = syncAfterWrite;
     }
     
-    void close() throws IOException {
+    public void closeFiles() throws IOException {
         messages.close();
         events.close();
     }
@@ -140,7 +140,7 @@ public class FileLog extends AbstractLog {
      */
     public void clear() {
         try {
-            close();
+            closeFiles();
             openLogStreams(false);
         } catch (IOException e) {
             System.err.println("Could not clear log: "+getClass().getName());
