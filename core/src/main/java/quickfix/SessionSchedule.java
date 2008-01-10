@@ -49,29 +49,6 @@ class SessionSchedule {
 
         TimeZone defaultTimeZone = getDefaultTimeZone(settings, sessionID);
 
-//        boolean weeklySession = startDayPresent && endDayPresent;
-//
-//
-//        String startTimeString = settings.getString(sessionID, Session.SETTING_START_TIME);
-//        Matcher matcher = TIME_PATTERN.matcher(startTimeString);
-//        if (!matcher.find()) {
-//            throw new ConfigError("Session " + sessionID + ": could not parse start time '"
-//                    + startTimeString + "'.");
-//        }
-//        Calendar localTime = SystemTime.getUtcCalendar();
-//        TimeZone startTimeZone = getTimeZone(matcher.group(4), defaultTimeZone);
-//        localTime.setTimeZone(startTimeZone);
-//        localTime.set(Calendar.MILLISECOND, 0);
-//        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
-//        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
-//        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
-//        Calendar startTime = SystemTime.getUtcCalendar();
-//        startTime.setTime(localTime.getTime());
-//        int startDay = NOT_SET;
-//        if (weeklySession) {
-//            startDay = getDay(settings, sessionID, Session.SETTING_START_DAY, NOT_SET);
-//        }
-
         startTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_START_TIME, Session.SETTING_START_DAY);
         endTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_END_TIME, Session.SETTING_END_DAY);
     }
