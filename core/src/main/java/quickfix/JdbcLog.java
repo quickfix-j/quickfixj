@@ -19,10 +19,15 @@
 
 package quickfix;
 
+import static quickfix.JdbcSetting.*;
+import static quickfix.JdbcUtil.*;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -35,41 +40,79 @@ class JdbcLog extends AbstractLog {
     private final SessionID sessionID;
     private final DataSource dataSource;
     private final boolean logHeartbeats;
+    private final boolean extendedSessionIdSupported;
     private Throwable recursiveException = null;
 
-    public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource dataSource)
+    private final Map<String, String> insertItemSqlCache = new HashMap<String, String>();
+    private final Map<String, String> deleteItemsSqlCache = new HashMap<String, String>();
+
+    public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource ds)
             throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
-        this.dataSource = dataSource == null
+        dataSource = ds == null
                 ? JdbcUtil.getDataSource(settings, sessionID)
-                : dataSource;
+                : ds;
 
-        if (settings.isSetting(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS)) {
-            logHeartbeats = settings.getBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS);
+        if (settings.isSetting(SETTING_JDBC_LOG_HEARTBEATS)) {
+            logHeartbeats = settings.getBool(SETTING_JDBC_LOG_HEARTBEATS);
         } else {
             logHeartbeats = true;
         }
         setLogHeartbeats(logHeartbeats);
 
-        if (settings.isSetting(JdbcSetting.SETTING_LOG_OUTGOING_TABLE)) {
-            outgoingMessagesTableName = settings.getString(sessionID,
-                    JdbcSetting.SETTING_LOG_OUTGOING_TABLE);
+        if (settings.isSetting(SETTING_LOG_OUTGOING_TABLE)) {
+            outgoingMessagesTableName = settings.getString(sessionID, SETTING_LOG_OUTGOING_TABLE);
         } else {
             outgoingMessagesTableName = DEFAULT_MESSAGES_LOG_TABLE;
         }
 
-        if (settings.isSetting(JdbcSetting.SETTING_LOG_INCOMING_TABLE)) {
-            incomingMessagesTableName = settings.getString(sessionID,
-                    JdbcSetting.SETTING_LOG_INCOMING_TABLE);
+        if (settings.isSetting(SETTING_LOG_INCOMING_TABLE)) {
+            incomingMessagesTableName = settings.getString(sessionID, SETTING_LOG_INCOMING_TABLE);
         } else {
             incomingMessagesTableName = DEFAULT_MESSAGES_LOG_TABLE;
         }
 
-        if (settings.isSetting(JdbcSetting.SETTING_LOG_EVENT_TABLE)) {
-            eventTableName = settings.getString(sessionID, JdbcSetting.SETTING_LOG_EVENT_TABLE);
+        if (settings.isSetting(SETTING_LOG_EVENT_TABLE)) {
+            eventTableName = settings.getString(sessionID, SETTING_LOG_EVENT_TABLE);
         } else {
             eventTableName = DEFAULT_EVENT_LOG_TABLE;
         }
+
+        // One table is sampled for the extended session ID columns. Be sure
+        // that all tables are extended if you extend any of them.
+        extendedSessionIdSupported = determineSessionIdSupport(dataSource,
+                outgoingMessagesTableName);
+
+        createCachedSql();
+    }
+
+    private void createCachedSql() {
+        createInsertItemSql(outgoingMessagesTableName);
+        createInsertItemSql(incomingMessagesTableName);
+        createInsertItemSql(eventTableName);
+
+        createDeleteItemsSql(outgoingMessagesTableName);
+        createDeleteItemsSql(incomingMessagesTableName);
+        createDeleteItemsSql(eventTableName);
+    }
+
+    private void createInsertItemSql(String tableName) {
+        insertItemSqlCache.put(tableName, "INSERT INTO " + tableName + " (time, "
+                + getIDColumns(extendedSessionIdSupported) + ", text) " + "VALUES (?,"
+                + getIDPlaceholders(extendedSessionIdSupported) + ",?)");
+    }
+
+    private String getInsertItemSql(String tableName) {
+        return insertItemSqlCache.get(tableName);
+    }
+
+    private void createDeleteItemsSql(String tableName) {
+        deleteItemsSqlCache.put(tableName, "DELETE FROM " + tableName + " WHERE "
+                + getIDWhereClause(extendedSessionIdSupported));
+    }
+
+    private String getDeleteItemsSql(String tableName) {
+        return deleteItemsSqlCache.get(tableName);
     }
 
     public void onEvent(String value) {
@@ -102,20 +145,10 @@ class JdbcLog extends AbstractLog {
         recursiveException = null;
         try {
             connection = dataSource.getConnection();
-            insert = connection.prepareStatement("INSERT INTO " + tableName
-                    + " (time, beginstring, sendercompid, sendersubid, senderlocid," 
-                    + "targetcompid, targetsubid, targetlocid, session_qualifier, text) "
-                    + "VALUES (?,?,?,?,?,?,?,?,?,?)");
+            insert = connection.prepareStatement(getInsertItemSql(tableName));
             insert.setTimestamp(1, new Timestamp(SystemTime.getUtcCalendar().getTimeInMillis()));
-            insert.setString(2, sessionID.getBeginString());
-            insert.setString(3, sessionID.getSenderCompID());
-            insert.setString(4, sessionID.getSenderSubID());
-            insert.setString(5, sessionID.getSenderLocationID());
-            insert.setString(6, sessionID.getTargetCompID());
-            insert.setString(7, sessionID.getTargetSubID());
-            insert.setString(8, sessionID.getTargetLocationID());
-            insert.setString(9, sessionID.getSessionQualifier());
-            insert.setString(10, value);
+            int offset = setSessionIdParameters(sessionID, insert, 2, extendedSessionIdSupported);
+            insert.setString(offset, value);
             insert.execute();
         } catch (SQLException e) {
             recursiveException = e;
@@ -142,19 +175,8 @@ class JdbcLog extends AbstractLog {
         PreparedStatement statement = null;
         try {
             connection = dataSource.getConnection();
-            statement = connection.prepareStatement("DELETE FROM " + tableName
-                    + " WHERE beginstring=? AND " 
-                    + "sendercompid=? AND sendersubid=? AND senderlocid=? AND "
-                    + "targetcompid=? AND targetsubid=? AND targetlocid=? AND " 
-                    + "session_qualifier=?");
-            statement.setString(1, sessionID.getBeginString());
-            statement.setString(2, sessionID.getSenderCompID());
-            statement.setString(3, sessionID.getSenderSubID());
-            statement.setString(4, sessionID.getSenderLocationID());
-            statement.setString(5, sessionID.getTargetCompID());
-            statement.setString(6, sessionID.getTargetSubID());
-            statement.setString(7, sessionID.getTargetLocationID());
-            statement.setString(8, sessionID.getSessionQualifier());
+            statement = connection.prepareStatement(getDeleteItemsSql(tableName));
+            setSessionIdParameters(sessionID, statement, 1, extendedSessionIdSupported);
             statement.execute();
         } catch (SQLException e) {
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
@@ -163,15 +185,15 @@ class JdbcLog extends AbstractLog {
             JdbcUtil.close(sessionID, connection);
         }
     }
-    
+
     public String getIncomingMessagesTableName() {
         return incomingMessagesTableName;
     }
-    
+
     public String getOutgoingMessagesTableName() {
         return outgoingMessagesTableName;
     }
-    
+
     public String getEventTableName() {
         return eventTableName;
     }

@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -115,4 +116,68 @@ class JdbcUtil {
             }
         }
     }
+    
+
+    static boolean determineSessionIdSupport(DataSource dataSource, String tableName) throws SQLException {
+        Connection connection = dataSource.getConnection();
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+            String columnName = "sendersubid";
+            return isColumn(metaData, tableName.toUpperCase(), columnName.toUpperCase())
+                    || isColumn(metaData, tableName, columnName);
+        } finally {
+            connection.close();
+        }
+    }
+
+    
+    private static boolean isColumn(DatabaseMetaData metaData, String tableName, String columnName)
+            throws SQLException {
+        ResultSet columns = metaData.getColumns(null, null, tableName, columnName);
+        try {
+            return columns.next();
+        } finally {
+            columns.close();
+        }
+    }
+
+    static String getIDWhereClause(boolean isExtendedSessionID) {
+        return isExtendedSessionID
+                ? ("beginstring=? and sendercompid=? and sendersubid=? and senderlocid=? and "
+                        + "targetcompid=? and targetsubid=? and targetlocid=? and session_qualifier=? ")
+                : "beginstring=? and sendercompid=? and targetcompid=? and session_qualifier=? ";
+
+    }
+    
+    static String getIDColumns(boolean isExtendedSessionID) {
+        return isExtendedSessionID
+                ? "beginstring,sendercompid,sendersubid,senderlocid,targetcompid,targetsubid,targetlocid,session_qualifier"
+                : "beginstring,sendercompid,targetcompid,session_qualifier";
+
+    }
+
+    static String getIDPlaceholders(boolean isExtendedSessionID) {
+        return isExtendedSessionID ? "?,?,?,?,?,?,?,?" : "?,?,?,?";
+
+    }
+
+    static int setSessionIdParameters(SessionID sessionID, PreparedStatement query, int offset, boolean isExtendedSessionID) throws SQLException {
+        if (isExtendedSessionID) {
+            query.setString(offset++, sessionID.getBeginString());
+            query.setString(offset++, sessionID.getSenderCompID());
+            query.setString(offset++, sessionID.getSenderSubID());
+            query.setString(offset++, sessionID.getSenderLocationID());
+            query.setString(offset++, sessionID.getTargetCompID());
+            query.setString(offset++, sessionID.getTargetSubID());
+            query.setString(offset++, sessionID.getTargetLocationID());
+            query.setString(offset++, sessionID.getSessionQualifier());
+        } else {
+            query.setString(offset++, sessionID.getBeginString());
+            query.setString(offset++, sessionID.getSenderCompID());
+            query.setString(offset++, sessionID.getTargetCompID());
+            query.setString(offset++, sessionID.getSessionQualifier());
+        }
+        return offset;
+    }
+
 }

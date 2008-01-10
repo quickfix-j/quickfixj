@@ -20,7 +20,6 @@
 package quickfix;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -28,8 +27,6 @@ import java.sql.Statement;
 import javax.sql.DataSource;
 
 import junit.framework.TestCase;
-
-import org.easymock.MockControl;
 
 public class JdbcLogTest extends TestCase {
     private JdbcLog log;
@@ -39,36 +36,6 @@ public class JdbcLogTest extends TestCase {
 
     public void testLog() throws Exception {
         doLogTest(null);
-    }
-
-    public void testLogWithDataSource() throws Exception {
-        // Set up mock data source
-        MockControl mockDataSourceControl = MockControl.createControl(DataSource.class);
-        DataSource mockDataSource = (DataSource) mockDataSourceControl.getMock();
-        MockControl mockConnectionControl = MockControl.createControl(Connection.class);
-        Connection mockConnection = (Connection) mockConnectionControl.getMock();
-        MockControl mockPreparedStatementControl = MockControl.createNiceControl(PreparedStatement.class);
-        PreparedStatement mockPreparedStatement = (PreparedStatement) mockPreparedStatementControl.getMock();
-
-        mockDataSourceControl.expectAndReturn(mockDataSource.getConnection(), mockConnection);
-        
-        mockConnection.prepareStatement("");
-        mockConnectionControl.setMatcher(MockControl.ALWAYS_MATCHER);
-        mockConnectionControl.setReturnValue(mockPreparedStatement);
-
-        mockConnection.close();
-        
-        mockDataSourceControl.replay();
-        mockConnectionControl.replay();
-        mockPreparedStatementControl.replay();
-        
-        // Invoke a log method to verify expected behavior
-        setUpJdbcLog(false, mockDataSource);
-        log.onIncoming("INCOMING");
-        
-        mockPreparedStatementControl.verify();
-        mockConnectionControl.verify();
-        mockDataSourceControl.verify();
     }
 
     private void doLogTest(DataSource dataSource) throws ClassNotFoundException, SQLException, ConfigError {
@@ -195,7 +162,7 @@ public class JdbcLogTest extends TestCase {
         return 0;
     }
 
-    private static void initializeTableDefinitions(Connection connection) throws ConfigError {
+    protected void initializeTableDefinitions(Connection connection) throws ConfigError {
         try {
             JdbcTestSupport.loadSQL(connection,
                     "core/src/main/config/sql/mysql/messages_log_table.sql",
