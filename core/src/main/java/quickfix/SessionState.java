@@ -22,7 +22,8 @@ package quickfix;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,6 +40,7 @@ public final class SessionState {
 
     // MessageStore implementation must be thread safe
     private final MessageStore messageStore;
+    
     private final Lock senderMsgSeqNumLock = new ReentrantLock();
     private final Lock targetMsgSeqNumLock = new ReentrantLock();
 
@@ -58,11 +60,13 @@ public final class SessionState {
     private double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
-    private HashMap<Integer, Message> messageQueue = new HashMap<Integer, Message>();
     private int[] resendRange = new int[] { 0, 0 };
     private boolean resetSent;
     private boolean resetReceived;
     private String logoutReason;
+
+    // The messageQueue should be accessed from a single thread
+    private final Map<Integer, Message> messageQueue = new LinkedHashMap<Integer, Message>();
 
     public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator,
                         MessageStore messageStore, double testRequestDelayMultiplier) {
@@ -300,13 +304,21 @@ public final class SessionState {
     }
 
     public void enqueue(int sequence, Message message) {
-        messageQueue.put(Integer.valueOf(sequence), message);
+        messageQueue.put(sequence, message);
     }
 
     public Message dequeue(int sequence) {
-        return messageQueue.get(Integer.valueOf(sequence));
+        return messageQueue.remove(sequence);
     }
 
+    public Message getNextQueuedMessage() {
+        return messageQueue.size() > 0 ? messageQueue.values().iterator().next() : null;
+    }
+    
+    public Collection<Integer> getQueuedSeqNums() {
+        return messageQueue.keySet();
+    }
+    
     public void clearQueue() {
         messageQueue.clear();
     }

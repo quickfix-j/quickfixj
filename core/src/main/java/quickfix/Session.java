@@ -254,6 +254,7 @@ public class Session {
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners.getMulticaster();
+    
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
 
@@ -806,8 +807,10 @@ public class Session {
         int beginSeqNo = resendRequest.getInt(BeginSeqNo.FIELD);
         int endSeqNo = resendRequest.getInt(EndSeqNo.FIELD);
 
-        getLog().onEvent("Received ResendRequest FROM: " + beginSeqNo + " TO: " + endSeqNo);
+        getLog().onEvent("Received ResendRequest FROM: " + beginSeqNo + " TO: " + 
+                formatEndSeqNum(endSeqNo));
 
+        // Adjust the ending sequence number for older versions of FIX
         String beginString = sessionID.getBeginString();
         int expectedSenderNum = getExpectedSenderNum();
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0 && endSeqNo == 0
@@ -816,6 +819,7 @@ public class Session {
             endSeqNo = expectedSenderNum - 1;
         }
 
+        // Just do a gap fill when messages aren't persisted
         if (!persistMessages) {
             endSeqNo += 1;
             int next = state.getNextSenderMsgSeqNum();
@@ -836,28 +840,31 @@ public class Session {
         for (String message : messages) {
             Message msg = parseMessage((String) message);
             msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-            String msgType = msg.getHeader().getString(MsgType.FIELD);
 
             if ((current != msgSeqNum) && begin == 0) {
                 begin = current;
             }
 
-            if (msgType.length() == 1 && "0A12345".indexOf(msgType) != -1) {
+            String msgType = msg.getHeader().getString(MsgType.FIELD);
+
+            if (isAdminMessage(msgType)) {
                 if (begin == 0) {
                     begin = msgSeqNum;
                 }
             } else {
-                if (resend(msg)) {
+                initializeResendFields(msg);
+                if (resendApproved(msg)) {
                     if (begin != 0) {
                         generateSequenceReset(begin, msgSeqNum);
                     }
-                    send(msg.toString());
                     getLog().onEvent("Resending Message: " + msgSeqNum);
+                    send(msg.toString());
                     begin = 0;
                 } else {
-                    if (begin == 0)
+                    if (begin == 0) {
                         begin = msgSeqNum;
                 }
+            }
             }
             current = msgSeqNum + 1;
         }
@@ -878,6 +885,14 @@ public class Session {
         if (!isTargetTooHigh(msgSeqNum) && !isTargetTooLow(msgSeqNum)) {
             state.incrNextTargetMsgSeqNum();
         }
+    }
+
+    private String formatEndSeqNum(int seqNo) {
+        return (seqNo == 0 ? "infinity" : Integer.toString(seqNo));
+    }
+
+    private boolean isAdminMessage(String msgType) {
+        return msgType.length() == 1 && "0A12345".indexOf(msgType) != -1;
     }
 
     private Message parseMessage(String messageData) throws InvalidMessage {
@@ -906,13 +921,7 @@ public class Session {
         getLog().onEvent("Sent SequenceReset TO: " + newSeqNo);
     }
 
-    private boolean resend(Message message) throws FieldNotFound {
-        Message.Header header = message.getHeader();
-        Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
-        header.setUtcTimeStamp(OrigSendingTime.FIELD, sendingTime);
-        header.setBoolean(PossDupFlag.FIELD, true);
-        insertSendingTime(header);
-
+    private boolean resendApproved(Message message) throws FieldNotFound {
         try {
             application.toApp(message, sessionID);
         } catch (DoNotSend e) {
@@ -923,6 +932,14 @@ public class Session {
         }
 
         return true;
+    }
+
+    private void initializeResendFields(Message message) throws FieldNotFound {
+        Message.Header header = message.getHeader();
+        Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
+        header.setUtcTimeStamp(OrigSendingTime.FIELD, sendingTime);
+        header.setBoolean(PossDupFlag.FIELD, true);
+        insertSendingTime(header);
     }
 
     private void logApplicationException(String location, Throwable t) {
@@ -1208,7 +1225,7 @@ public class Session {
                     int[] range = state.getResendRange();
                     if (msgSeqNum >= range[1]) {
                         getLog().onEvent(
-                                "ResendRequest for messages FROM: " + range[0] + " TO: " + range[1]
+                                "ResendRequest for messages FROM " + range[0] + " TO " + range[1]
                                         + " has been satisfied.");
                         state.setResendRange(0, 0);
                     }
@@ -1264,7 +1281,7 @@ public class Session {
         // Application exceptions will prevent the incoming sequence number from being incremented
         // and may result in resend requests and the next startup. This way, a buggy application
         // can be fixed and then reprocess previously sent messages.
-        if (msgType.length() == 1 && "0A12345".indexOf(msgType) != -1) {
+        if (isAdminMessage(msgType)) {
             application.fromAdmin(msg, sessionID);
         } else {
             application.fromApp(msg, sessionID);
@@ -1533,7 +1550,10 @@ public class Session {
         Message msg = state.dequeue(num);
 
         if (msg != null) {
-            getLog().onEvent("Processing QUEUED message: " + num);
+            getLog().onEvent(
+                    "Processing queued message: " + num + ", pending: "
+                            + state.getQueuedSeqNums());
+            
             String msgType = msg.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
                 state.incrNextTargetMsgSeqNum();
@@ -1711,7 +1731,7 @@ public class Session {
             }
             return result;
         } catch (IOException e) {
-            getLog().onEvent("Error Reading/Writing in MessageStore");
+            logThrowable(getLog(), "Error Reading/Writing in MessageStore", e);
             return false;
         } catch (FieldNotFound e) {
             logThrowable(state.getLog(), "Error accessing message fields", e);
@@ -1749,11 +1769,13 @@ public class Session {
 
     private boolean send(String messageString) {
         getLog().onOutgoing(messageString);
+        synchronized (responderSync) {
         if (!hasResponder()) {
             getLog().onEvent("No responder, not sending message");
             return false;
         }
         return getResponder().send(messageString);
+        }
     }
 
     private boolean isCorrectCompID(String senderCompID, String targetCompID) {
