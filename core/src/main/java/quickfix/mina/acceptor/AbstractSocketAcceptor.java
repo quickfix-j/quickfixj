@@ -37,6 +37,7 @@ import org.apache.mina.common.ThreadModel;
 import org.apache.mina.common.TransportType;
 import org.apache.mina.filter.SSLFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 
 import quickfix.Acceptor;
 import quickfix.Application;
@@ -110,6 +111,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                         .next();
                 IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor.getAddress());
                 IoServiceConfig serviceConfig = ioAcceptor.getDefaultConfig();
+                
                 CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                         getIoFilterChainBuilder());
 
@@ -130,6 +132,10 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                             .getAcceptedSessions());
                 }
 
+                if (serviceConfig instanceof SocketAcceptorConfig) {
+                    ((SocketAcceptorConfig)serviceConfig).setDisconnectOnUnbind(false);
+                }
+                
                 ioAcceptor.bind(socketDescriptor.getAddress(), new AcceptorIoHandler(
                         sessionProvider, new NetworkingOptions(settings.getDefaultProperties()),
                         eventHandlingStrategy));
