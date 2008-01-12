@@ -80,6 +80,7 @@ import quickfix.field.TotNoOrders;
 import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
+import quickfix.field.XmlDataLen;
 import quickfix.fix42.NewOrderSingle;
 import quickfix.fix43.NewOrderList;
 import quickfix.fix44.ExecutionReport;
@@ -95,14 +96,19 @@ import quickfix.fix44.component.Parties;
 public class MessageTest extends TestCase {
 
     public void testTrailerFieldOrdering() throws Exception {
-        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
-                HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
-                new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+        NewOrderSingle order = createNewOrderSingle();
         
         order.getTrailer().setField(new Signature("FOO"));
         order.getTrailer().setField(new SignatureLength(3));
         
         assertTrue(order.toString().contains("93=3\00189=FOO\001"));
+    }
+
+    private NewOrderSingle createNewOrderSingle() {
+        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
+                HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
+                new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+        return order;
     }
     
     public void testHeaderGroupParsing() throws Exception {
@@ -119,9 +125,7 @@ public class MessageTest extends TestCase {
     }
 
     public void testEmbeddedMessage() throws Exception {
-        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
-                HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
-                new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+        NewOrderSingle order = createNewOrderSingle();
 
         ExecutionReport report = new ExecutionReport(new OrderID("ORDER"), new ExecID("EXEC"),
                 new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.FILLED), new Side(Side.BUY),
@@ -443,13 +447,39 @@ public class MessageTest extends TestCase {
                 .indexOf("453=2448=8447=D452=4448=AAA35354447=D452=3") != -1);
     }
 
-    public void testHeaderOutOfOrder() throws Exception {
+
+    public void testHeaderFieldsMissing() throws Exception {
         try {
-            Message message = new Message("1=FIX.4.2");
-            assertFalse(message.hasValidStructure());
+            new Message("1=FIX.4.2");
         } catch (InvalidMessage e) {
             // expected
         }
+    }
+    
+    public void testHeaderFieldInBody() throws Exception {
+        Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
+                + "98=0\001212=4\001384=2\001372=D\001385=R\001372=8\001385=S\00110=103\001",
+                DataDictionaryTest.getDictionary());
+
+        assertFalse(message.hasValidStructure());
+        
+        StringField field = message.getHeader().getField(XmlDataLen.FIELD);
+        assertEquals("4", field.getValue());
+        
+        StringField encryption = message.getField(EncryptMethod.FIELD);
+        assertEquals("0", encryption.getValue());
+    }
+
+    public void testTrailerFieldInBody() throws Exception {
+        Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
+                + "98=0\00193=5\001384=2\001372=D\001385=R\001372=8\001385=S\00110=63\001",
+                DataDictionaryTest.getDictionary());
+
+        assertFalse(message.hasValidStructure());
+        
+        SignatureLength signatureLength = new SignatureLength();
+        message.getTrailer().getField(signatureLength);
+        assertEquals(5, signatureLength.getValue());
     }
 
     public void testMessageFromString() {

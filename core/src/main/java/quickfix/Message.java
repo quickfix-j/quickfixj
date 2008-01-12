@@ -528,10 +528,7 @@ public class Message extends FieldMap {
                 return;
             }
             if (isHeaderField(field.getField())) {
-                if (isValidStructure) {
-                    isValidStructureTag = field.getField();
-                    isValidStructure = false;
-                }
+                invalidateStructure(field);
                 header.setField(field);
             } else {
                 setField(field);
@@ -541,6 +538,13 @@ public class Message extends FieldMap {
                 parseGroup(getMsgType(), field, dd, this);
             }
             field = extractField(dd, this);
+        }
+    }
+
+    private void invalidateStructure(StringField field) {
+        if (isValidStructure) {
+            isValidStructureTag = field.getField();
+            isValidStructure = false;
         }
     }
 
@@ -596,7 +600,15 @@ public class Message extends FieldMap {
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {
         StringField field = extractField(dd, trailer);
-        while (field != null && isTrailerField(field, dd)) {
+        while (field != null) {
+            if (!isTrailerField(field, dd)) {
+                invalidateStructure(field);
+                if (isHeaderField(field, dd)) {
+                    header.setField(field);
+                } else {
+                    setField(field);
+                }
+            }
             trailer.setField(field);
             field = extractField(dd, trailer);
         }
