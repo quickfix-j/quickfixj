@@ -1,5 +1,5 @@
 <project name="master" basedir="." default="">
-	<property file="build.properties"/>
+	<property file="${user.home}/.build"/>
 
 	<property name="jvm.java4" value="C:/j2sdk1.4.2_13/bin/java"/>
 	
