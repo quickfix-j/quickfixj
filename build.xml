@@ -507,4 +507,11 @@
 			</fileset>
 		</copy>
 	</target>
+	
+	<target name="upload" description="Send distribution of SourceForge">
+		<ftp server="upload.sf.net" remotedir="incoming" 
+			userid="anonymous" password="guest"	verbose="true">
+			<fileset dir="dist" includes="*.zip,*.gz"/>
+		</ftp>
+	</target>
 </project>
