@@ -20,7 +20,9 @@
 package quickfix;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class FileStoreTest extends AbstractMessageStoreTest {
 
@@ -46,6 +48,19 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         return FileStore.class;
     }
 
+    public void testMessageIndexReset() throws Exception {
+        FileStore store = (FileStore) getStore();
+        store.set(1, "MESSAGE");
+        store.reset();
+        
+        store.set(2, "MESSAGE");
+
+        List<String> messages = new ArrayList<String>();
+        store.get(1, 1, messages);
+        
+        assertEquals(0, messages.size());
+    }
+    
     public void testCloseAndOpen() throws Exception {
         FileStore store = (FileStore) getStore();
         store.setNextSenderMsgSeqNum(123);
