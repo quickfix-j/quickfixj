@@ -160,6 +160,7 @@ public class FileStore implements MessageStore {
     }
 
     private void initializeMessageIndex() throws IOException {
+        messageIndex.clear();
         File headerFile = new File(headerFileName);
         if (headerFile.exists()) {
             DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(
