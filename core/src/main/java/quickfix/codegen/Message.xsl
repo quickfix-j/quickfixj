@@ -52,6 +52,8 @@ public class Message extends quickfix.Message
   }
   
   public static class Header extends quickfix.Message.Header {
+     static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+
 	 public Header(Message msg) {
 		 // JNI compatibility
 	 }
@@ -84,6 +86,8 @@ public class Message extends quickfix.Message
     <xsl:call-template name="field-accessor-template"/>
     <xsl:variable name="groupFieldName" select="@name"/>
   public static class <xsl:value-of select="@name"/> extends Group {
+    static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+    
     public <xsl:value-of select="@name"/>() {
         super(<xsl:value-of select="/fix/fields/field[@name=$groupFieldName]/@number"/>, <xsl:apply-templates select="field|component|group" mode="group-delimeter"/>,
             new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/> 0 } );

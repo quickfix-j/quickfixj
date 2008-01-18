@@ -65,7 +65,6 @@ import quickfix.FieldNotFound;
 
 public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseClass"/>
 {
-
   static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
   <xsl:if test="$baseClass = 'quickfix.MessageComponent'">
   private int[] componentFields = { <xsl:apply-templates select="field|component" mode="component-field-numbers"/> };
@@ -149,6 +148,8 @@ import quickfix.Group;</xsl:when>
     <xsl:call-template name="field-accessor-template"/>
     <xsl:variable name="groupFieldName" select="@name"/>
   public static class <xsl:value-of select="@name"/> extends Group {
+    static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+    
     public <xsl:value-of select="@name"/>() {
         super(<xsl:value-of select="/fix/fields/field[@name=$groupFieldName]/@number"/>, <xsl:apply-templates select="field|component|group" mode="group-delimeter"/>,
             new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/> 0 } );

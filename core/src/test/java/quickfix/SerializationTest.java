@@ -19,13 +19,7 @@
 
 package quickfix;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -35,6 +29,7 @@ public class SerializationTest extends TestCase {
 
     private String[] srcDirs = new String[] { "src-generated", "core/target/src-generated" };
     private String srcDir;
+
     public SerializationTest(String name) {
         super(name);
     }
@@ -51,7 +46,7 @@ public class SerializationTest extends TestCase {
         ObjectOutputStream outs = new ObjectOutputStream(out);
         outs.writeObject(message);
     }
-    
+
     public void testSerialization() {
         srcDir = findSrcDir();
         // Check messages
@@ -73,15 +68,15 @@ public class SerializationTest extends TestCase {
         }
         return null;
     }
-        
+
     private final class JavaMessageFileFilter implements FileFilter {
         // We want to take ONLY messages into account
         public boolean accept(File file) {
-            return (file.getName().endsWith(".java") 
-                    && !file.getParentFile().getName().equals("field") 
-                    && !file.getName().equals("Message.java") 
-                    && !file.getName().equals("MessageCracker.java") 
-                    && !file.getName().equals("MessageFactory.java"))
+            return (file.getName().endsWith(".java")
+                    && !file.getParentFile().getName().equals("field")
+                    && !file.getName().equals("Message.java")
+                    && !file.getName().equals("MessageCracker.java") && !file.getName().equals(
+                    "MessageFactory.java"))
                     || file.isDirectory();
         }
     }
@@ -89,8 +84,8 @@ public class SerializationTest extends TestCase {
     private final class JavaFieldFileFilter implements FileFilter {
         // We want to take ONLY fields into account
         public boolean accept(File file) {
-            return (file.getName().endsWith(".java") 
-                    && file.getParentFile().getName().equals("field")) 
+            return (file.getName().endsWith(".java") && file.getParentFile().getName().equals(
+                    "field"))
                     || file.isDirectory();
         }
     }
@@ -103,7 +98,8 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private void assertAllSerializations(String baseDir, SerializationAssertion assertion, FileFilter filter) {
+    private void assertAllSerializations(String baseDir, SerializationAssertion assertion,
+            FileFilter filter) {
         File directory = new File(baseDir);
         if (!directory.isDirectory()) {
             assertion.assertSerialization(classNameFromFile(directory));
@@ -191,7 +187,7 @@ public class SerializationTest extends TestCase {
             }
             Message sourceMsg = messageFromClassNameWithDefaultValues(msgClassName, MAX_GROUP_ELTS);
             String sourceFIXString = sourceMsg.toString();
-            
+
             Message serializedMsg = (Message) buildSerializedObject(sourceMsg);
             String serializedFIXString = null;
             if (serializedMsg != null) {
@@ -199,7 +195,8 @@ public class SerializationTest extends TestCase {
             }
 
             // Checking
-            assertEquals("Bad serialization of Message " + sourceMsg.getClass().getName(), sourceFIXString, serializedFIXString);
+            assertEquals("Bad serialization of Message " + sourceMsg.getClass().getName(),
+                    sourceFIXString, serializedFIXString);
         }
     }
 
@@ -216,12 +213,14 @@ public class SerializationTest extends TestCase {
             }
 
             // Checking
-            assertEquals("Bad serialization of Field " + sourceField.getClass().getName(), sourceFIXString, serializedFIXString);
+            assertEquals("Bad serialization of Field " + sourceField.getClass().getName(),
+                    sourceFIXString, serializedFIXString);
         }
     }
 
     // Default values creation
-    private Message createMessageWithDefaultValues(Class<?> cl, int maxGroupElts) throws InstantiationException, IllegalAccessException {
+    private Message createMessageWithDefaultValues(Class<?> cl, int maxGroupElts)
+            throws InstantiationException, IllegalAccessException {
         // Setting Fields
         Message res = (Message) createFieldMapWithDefaultValues(cl);
 
@@ -256,12 +255,14 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private Group createGroupWithDefaultValues(Class<?> cl) throws InstantiationException, IllegalAccessException {
+    private Group createGroupWithDefaultValues(Class<?> cl) throws InstantiationException,
+            IllegalAccessException {
         Group res = (Group) createFieldMapWithDefaultValues(cl);
         return res;
     }
 
-    private FieldMap createFieldMapWithDefaultValues(Class<?> cl) throws InstantiationException, IllegalAccessException {
+    private FieldMap createFieldMapWithDefaultValues(Class<?> cl) throws InstantiationException,
+            IllegalAccessException {
         FieldMap res = (FieldMap) cl.newInstance();
 
         final String SET_METHOD = "set";
@@ -293,4 +294,34 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
+    private static final String classesBaseDir = "core/target/classes/main";
+
+    public void testSerialVersionUUID() throws ClassNotFoundException {
+        checkSerialVersionUID("quickfix/field");
+        checkSerialVersionUID("quickfix/fix40");
+        checkSerialVersionUID("quickfix/fix41");
+        checkSerialVersionUID("quickfix/fix42");
+        checkSerialVersionUID("quickfix/fix43");
+        checkSerialVersionUID("quickfix/fix44");
+    }
+
+    private void checkSerialVersionUID(String path) throws ClassNotFoundException {
+        File classesDir = new File(classesBaseDir + "/" + path);
+        File[] files = classesDir.listFiles();
+        assertTrue("no files in " + classesDir, files != null);
+        for (File file : files) {
+            if (file.isDirectory()) {
+                continue;
+            }
+            Class c = Class.forName(file.getPath().substring(classesBaseDir.length() + 1)
+                    .replaceAll(".class$", "").replace(File.separatorChar, '.'));
+            if (Serializable.class.isAssignableFrom(c)) {
+                try {
+                    c.getDeclaredField("serialVersionUID");
+                } catch (NoSuchFieldException e) {
+                    fail(c + " does not contain a serialVersionUID");
+                }
+            }
+        }
+    }
 }
