@@ -106,12 +106,12 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
         Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
+            checkSessionId(ioSession, quickFixSession.getSessionID(), remoteSessionID);
             quickFixSession.getLog().onIncoming(messageString);
             MessageFactory messageFactory = quickFixSession.getMessageFactory();
             DataDictionary dataDictionary = quickFixSession.getDataDictionary();
-            Message fixMessage;
             try {
-                fixMessage = MessageUtils.parse(messageFactory, dataDictionary, messageString);
+                Message fixMessage = MessageUtils.parse(messageFactory, dataDictionary, messageString);
                 processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
                 log.error("Invalid message: " + e.getMessage());
@@ -122,19 +122,28 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         }
     }
 
-    protected Session findQFSession(IoSession protocolSession, SessionID sessionID) {
-        Session quickfixSession = findQFSession(protocolSession);
+    private void checkSessionId(IoSession ioSession, SessionID expectedSessionID,
+            SessionID actualSessionID) {
+        if (!expectedSessionID.equals(actualSessionID)) {
+            throw new IllegalStateException("Wrong QF Session for this connection; " + "expected: "
+                    + expectedSessionID + ", actual: " + actualSessionID + ", MINA session:"
+                    + ioSession);
+        }
+    }
+
+    protected Session findQFSession(IoSession ioSession, SessionID sessionID) {
+        Session quickfixSession = findQFSession(ioSession);
         if (quickfixSession == null) {
             quickfixSession = Session.lookupSession(sessionID);
         }
         return quickfixSession;
     }
 
-    private Session findQFSession(IoSession protocolSession) {
-        return (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
+    private Session findQFSession(IoSession ioSession) {
+        return (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
     }
 
-    protected abstract void processMessage(IoSession protocolSession, Message message)
+    protected abstract void processMessage(IoSession ioSession, Message message)
             throws Exception;
 
 }

@@ -77,11 +77,13 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testReverseSessionIdFromRawMessage() throws Exception {
-        String messageString = "8=FIX.4.09=5635=A34=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.09=5635=A34=149=TW50=TWS142=TWL52=20060118-16:34:1956=ISLD98=0108=210=223";
         SessionID sessionID = MessageUtils.getReverseSessionID(messageString);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
         assertEquals("ISLD", sessionID.getSenderCompID());
         assertEquals("TW", sessionID.getTargetCompID());
+        assertEquals("TWS", sessionID.getTargetSubID());
+        assertEquals("TWL", sessionID.getTargetLocationID());
     }
 
     public void testMessageType() throws Exception {

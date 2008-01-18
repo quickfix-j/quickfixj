@@ -52,10 +52,10 @@ class AcceptorIoHandler extends AbstractIoHandler {
     }
 
     protected void processMessage(IoSession protocolSession, Message message) throws Exception {
-        SessionID sessionID = MessageUtils.getReverseSessionID(message);
         Session qfSession = (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
+                SessionID sessionID = MessageUtils.getReverseSessionID(message);
                 qfSession = sessionProvider.getSession(sessionID);
                 if (qfSession != null) {
                     Log sessionLog = qfSession.getLog();

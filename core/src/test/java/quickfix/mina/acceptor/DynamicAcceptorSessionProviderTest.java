@@ -19,6 +19,8 @@
 
 package quickfix.mina.acceptor;
 
+import static quickfix.mina.acceptor.DynamicAcceptorSessionProvider.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,15 +60,16 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         messageFactory = new DefaultMessageFactory();
 
         SessionID templateId1 = new SessionID("FIX.4.2", "ANY", "ANY");
-        templateMappings.add(new TemplateMapping(new SessionID("*", "S1", "*"), templateId1));
+        templateMappings.add(new TemplateMapping(new SessionID(WILDCARD, "S1", WILDCARD), templateId1));
         setUpSettings(templateId1, "ResetOnLogout", "Y");
 
         SessionID templateId2 = new SessionID("FIX.4.4", "S1", "ANY");
-        templateMappings.add(new TemplateMapping(new SessionID("FIX.4.4", "*", "*"), templateId2));
+        templateMappings.add(new TemplateMapping(new SessionID("FIX.4.4", WILDCARD, WILDCARD), templateId2));
         setUpSettings(templateId2, "RefreshOnLogon", "Y");
 
         SessionID templateId3 = new SessionID("FIX.4.4", "ANY", "ANY");
-        templateMappings.add(new TemplateMapping(new SessionID("FIX.4.2", "*", "*"), templateId3));
+        templateMappings.add(new TemplateMapping(new SessionID("FIX.4.2", WILDCARD, WILDCARD,
+                WILDCARD, WILDCARD, WILDCARD, WILDCARD, WILDCARD), templateId3));
         setUpSettings(templateId3, "CheckCompID", "N");
 
         provider = new DynamicAcceptorSessionProvider(settings, templateMappings, application,
@@ -75,15 +78,20 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
 
     public void testSessionCreation() throws Exception {
 
-        Session session1 = provider.getSession(new SessionID("FIX.4.2", "SENDER", "TARGET"));
+        Session session1 = provider.getSession(new SessionID("FIX.4.2", "SENDER", "SENDERSUB",
+                "SENDERLOC", "TARGET", "TARGETSUB", "TARGETLOC", null));
         SessionID sessionID1 = session1.getSessionID();
         assertEquals("wrong FIX version", "FIX.4.2", sessionID1.getBeginString());
         assertEquals("wrong sender", "SENDER", sessionID1.getSenderCompID());
+        assertEquals("wrong senderSub", "SENDERSUB", sessionID1.getSenderSubID());
+        assertEquals("wrong senderLoc", "SENDERLOC", sessionID1.getSenderLocationID());
         assertEquals("wrong target", "TARGET", sessionID1.getTargetCompID());
+        assertEquals("wrong targetSub", "TARGETSUB", sessionID1.getTargetSubID());
+        assertEquals("wrong targetLoc", "TARGETLOC", sessionID1.getTargetLocationID());
         assertEquals("wrong setting", false, session1.getResetOnLogout());
         assertEquals("wrong setting", false, session1.getRefreshOnLogon());
         assertEquals("wrong setting", false, session1.getCheckCompID());
-        
+
         Session session2 = provider.getSession(new SessionID("FIX.4.4", "S1", "T"));
         SessionID sessionID2 = session2.getSessionID();
         assertEquals("wrong FIX version", "FIX.4.4", sessionID2.getBeginString());
@@ -109,7 +117,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         settings.setString(templateID, "EndTime", "00:00:00");
         settings.setString(templateID, key, value);
     }
-    
+
     public void testSessionTemplateNotFound() throws Exception {
         try {
             provider.getSession(new SessionID("FIX.4.3", "S", "T"));
@@ -118,14 +126,14 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
             // Expected
         }
     }
-    
+
     public void testToString() throws Exception {
         templateMappings.toString(); // be sure there are no NPEs, etc.
     }
-    
+
     public void testSimpleConstructor() throws Exception {
-        provider = new DynamicAcceptorSessionProvider(settings, new SessionID("FIX.4.2", "ANY", "ANY"), application,
-                messageStoreFactory, logFactory, messageFactory);
+        provider = new DynamicAcceptorSessionProvider(settings, new SessionID("FIX.4.2", "ANY",
+                "ANY"), application, messageStoreFactory, logFactory, messageFactory);
 
         // Should actually throw an exception if it fails (see previous test)
         assertNotNull(provider.getSession(new SessionID("FIX.4.2", "S", "T")));

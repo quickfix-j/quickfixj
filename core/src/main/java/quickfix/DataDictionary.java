@@ -94,7 +94,6 @@ public class DataDictionary {
      * @throws ConfigError
      */
     public DataDictionary(String location) throws ConfigError {
-        this();
         read(location);
     }
 

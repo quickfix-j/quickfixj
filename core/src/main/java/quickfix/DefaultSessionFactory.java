@@ -28,7 +28,7 @@ import java.util.Map;
  */
 public class DefaultSessionFactory implements SessionFactory {
 
-    private static Map<String,DataDictionary> dictionaryCache = new Hashtable<String,DataDictionary>(); // synchronized
+    private static final Map<String,DataDictionary> dictionaryCache = new Hashtable<String,DataDictionary>(); // synchronized
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
     private final LogFactory logFactory;
@@ -80,6 +80,7 @@ public class DefaultSessionFactory implements SessionFactory {
             }
 
             DataDictionary dataDictionary = null;
+            
             if (useDataDictionary) {
                 String path;
                 if (settings.isSetting(sessionID, Session.SETTING_DATA_DICTIONARY)) {
@@ -88,11 +89,8 @@ public class DefaultSessionFactory implements SessionFactory {
                     path = settings.getString(sessionID, "BeginString").replaceAll("\\.", "")
                             + ".xml";
                 }
-                dataDictionary = dictionaryCache.get(path);
-                if (dataDictionary == null) {
-                    dataDictionary = new DataDictionary(path);
-                    dictionaryCache.put(path, dataDictionary);
-                }
+                
+                dataDictionary = getDataDictionary(path);
 
                 if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
                     dataDictionary.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
@@ -177,6 +175,17 @@ public class DefaultSessionFactory implements SessionFactory {
             return session;
         } catch (FieldConvertError e) {
             throw new ConfigError(e.getMessage());
+        }
+    }
+
+    private DataDictionary getDataDictionary(String path) throws ConfigError {
+        synchronized (dictionaryCache) {
+            DataDictionary dataDictionary = dictionaryCache.get(path);
+            if (dataDictionary == null) {
+                dataDictionary = new DataDictionary(path);
+                dictionaryCache.put(path, dataDictionary);
+            }
+            return dataDictionary;
         }
     }
 

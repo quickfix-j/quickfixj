@@ -39,8 +39,6 @@ import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-// TODO write a unit test for this provider
-
 /**
  * Dynamically defines sessions for an acceptor. This can be useful for
  * applications like simulators that want to accept any connection and
@@ -50,8 +48,9 @@ import quickfix.SessionSettings;
  * point for implementing your own AcceptorSessionProvider.
  */
 public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
-    private static final String WILDCARD = "*";
-    private static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD);
+    public static final String WILDCARD = "*";
+    private static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD,
+            WILDCARD, WILDCARD, WILDCARD, WILDCARD, null);
 
     private final List<TemplateMapping> templateMappings;
     private final SessionSettings settings;
@@ -86,7 +85,6 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     }
 
     /**
-     * 
      * @param settings session settings
      * @param templateID this is a session ID for a session definition in the session 
      * settings that will be used for default dynamic session values. The BeginString, 
@@ -141,7 +139,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
                 SessionSettings dynamicSettings = new SessionSettings();
                 copySettings(dynamicSettings, settings.getDefaultProperties());
                 copySettings(dynamicSettings, settings.getSessionProperties(templateID));
-                dynamicSettings.setString("BeginString", sessionID.getBeginString());
+                dynamicSettings.setString(BEGINSTRING, sessionID.getBeginString());
                 dynamicSettings.setString(SENDERCOMPID, sessionID.getSenderCompID());
                 optionallySetValue(dynamicSettings, SENDERSUBID, sessionID.getSenderSubID());
                 optionallySetValue(dynamicSettings, SENDERLOCID, sessionID.getSenderLocationID());
@@ -172,7 +170,11 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     private boolean isMatching(SessionID pattern, SessionID sessionID) {
         return isMatching(pattern.getBeginString(), sessionID.getBeginString())
                 && isMatching(pattern.getSenderCompID(), sessionID.getSenderCompID())
-                && isMatching(pattern.getTargetCompID(), sessionID.getTargetCompID());
+                && isMatching(pattern.getSenderSubID(), sessionID.getSenderSubID())
+                && isMatching(pattern.getSenderLocationID(), sessionID.getSenderLocationID())
+                && isMatching(pattern.getTargetCompID(), sessionID.getTargetCompID())
+                && isMatching(pattern.getTargetSubID(), sessionID.getTargetSubID())
+                && isMatching(pattern.getTargetLocationID(), sessionID.getTargetLocationID());
     }
 
     private boolean isMatching(String pattern, String value) {
