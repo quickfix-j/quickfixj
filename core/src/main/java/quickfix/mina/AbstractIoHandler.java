@@ -106,7 +106,6 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
         Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
-            checkSessionId(ioSession, quickFixSession.getSessionID(), remoteSessionID);
             quickFixSession.getLog().onIncoming(messageString);
             MessageFactory messageFactory = quickFixSession.getMessageFactory();
             DataDictionary dataDictionary = quickFixSession.getDataDictionary();
@@ -119,15 +118,6 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
             ioSession.close();
-        }
-    }
-
-    private void checkSessionId(IoSession ioSession, SessionID expectedSessionID,
-            SessionID actualSessionID) {
-        if (!expectedSessionID.equals(actualSessionID)) {
-            throw new IllegalStateException("Wrong QF Session for this connection; " + "expected: "
-                    + expectedSessionID + ", actual: " + actualSessionID + ", MINA session:"
-                    + ioSession);
         }
     }
 
