@@ -71,6 +71,7 @@ import quickfix.field.SecurityIDSource;
 import quickfix.field.SecurityType;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
+import quickfix.field.SessionRejectReason;
 import quickfix.field.Side;
 import quickfix.field.Signature;
 import quickfix.field.SignatureLength;
@@ -80,7 +81,6 @@ import quickfix.field.TotNoOrders;
 import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
-import quickfix.field.XmlDataLen;
 import quickfix.fix42.NewOrderSingle;
 import quickfix.fix43.NewOrderList;
 import quickfix.fix44.ExecutionReport;
@@ -95,12 +95,19 @@ import quickfix.fix44.component.Parties;
 
 public class MessageTest extends TestCase {
 
+    public void testRepeatingField() throws Exception {
+        Message m = new Message("8=FIX.4.0\0019=100\00135=D\00134=2\00149=TW\00156=ISLD\00111=ID\00121=1\001"
+                + "40=1\00154=1\00140=2\00138=200\00155=INTC\00110=160\001");
+        assertFalse("message should be invalid", m.hasValidStructure());
+        assertEquals("wrong invalid tag", 40, m.getInvalidTag());
+    }
+
     public void testTrailerFieldOrdering() throws Exception {
         NewOrderSingle order = createNewOrderSingle();
-        
+
         order.getTrailer().setField(new Signature("FOO"));
         order.getTrailer().setField(new SignatureLength(3));
-        
+
         assertTrue(order.toString().contains("93=3\00189=FOO\001"));
     }
 
@@ -110,7 +117,7 @@ public class MessageTest extends TestCase {
                 new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
         return order;
     }
-    
+
     public void testHeaderGroupParsing() throws Exception {
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "627=2\001628=FOO\001628=BAR\001"
@@ -447,7 +454,6 @@ public class MessageTest extends TestCase {
                 .indexOf("453=2448=8447=D452=4448=AAA35354447=D452=3") != -1);
     }
 
-
     public void testHeaderFieldsMissing() throws Exception {
         try {
             new Message("1=FIX.4.2");
@@ -455,7 +461,9 @@ public class MessageTest extends TestCase {
             // expected
         }
     }
-    
+
+    // New Behavior -- Message is flagged as invalid if header field is in body.
+    // We don't except the header field to have been parsed
     public void testHeaderFieldInBody() throws Exception {
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "98=0\001212=4\001384=2\001372=D\001385=R\001372=8\001385=S\00110=103\001",
@@ -463,11 +471,10 @@ public class MessageTest extends TestCase {
 
         assertFalse(message.hasValidStructure());
         
-        StringField field = message.getHeader().getField(XmlDataLen.FIELD);
-        assertEquals("4", field.getValue());
+        assertTrue(message.getHeader().isSetField(212));
         
-        StringField encryption = message.getField(EncryptMethod.FIELD);
-        assertEquals("0", encryption.getValue());
+        assertEquals(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, message.getException().getSessionRejectReason());
+        assertEquals(212, message.getException().getField());
     }
 
     public void testTrailerFieldInBody() throws Exception {
@@ -476,7 +483,7 @@ public class MessageTest extends TestCase {
                 DataDictionaryTest.getDictionary());
 
         assertFalse(message.hasValidStructure());
-        
+
         SignatureLength signatureLength = new SignatureLength();
         message.getTrailer().getField(signatureLength);
         assertEquals(5, signatureLength.getValue());

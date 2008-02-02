@@ -455,6 +455,7 @@ public class DataDictionary {
      *            true = checked, false = not checked
      */
     public void setCheckFieldsOutOfOrder(boolean flag) {
+    	// TODO implement checkFieldsOutOfOrder
         checkFieldsOutOfOrder = flag;
     }
 
@@ -563,11 +564,10 @@ public class DataDictionary {
             throw new UnsupportedVersion();
         }
 
-        if (checkFieldsOutOfOrder && !message.hasValidStructure()) {
-            throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
-                    message.getInvalidStructureTag());
+        if (!message.hasValidStructure() && message.getException() != null) {
+            throw message.getException();
         }
-
+        
         String msgType = message.getHeader().getString(MsgType.FIELD);
         if (hasVersion) {
             checkMsgType(msgType);

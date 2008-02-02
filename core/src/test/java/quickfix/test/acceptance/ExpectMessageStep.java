@@ -103,8 +103,9 @@ public class ExpectMessageStep implements TestStep {
                 continue;
             }
             if (key.equals("58")) {
-                Assert.assertTrue("field " + key + " not equal: ", entry.getValue().toString()
-                        .startsWith(expectedFields.get(key)));
+                Assert.assertTrue("field " + key + " not equal: actual=" + entry.getValue()
+                        + ",expected(prefix)=" + expectedFields.get(key), entry.getValue()
+                        .toString().startsWith(expectedFields.get(key)));
 
             } else {
                 Assert.assertEquals("field " + key + " not equal: ", expectedFields.get(key), entry

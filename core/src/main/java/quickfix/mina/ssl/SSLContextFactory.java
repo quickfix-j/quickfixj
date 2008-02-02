@@ -32,10 +32,10 @@ public class SSLContextFactory {
     private static final Map<String, SSLContext> contextCache = new HashMap<String, SSLContext>();
 
     static {
-        KEY_MANAGER_FACTORY_ALGORITHM = getProperty("ssl.KeyManagerFactory.algorithm", "SunX509");
+        KEY_MANAGER_FACTORY_ALGORITHM = getSecurityProperty("ssl.KeyManagerFactory.algorithm", "SunX509");
     }
 
-    private static String getProperty(String key, String defaultValue) {
+    private static String getSecurityProperty(String key, String defaultValue) {
         String value = Security.getProperty(key);
         return value == null ? defaultValue : value;
     }

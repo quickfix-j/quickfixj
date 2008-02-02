@@ -22,6 +22,8 @@ package quickfix;
 import static quickfix.JdbcSetting.SETTING_JDBC_DS_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME;
+import static quickfix.JdbcTestSupport.*;
+import static quickfix.JdbcUtil.*;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -47,7 +49,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
     }
 
     protected void tearDown() throws Exception {
-        JdbcTestSupport.assertNoActiveConnections();
+        assertNoActiveConnections();
         if (initialContextFactory != null) {
             System.setProperty(Context.INITIAL_CONTEXT_FACTORY, initialContextFactory);
         }
@@ -63,8 +65,8 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         return getMessageStoreFactory(null, null);
     }
 
-    private JdbcStoreFactory getMessageStoreFactory(String sessionTableName,
-            String messageTableName) throws ConfigError, SQLException, IOException {
+    private JdbcStoreFactory getMessageStoreFactory(String sessionTableName, String messageTableName)
+            throws ConfigError, SQLException, IOException {
         SessionSettings settings = new SessionSettings();
         settings.setString(SETTING_JDBC_DS_NAME, "TestDataSource");
 
@@ -87,7 +89,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         factory.setDataSource(getDataSource());
         factory.create(new SessionID("FIX4.4", "SENDER", "TARGET"));
     }
-    
+
     public void testSequenceNumbersWithCustomSessionsTableName() throws Exception {
         initializeTableDefinitions("xsessions", "messages");
         JdbcStore store = (JdbcStore) getMessageStoreFactory("xsessions", "messages").create(
@@ -118,20 +120,23 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         Connection connection = null;
         try {
             connection = getDataSource().getConnection();
-            JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/messages_table.sql",
+            if (messagesTableName != null) {
+                dropTable(connection, messagesTableName);
+            }
+            loadSQL(connection, "core/src/main/config/sql/mysql/messages_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(messagesTableName));
-            JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/sessions_table.sql",
+            if (sessionsTableName != null) {
+                dropTable(connection, sessionsTableName);
+            }
+            loadSQL(connection, "core/src/main/config/sql/mysql/sessions_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(sessionsTableName));
         } finally {
-            JdbcUtil.close(null, connection);
+            close(null, connection);
         }
     }
 
     protected DataSource getDataSource() {
-        return JdbcUtil.getDataSource(JdbcTestSupport.HSQL_DRIVER,
-                JdbcTestSupport.HSQL_CONNECTION_URL, JdbcTestSupport.HSQL_USER, "", true);
+        return JdbcUtil.getDataSource(HSQL_DRIVER, HSQL_CONNECTION_URL, HSQL_USER, "", true);
     }
 
     public void testCreationTime() throws Exception {

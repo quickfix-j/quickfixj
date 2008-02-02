@@ -26,4 +26,7 @@ public class SSLContextFactoryTest extends TestCase {
         assertNotNull(context.getProvider());
     }
 
+    public void testGetInstanceWithBadCert() throws Exception {
+        SSLContextFactory.getInstance("FOO", "BAR".toCharArray());
+    }
 }

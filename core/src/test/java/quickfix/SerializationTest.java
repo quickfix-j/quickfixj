@@ -122,7 +122,7 @@ public class SerializationTest extends TestCase {
         }
     }
 
-    public Message messageFromClassNameWithDefaultValues(String className, int maxGroupElts) {
+    public static Message createTestMessage(String className, int maxGroupElts) {
         Message res = null;
         try {
             Class<?> cl = Class.forName(className);
@@ -137,7 +137,7 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    public Object objectFromClassName(String className) {
+    private static Object objectFromClassName(String className) {
         Object res = null;
         try {
             Class<?> cl = Class.forName(className);
@@ -152,7 +152,7 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    public Object buildSerializedObject(Object sourceMsg) {
+    private Object buildSerializedObject(Object sourceMsg) {
         Object res = null;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -185,7 +185,7 @@ public class SerializationTest extends TestCase {
             if (msgClassName.indexOf(".component.") != -1) {
                 return;
             }
-            Message sourceMsg = messageFromClassNameWithDefaultValues(msgClassName, MAX_GROUP_ELTS);
+            Message sourceMsg = createTestMessage(msgClassName, MAX_GROUP_ELTS);
             String sourceFIXString = sourceMsg.toString();
 
             Message serializedMsg = (Message) buildSerializedObject(sourceMsg);
@@ -219,7 +219,7 @@ public class SerializationTest extends TestCase {
     }
 
     // Default values creation
-    private Message createMessageWithDefaultValues(Class<?> cl, int maxGroupElts)
+    private static Message createMessageWithDefaultValues(Class<?> cl, int maxGroupElts)
             throws InstantiationException, IllegalAccessException {
         // Setting Fields
         Message res = (Message) createFieldMapWithDefaultValues(cl);
@@ -255,13 +255,13 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private Group createGroupWithDefaultValues(Class<?> cl) throws InstantiationException,
+    private static Group createGroupWithDefaultValues(Class<?> cl) throws InstantiationException,
             IllegalAccessException {
         Group res = (Group) createFieldMapWithDefaultValues(cl);
         return res;
     }
 
-    private FieldMap createFieldMapWithDefaultValues(Class<?> cl) throws InstantiationException,
+    private static FieldMap createFieldMapWithDefaultValues(Class<?> cl) throws InstantiationException,
             IllegalAccessException {
         FieldMap res = (FieldMap) cl.newInstance();
 
@@ -313,7 +313,7 @@ public class SerializationTest extends TestCase {
             if (file.isDirectory()) {
                 continue;
             }
-            Class c = Class.forName(file.getPath().substring(classesBaseDir.length() + 1)
+            Class<?> c = Class.forName(file.getPath().substring(classesBaseDir.length() + 1)
                     .replaceAll(".class$", "").replace(File.separatorChar, '.'));
             if (Serializable.class.isAssignableFrom(c)) {
                 try {

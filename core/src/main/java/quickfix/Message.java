@@ -57,6 +57,7 @@ import quickfix.field.SenderCompID;
 import quickfix.field.SenderLocationID;
 import quickfix.field.SenderSubID;
 import quickfix.field.SendingTime;
+import quickfix.field.SessionRejectReason;
 import quickfix.field.Signature;
 import quickfix.field.SignatureLength;
 import quickfix.field.TargetCompID;
@@ -73,10 +74,10 @@ public class Message extends FieldMap {
     static final long serialVersionUID = -3193357271891865972L;
     protected Header header = new Header();
     protected Trailer trailer = new Trailer();
-    private boolean doValidation;
-    private int isValidStructureTag = 0;
-    private boolean isValidStructure = true;
-
+    
+    // @GuardedBy("this")
+    private FieldException exception;
+    
     public Message() {
         // empty
     }
@@ -438,61 +439,42 @@ public class Message extends FieldMap {
     public void fromString(String messageData, DataDictionary dd, boolean doValidation)
             throws InvalidMessage {
         this.messageData = messageData;
-        this.doValidation = doValidation;
+        
         try {
-            parseHeader(dd);
+            parseHeader(dd, doValidation);
             parseBody(dd);
             parseTrailer(dd);
-        } catch (InvalidMessage e) {
-            isValidStructure = false;
-            throw e;
-        }
-        if (doValidation) {
-            validate(messageData);
-        }
+        	if (doValidation) {
+            	validateCheckSum(messageData);
+        	}
+        } catch (FieldException e) {
+            exception = e;
+        }        
     }
 
-    private void validate(String messageData) throws InvalidMessage {
+    private void validateCheckSum(String messageData) throws InvalidMessage {
         try {
             // Body length is checked at the protocol layer
             int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
+                // message will be ignored if checksum is wrong or missing
                 throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData)
                         + ", Received CheckSum=" + checkSum);
             }
         } catch (FieldNotFound e) {
             throw new InvalidMessage("Field not found: " + e.field);
-        } catch (InvalidMessage e) {
-            throw e;
         }
     }
 
-    private void parseHeader(DataDictionary dd) throws InvalidMessage {
-        boolean invalidHeaderFieldOrder = false;
+    private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
+        boolean validHeaderFieldOrder = 
+                   isNextField(dd, header, BeginString.FIELD)
+                && isNextField(dd, header, BodyLength.FIELD)
+                && isNextField(dd, header, MsgType.FIELD);
 
-        StringField beginString = extractField(dd, header);
-        if (beginString == null || beginString.getField() != BeginString.FIELD) {
-            invalidHeaderFieldOrder = true;
-        }
-        if (beginString != null) {
-            header.setField(beginString);
-        }
-        StringField bodyLength = extractField(dd, header);
-        if (bodyLength == null || bodyLength.getField() != BodyLength.FIELD) {
-            invalidHeaderFieldOrder = true;
-        }
-        if (bodyLength != null) {
-            header.setField(bodyLength);
-        }
-        StringField msgType = extractField(dd, header);
-        if (msgType == null || msgType.getField() != MsgType.FIELD) {
-            invalidHeaderFieldOrder = true;
-        }
-        if (msgType != null) {
-            header.setField(msgType);
-        }
-
-        if (doValidation && invalidHeaderFieldOrder) {
+        if (doValidation && !validHeaderFieldOrder) {
+            // Invalid message preamble (first three fields) is a serious
+            // condition and is handled differently from other message parsing errors.
             throw new InvalidMessage("Header fields out of order");
         }
 
@@ -500,7 +482,6 @@ public class Message extends FieldMap {
         while (field != null && isHeaderField(field, dd)) {
             header.setField(field);
 
-            // Parse header groups
             if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
                 parseGroup(DataDictionary.HEADER_ID, field, dd, header);
             }
@@ -508,6 +489,15 @@ public class Message extends FieldMap {
             field = extractField(dd, header);
         }
         pushBack(field);
+    }
+
+    private boolean isNextField(DataDictionary dd, Header fields, int tag) throws InvalidMessage {
+        StringField field = extractField(dd, header);
+        if (field == null || field.getTag() != tag) {
+            return false;
+        }
+        fields.setField(field);
+        return true;
     }
 
     private String getMsgType() throws InvalidMessage {
@@ -527,25 +517,30 @@ public class Message extends FieldMap {
                 pushBack(field);
                 return;
             }
+            
             if (isHeaderField(field.getField())) {
-                invalidateStructure(field);
-                header.setField(field);
-            } else {
-                setField(field);
+                // An acceptance test requires the sequence number to
+                // be available even if the related field is out of order
+                setField(header, field);
+                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, field.getTag());
             }
+            
+            setField(this, field);
+            
             // Group case
             if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
                 parseGroup(getMsgType(), field, dd, this);
             }
+                
             field = extractField(dd, this);
         }
     }
 
-    private void invalidateStructure(StringField field) {
-        if (isValidStructure) {
-            isValidStructureTag = field.getField();
-            isValidStructure = false;
+    private void setField(FieldMap fields, StringField field) {
+        if (fields.isSetField(field)) {
+            throw new FieldException(SessionRejectReason.TAG_APPEARS_MORE_THAN_ONCE, field.getTag());
         }
+        fields.setField(field);
     }
 
     private void parseGroup(String msgType, StringField field, DataDictionary dd, FieldMap parent)
@@ -602,12 +597,7 @@ public class Message extends FieldMap {
         StringField field = extractField(dd, trailer);
         while (field != null) {
             if (!isTrailerField(field, dd)) {
-                invalidateStructure(field);
-                if (isHeaderField(field, dd)) {
-                    header.setField(field);
-                } else {
-                    setField(field);
-                }
+                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, field.getTag());
             }
             trailer.setField(field);
             field = extractField(dd, trailer);
@@ -708,8 +698,10 @@ public class Message extends FieldMap {
         try {
             tag = Integer.parseInt(messageData.substring(position, equalsOffset));
         } catch (NumberFormatException e) {
+            position = messageData.indexOf('\001', position + 1) + 1;
             throw new InvalidMessage("bad tag format: " + e.getMessage());
         }
+        
         int sohOffset = messageData.indexOf('\001', equalsOffset + 1);
         if (sohOffset == -1) {
             throw new InvalidMessage("SOH not found at end of field: " + tag);
@@ -740,16 +732,25 @@ public class Message extends FieldMap {
     }
 
     /**
-     * Queries message structural validity. (smb - I'm not sure how this is
-     * related to other message validations.)
+     * Queries message structural validity.
      * 
      * @return flag indicating whether the message has a valid structure
      */
-    public boolean hasValidStructure() {
-        return isValidStructure;
+    synchronized boolean hasValidStructure() {
+        return exception == null;
     }
 
-    public int getInvalidStructureTag() {
-        return isValidStructureTag;
+    public synchronized FieldException getException() {
+        return exception;
+    }
+    
+    /**
+     * Returns the first invalid tag, which is all that can be reported
+     * in the resulting FIX reject message.
+     * 
+     * @return the first invalid tag
+     */
+    synchronized int getInvalidTag() {
+        return exception != null ? exception.getField() : 0;
     }
 }

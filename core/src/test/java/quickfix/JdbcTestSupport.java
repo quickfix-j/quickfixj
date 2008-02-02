@@ -44,13 +44,13 @@ public class JdbcTestSupport {
         settings.setString(JdbcSetting.SETTING_JDBC_USER, HSQL_USER);
         settings.setString(JdbcSetting.SETTING_JDBC_PASSWORD, "");
     }
-    
+
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName(HSQL_DRIVER);
         Connection connection = DriverManager.getConnection(HSQL_CONNECTION_URL, HSQL_USER, "");
         return connection;
     }
-    
+
     public static class HypersonicPreprocessor {
         private String tableName;
 
@@ -65,10 +65,10 @@ public class JdbcTestSupport {
             preprocessedSql = preprocessedSql.replaceAll("AUTO_INCREMENT", "IDENTITY");
             preprocessedSql = preprocessedSql.replaceAll("TEXT", "VARCHAR(256)");
             if (tableName != null) {
-                preprocessedSql = preprocessedSql.replaceAll("CREATE TABLE [a-z]+",
-                        "CREATE TABLE " + tableName);
-                preprocessedSql = preprocessedSql.replaceAll("DELETE FROM [a-z]+",
-                        "DELETE FROM " + tableName);
+                preprocessedSql = preprocessedSql.replaceAll("CREATE TABLE [a-z]+", "CREATE TABLE "
+                        + tableName);
+                preprocessedSql = preprocessedSql.replaceAll("DELETE FROM [a-z]+", "DELETE FROM "
+                        + tableName);
             }
             return preprocessedSql;
         }
@@ -85,14 +85,25 @@ public class JdbcTestSupport {
         }
     }
 
-    public static void loadSQL(Connection connection, String resource, HypersonicPreprocessor sqlPreprocessor)
-            throws SQLException, IOException {
+    public static void loadSQL(Connection connection, String resource,
+            HypersonicPreprocessor sqlPreprocessor) throws SQLException, IOException {
         Statement stmt = connection.createStatement();
         InputStream sqlInput = new FileInputStream(resource);
         String sql = getString(sqlInput);
         if (sqlPreprocessor != null) {
             sql = sqlPreprocessor.preprocessSQL(sql);
         }
+        stmt.execute(sql);
+        stmt.close();
+    }
+
+    public static void dropTable(Connection connection, String tableName) throws SQLException,
+            IOException {
+        execSQL(connection, "drop table " + tableName + " if exists");
+    }
+
+    public static void execSQL(Connection connection, String sql) throws SQLException, IOException {
+        Statement stmt = connection.createStatement();
         stmt.execute(sql);
         stmt.close();
     }
@@ -108,7 +119,8 @@ public class JdbcTestSupport {
         String[] aliases = ProxoolFacade.getAliases();
         for (int i = 0; i < aliases.length; i++) {
             SnapshotIF snapshot = ProxoolFacade.getSnapshot(aliases[i], true);
-            Assert.assertEquals("unclosed connections: "+aliases[i], 0, snapshot.getActiveConnectionCount());            
+            Assert.assertEquals("unclosed connections: " + aliases[i], 0, snapshot
+                    .getActiveConnectionCount());
         }
     }
 
