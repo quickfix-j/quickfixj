@@ -66,7 +66,7 @@ public class DataDictionaryTest extends TestCase {
         assertTrue("incorrect message field", dd.isMsgField("A", 98));
         assertFalse("incorrect message field", dd.isMsgField("A", 1));
         // component field
-        assertTrue("incorrect message field", dd.isMsgField("6", 235)); 
+        assertTrue("incorrect message field", dd.isMsgField("6", 235));
         // group->component field
         //assertTrue("incorrect message field", dd.isMsgField("6", 311));
         assertTrue("incorrect message type", dd.isMsgType("A"));
@@ -76,109 +76,109 @@ public class DataDictionaryTest extends TestCase {
         assertEquals("incorrect field name", "Account", dd.getFieldName(1));
         assertEquals("incorrect msg type", "0", dd.getMsgType("Heartbeat"));
         assertEquals("incorrect msg type", "B", dd.getMsgType("News"));
-        assertFalse(dd.isMsgField("UNKNOWN_TYPE", 1)); 
+        assertFalse(dd.isMsgField("UNKNOWN_TYPE", 1));
     }
 
     public void testMissingFieldAttributeForRequired() throws Exception {
-    	String data = "";
-    	data += "<fix major=\"4\" minor=\"0\">";
-    	data += "  <header>";  
-    	data += "    <field name=\"BeginString\" required=\"Y\"/>";
-    	data += "  </header>";
-    	data += "  <trailer>";  
-    	data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-    	data += "  </trailer>";
-    	data += "  <fields>";
-    	data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-    	data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-    	data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
-    	data += "  </fields>";
-    	data += "  <messages>";
+        String data = "";
+        data += "<fix major=\"4\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
         data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
         data += "      <field name=\"TestReqID\"/>";
         data += "    </message>";
         data += "  </messages>";
         data += "</fix>";
 
-    	assertConfigErrorForMissingAttributeRequired(data);
+        assertConfigErrorForMissingAttributeRequired(data);
     }
 
-	private void assertConfigErrorForMissingAttributeRequired(String data) {
-		try {
-			new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-		} catch (ConfigError e) {
-			// Expected
-			assertTrue(e.getMessage().indexOf("does not have a 'required'") != -1);
-		}
-	}
-    
+    private void assertConfigErrorForMissingAttributeRequired(String data) {
+        try {
+            new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        } catch (ConfigError e) {
+            // Expected
+            assertTrue(e.getMessage().indexOf("does not have a 'required'") != -1);
+        }
+    }
+
     public void testMissingComponentAttributeForRequired() throws Exception {
-    	String data = "";
-    	data += "<fix major=\"4\" minor=\"0\">";
-    	data += "  <header>";  
-    	data += "    <field name=\"BeginString\" required=\"Y\"/>";
-    	data += "  </header>";
-    	data += "  <trailer>";  
-    	data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-    	data += "  </trailer>";
-    	data += "  <fields>";
-    	data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-    	data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-    	data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
-    	data += "  </fields>";
-    	data += "  <messages>";
+        String data = "";
+        data += "<fix major=\"4\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
         data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
         data += "      <component name=\"Instrument\"/>";
         data += "    </message>";
         data += "  </messages>";
         data += "</fix>";
 
-    	assertConfigErrorForMissingAttributeRequired(data);
+        assertConfigErrorForMissingAttributeRequired(data);
     }
 
     public void testMissingGroupAttributeForRequired() throws Exception {
-    	String data = "";
-    	data += "<fix major=\"4\" minor=\"0\">";
-    	data += "  <header>";  
-    	data += "    <field name=\"BeginString\" required=\"Y\"/>";
-    	data += "  </header>";
-    	data += "  <trailer>";  
-    	data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-    	data += "  </trailer>";
-    	data += "  <fields>";
-    	data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-    	data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-    	data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
-    	data += "  </fields>";
-    	data += "  <messages>";
+        String data = "";
+        data += "<fix major=\"4\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
         data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
         data += "      <group name=\"TestReqID\"/>";
         data += "    </message>";
         data += "  </messages>";
         data += "</fix>";
 
-    	assertConfigErrorForMissingAttributeRequired(data);
+        assertConfigErrorForMissingAttributeRequired(data);
     }
 
     public void testHeaderTrailerRequired() throws Exception {
         String data = "";
-    	data += "<fix major=\"4\" minor=\"0\">";
-    	data += "  <header>";
-    	data += "    <field name=\"BeginString\" required=\"Y\"/>";
-    	data += "    <field name=\"OnBehalfOfCompID\" required=\"N\"/>";
-    	data += "  </header>";
-    	data += "  <trailer>";
-    	data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-    	data += "    <field name=\"Signature\" required=\"N\"/>";
-    	data += "  </trailer>";
-    	data += "  <fields>";
-    	data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-    	data += "    <field number=\"115\" name=\"OnBehalfOfCompID\" type=\"STRING\"/>";
-    	data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-    	data += "    <field number=\"89\" name=\"Signature\" type=\"STRING\"/>";
-    	data += "    <field number=\"37\" name=\"TestReqID\" type=\"STRING\"/>";
-    	data += "  </fields>";
-    	data += "  <messages>";
+        data += "<fix major=\"4\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "    <field name=\"OnBehalfOfCompID\" required=\"N\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "    <field name=\"Signature\" required=\"N\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"115\" name=\"OnBehalfOfCompID\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "    <field number=\"89\" name=\"Signature\" type=\"STRING\"/>";
+        data += "    <field number=\"37\" name=\"TestReqID\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
         data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
         data += "      <group name=\"TestReqID\" required=\"N\"/>";
         data += "    </message>";
@@ -200,10 +200,11 @@ public class DataDictionaryTest extends TestCase {
         DataDictionary dd = getDictionary();
         assertTrue(dd.isHeaderGroup(NoHops.FIELD));
     }
-    
+
     public void testMessageValidateBodyOnly() throws Exception {
-        final quickfix.fix44.NewOrderSingle newSingle =
-                new quickfix.fix44.NewOrderSingle(new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(OrdType.LIMIT));
+        final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(
+                        OrdType.LIMIT));
         newSingle.setField(new OrderQty(42));
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
@@ -223,7 +224,6 @@ public class DataDictionaryTest extends TestCase {
 
     }
 
-
     // QF C++ treats the string argument as a filename although it's
     // named 'url'. QFJ string argument can be either but this test
     // ensures the DD works correctly with a regular file path.
@@ -232,12 +232,11 @@ public class DataDictionaryTest extends TestCase {
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
         // It worked!
     }
-   
+
     // Support finding DD in classpath
     public void testDictionaryInClassPath() throws Exception {
-        URLClassLoader customClassLoader = new URLClassLoader(new URL[] {
-                new URL("file:etc")
-        }, getClass().getClassLoader());
+        URLClassLoader customClassLoader = new URLClassLoader(new URL[] { new URL("file:etc") },
+                getClass().getClassLoader());
         Thread.currentThread().setContextClassLoader(customClassLoader);
         try {
             DataDictionary dd = new DataDictionary("FIX40.xml");
@@ -253,6 +252,10 @@ public class DataDictionaryTest extends TestCase {
         DataDictionary dd = getDictionary();
         assertTrue(dd.isFieldValue(65, "FOO"));
     }
+
+    //
+    // Group Validation Tests in RepeatingGroupTest
+    //
     
     private static DataDictionary testDataDictionary;
 

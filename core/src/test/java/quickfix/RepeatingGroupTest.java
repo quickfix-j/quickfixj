@@ -19,9 +19,11 @@
 
 package quickfix;
 
+import junit.framework.Assert;
 import junit.framework.TestCase;
 import quickfix.field.LegSymbol;
 import quickfix.field.OrderID;
+import quickfix.field.SessionRejectReason;
 import quickfix.field.Symbol;
 import quickfix.fix44.Quote;
 
@@ -346,15 +348,65 @@ public class RepeatingGroupTest extends TestCase {
         String sourceFIXString = quoteRequest.toString();
         quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest) buildValidatedMessage(
                 sourceFIXString, customDataDictionary);
+        
+        assertNull("Invalid message", validatedMessage.getException());
+        
         String validatedFIXString = null;
         if (validatedMessage != null) {
             validatedFIXString = validatedMessage.toString();
         }
 
-        System.out.println(validatedFIXString);
         assertEquals("Message validation failed", checkSum(sourceFIXString),
                 checkSum(validatedFIXString));
 
+    }
+
+
+    public void testOutOfOrderGroupMembersDelimeterField() throws Exception {
+        Message m = new Message(
+                "8=FIX.4.49=035=D34=249=TW52=<TIME>56=ISLD11=ID21=140=154=1"
+                        + "38=200.0055=INTC78=280=5079=acct180=15079=acct260=<TIME>10=000",
+                defaultDataDictionary, false);
+        try {
+            defaultDataDictionary.validate(m);
+            Assert.fail("No exception");
+        } catch (FieldException e) {
+            // expected
+            assertEquals(SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, e
+                    .getSessionRejectReason());
+            assertEquals(80, e.getField());
+        }
+    }
+
+    public void testOutOfOrderGroupMembers() throws Exception {
+        Message m = new Message("8=FIX.4.49=035=D34=249=TW52=20080203-00:29:51.45356=ISLD11=ID21=140=154=1"
+                + "38=200.0055=INTC78=279=acct180=50661=X79=acct280=150661=X60=20080203-00:29:51.45310=000",
+                defaultDataDictionary, false);
+        try {
+            defaultDataDictionary.validate(m);
+            Assert.fail("No exception");
+        } catch (FieldException e) {
+            // expected
+            assertEquals(e.getMessage(), SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, e
+                    .getSessionRejectReason());
+            assertEquals(661, e.getField());
+        }
+    }
+
+    public void testRequiredGroupMembers() throws Exception {
+        // Missing group tag 304
+        Message m = new Message("8=FIX.4.49=035=i34=249=TW52=20080203-00:29:51.453" +
+        		"56=ISLD117=ID296=1302=X10=000",
+                defaultDataDictionary, false);
+        try {
+            defaultDataDictionary.validate(m);
+            Assert.fail("No exception");
+        } catch (FieldException e) {
+            // expected
+            assertEquals(e.getMessage(), SessionRejectReason.REQUIRED_TAG_MISSING, e
+                    .getSessionRejectReason());
+            assertEquals(304, e.getField());
+        }
     }
 
     public int checkSum(String s) {

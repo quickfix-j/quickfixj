@@ -546,6 +546,9 @@ public class Message extends FieldMap {
     private void parseGroup(String msgType, StringField field, DataDictionary dd, FieldMap parent)
             throws InvalidMessage {
         DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
+        DataDictionary groupDataDictionary = rg.getDataDictionary();
+        int[] fieldOrder = groupDataDictionary.getOrderedFields();
+        int previousOffset = -1;
         int groupCountTag = field.getField();
         int declaredGroupCount = Integer.parseInt(field.getValue());
         parent.setField(groupCountTag, field);
@@ -559,25 +562,40 @@ public class Message extends FieldMap {
                 if (group != null) {
                     parent.addGroup(group);
                 }
-                group = new Group(groupCountTag, firstField, rg.getDataDictionary()
+                group = new Group(groupCountTag, firstField, groupDataDictionary
                         .getOrderedFields());
                 group.setField(field);
                 firstFieldFound = true;
+                previousOffset = -1;
             } else {
-                if (rg.getDataDictionary().isGroup(msgType, field.getField())) {
+                if (groupDataDictionary.isGroup(msgType, field.getField())) {
                     if (firstFieldFound) {
-                        parseGroup(msgType, field, rg.getDataDictionary(), group);
+                        parseGroup(msgType, field, groupDataDictionary, group);
                     } else {
                         throw new InvalidMessage("The group " + groupCountTag
                                 + " must set the delimiter field " + firstField);
                     }
                 } else {
-                    if (rg.getDataDictionary().isField(field.getTag())) {
+                    if (groupDataDictionary.isField(field.getTag())) {
                         if (!firstFieldFound) {
-                            throw new InvalidMessage("Repeating group " + groupCountTag
-                                    + " is out of order: first field should be " + firstField
-                                    + ", but was " + field.getField() + ".");
+                            throw new FieldException(
+                                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field
+                                            .getTag());
                         }
+                        
+                        if (fieldOrder != null) {
+                            int offset = index(fieldOrder, field.getTag());
+                            if (offset >= 0) {
+                                if (offset > previousOffset) {
+                                    previousOffset = offset;
+                                } else {
+                                    throw new FieldException(
+                                            SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field
+                                                    .getTag());
+                                }
+                            }
+                        }
+                        
                         group.setField(field);
                     } else {
                         if (group != null) {
@@ -591,6 +609,15 @@ public class Message extends FieldMap {
         }
         // For later validation that the group size matches the parsed group count
         parent.setGroupCount(groupCountTag, declaredGroupCount);
+    }
+
+    private int index(int[] fieldOrder, int tag) {
+        for (int i = 0; i < fieldOrder.length; i++) {
+            if (fieldOrder[i] == tag) {
+               return i; 
+            }
+        }
+        return -1;
     }
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {
@@ -739,7 +766,7 @@ public class Message extends FieldMap {
     synchronized boolean hasValidStructure() {
         return exception == null;
     }
-
+    
     public synchronized FieldException getException() {
         return exception;
     }

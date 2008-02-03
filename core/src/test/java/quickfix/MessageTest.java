@@ -462,8 +462,6 @@ public class MessageTest extends TestCase {
         }
     }
 
-    // New Behavior -- Message is flagged as invalid if header field is in body.
-    // We don't except the header field to have been parsed
     public void testHeaderFieldInBody() throws Exception {
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "98=0\001212=4\001384=2\001372=D\001385=R\001372=8\001385=S\00110=103\001",

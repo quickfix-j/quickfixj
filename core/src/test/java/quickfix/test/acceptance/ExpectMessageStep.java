@@ -106,7 +106,8 @@ public class ExpectMessageStep implements TestStep {
                 Assert.assertTrue("field " + key + " not equal: actual=" + entry.getValue()
                         + ",expected(prefix)=" + expectedFields.get(key), entry.getValue()
                         .toString().startsWith(expectedFields.get(key)));
-
+            } else if (!expectedFields.containsKey(key)) {
+                Assert.fail("Unexpected field " + key + ",value=" + entry.getValue());
             } else {
                 Assert.assertEquals("field " + key + " not equal: ", expectedFields.get(key), entry
                         .getValue());
@@ -122,8 +123,7 @@ public class ExpectMessageStep implements TestStep {
         while (timeFieldItr.hasNext()) {
             String key = timeFieldItr.next();
             if (expectedFields.containsKey(key)) {
-                if (expectedFields.get(key).length() != actualFields.get(key)
-                        .length()) {
+                if (expectedFields.get(key).length() != actualFields.get(key).length()) {
                     dateLengthMismatch = true;
                 }
             }
