@@ -575,22 +575,18 @@ public class DataDictionary {
         }
 
         if (!bodyOnly) {
-            iterate(message.getHeader(), msgType);
-            iterate(message.getTrailer(), msgType);
+            iterate(message.getHeader(), msgType, this);
+            iterate(message.getTrailer(), msgType, this);
         }
-        iterate(message, msgType);
+        iterate(message, msgType, this);
     }
 
-    private void iterate(FieldMap map, String msgType) throws IncorrectTagValue,
+    private void iterate(FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
             IncorrectDataFormat {
-        Field<?> previousField = null;
         Iterator<Field<?>> iterator = map.iterator();
         while (iterator.hasNext()) {
             StringField field = (StringField) iterator.next();
-            if (previousField != null && field.getTag() == previousField.getTag()) {
-                throw new FieldException(SessionRejectReason.TAG_APPEARS_MORE_THAN_ONCE,
-                        previousField.getTag());
-            }
+
             checkHasValue(field);
 
             if (hasVersion) {
@@ -599,13 +595,18 @@ public class DataDictionary {
             }
 
             if (beginString != null && shouldCheckTag(field)) {
-                checkValidTagNumber(field);
-                if (!Message.isHeaderField(field, this) && !Message.isTrailerField(field, this)) {
+                dd.checkValidTagNumber(field);
+                if (map instanceof Message) {
                     checkIsInMessage(field, msgType);
-                    checkGroupCount(field, map, msgType);
                 }
+                dd.checkGroupCount(field, map, msgType);
             }
-            previousField = field;
+        }
+        
+        for (List<Group> groups : map.getGroups().values()) {
+            for (Group group : groups) {
+                iterate(group, msgType, dd.getGroup(msgType, group.getFieldTag()).getDataDictionary());
+            }
         }
     }
 
@@ -1084,6 +1085,7 @@ public class DataDictionary {
         int delim = 0;
         int field = 0;
         DataDictionary groupDD = new DataDictionary();
+        groupDD.setVersion(dd.getVersion());
         NodeList fieldNodeList = node.getChildNodes();
         for (int i = 0; i < fieldNodeList.getLength(); i++) {
             Node fieldNode = fieldNodeList.item(i);

@@ -348,9 +348,9 @@ public class RepeatingGroupTest extends TestCase {
         String sourceFIXString = quoteRequest.toString();
         quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest) buildValidatedMessage(
                 sourceFIXString, customDataDictionary);
-        
+
         assertNull("Invalid message", validatedMessage.getException());
-        
+
         String validatedFIXString = null;
         if (validatedMessage != null) {
             validatedFIXString = validatedMessage.toString();
@@ -360,7 +360,6 @@ public class RepeatingGroupTest extends TestCase {
                 checkSum(validatedFIXString));
 
     }
-
 
     public void testOutOfOrderGroupMembersDelimeterField() throws Exception {
         Message m = new Message(
@@ -379,8 +378,9 @@ public class RepeatingGroupTest extends TestCase {
     }
 
     public void testOutOfOrderGroupMembers() throws Exception {
-        Message m = new Message("8=FIX.4.49=035=D34=249=TW52=20080203-00:29:51.45356=ISLD11=ID21=140=154=1"
-                + "38=200.0055=INTC78=279=acct180=50661=X79=acct280=150661=X60=20080203-00:29:51.45310=000",
+        Message m = new Message(
+                "8=FIX.4.49=035=D34=249=TW52=20080203-00:29:51.45356=ISLD11=ID21=140=154=1"
+                        + "38=200.0055=INTC78=279=acct180=50661=X79=acct280=150661=X60=20080203-00:29:51.45310=000",
                 defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
@@ -395,9 +395,8 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testRequiredGroupMembers() throws Exception {
         // Missing group tag 304
-        Message m = new Message("8=FIX.4.49=035=i34=249=TW52=20080203-00:29:51.453" +
-        		"56=ISLD117=ID296=1302=X10=000",
-                defaultDataDictionary, false);
+        Message m = new Message("8=FIX.4.49=035=i34=249=TW52=20080203-00:29:51.453"
+                + "56=ISLD117=ID296=1302=X10=000", defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
             Assert.fail("No exception");
@@ -406,6 +405,35 @@ public class RepeatingGroupTest extends TestCase {
             assertEquals(e.getMessage(), SessionRejectReason.REQUIRED_TAG_MISSING, e
                     .getSessionRejectReason());
             assertEquals(304, e.getField());
+        }
+    }
+
+    public void testWrongGroupCount() throws Exception {
+        // Excessive group counts in nested group
+        Message m = new Message("8=FIX.4.49=035=i34=249=TW52=20080203-00:29:51.453"
+                + "56=ISLD117=ID296=1302=X304=5295=50299=QID10=085",
+                defaultDataDictionary, true);
+        try {
+            defaultDataDictionary.validate(m);
+            Assert.fail("No exception");
+        } catch (FieldException e) {
+            // expected
+            assertEquals("Wrong reject reason: [" + e.getMessage() + "]",
+                    SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP, e.getSessionRejectReason());
+            assertEquals(295, e.getField());
+        }
+    }
+
+    public void testInvalidEnumFieldInGroup() throws Exception {
+        // Excessive group counts
+        Message m = new Message("8=FIX.4.49=035=A34=252=20080203-00:29:51.45356=ISLD49=TW108=10384=1372=D385=X98=010=129",
+                defaultDataDictionary, false);
+        try {
+            defaultDataDictionary.validate(m);
+            Assert.fail("No exception");
+        } catch (IncorrectTagValue e) {
+            // expected
+            assertEquals(385, e.field);
         }
     }
 
