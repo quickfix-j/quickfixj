@@ -41,6 +41,8 @@ class JdbcLog extends AbstractLog {
     private final DataSource dataSource;
     private final boolean logHeartbeats;
     private final boolean extendedSessionIdSupported;
+    private final String defaultSessionIdPropertyValue;
+
     private Throwable recursiveException = null;
 
     private final Map<String, String> insertItemSqlCache = new HashMap<String, String>();
@@ -76,6 +78,13 @@ class JdbcLog extends AbstractLog {
             eventTableName = settings.getString(sessionID, SETTING_LOG_EVENT_TABLE);
         } else {
             eventTableName = DEFAULT_EVENT_LOG_TABLE;
+        }
+
+        if (settings.isSetting(sessionID, SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE)) {
+            defaultSessionIdPropertyValue = settings.getString(sessionID,
+                    SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE);
+        } else {
+            defaultSessionIdPropertyValue = SessionID.NOT_SET;
         }
 
         // One table is sampled for the extended session ID columns. Be sure
@@ -147,7 +156,7 @@ class JdbcLog extends AbstractLog {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement(getInsertItemSql(tableName));
             insert.setTimestamp(1, new Timestamp(SystemTime.getUtcCalendar().getTimeInMillis()));
-            int offset = setSessionIdParameters(sessionID, insert, 2, extendedSessionIdSupported);
+            int offset = setSessionIdParameters(insert, 2);
             insert.setString(offset, value);
             insert.execute();
         } catch (SQLException e) {
@@ -176,7 +185,7 @@ class JdbcLog extends AbstractLog {
         try {
             connection = dataSource.getConnection();
             statement = connection.prepareStatement(getDeleteItemsSql(tableName));
-            setSessionIdParameters(sessionID, statement, 1, extendedSessionIdSupported);
+            setSessionIdParameters(statement, 1);
             statement.execute();
         } catch (SQLException e) {
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
@@ -196,5 +205,10 @@ class JdbcLog extends AbstractLog {
 
     public String getEventTableName() {
         return eventTableName;
+    }
+    
+    private int setSessionIdParameters(PreparedStatement query, int offset) throws SQLException {
+        return JdbcUtil.setSessionIdParameters(sessionID, query, offset,
+                extendedSessionIdSupported, defaultSessionIdPropertyValue);
     }
 }

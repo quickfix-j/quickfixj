@@ -95,4 +95,10 @@ public class JdbcSetting {
      * Specifies name of table for logging events
      */
     public static final String SETTING_LOG_EVENT_TABLE = "JdbcLogEventTable";
+    
+    /**
+     * Specified the default value for session ID properties that have not been set. This
+     * is primarily for Oracle which treats empty strings as SQL NULLs.
+     */
+    public static final String SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE = "JdbcSessionIdDefaultPropertyValue";
 }

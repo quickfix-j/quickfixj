@@ -161,23 +161,27 @@ class JdbcUtil {
 
     }
 
-    static int setSessionIdParameters(SessionID sessionID, PreparedStatement query, int offset, boolean isExtendedSessionID) throws SQLException {
+    static int setSessionIdParameters(SessionID sessionID, PreparedStatement query, int offset, boolean isExtendedSessionID, String defaultSqlValue) throws SQLException {
         if (isExtendedSessionID) {
-            query.setString(offset++, sessionID.getBeginString());
-            query.setString(offset++, sessionID.getSenderCompID());
-            query.setString(offset++, sessionID.getSenderSubID());
-            query.setString(offset++, sessionID.getSenderLocationID());
-            query.setString(offset++, sessionID.getTargetCompID());
-            query.setString(offset++, sessionID.getTargetSubID());
-            query.setString(offset++, sessionID.getTargetLocationID());
-            query.setString(offset++, sessionID.getSessionQualifier());
+            query.setString(offset++, getSqlValue(sessionID.getBeginString(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getSenderCompID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getSenderSubID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getSenderLocationID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getTargetCompID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getTargetSubID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getTargetLocationID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getSessionQualifier(), defaultSqlValue));
         } else {
-            query.setString(offset++, sessionID.getBeginString());
-            query.setString(offset++, sessionID.getSenderCompID());
-            query.setString(offset++, sessionID.getTargetCompID());
-            query.setString(offset++, sessionID.getSessionQualifier());
+            query.setString(offset++, getSqlValue(sessionID.getBeginString(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getSenderCompID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getTargetCompID(), defaultSqlValue));
+            query.setString(offset++, getSqlValue(sessionID.getSessionQualifier(), defaultSqlValue));
         }
         return offset;
+    }
+
+    private static String getSqlValue(String javaValue, String defaultSqlValue) {
+        return !SessionID.NOT_SET.equals(javaValue) ? javaValue : defaultSqlValue;
     }
 
 }

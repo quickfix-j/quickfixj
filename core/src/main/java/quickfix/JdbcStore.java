@@ -20,14 +20,9 @@
 package quickfix;
 
 import static quickfix.JdbcSetting.*;
-import static quickfix.JdbcUtil.*;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -45,6 +40,7 @@ class JdbcStore implements MessageStore {
     private final SessionID sessionID;
     private final String sessionTableName;
     private final String messageTableName;
+    private final String defaultSessionIdPropertyValue;
 
     private String SQL_UPDATE_SEQNUMS;
     private String SQL_INSERT_SESSION;
@@ -71,11 +67,19 @@ class JdbcStore implements MessageStore {
             messageTableName = DEFAULT_MESSAGE_TABLE_NAME;
         }
 
+        if (settings.isSetting(sessionID, SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE)) {
+            defaultSessionIdPropertyValue = settings.getString(sessionID,
+                    SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE);
+        } else {
+            defaultSessionIdPropertyValue = SessionID.NOT_SET;
+        }
+
         dataSource = ds == null ? JdbcUtil.getDataSource(settings, sessionID) : ds;
 
         // One table is sampled for the extended session ID columns. Be sure
         // that all tables are extended if you extend any of them.
-        extendedSessionIdSupported = JdbcUtil.determineSessionIdSupport(dataSource, sessionTableName);
+        extendedSessionIdSupported = JdbcUtil.determineSessionIdSupport(dataSource,
+                sessionTableName);
 
         setSqlStrings();
 
@@ -100,8 +104,8 @@ class JdbcStore implements MessageStore {
         INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? " + "WHERE "
                 + idWhereClause + " and msgseqnum=?";
 
-        SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " ("
-                + idColumns + ", msgseqnum,message) VALUES (" + idPlaceholders + ",?,?)";
+        SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (" + idColumns
+                + ", msgseqnum,message) VALUES (" + idPlaceholders + ",?,?)";
 
         SQL_GET_MESSAGES = "SELECT message FROM " + messageTableName + " WHERE  " + idWhereClause
                 + " and msgseqnum>=? and msgseqnum<=? " + "ORDER BY msgseqnum";
@@ -120,7 +124,7 @@ class JdbcStore implements MessageStore {
         try {
             connection = dataSource.getConnection();
             query = connection.prepareStatement(SQL_GET_SEQNUMS);
-            setSessionIdParameters(sessionID, query, 1, extendedSessionIdSupported);
+            setSessionIdParameters(query, 1);
             rs = query.executeQuery();
             if (rs.next()) {
                 cache.setCreationTime(SystemTime.getUtcCalendar(rs.getTimestamp(1)));
@@ -128,8 +132,7 @@ class JdbcStore implements MessageStore {
                 cache.setNextSenderMsgSeqNum(rs.getInt(3));
             } else {
                 insert = connection.prepareStatement(SQL_INSERT_SESSION);
-                int offset = setSessionIdParameters(sessionID, insert, 1,
-                        extendedSessionIdSupported);
+                int offset = setSessionIdParameters(insert, 1);
                 insert.setTimestamp(offset++, new Timestamp(cache.getCreationTime().getTime()));
                 insert.setInt(offset++, cache.getNextTargetMsgSeqNum());
                 insert.setInt(offset, cache.getNextSenderMsgSeqNum());
@@ -141,6 +144,11 @@ class JdbcStore implements MessageStore {
             JdbcUtil.close(sessionID, insert);
             JdbcUtil.close(sessionID, connection);
         }
+    }
+
+    private int setSessionIdParameters(PreparedStatement query, int offset) throws SQLException {
+        return JdbcUtil.setSessionIdParameters(sessionID, query, offset,
+                extendedSessionIdSupported, defaultSessionIdPropertyValue);
     }
 
     public Date getCreationTime() throws IOException {
@@ -173,7 +181,7 @@ class JdbcStore implements MessageStore {
         try {
             connection = dataSource.getConnection();
             deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
-            setSessionIdParameters(sessionID, deleteMessages, 1, extendedSessionIdSupported);
+            setSessionIdParameters(deleteMessages, 1);
             deleteMessages.execute();
 
             updateTime = connection.prepareStatement(SQL_UPDATE_SESSION);
@@ -181,7 +189,7 @@ class JdbcStore implements MessageStore {
                     TimeZone.getTimeZone("UTC")).getTimeInMillis()));
             updateTime.setInt(2, getNextTargetMsgSeqNum());
             updateTime.setInt(3, getNextSenderMsgSeqNum());
-            setSessionIdParameters(sessionID, updateTime, 4, extendedSessionIdSupported);
+            setSessionIdParameters(updateTime, 4);
             updateTime.execute();
         } catch (SQLException e) {
             throw (IOException) new IOException(e.getMessage()).initCause(e);
@@ -202,7 +210,7 @@ class JdbcStore implements MessageStore {
         try {
             connection = dataSource.getConnection();
             query = connection.prepareStatement(SQL_GET_MESSAGES);
-            int offset = setSessionIdParameters(sessionID, query, 1, extendedSessionIdSupported);
+            int offset = setSessionIdParameters(query, 1);
             query.setInt(offset++, startSequence);
             query.setInt(offset, endSequence);
             rs = query.executeQuery();
@@ -226,7 +234,7 @@ class JdbcStore implements MessageStore {
         try {
             connection = dataSource.getConnection();
             insert = connection.prepareStatement(SQL_INSERT_MESSAGE);
-            int offset = setSessionIdParameters(sessionID, insert, 1, extendedSessionIdSupported);
+            int offset = setSessionIdParameters(insert, 1);
             insert.setInt(offset++, sequence);
             insert.setString(offset, message);
             insert.execute();
@@ -235,8 +243,7 @@ class JdbcStore implements MessageStore {
                 PreparedStatement update = null;
                 try {
                     update = connection.prepareStatement(INSERT_UPDATE_MESSAGE);
-                    int offset = setSessionIdParameters(sessionID, update, 1,
-                            extendedSessionIdSupported);
+                    int offset = setSessionIdParameters(update, 1);
                     update.setInt(offset++, sequence);
                     update.setString(offset, message);
                     update.execute();
@@ -273,7 +280,7 @@ class JdbcStore implements MessageStore {
             update = connection.prepareStatement(SQL_UPDATE_SEQNUMS);
             update.setInt(1, cache.getNextTargetMsgSeqNum());
             update.setInt(2, cache.getNextSenderMsgSeqNum());
-            setSessionIdParameters(sessionID, update, 3, extendedSessionIdSupported);
+            setSessionIdParameters(update, 3);
             update.execute();
         } catch (SQLException e) {
             throw (IOException) new IOException(e.getMessage()).initCause(e);
