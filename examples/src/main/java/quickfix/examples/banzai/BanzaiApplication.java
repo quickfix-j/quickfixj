@@ -152,7 +152,7 @@ public class BanzaiApplication implements Application {
                             "Application not available");
                 }
             } catch (Exception e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
 
         }
@@ -250,7 +250,9 @@ public class BanzaiApplication implements Application {
             execution.setExchangeID(sessionID + message.getField(new ExecID()).getValue());
             execution.setSymbol(message.getField(new Symbol()).getValue());
             execution.setQuantity((int) fillSize);
-            execution.setPrice(message.getField(new LastPx()).getValue());
+            if (message.isSetField(LastPx.FIELD)) {
+                execution.setPrice(message.getField(new LastPx()).getValue());
+            }
             Side side = (Side) message.getField(new Side());
             execution.setSide(FIXSideToSide(side));
             executionTableModel.addExecution(execution);
