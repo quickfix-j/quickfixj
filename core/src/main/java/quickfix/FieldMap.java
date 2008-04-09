@@ -168,7 +168,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setDecimal(int field, BigDecimal value) {
-        setDecimal(field, value, 0);
+        setField(new StringField(field, DecimalConverter.convert(value)));
     }
 
     public void setDecimal(int field, BigDecimal value, int padding) {

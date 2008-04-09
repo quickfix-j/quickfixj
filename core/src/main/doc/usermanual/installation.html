@@ -162,6 +162,29 @@ By default, the XML processing is QuickFIX/J uses the XML parser included
       To enable this feature pass a <code>-Dgenerator.decimal</code> option on the command line when
       running the <code>generate.code</code> Ant target.</li>
 </ol>
+<h3>Command-line Switches</h3>
+There are various command-line switches you can pass to ant to modify the produced behavior:
+<table cellspacing="0" width="100%">
+  <tr>
+    <th>Switch</th>
+    <th>Description</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">-Dgenerator.decimal</td>
+    <td>Generate BigDecimal vs doubles fields</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td nowrap="nowrap">-Dskip.jalopy</td>
+    <td>Skip Java class reformatting during code generation </td>
+    <td>false</td>
+  </tr>
+</table>
+<p>
+  For example, in order to generate fields with BigDecimals and skip Jalopy message reformatting:<br>
+<code>ant -Dgenerator.decimal=true -Dskip.jalopy=true clean test</code>
+</p>
 <h3>Eclipse IDE support:</h3>
 <p>The QuickFIX/J developers also use Eclipse to build the software. There is
   a project definition in the top-level directory of the checked out CVS workspace.
@@ -181,32 +204,32 @@ By default, the XML processing is QuickFIX/J uses the XML parser included
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-core&lt;/artifactId&gt;
-    &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix40&lt;/artifactId&gt;
-    &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix41&lt;/artifactId&gt;
-    &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix42&lt;/artifactId&gt;
-    &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix43&lt;/artifactId&gt;
-    &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix44&lt;/artifactId&gt;
-    &lt;version&gt;1.2.1&lt;/version&gt;
+    &lt;version&gt;1.3.1&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.apache.mina&lt;/groupId&gt;

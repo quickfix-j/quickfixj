@@ -988,7 +988,7 @@ public class MessageTest extends TestCase {
         assertEquals("AllocACC2", field.getValue());
         assertTrue(i.hasNext());
         field = (StringField) i.next();
-        assertEquals("2020.2", field.getValue());
+        assertEquals("2020.20", field.getValue());
         assertTrue(!i.hasNext());
 
         try {
@@ -1012,31 +1012,21 @@ public class MessageTest extends TestCase {
 
     private void assertAllocation(String accountId, Object shares) {
         if (accountId.equals("AllocACC1")) {
-            assertTrue(equals(1010.10, shares));
+            assertEquals("got shares: " + shares, 0, new BigDecimal("1010.10").compareTo(new BigDecimal(shares.toString())));
         } else if (accountId.equals("AllocACC2")) {
-            assertTrue(equals(2020.20, shares));
+            assertEquals("got shares: " + shares, 0, new BigDecimal("2020.20").compareTo(new BigDecimal(shares.toString())));
         } else {
             fail("Unknown account");
         }
     }
 
-    private boolean equals(double expected, Object actual) {
-        if (actual instanceof Double) {
-            return ((Double) actual).compareTo(expected) == 0;
-        } else {
-            // BigDecimal
-            return ((BigDecimal) actual).compareTo(new BigDecimal(expected)) == 0;
-        }
-
-    }
-
     private NewOrderSingle.NoAllocs setUpGroups(Message message) {
         NewOrderSingle.NoAllocs numAllocs = new NewOrderSingle.NoAllocs();
         numAllocs.set(new AllocAccount("AllocACC1"));
-        numAllocs.set(new AllocShares(1010.10));
+        numAllocs.setField(new StringField(AllocShares.FIELD, "1010.10"));
         message.addGroup(numAllocs);
-        numAllocs.set(new AllocAccount("AllocACC2"));
-        numAllocs.set(new AllocShares(2020.20));
+        numAllocs.setField(new AllocAccount("AllocACC2"));
+        numAllocs.setField(new StringField(AllocShares.FIELD, "2020.20"));
         message.addGroup(numAllocs);
         return numAllocs;
     }

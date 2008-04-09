@@ -26,12 +26,12 @@ import quickfix.FieldConvertError;
 public class DecimalConverter {
     /**
      * Converts a double to a string with no padding.
-     * @param d the double to convert
-     * @return the formatted String representing the double.
+     * @param d the BigDecimal to convert
+     * @return the formatted String representing the incoming decimal.
      * @see #convert(BigDecimal, int)
      */
     public static String convert(BigDecimal d) {
-        return convert(d, 0);
+        return d.toPlainString();
     }
 
     /**

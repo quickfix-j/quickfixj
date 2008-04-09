@@ -19,6 +19,7 @@
 
 package quickfix.examples.banzai;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Observable;
@@ -203,23 +204,23 @@ public class BanzaiApplication implements Application {
             return;
         }
 
-        double fillSize = 0;
+        BigDecimal fillSize = BigDecimal.ZERO;
 
         try {
             LastShares lastShares = new LastShares();
             message.getField(lastShares);
-            fillSize = lastShares.getValue();
+            fillSize = new BigDecimal(""+lastShares.getValue());
         } catch (FieldNotFound e) {
             // FIX 4.0
             LeavesQty leavesQty = new LeavesQty();
             message.getField(leavesQty);
-            fillSize = order.getQuantity() - leavesQty.getValue();
+            fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal(""+leavesQty.getValue()));
         }
 
-        if (fillSize > 0) {
-            order.setOpen((int)(order.getOpen() - fillSize));
-            order.setExecuted((int) message.getField(new CumQty()).getValue());
-            order.setAvgPx(message.getField(new AvgPx()).getValue());
+        if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
+            order.setOpen(order.getOpen() - (int) Double.parseDouble(fillSize.toPlainString()));
+            order.setExecuted(new Integer(message.getString(CumQty.FIELD)));
+            order.setAvgPx(new Double(message.getString(AvgPx.FIELD)));
         }
         
         OrdStatus ordStatus = (OrdStatus) message.getField(new OrdStatus());
@@ -245,11 +246,11 @@ public class BanzaiApplication implements Application {
         orderTableModel.updateOrder(order, message.getField(new ClOrdID()).getValue());
         observableOrder.update(order);
 
-        if (fillSize > 0) {
+        if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             Execution execution = new Execution();
             execution.setExchangeID(sessionID + message.getField(new ExecID()).getValue());
             execution.setSymbol(message.getField(new Symbol()).getValue());
-            execution.setQuantity((int) fillSize);
+            execution.setQuantity(fillSize.intValue());
             if (message.isSetField(LastPx.FIELD)) {
                 execution.setPrice(message.getField(new LastPx()).getValue());
             }
