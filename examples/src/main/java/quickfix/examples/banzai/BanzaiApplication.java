@@ -249,10 +249,11 @@ public class BanzaiApplication implements Application {
         if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             Execution execution = new Execution();
             execution.setExchangeID(sessionID + message.getField(new ExecID()).getValue());
+            
             execution.setSymbol(message.getField(new Symbol()).getValue());
             execution.setQuantity(fillSize.intValue());
             if (message.isSetField(LastPx.FIELD)) {
-                execution.setPrice(message.getField(new LastPx()).getValue());
+                execution.setPrice(new Double(message.getString(LastPx.FIELD)));
             }
             Side side = (Side) message.getField(new Side());
             execution.setSide(FIXSideToSide(side));
