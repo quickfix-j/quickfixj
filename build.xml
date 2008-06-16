@@ -243,7 +243,7 @@
 		<sequential>
 			<condition property="dirs.exist">
 				<and>
-					<available file="@{dir}/quickfixj/bin"/>
+					<available file="@{dir}/quickfixj/bin" />
 					<available file="@{dir}/quickfixj/doc/api"/>
 					<available file="@{dir}/quickfixj/doc/usermanual"/>
 					<available file="@{dir}/quickfixj/etc/FIX40.xml"/>
@@ -331,6 +331,7 @@
 			</fileset>
 		</copy>
 		
+		<retrotranslate-jar jar="quickfixj-all-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-core-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-examples-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-msg-fix40-${version}.jar"/>
