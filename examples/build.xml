@@ -14,7 +14,7 @@
 	<property name="target.classes.dir" value="${target.dir}/classes"/>
 	<property name="main.classes.dir" value="${target.classes.dir}/main" />
 	<property name="jar.output.dir" value="${target.dir}" />
-    <property name="jar.output.file" value="quickfixj-examples.jar"/>
+    <property name="jar.output.file" value="quickfixj-examples-${version}.jar"/>
 
 	<path id="compile.classpath">
 		<fileset dir="../core/src/main/lib">
@@ -65,7 +65,7 @@
 			<include name="*.jar"/>
 		</fileset>
 		<fileset dir="../examples/target">
-			<include name="quickfixj-examples.jar"/>
+			<include name="${jar.output.file}"/>
 		</fileset>
 	</path>
 
@@ -76,8 +76,9 @@
 		<fileset dir="../core/src/main/lib/java4/optional">
 			<include name="mx4j*.jar"/>
 		</fileset>
+		<pathelement location="${jar.output.file}"/>
 		<fileset dir="../examples/target">
-			<include name="quickfixj-examples.jar"/>
+			<include name="${jar.output.file}"/>
 		</fileset>
 		<fileset dir="../core/target">
 			<include name="*.jar"/>
