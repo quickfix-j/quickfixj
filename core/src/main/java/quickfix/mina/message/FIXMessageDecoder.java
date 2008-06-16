@@ -248,11 +248,36 @@ public class FIXMessageDecoder implements MessageDecoder {
         position = recoveryPosition;
         state = SEEKING_HEADER;
         bodyLength = 0;
+        
+        text = appendDebugInformation(buffer, text); 
+        
         if (disconnect) {
             throw new CriticalProtocolCodecException(text);
         } else {
             log.error(text);
         }
+    }
+
+    private String appendDebugInformation(ByteBuffer buffer, String text) {
+        int mark = buffer.position();
+        try {
+            StringBuilder sb = new StringBuilder(text);
+            sb.append("\nBuffer debug info: ").append(getBufferDebugInfo(buffer));
+            buffer.position(0);
+            sb.append("\nBuffer contents: ");
+            try {
+                final byte[] array = new byte[buffer.limit()];
+                for(int i = 0; i < array.length; ++i)
+                    array[i] = buffer.get();
+                sb.append(new String(array, "ISO-8859-1"));
+            } catch (Exception e) {
+                sb.append(buffer.getHexDump());
+            }
+            text = sb.toString();
+        } finally {
+            buffer.position(mark);
+        }
+        return text;
     }
 
     private boolean isLogon(ByteBuffer buffer) {
