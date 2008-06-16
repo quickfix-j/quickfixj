@@ -69,7 +69,6 @@
 				<include name="**/*.java" />
 			</fileset>
 		</jalopy>
-
 	</target>
 
 
@@ -91,6 +90,7 @@
 	</target>
 
 	<property name="javac.debug" value="true" />
+
 	<property name="javac.args" value="" />
 	<!-- overridden by CruiseControl on command line -->
 
@@ -113,8 +113,8 @@
 	Build JAR
 	================================================================= -->
 
-	<property name="quickfixj.jar" value="quickfixj-core.jar" />
-	<property name="quickfixj.msg.jar-prefix" value="quickfixj-msg" />
+	<property name="quickfixj.core.jar" value="quickfixj-core-${version}.jar" />
+	<property name="quickfixj.all.jar" value="quickfixj-all-${version}.jar" />
 
 	<target name="jar" description="build jar files" depends="compile">
 		<mkdir dir="${target.dir}" />
@@ -123,7 +123,7 @@
 			<attribute name="Implementation-Title" value="QuickFIX/J Core" />
 			<attribute name="Implementation-Version" value="${version}" />
 		</manifest>
-		<jar destfile="${jar.output.dir}/${quickfixj.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
+		<jar destfile="${jar.output.dir}/${quickfixj.core.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
 			<fileset dir="${main.classes.dir}">
 				<exclude name="quickfix/fix4?/**" />
 			</fileset>
@@ -134,22 +134,30 @@
 				<include name="**/*.cert" />
 			</fileset>
 		</jar>
-		<create-message-jar version="40" />
-		<create-message-jar version="41" />
-		<create-message-jar version="42" />
-		<create-message-jar version="43" />
-		<create-message-jar version="44" />
+		<jar destfile="${jar.output.dir}/${quickfixj.all.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
+			<fileset dir="${main.classes.dir}"/>
+			<fileset dir="${main.resources.dir}"/>
+			<fileset dir="${main.src.dir}">
+				<include name="**/*.cert" />
+			</fileset>
+		</jar>
+		<create-message-jar fixVersion="40" />
+		<create-message-jar fixVersion="41" />
+		<create-message-jar fixVersion="42" />
+		<create-message-jar fixVersion="43" />
+		<create-message-jar fixVersion="44" />
 	</target>
 
 	<macrodef name="create-message-jar">
-		<attribute name="version" />
+		<attribute name="fixVersion" />
 		<sequential>
-			<jar destfile="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix@{version}.jar" manifest="${jar.output.dir}/MANIFEST.MF">
+			<jar destfile="${jar.output.dir}/quickfixj-msg-fix@{fixVersion}-${version}.jar" 
+				manifest="${jar.output.dir}/MANIFEST.MF">
 				<fileset dir="${main.resources.dir}">
-					<include name="FIX@{version}.xml" />
+					<include name="FIX@{fixVersion}.xml" />
 				</fileset>
 				<fileset dir="${main.classes.dir}">
-					<include name="quickfix/fix@{version}/**" />
+					<include name="quickfix/fix@{fixVersion}/**" />
 				</fileset>
 			</jar>
 		</sequential>
@@ -193,6 +201,7 @@
 				<isset property="atests.uptodate" />
 			</and>
 		</condition>
+
 	</target>
 
 	<target name="test.init">
@@ -238,6 +247,7 @@
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>
+
 		</junit>
 	</target>
 
@@ -257,6 +267,7 @@
 	<!-- Run Acceptance Tests -->
 
 	<property name="atest.fork" value="yes" />
+
 	<property name="atest.showoutput" value="yes" />
 	<property name="atest.skipslow" value="false" />
 	<property name="atest.classname" value="quickfix.test.acceptance.AcceptanceTestSuite" />
@@ -266,6 +277,7 @@
 	<property name="atest.timeout" value="60000" />
 	<property name="atest.reconnectDelay" value="5" />
 	<property name="atest.skipslow" value="false" />
+
 	<property name="atest.timestamp" value="${target.dir}/test/.atest_timestamp" />
 
 	<target name="check.atests.uptodate">
@@ -274,7 +286,6 @@
 			<srcfiles dir="${main.classes.dir}" includes="**/*" />
 		</uptodate>
 	</target>
-
 
 	<target name="test.acceptance" description="run acceptance tests" depends="jar,check.atests.uptodate,test.acceptance.junit" />
 
@@ -305,6 +316,7 @@
 	<target name="javadoc" depends="check.javadoc.uptodate" unless="javadoc.uptodate" description="generate Javadocs">
 		<description>Generate the Javadocs for the main sources.</description>
 		<mkdir dir="${javadoc.output.dir}" />
+
 		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html" noindex="yes" stylesheetfile="${javadoc.input.dir}/javadoc.css" destdir="${javadoc.output.dir}" protected="yes" maxmemory="256m" breakiterator="yes" classpathref="compile.classpath">
 			<sourcepath>
 				<pathelement location="${main.src.dir}" />
@@ -323,6 +335,7 @@
 				<include name="quickfix/field" />
 				<include name="quickfix/fix*" />
 			</packageset>
+
 		</javadoc>
 	</target>
 
@@ -390,18 +403,17 @@
 	</path>
 
 	<path id="test.classpath">
-		<pathelement location="${jar.output.dir}/${quickfixj.jar}" />
-		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix40.jar" />
-		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix41.jar" />
-		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix42.jar" />
-		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix43.jar" />
-		<pathelement location="${jar.output.dir}/${quickfixj.msg.jar-prefix}-fix44.jar" />
+		<pathelement location="${jar.output.dir}/${quickfixj.core.jar}" />
+		<fileset dir="${jar.output.dir}">
+			<include name="quickfixj-msg-fix4*-${version}.jar"/>
+		</fileset>
 		<pathelement location="${test.classes.dir}" />
 		<pathelement location="${test.src.dir}" />
 		<!-- for FIX_Custom*.xml -->
 		<path refid="main.lib.classpath" />
 		<path refid="main.optional.lib.classpath" />
 		<path refid="test.lib.classpath" />
+
 	</path>
 
 	<path id="main.src.path">
