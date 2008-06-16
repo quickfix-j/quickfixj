@@ -331,13 +331,13 @@
 			</fileset>
 		</copy>
 		
-		<retrotranslate-jar jar="quickfixj-core.jar"/>
-		<retrotranslate-jar jar="quickfixj-examples.jar"/>
-		<retrotranslate-jar jar="quickfixj-msg-fix40.jar"/>
-		<retrotranslate-jar jar="quickfixj-msg-fix41.jar"/>
-		<retrotranslate-jar jar="quickfixj-msg-fix42.jar"/>
-		<retrotranslate-jar jar="quickfixj-msg-fix43.jar"/>
-		<retrotranslate-jar jar="quickfixj-msg-fix44.jar"/>
+		<retrotranslate-jar jar="quickfixj-core-${version}.jar"/>
+		<retrotranslate-jar jar="quickfixj-examples-${version}.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix40-${version}.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix41-${version}.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix42-${version}.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix43-${version}.jar"/>
+		<retrotranslate-jar jar="quickfixj-msg-fix44-${version}.jar"/>
 		
 		<!-- Create and do basic testing on binary archives -->
 
