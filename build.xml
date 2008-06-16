@@ -121,7 +121,7 @@
 			<format property="timestamp" pattern="yyyyMMddHHmmss" />
 		</tstamp>
 		<property name="release.prefix" value="quickfixj-${timestamp}" />
-		<property name="version" value="SNAPSHOT ${timestamp}"/>
+		<property name="version" value="SNAPSHOT-${timestamp}"/>
 	</target>
 
 	<target name="release.versioned"
@@ -263,7 +263,7 @@
 					<available file="@{dir}/quickfixj/quickfixj-msg-fix42-${version}.jar"/>
 					<available file="@{dir}/quickfixj/quickfixj-msg-fix43-${version}.jar"/>
 					<available file="@{dir}/quickfixj/quickfixj-msg-fix44-${version}.jar"/>
-					<available file="@{dir}/quickfixj/quickfixj-examples.jar"/>
+					<available file="@{dir}/quickfixj/quickfixj-examples-${version}.jar"/>
 					<available file="@{dir}/quickfixj/src.zip"/>
 					<available file="@{dir}/quickfixj/LICENSE"/>
 				</and>
