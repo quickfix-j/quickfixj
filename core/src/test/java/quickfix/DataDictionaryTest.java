@@ -283,7 +283,14 @@ public class DataDictionaryTest extends TestCase {
         // Invalid field for this message
         newSingle.setField(new LastMkt("FOO"));
 
-        DataDictionary dictionary = new DataDictionary(getDictionary());
+        final DataDictionary dictionary = new DataDictionary(getDictionary());
+
+        new ExpectedTestFailure(FieldException.class, "field=") {
+            protected void execute() throws Throwable {
+                dictionary.validate(newSingle);
+            }
+        }.run();
+
         dictionary.setAllowUnknownMessageFields(true);
         dictionary.validate(newSingle);
     }
