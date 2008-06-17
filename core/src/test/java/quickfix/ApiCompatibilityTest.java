@@ -49,7 +49,7 @@ public class ApiCompatibilityTest {
 
     static {
         testedDirectories.add("quickfix");
-        testedDirectories.add("quickfix/fields");
+        testedDirectories.add("quickfix/field");
         testedDirectories.add("quickfix/fix40");
         testedDirectories.add("quickfix/fix41");
         testedDirectories.add("quickfix/fix42");

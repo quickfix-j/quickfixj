@@ -141,6 +141,10 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
   </xsl:when>
   <xsl:when test="../@type='INT'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>; 
   </xsl:when>
+  <xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+  </xsl:when>   
+  <xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+  </xsl:when>   
   <xsl:otherwise>public static final char <xsl:value-of select="@description"/> = '<xsl:value-of select="@enum"/>'; 
   </xsl:otherwise>
 </xsl:choose>

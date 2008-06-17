@@ -815,7 +815,7 @@
       <value enum="N" description="SEQUENCE_RESET_IGNORE_MSGSEQNUM"/>
     </field>
     <field number="124" name="NoExecs" type="INT"/>
-    <field number="125" name="CxlType" type="STRING">
+    <field number="125" name="CxlType" type="CHAR">
       <value enum="P" description="PARTIAL_CANCEL"/>
       <value enum="F" description="FULL_REMAINING_QUANTITY"/>
     </field>
