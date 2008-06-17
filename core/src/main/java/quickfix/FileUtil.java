@@ -114,6 +114,7 @@ public class FileUtil {
                 if (contextClassLoader != null) {
                     in = contextClassLoader.getResourceAsStream(name);
                 }
+                break;
             case CLASS_RESOURCE:
                 if (clazz != null) {
                     in = clazz.getResourceAsStream(name);
@@ -132,6 +133,7 @@ public class FileUtil {
                 } catch (IOException e) {
                     // ignore
                 }
+                break;
             }
             if (in != null) {
                 break;
