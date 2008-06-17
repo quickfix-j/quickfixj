@@ -212,6 +212,12 @@ public class Session {
      */
     public static final String USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
 
+    /**
+     * Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
+     * (not user defined fields)
+     */
+    public static final String SETTING_ALLOW_UNKNOWN_MSG_FIELDS = "AllowUnknownMsgFields";
+
     // @GuardedBy(sessions)
     private static final Map<SessionID, Session> sessions = new HashMap<SessionID, Session>();
 
@@ -257,6 +263,7 @@ public class Session {
     
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
+
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionary dataDictionary, SessionSchedule sessionSchedule, LogFactory logFactory,

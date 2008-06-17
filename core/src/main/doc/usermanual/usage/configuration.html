@@ -262,6 +262,14 @@
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD>AllowUnknownMsgFields</TD>
+    <TD>Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
+     (not user defined fields). Use ValidateUserDefinedFields for controlling validation of tags >= 5000.</TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>CheckCompID</I> </TD>
     <TD> If set to Y, messages must be received from the counterparty with the correct SenderCompID and TargetCompID. Some systems will send you different CompIDs by design, so you must set this to N. </TD>
     <TD> Y<br>N</TD>

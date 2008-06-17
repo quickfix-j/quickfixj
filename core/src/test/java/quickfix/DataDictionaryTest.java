@@ -25,14 +25,21 @@ import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
 import quickfix.field.Account;
+import quickfix.field.BodyLength;
+import quickfix.field.CheckSum;
 import quickfix.field.ClOrdID;
 import quickfix.field.HandlInst;
+import quickfix.field.LastMkt;
+import quickfix.field.MsgSeqNum;
 import quickfix.field.NoHops;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.Price;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
 import quickfix.field.Side;
 import quickfix.field.Symbol;
+import quickfix.field.TargetCompID;
 import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 import quickfix.util.ExpectedTestFailure;
@@ -255,6 +262,32 @@ public class DataDictionaryTest extends TestCase {
         assertTrue(dd.isFieldValue(65, "FOO"));
     }
 
+    public void testAllowUnknownFields() throws Exception {
+        final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(
+                        OrdType.LIMIT));
+        newSingle.getHeader().setField(new SenderCompID("SENDER"));
+        newSingle.getHeader().setField(new TargetCompID("TARGET"));
+        newSingle.getHeader().setField(new BodyLength(100));
+        newSingle.getHeader().setField(new MsgSeqNum(25));
+        newSingle.getHeader().setField(new SendingTime());
+        newSingle.getTrailer().setField(new CheckSum("100"));
+        newSingle.setField(new OrderQty(42));
+        newSingle.setField(new Price(42.37));
+        newSingle.setField(new HandlInst());
+        newSingle.setField(new Symbol("QFJ"));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
+        newSingle.setField(new TimeInForce(TimeInForce.DAY));
+        newSingle.setField(new Account("testAccount"));
+        
+        // Invalid field for this message
+        newSingle.setField(new LastMkt("FOO"));
+
+        DataDictionary dictionary = new DataDictionary(getDictionary());
+        dictionary.setAllowUnknownMessageFields(true);
+        dictionary.validate(newSingle);
+    }
+    
     //
     // Group Validation Tests in RepeatingGroupTest
     //

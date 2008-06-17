@@ -106,6 +106,11 @@ public class DefaultSessionFactory implements SessionFactory {
                     dataDictionary.setCheckUserDefinedFields(settings.getBool(sessionID,
                             Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
                 }
+                
+                if (settings.isSetting(sessionID, Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS)) {
+                    dataDictionary.setAllowUnknownMessageFields(settings.getBool(sessionID,
+                            Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
+                }
             }
 
             int heartbeatInterval = 0;

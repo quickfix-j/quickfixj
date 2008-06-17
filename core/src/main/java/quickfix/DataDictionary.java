@@ -69,6 +69,7 @@ public class DataDictionary {
     private boolean checkFieldsOutOfOrder = true;
     private boolean checkFieldsHaveValues = true;
     private boolean checkUserDefinedFields = true;
+    private boolean allowUnknownMessageFields = false;
     private String beginString;
     private Map<String, Set<Integer>> messageFields = new HashMap<String, Set<Integer>>();
     private Map<String, Set<Integer>> requiredFields = new HashMap<String, Set<Integer>>();
@@ -717,7 +718,7 @@ public class DataDictionary {
 
     // / Check if a field is in this message type.
     private void checkIsInMessage(Field<?> field, String msgType) {
-        if (!isMsgField(msgType, field.getField())) {
+        if (!isMsgField(msgType, field.getField()) && !allowUnknownMessageFields) {
             throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE,
                     field.getField());
         }
@@ -1219,5 +1220,9 @@ public class DataDictionary {
         public int hashCode() {
             return delimeterField;
         }
+    }
+    
+    public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
+        this.allowUnknownMessageFields = allowUnknownFields;
     }
 }
