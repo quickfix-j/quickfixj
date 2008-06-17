@@ -22,14 +22,20 @@ package quickfix;
 import static quickfix.JdbcSetting.SETTING_JDBC_DS_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME;
-import static quickfix.JdbcTestSupport.*;
-import static quickfix.JdbcUtil.*;
+import static quickfix.JdbcTestSupport.HSQL_CONNECTION_URL;
+import static quickfix.JdbcTestSupport.HSQL_DRIVER;
+import static quickfix.JdbcTestSupport.HSQL_USER;
+import static quickfix.JdbcTestSupport.assertNoActiveConnections;
+import static quickfix.JdbcTestSupport.dropTable;
+import static quickfix.JdbcTestSupport.loadSQL;
+import static quickfix.JdbcUtil.close;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -153,4 +159,15 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         return JdbcStore.class;
     }
 
+    public void testMessageUpdate() throws Exception {
+        JdbcStore store = (JdbcStore) getMessageStoreFactory().create(getSessionID());
+        store.reset();
+
+        assertTrue(store.set(1, "MESSAGE1"));
+        assertTrue(store.set(1, "MESSAGE2"));
+
+        List<String> messages = new ArrayList<String>();
+        store.get(1, 1, messages);
+        assertEquals("MESSAGE2", messages.get(0));
+    }
 }

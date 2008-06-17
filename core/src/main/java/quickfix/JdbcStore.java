@@ -45,7 +45,7 @@ class JdbcStore implements MessageStore {
     private String SQL_UPDATE_SEQNUMS;
     private String SQL_INSERT_SESSION;
     private String SQL_GET_SEQNUMS;
-    private String INSERT_UPDATE_MESSAGE;
+    private String SQL_UPDATE_MESSAGE;
     private String SQL_INSERT_MESSAGE;
     private String SQL_GET_MESSAGES;
     private String SQL_UPDATE_SESSION;
@@ -101,7 +101,7 @@ class JdbcStore implements MessageStore {
         SQL_GET_SEQNUMS = "SELECT creation_time, incoming_seqnum, outgoing_seqnum FROM "
                 + sessionTableName + " WHERE " + idWhereClause;
 
-        INSERT_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? " + "WHERE "
+        SQL_UPDATE_MESSAGE = "UPDATE " + messageTableName + " SET message=? " + "WHERE "
                 + idWhereClause + " and msgseqnum=?";
 
         SQL_INSERT_MESSAGE = "INSERT INTO " + messageTableName + " (" + idColumns
@@ -242,12 +242,12 @@ class JdbcStore implements MessageStore {
             if (connection != null) {
                 PreparedStatement update = null;
                 try {
-                    update = connection.prepareStatement(INSERT_UPDATE_MESSAGE);
-                    int offset = setSessionIdParameters(update, 1);
-                    update.setInt(offset++, sequence);
-                    update.setString(offset, message);
-                    update.execute();
-                    return false;
+                    update = connection.prepareStatement(SQL_UPDATE_MESSAGE);
+                    update.setString(1, message);
+                    int offset = setSessionIdParameters(update, 2);
+                    update.setInt(offset, sequence);
+                    boolean status = update.execute();
+                    return !status ? update.getUpdateCount() > 0 : false;
                 } catch (SQLException e) {
                     throw (IOException) new IOException(e.getMessage()).initCause(e);
                 } finally {
