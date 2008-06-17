@@ -237,13 +237,15 @@ public class DataDictionaryTest extends TestCase {
     public void testDictionaryInClassPath() throws Exception {
         URLClassLoader customClassLoader = new URLClassLoader(new URL[] { new URL("file:etc") },
                 getClass().getClassLoader());
-        Thread.currentThread().setContextClassLoader(customClassLoader);
+        Thread currentThread = Thread.currentThread();
+        ClassLoader previousContextClassLoader = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader(customClassLoader);
         try {
             DataDictionary dd = new DataDictionary("FIX40.xml");
             assertEquals("wrong field name", "Currency", dd.getFieldName(15));
             // It worked!
         } finally {
-            Thread.currentThread().setContextClassLoader(null);
+            currentThread.setContextClassLoader(previousContextClassLoader);
         }
     }
 
