@@ -29,11 +29,16 @@ public class ObjectNameFactory {
             if (sb.length() > 0) {
                 sb.append(',');
             }
-            sb.append(name).append('=').append(value);
+            sb.append(name).append('=').append(
+                    isQuotingNeeded(value) ? ObjectName.quote(value) : value);
         }
     }
 
     public ObjectName createName() throws MalformedObjectNameException {
         return ObjectName.getInstance("org.quickfixj:" + sb);
+    }
+
+    private boolean isQuotingNeeded(String data) {
+        return data.matches(".*[,=:\"\\*\\?].*");
     }
 }
