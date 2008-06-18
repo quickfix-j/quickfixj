@@ -69,6 +69,13 @@ public class FieldType {
         return type != null ? type : FieldType.Unknown;
     }
 
+    
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[" + getName() + "," + getJavaType() + "," + getOrdinal() + "]";
+    }
+
+
     public final static FieldType Unknown = new FieldType("UNKNOWN");
     public final static FieldType String = new FieldType("STRING");
     public final static FieldType Char = new FieldType("CHAR");
