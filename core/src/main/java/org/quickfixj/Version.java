@@ -21,10 +21,11 @@ package org.quickfixj;
 
 public class Version {
     public static void main(String[] args) {
-        // The version is stored as an attribute in the QFJ JAR file.
-        // If this program is run outside of a JAR file with the appropriate
-        // manifest file, the reported version will be "undefined".
+        System.out.println(getVersion());
+    }
+
+    public static String getVersion() {
         String v = Version.class.getPackage().getImplementationVersion();
-        System.out.println("Version: " + (v != null ? v : "undefined"));
+        return "Version: " + (v != null ? v : "undefined");
     }
 }

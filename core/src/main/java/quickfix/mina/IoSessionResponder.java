@@ -35,8 +35,7 @@ public class IoSessionResponder implements Responder {
     }
 
     public boolean send(String data) {
-        ioSession.write(data);
-        return true;
+        return ioSession.write(data).isWritten();
     }
 
     public void disconnect() {
