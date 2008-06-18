@@ -24,14 +24,21 @@ import java.net.InetSocketAddress;
 import junit.framework.TestCase;
 
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.WriteFuture;
 import org.easymock.MockControl;
 
 public class IoSessionResponderTest extends TestCase {
     public void testSend() throws Exception {
         MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
         IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
+        
+        MockControl mockWriteFutureControl = MockControl.createControl(WriteFuture.class);
+        WriteFuture mockWriteFuture = (WriteFuture) mockWriteFutureControl.getMock();
+        mockWriteFuture.isWritten();
+        mockWriteFutureControl.setReturnValue(true);
+        
         mockIoSession.write("abcd");
-        mockIoSessionControl.setReturnValue(null);
+        mockIoSessionControl.setReturnValue(mockWriteFuture);
 
         IoSessionResponder responder = new IoSessionResponder(mockIoSession);
 
