@@ -39,6 +39,7 @@ public class FieldConvertersTest extends TestCase {
     public void testIntegerConversion() throws Exception {
         assertEquals("123", IntConverter.convert(123));
         assertEquals(123, IntConverter.convert("123"));
+        assertEquals(-1, IntConverter.convert("-1"));
         try {
             IntConverter.convert("abc");
             fail();

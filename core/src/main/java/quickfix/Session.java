@@ -1145,7 +1145,7 @@ public class Session {
         state.incrNextTargetMsgSeqNum();
 
         String reason = BusinessRejectReasonText.getMessage(err);
-        setRejectReason(reject, field, reason, false);
+        setRejectReason(reject, field, reason, field != 0);
         getLog().onEvent(
                 "Message " + msgSeqNum + (reason != null ? (" Rejected: " + reason) : "")
                         + (field != 0 ? (": tag=" + field) : ""));
@@ -1777,11 +1777,12 @@ public class Session {
     private boolean send(String messageString) {
         getLog().onOutgoing(messageString);
         synchronized (responderSync) {
-        if (!hasResponder()) {
-            getLog().onEvent("No responder, not sending message");
-            return false;
-        }
-        return getResponder().send(messageString);
+            if (!hasResponder()) {
+                getLog().onEvent(
+                        "Attempt to send while not connected (message stored until connected).");
+                return false;
+            }
+            return getResponder().send(messageString);
         }
     }
 
