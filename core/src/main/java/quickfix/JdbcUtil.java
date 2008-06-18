@@ -79,6 +79,7 @@ class JdbcUtil {
             ds.setMaximumActiveTime(5000);
             ds.setMaximumConnectionLifetime(28800000);
             ds.setMaximumConnectionCount(10);
+            ds.setSimultaneousBuildThrottle(10);
 
             if (cache) {
                 dataSources.put(key, ds);
