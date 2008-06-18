@@ -49,16 +49,17 @@ import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLSupport;
 
 public class IoSessionInitiator {
+    private final static long CONNECT_POLL_TIMEOUT = 2000L;
     private final ScheduledExecutorService executor;
     private final ConnectTask reconnectTask;
 
     private Future<?> reconnectFuture;
 
     public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
-                              long reconnectIntervalInSeconds, ScheduledExecutorService executor,
-                              NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
-                              IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled,
-                              String keyStoreName, String keyStorePassword) throws ConfigError {
+            long reconnectIntervalInSeconds, ScheduledExecutorService executor,
+            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
+            IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
+            String keyStorePassword) throws ConfigError {
         this.executor = executor;
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, userIoFilterChainBuilder,
@@ -83,13 +84,13 @@ public class IoSessionInitiator {
         private long lastConnectTime;
         private int nextSocketAddressIndex;
         private int connectionFailureCount;
+        private ConnectFuture connectFuture;
 
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
-                           IoFilterChainBuilder userIoFilterChainBuilder, Session quickfixSession,
-                           long reconnectIntervalInMillis, NetworkingOptions networkingOptions,
-                           EventHandlingStrategy eventHandlingStrategy,
-                           String keyStoreName, String keyStorePassword) throws ConfigError,
-                GeneralSecurityException {
+                IoFilterChainBuilder userIoFilterChainBuilder, Session quickfixSession,
+                long reconnectIntervalInMillis, NetworkingOptions networkingOptions,
+                EventHandlingStrategy eventHandlingStrategy, String keyStoreName,
+                String keyStorePassword) throws ConfigError, GeneralSecurityException {
             this.socketAddresses = socketAddresses;
             this.quickfixSession = quickfixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
@@ -115,51 +116,78 @@ public class IoSessionInitiator {
 
         private void installSSLFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
-            SSLFilter sslFilter = new SSLFilter(SSLContextFactory.getInstance(keyStoreName, keyStorePassword.toCharArray()));
+            SSLFilter sslFilter = new SSLFilter(SSLContextFactory.getInstance(keyStoreName,
+                    keyStorePassword.toCharArray()));
             sslFilter.setUseClientMode(true);
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
         }
 
         public synchronized void run() {
-            if (shouldReconnect()) {
-                connect();
+            if (connectFuture == null) {
+                if (shouldReconnect()) {
+                    connect();
+                }
+            } else {
+                pollConnectFuture();
             }
         }
 
         private void connect() {
             lastReconnectAttemptTime = SystemTime.currentTimeMillis();
+            SocketAddress nextSocketAddress = getNextSocketAddress();
             try {
-                final SocketAddress nextSocketAddress = getNextSocketAddress();
-                ConnectFuture connectFuture = ioConnector.connect(nextSocketAddress, ioHandler);
-                connectFuture.join();
-                ioSession = connectFuture.getSession();
-                connectionFailureCount = 0;
-                lastConnectTime = System.currentTimeMillis();
+                connectFuture = ioConnector.connect(nextSocketAddress, ioHandler);
+                pollConnectFuture();
             } catch (Throwable e) {
-                while (e.getCause() != null) {
-                    e = e.getCause();
-                }
-				if ((e instanceof IOException) && (e.getMessage() != null)) {
-                    quickfixSession.getLog().onEvent(e.getMessage());
-                } else {
-                    String msg = "Exception during connection";
-                    LogUtil.logThrowable(quickfixSession.getLog(), msg, e);
-                }
-                connectionFailureCount++;
+                handleConnectException(e);
             }
+        }
+
+        private void pollConnectFuture() {
+            try {
+                connectFuture.join(CONNECT_POLL_TIMEOUT);
+                if (connectFuture.getSession() != null) {
+                    ioSession = connectFuture.getSession();
+                    connectionFailureCount = 0;
+                    lastConnectTime = System.currentTimeMillis();
+                    connectFuture = null;
+                } else {
+                    quickfixSession.getLog().onEvent(
+                            "Pending connection not established after "
+                                    + (System.currentTimeMillis() - lastReconnectAttemptTime)
+                                    + " ms.");
+                }
+            } catch (Throwable e) {
+                handleConnectException(e);
+            }
+        }
+
+        private void handleConnectException(Throwable e) {
+            while (e.getCause() != null) {
+                e = e.getCause();
+            }
+            if ((e instanceof IOException) && (e.getMessage() != null)) {
+                quickfixSession.getLog().onEvent(e.getMessage());
+            } else {
+                String msg = "Exception during connection";
+                LogUtil.logThrowable(quickfixSession.getLog(), msg, e);
+            }
+            connectionFailureCount++;
+            connectFuture = null;
         }
 
         private SocketAddress getNextSocketAddress() {
             SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
-            
+
             // QFJ-266 Recreate socket address for unresolved addresses
             if (socketAddress instanceof InetSocketAddress) {
                 InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
                 if (inetAddr.isUnresolved()) {
-                    socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr.getPort());
+                    socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr
+                            .getPort());
                     socketAddresses[nextSocketAddressIndex] = socketAddress;
                 }
-            } 
+            }
             nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
             return socketAddress;
         }
@@ -172,17 +200,17 @@ public class IoSessionInitiator {
         private boolean isTimeForReconnect() {
             return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
         }
-        
+
         // TODO JMX Expose reconnect property
-        
+
         public synchronized int getConnectionFailureCount() {
             return connectionFailureCount;
         }
-        
+
         public synchronized long getLastReconnectAttemptTime() {
             return lastReconnectAttemptTime;
         }
-        
+
         public synchronized long getLastConnectTime() {
             return lastConnectTime;
         }
@@ -191,7 +219,7 @@ public class IoSessionInitiator {
     synchronized void start() {
         if (reconnectFuture == null) {
             reconnectFuture = executor
-                    .scheduleWithFixedDelay(reconnectTask, 1, 1, TimeUnit.SECONDS);
+                    .scheduleWithFixedDelay(reconnectTask, 0, 1, TimeUnit.SECONDS);
         }
     }
 
