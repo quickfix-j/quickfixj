@@ -142,6 +142,10 @@ public abstract class FieldMap implements Serializable {
     public void setString(int field, String value) {
         setField(new StringField(field, value));
     }
+    
+    public void setBytes(int field, byte[] value) {
+        setField(field, new BytesField(field, value));
+    }
 
     public void setBoolean(int field, boolean value) {
         String s = BooleanConverter.convert(value);
@@ -333,6 +337,10 @@ public abstract class FieldMap implements Serializable {
     public void setField(UtcDateOnlyField field) {
         setUtcDateOnly(field.getField(), field.getValue());
     }
+    
+    public void setField(BytesField field) {
+        setBytes(field.getField(), field.getObject());
+    }
 
     public StringField getField(StringField field) throws FieldNotFound {
         return (StringField) getFieldInternal(field);
@@ -341,6 +349,17 @@ public abstract class FieldMap implements Serializable {
     private Field<String> getFieldInternal(Field<String> field) throws FieldNotFound {
         field.setObject(getField(field.getField()).getObject());
         return field;
+    }
+    
+    public BytesField getField(BytesField field) throws FieldNotFound {
+        Field<?> returnField = fields.get(field.getField());
+        if (returnField == null)
+            throw new FieldNotFound(field.getField());
+        else if (!(returnField instanceof BytesField))
+            throw new FieldException(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE,
+                    field.getField());
+        else
+            return (BytesField) returnField;
     }
 
     public BooleanField getField(BooleanField field) throws FieldNotFound {

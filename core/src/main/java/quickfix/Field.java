@@ -85,7 +85,11 @@ public /*abstract*/ class Field<T> implements Serializable{
     }
 
     /*package*/ void toString(StringBuffer buffer) {
-        buffer.append(tag).append('=').append(object.toString());
+        buffer.append(tag).append('=').append(objectAsString());
+    }
+
+    protected String objectAsString() {
+        return object.toString();
     }
     
     public boolean equals(Object object) {

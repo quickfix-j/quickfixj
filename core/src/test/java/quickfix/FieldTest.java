@@ -19,9 +19,11 @@
 
 package quickfix;
 
+import java.util.Arrays;
 import java.util.Date;
 
 import junit.framework.TestCase;
+import quickfix.field.RawData;
 import quickfix.field.Side;
 
 public class FieldTest extends TestCase {
@@ -168,6 +170,19 @@ public class FieldTest extends TestCase {
         field = new IntField(33, Integer.valueOf(44));
         assertEquals(33, field.getTag());
         assertEquals(44, field.getValue());
+    }
+    
+    public void testBytesField() {
+        byte[] data = "rawdata".getBytes();
+
+        BytesField field = new BytesField(RawData.FIELD);
+        field.setValue(data);
+        assertEquals(RawData.FIELD, field.getTag());
+        assertTrue(Arrays.equals(data, field.getObject()));
+        
+        StringBuffer sb = new StringBuffer();
+        field.toString(sb);
+        assertEquals("96=rawdata", sb.toString());
     }
     
     public void testFieldhashCode() throws Exception {

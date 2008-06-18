@@ -950,6 +950,15 @@ public class MessageTest extends TestCase {
         assertTrue("empty message contains no checksum", msg.toString().length() > 0);
     }
 
+    public void testMessageBytesField() throws Exception {
+        Logon logon = new Logon();
+        String data = "rawdata";
+        logon.set(new RawDataLength(data.length()));
+        logon.setField(new BytesField(RawData.FIELD, data.getBytes()));
+        //logon.set(new RawData(data));
+        assertEquals("8=FIX.4.49=2135=A95=796=rawdata10=086", logon.toString());
+    }
+    
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
