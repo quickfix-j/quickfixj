@@ -1186,6 +1186,10 @@ public class Session {
     private boolean verify(Message msg, boolean checkTooHigh, boolean checkTooLow)
             throws RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
             UnsupportedMessageType, IOException {
+
+        state.setLastReceivedTime(SystemTime.currentTimeMillis());
+        state.clearTestRequestCounter();
+
         String msgType;
         try {
             Message.Header header = msg.getHeader();
@@ -1245,9 +1249,6 @@ public class Session {
             disconnect();
             return false;
         }
-
-        state.setLastReceivedTime(SystemTime.currentTimeMillis());
-        state.clearTestRequestCounter();
 
         fromCallback(msgType, msg, sessionID);
         return true;
