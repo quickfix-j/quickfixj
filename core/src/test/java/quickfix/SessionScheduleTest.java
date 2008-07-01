@@ -637,7 +637,6 @@ public class SessionScheduleTest extends TestCase {
             if (schedule.isSessionTime()) {
                 c.set(Calendar.HOUR_OF_DAY, 16);
                 c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
                 Calendar actual = SystemTime.getUtcCalendar();
                 assertEquals("wrong start time", c.getTime(), actual.getTime());
                 break;
@@ -650,7 +649,6 @@ public class SessionScheduleTest extends TestCase {
                 c.add(Calendar.WEEK_OF_YEAR, 1);
                 c.set(Calendar.HOUR_OF_DAY, 13);
                 c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
                 Calendar actual = SystemTime.getUtcCalendar();
                 assertEquals("wrong end time", c.getTime(), actual.getTime());
                 break;
