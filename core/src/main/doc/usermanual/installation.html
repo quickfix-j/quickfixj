@@ -16,28 +16,32 @@
 <p>JVM compatible with Sun JRE Java 1.4.x or higher.</p>
 
 <h4>Required run-time libraries:</h4>
-<table cellspacing="0">
+
+<p>
+<em>(Note: The actual JAR files may have version numbers in them.)</em>
+</p>
+
+<table cellspacing="0" width="100%">
   <tr>
     <th>Library</th>
     <th>Description</th>
   </tr>
   <tr>
-    <td nowrap="nowrap">quickfixj-core.jar</td>
-    <td>Main QuickFIX/J library</td>
-  </tr>
-  <tr>
-    <td>One or more message JARs, if needed. QFJ can work without special
-    message objects by using the quickfix.Message object directly (less convenient and type
-    safe).
+    <td>The QFJ core JAR and message JARs. 
     <ul>
+    <li> quickfixj-core.jar
     <li> quickfixj-msg-fix40.jar
     <li> quickfixj-msg-fix41.jar
     <li> quickfixj-msg-fix42.jar
     <li> quickfixj-msg-fix43.jar
     <li> quickfixj-msg-fix44.jar
     </ul>
+    or
+    <ul>
+    <li> quickfixj-all.jar (includes core and message JARs)
+    </ul>
     </td>
-    <td>Version-specific FIX messages libraries</td>
+    <td>QFJ runtime libraries</td>
   </tr>
 </table>
 
@@ -54,15 +58,15 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
     <td>Socket handling (Java NIO)</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-api-1.3.0.jar</td>
+    <td nowrap="nowrap">slf4j-api.jar</td>
     <td>SLF4J library for JDK 1.4+ logging.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-jdk14-1.3.0.jar</td>
+    <td nowrap="nowrap">slf4j-jdk14.jar</td>
     <td>SLF4J library for JDK 1.4+ logging.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">backport-util-concurrent-2.1.jar</td>
+    <td nowrap="nowrap">backport-util-concurrent.jar</td>
     <td>Backport of Java 5 concurrency classes.</td>
   </tr>
 </table>
@@ -79,11 +83,11 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
     <td>Socket handling (Java NIO)</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-api-1.3.0.jar</td>
+    <td nowrap="nowrap">slf4j-api.jar</td>
     <td>SLF4J library for JDK 1.4+ logging.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-jdk14-1.3.0.jar</td>
+    <td nowrap="nowrap">slf4j-jdk14.jar</td>
     <td>SLF4J library for JDK 1.4+ logging.</td>
   </tr>
 </table>
@@ -95,27 +99,27 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
     <th>Description</th>
   </tr>
   <tr>
-    <td nowrap="nowrap">log4j-1.2.14.jar</td>
+    <td nowrap="nowrap">log4j.jar</td>
     <td>If Log4J logging is desired. The JDK logging is the default.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">slf4j-log4j12-1.3.0.jar</td>
+    <td nowrap="nowrap">slf4j-log4j12.jar</td>
     <td>Use this JAR file instead of slf4j-jdk14-1.0-rc5.jar if you want to
 	use Log4J logging.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">proxool-0.9.0RC2.jar</td>
+    <td nowrap="nowrap">proxool.jar</td>
     <td>This JAR provided database connection pooling capabilities. It is required
 		if you are using the JDBC store or log.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">jdcl104-over-slf4j-1.3.0.jar</td>
+    <td nowrap="nowrap">jdcl104-over-slf4j.jar</td>
     <td>Adapts Jakarta Commons Logging to SLF4J. Required if you are using an optional
 		library that depends on Jakarta Commons Logging. Currently, this include Proxool
 		(needed by JDBC store and log for connection pooling).</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">sleepycat-je_2.1.30.jar</td>
+    <td nowrap="nowrap">sleepycat-je.jar</td>
     <td>Needed if the SleepyCat JE message store is used.</td>
   </tr>
   <tr>
@@ -124,7 +128,7 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
     <td>Needed if SSL is used.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">mx4j-3.0.2.jar</td>
+    <td nowrap="nowrap">mx4j.jar</td>
     <td>Needed if JMX is used in Java 1.4. Not needed for Java 5+ versions.</td>
   </tr>
 </table>
@@ -177,7 +181,7 @@ There are various command-line switches you can pass to ant to modify the produc
   </tr>
   <tr>
     <td nowrap="nowrap">-Dskip.jalopy</td>
-    <td>Skip Java class reformatting during code generation </td>
+    <td>Skip Java class reformatting during code generation. This makes the build much faster.</td>
     <td>false</td>
   </tr>
 </table>
@@ -186,12 +190,15 @@ There are various command-line switches you can pass to ant to modify the produc
 <code>ant -Dgenerator.decimal=true -Dskip.jalopy=true clean test</code>
 </p>
 <h3>Eclipse IDE support:</h3>
-<p>The QuickFIX/J developers also use Eclipse to build the software. There is
-  a project definition in the top-level directory of the checked out CVS workspace.
-  In fact, if you are an experienced Eclipse developer you may want to check
-   out the project directly from Eclipse. A message generator item will be present
-	on the external tools menu for generating Java message-related classes. If you are seeing
-  compile errors related to message classes, use this tool to generate the classes.</p>
+<p>There is
+  a Eclipse project definition in the top-level directory of the checked out directory (typically the SVN trunk).
+  If you are an experienced Eclipse developer you may want to check
+   out the project directly from Eclipse and it will set up the project automatically. 
+   
+   <em style="color:red">When the project is first created, it will not have the generated message classes
+   and compile errors will occur!</em> Open the External Tools Dialog and run the "Generate
+   FIX Messages" item in the Ant Builds section. After the files have been generated, refresh
+   the project and Eclipse should build the code successfully.
 <h3>Maven Integration:</h3>
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
     the pre-built Quickfix/J libraries hosted at the <a href="http://www.marketcetera.org">Marketcetera</a>
