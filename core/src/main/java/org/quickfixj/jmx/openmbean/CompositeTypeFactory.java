@@ -23,7 +23,7 @@ import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
-// NOTE: Do not parameterize OpenType in Java6 since it will
+// NOTE: Do not parameterize OpenType for Java6 since it will
 // be incompatible with Java 5
 
 public class CompositeTypeFactory {
@@ -31,6 +31,8 @@ public class CompositeTypeFactory {
     private String description;
     private ArrayList<String> itemNames = new ArrayList<String>();
     private ArrayList<String> itemDescriptions = new ArrayList<String>();
+    
+    @SuppressWarnings("unchecked") // Java 5/6 incompatibility
     private ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
 
     public CompositeTypeFactory(String name, String description) {
@@ -38,10 +40,12 @@ public class CompositeTypeFactory {
         this.description = description;
     }
 
+    @SuppressWarnings("unchecked") // Java 5/6 incompatibility
     public void defineItem(String itemName, OpenType itemType) {
         defineItem(itemName, null, itemType);
     }
 
+    @SuppressWarnings("unchecked") // Java 5/6 incompatibility
     public void defineItem(String itemName, String itemDesc, OpenType itemType) {
         itemNames.add(itemName);
         itemDescriptions.add(itemDesc);

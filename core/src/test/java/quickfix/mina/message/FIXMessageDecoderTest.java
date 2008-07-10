@@ -25,19 +25,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
-import org.easymock.ArgumentsMatcher;
-import org.easymock.MockControl;
 import org.quickfixj.CharsetSupport;
 
 import quickfix.DataDictionaryTest;
@@ -278,7 +274,13 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
-    private ByteBuffer otherBuffer;
+    public void testFailedPatternMatchAtEndOfBuffer() throws Exception {
+        decoder = new FIXMessageDecoder("UTF-16");
+        setUpBuffer("8=FIX.4.2|9=12|35=X|108=30|1wmyadz".replace('|', '\001'));
+        MessageDecoderResult decoderResult = decoder.decode(null, buffer, decoderOutput);
+        //assertEquals("wrong decoder result", MessageDecoderResult.NOT_OK, decoderResult);
+        assertEquals("wrong decoder result", MessageDecoderResult.NEED_DATA, decoderResult);
+    }
 
     public void testMinaDemux() throws Exception {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
@@ -287,11 +289,8 @@ public class FIXMessageDecoderTest extends TestCase {
         ProtocolDecoder decoder = codecFactory.getDecoder();
         ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
 
-        final MockControl mockSessionControl = MockControl.createControl(IoSession.class);
-        final IoSession mockSession = (IoSession) mockSessionControl.getMock();
-
-        final String bufferKey = "org.apache.mina.filter.codec.CumulativeProtocolDecoder.Buffer";
-
+        final IoSessionStub mockSession = new IoSessionStub();
+        
         int count = 5;
         String data = "";
         for (int i = 0; i < count; i++) {
@@ -303,33 +302,6 @@ public class FIXMessageDecoderTest extends TestCase {
             String chunk2 = data.substring(i);
             setUpBuffer(chunk1);
 
-            mockSession.getAttribute(bufferKey);
-            mockSessionControl.setReturnValue(null, MockControl.ONE_OR_MORE);
-
-            mockSession.setAttribute(bufferKey, null);
-            mockSessionControl.setMatcher(new ArgumentsMatcher() {
-
-                public String toString(Object[] args) {
-                    return Arrays.asList(args).toString();
-                }
-
-                public boolean matches(Object[] actual, Object[] expected) {
-                    otherBuffer = (ByteBuffer) actual[1];
-                    if (otherBuffer != null) {
-                        mockSessionControl.reset();
-                        mockSession.getAttribute(bufferKey);
-                        mockSessionControl.setReturnValue(otherBuffer, MockControl.ONE_OR_MORE);
-                        mockSession.removeAttribute(bufferKey);
-                        mockSessionControl.setReturnValue(null, MockControl.ZERO_OR_MORE);
-                        mockSessionControl.replay();
-                    }
-                    return true;
-                }
-
-            });
-            mockSessionControl.setReturnValue(null, MockControl.ZERO_OR_MORE);
-            mockSessionControl.replay();
-
             decoder.decode(mockSession, buffer, output);
             buffer.compact();
 
@@ -337,11 +309,10 @@ public class FIXMessageDecoderTest extends TestCase {
             decoder.decode(mockSession, buffer, output);
 
             assertEquals("wrong message count", count, output.getMessageCount());
-
+            assertTrue(mockSession.getAttributeCalled);
+            
             output.reset();
             buffer.clear();
-            mockSessionControl.verify();
-            mockSessionControl.reset();
         }
 
     }

@@ -181,7 +181,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                         }
                         position += CHECKSUM_PATTERN.length;
                     } else {
-                        if (position + CHECKSUM_PATTERN.length < in.limit()) {
+                        if (position + CHECKSUM_PATTERN.length <= in.limit()) {
                             // FEATURE allow configurable recovery position
                             //int recoveryPosition = in.position() + 1;
                             // Following recovery position is compatible with QuickFIX C++
@@ -297,8 +297,8 @@ public class FIXMessageDecoder implements MessageDecoder {
         if (bufferOffset + data.length > buffer.limit()) {
             return false;
         }
-        for (int dataOffset = 0, bufferLimit = buffer.limit() - data.length + 1; dataOffset < data.length
-                && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
+
+        for (int dataOffset = 0; dataOffset < data.length && bufferOffset < buffer.limit(); dataOffset++, bufferOffset++) {
             if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
                 return false;
             }

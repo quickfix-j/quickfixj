@@ -19,13 +19,14 @@
 
 package quickfix.mina.acceptor;
 
+import static org.mockito.Mockito.*;
+
 import java.util.HashMap;
 import java.util.Properties;
 
 import junit.framework.TestCase;
 
 import org.apache.mina.common.IoSession;
-import org.easymock.MockControl;
 
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
@@ -39,28 +40,20 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvid
 
 public class AcceptorIoHandlerTest extends TestCase {
     public void testMessageBeforeLogon() throws Exception {
-        MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
-        IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
-        mockIoSession.getAttribute("QF_SESSION");
-        mockIoSessionControl.setReturnValue(null);
+        IoSession mockIoSession = mock(IoSession.class);
+        stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null);
 
-        MockControl mockEventHandlingStrategyControl = MockControl
-                .createControl(EventHandlingStrategy.class);
-        EventHandlingStrategy mockEventHandlingStrategy = (EventHandlingStrategy) mockEventHandlingStrategyControl
-                .getMock();
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
 
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
-        mockIoSessionControl.replay();
-        mockEventHandlingStrategyControl.replay();
-
         handler.processMessage(mockIoSession, new Logout());
 
-        mockIoSessionControl.verify();
-        mockEventHandlingStrategyControl.verify();
+        verify(mockIoSession).getAttribute("QF_SESSION");
+        verifyNoMoreInteractions(mockEventHandlingStrategy);
     }
 
     private StaticAcceptorSessionProvider createSessionProvider(HashMap<SessionID,Session> acceptorSessions) {
@@ -68,17 +61,12 @@ public class AcceptorIoHandlerTest extends TestCase {
     }
 
     public void testMessageBeforeLogonWithBoundSession() throws Exception {
-        MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
-        IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
+        IoSession mockIoSession = mock(IoSession.class);
 
         Session qfSession = SessionFactoryTestSupport.createSession();
-        mockIoSession.getAttribute("QF_SESSION");
-        mockIoSessionControl.setReturnValue(qfSession);
+        stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(qfSession);
 
-        MockControl mockEventHandlingStrategyControl = MockControl
-                .createControl(EventHandlingStrategy.class);
-        EventHandlingStrategy mockEventHandlingStrategy = (EventHandlingStrategy) mockEventHandlingStrategyControl
-                .getMock();
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
 
         Logout logout = new Logout();
         logout.getHeader()
@@ -86,33 +74,23 @@ public class AcceptorIoHandlerTest extends TestCase {
         logout.getHeader()
                 .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
 
-        mockEventHandlingStrategy.onMessage(qfSession, logout);
-
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
-        mockIoSessionControl.replay();
-        mockEventHandlingStrategyControl.replay();
-
         handler.processMessage(mockIoSession, logout);
 
-        mockIoSessionControl.verify();
-        mockEventHandlingStrategyControl.verify();
+        verify(mockIoSession).getAttribute("QF_SESSION");
+        verify(mockEventHandlingStrategy).onMessage(qfSession, logout);
     }
 
     public void testMessageBeforeLogonWithKnownButUnboundSession() throws Exception {
-        MockControl mockIoSessionControl = MockControl.createControl(IoSession.class);
-        IoSession mockIoSession = (IoSession) mockIoSessionControl.getMock();
+        IoSession mockIoSession = mock(IoSession.class);
 
-        mockIoSession.getAttribute("QF_SESSION");
-        mockIoSessionControl.setReturnValue(null);
+        stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null);
 
-        MockControl mockEventHandlingStrategyControl = MockControl
-                .createControl(EventHandlingStrategy.class);
-        EventHandlingStrategy mockEventHandlingStrategy = (EventHandlingStrategy) mockEventHandlingStrategyControl
-                .getMock();
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
 
         Session qfSession = SessionFactoryTestSupport.createSession();
 
@@ -131,12 +109,9 @@ public class AcceptorIoHandlerTest extends TestCase {
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
-        mockIoSessionControl.replay();
-        mockEventHandlingStrategyControl.replay();
-
         handler.processMessage(mockIoSession, logout);
 
-        mockIoSessionControl.verify();
-        mockEventHandlingStrategyControl.verify();
+        verify(mockIoSession).getAttribute("QF_SESSION");
+        verifyNoMoreInteractions(mockEventHandlingStrategy);
     }
 }
