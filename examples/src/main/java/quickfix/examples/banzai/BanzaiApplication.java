@@ -206,12 +206,12 @@ public class BanzaiApplication implements Application {
 
         BigDecimal fillSize = BigDecimal.ZERO;
 
-        try {
+        if (message.isSetField(LastShares.FIELD)) {
             LastShares lastShares = new LastShares();
             message.getField(lastShares);
             fillSize = new BigDecimal(""+lastShares.getValue());
-        } catch (FieldNotFound e) {
-            // FIX 4.0
+        } else {
+            // > FIX 4.1
             LeavesQty leavesQty = new LeavesQty();
             message.getField(leavesQty);
             fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal(""+leavesQty.getValue()));

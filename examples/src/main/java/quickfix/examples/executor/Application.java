@@ -185,7 +185,23 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
     private void sendMessage(SessionID sessionID, Message message) {
         try {
-            Session.sendToTarget(message, sessionID);
+            Session session = Session.lookupSession(sessionID);
+            if (session == null) {
+                throw new SessionNotFound(sessionID.toString());
+            }
+            
+            DataDictionary dataDictionary = session.getDataDictionary();
+            if (dataDictionary != null) {
+                try {
+                    session.getDataDictionary().validate(message, true);
+                } catch (Exception e) {
+                    LogUtil.logThrowable(sessionID, "Outgoing message failed validation: "
+                            + e.getMessage(), e);
+                    return;
+                }
+            }
+            
+            session.send(message);
         } catch (SessionNotFound e) {
             log.error(e.getMessage(), e);
         }
@@ -276,11 +292,13 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         OrderQty orderQty = order.getOrderQty();
         Price price = getPrice(order);
 
-        quickfix.fix43.ExecutionReport accept = new quickfix.fix43.ExecutionReport(genOrderID(), genExecID(),
-                new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.NEW), order.getSide(), new LeavesQty(0),
-                new CumQty(0), new AvgPx(0));
+        quickfix.fix43.ExecutionReport accept = new quickfix.fix43.ExecutionReport(
+                    genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                            OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
+                            .getValue()), new CumQty(0), new AvgPx(0));
 
         accept.set(order.getClOrdID());
+        accept.set(order.getSymbol());
         sendMessage(sessionID, accept);
 
         if (isOrderExecutable(order, price)) {
@@ -309,11 +327,13 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         OrderQty orderQty = order.getOrderQty();
         Price price = getPrice(order);
 
-        quickfix.fix43.ExecutionReport accept = new quickfix.fix43.ExecutionReport(genOrderID(), genExecID(),
-                new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.NEW), order.getSide(), new LeavesQty(0),
-                new CumQty(0), new AvgPx(0));
+        quickfix.fix44.ExecutionReport accept = new quickfix.fix44.ExecutionReport(
+                    genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                            OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
+                            .getValue()), new CumQty(0), new AvgPx(0));
 
         accept.set(order.getClOrdID());
+        accept.set(order.getSymbol());
         sendMessage(sessionID, accept);
 
         if (isOrderExecutable(order, price)) {
