@@ -390,7 +390,8 @@
 
 	<path id="test.lib.classpath">
 		<fileset dir="${test.lib.dir}">
-			<include name="**/*.jar" />
+			<include name="*.jar" />
+			<exclude name="**/java4/*"/>
 		</fileset>
 	</path>
 

@@ -51,7 +51,7 @@ public class ATApplication implements Application {
 
     public synchronized void onLogon(SessionID sessionID) {
         assertNoSessionLock(sessionID);
-        Assert.assertFalse(isLoggedOn);
+        Assert.assertFalse("Already logged on", isLoggedOn);
         isLoggedOn = true;
     }
 
@@ -65,7 +65,7 @@ public class ATApplication implements Application {
     public synchronized void onLogout(SessionID sessionID) {
         assertNoSessionLock(sessionID);
         inboundCracker.reset();
-        Assert.assertTrue(isLoggedOn);
+        Assert.assertTrue("No logged on when logout is received", isLoggedOn);
         isLoggedOn = false;
     }
 
