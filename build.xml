@@ -1,7 +1,7 @@
 <project name="master" basedir="." default="">
 	<property file="${user.home}/.build"/>
 
-	<property name="jvm.java4" value="C:/j2sdk1.4.2_13/bin/java"/>
+	<property name="jvm.java4" value="C:/Development/j2sdk1.4.2_13/bin/java"/>
 	
 	<property name="release.output.dir" value="${basedir}/dist"/>
 
@@ -62,7 +62,7 @@
 
 	<path id="test.lib.classpath">
 		<fileset dir="${test.lib.dir}">
-			<include name="**/*.jar" />
+			<include name="*.jar" />
 		</fileset>
 	</path>
 
@@ -405,7 +405,13 @@
 				<pathelement location="${test.classes.java4}"/>
 				<fileset dir="${staging.dir.java4}/lib" includes="*.jar"/>
 				<fileset dir="${staging.dir.java4}" includes="*.jar"/>
-				<fileset dir="core/src/test/lib" includes="*.jar"/>
+				<fileset dir="core/src/test/lib" includes="*.jar">
+					<exclude name="mockito*"/>
+					<exclude name="hamcrest*"/>
+				</fileset>
+				<fileset dir="core/src/main/lib/java4" 
+					includes="retrotranslator/*runtime*.jar"/>
+				<fileset dir="core/src/test/lib/java4" includes="*.jar"/>
 				<fileset dir="core/src/main/lib/optional" 
 					includes="jcl*.jar,proxool*.jar,sleepycat*.jar"/>
 			</classpath>
