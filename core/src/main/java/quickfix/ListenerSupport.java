@@ -29,7 +29,6 @@ public class ListenerSupport {
     private final List<Object> listeners = new CopyOnWriteArrayList<Object>();
     private final Object multicaster;
 
-    @SuppressWarnings("unchecked")
     public ListenerSupport(Class<?> listenerClass) {
         multicaster = Proxy.newProxyInstance(this.getClass().getClassLoader(),
                 new Class<?>[] { listenerClass }, new ListenerInvocationHandler());
