@@ -626,6 +626,7 @@
       <value enum="A" description="AGENCY_SINGLE_ORDER"/>
       <value enum="D" description="PROGRAM_ORDER_INDEX_ARB_FOR_MEMBER_FIRMORG"/>
       <value enum="C" description="PROGRAM_ORDER_NONINDEX_ARB_FOR_MEMBER_FIRMORG"/>
+      <value enum="I" description="INDIVIDUAL_INVESTOR"/>
       <value enum="J" description="PROGRAM_ORDER_INDEX_ARB_FOR_INDIVIDUAL_CUSTOMER"/>
       <value enum="K" description="PROGRAM_ORDER_NONINDEX_ARB_FOR_INDIVIDUAL_CUSTOMER"/>
       <value enum="U" description="PROGRAM_ORDER_INDEX_ARB_FOR_OTHER_AGENCY"/>
