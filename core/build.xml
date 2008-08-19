@@ -90,9 +90,7 @@
 	</target>
 
 	<property name="javac.debug" value="true" />
-
 	<property name="javac.args" value="" />
-	<!-- overridden by CruiseControl on command line -->
 
 	<macrodef name="do_compile">
 		<attribute name="srcref" />
@@ -101,7 +99,7 @@
 		<sequential>
 			<mkdir dir="@{output}" />
 			<javac destdir="@{output}" debug="${javac.debug}" 
-					memoryMaximumSize="128m" fork="yes" nowarn="yes">
+					memoryMaximumSize="256m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />
