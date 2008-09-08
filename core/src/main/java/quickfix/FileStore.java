@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import org.quickfixj.CharsetSupport;
 
@@ -197,7 +198,9 @@ public class FileStore implements MessageStore {
         // Remove the lowest indexed sequence number if this addition
         // would result the index growing to larger than maxCachedMsgs.
         if (messageIndex.size() >= maxCachedMsgs && messageIndex.get(sequenceNum) == null) {
-            messageIndex.pollFirstEntry();
+            // Line below requires Java 6, using Java 5 approximation
+            //messageIndex.pollFirstEntry();
+            messageIndex.remove(messageIndex.firstEntry().getKey());
         }
         
         messageIndex.put(sequenceNum, offsetAndSize);
