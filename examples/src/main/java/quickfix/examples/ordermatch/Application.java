@@ -147,7 +147,7 @@ public class Application extends MessageCracker implements quickfix.Application 
     }
 
     private void acceptOrder(Order order) {
-        updateOrder(order, OrdStatus.FILLED);
+        updateOrder(order, OrdStatus.NEW);
     }
 
     private void cancelOrder(Order order) {
