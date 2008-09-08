@@ -665,8 +665,7 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
-    /* package */ 
-    List<Group> getGroups(int field) {
+    public List<Group> getGroups(int field) {
         List<Group> groupList = groups.get(field);
         if (groupList == null) {
             groupList = new ArrayList<Group>();
