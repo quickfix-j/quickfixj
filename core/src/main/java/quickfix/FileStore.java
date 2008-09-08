@@ -200,7 +200,7 @@ public class FileStore implements MessageStore {
         if (messageIndex.size() >= maxCachedMsgs && messageIndex.get(sequenceNum) == null) {
             // Line below requires Java 6, using Java 5 approximation
             //messageIndex.pollFirstEntry();
-            messageIndex.remove(messageIndex.firstEntry().getKey());
+            messageIndex.remove(messageIndex.firstKey());
         }
         
         messageIndex.put(sequenceNum, offsetAndSize);
