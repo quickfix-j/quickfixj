@@ -38,16 +38,18 @@ import quickfix.field.converter.IntConverter;
  * This class holds the QFJ settings information related to networking options.
  */
 public class NetworkingOptions {
-    private Logger log = LoggerFactory.getLogger(getClass());
-    private Boolean keepAlive;
-    private Boolean oobInline;
-    private Integer receiveBufferSize;
-    private Boolean reuseAddress;
-    private Integer sendBufferSize;
-    private Integer soLinger;
-    private Boolean tcpNoDelay;
-    private Integer trafficClass;
-
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Boolean keepAlive;
+    private final Boolean oobInline;
+    private final Integer receiveBufferSize;
+    private final Boolean reuseAddress;
+    private final Integer sendBufferSize;
+    private final Integer soLinger;
+    private final Boolean tcpNoDelay;
+    private final Integer trafficClass;
+    private final Boolean synchronousWrites;
+    private final Integer synchronousWriteTimeout;
+    
     public static final String SETTING_SOCKET_KEEPALIVE = "SocketKeepAlive";
     public static final String SETTING_SOCKET_OOBINLINE = "SocketOobInline";
     public static final String SETTING_SOCKET_RECEIVE_BUFFER_SIZE = "SocketReceiveBufferSize";
@@ -56,6 +58,8 @@ public class NetworkingOptions {
     public static final String SETTING_SOCKET_LINGER = "SocketLinger";
     public static final String SETTING_SOCKET_TCP_NODELAY = "SocketTcpNoDelay";
     public static final String SETTING_SOCKET_TRAFFIC_CLASS = "SocketTrafficClass";
+    public static final String SETTING_SOCKET_SYNCHRONOUS_WRITES = "SocketSynchronousWrites";
+    public static final String SETTING_SOCKET_SYNCHRONOUS_WRITE_TIMEOUT = "SocketSynchronousWriteTimeout";
 
     public static final String IPTOC_LOWCOST = "IPTOS_LOWCOST";
     public static final String IPTOC_RELIABILITY = "IPTOS_RELIABILITY";
@@ -70,16 +74,19 @@ public class NetworkingOptions {
     }
 
     public NetworkingOptions(Properties properties) throws FieldConvertError {
-        keepAlive = getBoolean(properties, SETTING_SOCKET_KEEPALIVE);
-        oobInline = getBoolean(properties, SETTING_SOCKET_OOBINLINE);
-        receiveBufferSize = getInteger(properties, SETTING_SOCKET_RECEIVE_BUFFER_SIZE);
-        reuseAddress = getBoolean(properties, SETTING_SOCKET_REUSE_ADDRESS);
-        sendBufferSize = getInteger(properties, SETTING_SOCKET_SEND_BUFFER_SIZE);
-        soLinger = getInteger(properties, SETTING_SOCKET_LINGER);
-        tcpNoDelay = getBoolean(properties, SETTING_SOCKET_TCP_NODELAY);
-
+        keepAlive = getBoolean(properties, SETTING_SOCKET_KEEPALIVE, null);
+        oobInline = getBoolean(properties, SETTING_SOCKET_OOBINLINE, null);
+        receiveBufferSize = getInteger(properties, SETTING_SOCKET_RECEIVE_BUFFER_SIZE, null);
+        reuseAddress = getBoolean(properties, SETTING_SOCKET_REUSE_ADDRESS, null);
+        sendBufferSize = getInteger(properties, SETTING_SOCKET_SEND_BUFFER_SIZE, null);
+        soLinger = getInteger(properties, SETTING_SOCKET_LINGER, null);
+        tcpNoDelay = getBoolean(properties, SETTING_SOCKET_TCP_NODELAY, Boolean.TRUE);
+        synchronousWrites = getBoolean(properties, SETTING_SOCKET_SYNCHRONOUS_WRITES, Boolean.FALSE);
+        synchronousWriteTimeout = getInteger(properties, SETTING_SOCKET_SYNCHRONOUS_WRITE_TIMEOUT, 30000);
+        
+        Integer trafficClassSetting;
         try {
-            trafficClass = getInteger(properties, SETTING_SOCKET_TRAFFIC_CLASS);
+            trafficClassSetting = getInteger(properties, SETTING_SOCKET_TRAFFIC_CLASS, null);
         } catch (FieldConvertError e) {
             // Try parsing the enums
             String trafficClassEnumString = properties.getProperty(SETTING_SOCKET_TRAFFIC_CLASS);
@@ -94,15 +101,17 @@ public class NetworkingOptions {
                             + trafficClassEnums[i]);
                 }
             }
-            trafficClass = Integer.valueOf(trafficClassBits);
+            trafficClassSetting = Integer.valueOf(trafficClassBits);
             log.info("Socket option: " + SETTING_SOCKET_TRAFFIC_CLASS + "= 0x"
                     + Integer.toHexString(trafficClassBits) + " (" + trafficClassEnumString + ")");
         }
+        
+        trafficClass = trafficClassSetting;
     }
 
-    private Boolean getBoolean(Properties properties, String key) throws FieldConvertError {
+    private Boolean getBoolean(Properties properties, String key, Boolean defaultValue) throws FieldConvertError {
         Boolean value = properties.containsKey(key) ? Boolean.valueOf(BooleanConverter
-                .convert(properties.getProperty(key))) : null;
+                .convert(properties.getProperty(key))) : defaultValue;
         logOption(key, value);
         return value;
     }
@@ -113,9 +122,9 @@ public class NetworkingOptions {
         }
     }
 
-    private Integer getInteger(Properties properties, String key) throws FieldConvertError {
+    private Integer getInteger(Properties properties, String key, Integer defaultValue) throws FieldConvertError {
         Integer value = properties.containsKey(key) ? Integer.valueOf(IntConverter.convert(properties
-                .getProperty(key))) : null;
+                .getProperty(key))) : defaultValue;
         logOption(key, value);
         return value;
     }
@@ -152,4 +161,11 @@ public class NetworkingOptions {
         }
     }
 
+    public Boolean getSynchronousWrites() {
+        return synchronousWrites;
+    }
+    
+    public Integer getSynchronousWriteTimeout() {
+        return synchronousWriteTimeout;
+    }
 }

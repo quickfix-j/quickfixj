@@ -111,6 +111,23 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertEquals("wrong message", "\u00E4bcf\u00F6d\u00E7\u00E9", messages.get(0));
         assertEquals("wrong message", "message1", messages.get(1));
     }
+    
+    public void testMessageStorageOutOfSequence() throws Exception {
+        if (!testEnabled) {
+            return;
+        }
+        assertTrue("set failed", store.set(113, "message2"));
+        assertTrue("set failed", store.set(111, "message1"));
+        assertTrue("set failed", store.set(120, "message3"));
+        
+        store.refresh();
+        
+        ArrayList<String> messages = new ArrayList<String>();
+        store.get(100, 115, messages);
+        assertEquals("wrong # of messages", 2, messages.size());
+        assertEquals("wrong message", "message1", messages.get(0));
+        assertEquals("wrong message", "message2", messages.get(1));
+    }
 
     public void testRefreshableMessageStore() throws Exception {
         if (!testEnabled) {

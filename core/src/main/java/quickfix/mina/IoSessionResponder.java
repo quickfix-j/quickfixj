@@ -20,6 +20,9 @@
 package quickfix.mina;
 
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.WriteFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.Responder;
 
@@ -28,14 +31,32 @@ import quickfix.Responder;
  * the MINA networking code.
  */
 public class IoSessionResponder implements Responder {
-    private IoSession ioSession;
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final IoSession ioSession;
+    private final boolean synchronousWrites;
+    private final long synchronousWriteTimeout;
 
-    public IoSessionResponder(IoSession session) {
+    public IoSessionResponder(IoSession session, boolean synchronousWrites, long synchronousWriteTimeout) {
         ioSession = session;
+        this.synchronousWrites = synchronousWrites;
+        this.synchronousWriteTimeout = synchronousWriteTimeout;
     }
 
     public boolean send(String data) {
-        return ioSession.write(data).isWritten();
+        // The data is written asynchronously in a MINA thread
+        WriteFuture future = ioSession.write(data);
+        if (synchronousWrites) {
+            try {
+                if (!future.join(synchronousWriteTimeout)) {
+                    log.error("Synchronous write timed out after " + synchronousWriteTimeout + "ms");
+                    return false;
+                }
+            } catch (RuntimeException e) {
+                log.error("Synchronous write failed: " + e.getMessage());
+                return false;
+            }
+        }
+        return true;
     }
 
     public void disconnect() {

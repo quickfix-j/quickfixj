@@ -132,6 +132,10 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     private Session findQFSession(IoSession ioSession) {
         return (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
     }
+    
+    protected NetworkingOptions getNetworkingOptions() {
+        return networkingOptions;
+    }
 
     protected abstract void processMessage(IoSession ioSession, Message message)
             throws Exception;

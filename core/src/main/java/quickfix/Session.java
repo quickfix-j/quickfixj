@@ -1737,6 +1737,7 @@ public class Session {
                 }
                 state.incrNextSenderMsgSeqNum();
             }
+            
             return result;
         } catch (IOException e) {
             logThrowable(getLog(), "Error Reading/Writing in MessageStore", e);

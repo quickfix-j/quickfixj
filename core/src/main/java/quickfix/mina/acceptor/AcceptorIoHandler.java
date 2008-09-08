@@ -73,7 +73,10 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     sessionLog.onEvent("Acceptor heartbeat set to " + heartbeatInterval
                             + " seconds");
                     protocolSession.setAttribute(SessionConnector.QF_SESSION, qfSession);
-                    qfSession.setResponder(new IoSessionResponder(protocolSession));
+                    NetworkingOptions networkingOptions = getNetworkingOptions();
+                    qfSession.setResponder(new IoSessionResponder(protocolSession,
+                            networkingOptions.getSynchronousWrites(),
+                            networkingOptions.getSynchronousWriteTimeout()));
                 } else {
                     log.error("Unknown session ID during logon: " + sessionID);
                     return;

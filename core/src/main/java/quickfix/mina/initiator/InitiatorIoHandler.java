@@ -43,7 +43,10 @@ class InitiatorIoHandler extends AbstractIoHandler {
     public void sessionCreated(IoSession session) throws Exception {
         super.sessionCreated(session);
         session.setAttribute(SessionConnector.QF_SESSION, quickfixSession);
-        quickfixSession.setResponder(new IoSessionResponder(session));
+        NetworkingOptions networkingOptions = getNetworkingOptions();
+        quickfixSession.setResponder(new IoSessionResponder(session, 
+                networkingOptions.getSynchronousWrites(),
+                networkingOptions.getSynchronousWriteTimeout()));
         log.info("MINA session created: " + session.getLocalAddress());
     }
 

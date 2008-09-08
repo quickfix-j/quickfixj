@@ -29,19 +29,70 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.common.WriteFuture;
 
 public class IoSessionResponderTest extends TestCase {
-    public void testSend() throws Exception {
+    public void testAsynchronousSend() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
-
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         stub(mockWriteFuture.isWritten()).toReturn(true);
         stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, false, 0);
 
-        IoSessionResponder responder = new IoSessionResponder(mockIoSession);
-        responder.send("abcd");
+        boolean result = responder.send("abcd");
         
-        verify(mockWriteFuture).isWritten();
+        assertTrue(result);
         verify(mockIoSession).write("abcd");
+        verifyNoMoreInteractions(mockWriteFuture);
+        verifyNoMoreInteractions(mockIoSession);
+    }
 
+    public void testSynchronousSend() throws Exception {
+        int timeout = 123;
+        IoSession mockIoSession = mock(IoSession.class);
+        WriteFuture mockWriteFuture = mock(WriteFuture.class);
+        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
+        stub(mockWriteFuture.join(timeout)).toReturn(true);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout);
+
+        boolean result = responder.send("abcd");
+        
+        assertTrue(result);
+        verify(mockIoSession).write("abcd");
+        verify(mockWriteFuture).join(timeout);
+        verifyNoMoreInteractions(mockWriteFuture);
+        verifyNoMoreInteractions(mockIoSession);
+    }
+
+    public void testSynchronousSendWithJoinException() throws Exception {
+        int timeout = 123;
+        IoSession mockIoSession = mock(IoSession.class);
+
+        WriteFuture mockWriteFuture = mock(WriteFuture.class);
+        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
+        stubVoid(mockWriteFuture).toThrow(new RuntimeException("TEST")).on().join(timeout);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout);
+
+        boolean result = responder.send("abcd");
+        
+        assertFalse(result);
+        verify(mockIoSession).write("abcd");
+        verify(mockWriteFuture).join(timeout);
+        verifyNoMoreInteractions(mockWriteFuture);
+        verifyNoMoreInteractions(mockIoSession);
+    }
+
+    public void testSynchronousSendWithJoinTimeout() throws Exception {
+        int timeout = 123;
+        IoSession mockIoSession = mock(IoSession.class);
+
+        WriteFuture mockWriteFuture = mock(WriteFuture.class);
+        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
+        stub(mockWriteFuture.join(timeout)).toReturn(false);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout);
+
+        boolean result = responder.send("abcd");
+        
+        assertFalse(result);
+        verify(mockIoSession).write("abcd");
+        verify(mockWriteFuture).join(timeout);
         verifyNoMoreInteractions(mockWriteFuture);
         verifyNoMoreInteractions(mockIoSession);
     }
@@ -51,7 +102,7 @@ public class IoSessionResponderTest extends TestCase {
         stub(mockProtocolSession.getScheduledWriteRequests()).toReturn(0);
         stub(mockProtocolSession.close()).toReturn(null);
 
-        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession);
+        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0);
         responder.disconnect();
 
 
@@ -66,7 +117,7 @@ public class IoSessionResponderTest extends TestCase {
         stub(mockProtocolSession.getRemoteAddress()).toReturn(
                 new InetSocketAddress("1.2.3.4", 5432));
 
-        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession);
+        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0);
 
         assertEquals("/1.2.3.4:5432", responder.getRemoteIPAddress());
         verify(mockProtocolSession).getRemoteAddress();

@@ -39,6 +39,14 @@ public class FileStoreFactory implements MessageStoreFactory {
      */
     public static final String SETTING_FILE_STORE_SYNC = "FileStoreSync";
 
+    /**
+     * Numeric option limiting the number of messages stored in the in-memory
+     * message index. If, during recovery, one or more messages are requested 
+     * whose offset/size is not cached in memory, the on-disk header file will 
+     * be searched. Values can be from 0 to Integer.MAX_VALUE (default), inclusive.
+     */
+    public static final String SETTING_FILE_STORE_MAX_CACHED_MSGS = "FileStoreMaxCachedMsgs";
+
     private final SessionSettings settings;
         
     /**
@@ -60,7 +68,14 @@ public class FileStoreFactory implements MessageStoreFactory {
             if (settings.isSetting(sessionID, SETTING_FILE_STORE_SYNC)) {
                 syncWrites = settings.getBool(sessionID, SETTING_FILE_STORE_SYNC);
             }
-            return new FileStore(settings.getString(sessionID, FileStoreFactory.SETTING_FILE_STORE_PATH), sessionID, syncWrites);
+            int maxCachedMsgs = Integer.MAX_VALUE;
+            if (settings.isSetting(sessionID, SETTING_FILE_STORE_MAX_CACHED_MSGS)) {
+                long maxCachedMsgsSetting = settings.getLong(sessionID, SETTING_FILE_STORE_MAX_CACHED_MSGS);
+                if (maxCachedMsgsSetting >= 0 && maxCachedMsgsSetting <= (long) Integer.MAX_VALUE) {
+                    maxCachedMsgs = (int) maxCachedMsgsSetting;
+                }
+            }
+            return new FileStore(settings.getString(sessionID, FileStoreFactory.SETTING_FILE_STORE_PATH), sessionID, syncWrites, maxCachedMsgs);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

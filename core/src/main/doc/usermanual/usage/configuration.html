@@ -518,7 +518,7 @@
      previously written data.
     </TD>
     <TD>"Y" or "N"</TD>
-    <TD></TD>
+    <TD>Default is "Y".</TD>
   </TR>
 
 		  		  		  	  <TR ALIGN="left" VALIGN="middle">
@@ -554,7 +554,27 @@
 	"|" (e.g., "IPTOS_LOWCOST|IPTOS_LOWDELAY")</TD>
     <TD></TD>
   </TR>
-		    
+		  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketSynchronousWrites</I></TD>
+
+    <TD>Write messages synchronously. This is not generally recommended as it may result in performance
+    	degradation. The MINA communication layer is asynchronous by design, but this option will override
+    	that behavior if needed.
+    </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>"N"</TD>
+  </TR>
+
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketSynchronousWriteTimeout</I></TD>
+
+    <TD>The time in milliseconds to wait for a write to complete.
+    </TD>
+    <TD>Integer.</TD>
+    <TD>30000 ms (30 seconds) if SocketSynchronousWrites is "Y".</TD>
+  </TR>
+  
   <TR ALIGN="center" VALIGN="middle">
 
     <TD COLSPAN="4" class="subsection"><A NAME="Storage">Storage</A></TD>
@@ -579,6 +599,12 @@
     <TD> valid directory for storing files, must have write access </TD>
 
     <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileStoreMaxCachedMsgs</TD>
+    <TD> Maximum number of message index entries to cache in memory. </TD>
+    <TD>Integer. A zero will not cache any entries.</TD>
+    <TD>Integer.MAX_VALUE</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD>JdbcDataSourceName</TD>

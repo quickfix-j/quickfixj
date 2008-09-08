@@ -32,7 +32,9 @@ import java.io.RandomAccessFile;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.quickfixj.CharsetSupport;
 
@@ -51,24 +53,31 @@ public class FileStore implements MessageStore {
     private static final String SYNC_OPTION = "d";
     private static final String NOSYNC_OPTION = "";
 
-    private MemoryStore cache = new MemoryStore();
+    private final TreeMap<Long, long[]> messageIndex;
+    private final MemoryStore cache = new MemoryStore();
 
     private final String msgFileName;
     private final String headerFileName;
     private final String seqNumFileName;
     private final String sessionFileName;
+    private final boolean syncWrites;
+    private final int maxCachedMsgs;
+    private final String charsetEncoding = CharsetSupport.getCharset();
 
     private RandomAccessFile messageFile;
     private DataOutputStream headerDataOutputStream;
-    private RandomAccessFile sequenceNumberFile;
-    private final boolean syncWrites;
-
-    private HashMap<Long, long[]> messageIndex = new HashMap<Long, long[]>();
     private FileOutputStream headerFileOutputStream;
-    private String charsetEncoding = CharsetSupport.getCharset();
+    private RandomAccessFile sequenceNumberFile;
 
-    FileStore(String path, SessionID sessionID, boolean syncWrites) throws IOException {
+    FileStore(String path, SessionID sessionID, boolean syncWrites, int maxCachedMsgs) throws IOException {
         this.syncWrites = syncWrites;
+        this.maxCachedMsgs = maxCachedMsgs;
+        
+        if (maxCachedMsgs > 0) {
+            messageIndex = new TreeMap<Long, long[]>();
+        } else {
+            messageIndex = null;
+        }
 
         if (path == null) {
             path = ".";
@@ -160,25 +169,38 @@ public class FileStore implements MessageStore {
     }
 
     private void initializeMessageIndex() throws IOException {
-        messageIndex.clear();
-        File headerFile = new File(headerFileName);
-        if (headerFile.exists()) {
-            DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(
-                    new FileInputStream(headerFile)));
-            try {
-                while (headerDataInputStream.available() > 0) {
-                    int sequenceNumber = headerDataInputStream.readInt();
-                    long offset = headerDataInputStream.readLong();
-                    int size = headerDataInputStream.readInt();
-                    messageIndex.put(Long.valueOf(sequenceNumber), new long[] { offset, size });
+        // this part is unnecessary if no offsets are being stored in memory
+        if (messageIndex != null) {
+            messageIndex.clear();
+            File headerFile = new File(headerFileName);
+            if (headerFile.exists()) {
+                DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(
+                        new FileInputStream(headerFile)));
+                try {
+                    while (headerDataInputStream.available() > 0) {
+                        int sequenceNumber = headerDataInputStream.readInt();
+                        long offset = headerDataInputStream.readLong();
+                        int size = headerDataInputStream.readInt();
+                        updateMessageIndex((long)sequenceNumber, new long[] { offset, size });
+                    }
+                } finally {
+                    headerDataInputStream.close();
                 }
-            } finally {
-                headerDataInputStream.close();
             }
         }
         headerFileOutputStream = new FileOutputStream(headerFileName, true);
         headerDataOutputStream = new DataOutputStream(new BufferedOutputStream(
                 headerFileOutputStream));
+    }
+    
+    private void updateMessageIndex(Long sequenceNum, long[] offsetAndSize) {
+        // Remove the lowest indexed sequence number if this addition
+        // would result the index growing to larger than maxCachedMsgs.
+        if (messageIndex.size() >= maxCachedMsgs && messageIndex.get(sequenceNum) == null) {
+            messageIndex.pollFirstEntry();
+        }
+        
+        messageIndex.put(sequenceNum, offsetAndSize);
     }
 
     private String getRandomAccessFileOptions() {
@@ -272,12 +294,44 @@ public class FileStore implements MessageStore {
      * @see quickfix.MessageStore#get(int, int, java.util.Collection)
      */
     public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
+        Set<Integer> uncachedOffsetMsgIds = new HashSet<Integer>();
+        // Use a treemap to make sure the messages are sorted by sequence num
+        TreeMap<Integer, String> messagesFound = new TreeMap<Integer, String>();
         for (int i = startSequence; i <= endSequence; i++) {
             String message = getMessage(i);
             if (message != null) {
-                messages.add(message);
+                messagesFound.put(i, message);
+            } else {
+                uncachedOffsetMsgIds.add(i);
             }
         }
+        
+        if (!uncachedOffsetMsgIds.isEmpty()) {
+            // parse the header file to find missing messages
+            File headerFile = new File(headerFileName);
+            DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(
+                    new FileInputStream(headerFile)));
+            try {
+                while (headerDataInputStream.available() > 0) {
+                    int sequenceNumber = headerDataInputStream.readInt();
+                    long offset = headerDataInputStream.readLong();
+                    int size = headerDataInputStream.readInt();
+                    if (uncachedOffsetMsgIds.remove(sequenceNumber)) {
+                        String message = getMessage(new long[] {offset, size});
+                        if (message != null) {
+                            messagesFound.put(sequenceNumber, message);
+                        }
+                    }
+                    if (uncachedOffsetMsgIds.isEmpty()) {
+                        break;
+                    }
+                }
+            } finally {
+                headerDataInputStream.close();
+            }
+        }
+        
+        messages.addAll(messagesFound.values());
     }
 
     /**
@@ -291,18 +345,25 @@ public class FileStore implements MessageStore {
     }
 
     private String getMessage(int i) throws IOException {
-        long[] offsetAndSize = messageIndex.get(Long.valueOf(i));
         String message = null;
-        if (offsetAndSize != null) {
-            messageFile.seek(offsetAndSize[0]);
-            int size = (int) offsetAndSize[1];
-            byte[] data = new byte[size];
-            if (messageFile.read(data) != size) {
-                throw new IOException("Truncated input while reading message");
+        if (messageIndex != null) {
+            long[] offsetAndSize = messageIndex.get((long)i);
+            if (offsetAndSize != null) {
+                message = getMessage(offsetAndSize);
             }
-            message = new String(data, charsetEncoding);
-            messageFile.seek(messageFile.length());
         }
+        return message;
+    }
+
+    private String getMessage(long[] offsetAndSize) throws IOException {
+        messageFile.seek(offsetAndSize[0]);
+        int size = (int) offsetAndSize[1];
+        byte[] data = new byte[size];
+        if (messageFile.read(data) != size) {
+            throw new IOException("Truncated input while reading message");
+        }
+        String message = new String(data, charsetEncoding);
+        messageFile.seek(messageFile.length());
         return message;
     }
 
@@ -312,7 +373,9 @@ public class FileStore implements MessageStore {
     public boolean set(int sequence, String message) throws IOException {
         long offset = messageFile.getFilePointer();
         int size = message.length();
-        messageIndex.put(Long.valueOf(sequence), new long[] { offset, size });
+        if (messageIndex != null) {
+            updateMessageIndex((long)sequence, new long[] { offset, size });
+        }
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
         headerDataOutputStream.writeInt(size);
