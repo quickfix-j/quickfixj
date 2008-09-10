@@ -22,11 +22,16 @@ package quickfix;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Utilities for logging session-related events.
  *
  */
 public class LogUtil {
+    private final static Logger log = LoggerFactory.getLogger(LogUtil.class);
+    
     /*
      * Logs a throwable as a session event, including the stack trace.
      * 
@@ -51,6 +56,13 @@ public class LogUtil {
      */
     public static void logThrowable(SessionID sessionID, String message, Throwable t) {
         Session session = Session.lookupSession(sessionID);
-        logThrowable(session.getLog(), message, t);
+        if (session != null) {
+            logThrowable(session.getLog(), message, t);
+        } else {
+            // QFJ-335
+            // It's possible the session has been deregistered by the time
+            // we log the message, so this is the fallback logging.
+            log.error(message, t);
+        }
     }
 }
