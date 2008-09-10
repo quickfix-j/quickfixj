@@ -52,4 +52,5 @@ public interface Log {
      *            the event description
      */
     void onEvent(String text);
+    
 }

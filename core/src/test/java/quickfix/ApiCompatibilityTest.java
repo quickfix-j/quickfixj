@@ -403,6 +403,8 @@ public class ApiCompatibilityTest {
                     Message.class, Message.class });
             ignoreConstructor(jniClassLoader, "quickfix.Message$Trailer", new Class<?>[] {
                     Message.class, Message.class });
+            
+            ignoreMethod(jniClassLoader, "quickfix.Log", "backup");
         }
 
         public boolean isIgnoredMethod(Method m) {
@@ -412,13 +414,13 @@ public class ApiCompatibilityTest {
             return ignoredMethods.contains(m);
         }
 
-        //        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
-        //                Class<?>[] argumentTypes) throws ClassNotFoundException, SecurityException,
-        //                NoSuchMethodException {
-        //            Class c = jniClassLoader.loadClass(className);
-        //            Method m = c.getDeclaredMethod(methodName, argumentTypes);
-        //            ignoredMethods.add(m);
-        //        }
+        private void ignoreMethod(ClassLoader jniClassLoader, String className, String methodName,
+                Class<?>... argumentTypes) throws ClassNotFoundException, SecurityException,
+                NoSuchMethodException {
+            Class<?> c = jniClassLoader.loadClass(className);
+            Method m = c.getDeclaredMethod(methodName, argumentTypes);
+            ignoredMethods.add(m);
+        }
 
         private void ignoreConstructor(ClassLoader jniClassLoader, String classname, Class<?>[] args)
                 throws ClassNotFoundException, NoSuchMethodException {
