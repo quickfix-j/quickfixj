@@ -1386,7 +1386,6 @@ public class Session {
         } else {
             if (state.isTestRequestNeeded()) {
                 generateTestRequest("TEST");
-                state.incrementTestRequestCounter();
                 getLog().onEvent("Sent test request TEST");
                 stateListener.onMissedHeartBeat();
             } else if (state.isHeartBeatNeeded()) {
@@ -1402,6 +1401,7 @@ public class Session {
     }
 
     private void generateTestRequest(String id) {
+        state.incrementTestRequestCounter();
         Message testRequest = messageFactory.create(sessionID.getBeginString(),
                 MsgType.TEST_REQUEST);
         initializeHeader(testRequest.getHeader());

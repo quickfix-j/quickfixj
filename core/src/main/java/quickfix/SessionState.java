@@ -252,7 +252,7 @@ public final class SessionState {
         return messageStore;
     }
 
-    public int getTestRequestCounter() {
+    private int getTestRequestCounter() {
         synchronized (lock) {
             return testRequestCounter;
         }
