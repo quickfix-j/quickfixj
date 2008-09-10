@@ -458,11 +458,11 @@ public class Session {
      * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, SessionID sessionID) throws SessionNotFound {
-        message.setSessionID(sessionID);
         Session session = lookupSession(sessionID);
         if (session == null) {
             throw new SessionNotFound();
         }
+        message.setSessionID(sessionID);
         return session.send(message);
     }
 
