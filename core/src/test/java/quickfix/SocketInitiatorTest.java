@@ -124,6 +124,40 @@ public class SocketInitiatorTest extends TestCase {
         }
     }
 
+//    public void testInitiatorStopStart() throws Exception {
+//        ServerThread serverThread = new ServerThread();
+//        try {
+//            serverThread.start();
+//            serverThread.waitForInitialization();
+//
+//            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+//            SessionSettings settings = getClientSessionSettings(clientSessionID);
+//            ClientApplication clientApplication = new ClientApplication();
+//            final SocketInitiator initiator = new SocketInitiator(clientApplication,
+//                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+//            try {
+//                clientApplication.setUpLogonExpectation();
+//                initiator.start();
+//                Session clientSession = Session.lookupSession(clientSessionID);
+//                assertLoggedOn(clientApplication, clientSession);
+//                
+//                initiator.stop();
+//                assertFalse(clientSession.isLoggedOn());
+//                
+//                clientApplication.setUpLogonExpectation();
+//                initiator.start();
+//                clientSession = Session.lookupSession(clientSessionID);
+//                assertLoggedOn(clientApplication, clientSession);
+//            } finally {
+//                initiator.stop();
+//            }
+//
+//        } finally {
+//            serverThread.interrupt();
+//            serverThread.join();
+//        }
+//    }
+
     private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<Object, Object>();
