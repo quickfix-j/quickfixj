@@ -780,4 +780,19 @@ public class Message extends FieldMap {
     synchronized int getInvalidTag() {
         return exception != null ? exception.getField() : 0;
     }
+    
+    /**
+     * Returns the msg type specified in a FIX message string.
+     * @param message the FIX message string
+     * @return the message type
+     * @throws MessageParseError (QF JNI compatibility)
+     */
+    public static MsgType identifyType(String message) throws MessageParseError {
+        try {
+            return new MsgType(MessageUtils.getMessageType(message));
+        } catch (InvalidMessage e) {
+            throw new MessageParseError(e.getMessage(), e);
+        }
+    }
+
 }
