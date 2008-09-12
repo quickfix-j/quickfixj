@@ -412,8 +412,7 @@
 				<fileset dir="core/src/main/lib/java4" 
 					includes="retrotranslator/*runtime*.jar"/>
 				<fileset dir="core/src/test/lib/java4" includes="*.jar"/>
-				<fileset dir="core/src/main/lib/optional" 
-					includes="jcl*.jar,sleepycat*.jar"/>
+				<fileset dir="core/src/main/lib/java4/optional" includes="*.jar"/>
 			</classpath>
 			<batchtest todir="${junit.output.dir.java4}">
 				<fileset dir="core/src/test/java">
