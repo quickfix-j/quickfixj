@@ -9,6 +9,7 @@
 	<classpathentry kind="lib" path="core/src/test/lib/hamcrest-all-1.1.jar"/>
 	<classpathentry kind="lib" path="core/src/test/lib/mockito-all-1.4.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-0.9.1.jar" sourcepath="core/src/main/lib/optional/proxool-0.9.1-sources.zip"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-cglib.jar"/>
 	<classpathentry kind="src" path="core/target/src-generated"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/slf4j-api-1.3.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/slf4j-jdk14-1.3.0.jar"/>
