@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -28,7 +27,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -65,7 +63,11 @@ class JdbcUtil {
         }
     }
 
-    static DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
+    /**
+     * This is typically called from a single thread, but just in case we are synchronizing modification
+     * of the cache. The cache itself is thread safe.
+     */
+    static synchronized DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
         ProxoolDataSource ds = cache ? dataSources.get(key) : null;
         
