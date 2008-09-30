@@ -1064,6 +1064,7 @@ public class Session {
         
         reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
+        reject.setField(new Text(reason));
 
         String msgType = "";
         if (header.isSetField(MsgType.FIELD)) {
@@ -1272,8 +1273,13 @@ public class Session {
     }
 
     private void doBadTime(Message msg) throws IOException, FieldNotFound {
+        try {
         generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
         generateLogout();
+        } catch (SessionException ex) {
+            generateLogout(ex.getMessage());
+            throw ex;
+        }
     }
 
     private boolean isGoodTime(Date sendingTime) {

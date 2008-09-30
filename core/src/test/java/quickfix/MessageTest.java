@@ -112,10 +112,9 @@ public class MessageTest extends TestCase {
     }
 
     private NewOrderSingle createNewOrderSingle() {
-        NewOrderSingle order = new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
+        return new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
                 HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
                 new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
-        return order;
     }
 
     public void testHeaderGroupParsing() throws Exception {
