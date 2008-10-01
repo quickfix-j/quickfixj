@@ -2,4 +2,6 @@
 
 iCONNECT
 I8=FIX.4.135=A34=149=TW52=20010101-00:00:0056=ISLD98=0108=30
+# Expect a disconnect with reason stating we have a sendingTime accuracy problem
+E8=FIX.4.135=534=149=ISLD56=TW58=Tried to send a reject while not logged on: SendingTime accuracy problem (field 0)
 eDISCONNECT
