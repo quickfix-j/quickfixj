@@ -80,6 +80,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     public void blockInThread() {
+        startHandlingMessages();
         Thread messageProcessingThread = new Thread(new Runnable() {
 
             public void run() {
@@ -111,6 +112,10 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
+    private synchronized void startHandlingMessages() {
+        isStopped = false;
+    }
+    
     public synchronized void stopHandlingMessages() {
         isStopped = true;
     }

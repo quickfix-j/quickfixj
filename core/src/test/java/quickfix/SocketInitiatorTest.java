@@ -124,39 +124,56 @@ public class SocketInitiatorTest extends TestCase {
         }
     }
 
-//    public void testInitiatorStopStart() throws Exception {
-//        ServerThread serverThread = new ServerThread();
-//        try {
-//            serverThread.start();
-//            serverThread.waitForInitialization();
-//
-//            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-//            SessionSettings settings = getClientSessionSettings(clientSessionID);
-//            ClientApplication clientApplication = new ClientApplication();
-//            final SocketInitiator initiator = new SocketInitiator(clientApplication,
-//                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-//            try {
-//                clientApplication.setUpLogonExpectation();
-//                initiator.start();
-//                Session clientSession = Session.lookupSession(clientSessionID);
-//                assertLoggedOn(clientApplication, clientSession);
-//                
-//                initiator.stop();
-//                assertFalse(clientSession.isLoggedOn());
-//                
-//                clientApplication.setUpLogonExpectation();
-//                initiator.start();
-//                clientSession = Session.lookupSession(clientSessionID);
-//                assertLoggedOn(clientApplication, clientSession);
-//            } finally {
-//                initiator.stop();
-//            }
-//
-//        } finally {
-//            serverThread.interrupt();
-//            serverThread.join();
-//        }
-//    }
+    public void testInitiatorStopStart() throws Exception {
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        ClientApplication clientApplication = new ClientApplication();
+        Initiator initiator = new SocketInitiator(clientApplication,
+                new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+
+        doTestOfRestart(clientSessionID, clientApplication, initiator);
+    }
+
+    public void testInitiatorStopStartThreaded() throws Exception {
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        ClientApplication clientApplication = new ClientApplication();
+        Initiator initiator = new ThreadedSocketInitiator(clientApplication,
+                new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+
+        doTestOfRestart(clientSessionID, clientApplication, initiator);
+    }
+
+    private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,
+            final Initiator initiator) throws InterruptedException, ConfigError {
+        ServerThread serverThread = new ServerThread();
+        try {
+            serverThread.start();
+            serverThread.waitForInitialization();
+
+            try {
+                clientApplication.setUpLogonExpectation();
+                initiator.start();
+                Session clientSession = Session.lookupSession(clientSessionID);
+                assertLoggedOn(clientApplication, clientSession);
+                
+                initiator.stop();
+                assertFalse(clientSession.isLoggedOn());
+                
+                clientApplication.setUpLogonExpectation();
+                
+                initiator.start();
+                clientSession = Session.lookupSession(clientSessionID);
+                assertLoggedOn(clientApplication, clientSession);
+            } finally {
+                initiator.stop();
+            }
+
+        } finally {
+            serverThread.interrupt();
+            serverThread.join();
+        }
+    }
 
     private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
         SessionSettings settings = new SessionSettings();
@@ -188,10 +205,6 @@ public class SocketInitiatorTest extends TestCase {
         public CountDownLatch logonLatch;
         private Initiator initiator;
         private boolean stopAfterLogon;
-
-        public ClientApplication() {
-
-        }
 
         public void stopAfterLogon(Initiator initiator) {
             this.initiator = initiator;

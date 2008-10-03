@@ -45,7 +45,8 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     }
 
     public void start() throws ConfigError, RuntimeError {
-        initiateSessions(new ThreadPerSessionEventHandlingStrategy());
+        createSessionInitiators(new ThreadPerSessionEventHandlingStrategy());
+        startInitiators();
     }
 
     public void stop() {

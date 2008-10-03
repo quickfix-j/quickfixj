@@ -55,7 +55,7 @@ public class IoSessionInitiator {
 
     private Future<?> reconnectFuture;
 
-    public IoSessionInitiator(Session qfSession, SocketAddress[] socketAddresses,
+    public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
             long reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
@@ -63,7 +63,7 @@ public class IoSessionInitiator {
         this.executor = executor;
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, userIoFilterChainBuilder,
-                    qfSession, reconnectIntervalInSeconds * 1000L, networkingOptions,
+                    fixSession, reconnectIntervalInSeconds * 1000L, networkingOptions,
                     eventHandlingStrategy, keyStoreName, keyStorePassword);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
@@ -73,7 +73,7 @@ public class IoSessionInitiator {
     private static class ConnectTask implements Runnable {
         private final SocketAddress[] socketAddresses;
         private final IoConnector ioConnector;
-        private final Session quickfixSession;
+        private final Session fixSession;
         private final long reconnectIntervalInMillis;
         private String keyStoreName;
         private String keyStorePassword;
@@ -87,12 +87,12 @@ public class IoSessionInitiator {
         private ConnectFuture connectFuture;
 
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
-                IoFilterChainBuilder userIoFilterChainBuilder, Session quickfixSession,
+                IoFilterChainBuilder userIoFilterChainBuilder, Session fixSession,
                 long reconnectIntervalInMillis, NetworkingOptions networkingOptions,
                 EventHandlingStrategy eventHandlingStrategy, String keyStoreName,
                 String keyStorePassword) throws ConfigError, GeneralSecurityException {
             this.socketAddresses = socketAddresses;
-            this.quickfixSession = quickfixSession;
+            this.fixSession = fixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
             this.keyStoreName = keyStoreName;
             this.keyStorePassword = keyStorePassword;
@@ -110,7 +110,7 @@ public class IoSessionInitiator {
             IoServiceConfig serviceConfig = ioConnector.getDefaultConfig();
             serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
             serviceConfig.setThreadModel(ThreadModel.MANUAL);
-            ioHandler = new InitiatorIoHandler(quickfixSession, networkingOptions,
+            ioHandler = new InitiatorIoHandler(fixSession, networkingOptions,
                     eventHandlingStrategy);
         }
 
@@ -152,7 +152,7 @@ public class IoSessionInitiator {
                     lastConnectTime = System.currentTimeMillis();
                     connectFuture = null;
                 } else {
-                    quickfixSession.getLog().onEvent(
+                    fixSession.getLog().onEvent(
                             "Pending connection not established after "
                                     + (System.currentTimeMillis() - lastReconnectAttemptTime)
                                     + " ms.");
@@ -167,10 +167,10 @@ public class IoSessionInitiator {
                 e = e.getCause();
             }
             if ((e instanceof IOException) && (e.getMessage() != null)) {
-                quickfixSession.getLog().onEvent(e.getMessage());
+                fixSession.getLog().onEvent(e.getMessage());
             } else {
                 String msg = "Exception during connection";
-                LogUtil.logThrowable(quickfixSession.getLog(), msg, e);
+                LogUtil.logThrowable(fixSession.getLog(), msg, e);
             }
             connectionFailureCount++;
             connectFuture = null;
@@ -194,7 +194,7 @@ public class IoSessionInitiator {
 
         private boolean shouldReconnect() {
             return (ioSession == null || !ioSession.isConnected()) && isTimeForReconnect()
-                    && (quickfixSession.isEnabled() && quickfixSession.isSessionTime());
+                    && (fixSession.isEnabled() && fixSession.isSessionTime());
         }
 
         private boolean isTimeForReconnect() {
@@ -214,10 +214,17 @@ public class IoSessionInitiator {
         public synchronized long getLastConnectTime() {
             return lastConnectTime;
         }
+        
+        public Session getFixSession() {
+            return fixSession;
+        }
     }
 
     synchronized void start() {
         if (reconnectFuture == null) {
+        	// The following logon reenabled the session. The actual logon will take
+        	// place as a side-effect of the session timer task (not the reconnect task).
+            reconnectTask.getFixSession().logon(); // only enables the session
             reconnectFuture = executor
                     .scheduleWithFixedDelay(reconnectTask, 0, 1, TimeUnit.SECONDS);
         }
@@ -226,6 +233,7 @@ public class IoSessionInitiator {
     synchronized void stop() {
         if (reconnectFuture != null) {
             reconnectFuture.cancel(true);
+            reconnectFuture = null;
         }
     }
 }

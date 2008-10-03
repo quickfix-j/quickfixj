@@ -71,17 +71,17 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
-        try {
+        //try {
             ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
             ByteBuffer.setUseDirectBuffers(false);
-            createSessions();
-        } catch (FieldConvertError e) {
-            throw new ConfigError(e);
-        }
+//        } catch (FieldConvertError e) {
+//            throw new ConfigError(e);
+//        }
     }
 
-    protected void initiateSessions(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
+    protected void createSessionInitiators(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
+            createSessions();
             for (Session session : getSessionMap().values()) {
                 SessionID sessionID = session.getSessionID();
                 int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
@@ -109,7 +109,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
                 initiators.add(ioSessionInitiator);
             }
-            startTimers();
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
         }
@@ -211,26 +210,18 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                         SessionFactory.SETTING_CONNECTION_TYPE).equals("initiator");
     }
 
-    private void startTimers() {
+    protected void startInitiators() {
         startSessionTimer();
-        startInitiators();
-    }
-
-    private void startInitiators() {
         for (IoSessionInitiator initiator : initiators) {
             initiator.start();
         }
     }
 
-    public void stopSessionTimer() {
-        stopInitiators();
-        super.stopSessionTimer();
-    }
-
-    private void stopInitiators() {
+    protected void stopInitiators() {
         for (IoSessionInitiator initiator : initiators) {
             initiator.stop();
         }
+        super.stopSessionTimer();
     }
 
     public Set<IoSessionInitiator> getInitiators() {

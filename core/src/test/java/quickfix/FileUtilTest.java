@@ -20,10 +20,16 @@
 package quickfix;
 
 import java.io.InputStream;
+import java.net.Socket;
 
 import junit.framework.TestCase;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class FileUtilTest extends TestCase {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     public void testFileLocation() throws Exception {
         // Assumption: current directory is QFJ project base directory
         InputStream in = FileUtil.open(null, "LICENSE");
@@ -45,8 +51,23 @@ public class FileUtilTest extends TestCase {
 
     public void testURLLocation() throws Exception {
         // Assumption: Internet access
-        InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
-        in.close();
-        assertNotNull("Resource not found", in);
+        if (isInternetAccessible()) {
+            InputStream in = FileUtil.open(Message.class, "http://www.quickfixj.org/");
+            if (in != null) {
+                in.close();
+            }
+            assertNotNull("Resource not found", in);
+        }
+    }
+
+    private boolean isInternetAccessible() {
+        try {
+            Socket socket = new Socket("www.quickfixj.org", 80);
+            socket.close();
+            return true;
+        } catch (Exception e) {
+            log.warn("No internet access");
+        }
+        return false;
     }
 }

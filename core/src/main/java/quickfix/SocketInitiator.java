@@ -70,16 +70,24 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
 
     public void stop(boolean forceDisconnect) {
-        eventHandlingStrategy.stopHandlingMessages();
-        logoutAllSessions(forceDisconnect);
-        stopSessionTimer();
-        Session.unregisterSessions(getSessions());
+        try {
+            eventHandlingStrategy.stopHandlingMessages();
+            logoutAllSessions(forceDisconnect);
+            stopInitiators();
+        } finally {
+            Session.unregisterSessions(getSessions());
+        }
     }
 
     private synchronized void initialize() throws ConfigError {
         if (!isInitialized) {
-            initiateSessions(eventHandlingStrategy);
+            createSessionInitiators(eventHandlingStrategy);
+            isInitialized = true;
+        } else {
+            for (Session session : getSessionMap().values()) {
+                Session.registerSession(session);
+            }
         }
-        isInitialized = true;
-    }
+        startInitiators();
+   }
 }
