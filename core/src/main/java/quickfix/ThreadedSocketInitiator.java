@@ -26,6 +26,8 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * Initiates connections and uses a separate thread per session to process messages.
  */
 public class ThreadedSocketInitiator extends AbstractSocketInitiator {
+    private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy();
+
     public ThreadedSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
@@ -45,7 +47,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     }
 
     public void start() throws ConfigError, RuntimeError {
-        createSessionInitiators(new ThreadPerSessionEventHandlingStrategy());
+        createSessionInitiators(eventHandlingStrategy);
         startInitiators();
     }
 
@@ -59,6 +61,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         if (!forceDisconnect) {
             waitForLogout();
         }
+        eventHandlingStrategy.stopDispatcherThreads();
         Session.unregisterSessions(getSessions());
     }
 

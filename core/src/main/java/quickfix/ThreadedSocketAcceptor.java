@@ -26,6 +26,8 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
  * Accepts connections and uses a separate thread per session to process messages.
  */
 public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
+    private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy();
+
     public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
             throws ConfigError {
@@ -42,7 +44,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     }
 
     public void start() throws ConfigError, RuntimeError {
-        startAcceptingConnections(new ThreadPerSessionEventHandlingStrategy());
+        startAcceptingConnections(eventHandlingStrategy);
     }
     
     public void stop() {
@@ -53,6 +55,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         stopAcceptingConnections();
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
+        eventHandlingStrategy.stopDispatcherThreads();
         Session.unregisterSessions(getSessions());
     }
 

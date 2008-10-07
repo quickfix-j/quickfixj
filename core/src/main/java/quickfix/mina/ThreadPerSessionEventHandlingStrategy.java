@@ -19,6 +19,7 @@
 
 package quickfix.mina;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,10 +51,19 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         dispatcher.start();
     }
 
+    public void stopDispatcherThreads() {
+        Collection<MessageDispatchingThread> dispatchersToShutdown = dispatchers.values();
+        dispatchers.clear();
+        for (MessageDispatchingThread dispatcher : dispatchersToShutdown) {
+            dispatcher.stopDispatcher();
+        }
+    }
+    
     class MessageDispatchingThread extends Thread {
         private final Session quickfixSession;
         private final BlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
-
+        private volatile boolean stopped;
+        
         public MessageDispatchingThread(Session session) {
             super("QF/J Session dispatcher: " + session.getSessionID());
             quickfixSession = session;
@@ -68,19 +78,25 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
 
         public void run() {
-            while (true) {
+            while (!stopped) {
                 try {
                     Message message = getNextMessage(messages);
                     if (quickfixSession.hasResponder()) {
                         quickfixSession.next(message);
                     }
                 } catch (InterruptedException e) {
+                    LogUtil.logThrowable(quickfixSession.getSessionID(),
+                            "Message dispatcher interrupted", e);
                     return;
                 } catch (Throwable e) {
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
                             "Error during message processing", e);
                 }
             }
+        }
+        
+        public void stopDispatcher() {
+            stopped = true;
         }
     }
 
