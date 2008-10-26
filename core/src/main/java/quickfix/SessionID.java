@@ -198,6 +198,13 @@ public class SessionID {
     }
 
     /**
+     * @return true if session version if FIXT 1.1 or newer.
+     */
+    public boolean isFIXT() {
+        return FixVersions.BEGINSTRING_FIXT11.equals(beginString);
+    }
+
+    /**
      * Populate the sessionID from a string.
      * @param sessionIDString
      * @return the sessionIDString

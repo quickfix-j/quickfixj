@@ -170,7 +170,8 @@ public class MessageCodeGenerator {
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
                 + "/component/";
         Document document = getSpecification(task);
-        List<String> componentNames = getNames(document.getDocumentElement(), "components/component");
+        List<String> componentNames = getNames(document.getDocumentElement(),
+                "components/component");
         if (componentNames.size() > 0) {
             writePackageDocumentation(outputDirectory, "Message component classes");
         }
@@ -387,6 +388,19 @@ public class MessageCodeGenerator {
         }
     }
 
+    public static String stripSpaces(String str) {
+        StringBuffer b = new StringBuffer();
+        for (int i = 0; i < str.length(); ++i) {
+            char t = str.charAt(i);
+            if (t == ' ')
+                continue;
+            if (t == '.')
+                continue;
+            b.append(t);
+        }
+        return b.toString();
+    }
+
     public static void main(String[] args) {
         MessageCodeGenerator codeGenerator = new MessageCodeGenerator();
         try {
@@ -395,18 +409,21 @@ public class MessageCodeGenerator {
                 System.err.println("usage: " + classname + " specDir xformDir outputBaseDir");
                 return;
             }
-            
+
             boolean overwrite = getOption(OVERWRITE_OPTION, true);
             boolean orderedFields = getOption(ORDERED_FIELDS_OPTION, false);
             boolean useDecimal = getOption(BIGDECIMAL_TYPE_OPTION, false);
-            
+
             long start = System.currentTimeMillis();
-            for (int i = 4; i >= 0; i--) {
+            final String[] vers = new String[] { "FIXT 1.1", "FIX 5.0", "FIX 4.4", "FIX 4.3", "FIX 4.2",
+                    "FIX 4.1", "FIX 4.0" };
+            for (int i = 0; i < vers.length; ++i) {
                 Task task = new Task();
-                task.setName("FIX 4." + i);
-                task.setSpecification(args[0] + "/FIX4" + i + ".xml");
+                task.setName(vers[i]);
+                final String temp = stripSpaces(vers[i]);
+                task.setSpecification(args[0] + "/" + temp + ".xml");
                 task.setTransformDirectory(args[1]);
-                task.setMessagePackage("quickfix.fix4" + i);
+                task.setMessagePackage("quickfix." + temp.toLowerCase());
                 task.setOutputBaseDirectory(args[2]);
                 task.setFieldPackage("quickfix.field");
                 task.setOverwrite(overwrite);
@@ -425,7 +442,6 @@ public class MessageCodeGenerator {
     }
 
     private static boolean getOption(String key, boolean defaultValue) {
-        return System.getProperties().containsKey(key) ? Boolean
-                .getBoolean(key) : defaultValue;
+        return System.getProperties().containsKey(key) ? Boolean.getBoolean(key) : defaultValue;
     }
 }

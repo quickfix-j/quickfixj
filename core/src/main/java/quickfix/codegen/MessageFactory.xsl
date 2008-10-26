@@ -55,7 +55,7 @@ public class MessageFactory implements quickfix.MessageFactory
     </xsl:template>
     
     <xsl:template name="group-if-statement">
-     <xsl:for-each select="//fix/messages/message[group]">
+     <xsl:for-each select="//fix/messages/message[group or component]">
        if("<xsl:value-of select="@msgtype"/>".equals(msgType)) {
          switch(correspondingFieldID) {
          <xsl:apply-templates mode="group-factories" select="group">

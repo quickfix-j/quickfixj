@@ -61,6 +61,7 @@ table {
 
 td, th {
   border: solid 1px #c0c0c0;
+  vertical-align: top;
 }
 
 td {

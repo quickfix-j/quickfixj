@@ -18,4 +18,5 @@
 <booleanAttribute key="org.eclipse.jdt.launching.DEFAULT_CLASSPATH" value="false"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="quickfix.examples.banzai.Banzai"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="quickfixj"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx128m"/>
 </launchConfiguration>

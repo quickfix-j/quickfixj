@@ -19,15 +19,32 @@
 
 package quickfix.examples.executor;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.math.BigDecimal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import quickfix.*;
+import quickfix.ConfigError;
+import quickfix.DataDictionaryProvider;
+import quickfix.DoNotSend;
+import quickfix.FieldConvertError;
+import quickfix.FieldNotFound;
+import quickfix.FixVersions;
+import quickfix.IncorrectDataFormat;
+import quickfix.IncorrectTagValue;
+import quickfix.LogUtil;
+import quickfix.Message;
+import quickfix.MessageUtils;
+import quickfix.RejectLogon;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
+import quickfix.SessionSettings;
+import quickfix.UnsupportedMessageType;
+import quickfix.field.ApplVerID;
 import quickfix.field.AvgPx;
 import quickfix.field.CumQty;
 import quickfix.field.ExecID;
@@ -190,10 +207,11 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
                 throw new SessionNotFound(sessionID.toString());
             }
             
-            DataDictionary dataDictionary = session.getDataDictionary();
-            if (dataDictionary != null) {
+            DataDictionaryProvider dataDictionaryProvider = session.getDataDictionaryProvider();
+            if (dataDictionaryProvider != null) {
                 try {
-                    session.getDataDictionary().validate(message, true);
+                    dataDictionaryProvider.getApplicationDataDictionary(
+                            getApplVerID(session, message), null).validate(message, true);
                 } catch (Exception e) {
                     LogUtil.logThrowable(sessionID, "Outgoing message failed validation: "
                             + e.getMessage(), e);
@@ -204,6 +222,15 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             session.send(message);
         } catch (SessionNotFound e) {
             log.error(e.getMessage(), e);
+        }
+    }
+
+    private ApplVerID getApplVerID(Session session, Message message) {
+        String beginString = session.getSessionID().getBeginString();
+        if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
+            return new ApplVerID(ApplVerID.FIX50);
+        } else {
+            return MessageUtils.toApplVerID(beginString);
         }
     }
 
@@ -354,6 +381,43 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         }
     }
 
+    public void onMessage(quickfix.fix50.NewOrderSingle order, SessionID sessionID)
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        try {
+            validateOrder(order);
+
+            OrderQty orderQty = order.getOrderQty();
+            Price price = getPrice(order);
+
+            quickfix.fix50.ExecutionReport accept = new quickfix.fix50.ExecutionReport(
+                    genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                            OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
+                            .getValue()), new CumQty(0));
+
+            accept.set(order.getClOrdID());
+            accept.set(order.getSymbol());
+            sendMessage(sessionID, accept);
+
+            if (isOrderExecutable(order, price)) {
+                quickfix.fix50.ExecutionReport executionReport = new quickfix.fix50.ExecutionReport(
+                        genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                                OrdStatus.FILLED), order.getSide(), new LeavesQty(0), new CumQty(
+                                orderQty.getValue()));
+
+                executionReport.set(order.getClOrdID());
+                executionReport.set(order.getSymbol());
+                executionReport.set(orderQty);
+                executionReport.set(new LastQty(orderQty.getValue()));
+                executionReport.set(new LastPx(price.getValue()));
+                executionReport.set(new AvgPx(price.getValue()));
+                
+                sendMessage(sessionID, executionReport);
+            }
+        } catch (RuntimeException e) {
+            LogUtil.logThrowable(sessionID, e.getMessage(), e);
+        }
+    }
+    
     public OrderID genOrderID() {
         return new OrderID(Integer.valueOf(++m_orderID).toString());
     }

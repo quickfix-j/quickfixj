@@ -31,6 +31,7 @@ import quickfix.Application;
 import quickfix.DefaultMessageFactory;
 import quickfix.DoNotSend;
 import quickfix.FieldNotFound;
+import quickfix.FixVersions;
 import quickfix.IncorrectDataFormat;
 import quickfix.IncorrectTagValue;
 import quickfix.Message;
@@ -302,16 +303,18 @@ public class BanzaiApplication implements Application {
 
     public void send(Order order) {
         String beginString = order.getSessionID().getBeginString();
-        if (beginString.equals("FIX.4.0"))
+        if (beginString.equals(FixVersions.BEGINSTRING_FIX40))
             send40(order);
-        else if (beginString.equals("FIX.4.1"))
+        else if (beginString.equals(FixVersions.BEGINSTRING_FIX41))
             send41(order);
-        else if (beginString.equals("FIX.4.2"))
+        else if (beginString.equals(FixVersions.BEGINSTRING_FIX42))
             send42(order);
-        else if (beginString.equals("FIX.4.3"))
+        else if (beginString.equals(FixVersions.BEGINSTRING_FIX43))
             send43(order);
-        else if (beginString.equals("FIX.4.4"))
+        else if (beginString.equals(FixVersions.BEGINSTRING_FIX44))
             send44(order);
+        else if (beginString.equals(FixVersions.BEGINSTRING_FIXT11))
+            send50(order);
         return;
     }
 
@@ -353,6 +356,16 @@ public class BanzaiApplication implements Application {
 
     public void send44(Order order) {
         quickfix.fix44.NewOrderSingle newOrderSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID(order.getID()), sideToFIXSide(order.getSide()),
+                new TransactTime(), typeToFIXType(order.getType()));
+        newOrderSingle.set(new OrderQty(order.getQuantity()));
+        newOrderSingle.set(new Symbol(order.getSymbol()));
+        newOrderSingle.set(new HandlInst('1'));
+        send(populateOrder(order, newOrderSingle), order.getSessionID());
+    }
+
+    public void send50(Order order) {
+        quickfix.fix50.NewOrderSingle newOrderSingle = new quickfix.fix50.NewOrderSingle(
                 new ClOrdID(order.getID()), sideToFIXSide(order.getSide()),
                 new TransactTime(), typeToFIXType(order.getType()));
         newOrderSingle.set(new OrderQty(order.getQuantity()));

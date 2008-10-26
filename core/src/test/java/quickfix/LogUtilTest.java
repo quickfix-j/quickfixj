@@ -62,7 +62,7 @@ public class LogUtilTest extends TestCase {
                     return null;
                 }
             }
-        }, null, null, schedule, mockLogFactory, null, 0);
+        }, sessionID, null, schedule, mockLogFactory, null, 0);
     }
 
     private LogFactory createLogFactory(ByteArrayOutputStream data) {

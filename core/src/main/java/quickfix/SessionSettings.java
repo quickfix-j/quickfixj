@@ -64,11 +64,8 @@ public class SessionSettings {
     private Logger log = LoggerFactory.getLogger(getClass());
     
     private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
-
     private static final String SESSION_SECTION_NAME = "session";
-
     private static final String DEFAULT_SECTION_NAME = "default";
-
     public static final String BEGINSTRING = "BeginString";
     public static final String SENDERCOMPID = "SenderCompID";
     public static final String SENDERSUBID = "SenderSubID";
@@ -76,7 +73,6 @@ public class SessionSettings {
     public static final String TARGETCOMPID = "TargetCompID";
     public static final String TARGETSUBID = "TargetSubID";
     public static final String TARGETLOCID = "TargetLocationID";
-
     public static final String SESSION_QUALIFIER = "SessionQualifier";
 
     // This was using the line.separator system property but that caused

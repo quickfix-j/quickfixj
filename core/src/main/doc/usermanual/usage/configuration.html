@@ -152,6 +152,26 @@
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>DefaultApplVerID</I> </TD>
+    <TD>Required only for FIXT 1.1 (and newer). Ignored for earlier transport versions. Specifies the 
+    	default application version ID for the session. This can either be the ApplVerID
+    	enum (see the ApplVerID field) the beginString for the default version.
+    </TD>
+    <TD>String. Examples:
+    <pre><code>
+ # Enum. FIX 5.0 over FIXT 1.1
+ DefaultApplVerID=7
+
+ # BeginString: FIX 5.0 over FIXT 1.1
+ DefaultApplVerID=FIX.5.0
+
+ # BeginString: FIX 4.2 over FIXT 1.1
+ DefaultApplVerID=FIX.4.2
+    </code></pre>
+    </TD>
+    <TD>No default. Required for FIXT 1.1</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ConnectionType</I> </TD>
     <TD> Defines if session will act as an acceptor or an initiator </TD>
     <TD> initiator <br> acceptor </TD>
@@ -217,25 +237,76 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>UseDataDictionary</I> </TD>
 
-    <TD> Tell session whether or not to expect a data dictionary. You should always use a DataDictionary if you are using repeating groups.</TD>
+    <TD> Tell session whether or not to expect a data dictionary. You should always use a 
+    		DataDictionary if you are using repeating groups.</TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
 
     <TD> <I>DataDictionary</I> </TD>
-    <TD> XML definition file for validating incoming FIX messages. If no DataDictionary is supplied, only basic message validation will be done</TD>
-    <TD> Valid XML data dictionary file, QuickFIX/J comes with the following defaults in the <code>etc</code> directory: FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
-    <p>
-    	If DataDictionary is not specified and UserDataDictionary=Y, then QuickFIX/J will look for a
+    <TD> XML definition file for validating incoming FIX messages. If no DataDictionary is supplied, 
+    	only basic message validation will be done
+    	<p>
+    	This setting should only be used with FIX transport versions old than FIXT 1.1. See TransportDataDictionary and
+    	ApplicationDataDictionary for FIXT 1.1 settings.
+    	</p>
+    </TD>
+    <TD> Valid XML data dictionary file, QuickFIX/J comes with the following defaults in the <code>etc</code> directory: 
+    	FIXT11.xml, FIX50.xml, FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
+    </TD>
+    <TD>If DataDictionary is not specified and UserDataDictionary=Y, then QuickFIX/J will look for a
     	default dictionary based on the session's BeginString (e.g., FIX.4.2 = FIX42.xml). The DataDictionary
     	file search strategy is to use a URL, then the file system, and then the thread context classloader (if any),
     	and then the DataDictionary instance's classloader. Default data dictionary files
     	are included in the QuickFIX/J jar file.
+    </TD>
+</TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>TransportDataDictionary</I> </TD>
+    <TD> XML definition file for validating admin (transport) messages. This setting is only valid for
+    	the FIXT 1.1 (or newer) sessions.
+    	<p>
+    	See DataDictionary for older
+    	transport versions (FIX 4.0-4.4) and for additional information.
     	</p>
+    <TD> Valid XML data dictionary file path.
+    </TD>
+    <TD> If no dictionary path is supplied, 
+    	an attempt will be made to load a default transport dictionary.
+    </TD>
+</TR>
+<TR>
+    <TD> <I>AppDataDictionary</I> </TD>
+    <TD> XML definition file for validating application messages. This setting is only valid for
+    	the FIXT 1.1 (or newer) sessions. 
+    	<p>
+    	See DataDictionary for older
+    	transport versions (FIX 4.0-4.4) and for additional information.
+    	</p>
+    	<p>
+    	This setting supports the possibility of a custom application data
+     dictionary for each session. This setting would only be used with FIXT 1.1 and
+     new transport protocols. This setting can be used as a prefix to specify multiple
+     application dictionaries for the FIXT transport. For example:
+     <pre><code>
+  DefaultApplVerID=FIX.4.2
+  # For default application version ID
+  AppDataDictionary=FIX42.xml
+  # For nondefault application version ID
+  # Use beginString suffix for app version
+  AppDataDictionary.FIX.4.4=FIX44.xml
+  </code></pre>
+     This would use FIX42.xml for the default application version ID and FIX44.xml for
+     any FIX 4.4 messages.
+     </p>
+    	
+    <TD> Valid XML data dictionary file path.
     </TD>
 
-    <TD><p>&nbsp;</p>
+    <TD>If no dictionary path is supplied, 
+    	an attempt will be made to load a dictionary using the DefaultApplVerID for the session.
       </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">

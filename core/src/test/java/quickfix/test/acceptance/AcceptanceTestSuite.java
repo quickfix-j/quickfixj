@@ -139,8 +139,8 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
 
-//        addTest("fix44/14j_OutOfOrderRepeatingGroupMembers.def");
-//        if (true) return;
+        //addTest("fix44/2q_MsgTypeNotValid.def");
+        //if (true) return;
         
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));

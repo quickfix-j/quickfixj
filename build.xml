@@ -306,11 +306,12 @@
 		<fileset dir="" includes="**/*.jar"/>
 	</path>
 
-	<target name="release.shared.java4">
-		<taskdef name="retrotranslator" classpathref="retrotranslator.classpath"
-			classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
-		</taskdef>
-		
+         <taskdef name="retrotranslator" classpathref="retrotranslator.classpath"
+                        classname="net.sf.retrotranslator.transformer.RetrotranslatorTask">
+         </taskdef>
+
+
+	 <target name="release.shared.java4">
 		<property name="release.bin.java4"
 		          value="${release.output.dir}/${release.prefix}-java4-bin" />
 
@@ -339,6 +340,8 @@
 		<retrotranslate-jar jar="quickfixj-msg-fix42-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-msg-fix43-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-msg-fix44-${version}.jar"/>
+                <retrotranslate-jar jar="quickfixj-msg-fix50-${version}.jar"/>
+                <retrotranslate-jar jar="quickfixj-msg-fixt11-${version}.jar"/>
 		
 		<!-- Create and do basic testing on binary archives -->
 
@@ -408,6 +411,7 @@
 				<fileset dir="core/src/test/lib" includes="*.jar">
 					<exclude name="mockito*"/>
 					<exclude name="hamcrest*"/>
+                                        <exclude name="junit*"/>
 				</fileset>
 				<fileset dir="core/src/main/lib/java4" 
 					includes="retrotranslator/*runtime*.jar"/>
@@ -422,6 +426,11 @@
 					<exclude name="**/*ForTest.java" />
 					<exclude name="**/Abstract*Test.java" />
 					<exclude name="quickfix/Api*.java" />
+                                        <!-- Exclude following tests because they use JUnit 4 -->
+                                        <exclude name="**/DefaultDataDictionaryProviderTest.java"/>
+                                        <exclude name="**/DefaultMessageFactoryTest.java"/>
+                                        <exclude name="**/DefaultSessionFactoryTest.java"/>
+                                        <exclude name="**/MessageUtilsTest.java"/>
 				</fileset>
 			</batchtest>
 		</junit>	

@@ -95,6 +95,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='SEQNUM'">int</xsl:when>
      <xsl:when test="@type='LENGTH'">int</xsl:when>
      <xsl:when test="@type='COUNTRY'">String</xsl:when>
+     <xsl:when test="@type='MULTIPLESTRINGVALUE'">String</xsl:when>
      <xsl:otherwise>String</xsl:otherwise>
    </xsl:choose>
 </xsl:template>
@@ -121,6 +122,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='SEQNUM'">Int</xsl:when>
      <xsl:when test="@type='LENGTH'">Int</xsl:when>
      <xsl:when test="@type='COUNTRY'">String</xsl:when>
+     <xsl:when test="@type='MULTIPLESTRINGVALUE'">String</xsl:when>
      <xsl:otherwise>String</xsl:otherwise>
    </xsl:choose>
 </xsl:template>
@@ -137,14 +139,16 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 <xsl:choose>
   <xsl:when test="../@type='STRING'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
   </xsl:when>
+  <xsl:when test="../@type='MULTIPLESTRINGVALUE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
+  </xsl:when>
   <xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="@description"/> = <xsl:call-template name="y-or-n-to-bool" />; 
   </xsl:when>
   <xsl:when test="../@type='INT'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>; 
   </xsl:when>
-  <xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
-  </xsl:when>   
-  <xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
-  </xsl:when>   
+  <xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
+  </xsl:when>
+  <xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
+  </xsl:when>
   <xsl:otherwise>public static final char <xsl:value-of select="@description"/> = '<xsl:value-of select="@enum"/>'; 
   </xsl:otherwise>
 </xsl:choose>

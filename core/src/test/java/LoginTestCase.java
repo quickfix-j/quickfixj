@@ -50,7 +50,6 @@ public class LoginTestCase {
 
                     new CountDownLatch(1).await();
                 } catch (Exception e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }

@@ -19,40 +19,112 @@
 
 package quickfix;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
+
+import quickfix.field.ApplVerID;
 import quickfix.test.acceptance.ATApplication;
 
-public class DefaultSessionFactoryTest extends TestCase {
+public class DefaultSessionFactoryTest {
 
     private SessionID sessionID;
     private SessionSettings settings;
     private SessionFactory factory;
 
-    protected void setUp() throws Exception {
-        super.setUp();
-        sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "FOO", "BAR");
-        setUpDefaultSettings();
+    @Before
+    public void setUp() throws Exception {
+        sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "SENDER", "TARGET");
+        setUpDefaultSettings(sessionID);
         factory = new DefaultSessionFactory(new ATApplication(), new MemoryStoreFactory(),
                 new ScreenLogFactory(true, true, true));
     }
 
+    @Test
     public void testMinimalSettings() throws Exception {
         factory.create(sessionID, settings);
     }
 
+    @Test
+    public void testFixTMinimalSettings() throws Exception { 
+        sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
+        setUpDefaultSettings(sessionID);
+        factory = new DefaultSessionFactory(new ATApplication(), new MemoryStoreFactory(),
+                new ScreenLogFactory(true, true, true));
+        Exception e = null;
+        try {
+            factory.create(sessionID, settings);
+        } catch (Exception ex) {
+            e = ex;
+        }
+        assertNotNull(e);
+        
+        Session sess = null;
+        settings.setString(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID, "5");
+        e = null;
+        try {
+            sess = factory.create(sessionID, settings);
+            assertNotNull(sess);
+            assertEquals(new ApplVerID("5"), sess.getSenderDefaultApplicationVersionID());
+        } catch (Exception ex) {
+            e = ex;
+        }
+        assertNull(e);
+    }
+    
+    @Test
+    public void testFixtDataDictionaryConfiguration() throws Exception {
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
+        setUpDefaultSettings(sessionID);
+        settings.setBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY, true);
+        settings.setString(sessionID, Session.SETTING_TRANSPORT_DATA_DICTIONARY, "FIXT11.xml");
+        settings.setString(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID, "FIX.4.2");
+        settings.setString(sessionID, Session.SETTING_APP_DATA_DICTIONARY, "FIX42.xml");
+        settings.setString(sessionID, Session.SETTING_APP_DATA_DICTIONARY + "." + FixVersions.BEGINSTRING_FIX40, "FIX40.xml");
+
+        Session session = factory.create(sessionID, settings);
+
+        DataDictionaryProvider provider = session.getDataDictionaryProvider();
+        assertThat(provider.getSessionDataDictionary(sessionID.getBeginString()),
+                is(notNullValue()));
+
+        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX42), null),
+                is(notNullValue()));
+        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX40), null),
+                is(notNullValue()));
+    }
+
+    @Test
+    public void testPreFixtDataDictionaryConfiguration() throws Exception {
+        settings.setBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY, true);
+
+        Session session = factory.create(sessionID, settings);
+
+        DataDictionaryProvider provider = session.getDataDictionaryProvider();
+        assertThat(provider.getSessionDataDictionary(sessionID.getBeginString()),
+                is(notNullValue()));
+        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX42), null),
+                is(notNullValue()));
+    }
+
+    @Test
     public void testNoConnectionType() throws Exception {
         settings.removeSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE);
         createSessionAndAssertConfigError("no connection type exception", "Missing ConnectionType");
     }
 
+    @Test
     public void testWrongConnectionType() throws Exception {
         settings.setString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE, "fargle");
         createSessionAndAssertConfigError("no connection type exception", "Invalid ConnectionType");
     }
 
+    @Test
     public void testUseDataDictionaryByDefault() throws Exception {
         settings.removeSetting(sessionID, Session.SETTING_USE_DATA_DICTIONARY);
         settings.setString(sessionID, Session.SETTING_DATA_DICTIONARY, "BOGUS");
@@ -70,6 +142,7 @@ public class DefaultSessionFactoryTest extends TestCase {
         }
     }
 
+    @Test
     public void testBadPathForDataDictionary() throws Exception {
         settings.setBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY, true);
         settings.setString(sessionID, Session.SETTING_DATA_DICTIONARY, "xyz");
@@ -77,6 +150,7 @@ public class DefaultSessionFactoryTest extends TestCase {
     }
 
 
+    @Test
     public void testInitiatorWithoutHeartbeat() throws Exception {
         settings.removeSetting(sessionID, Session.SETTING_HEARTBTINT);
         settings.setString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE,
@@ -84,31 +158,33 @@ public class DefaultSessionFactoryTest extends TestCase {
         createSessionAndAssertConfigError("no exception", "HeartBtInt not defined");
     }
 
+    @Test
     public void testIncorrectTimeValues() throws Exception {
         settings.setString(sessionID, Session.SETTING_START_TIME, "00:00:00");
         factory.create(sessionID, settings);
         // no exception
 
-        setUpDefaultSettings();
+        setUpDefaultSettings(sessionID);
         settings.setString(sessionID, Session.SETTING_END_TIME, "16:00:00");
         factory.create(sessionID, settings);
         // no exception
 
-        setUpDefaultSettings();
+        setUpDefaultSettings(sessionID);
         settings.setString(sessionID, Session.SETTING_START_TIME, "xx");
         createSessionAndAssertConfigError("no exception",
-                "Session FIX.4.2:FOO->BAR: could not parse time 'xx'.");
+                "Session FIX.4.2:SENDER->TARGET: could not parse time 'xx'.");
 
-        setUpDefaultSettings();
+        setUpDefaultSettings(sessionID);
         settings.setString(sessionID, Session.SETTING_END_TIME, "yy");
         createSessionAndAssertConfigError("no exception",
-                "Session FIX.4.2:FOO->BAR: could not parse time 'yy'.");
+                "Session FIX.4.2:SENDER->TARGET: could not parse time 'yy'.");
     }
 
-    public void testTestRequestDeayMultiplier() throws Exception {
+    @Test
+    public void testTestRequestDelayMultiplier() throws Exception {
         settings.setString(sessionID, Session.SETTING_TEST_REQUEST_DELAY_MULTIPLIER, "0.37");
         Session session = factory.create(sessionID, settings);
-        assertEquals(0.37, session.getTestRequestDelayMultiplier());
+        assertEquals(0.37, session.getTestRequestDelayMultiplier(), 0);
     }
 
     private void createSessionAndAssertConfigError(String message, String pattern) {
@@ -125,7 +201,7 @@ public class DefaultSessionFactoryTest extends TestCase {
         }
     }
 
-    private void setUpDefaultSettings() {
+    private void setUpDefaultSettings(SessionID sessionID) {
         settings = new SessionSettings();
         settings.setString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE,
                 SessionFactory.INITIATOR_CONNECTION_TYPE);

@@ -48,12 +48,18 @@ public class Message extends quickfix.Message
     super(fieldOrder);
     header = new Header(this);
     trailer = new Trailer();
+    <xsl:choose>
+	    <xsl:when test="//fix/@major='4'">
     getHeader().setField(new BeginString("FIX.<xsl:value-of select="//fix/@major"/>.<xsl:value-of select="//fix/@minor"/>"));
+	    </xsl:when>
+	    <xsl:when test="//fix/@major='5' or //fix/@type='FIXT'">
+    getHeader().setField(new BeginString("FIXT.1.1"));
+	    </xsl:when>
+    </xsl:choose>
   }
   
   public static class Header extends quickfix.Message.Header {
      static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
-
 	 public Header(Message msg) {
 		 // JNI compatibility
 	 }
@@ -213,7 +219,7 @@ public class Message extends quickfix.Message
   	<xsl:apply-templates select="/fix/components/component[@name=$name]/*[name(.)='field' or name(.)='group' or name(.)='component']"
   		mode="field-accessors"/>
   </xsl:template>
-	
+
   <xsl:template name="extra-imports">
     <xsl:variable name="groups" select="/fix/header/group"/>
     <xsl:choose>
@@ -247,6 +253,6 @@ import quickfix.Group;</xsl:when>
       </xsl:choose>
     </xsl:if>
   </xsl:template>
-
+  
 </xsl:stylesheet>
 

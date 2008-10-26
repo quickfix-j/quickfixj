@@ -78,6 +78,14 @@ public class FIXMessageDecoderTest extends TestCase {
         assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
     }
 
+    public void testFixtStringDecoding() throws Exception {
+        decoder = new FIXMessageDecoder("UTF-16");
+        setUpBuffer("8=FIXT.1.1\0019=12\00135=X\001108=30\00110=049\001");
+        MessageDecoderResult decoderResult = decoder.decode(null, buffer, decoderOutput);
+        assertEquals("wrong decoder result", MessageDecoderResult.OK, decoderResult);
+        assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
+    }
+
     public void testWesternEuropeanDecoding() throws Exception {
         // Should work with default encoding
         doWesternEuropeanDecodingTest();

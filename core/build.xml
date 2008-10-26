@@ -144,6 +144,8 @@
 		<create-message-jar fixVersion="42" />
 		<create-message-jar fixVersion="43" />
 		<create-message-jar fixVersion="44" />
+                <create-message-jar fixVersion="50" />
+                <create-message-jar fixVersion="t11" />
 	</target>
 
 	<macrodef name="create-message-jar">
@@ -315,7 +317,7 @@
 		<description>Generate the Javadocs for the main sources.</description>
 		<mkdir dir="${javadoc.output.dir}" />
 
-		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html" noindex="yes" stylesheetfile="${javadoc.input.dir}/javadoc.css" destdir="${javadoc.output.dir}" protected="yes" maxmemory="256m" breakiterator="yes" classpathref="compile.classpath">
+		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html" noindex="yes" stylesheetfile="${javadoc.input.dir}/javadoc.css" destdir="${javadoc.output.dir}" protected="yes" maxmemory="768m" breakiterator="yes" classpathref="compile.classpath">
 			<sourcepath>
 				<pathelement location="${main.src.dir}" />
 				<pathelement location="${target.generated.src.dir}" />
@@ -404,7 +406,7 @@
 	<path id="test.classpath">
 		<pathelement location="${jar.output.dir}/${quickfixj.core.jar}" />
 		<fileset dir="${jar.output.dir}">
-			<include name="quickfixj-msg-fix4*-${version}.jar"/>
+			<include name="quickfixj-msg-fix*-${version}.jar"/>
 		</fileset>
 		<pathelement location="${test.classes.dir}" />
 		<pathelement location="${test.src.dir}" />

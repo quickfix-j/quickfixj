@@ -21,6 +21,7 @@ package quickfix;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+import quickfix.field.BeginString;
 import quickfix.field.LegSymbol;
 import quickfix.field.OrderID;
 import quickfix.field.SessionRejectReason;
@@ -251,6 +252,7 @@ public class RepeatingGroupTest extends TestCase {
     // Testing Message validation
     private static DataDictionary defaultDataDictionary = null;
     private static DataDictionary customDataDictionary = null;
+    private DefaultMessageFactory messageFactory = new DefaultMessageFactory();
 
     static {
         try {
@@ -263,7 +265,10 @@ public class RepeatingGroupTest extends TestCase {
 
     private Message buildValidatedMessage(String sourceFIXString, DataDictionary dd)
             throws InvalidMessage {
-        return MessageUtils.parse(new DefaultMessageFactory(), dd, sourceFIXString);
+        Message message = messageFactory.create(MessageUtils.getStringField(sourceFIXString,
+                BeginString.FIELD), MessageUtils.getMessageType(sourceFIXString));
+        message.fromString(sourceFIXString, dd, true);
+        return message;
     }
 
     public void testValidationWithNestedGroupAndStandardFields() throws InvalidMessage {

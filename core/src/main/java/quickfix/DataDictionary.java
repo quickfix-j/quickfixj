@@ -60,6 +60,8 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  */
 public class DataDictionary {
+    private static final String FIXT_PREFIX = "FIXT";
+    private static final String FIX_PREFIX = "FIX";
     public static final String ANY_VALUE = "__ANY__";
     public static final String HEADER_ID = "HEADER";
     public static final String TRAILER_ID = "TRAILER";
@@ -83,7 +85,7 @@ public class DataDictionary {
     private Map<IntStringPair, String> valueNames = new HashMap<IntStringPair, String>();
     private Map<IntStringPair, GroupInfo> groups = new HashMap<IntStringPair, GroupInfo>();
     private Map<String, Node> components = new HashMap<String, Node>();
-
+    
     private DataDictionary() {
     }
 
@@ -486,7 +488,7 @@ public class DataDictionary {
         checkFieldsOutOfOrder = rhs.checkFieldsOutOfOrder;
         checkFieldsHaveValues = rhs.checkFieldsHaveValues;
         checkUserDefinedFields = rhs.checkUserDefinedFields;
-
+        
         copyMap(messageFields, rhs.messageFields);
         copyMap(requiredFields, rhs.requiredFields);
         copyCollection(messages, rhs.messages);
@@ -543,7 +545,6 @@ public class DataDictionary {
     public void validate(Message message) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
         validate(message, false);
-
     }
 
     /**
@@ -561,25 +562,39 @@ public class DataDictionary {
      */
     public void validate(Message message, boolean bodyOnly) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
-        if (hasVersion && !getVersion().equals(message.getHeader().getString(BeginString.FIELD))) {
+        validate(message, bodyOnly ? null : this, this);
+    }
+
+    static void validate(Message message, DataDictionary sessionDataDictionary, DataDictionary applicationDataDictionary) throws IncorrectTagValue,
+            FieldNotFound, IncorrectDataFormat {
+        boolean bodyOnly = sessionDataDictionary == null;
+
+        if (isVersionSpecified(sessionDataDictionary)
+                && !sessionDataDictionary.getVersion().equals(
+                        message.getHeader().getString(BeginString.FIELD))) {
             throw new UnsupportedVersion();
         }
 
         if (!message.hasValidStructure() && message.getException() != null) {
             throw message.getException();
         }
-        
+
         String msgType = message.getHeader().getString(MsgType.FIELD);
-        if (hasVersion) {
-            checkMsgType(msgType);
-            checkHasRequired(message.getHeader(), message, message.getTrailer(), msgType, bodyOnly);
+        if (isVersionSpecified(applicationDataDictionary)) {
+            applicationDataDictionary.checkMsgType(msgType);
+            applicationDataDictionary.checkHasRequired(message.getHeader(), message, message.getTrailer(), msgType, bodyOnly);
         }
 
         if (!bodyOnly) {
-            iterate(message.getHeader(), msgType, this);
-            iterate(message.getTrailer(), msgType, this);
+            sessionDataDictionary.iterate(message.getHeader(), msgType, sessionDataDictionary);
+            sessionDataDictionary.iterate(message.getTrailer(), msgType, sessionDataDictionary);
         }
-        iterate(message, msgType, this);
+        
+        applicationDataDictionary.iterate(message, msgType, applicationDataDictionary);
+    }
+
+    private static boolean isVersionSpecified(DataDictionary dd) {
+        return dd != null && dd.hasVersion;
     }
 
     private void iterate(FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
@@ -820,7 +835,10 @@ public class DataDictionary {
             throw new ConfigError("minor attribute not found on <fix>");
         }
 
-        setVersion("FIX." + documentElement.getAttribute("major") + "."
+        String dictionaryType = documentElement.hasAttribute("type") ?
+                documentElement.getAttribute("type") : FIX_PREFIX;
+        
+        setVersion(dictionaryType + "." + documentElement.getAttribute("major") + "."
                 + documentElement.getAttribute("minor"));
 
         // Index Components
@@ -901,22 +919,24 @@ public class DataDictionary {
             }
         }
 
-        // HEADER
-        NodeList headerNode = documentElement.getElementsByTagName("header");
-        if (headerNode.getLength() == 0) {
-            throw new ConfigError("<header> section not found in data dictionary");
-        }
+        if (beginString.startsWith(FIXT_PREFIX) || beginString.compareTo(FixVersions.FIX50) < 0) {
+            // HEADER
+            NodeList headerNode = documentElement.getElementsByTagName("header");
+            if (headerNode.getLength() == 0) {
+                throw new ConfigError("<header> section not found in data dictionary");
+            }
 
-        load(document, HEADER_ID, headerNode.item(0));
-        
-        // TRAILER
-        NodeList trailerNode = documentElement.getElementsByTagName("trailer");
-        if (trailerNode.getLength() == 0) {
-            throw new ConfigError("<trailer> section not found in data dictionary");
+            load(document, HEADER_ID, headerNode.item(0));
+
+            // TRAILER
+            NodeList trailerNode = documentElement.getElementsByTagName("trailer");
+            if (trailerNode.getLength() == 0) {
+                throw new ConfigError("<trailer> section not found in data dictionary");
+            }
+
+            load(document, TRAILER_ID, trailerNode.item(0));
         }
         
-        load(document, TRAILER_ID, trailerNode.item(0));
-
         // MSGTYPE
         NodeList messagesNode = documentElement.getElementsByTagName("messages");
         if (messagesNode.getLength() == 0) {

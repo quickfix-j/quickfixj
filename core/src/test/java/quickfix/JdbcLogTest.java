@@ -87,7 +87,7 @@ public class JdbcLogTest extends TestCase {
 
         // need to register the session since we are going to log errors through LogUtil
         Session.registerSession(new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, new DataDictionary("FIX42.xml"), null, logFactory,
+                sessionID, new DefaultDataDictionaryProvider(), null, logFactory,
                 new DefaultMessageFactory(), 0));
 
         // remove the messages and events tables

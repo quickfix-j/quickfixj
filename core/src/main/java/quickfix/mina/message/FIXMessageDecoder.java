@@ -64,6 +64,24 @@ public class FIXMessageDecoder implements MessageDecoder {
     private int position;
     private final String charsetEncoding;
 
+    static class BufPos {
+        int _offset;
+        int _length;
+
+        /**
+         * @param offset
+         * @param length
+         */
+        public BufPos(int offset, int length) {
+            _offset = offset;
+            _length = length;
+        }
+
+        public String toString() {
+            return _offset + "," + _length;
+        }
+    };
+
     private void resetState() {
         state = SEEKING_HEADER;
         bodyLength = 0;
@@ -80,14 +98,15 @@ public class FIXMessageDecoder implements MessageDecoder {
 
     public FIXMessageDecoder(String charset, String delimiter) throws UnsupportedEncodingException {
         charsetEncoding = CharsetSupport.validate(charset);
-        HEADER_PATTERN = getBytes("8=FIX.?.?" + delimiter + "9=");
+        HEADER_PATTERN = getBytes("8=FIXt.?.?" + delimiter + "9=");
         CHECKSUM_PATTERN = getBytes("10=???" + delimiter);
         LOGON_PATTERN = getBytes("\00135=A" + delimiter);
         resetState();
     }
 
     public MessageDecoderResult decodable(IoSession session, ByteBuffer in) {
-        int headerOffset = indexOf(in, in.position(), HEADER_PATTERN);
+        BufPos bufPos = indexOf(in, in.position(), HEADER_PATTERN);
+        int headerOffset = bufPos._offset;
         return headerOffset != -1 ? MessageDecoderResult.OK : MessageDecoderResult.NEED_DATA;
     }
 
@@ -99,7 +118,7 @@ public class FIXMessageDecoder implements MessageDecoder {
         }
         if (messageCount > 0) {
             // Mina will compact the buffer because we can't detect a header
-            if (in.remaining() < HEADER_PATTERN.length) {
+            if (in.remaining() < minMaskLength(HEADER_PATTERN)) {
                 position = 0;
             }
             return MessageDecoderResult.OK;
@@ -111,8 +130,9 @@ public class FIXMessageDecoder implements MessageDecoder {
     }
 
     /**
-     * This method cannot move the buffer position until a message is found or an error
-     * has occurred. Otherwise, MINA will compact the buffer and we lose data. 
+     * This method cannot move the buffer position until a message is found or an
+     * error has occurred. Otherwise, MINA will compact the buffer and we lose
+     * data.
      */
     private boolean parseMessage(ByteBuffer in, ProtocolDecoderOutput out)
             throws ProtocolCodecException {
@@ -121,7 +141,8 @@ public class FIXMessageDecoder implements MessageDecoder {
             while (in.hasRemaining() && !messageFound) {
                 if (state == SEEKING_HEADER) {
 
-                    int headerOffset = indexOf(in, position, HEADER_PATTERN);
+                    BufPos bufPos = indexOf(in, position, HEADER_PATTERN);
+                    int headerOffset = bufPos._offset;
                     if (headerOffset == -1) {
                         break;
                     }
@@ -131,7 +152,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                         log.debug("detected header: " + getBufferDebugInfo(in));
                     }
 
-                    position = headerOffset + HEADER_PATTERN.length;
+                    position = headerOffset + bufPos._length;
                     state = PARSING_LENGTH;
                 }
 
@@ -175,7 +196,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                 }
 
                 if (state == PARSING_CHECKSUM) {
-                    if (startsWith(in, position, CHECKSUM_PATTERN)) {
+                    if (startsWith(in, position, CHECKSUM_PATTERN) > 0) {
                         if (log.isDebugEnabled()) {
                             log.debug("found checksum: " + getBufferDebugInfo(in));
                         }
@@ -183,7 +204,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     } else {
                         if (position + CHECKSUM_PATTERN.length <= in.limit()) {
                             // FEATURE allow configurable recovery position
-                            //int recoveryPosition = in.position() + 1;
+                            // int recoveryPosition = in.position() + 1;
                             // Following recovery position is compatible with QuickFIX C++
                             // but drops messages unnecessarily in corruption scenarios.
                             int recoveryPosition = position + 1;
@@ -236,6 +257,16 @@ public class FIXMessageDecoder implements MessageDecoder {
         return position < in.limit();
     }
 
+    private static int minMaskLength(byte[] data) {
+        int len = 0;
+        for (int i = 0; i < data.length; ++i) {
+            if (Character.isLetter(data[i]) && Character.isLowerCase(data[i]))
+                continue;
+            ++len;
+        }
+        return len;
+    }
+
     private String getMessageString(ByteBuffer buffer) throws UnsupportedEncodingException {
         byte[] data = new byte[position - buffer.position()];
         buffer.get(data);
@@ -248,9 +279,6 @@ public class FIXMessageDecoder implements MessageDecoder {
         position = recoveryPosition;
         state = SEEKING_HEADER;
         bodyLength = 0;
-        
-        text = appendDebugInformation(buffer, text); 
-        
         if (disconnect) {
             throw new CriticalProtocolCodecException(text);
         } else {
@@ -258,52 +286,53 @@ public class FIXMessageDecoder implements MessageDecoder {
         }
     }
 
-    private String appendDebugInformation(ByteBuffer buffer, String text) {
-        int mark = buffer.position();
-        try {
-            StringBuilder sb = new StringBuilder(text);
-            sb.append("\nBuffer debug info: ").append(getBufferDebugInfo(buffer));
-            buffer.position(0);
-            sb.append("\nBuffer contents: ");
-            try {
-                final byte[] array = new byte[buffer.limit()];
-                for(int i = 0; i < array.length; ++i)
-                    array[i] = buffer.get();
-                sb.append(new String(array, "ISO-8859-1"));
-            } catch (Exception e) {
-                sb.append(buffer.getHexDump());
-            }
-            text = sb.toString();
-        } finally {
-            buffer.position(mark);
-        }
-        return text;
-    }
-
     private boolean isLogon(ByteBuffer buffer) {
-        return indexOf(buffer, buffer.position(), LOGON_PATTERN) != -1;
+        BufPos bufPos = indexOf(buffer, buffer.position(), LOGON_PATTERN);
+        return bufPos._offset != -1;
     }
 
-    private static int indexOf(ByteBuffer buffer, int position, byte[] data) {
-        for (int offset = position, limit = buffer.limit() - data.length + 1; offset < limit; offset++) {
-            if (buffer.get(offset) == data[0] && startsWith(buffer, offset, data)) {
-                return offset;
+    private static BufPos indexOf(ByteBuffer buffer, int position, byte[] data) {
+        for (int offset = position, limit = buffer.limit() - minMaskLength(data) + 1; offset < limit; offset++) {
+            int length;
+            if (buffer.get(offset) == data[0] && (length = startsWith(buffer, offset, data)) > 0) {
+                return new BufPos(offset, length);
             }
         }
-        return -1;
+        return new BufPos(-1, 0);
     }
 
-    private static boolean startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
-        if (bufferOffset + data.length > buffer.limit()) {
-            return false;
+    /**
+     * Checks to see if the byte_buffer[buffer_offset] starts with data[]. The
+     * character ? is a one byte wildcard, lowercase letters are optional.
+     * 
+     * @param buffer
+     * @param bufferOffset
+     * @param data
+     * @return
+     */
+    private static int startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
+        if (bufferOffset + minMaskLength(data) > buffer.limit()) {
+            return -1;
         }
-
-        for (int dataOffset = 0; dataOffset < data.length && bufferOffset < buffer.limit(); dataOffset++, bufferOffset++) {
+        final int initOffset = bufferOffset;
+        int dataOffset = 0;
+        for (int bufferLimit = buffer.limit(); dataOffset < data.length
+                && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
             if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
-                return false;
+                // Now check for optional characters, at this point we know we didn't
+                // match, so we can just check to see if we failed a match on an optional character,
+                // and if so then just rewind the buffer one byte and keep going.
+                if (Character.toUpperCase(data[dataOffset]) == buffer.get(bufferOffset))
+                    continue;
+                // Didn't match the optional character, so act like it was not included and keep going
+                if (Character.isLetter(data[dataOffset]) && Character.isLowerCase(data[dataOffset])) {
+                    --bufferOffset;
+                    continue;
+                }
+                return -1;
             }
         }
-        return true;
+        return bufferOffset - initOffset;
     }
 
     public void finishDecode(IoSession arg0, ProtocolDecoderOutput arg1) throws Exception {
@@ -320,14 +349,15 @@ public class FIXMessageDecoder implements MessageDecoder {
     /**
      * Utility method to extract messages from files. This method loads all
      * extracted messages into memory so if the expected number of extracted
-     * messages is large, do not use this method or your application may run
-     * out of memory. Use the streaming version of the method instead.
+     * messages is large, do not use this method or your application may run out
+     * of memory. Use the streaming version of the method instead.
      * 
      * @param file
      * @return a list of extracted messages
      * @throws IOException
      * @throws ProtocolCodecException
-     * @see #extractMessages(File, quickfix.mina.message.FIXMessageDecoder.MessageListener)
+     * @see #extractMessages(File,
+     *      quickfix.mina.message.FIXMessageDecoder.MessageListener)
      */
     public List<String> extractMessages(File file) throws IOException, ProtocolCodecException {
         final List<String> messages = new ArrayList<String>();
@@ -343,9 +373,9 @@ public class FIXMessageDecoder implements MessageDecoder {
 
     /**
      * Utility to extract messages from a file. This method will return each
-     * message found to a provided listener. The message file will also be
-     * memory mapped rather than fully loaded into physical memory. Therefore, 
-     * a large message file can be processed without using excessive memory.
+     * message found to a provided listener. The message file will also be memory
+     * mapped rather than fully loaded into physical memory. Therefore, a large
+     * message file can be processed without using excessive memory.
      * 
      * @param file
      * @param listener

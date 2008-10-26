@@ -35,9 +35,11 @@ import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
+import quickfix.field.CstmApplVerID;
 import quickfix.field.DeliverToCompID;
 import quickfix.field.DeliverToLocationID;
 import quickfix.field.DeliverToSubID;
@@ -74,10 +76,10 @@ public class Message extends FieldMap {
     static final long serialVersionUID = -3193357271891865972L;
     protected Header header = new Header();
     protected Trailer trailer = new Trailer();
-    
+
     // @GuardedBy("this")
     private FieldException exception;
-    
+
     public Message() {
         // empty
     }
@@ -280,7 +282,8 @@ public class Message extends FieldMap {
                 if (name != null) {
                     fieldElement.setAttribute("name", name);
                 }
-                String enumValue = dataDictionary.getValueName(field.getTag(), field.getObject().toString());
+                String enumValue = dataDictionary.getValueName(field.getTag(), field.getObject()
+                        .toString());
                 if (enumValue != null) {
                     fieldElement.setAttribute("enum", enumValue);
                 }
@@ -345,11 +348,10 @@ public class Message extends FieldMap {
         trailer.clear();
     }
 
-
     public static class Header extends FieldMap {
         static final long serialVersionUID = -3193357271891865972L;
         private static final int[] EXCLUDED_HEADER_FIELDS = { BeginString.FIELD, BodyLength.FIELD,
-            MsgType.FIELD };
+                MsgType.FIELD };
 
         protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, EXCLUDED_HEADER_FIELDS, postFields);
@@ -437,19 +439,33 @@ public class Message extends FieldMap {
     }
 
     public void fromString(String messageData, DataDictionary dd, boolean doValidation)
+    throws InvalidMessage {
+        parse(messageData, dd, dd, doValidation);
+    }
+    
+    public void fromString(String messageData, DataDictionary sessionDictionary,
+            DataDictionary applicationDictionary, boolean doValidation) throws InvalidMessage {
+        if (MessageUtils.isAdminMessage(MessageUtils.getMessageType(messageData))) {
+            applicationDictionary = sessionDictionary;
+        }
+        parse(messageData, sessionDictionary, applicationDictionary, doValidation);
+    }
+    
+    void parse(String messageData, DataDictionary sessionDataDictionary, 
+            DataDictionary applicationDataDictionary, boolean doValidation)
             throws InvalidMessage {
         this.messageData = messageData;
-        
+
         try {
-            parseHeader(dd, doValidation);
-            parseBody(dd);
-            parseTrailer(dd);
-        	if (doValidation) {
-            	validateCheckSum(messageData);
-        	}
+            parseHeader(sessionDataDictionary, doValidation);
+            parseBody(applicationDataDictionary);
+            parseTrailer(sessionDataDictionary);
+            if (doValidation) {
+                validateCheckSum(messageData);
+            }
         } catch (FieldException e) {
             exception = e;
-        }        
+        }
     }
 
     private void validateCheckSum(String messageData) throws InvalidMessage {
@@ -467,8 +483,7 @@ public class Message extends FieldMap {
     }
 
     private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
-        boolean validHeaderFieldOrder = 
-                   isNextField(dd, header, BeginString.FIELD)
+        boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
                 && isNextField(dd, header, BodyLength.FIELD)
                 && isNextField(dd, header, MsgType.FIELD);
 
@@ -517,21 +532,22 @@ public class Message extends FieldMap {
                 pushBack(field);
                 return;
             }
-            
+
             if (isHeaderField(field.getField())) {
                 // An acceptance test requires the sequence number to
                 // be available even if the related field is out of order
                 setField(header, field);
-                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, field.getTag());
+                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
+                        field.getTag());
             }
-            
+
             setField(this, field);
-            
+
             // Group case
             if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
                 parseGroup(getMsgType(), field, dd, this);
             }
-                
+
             field = extractField(dd, this);
         }
     }
@@ -562,8 +578,7 @@ public class Message extends FieldMap {
                 if (group != null) {
                     parent.addGroup(group);
                 }
-                group = new Group(groupCountTag, firstField, groupDataDictionary
-                        .getOrderedFields());
+                group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
                 group.setField(field);
                 firstFieldFound = true;
                 previousOffset = -1;
@@ -582,7 +597,7 @@ public class Message extends FieldMap {
                                     SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field
                                             .getTag());
                         }
-                        
+
                         if (fieldOrder != null) {
                             int offset = index(fieldOrder, field.getTag());
                             if (offset >= 0) {
@@ -590,12 +605,12 @@ public class Message extends FieldMap {
                                     previousOffset = offset;
                                 } else {
                                     throw new FieldException(
-                                            SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field
-                                                    .getTag());
+                                            SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER,
+                                            field.getTag());
                                 }
                             }
                         }
-                        
+
                         group.setField(field);
                     } else {
                         if (group != null) {
@@ -614,7 +629,7 @@ public class Message extends FieldMap {
     private int index(int[] fieldOrder, int tag) {
         for (int i = 0; i < fieldOrder.length; i++) {
             if (fieldOrder[i] == tag) {
-               return i; 
+                return i;
             }
         }
         return -1;
@@ -624,7 +639,8 @@ public class Message extends FieldMap {
         StringField field = extractField(dd, trailer);
         while (field != null) {
             if (!isTrailerField(field, dd)) {
-                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, field.getTag());
+                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
+                        field.getTag());
             }
             trailer.setField(field);
             field = extractField(dd, trailer);
@@ -664,6 +680,8 @@ public class Message extends FieldMap {
         case MessageEncoding.FIELD:
         case LastMsgSeqNumProcessed.FIELD:
         case OnBehalfOfSendingTime.FIELD:
+        case ApplVerID.FIELD:
+        case CstmApplVerID.FIELD:
             return true;
         default:
             return false;
@@ -728,7 +746,7 @@ public class Message extends FieldMap {
             position = messageData.indexOf('\001', position + 1) + 1;
             throw new InvalidMessage("bad tag format: " + e.getMessage());
         }
-        
+
         int sohOffset = messageData.indexOf('\001', equalsOffset + 1);
         if (sohOffset == -1) {
             throw new InvalidMessage("SOH not found at end of field: " + tag);
@@ -766,11 +784,11 @@ public class Message extends FieldMap {
     synchronized boolean hasValidStructure() {
         return exception == null;
     }
-    
+
     public synchronized FieldException getException() {
         return exception;
     }
-    
+
     /**
      * Returns the first invalid tag, which is all that can be reported
      * in the resulting FIX reject message.

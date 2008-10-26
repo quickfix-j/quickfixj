@@ -27,6 +27,7 @@ import java.util.TimeZone;
 import junit.framework.TestCase;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
+import quickfix.field.ApplVerID;
 import quickfix.field.AvgPx;
 import quickfix.field.BeginString;
 import quickfix.field.BidType;
@@ -37,6 +38,7 @@ import quickfix.field.CountryOfIssue;
 import quickfix.field.CrossID;
 import quickfix.field.CrossPrioritization;
 import quickfix.field.CrossType;
+import quickfix.field.CstmApplVerID;
 import quickfix.field.CumQty;
 import quickfix.field.EncodedText;
 import quickfix.field.EncodedTextLen;
@@ -92,12 +94,14 @@ import quickfix.fix44.Logon.NoMsgTypes;
 import quickfix.fix44.NewOrderSingle.NoPartyIDs;
 import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
+import quickfix.fix50.MarketDataSnapshotFullRefresh;
 
 public class MessageTest extends TestCase {
 
     public void testRepeatingField() throws Exception {
-        Message m = new Message("8=FIX.4.0\0019=100\00135=D\00134=2\00149=TW\00156=ISLD\00111=ID\00121=1\001"
-                + "40=1\00154=1\00140=2\00138=200\00155=INTC\00110=160\001");
+        Message m = new Message(
+                "8=FIX.4.0\0019=100\00135=D\00134=2\00149=TW\00156=ISLD\00111=ID\00121=1\001"
+                        + "40=1\00154=1\00140=2\00138=200\00155=INTC\00110=160\001");
         assertFalse("message should be invalid", m.hasValidStructure());
         assertEquals("wrong invalid tag", 40, m.getInvalidTag());
     }
@@ -229,6 +233,31 @@ public class MessageTest extends TestCase {
         assertNotNull(dictionary);
         executionReport.fromString(data, dictionary, true);
         dictionary.validate(executionReport);
+    }
+
+    public void testAppMessageValidation() throws Exception {
+        String data = "8=FIXT.1.19=23435=W34=249=ABFX52=20080722-16:37:11.23456=X2RV1"
+                + "55=EUR/USD262=CAP0000011268=2269=0270=1.5784415=EUR271=500000272=20080724"
+                + "269=1270=1.5786915=EUR271=500000272=2008072410=097";
+        MarketDataSnapshotFullRefresh mdsfr = new MarketDataSnapshotFullRefresh();
+        DataDictionary sessDictionary = DataDictionaryTest.getDictionary("FIXT11.xml");
+        DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIX50.xml");
+        assertNotNull(sessDictionary);
+        assertNotNull(appDictionary);
+        mdsfr.fromString(data, sessDictionary, appDictionary, true);
+        DataDictionary.validate(mdsfr, sessDictionary, appDictionary);
+    }
+
+    public void testAdminMessageValidation() throws Exception {
+        String data = "8=FIXT.1.19=8435=A49=EXEC56=BANZAI34=152=20080811-13:26:12.409108=1"
+                + "141=Y98=01137=710=102";
+        Logon logon = new Logon();
+        DataDictionary sessionDictionary = DataDictionaryTest.getDictionary("FIXT11.xml");
+        DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIX50.xml");
+        assertNotNull(sessionDictionary);
+        assertNotNull(appDictionary);
+        logon.fromString(data, sessionDictionary, appDictionary, true);
+        DataDictionary.validate(logon, sessionDictionary, sessionDictionary);
     }
 
     public void testGroupDelimOrdering() throws Exception {
@@ -377,6 +406,11 @@ public class MessageTest extends TestCase {
         }
     }
 
+    public void testFix5HeaderFields() {
+        assertTrue(Message.isHeaderField(ApplVerID.FIELD));
+        assertTrue(Message.isHeaderField(CstmApplVerID.FIELD));
+    }
+
     public void testCalculateStringWithNestedGroups() throws Exception {
         NewOrderCross noc = new NewOrderCross();
         noc.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX44);
@@ -467,10 +501,11 @@ public class MessageTest extends TestCase {
                 DataDictionaryTest.getDictionary());
 
         assertFalse(message.hasValidStructure());
-        
+
         assertTrue(message.getHeader().isSetField(212));
-        
-        assertEquals(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, message.getException().getSessionRejectReason());
+
+        assertEquals(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, message
+                .getException().getSessionRejectReason());
         assertEquals(212, message.getException().getField());
     }
 
@@ -957,7 +992,7 @@ public class MessageTest extends TestCase {
         //logon.set(new RawData(data));
         assertEquals("8=FIX.4.49=2135=A95=796=rawdata10=086", logon.toString());
     }
-    
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
@@ -1020,9 +1055,11 @@ public class MessageTest extends TestCase {
 
     private void assertAllocation(String accountId, Object shares) {
         if (accountId.equals("AllocACC1")) {
-            assertEquals("got shares: " + shares, 0, new BigDecimal("1010.10").compareTo(new BigDecimal(shares.toString())));
+            assertEquals("got shares: " + shares, 0, new BigDecimal("1010.10")
+                    .compareTo(new BigDecimal(shares.toString())));
         } else if (accountId.equals("AllocACC2")) {
-            assertEquals("got shares: " + shares, 0, new BigDecimal("2020.20").compareTo(new BigDecimal(shares.toString())));
+            assertEquals("got shares: " + shares, 0, new BigDecimal("2020.20")
+                    .compareTo(new BigDecimal(shares.toString())));
         } else {
             fail("Unknown account");
         }

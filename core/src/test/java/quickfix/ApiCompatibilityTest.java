@@ -55,6 +55,7 @@ public class ApiCompatibilityTest {
         testedDirectories.add("quickfix/fix42");
         testedDirectories.add("quickfix/fix43");
         testedDirectories.add("quickfix/fix44");
+        testedDirectories.add("quickfix/fix50");
     }
 
     private static class ApiTest implements Test {
@@ -392,6 +393,16 @@ public class ApiCompatibilityTest {
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.MySQLStore"));
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.MySQLStoreFactory"));
 
+            // The following Field classes changed types in FIX 5.0
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.field.MassCancelRejectReason"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.field.MiscFeeType"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.field.QuoteCondition"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.field.SettlType"));
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.field.TradeCondition"));
+
+            // The FIX43.xml DD has wrong enum value
+            ignoredClasses.add(jniClassLoader.loadClass("quickfix.field.SettlLocation"));
+            
             // The following string is split so that CVS will not insert log data
             // during commit
             ignoredClasses.add(jniClassLoader.loadClass("quickfix.Message$Header" + "$Iterator"));

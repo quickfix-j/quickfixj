@@ -4492,6 +4492,7 @@
     <field number="136" name="NoMiscFees" type="NUMINGROUP"/>
     <field number="137" name="MiscFeeAmt" type="AMT"/>
     <field number="138" name="MiscFeeCurr" type="CURRENCY"/>
+    <!-- Changed to string in FIX5.0, overrides this field type -->
     <field number="139" name="MiscFeeType" type="CHAR">
       <value enum="1" description="REGULATORY"/>
       <value enum="2" description="TAX"/>
@@ -4567,100 +4568,100 @@
       <value enum="3" description="INVESTOR"/>
     </field>
     <field number="167" name="SecurityType" type="STRING">
-      <value enum="EUSUPRA" description="EURO_SUPRANATIONAL_COUPONS"/>
-      <value enum="FAC" description="FEDERAL_AGENCY_COUPON"/>
-      <value enum="FADN" description="FEDERAL_AGENCY_DISCOUNT_NOTE"/>
-      <value enum="PEF" description="PRIVATE_EXPORT_FUNDING"/>
-      <value enum="SUPRA" description="USD_SUPRANATIONAL_COUPONS"/>
-      <value enum="FUT" description="FUTURE"/>
-      <value enum="OPT" description="OPTION"/>
-      <value enum="CORP" description="CORPORATE_BOND"/>
-      <value enum="CPP" description="CORPORATE_PRIVATE_PLACEMENT"/>
-      <value enum="CB" description="CONVERTIBLE_BOND"/>
-      <value enum="DUAL" description="DUAL_CURRENCY"/>
-      <value enum="EUCORP" description="EURO_CORPORATE_BOND"/>
-      <value enum="XLINKD" description="INDEXED_LINKED"/>
-      <value enum="STRUCT" description="STRUCTURED_NOTES"/>
-      <value enum="YANK" description="YANKEE_CORPORATE_BOND"/>
-      <value enum="FOR" description="FOREIGN_EXCHANGE_CONTRACT"/>
-      <value enum="CS" description="COMMON_STOCK"/>
-      <value enum="PS" description="PREFERRED_STOCK"/>
-      <value enum="BRADY" description="BRADY_BOND"/>
-      <value enum="EUSOV" description="EURO_SOVEREIGNS"/>
-      <value enum="TBOND" description="US_TREASURY_BOND"/>
-      <value enum="TINT" description="INTEREST_STRIP_FROM_ANY_BOND_OR_NOTE"/>
-      <value enum="TIPS" description="TREASURY_INFLATION_PROTECTED_SECURITIES"/>
-      <value enum="TCAL" description="PRINCIPAL_STRIP_OF_A_CALLABLE_BOND_OR_NOTE"/>
-      <value enum="TPRN" description="PRINCIPAL_STRIP_FROM_A_NON_CALLABLE_BOND_OR_NOTE"/>
-      <value enum="TNOTE" description="US_TREASURY_NOTE"/>
-      <value enum="TBILL" description="US_TREASURY_BILL"/>
-      <value enum="REPO" description="REPURCHASE"/>
-      <value enum="FORWARD" description="FORWARD"/>
-      <value enum="BUYSELL" description="BUY_SELLBACK"/>
-      <value enum="SECLOAN" description="SECURITIES_LOAN"/>
-      <value enum="SECPLEDGE" description="SECURITIES_PLEDGE"/>
-      <value enum="TERM" description="TERM_LOAN"/>
-      <value enum="RVLV" description="REVOLVER_LOAN"/>
-      <value enum="RVLVTRM" description="REVOLVER_TERM_LOAN"/>
-      <value enum="BRIDGE" description="BRIDGE_LOAN"/>
-      <value enum="LOFC" description="LETTER_OF_CREDIT"/>
-      <value enum="SWING" description="SWING_LINE_FACILITY"/>
-      <value enum="DINP" description="DEBTOR_IN_POSSESSION"/>
-      <value enum="DEFLTED" description="DEFAULTED"/>
-      <value enum="WITHDRN" description="WITHDRAWN"/>
-      <value enum="REPLACD" description="REPLACED"/>
-      <value enum="MATURED" description="MATURED"/>
+      <value enum="?" description="WILDCARD"/>
+      <value enum="ABS" description="ASSET_BACKED_SECURITIES"/>
       <value enum="AMENDED" description="AMENDED_AND_RESTATED"/>
-      <value enum="RETIRED" description="RETIRED"/>
+      <value enum="AN" description="OTHER_ANTICIPATION_NOTES"/>
       <value enum="BA" description="BANKERS_ACCEPTANCE"/>
       <value enum="BN" description="BANK_NOTES"/>
       <value enum="BOX" description="BILL_OF_EXCHANGES"/>
+      <value enum="BRADY" description="BRADY_BOND"/>
+      <value enum="BRIDGE" description="BRIDGE_LOAN"/>
+      <value enum="BUYSELL" description="BUY_SELLBACK"/>
+      <value enum="CB" description="CONVERTIBLE_BOND"/>
       <value enum="CD" description="CERTIFICATE_OF_DEPOSIT"/>
       <value enum="CL" description="CALL_LOANS"/>
-      <value enum="CP" description="COMMERCIAL_PAPER"/>
-      <value enum="DN" description="DEPOSIT_NOTES"/>
-      <value enum="EUCD" description="EURO_CERTIFICATE_OF_DEPOSIT"/>
-      <value enum="EUCP" description="EURO_COMMERCIAL_PAPER"/>
-      <value enum="LQN" description="LIQUIDITY_NOTE"/>
-      <value enum="MTN" description="MEDIUM_TERM_NOTES"/>
-      <value enum="ONITE" description="OVERNIGHT"/>
-      <value enum="PN" description="PROMISSORY_NOTE"/>
-      <value enum="PZFJ" description="PLAZOS_FIJOS"/>
-      <value enum="STN" description="SHORT_TERM_LOAN_NOTE"/>
-      <value enum="TD" description="TIME_DEPOSIT"/>
-      <value enum="XCN" description="EXTENDED_COMM_NOTE"/>
-      <value enum="YCD" description="YANKEE_CERTIFICATE_OF_DEPOSIT"/>
-      <value enum="ABS" description="ASSET_BACKED_SECURITIES"/>
       <value enum="CMBS" description="CORP_MORTGAGE_BACKED_SECURITIES"/>
       <value enum="CMO" description="COLLATERALIZED_MORTGAGE_OBLIGATION"/>
+      <value enum="COFO" description="CERTIFICATE_OF_OBLIGATION"/>
+      <value enum="COFP" description="CERTIFICATE_OF_PARTICIPATION"/>
+      <value enum="CORP" description="CORPORATE_BOND"/>
+      <value enum="CP" description="COMMERCIAL_PAPER"/>
+      <value enum="CPP" description="CORPORATE_PRIVATE_PLACEMENT"/>
+      <value enum="CS" description="COMMON_STOCK"/>
+      <value enum="DEFLTED" description="DEFAULTED"/>
+      <value enum="DINP" description="DEBTOR_IN_POSSESSION"/>
+      <value enum="DN" description="DEPOSIT_NOTES"/>
+      <value enum="DUAL" description="DUAL_CURRENCY"/>
+      <value enum="EUCD" description="EURO_CERTIFICATE_OF_DEPOSIT"/>
+      <value enum="EUCORP" description="EURO_CORPORATE_BOND"/>
+      <value enum="EUCP" description="EURO_COMMERCIAL_PAPER"/>
+      <value enum="EUSOV" description="EURO_SOVEREIGNS"/>
+      <value enum="EUSUPRA" description="EURO_SUPRANATIONAL_COUPONS"/>
+      <value enum="FAC" description="FEDERAL_AGENCY_COUPON"/>
+      <value enum="FADN" description="FEDERAL_AGENCY_DISCOUNT_NOTE"/>
+      <value enum="FOR" description="FOREIGN_EXCHANGE_CONTRACT"/>
+      <value enum="FORWARD" description="FORWARD"/>
+      <value enum="FUT" description="FUTURE"/>
+      <value enum="GO" description="GENERAL_OBLIGATION_BONDS"/>
       <value enum="IET" description="IOETTE_MORTGAGE"/>
+      <value enum="LOFC" description="LETTER_OF_CREDIT"/>
+      <value enum="LQN" description="LIQUIDITY_NOTE"/>
+      <value enum="MATURED" description="MATURED"/>
       <value enum="MBS" description="MORTGAGE_BACKED_SECURITIES"/>
+      <value enum="MF" description="MUTUAL_FUND"/>
       <value enum="MIO" description="MORTGAGE_INTEREST_ONLY"/>
+      <value enum="MLEG" description="MULTI_LEG_INSTRUMENT"/>
       <value enum="MPO" description="MORTGAGE_PRINCIPAL_ONLY"/>
       <value enum="MPP" description="MORTGAGE_PRIVATE_PLACEMENT"/>
       <value enum="MPT" description="MISCELLANEOUS_PASS_THROUGH"/>
-      <value enum="PFAND" description="PFANDBRIEFE"/>
-      <value enum="TBA" description="TO_BE_ANNOUNCED"/>
-      <value enum="AN" description="OTHER_ANTICIPATION_NOTES"/>
-      <value enum="COFO" description="CERTIFICATE_OF_OBLIGATION"/>
-      <value enum="COFP" description="CERTIFICATE_OF_PARTICIPATION"/>
-      <value enum="GO" description="GENERAL_OBLIGATION_BONDS"/>
       <value enum="MT" description="MANDATORY_TENDER"/>
+      <value enum="MTN" description="MEDIUM_TERM_NOTES"/>
+      <value enum="NONE" description="NO_SECURITY_TYPE"/>
+      <value enum="ONITE" description="OVERNIGHT"/>
+      <value enum="OPT" description="OPTION"/>
+      <value enum="PEF" description="PRIVATE_EXPORT_FUNDING"/>
+      <value enum="PFAND" description="PFANDBRIEFE"/>
+      <value enum="PN" description="PROMISSORY_NOTE"/>
+      <value enum="PS" description="PREFERRED_STOCK"/>
+      <value enum="PZFJ" description="PLAZOS_FIJOS"/>
       <value enum="RAN" description="REVENUE_ANTICIPATION_NOTE"/>
+      <value enum="REPLACD" description="REPLACED"/>
+      <value enum="REPO" description="REPURCHASE"/>
+      <value enum="RETIRED" description="RETIRED"/>
       <value enum="REV" description="REVENUE_BONDS"/>
+      <value enum="RVLV" description="REVOLVER_LOAN"/>
+      <value enum="RVLVTRM" description="REVOLVER_TERM_LOAN"/>
+      <value enum="SECLOAN" description="SECURITIES_LOAN"/>
+      <value enum="SECPLEDGE" description="SECURITIES_PLEDGE"/>
       <value enum="SPCLA" description="SPECIAL_ASSESSMENT"/>
       <value enum="SPCLO" description="SPECIAL_OBLIGATION"/>
       <value enum="SPCLT" description="SPECIAL_TAX"/>
+      <value enum="STN" description="SHORT_TERM_LOAN_NOTE"/>
+      <value enum="STRUCT" description="STRUCTURED_NOTES"/>
+      <value enum="SUPRA" description="USD_SUPRANATIONAL_COUPONS"/>
+      <value enum="SWING" description="SWING_LINE_FACILITY"/>
       <value enum="TAN" description="TAX_ANTICIPATION_NOTE"/>
       <value enum="TAXA" description="TAX_ALLOCATION"/>
+      <value enum="TBA" description="TO_BE_ANNOUNCED"/>
+      <value enum="TBILL" description="US_TREASURY_BILL"/>
+      <value enum="TBOND" description="US_TREASURY_BOND"/>
+      <value enum="TCAL" description="PRINCIPAL_STRIP_OF_A_CALLABLE_BOND_OR_NOTE"/>
+      <value enum="TD" description="TIME_DEPOSIT"/>
       <value enum="TECP" description="TAX_EXEMPT_COMMERCIAL_PAPER"/>
+      <value enum="TERM" description="TERM_LOAN"/>
+      <value enum="TINT" description="INTEREST_STRIP_FROM_ANY_BOND_OR_NOTE"/>
+      <value enum="TIPS" description="TREASURY_INFLATION_PROTECTED_SECURITIES"/>
+      <value enum="TNOTE" description="US_TREASURY_NOTE"/>
+      <value enum="TPRN" description="PRINCIPAL_STRIP_FROM_A_NON_CALLABLE_BOND_OR_NOTE"/>
       <value enum="TRAN" description="TAX_AND_REVENUE_ANTICIPATION_NOTE"/>
       <value enum="VRDN" description="VARIABLE_RATE_DEMAND_NOTE"/>
       <value enum="WAR" description="WARRANT"/>
-      <value enum="MF" description="MUTUAL_FUND"/>
-      <value enum="MLEG" description="MULTI_LEG_INSTRUMENT"/>
-      <value enum="NONE" description="NO_SECURITY_TYPE"/>
-      <value enum="?" description="WILDCARD"/>
+      <value enum="WITHDRN" description="WITHDRAWN"/>
+      <value enum="XCN" description="EXTENDED_COMM_NOTE"/>
+      <value enum="XLINKD" description="INDEXED_LINKED"/>
+      <value enum="YANK" description="YANKEE_CORPORATE_BOND"/>
+      <value enum="YCD" description="YANKEE_CERTIFICATE_OF_DEPOSIT"/>
     </field>
     <field number="168" name="EffectiveTime" type="UTCTIMESTAMP"/>
     <field number="169" name="StandInstDbType" type="INT">
@@ -5736,6 +5737,7 @@
       <value enum="6" description="CANCEL_ORDERS_FOR_A_TRADING_SESSION"/>
       <value enum="7" description="CANCEL_ALL_ORDERS"/>
     </field>
+    <!-- This changed to an int in FIX5.0 -->
     <field number="532" name="MassCancelRejectReason" type="CHAR">
       <value enum="0" description="MASS_CANCEL_NOT_SUPPORTED"/>
       <value enum="1" description="INVALID_OR_UNKNOWN_SECURITY"/>
