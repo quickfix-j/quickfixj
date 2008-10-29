@@ -155,7 +155,7 @@ public class MessageCodeGenerator {
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", messageName);
             parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
-            parameters.put(ORDERED_FIELDS_OPTION, Boolean.toString(task.isOrderedFields()));
+            parameters.put("orderedFields", Boolean.toString(task.isOrderedFields()));
             parameters.put("fieldPackage", task.getFieldPackage());
             parameters.put("messagePackage", task.getMessagePackage());
             generateCodeFile(task, document, parameters, outputDirectory + messageName + ".java",
@@ -185,7 +185,7 @@ public class MessageCodeGenerator {
             parameters.put("subpackage", ".component");
             parameters.put("fieldPackage", task.getFieldPackage());
             parameters.put("messagePackage", task.getMessagePackage());
-            parameters.put(ORDERED_FIELDS_OPTION, Boolean.toString(task.isOrderedFields()));
+            parameters.put("orderedFields", Boolean.toString(task.isOrderedFields()));
             parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
             generateCodeFile(task, document, parameters, outputDirectory + componentName + ".java",
                     transformer);
