@@ -53,6 +53,21 @@ class ATMessageCracker extends quickfix.MessageCracker {
         }
     }
 
+    public void onMessage(quickfix.fix50.NewOrderSingle message, SessionID sessionID)
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        process(message, sessionID);
+    }
+
+    public void onMessage(quickfix.fix50.SecurityDefinition message, SessionID sessionID)
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        quickfix.fix50.SecurityDefinition echo = message;
+        try {
+            Session.sendToTarget(echo, sessionID);
+        } catch (SessionNotFound snf) {
+            snf.printStackTrace();
+        }
+    }
+
     public void onMessage(quickfix.fix44.NewOrderSingle message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         process(message, sessionID);

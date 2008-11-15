@@ -384,12 +384,17 @@ public class SessionScheduleTest extends TestCase {
     }
 
     public void testSettingsWithoutStartEndDayWithTimeZoneInTime() throws Exception {
+        // This test is very susceptible to whether the system time starts
+        // in daylight time or not, so we just force it that way.  Otherwise
+        // the first time the mock time source gets set to a time with daylight time
+        // then the schedule appears to change 1 hr.
+        TimeZone tz = TimeZone.getTimeZone("US/Eastern");
+        mockSystemTimeSource.setTime(getTimeStamp(2002, 5, 5, 0, 0, 0, tz));
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_START_TIME, "01:00:00 US/Eastern");
         settings.setString(Session.SETTING_END_TIME, "15:00:00 US/Central");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-        TimeZone tz = TimeZone.getTimeZone("US/Eastern");
         doIsSessionTimeTest(schedule, false, 2002, 5, 5, 0, 59, 0, tz);
         doIsSessionTimeTest(schedule, true, 2002, 7, 5, 14, 30, 0, tz);
         

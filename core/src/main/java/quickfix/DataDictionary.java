@@ -1091,6 +1091,12 @@ public class DataDictionary {
                 boolean isRequired = required.equalsIgnoreCase("Y");
                 addXMLGroup(document, componentFieldNode, msgtype, dd, isRequired);
             }
+            
+            if (componentFieldNode.getNodeName().equals("component")) {
+                String required = getAttribute(componentFieldNode, "required");
+                boolean isRequired = required.equalsIgnoreCase("Y");
+                addXMLComponentFields(document, componentFieldNode, msgtype, dd, isRequired);
+            }
         }
         return firstField;
 
@@ -1197,6 +1203,15 @@ public class DataDictionary {
 
         public int hashCode() {
             return stringValue.hashCode() + intValue;
+        }
+        
+        /**
+         * For debugging
+         */
+        public String toString() {
+          StringBuffer b = new StringBuffer();
+          b.append('(').append(intValue).append(',').append(stringValue).append(')');
+          return b.toString();
         }
     }
 

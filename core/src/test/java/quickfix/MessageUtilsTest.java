@@ -154,6 +154,7 @@ public class MessageUtilsTest extends TestCase {
         Message message = MessageUtils.parse(mockSession, email.toString());
         
         assertThat(message, is(notNullValue()));
+        assertThat(message, is(quickfix.fix40.Email.class));
     }
 
     public void testParseFixtLogon() throws Exception {
@@ -169,5 +170,22 @@ public class MessageUtilsTest extends TestCase {
         
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fixt11.Logon.class));
+    }
+    
+    public void testParseFix50() throws Exception {
+        Session mockSession = mock(Session.class);
+        DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
+        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
+        stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
+        
+        Email email = new Email(new EmailThreadID("THREAD_ID"), new EmailType(EmailType.NEW), new Subject("SUBJECT"));
+        email.getHeader().setField(new ApplVerID(ApplVerID.FIX50));
+        email.getHeader().setField(new SenderCompID("SENDER"));
+        email.getHeader().setField(new TargetCompID("TARGET"));
+        
+        Message message = MessageUtils.parse(mockSession, email.toString());
+        
+        assertThat(message, is(notNullValue()));
+        assertThat(message, is(quickfix.fix50.Email.class));
     }
 }

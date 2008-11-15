@@ -110,6 +110,8 @@ public class ATServer implements Runnable {
             }
             defaults.put("FileStorePath", "output/data/server");
             defaults.put("ValidateUserDefinedFields", "Y");
+            // New for FIXT/FIX5
+            defaults.put("DefaultApplVerID", "7");
             settings.set(defaults);
 
             if (fixVersions.contains("fix40")) {
@@ -130,6 +132,10 @@ public class ATServer implements Runnable {
 
             if (fixVersions.contains("fix44")) {
                 acceptFixVersion(FixVersions.BEGINSTRING_FIX44);
+            }
+            
+            if (fixVersions.contains("fix50")) {
+                acceptFixVersion(FixVersions.BEGINSTRING_FIXT11);
             }
 
             ATApplication application = new ATApplication();

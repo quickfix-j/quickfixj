@@ -806,10 +806,11 @@ public class Session {
                 generateBusinessReject(message,
                         BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, e.field);
             } else {
-                generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
                 if (msgType.equals(MsgType.LOGON)) {
                     getLog().onEvent("Required field missing from logon");
                     disconnect();
+                } else {
+                    generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
                 }
             }
         } catch (IncorrectDataFormat e) {

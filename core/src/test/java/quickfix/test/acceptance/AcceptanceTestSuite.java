@@ -147,6 +147,7 @@ public class AcceptanceTestSuite extends TestSuite {
         addTests(new File(acceptanceTestBaseDir + "server/fix42"));
         addTests(new File(acceptanceTestBaseDir + "server/fix43"));
         addTests(new File(acceptanceTestBaseDir + "server/fix44"));
+        addTests(new File(acceptanceTestBaseDir + "server/fix50"));
     }
 
     protected void addTest(String name) {
