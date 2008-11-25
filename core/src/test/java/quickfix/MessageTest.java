@@ -586,34 +586,21 @@ public class MessageTest extends TestCase {
                 "8=FIX.4.49=3535=D453=1448=PARTY_1447=I452=610=040", clonedMessage
                         .toString());
     }
-
-    public void testMessageGroupRemoval() {
+    
+    public void testMessageGroupRemovalUsingGroupObject() {
         Message message = new Message();
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
 
+        // Remove all
+        
         assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
 
         message.removeGroup(numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-
-        numAllocs = setUpGroups(message);
-        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
-
-        message.removeGroup(numAllocs.getFieldTag());
-
-        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-
-        numAllocs = setUpGroups(message);
-        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
-
-        message.removeGroup(2, numAllocs.getFieldTag());
-
-        assertEquals("wrong # of group members", 1, message.getGroupCount(numAllocs.getFieldTag()));
-
-        message.removeGroup(1, numAllocs.getFieldTag());
-
-        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+        assertNoLengthField(message);
+        
+        // Remove one at a time
 
         numAllocs = setUpGroups(message);
         assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
@@ -625,11 +612,53 @@ public class MessageTest extends TestCase {
         message.removeGroup(1, numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+        assertNoLengthField(message);
+  
+   }
+
+    private void assertNoLengthField(Message message) {
+        assertFalse("Length in message.toString()", message.toString().contains("\00178="));
+    }
+
+    public void testMessageGroupRemovalUsingGroupFieldTag() {
+        Message message = new Message();
+        NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
+
+        // Remove all
+        
+        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(numAllocs.getFieldTag());
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+        assertNoLengthField(message);
+
+        // Remove one at a time
+        
+        numAllocs = setUpGroups(message);
+        
+        assertEquals("wrong # of group members", 2, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(2, numAllocs.getFieldTag());
+
+        assertEquals("wrong # of group members", 1, message.getGroupCount(numAllocs.getFieldTag()));
+
+        message.removeGroup(1, numAllocs.getFieldTag());
+
+        assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+        assertNoLengthField(message);
+    }
+
+    public void testMessageGroupRemovalFromEmptyGroup() {
+        Message message = new Message();
+        NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
+        message.removeGroup(numAllocs);
 
         // ensure no exception when groups are empty
         message.removeGroup(1, numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
+        assertNoLengthField(message);
     }
 
     public void testHasGroup() {
