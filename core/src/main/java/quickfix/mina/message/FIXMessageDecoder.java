@@ -59,6 +59,10 @@ public class FIXMessageDecoder implements MessageDecoder {
     private static final int READING_BODY = 3;
     private static final int PARSING_CHECKSUM = 4;
 
+    // If QFJ receives more garbage data than this between messages, then
+    // the connection is considered corrupt.
+    private static final int MAX_UNDECODED_DATA_LENGTH = 4096;
+
     private int state;
     private int bodyLength;
     private int position;
@@ -107,7 +111,8 @@ public class FIXMessageDecoder implements MessageDecoder {
     public MessageDecoderResult decodable(IoSession session, ByteBuffer in) {
         BufPos bufPos = indexOf(in, in.position(), HEADER_PATTERN);
         int headerOffset = bufPos._offset;
-        return headerOffset != -1 ? MessageDecoderResult.OK : MessageDecoderResult.NEED_DATA;
+        return headerOffset != -1 ? MessageDecoderResult.OK : 
+            (in.remaining() > MAX_UNDECODED_DATA_LENGTH ? MessageDecoderResult.NOT_OK : MessageDecoderResult.NEED_DATA);
     }
 
     public MessageDecoderResult decode(IoSession session, ByteBuffer in, ProtocolDecoderOutput out)

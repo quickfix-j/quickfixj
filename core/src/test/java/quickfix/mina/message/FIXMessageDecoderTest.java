@@ -19,6 +19,12 @@
 
 package quickfix.mina.message;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -27,13 +33,16 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 
 import quickfix.DataDictionaryTest;
@@ -43,23 +52,24 @@ import quickfix.Message;
 import quickfix.field.Headline;
 import quickfix.mina.CriticalProtocolCodecException;
 
-public class FIXMessageDecoderTest extends TestCase {
+public class FIXMessageDecoderTest {
     private FIXMessageDecoder decoder;
     private ByteBuffer buffer;
     private ProtocolDecoderOutputForTest decoderOutput;
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         decoder = new FIXMessageDecoder();
-        buffer = ByteBuffer.allocate(1024);
+        buffer = ByteBuffer.allocate(8192);
         decoderOutput = new ProtocolDecoderOutputForTest();
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         buffer.release();
-        super.tearDown();
     }
 
+    @Test 
     public void testInvalidStringCharset() throws Exception {
         try {
             decoder = new FIXMessageDecoder("BOGUS");
@@ -70,6 +80,7 @@ public class FIXMessageDecoderTest extends TestCase {
 
     }
 
+    @Test 
     public void testStringDecoding() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001");
@@ -78,6 +89,7 @@ public class FIXMessageDecoderTest extends TestCase {
         assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
     }
 
+    @Test 
     public void testFixtStringDecoding() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIXT.1.1\0019=12\00135=X\001108=30\00110=049\001");
@@ -86,6 +98,7 @@ public class FIXMessageDecoderTest extends TestCase {
         assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
     }
 
+    @Test 
     public void testWesternEuropeanDecoding() throws Exception {
         // Should work with default encoding
         doWesternEuropeanDecodingTest();
@@ -118,17 +131,29 @@ public class FIXMessageDecoderTest extends TestCase {
         assertEquals("wrong text", headline, decodedMessage.getString(Headline.FIELD));
     }
 
+    @Test 
     public void testPartialHeader() throws Exception {
         setUpBuffer("8=FIX.4.2");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
                 .decodable(null, buffer));
     }
 
+    // QFJ-376
+    @Test
+    public void testGarbageData() throws Exception {
+        setUpBuffer(new byte[8192]);
+        MessageDecoderResult result = decoder.decodable(null, buffer);
+        assertEquals(result, MessageDecoderResult.NOT_OK);
+        
+    }
+    
+    @Test 
     public void testSimpleMessage() throws Exception {
         String data = setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001");
         assertMessageFound(data);
     }
 
+    @Test 
     public void testSplitMessage() throws Exception {
         String data = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001";
         for (int i = 1; i < data.length(); i++) {
@@ -179,12 +204,14 @@ public class FIXMessageDecoderTest extends TestCase {
         buffer.clear();
     }
 
+    @Test 
     public void testGarbageAtStart() throws Exception {
         String data = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
         setUpBuffer("8=!@#$%" + data);
         assertMessageFound(data);
     }
 
+    @Test 
     public void testBadLengthTooLong() throws Exception {
         String badMessage = "8=FIX.4.2\0019=25\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=Y\001108=30\00110=037\001";
@@ -192,12 +219,14 @@ public class FIXMessageDecoderTest extends TestCase {
         assertMessageFound(goodMessage);
     }
 
+    @Test 
     public void testMultipleMessagesInBuffer() throws Exception {
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
         setUpBuffer(goodMessage + goodMessage + goodMessage);
         assertMessageFound(goodMessage, 3);
     }
 
+    @Test 
     public void testMessageExtraction() throws Exception {
         File testFile = setUpTestFile();
 
@@ -214,6 +243,7 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
+    @Test 
     public void testMessageStreamingExtraction() throws Exception {
         File testFile = setUpTestFile();
 
@@ -246,6 +276,7 @@ public class FIXMessageDecoderTest extends TestCase {
         return f;
     }
 
+    @Test 
     public void testBadLengthTooShort() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
@@ -253,6 +284,7 @@ public class FIXMessageDecoderTest extends TestCase {
         assertMessageFound(goodMessage);
     }
 
+    @Test 
     public void testBadLengthOnLogon() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10\00135=A\001108=30\00110=036\001";
         setUpBuffer(badMessage);
@@ -265,6 +297,7 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
+    @Test 
     public void testBogusMessageLength() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10xyz\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
@@ -272,6 +305,7 @@ public class FIXMessageDecoderTest extends TestCase {
         assertMessageFound(goodMessage);
     }
 
+    @Test 
     public void testNPE() throws Exception {
         try {
             decoder.decode(null, null, null);
@@ -282,6 +316,7 @@ public class FIXMessageDecoderTest extends TestCase {
         }
     }
 
+    @Test 
     public void testFailedPatternMatchAtEndOfBuffer() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIX.4.2|9=12|35=X|108=30|1wmyadz".replace('|', '\001'));
@@ -290,6 +325,7 @@ public class FIXMessageDecoderTest extends TestCase {
         assertEquals("wrong decoder result", MessageDecoderResult.NEED_DATA, decoderResult);
     }
 
+    @Test 
     public void testMinaDemux() throws Exception {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
         codecFactory.register(FIXMessageDecoder.class);
@@ -340,13 +376,13 @@ public class FIXMessageDecoderTest extends TestCase {
 
     private String setUpBuffer(String bufferContents) throws UnsupportedEncodingException {
         byte[] bytes = bufferContents.getBytes();
-        return setUpBuffer(bytes, "ISO_8859-1");
+        setUpBuffer(bytes);
+        return new String(bytes, "ISO_8859-1");
     }
 
-    private String setUpBuffer(byte[] bytes, String charsetName)
+    private void setUpBuffer(byte[] bytes)
             throws UnsupportedEncodingException {
         buffer.put(bytes);
         buffer.flip();
-        return new String(bytes, charsetName);
     }
 }
