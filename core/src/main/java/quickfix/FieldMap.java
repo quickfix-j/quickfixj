@@ -585,14 +585,16 @@ public abstract class FieldMap implements Serializable {
         while (iterator.hasNext()) {
             Map.Entry<Integer, List<Group>> entry = iterator.next();
             List<Group> groupList = entry.getValue();
-            IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
-            groupField.setValue(groupList.size());
-            length = groupField.getLength();
-            result += length;
-            for (int i = 0; i < groupList.size(); i++) {
-                Group group = (Group) groupList.get(i);
-                length = group.calculateLength();
+            if (groupList.size() > 0) {
+                IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
+                groupField.setValue(groupList.size());
+                length = groupField.getLength();
                 result += length;
+                for (int i = 0; i < groupList.size(); i++) {
+                    Group group = (Group) groupList.get(i);
+                    length = group.calculateLength();
+                    result += length;
+                }
             }
         }
 
@@ -615,12 +617,14 @@ public abstract class FieldMap implements Serializable {
         while (iterator.hasNext()) {
             Map.Entry<Integer, List<Group>> entry = iterator.next();
             List<Group> groupList = entry.getValue();
-            IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
-            groupField.setValue(groupList.size());
-            result += groupField.getTotal();
-            for (int i = 0; i < groupList.size(); i++) {
-                Group group = (Group) groupList.get(i);
-                result += group.calculateTotal();
+            if (groupList.size() > 0) {
+                IntField groupField = new IntField(((Integer) entry.getKey()).intValue());
+                groupField.setValue(groupList.size());
+                result += groupField.getTotal();
+                for (int i = 0; i < groupList.size(); i++) {
+                    Group group = (Group) groupList.get(i);
+                    result += group.calculateTotal();
+                }
             }
         }
 
