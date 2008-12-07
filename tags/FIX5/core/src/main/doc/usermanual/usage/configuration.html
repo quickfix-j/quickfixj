@@ -1,0 +1,975 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<html>
+  <head>
+    <title>Configuring QuickFIX/J</title>
+    <link href="../style.css" rel="stylesheet" type="text/css"/>
+	</head>
+  <body>
+  <div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+
+  <H2>Configuring QuickFIX/J</H2>
+  <p>
+
+  A QuickFIX/J acceptor or initiator can maintain as many FIX sessions as you would like. A FIX
+  session is identified by a group of settings defined within the configuration section for a session
+  (or inherited from the default section). The identification settings are:
+  </p>
+  
+  <table class=settings>
+  <tr>
+    <th>Setting</th><th>Required?</th>
+  </tr>
+  <tr><td>BeginString</td><td style="text-align: center; background: 8f8">Y</td></tr> 
+  <tr><td>SenderCompID</td><td style="text-align: center; background: 8f8"">Y</td></tr> 
+  <tr><td>SenderSubID</td><td style="text-align: center">N</td></tr> 
+  <tr><td>SenderLocationID</td><td style="text-align: center">N</td></tr> 
+  <tr><td>TargetCompID</td><td style="text-align: center; background: 8f8"">Y</td></tr> 
+  <tr><td>TargetSubID</td><td style="text-align: center">N</td></tr> 
+  <tr><td>TargetLocationID</td><td style="text-align: center">N</td></tr> 
+  </table>
+  
+  <p>
+  The sender settings are your identification and the target settings are for the counterparty. A 
+  <B>SessionQualifier</B> can also be use to disambiguate otherwise identical sessions. <em>Session
+  qualifier usage is not recommended. It is provided for compatibility with QuickFIX JNI and for the
+  nonstandard FIX implementations where there are multiple sessions that would otherwise have the 
+  same identification without the qualifier.</em> A <b>SessionQualifier</b> can only be used with an
+  initiator.
+  </p>
+  <p>
+
+  Each of the sessions can have several settings associated with them. Some of
+    these settings may not be known at compile time and are therefore passed
+    around in a class called SessionSettings.</p>
+  <p>
+  The SessionSettings class has the ability to pull settings out of any input
+    stream such as a file stream. You can also simply pass it a filename. If
+    you decide to
+    write your own components,
+  (storage for a particular database, a new kind of connector etc...), you may
+    also use the session settings to store settings for your custom component.</p>
+
+  <p>
+  A settings file is set up with two types of heading, a [DEFAULT] and a [SESSION]
+    heading. [SESSION] tells QuickFIX/J that a new Session is being defined. [DEFAULT]
+    is a place that you can define settings
+  which will be inherited by sessions that don't explicitly define them.  If you
+    do not provide a setting
+    that QuickFIX/J needs, it will
+  throw a ConfigError telling you what setting is missing or improperly formatted.
+  </p>
+  <p>
+  These are the settings you can associate with a session based on the default
+  components provided with QuickFIX, followed by an example.
+</p>
+  <H3>QuickFIX Settings</H3>
+  <UL>
+    <LI><A HREF="#Session">Session</A></LI>
+    <LI><A HREF="#Validation">Validation</A></LI>
+    <LI><A HREF="#Initiator">Initiator</A></LI>
+    <LI><A HREF="#Acceptor">Acceptor</A></LI>
+    <LI><A HREF="#Socket">Socket Options</A></LI>
+
+    <LI><A HREF="#Storage">Storage</A></LI>
+    <LI><A HREF="#Logging">Logging</A></LI>
+    <LI><A HREF="#Miscellaneous">Miscellaneous</A></LI>
+    <LI><A HREF="#Sample Settings File">Sample Settings File</A></LI>
+  </UL>
+  <TABLE class="settings" cellspacing="0">
+  <tbody>
+  <TR>
+
+    <TH>ID</TH>
+    <TH>Description</TH>
+    <TH>Valid Values</TH>
+    <TH>Default</TH>
+  </TR>
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Session">Session</A></TD>
+
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>BeginString</I> </TD>
+    <TD> Version of FIX this session should use </TD>
+    <TD> FIX.4.4 <br> FIX.4.3 <br> FIX.4.2 <br> FIX.4.1 <br> FIX.4.0 </TD>
+
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SenderCompID</I> </TD>
+    <TD> Your compID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SenderSubID</I> </TD>
+    <TD> (Optional) Your subID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SenderLocationID</I> </TD>
+    <TD> (Optional) Your locationID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TargetCompID</I> </TD>
+    <TD> (Optional) counterparty's compID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TargetSubID</I> </TD>
+    <TD> (Optional)  counterparty's subID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TargetLocationID</I> </TD>
+    <TD> (Optional) counterparty's locationID as associated with this FIX session </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SessionQualifier</I> </TD>
+    <TD> Additional qualifier to disambiguate otherwise identical sessions. 
+         This can only be used with initiator sessions.
+      <B>Note:</B> See <a href="../installation.html#oracle">Special
+        notes for Oracle</a>.
+    </TD>
+    <TD> case-sensitive alpha-numeric string </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>DefaultApplVerID</I> </TD>
+    <TD>Required only for FIXT 1.1 (and newer). Ignored for earlier transport versions. Specifies the 
+    	default application version ID for the session. This can either be the ApplVerID
+    	enum (see the ApplVerID field) the beginString for the default version.
+    </TD>
+    <TD>String. Examples:
+    <pre><code>
+ # Enum. FIX 5.0 over FIXT 1.1
+ DefaultApplVerID=7
+
+ # BeginString: FIX 5.0 over FIXT 1.1
+ DefaultApplVerID=FIX.5.0
+
+ # BeginString: FIX 4.2 over FIXT 1.1
+ DefaultApplVerID=FIX.4.2
+    </code></pre>
+    </TD>
+    <TD>No default. Required for FIXT 1.1</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ConnectionType</I> </TD>
+    <TD> Defines if session will act as an acceptor or an initiator </TD>
+    <TD> initiator <br> acceptor </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>TimeZone</I> </TD>
+    <TD> Time zone for this session; if specified, the session start and end will be converted from this zone to UTC.</TD>
+    <TD> Time zone ID (America/New_York, Asia/Tokyo, Europe/London, etc.)</TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>StartTime</I> </TD>
+    <TD> Time of day that this FIX session becomes activated </TD>
+    <TD> time in the format of HH:MM:SS [timezone]. The time zone is optional. The TimeZone setting
+    will be used, if set, or UTC will be used by default. The timezone string should be one that
+    the Java TimeZone class can resolve. For example, "15:00:00 US/Central".</TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>EndTime</I> </TD>
+    <TD> Time of day that this FIX session becomes deactivated </TD>
+    <TD> time in the format of HH:MM:SS [timezone]. The time zone is optional. The TimeZone setting
+    will be used, if set, or UTC will be used by default. The timezone string should be one that
+    the Java TimeZone class can resolve. For example, "09:00:00 US/Eastern".</TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>StartDay</I> </TD>
+    <TD> For week long sessions, the starting day of week for the session. Use in combination with StartTime. </TD>
+    <TD> Day of week in the default locale (e.g. Monday, mon, lundi, lun. etc.)</TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>EndDay</I> </TD>
+    <TD> For week long sessions, the ending day of week for the session. Use in combination with EndTime. </TD>
+    <TD> Day of week in the default locale (e.g. Monday, mon, lundi, lun. etc.)</TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>MillisecondsInTimeStamp</I> </TD>
+    <TD> Determines if milliseconds should be added to
+    timestamps. Only available for FIX.4.2 and greater. </TD>
+    <TD> Y<br>N</TD>
+
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ClosedResendInterval</I></TD>
+    <TD>Use actual end of sequence gap for resend requests rather than using "infinity"
+     as the end sequence of the gap. Not recommended by the FIX specification, but
+     needed for some counterparties.</TD>
+    <TD> Y<br/>N</TD>
+    <TD>N</TD>
+  </TR>
+
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Validation">Validation</A></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>UseDataDictionary</I> </TD>
+
+    <TD> Tell session whether or not to expect a data dictionary. You should always use a 
+    		DataDictionary if you are using repeating groups.</TD>
+    <TD> Y<br>N</TD>
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>DataDictionary</I> </TD>
+    <TD> XML definition file for validating incoming FIX messages. If no DataDictionary is supplied, 
+    	only basic message validation will be done
+    	<p>
+    	This setting should only be used with FIX transport versions old than FIXT 1.1. See TransportDataDictionary and
+    	ApplicationDataDictionary for FIXT 1.1 settings.
+    	</p>
+    </TD>
+    <TD> Valid XML data dictionary file, QuickFIX/J comes with the following defaults in the <code>etc</code> directory: 
+    	FIXT11.xml, FIX50.xml, FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
+    </TD>
+    <TD>If DataDictionary is not specified and UserDataDictionary=Y, then QuickFIX/J will look for a
+    	default dictionary based on the session's BeginString (e.g., FIX.4.2 = FIX42.xml). The DataDictionary
+    	file search strategy is to use a URL, then the file system, and then the thread context classloader (if any),
+    	and then the DataDictionary instance's classloader. Default data dictionary files
+    	are included in the QuickFIX/J jar file.
+    </TD>
+</TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>TransportDataDictionary</I> </TD>
+    <TD> XML definition file for validating admin (transport) messages. This setting is only valid for
+    	the FIXT 1.1 (or newer) sessions.
+    	<p>
+    	See DataDictionary for older
+    	transport versions (FIX 4.0-4.4) and for additional information.
+    	</p>
+    <TD> Valid XML data dictionary file path.
+    </TD>
+    <TD> If no dictionary path is supplied, 
+    	an attempt will be made to load a default transport dictionary.
+    </TD>
+</TR>
+<TR>
+    <TD> <I>AppDataDictionary</I> </TD>
+    <TD> XML definition file for validating application messages. This setting is only valid for
+    	the FIXT 1.1 (or newer) sessions. 
+    	<p>
+    	See DataDictionary for older
+    	transport versions (FIX 4.0-4.4) and for additional information.
+    	</p>
+    	<p>
+    	This setting supports the possibility of a custom application data
+     dictionary for each session. This setting would only be used with FIXT 1.1 and
+     new transport protocols. This setting can be used as a prefix to specify multiple
+     application dictionaries for the FIXT transport. For example:
+     <pre><code>
+  DefaultApplVerID=FIX.4.2
+  # For default application version ID
+  AppDataDictionary=FIX42.xml
+  # For nondefault application version ID
+  # Use beginString suffix for app version
+  AppDataDictionary.FIX.4.4=FIX44.xml
+  </code></pre>
+     This would use FIX42.xml for the default application version ID and FIX44.xml for
+     any FIX 4.4 messages.
+     </p>
+    	
+    <TD> Valid XML data dictionary file path.
+    </TD>
+
+    <TD>If no dictionary path is supplied, 
+    	an attempt will be made to load a dictionary using the DefaultApplVerID for the session.
+      </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ValidateFieldsOutOfOrder</I> </TD>
+    <TD> If set to N, fields that are out of order (i.e. body fields in the header, or header fields in the body) will not be rejected. Useful for connecting to systems which do not properly order fields.</TD>
+    <TD> Y<br>N</TD>
+
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ValidateFieldsHaveValues</I> </TD>
+    <TD> If set to N, fields without values (empty) will not be rejected. Useful for connecting to systems which improperly send empty tags.</TD>
+
+    <TD> Y<br>N</TD>
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ValidateUserDefinedFields</TD>
+    <TD>If set to N, user defined fields will not be rejected if they are not
+      defined in the data dictionary, or are present in messages they do not
+      belong to.</TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>AllowUnknownMsgFields</TD>
+    <TD>Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
+     (not user defined fields). Use ValidateUserDefinedFields for controlling validation of tags >= 5000.</TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>CheckCompID</I> </TD>
+    <TD> If set to Y, messages must be received from the counterparty with the correct SenderCompID and TargetCompID. Some systems will send you different CompIDs by design, so you must set this to N. </TD>
+    <TD> Y<br>N</TD>
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>CheckLatency</I> </TD>
+
+    <TD> If set to Y, messages must be received from the counterparty within a defined number of seconds (see MaxLatency). It is useful to turn this off if a system uses localtime for it's timestamps instead of GMT.</TD>
+    <TD> Y<br>N</TD>
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>MaxLatency</I> </TD>
+    <TD> If CheckLatency is set to Y, this defines the number of seconds latency allowed for a message to be processed. Default is 120.</TD>
+    <TD> positive integer</TD>
+    <TD> 120 </TD>
+
+  </TR>
+
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Initiator">Initiator</A></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ReconnectInterval</I> </TD>
+
+    <TD> Time between reconnection attempts in seconds. Only used for initiators </TD>
+    <TD> positive integer </TD>
+    <TD> 30 </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>HeartBtInt</I> </TD>
+
+    <TD> Heartbeat interval in seconds. Only used for initiators. </TD>
+    <TD> positive integer </TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogonTimeout</I> </TD>
+
+    <TD> Number of seconds to wait for a logon response before disconnecting.</TD>
+    <TD> positive integer </TD>
+    <TD> 10 </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogoutTimeout</I> </TD>
+    <TD> Number of seconds to wait for a logout response before disconnecting.</TD>
+    <TD> positive integer </TD>
+    <TD> 2 </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketConnectPort</I> </TD>
+
+    <TD> Socket port for connecting to a session. Only used with a SocketInitiator </TD>
+    <TD> positive integer </TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketConnectHost</I> </TD>
+
+    <TD> Host to connect to. Only used with a SocketInitiator </TD>
+    <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>SocketConnectProtocol</I> </TD>
+    <TD> Specifies the initiator communication protocol. The SocketConnectHost is not used with the VM_PIPE
+		protocol, but the SocketConnectPort is significant and must match the acceptor configuration.
+    </TD>
+    <TD> "TCP" or "VM_PIPE".  </TD>
+    <TD>"TCP" </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>SocketConnectHost&lt;n&gt;</I> </TD>
+    <TD> Alternate socket hosts for connecting to a session for failover, where <B>n</B> is a
+         positive integer. (i.e.) SocketConnectHost1, SocketConnectHost2... must be consecutive
+         and have a matching SocketConnectPort[n]</TD>
+    <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Acceptor">Acceptor</A></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketAcceptPort</I> </TD>
+
+    <TD> Socket port for listening to incomming connections, Only used with a SocketAcceptor </TD>
+    <TD> positive integer, valid open socket port. Currently, this must be defined in the [DEFAULT]
+         section.</TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketAcceptAddress</I></TD>
+
+    <TD> Local IP address to for binding accept port.</TD>
+    <TD> A hostname or IP address parseable by java.net.InetAddress. Currently,
+      this must be defined in the [DEFAULT] section.</TD>
+    <TD>Accept connections on any network interface.</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+
+    <TD> <I>SocketAcceptProtocol</I> </TD>
+    <TD> Specifies the acceptor communication protocol. The SocketAcceptAddress is not used with the VM_PIPE
+		protocol, but the SocketAcceptPort is significant and must match the initiator configuration.
+    </TD>
+    <TD> "TCP" or "VM_PIPE".  </TD>
+    <TD>"TCP" </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>RefreshOnLogon</I></TD>
+
+    <TD>Refresh the session state when a logon is received. This allows a simple form of failover 
+	when the message store data is persistent. The
+    option will be ignored for message stores that are not persistent 
+	(e.g., MemoryStore).</TD>
+    <TD> Y<br/>N</TD>
+    <TD>N</TD>
+  </TR>
+  
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Security">Secure Communication Options</A></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketUseSSL</I></TD>
+    <TD>Enables SSL usage for QFJ acceptor or initiator.</TD>
+    <TD> "Y" or "N"</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketKeyStore</I></TD>
+    <TD>KeyStore to use with SSL</TD>
+    <TD>File path</TD>
+    <TD></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketKeyStorePassword</I></TD>
+    <TD>KeyStore password</TD>
+    <TD></TD>
+    <TD></TD>
+  </TR>
+  
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" class="subsection"><A NAME="Socket">Socket Options (Acceptor or Initiator)</A></TD>
+  </TR>
+  <TR ALIGN="center" VALIGN="middle">
+    <TD COLSPAN="4" >Acceptor socket options must be set in settings default section.<br/> Initiator
+	socket options can be set in either defaults or per-session settings.</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketKeepAlive</I></TD>
+
+    <TD>    
+     When the keepalive option is set for a TCP socket and no data
+     has been exchanged across the socket in either direction for 
+     2 hours (NOTE: the actual value is implementation dependent),
+     TCP automatically sends a keepalive probe to the peer. This probe is a 
+     TCP segment to which the peer must respond. 
+     One of three responses is expected:
+	 <ol>
+     <li> The peer responds with the expected ACK. The application is not 
+        notified (since everything is OK). TCP will send another probe 
+        following another 2 hours of inactivity.
+     <li> The peer responds with an RST, which tells the local TCP that
+        the peer host has crashed and rebooted. The socket is closed.
+      <li> There is no response from the peer. The socket is closed. 
+     </ol>
+      The purpose of this option is to detect if the peer host crashes. 
+	</TD>
+    <TD> "Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+
+<TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketOobInline</I></TD>
+
+    <TD>When the OOBINLINE option is set, any TCP urgent data received on
+     the socket will be received through the socket input stream.
+     When the option is disabled (which is the default) urgent data
+     is silently discarded.
+</TD>
+    <TD> "Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+		  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketReceiveBufferSize</I></TD>
+
+    <TD>Set a hint the size of the underlying buffers used by the
+     platform for incoming network I/O. When used in set, this is a
+     suggestion to the kernel from the application about the size of
+     buffers to use for the data to be received over the
+     socket.
+    </TD>
+    <TD>Integer value.</TD>
+    <TD></TD>
+  </TR>
+
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketReuseAddress</I></TD>
+
+    <TD>Sets SO_REUSEADDR for a socket.  This is used only for MulticastSockets
+     in java, and it is set by default for MulticastSockets.
+    </TD>
+    <TD>"Y" or "N"</TD>
+    <TD></TD>
+  </TR>
+		  
+	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketSendBufferSize</I></TD>
+
+    <TD>Set a hint the size of the underlying buffers used by the
+     platform for outgoing network I/O. When used in set, this is a
+     suggestion to the kernel from the application about the size of
+     buffers to use for the data to be sent over the socket.
+    </TD>
+    <TD>Integer value.</TD>
+    <TD></TD>
+  </TR>
+	
+		  	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketLinger</I></TD>
+
+    <TD>Specify a linger-on-close timeout.  This option disables/enables
+     immediate return from a <B>close()</B> of a TCP Socket.  Enabling
+     this option with a non-zero Integer <I>timeout</I> means that a
+     <B>close()</B> will block pending the transmission and acknowledgement
+     of all data written to the peer, at which point the socket is closed
+     <I>gracefully</I>.  Upon reaching the linger timeout, the socket is
+     closed <I>forcefully</I>, with a TCP RST. Enabling the option with a
+     timeout of zero does a forceful close immediately. If the specified
+     timeout value exceeds 65,535 it will be reduced to 65,535.
+    </TD>
+    <TD>Integer value.</TD>
+    <TD></TD>
+  </TR>
+
+		  		  	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketTcpNoDelay</I></TD>
+
+    <TD>Disable Nagle's algorithm for this connection.  Written data
+     to the network is not buffered pending acknowledgement of
+     previously written data.
+    </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>Default is "Y".</TD>
+  </TR>
+
+		  		  		  	  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketTrafficClass</I></TD>
+
+    <TD>Sets traffic class or type-of-service octet in the IP
+     header for packets sent from this Socket.
+     As the underlying network implementation may ignore this
+     value applications should consider it a hint.
+     
+     <P> The tc <B>must</B> be in the range <code> 0 <= tc <=
+     255</code> or an IllegalArgumentException will be thrown.
+     <p>Notes:
+     <p> for Internet Protocol v4 the value consists of an octet
+     with precedence and TOS fields as detailed in RFC 1349. The
+     TOS field is bitset created by bitwise-or'ing values such
+     the following :-
+     <p>
+     <UL>
+     <LI><CODE>IPTOS_LOWCOST (0x02)</CODE></LI>
+     <LI><CODE>IPTOS_RELIABILITY (0x04)</CODE></LI>
+     <LI><CODE>IPTOS_THROUGHPUT (0x08)</CODE></LI>
+     <LI><CODE>IPTOS_LOWDELAY (0x10)</CODE></LI>
+     </UL>
+     The last low order bit is always ignored as this
+     corresponds to the MBZ (must be zero) bit.
+     <p>
+     Setting bits in the precedence field may result in a
+     SocketException indicating that the operation is not
+     permitted.
+    </TD>
+    <TD>An integer value or a set of string options separated by
+	"|" (e.g., "IPTOS_LOWCOST|IPTOS_LOWDELAY")</TD>
+    <TD></TD>
+  </TR>
+		  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketSynchronousWrites</I></TD>
+
+    <TD>Write messages synchronously. This is not generally recommended as it may result in performance
+    	degradation. The MINA communication layer is asynchronous by design, but this option will override
+    	that behavior if needed.
+    </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>"N"</TD>
+  </TR>
+
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>SocketSynchronousWriteTimeout</I></TD>
+
+    <TD>The time in milliseconds to wait for a write to complete.
+    </TD>
+    <TD>Integer.</TD>
+    <TD>30000 ms (30 seconds) if SocketSynchronousWrites is "Y".</TD>
+  </TR>
+  
+  <TR ALIGN="center" VALIGN="middle">
+
+    <TD COLSPAN="4" class="subsection"><A NAME="Storage">Storage</A></TD>
+  </TR>
+  <TR ALIGN="center" VALIGN="middle">
+
+    <TD COLSPAN="4"><I>Note: Unlike in QuickFIX JNI, database-specific classes (MySQLStore, etc.)
+    	are not included in QuickFIX/J. Use the JDBC support instead. The message store
+    	and logging schema are simple and should be easily adapted to any JDBC-supported
+    	database.</I>
+    </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>PersistMessages</TD>
+    <TD> If set to N, no messages will be persisted. This will force QFJ to always send GapFills instead of resending messages. Use this if you know you never want to resend a message. Useful for market data streams.</TD>
+    <TD> Y<br>N</TD>
+    <TD> Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileStorePath</TD>
+    <TD> Directory to store sequence number and message files. Only used with FileStoreFactory. </TD>
+    <TD> valid directory for storing files, must have write access </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileStoreMaxCachedMsgs</TD>
+    <TD> Maximum number of message index entries to cache in memory. </TD>
+    <TD>Integer. A zero will not cache any entries.</TD>
+    <TD>Integer.MAX_VALUE</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcDataSourceName</TD>
+    <TD>JNDI name for the JDBC data source. This technique for finding the data source can
+	    be used as an alternative to specifying the driver details. It allows better integration
+	    with application servers and servlet containers that are already configured with
+	    JDBC data sources.</TD>
+    <TD>JNDI name of the data source. Configuration of the initial context must be done by an
+    application server, through a property file or through system properties. See JNDI documentation
+    for more information.</TD>
+    <TD>&nbsp;</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcDriver</TD>
+    <TD>JDBC driver for JDBC logger. Also used for JDBC log.</TD>
+    <TD>Class name for the JDBC driver. Specify driver properties directly will cause the
+    creation of a Proxool data source that supports connection pooling. If you are using a
+    database with it's own pooling data source (e.g., Oracle) then use the <code>setDataSource()</code>
+    method on the Jdbc-related factories to set the data source directly.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcURL</TD>
+    <TD>JDBC database URL. Also used for JDBC log.</TD>
+    <TD>Depends on the JDBC database driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcUser</TD>
+    <TD>JDBC user. Also used for JDBC log.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcPassword</TD>
+    <TD>JDBC password. Also used for JDBC log.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcStoreMessagesTableName</TD>
+    <TD>Table name for messages table.</TD>
+    <TD>A valid SQL table name.</TD>
+    <TD>messages</TD>  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcStoreSessionsTableName</TD>
+    <TD>Table name for sessions table.</TD>
+    <TD>A valid SQL table name.</TD>
+    <TD>sessions</TD>  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcLogHeartBeats</TD>
+    <TD>Controls filtering of heartbeats for message logging (both in and out).</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>  
+  </TR>	  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcLogIncomingTable</TD>
+    <TD>The name of the JDBC log incoming table.</TD>
+    <TD>valid table name</TD>
+    <TD>messages_log</TD>  
+  </TR>	  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcLogOutgoingTable</TD>
+    <TD>The name of the JDBC log outgoing table.</TD>
+    <TD>valid table name</TD>
+    <TD>messages_log</TD>  
+  </TR>	  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcLogEventTable</TD>
+    <TD>The name of the JDBC log events table.</TD>
+    <TD>valid table name</TD>
+    <TD>event_log</TD>  
+  </TR>	  
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcSessionIdDefaultPropertyValue</TD>
+    <TD>The default value for Session ID bean properties is an empty string. Oracle treats
+    this as a SQL NULL and that causes problems. This configuration setting allows you to
+    set the default value for unspecified Session ID properties.</TD>
+    <TD>Any nonempty string.</TD>
+    <TD>"" (empty string)</TD>  
+  </TR>	  
+
+  <TR ALIGN="center" VALIGN="middle">
+
+    <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileLogPath</TD>
+    <TD> Directory to store logs. Only used with FileLogFactory. </TD>
+    <TD> valid directory for storing files, must have write access </TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileLogHeartbeats</TD>
+    <TD> Controls logging of heartbeat messages.</TD>
+    <TD>Y or N </TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileIncludeMilliseconds</TD>
+    <TD> Controls whether milliseconds are included in log time stamps. </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>"N"</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>FileIncludeTimeStampForMessages</TD>
+    <TD> Controls whether time stamps are included on message log entries. </TD>
+    <TD>"Y" or "N"</TD>
+    <TD>"N"</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SLF4JLogEventCategory</TD>
+    <TD>Log category for logged events.</TD>
+    <TD>Depends on log engine. The SLF4J adapter for JDK 1.4 logging is included by default.
+    An adapter for Log4J and the Log4J JAR are in the lib/optional directory. See 
+    <a href="http://slf4j.org">slf4j.org</a>
+    for other options. The SLF4J category options
+    support Session ID variables in the category names. The variables are:
+    <ul>
+    <li>${fixMajorVersion}</li>
+    <li>${fixMinorVersion}</li>
+    <li>${senderCompID}</li>
+    <li>${targetCompID}</li>
+    <li>${qualifier}</li>
+    </ul>
+    For example, a category value "${senderCompID}.events" (without the quotes) would become 
+    "BANZAI.events"
+    in the log file if BANZAI is the senderCompID for the session. This can be used with advanced
+    logging libraries like Log4J to create sophisticated session-specific logging policies.</TD>
+    <TD>quickfixj.event</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SLF4JLogIncomingMessageCategory</TD>
+    <TD><p>Log category for incoming messages.</p>
+      </TD>
+    <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
+    <TD>quickfixj.msg.incoming</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SLF4JLogOutgoingMessageCategory</TD>
+    <TD>Log category for outgoing messages.</TD>
+    <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
+    <TD>quickfixj.msg.outgoing</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SLF4JLogPrependSessionID</TD>
+    <TD>Controls whether session ID is prepended to log message.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SLF4JLogHeartbeats</TD>
+    <TD>Controls whether heartbeats are logged.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
+   <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcDriver</TD>
+    <TD>JDBC driver for JDBC logger. Also used for JDBC message store.</TD>
+    <TD>Classname for the JDBC driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcURL</TD>
+    <TD>JDBC database URL. Also used for JDBC message store.</TD>
+    <TD>Depends on the JDBC database driver.</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcUser</TD>
+    <TD>JDBC user. Also used for JDBC message store.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>JdbcPassword</TD>
+    <TD>JDBC password. Also used for JDBC message store.</TD>
+    <TD>&nbsp;</TD>
+    <TD>&nbsp;</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogEvents</TD>
+    <TD>Log events to screen.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogShowIncoming</TD>
+    <TD>Log incoming messages to screen.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogShowOutgoing</TD>
+    <TD>Log outgoing messages to screen.</TD>
+    <TD>Y or N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ScreenLogShowHeartBeats</TD>
+    <TD>Filter heartbeats from output (both incoming and outgoing)</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
+
+
+  <TR ALIGN="center" VALIGN="middle">
+
+    <TD COLSPAN="4" class="subsection"><A NAME="Miscellaneous">Miscellaneous</A></TD>
+  </TR>
+<TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ResetOnLogon</I> </TD>
+    <TD> Determines if sequence numbers should be reset before sending/receiving a logon request. </TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ResetOnLogout</I> </TD>
+    <TD> Determines if sequence numbers should be reset to 1 after a normal logout termination. </TD>
+    <TD> Y<br>N</TD>
+
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ResetOnDisconnect</I> </TD>
+    <TD> Determines if sequence numbers should be reset to 1 after an abnormal termination. </TD>
+
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ContinueInitializationOnError</TD>
+    <TD>Continue initializing sessions if an error occurs.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>SendRedundantResendRequests</TD>
+    <TD>Allows sending of redundant resend requests.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
+  </tbody>
+  </TABLE>
+
+  <H3><A NAME="Sample Settings File">Sample Settings File</A></H3>
+
+  <p>
+    Here is a typical settings file you might find in a firm that wants to connect to several ECNs.
+  </p>
+
+  <PRE class="code">
+  # default settings for sessions
+  [DEFAULT]
+  ConnectionType=initiator
+  ReconnectInterval=60
+  SenderCompID=TW
+
+
+  # session definition
+  [SESSION]
+  # inherit ConnectionType, ReconnectInterval and SenderCompID from default
+
+  BeginString=FIX.4.1
+  TargetCompID=ARCA
+  StartTime=12:30:00
+  EndTime=23:30:00
+  HeartBtInt=20
+  SocketConnectPort=9823
+  SocketConnectHost=123.123.123.123
+  DataDictionary=somewhere/FIX41.xml
+
+
+  [SESSION]
+  BeginString=FIX.4.0
+  TargetCompID=ISLD
+  StartTime=12:00:00
+  EndTime=23:00:00
+  HeartBtInt=30
+  SocketConnectPort=8323
+  SocketConnectHost=23.23.23.23
+  DataDictionary=somewhere/FIX40.xml
+
+
+  [SESSION]
+  BeginString=FIX.4.2
+  TargetCompID=INCA
+  StartTime=12:30:00
+  EndTime=21:30:00
+  # overide default setting for RecconnectInterval
+  ReconnectInterval=30
+  HeartBtInt=30
+  SocketConnectPort=6523
+  SocketConnectHost=3.3.3.3
+  # (optional) alternate connection ports and hosts to cycle through on failover
+  SocketConnectPort1=8392
+  SocketConnectHost1=8.8.8.8
+  SocketConnectPort2=2932
+  SocketConnectHost2=12.12.12.12
+  DataDictionary=somewhere/FIX42.xml
+</PRE>
+<div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
+
+  </body>
+  </html>

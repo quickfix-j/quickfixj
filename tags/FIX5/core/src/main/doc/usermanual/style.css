@@ -1,0 +1,97 @@
+body {
+	font-family: sans-serif;
+}
+
+h1 {
+	font-size: 1.4em;
+	color: darkblue;
+}
+
+h2 {
+	font-size: 1.3em;
+	color: blue;
+}
+
+h3 {
+	font-size: 1.15em;
+}
+
+h4 {
+	font-size: 1.1em;
+}
+
+blockquote {
+	font-size: 0.9em;
+	padding: 0.5em;
+	background: #f0f0f0;
+	border: thin outset #CCCCCC;
+
+}
+
+#title {
+	font-size: 1.5em;
+	color: #0000FF;
+	font-weight: bold;
+}
+
+dt {
+	font-weight: bold;
+	margin-left: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+dd {
+	margin-bottom: 0.5em;
+}
+
+li {
+	margin-bottom: 0.5em;
+}
+
+pre.code {
+ padding: 0.5em;
+ font-size: 0.9em;
+ background-color: #f0f0f0;
+ border: solid 1px #e0e0e0;
+}
+
+table {
+   border-collapse: collapse;
+}
+
+td, th {
+  border: solid 1px #c0c0c0;
+  vertical-align: top;
+}
+
+td {
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+th {
+  background-color: #f0f0ff;
+}
+
+td.subsection {
+  font-weight: bold;
+  background-color: #DDDDDD;
+}
+
+.header {
+  padding-left: 0.5em;
+  background-color: #f0f0ff;
+  border-right: solid 1px darkgray;
+  border-bottom: solid 1px darkgray;
+}
+
+.header h1 {
+  margin-bottom: 0;
+}
+
+.footer {
+    border-top: solid 1px darkgray;
+	color: darkgray;
+	font-size: 0.9em;
+}
+
