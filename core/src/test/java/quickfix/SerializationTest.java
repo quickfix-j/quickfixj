@@ -294,26 +294,32 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private static final String classesBaseDir = "core/target/classes/main";
+    private static final String classesBaseDirForEclipse = "classes";
+    private static final String classesBaseDirForAnt = "core/target/classes/main";
 
-    public void testSerialVersionUUID() throws ClassNotFoundException {
-        checkSerialVersionUID("quickfix/field");
-        checkSerialVersionUID("quickfix/fix40");
-        checkSerialVersionUID("quickfix/fix41");
-        checkSerialVersionUID("quickfix/fix42");
-        checkSerialVersionUID("quickfix/fix43");
-        checkSerialVersionUID("quickfix/fix44");
+    private String getBaseDirectory() {
+        return new File(classesBaseDirForEclipse).exists() ? classesBaseDirForEclipse : classesBaseDirForAnt;
     }
 
-    private void checkSerialVersionUID(String path) throws ClassNotFoundException {
-        File classesDir = new File(classesBaseDir + "/" + path);
+    public void testSerialVersionUUID() throws ClassNotFoundException {
+        String baseDirectory = getBaseDirectory();
+        checkSerialVersionUID(baseDirectory, "quickfix/field");
+        checkSerialVersionUID(baseDirectory, "quickfix/fix40");
+        checkSerialVersionUID(baseDirectory, "quickfix/fix41");
+        checkSerialVersionUID(baseDirectory, "quickfix/fix42");
+        checkSerialVersionUID(baseDirectory, "quickfix/fix43");
+        checkSerialVersionUID(baseDirectory, "quickfix/fix44");
+    }
+
+    private void checkSerialVersionUID(String baseDirectory, String path) throws ClassNotFoundException {
+        File classesDir = new File(baseDirectory + "/" + path);
         File[] files = classesDir.listFiles();
         assertTrue("no files in " + classesDir, files != null);
         for (File file : files) {
-            if (file.isDirectory()) {
+            if (file.isDirectory() || !file.getName().endsWith(".class")) {
                 continue;
             }
-            Class<?> c = Class.forName(file.getPath().substring(classesBaseDir.length() + 1)
+            Class<?> c = Class.forName(file.getPath().substring(baseDirectory.length() + 1)
                     .replaceAll(".class$", "").replace(File.separatorChar, '.'));
             if (Serializable.class.isAssignableFrom(c)) {
                 try {
