@@ -1586,14 +1586,18 @@ public class Session {
             state.setLogonReceived(true);
         }
 
-        if (!state.isInitiator() || (state.isResetSent() && !state.isResetReceived())) {
-            getLog().onEvent("Received logon request");
+        getLog().onEvent("Received logon request");
+        if (!state.isInitiator()) {
             generateLogon(logon);
             getLog().onEvent("Responding to logon request");
-        } else {
-            getLog().onEvent("Received logon response");
         }
 
+        // Check for proper sequence reset response
+        if (state.isResetSent() && !state.isResetReceived()) {
+            getLog().onEvent("Invalid sequence reset response in logon (missing 141=Y?): disconnecting");
+            disconnect();
+        }
+        
         state.setResetSent(false);
         state.setResetReceived(false);
 

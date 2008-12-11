@@ -1,10 +1,19 @@
 package quickfix;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static quickfix.SessionFactoryTestSupport.createSession;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Date;
 
-import junit.framework.TestCase;
+import org.junit.Test;
+
+import quickfix.field.BeginString;
+import quickfix.field.EncryptMethod;
 import quickfix.field.Headline;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
@@ -21,9 +30,39 @@ import quickfix.fix44.TestRequest;
  * Note: most session tests are in the form of acceptance tests.
  *
  */
-public class SessionTest extends TestCase {
+public class SessionTest {
+    
+    @Test
+    public void testHandlingOfInvalidSequenceReset() throws Exception {
+
+        Application application = new UnitTestApplication();
+        
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        Session session = createSession(sessionID, application, true, true);
+        
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+        
+        Message logonRequest = new Message(responder.sentMessageData);
+        Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
+        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
+        Message.Header header = logonResponse.getHeader();
+        header.setString(BeginString.FIELD, sessionID.getBeginString());
+        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        header.setInt(MsgSeqNum.FIELD, 1);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        session.next(logonResponse);
+        
+        assertTrue("Disconnect not called", responder.disconnectCalled);
+    }
 
     // QFJ-60
+    @Test
     public void testRejectLogon() throws Exception {
 
         // Create application that rejects all logons
@@ -37,7 +76,7 @@ public class SessionTest extends TestCase {
 
         };
 
-        Session session = setUpSession(application);
+        Session session = setUpSession(application, false, new UnitTestResponder());
         SessionState state = getSessionState(session);
 
         assertEquals(1, state.getNextSenderMsgSeqNum());
@@ -58,6 +97,7 @@ public class SessionTest extends TestCase {
         assertEquals(2, state.getNextTargetMsgSeqNum());
     }
 
+    @Test
     public void testSequenceRollbackOnCallbackException() throws Exception {
 
         // Create application that rejects all logons
@@ -80,7 +120,7 @@ public class SessionTest extends TestCase {
 
         };
 
-        Session session = setUpSession(application);
+        Session session = setUpSession(application, false, new UnitTestResponder());
         SessionState state = getSessionState(session);
 
         logonTo(session);
@@ -94,14 +134,16 @@ public class SessionTest extends TestCase {
 
         // To avoid resendRequest
         state.setNextTargetMsgSeqNum(3);
-        
+
         processMessage(session, createAdminMessage(3));
 
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(3, state.getNextTargetMsgSeqNum());
-}
+    }
 
-    private void processMessage(Session session, Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
+    private void processMessage(Session session, Message message) throws FieldNotFound,
+            RejectLogon, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType,
+            IOException, InvalidMessage {
         try {
             session.next(message);
         } catch (Throwable e) {
@@ -120,6 +162,7 @@ public class SessionTest extends TestCase {
         return msg;
     }
 
+    @Test
     public void testDontCatchErrorsFromCallback() throws Exception {
 
         // Create application that rejects all logons
@@ -133,7 +176,7 @@ public class SessionTest extends TestCase {
 
         };
 
-        Session session = setUpSession(application);
+        Session session = setUpSession(application, false, new UnitTestResponder());
         logonTo(session);
 
         try {
@@ -164,8 +207,9 @@ public class SessionTest extends TestCase {
     /** Veifies that the session has been registered before the logger tries accessing it
      * Use case:
      *  JdbcLogger not setup correctly, barfs during Session creation, tries to log and
-     * can't find the session in global session list yet
+     * can't find the session in global session list yet.
      */
+    @Test
     public void testSessionRegisteredCorrectly() throws Exception {
         SessionSettings settings = SessionSettingsTest.setUpSession(null);
         settings.setString(Session.SETTING_USE_DATA_DICTIONARY, "N");
@@ -185,17 +229,18 @@ public class SessionTest extends TestCase {
         }
     }
 
-    private Session setUpSession(Application application) throws NoSuchFieldException,
-            IllegalAccessException {
+    private Session setUpSession(Application application, boolean isInitiator, Responder responder)
+            throws NoSuchFieldException, IllegalAccessException {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        Session session = SessionFactoryTestSupport.createSession(sessionID, application, false);
-        session.setResponder(new UnitTestResponder());
+        Session session = SessionFactoryTestSupport.createSession(sessionID, application,
+                isInitiator);
+        session.setResponder(responder);
         SessionState state = getSessionState(session);
-        assertEquals(false, state.isInitiator());
+        assertEquals(isInitiator, state.isInitiator());
         assertEquals(false, state.isLogonSent());
         assertEquals(false, state.isLogonReceived());
         assertEquals(false, state.isLogonAlreadySent());
-        assertEquals(false, state.isLogonSendNeeded());
+        assertEquals(isInitiator, state.isLogonSendNeeded());
         assertEquals(false, state.isLogonTimedOut());
         assertEquals(false, state.isLogoutSent());
         assertEquals(false, state.isLogoutReceived());
@@ -220,10 +265,13 @@ public class SessionTest extends TestCase {
         message.getHeader().setInt(MsgSeqNum.FIELD, sequence);
     }
 
-    private final class UnitTestResponder implements Responder {
-
+    private class UnitTestResponder implements Responder {
+        public String sentMessageData;
+        public boolean disconnectCalled;
+        
         public boolean send(String data) {
-            return false;
+            sentMessageData = data;
+            return true;
         }
 
         public String getRemoteIPAddress() {
@@ -231,6 +279,7 @@ public class SessionTest extends TestCase {
         }
 
         public void disconnect() {
+            disconnectCalled = true;
         }
     }
 

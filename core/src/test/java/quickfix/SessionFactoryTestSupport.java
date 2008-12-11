@@ -15,6 +15,13 @@ public class SessionFactoryTestSupport implements SessionFactory {
                 new ScreenLogFactory(true, true, true), new DefaultMessageFactory(), isInitiator ? 30 : 0);
     }
 
+    public static Session createSession(SessionID sessionID, Application application, boolean isInitiator, boolean resetOnLogon) {
+        return new Session(application, new MemoryStoreFactory(), sessionID, null, null,
+                new ScreenLogFactory(true, true, true), new DefaultMessageFactory(), isInitiator ? 30 : 0,
+                        false, 30, true, resetOnLogon, false, false, false, false, false, true, false,
+                        1.5, null);
+    }
+
     public static Session createSession() throws ConfigError {
         return instance.create(null, null);
     }

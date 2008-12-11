@@ -46,17 +46,17 @@ public class AcceptanceTestSuite extends TestSuite {
     private static class AcceptanceTest extends TestCase {
         private final String filename;
         private final String testname;
-
+    
         public AcceptanceTest(String filename) {
             this.filename = filename;
             testname = filename.substring(filename.lastIndexOf(File.separatorChar + "fix") + 1);
             setName(testname);
         }
-
+    
         public int countTestCases() {
             return 1;
         }
-
+    
         public void run(TestResult result) {
             result.startTest(this);
             TestConnection connection = null;
@@ -78,7 +78,7 @@ public class AcceptanceTestSuite extends TestSuite {
             result.endTest(this);
             //printDatabasePoolingStatistics();
         }
-
+    
         protected void printDatabasePoolingStatistics() {
             String[] aliases = ProxoolFacade.getAliases();
             try {
@@ -92,7 +92,7 @@ public class AcceptanceTestSuite extends TestSuite {
                 e.printStackTrace();
             }
         }
-
+    
         private List<TestStep> load(String filename) throws IOException {
             ArrayList<TestStep> steps = new ArrayList<TestStep>();
             log.info("load test: " + filename);
@@ -125,7 +125,7 @@ public class AcceptanceTestSuite extends TestSuite {
             }
             return steps;
         }
-
+    
         public String toString() {
             return testname;
         }
