@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.management.JMException;
-import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.ObjectNameFactory;
 
 import quickfix.ConfigError;
@@ -21,17 +21,17 @@ import quickfix.SessionSettings;
 public class SessionJmxExporter {
     private Map<SessionID, ObjectName> sessionObjectNames = new HashMap<SessionID, ObjectName>();
 
-    public void export(MBeanServer mbeanServer, Session session, ObjectName connectorName,
+    public void export(JmxExporter jmxExporter, Session session, ObjectName connectorName,
             SessionSettings settings) throws JMException, ConfigError {
         ObjectName sessionName = createSessionName(session.getSessionID());
         sessionObjectNames.put(session.getSessionID(), sessionName);
         SessionAdmin sessionAdmin = new SessionAdmin(session, connectorName);
         session.addStateListener(sessionAdmin);
-        mbeanServer.registerMBean(sessionAdmin, sessionName);
+        jmxExporter.registerMBean(sessionAdmin, sessionName);
         ObjectNameFactory settingsNameFactory = new ObjectNameFactory();
         settingsNameFactory.addProperty("type", "Settings");
         addSessionIdProperties(session.getSessionID(), settingsNameFactory);
-        mbeanServer.registerMBean(new SessionSettingsAdmin(session.getSessionID(), settings),
+        jmxExporter.registerMBean(new SessionSettingsAdmin(session.getSessionID(), settings),
                 settingsNameFactory.createName());
     }
 
