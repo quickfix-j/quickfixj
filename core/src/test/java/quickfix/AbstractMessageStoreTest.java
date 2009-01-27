@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -32,14 +32,15 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     private boolean testEnabled = true;
     private MessageStoreFactory messageStoreFactory;
 
+    @Override
     protected void setUp() throws Exception {
         if (!testEnabled) {
             return;
         }
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         messageStoreFactory = getMessageStoreFactoryForTest();
-        store = messageStoreFactory.create(sessionID);
+        store = messageStoreFactory.create(getSessionID());
         assertEquals("wrong store type", getMessageStoreClass(), store.getClass());
         super.setUp();
     }
@@ -58,7 +59,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     protected MessageStore getStore() {
         return store;
     }
-    
+
     protected MessageStore createStore() throws Exception {
         return messageStoreFactory.create(sessionID);
     }
@@ -102,16 +103,16 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertTrue("set failed", store.set(111, "\u00E4bcf\u00F6d\u00E7\u00E9"));
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
-        
+
         store.refresh();
-        
-        ArrayList<String> messages = new ArrayList<String>();
+
+        final ArrayList<String> messages = new ArrayList<String>();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "\u00E4bcf\u00F6d\u00E7\u00E9", messages.get(0));
         assertEquals("wrong message", "message1", messages.get(1));
     }
-    
+
     public void testMessageStorageOutOfSequence() throws Exception {
         if (!testEnabled) {
             return;
@@ -119,10 +120,10 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertTrue("set failed", store.set(113, "message2"));
         assertTrue("set failed", store.set(111, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
-        
+
         store.refresh();
-        
-        ArrayList<String> messages = new ArrayList<String>();
+
+        final ArrayList<String> messages = new ArrayList<String>();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "message1", messages.get(0));
@@ -135,9 +136,9 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         }
 
         if (store instanceof MemoryStore == false) {
-            MessageStore failoverStore = getMessageStoreFactory().create(sessionID);
+            final MessageStore failoverStore = getMessageStoreFactory().create(sessionID);
             try {
-                MessageStore primaryStore = store;
+                final MessageStore primaryStore = store;
 
                 assertEquals("wrong value", 1, primaryStore.getNextSenderMsgSeqNum());
                 assertEquals("wrong value", 1, primaryStore.getNextTargetMsgSeqNum());

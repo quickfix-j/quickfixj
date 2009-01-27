@@ -22,7 +22,7 @@
  <xsl:output  method="text" encoding="UTF-8"/>
  <xsl:param name="fieldPackage"/>
  <xsl:param name="messagePackage"/>
- 
+
  <xsl:template match="text()"/>
 
  <xsl:template match="/">
@@ -63,7 +63,7 @@ public void onMessage( quickfix.Message message, SessionID sessionID ) throws Fi
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue
   { crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>((Message)message, sessionID); }
 
-  public void crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>( Message message, SessionID sessionID ) 
+  public void crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>( Message message, SessionID sessionID )
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue
   {
     MsgType msgType = new MsgType();
@@ -73,7 +73,7 @@ public void onMessage( quickfix.Message message, SessionID sessionID ) throws Fi
     <xsl:for-each select="//fix/messages/message">
     <xsl:if test="position()!=1">
     else
-    </xsl:if>if( msgTypeValue.equals("<xsl:value-of select="@msgtype"/>") )
+    </xsl:if>if( msgTypeValue.equals(<xsl:value-of select="@name"/>.MSGTYPE) )
       onMessage( (<xsl:value-of select="@name"/>)message, sessionID );</xsl:for-each>
     else onMessage( message, sessionID );
   }
