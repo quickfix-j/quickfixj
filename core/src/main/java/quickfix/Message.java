@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -108,29 +108,31 @@ public class Message extends FieldMap {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public Object clone() {
         try {
-            Message message = (Message) getClass().newInstance();
+            final Message message = getClass().newInstance();
             return cloneTo(message);
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
     private Object cloneTo(Message message) {
         message.initializeFrom(this);
-        message.header.initializeFrom(this.getHeader());
-        message.trailer.initializeFrom(this.getTrailer());
+        message.header.initializeFrom(getHeader());
+        message.trailer.initializeFrom(getTrailer());
         return message;
     }
 
+    @Override
     public String toString() {
         header.setField(new BodyLength(bodyLength()));
         trailer.setField(new CheckSum(checkSum()));
 
-        StringBuffer sb = new StringBuffer();
+        final StringBuffer sb = new StringBuffer();
         header.calculateString(sb, null, null);
         calculateString(sb, null, null);
         trailer.calculateString(sb, null, null);
@@ -145,7 +147,7 @@ public class Message extends FieldMap {
     private static DecimalFormat checksumFormat = new DecimalFormat("000");
 
     private int checkSum(String s) {
-        int offset = s.lastIndexOf("\00110=");
+        final int offset = s.lastIndexOf("\00110=");
         int sum = 0;
         for (int i = 0; i < offset; i++) {
             sum += s.charAt(i);
@@ -226,10 +228,10 @@ public class Message extends FieldMap {
      * Converts the message into a simple XML format. This format is
      * probably not sufficient for production use, but it more intended
      * for diagnostics and debugging. THIS IS NOT FIXML.
-     * 
+     *
      * To get names instead of tag number, use toXML(DataDictionary)
      * instead.
-     * 
+     *
      * @return an XML representation of the message.
      * @see #toXML(DataDictionary)
      */
@@ -241,74 +243,74 @@ public class Message extends FieldMap {
      * Converts the message into a simple XML format. This format is
      * probably not sufficient for production use, but it more intended
      * for diagnostics and debugging. THIS IS NOT FIXML.
-     * 
+     *
      * @param dataDictionary
      * @return the XML representation of the message
      */
     public String toXML(DataDictionary dataDictionary) {
         try {
-            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
                     .newDocument();
-            Element message = document.createElement("message");
+            final Element message = document.createElement("message");
             document.appendChild(message);
-            toXMLFields(message, "header", this.header, dataDictionary);
+            toXMLFields(message, "header", header, dataDictionary);
             toXMLFields(message, "body", this, dataDictionary);
-            toXMLFields(message, "trailer", this.trailer, dataDictionary);
-            DOMSource domSource = new DOMSource(document);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            StreamResult streamResult = new StreamResult(out);
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer serializer = tf.newTransformer();
+            toXMLFields(message, "trailer", trailer, dataDictionary);
+            final DOMSource domSource = new DOMSource(document);
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            final StreamResult streamResult = new StreamResult(out);
+            final TransformerFactory tf = TransformerFactory.newInstance();
+            final Transformer serializer = tf.newTransformer();
             serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.transform(domSource, streamResult);
             return out.toString();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private void toXMLFields(Element message, String section, FieldMap fieldMap,
             DataDictionary dataDictionary) throws FieldNotFound {
-        Document document = message.getOwnerDocument();
-        Element fields = document.createElement(section);
+        final Document document = message.getOwnerDocument();
+        final Element fields = document.createElement(section);
         message.appendChild(fields);
-        Iterator<Field<?>> fieldItr = fieldMap.iterator();
+        final Iterator<Field<?>> fieldItr = fieldMap.iterator();
         while (fieldItr.hasNext()) {
-            Field<?> field = fieldItr.next();
-            Element fieldElement = document.createElement("field");
+            final Field<?> field = fieldItr.next();
+            final Element fieldElement = document.createElement("field");
             if (dataDictionary != null) {
-                String name = dataDictionary.getFieldName(field.getTag());
+                final String name = dataDictionary.getFieldName(field.getTag());
                 if (name != null) {
                     fieldElement.setAttribute("name", name);
                 }
-                String enumValue = dataDictionary.getValueName(field.getTag(), field.getObject()
-                        .toString());
+                final String enumValue = dataDictionary.getValueName(field.getTag(), field
+                        .getObject().toString());
                 if (enumValue != null) {
                     fieldElement.setAttribute("enum", enumValue);
                 }
             }
             fieldElement.setAttribute("tag", Integer.toString(field.getTag()));
-            CDATASection value = document.createCDATASection(field.getObject().toString());
+            final CDATASection value = document.createCDATASection(field.getObject().toString());
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
         }
-        Iterator<Integer> groupKeyItr = fieldMap.groupKeyIterator();
+        final Iterator<Integer> groupKeyItr = fieldMap.groupKeyIterator();
         while (groupKeyItr.hasNext()) {
-            int groupKey = ((Integer) groupKeyItr.next()).intValue();
-            Element groupsElement = document.createElement("groups");
+            final int groupKey = (groupKeyItr.next()).intValue();
+            final Element groupsElement = document.createElement("groups");
             fields.appendChild(groupsElement);
             if (dataDictionary != null) {
-                String name = dataDictionary.getFieldName(groupKey);
+                final String name = dataDictionary.getFieldName(groupKey);
                 if (name != null) {
                     groupsElement.setAttribute("name", name);
                 }
             }
             groupsElement.setAttribute("tag", Integer.toString(groupKey));
-            List<Group> groups = fieldMap.getGroups(groupKey);
-            Iterator<Group> groupItr = groups.iterator();
+            final List<Group> groups = fieldMap.getGroups(groupKey);
+            final Iterator<Group> groupItr = groups.iterator();
             while (groupItr.hasNext()) {
-                Group group = (Group) groupItr.next();
+                final Group group = groupItr.next();
                 toXMLFields(groupsElement, "group", group, dataDictionary);
             }
         }
@@ -325,9 +327,9 @@ public class Message extends FieldMap {
     public boolean isAdmin() {
         if (header.isSetField(MsgType.FIELD)) {
             try {
-                String msgType = header.getString(MsgType.FIELD);
+                final String msgType = header.getString(MsgType.FIELD);
                 return msgType.length() == 1 && "0A12345".indexOf(msgType.charAt(0)) != -1;
-            } catch (FieldNotFound e) {
+            } catch (final FieldNotFound e) {
                 // shouldn't happen
             }
         }
@@ -338,10 +340,12 @@ public class Message extends FieldMap {
         return !isAdmin();
     }
 
+    @Override
     public boolean isEmpty() {
         return super.isEmpty() && header.isEmpty() && trailer.isEmpty();
     }
 
+    @Override
     public void clear() {
         super.clear();
         header.clear();
@@ -353,6 +357,7 @@ public class Message extends FieldMap {
         private static final int[] EXCLUDED_HEADER_FIELDS = { BeginString.FIELD, BodyLength.FIELD,
                 MsgType.FIELD };
 
+        @Override
         protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, EXCLUDED_HEADER_FIELDS, postFields);
         }
@@ -368,6 +373,7 @@ public class Message extends FieldMap {
             super(TRAILER_FIELD_ORDER);
         }
 
+        @Override
         protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
@@ -415,7 +421,7 @@ public class Message extends FieldMap {
 
     private void copyField(Header header, int fromField, int toField) throws FieldNotFound {
         if (header.isSetField(fromField)) {
-            String value = header.getString(fromField);
+            final String value = header.getString(fromField);
             if (value.length() > 0) {
                 this.header.setString(toField, value);
             }
@@ -439,10 +445,10 @@ public class Message extends FieldMap {
     }
 
     public void fromString(String messageData, DataDictionary dd, boolean doValidation)
-    throws InvalidMessage {
+            throws InvalidMessage {
         parse(messageData, dd, dd, doValidation);
     }
-    
+
     public void fromString(String messageData, DataDictionary sessionDictionary,
             DataDictionary applicationDictionary, boolean doValidation) throws InvalidMessage {
         if (MessageUtils.isAdminMessage(MessageUtils.getMessageType(messageData))) {
@@ -450,10 +456,9 @@ public class Message extends FieldMap {
         }
         parse(messageData, sessionDictionary, applicationDictionary, doValidation);
     }
-    
-    void parse(String messageData, DataDictionary sessionDataDictionary, 
-            DataDictionary applicationDataDictionary, boolean doValidation)
-            throws InvalidMessage {
+
+    void parse(String messageData, DataDictionary sessionDataDictionary,
+            DataDictionary applicationDataDictionary, boolean doValidation) throws InvalidMessage {
         this.messageData = messageData;
 
         try {
@@ -463,7 +468,7 @@ public class Message extends FieldMap {
             if (doValidation) {
                 validateCheckSum(messageData);
             }
-        } catch (FieldException e) {
+        } catch (final FieldException e) {
             exception = e;
         }
     }
@@ -471,19 +476,19 @@ public class Message extends FieldMap {
     private void validateCheckSum(String messageData) throws InvalidMessage {
         try {
             // Body length is checked at the protocol layer
-            int checkSum = trailer.getInt(CheckSum.FIELD);
+            final int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
                 // message will be ignored if checksum is wrong or missing
                 throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData)
                         + ", Received CheckSum=" + checkSum);
             }
-        } catch (FieldNotFound e) {
+        } catch (final FieldNotFound e) {
             throw new InvalidMessage("Field not found: " + e.field);
         }
     }
 
     private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
-        boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
+        final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
                 && isNextField(dd, header, BodyLength.FIELD)
                 && isNextField(dd, header, MsgType.FIELD);
 
@@ -507,7 +512,7 @@ public class Message extends FieldMap {
     }
 
     private boolean isNextField(DataDictionary dd, Header fields, int tag) throws InvalidMessage {
-        StringField field = extractField(dd, header);
+        final StringField field = extractField(dd, header);
         if (field == null || field.getTag() != tag) {
             return false;
         }
@@ -519,7 +524,7 @@ public class Message extends FieldMap {
         String res = null;
         try {
             res = header.getString(MsgType.FIELD);
-        } catch (FieldNotFound e) {
+        } catch (final FieldNotFound e) {
             throw new InvalidMessage(e.getMessage());
         }
         return res;
@@ -561,14 +566,14 @@ public class Message extends FieldMap {
 
     private void parseGroup(String msgType, StringField field, DataDictionary dd, FieldMap parent)
             throws InvalidMessage {
-        DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
-        DataDictionary groupDataDictionary = rg.getDataDictionary();
-        int[] fieldOrder = groupDataDictionary.getOrderedFields();
+        final DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
+        final DataDictionary groupDataDictionary = rg.getDataDictionary();
+        final int[] fieldOrder = groupDataDictionary.getOrderedFields();
         int previousOffset = -1;
-        int groupCountTag = field.getField();
-        int declaredGroupCount = Integer.parseInt(field.getValue());
+        final int groupCountTag = field.getField();
+        final int declaredGroupCount = Integer.parseInt(field.getValue());
         parent.setField(groupCountTag, field);
-        int firstField = rg.getDelimeterField();
+        final int firstField = rg.getDelimeterField();
         boolean firstFieldFound = false;
         Group group = null;
         boolean inGroupParse = true;
@@ -598,8 +603,8 @@ public class Message extends FieldMap {
                                             .getTag());
                         }
 
-                        if (fieldOrder != null) {
-                            int offset = index(fieldOrder, field.getTag());
+                        if (fieldOrder != null && dd.isCheckFieldsOutOfOrder()) {
+                            final int offset = index(fieldOrder, field.getTag());
                             if (offset >= 0) {
                                 if (offset > previousOffset) {
                                     previousOffset = offset;
@@ -725,7 +730,7 @@ public class Message extends FieldMap {
     private StringField extractField(Group group, DataDictionary dataDictionary, FieldMap fields)
             throws InvalidMessage {
         if (pushedBackField != null) {
-            StringField f = pushedBackField;
+            final StringField f = pushedBackField;
             pushedBackField = null;
             return f;
         }
@@ -734,7 +739,7 @@ public class Message extends FieldMap {
             return null;
         }
 
-        int equalsOffset = messageData.indexOf('=', position);
+        final int equalsOffset = messageData.indexOf('=', position);
         if (equalsOffset == -1) {
             throw new InvalidMessage("Equal sign not found in field");
         }
@@ -742,7 +747,7 @@ public class Message extends FieldMap {
         int tag = -1;
         try {
             tag = Integer.parseInt(messageData.substring(position, equalsOffset));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             position = messageData.indexOf('\001', position + 1) + 1;
             throw new InvalidMessage("bad tag format: " + e.getMessage());
         }
@@ -766,7 +771,7 @@ public class Message extends FieldMap {
                 } else {
                     fieldLength = group.getInt(lengthField);
                 }
-            } catch (FieldNotFound e1) {
+            } catch (final FieldNotFound e1) {
                 throw new InvalidMessage("Tag " + e1.field + " not found.");
             }
             sohOffset = equalsOffset + 1 + fieldLength;
@@ -778,7 +783,7 @@ public class Message extends FieldMap {
 
     /**
      * Queries message structural validity.
-     * 
+     *
      * @return flag indicating whether the message has a valid structure
      */
     synchronized boolean hasValidStructure() {
@@ -792,13 +797,13 @@ public class Message extends FieldMap {
     /**
      * Returns the first invalid tag, which is all that can be reported
      * in the resulting FIX reject message.
-     * 
+     *
      * @return the first invalid tag
      */
     synchronized int getInvalidTag() {
         return exception != null ? exception.getField() : 0;
     }
-    
+
     /**
      * Returns the msg type specified in a FIX message string.
      * @param message the FIX message string
@@ -808,7 +813,7 @@ public class Message extends FieldMap {
     public static MsgType identifyType(String message) throws MessageParseError {
         try {
             return new MsgType(MessageUtils.getMessageType(message));
-        } catch (InvalidMessage e) {
+        } catch (final InvalidMessage e) {
             throw new MessageParseError(e.getMessage(), e);
         }
     }
