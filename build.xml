@@ -312,6 +312,7 @@
 
 
 	 <target name="release.shared.java4" unless="skip_jdk4">
+	 	<echo>Building Java4 version</echo>
 		<property name="release.bin.java4"
 		          value="${release.output.dir}/${release.prefix}-java4-bin" />
 
@@ -340,8 +341,8 @@
 		<retrotranslate-jar jar="quickfixj-msg-fix42-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-msg-fix43-${version}.jar"/>
 		<retrotranslate-jar jar="quickfixj-msg-fix44-${version}.jar"/>
-                <retrotranslate-jar jar="quickfixj-msg-fix50-${version}.jar"/>
-                <retrotranslate-jar jar="quickfixj-msg-fixt11-${version}.jar"/>
+        <retrotranslate-jar jar="quickfixj-msg-fix50-${version}.jar"/>
+        <retrotranslate-jar jar="quickfixj-msg-fixt11-${version}.jar"/>
 
 		<!-- Create and do basic testing on binary archives -->
 
