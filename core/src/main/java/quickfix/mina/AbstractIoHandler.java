@@ -37,6 +37,7 @@ import quickfix.Message;
 import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.field.MsgType;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.
@@ -44,7 +45,7 @@ import quickfix.SessionID;
 public abstract class AbstractIoHandler extends IoHandlerAdapter {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
-    
+
     public AbstractIoHandler(NetworkingOptions options) {
         networkingOptions = options;
     }
@@ -61,7 +62,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             log.error("socket exception (" + remoteAddress + "): " + message);
             disconnectNeeded = true;
         } else if (cause instanceof CriticalProtocolCodecException) {
-            log.error("critical protocol codec error: "+cause.getMessage());
+            log.error("critical protocol codec error: " + cause.getMessage());
             disconnectNeeded = true;
         } else if (cause instanceof ProtocolCodecException) {
             String text = "protocol handler exception: " + cause.getMessage();
@@ -107,13 +108,16 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
             quickFixSession.getLog().onIncoming(messageString);
-            
-             
             try {
                 Message fixMessage = parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
-                log.error("Invalid message: " + e.getMessage());
+                if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
+                    log.error("Invalid LOGON message, disconnecting: " + e.getMessage());
+                    ioSession.close();
+                } else {
+                    log.error("Invalid message: " + e.getMessage());
+                }
             }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
@@ -132,12 +136,11 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     private Session findQFSession(IoSession ioSession) {
         return (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
     }
-    
+
     protected NetworkingOptions getNetworkingOptions() {
         return networkingOptions;
     }
 
-    protected abstract void processMessage(IoSession ioSession, Message message)
-            throws Exception;
+    protected abstract void processMessage(IoSession ioSession, Message message) throws Exception;
 
 }

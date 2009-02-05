@@ -139,7 +139,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
 
-        //addTest("fix42/21_RepeatingGroupSpecifierWithValueOfZero.def");
+        //addTest("fix50/1d_InvalidLogonNoDefaultApplVerID.def");
         //if (true) return;
         
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
