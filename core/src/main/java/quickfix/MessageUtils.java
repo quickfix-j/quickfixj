@@ -89,9 +89,32 @@ public class MessageUtils {
     }
 
     /**
-     * This is for internal use and may be removed in the future.
+     * Utility method for parsing a mesasge. This should only be used for parsing messages from
+     * FIX versions 4.4 or earlier.
      * 
-     * @param session
+     * @param messageFactory
+     * @param dataDictionary
+     * @param messageString
+     * @return the parsed message
+     * @throws InvalidMessage
+     */
+    public static Message parse(MessageFactory messageFactory,
+            DataDictionary dataDictionary, String messageString)
+            throws InvalidMessage {
+        String beginString = messageString.substring(2, 9);
+        String messageType = getMessageType(messageString);
+        quickfix.Message message = messageFactory.create(beginString,
+                messageType);
+        message.fromString(messageString, dataDictionary,
+                dataDictionary != null);
+        return message;
+    }
+
+
+    /**
+     * NOTE: This method is intended for internal use.
+     * 
+     * @param session - the Session that will process the message
      * @param messageString
      * @return the parsed message
      * @throws InvalidMessage

@@ -140,6 +140,17 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(notNullValue()));
     }
 
+    public void testLegacyParse() throws Exception {
+        String data = "8=FIX.4.49=30935=849=ASX56=CL1_FIX4434=452=20060324-01:05:58"
+            + "17=X-B-WOW-1494E9A0:58BD3F9D-1109150=D39=011=18427138=200198=1494E9A0:58BD3F9D"
+            + "526=432437=B-WOW-1494E9A0:58BD3F9D55=WOW54=1151=20014=040=244=1559=16=0"
+            + "453=3448=AAA35791447=D452=3448=8447=D452=4448=FIX11447=D452=36"
+            + "60=20060320-03:34:2910=169";
+        
+        Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), data);
+        assertThat(message, is(notNullValue()));
+    }
+
     public void testParseFixt() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
