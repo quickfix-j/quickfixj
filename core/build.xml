@@ -45,7 +45,6 @@
 			<jvmarg value="-Xmx256m" />
 			<jvmarg value="-Dgenerator.decimal=${generator.decimal}" />
 			<jvmarg value="-Dgenerator.orderedFields=${generator.orderedFields}" />
-			<jvmarg value="-Xmx256m" />
 			<arg value="${main.resources.dir}" />
 			<arg value="${main.src.dir}/quickfix/codegen" />
 			<arg value="${target.generated.src.dir}" />
@@ -62,7 +61,7 @@
 
 	<taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.classpath" />
 
-	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy. 
+	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy.
 		Mostly interested in getting all the tabbing right." unless="skip.jalopy">
 		<jalopy classpathref="main.lib.classpath" fileformat="unix">
 			<fileset dir="${target.generated.src.dir}">
@@ -98,7 +97,7 @@
 		<attribute name="output" />
 		<sequential>
 			<mkdir dir="@{output}" />
-			<javac destdir="@{output}" debug="${javac.debug}" 
+			<javac destdir="@{output}" debug="${javac.debug}"
 					memoryMaximumSize="256m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
@@ -151,7 +150,7 @@
 	<macrodef name="create-message-jar">
 		<attribute name="fixVersion" />
 		<sequential>
-			<jar destfile="${jar.output.dir}/quickfixj-msg-fix@{fixVersion}-${version}.jar" 
+			<jar destfile="${jar.output.dir}/quickfixj-msg-fix@{fixVersion}-${version}.jar"
 				manifest="${jar.output.dir}/MANIFEST.MF">
 				<fileset dir="${main.resources.dir}">
 					<include name="FIX@{fixVersion}.xml" />
