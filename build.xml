@@ -433,6 +433,7 @@
                     <exclude name="**/DefaultSessionFactoryTest.java"/>
                     <exclude name="**/SessionTest.java"/>
                     <exclude name="**/FIXMessageDecoderTest.java"/>
+                    <exclude name="**/MessageUtilsTest.java"/>
 				</fileset>
 			</batchtest>
 		</junit>
