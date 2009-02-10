@@ -25,10 +25,6 @@ package quickfix;
 public class NoTagValue extends RuntimeException {
     public int field;
     
-    public NoTagValue() {
-        super();
-    }
-
     public NoTagValue(String message, Throwable cause) {
         super(message, cause);
     }
@@ -37,11 +33,8 @@ public class NoTagValue extends RuntimeException {
         super(message);
     }
 
-    public NoTagValue(Throwable cause) {
-        super(cause);
-    }
-    
     public NoTagValue(int field) {
+        super("Field ["+field+"] has no tag value.");
         this.field = field;
     }
 
