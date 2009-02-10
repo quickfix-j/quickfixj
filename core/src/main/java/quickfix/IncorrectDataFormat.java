@@ -30,8 +30,8 @@ public class IncorrectDataFormat extends Exception {
      * @param field the tag number with the incorrect data
      * @param data the incorrect data
      */
-    public IncorrectDataFormat(int field, String data) {
-        this(field, data, null);
+    public IncorrectDataFormat(final int field, final String data) {
+        this(field, data, "Field ["+field+"] contains badly formatted data.");
     }
 
     /**
@@ -39,8 +39,8 @@ public class IncorrectDataFormat extends Exception {
      * 
      * @param field the tag number with the incorrect data
      */
-    public IncorrectDataFormat(int field) {
-        this(field, null, null);
+    public IncorrectDataFormat(final int field) {
+        this(field, null);
     }
 
     /**
@@ -48,11 +48,11 @@ public class IncorrectDataFormat extends Exception {
      * 
      * @param message
      */
-    public IncorrectDataFormat(String message) {
-        this(0, null, null);
+    public IncorrectDataFormat(final String message) {
+        this(0, null, message);
     }
 
-    private IncorrectDataFormat(int field, String data, String message) {
+    private IncorrectDataFormat(final int field, final String data, final String message) {
         super(message);
         this.field = field;
         this.data = data;
