@@ -5,6 +5,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -46,6 +47,17 @@ public class ReflectionUtil {
         }
         throw new NoSuchMethodException("No constructor for " + targetClass
                 + " compatible with args " + Arrays.toString(args));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getField(Object target, String fieldName, Class<T> fieldType) {
+        try {
+            Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            return (T) f.get(target);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -146,7 +158,8 @@ public class ReflectionUtil {
             long[] threadIds = (long[]) ReflectionUtil.callMethod(threadMXBean,
                     threadMXBeanInterface, "getAllThreadIds", null);
             Object[] threadInfos = (Object[]) ReflectionUtil.callMethod(threadMXBean,
-                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, Integer.valueOf(10)});
+                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds,
+                            Integer.valueOf(10) });
             for (int i = 0; i < threadInfos.length; i++) {
                 System.out.println((String) ReflectionUtil.callMethod(threadInfos[i],
                         "getThreadName", null));
@@ -154,7 +167,8 @@ public class ReflectionUtil {
                 PropertyDescriptor[] parameters = info.getPropertyDescriptors();
                 for (int p = 0; p < parameters.length; p++) {
                     if (parameters[p].getReadMethod() != null) {
-                        Object value = parameters[p].getReadMethod().invoke(threadInfos[i], (Object[])null);
+                        Object value = parameters[p].getReadMethod().invoke(threadInfos[i],
+                                (Object[]) null);
                         if (value != null && value.getClass().isArray()) {
                             System.out.println("  " + parameters[p].getName() + ":");
                             for (int a = 0; a < Array.getLength(value); a++) {

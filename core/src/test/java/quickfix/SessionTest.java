@@ -12,8 +12,10 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
 import quickfix.field.EncryptMethod;
+import quickfix.field.EndSeqNo;
 import quickfix.field.Headline;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
@@ -24,7 +26,9 @@ import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
 import quickfix.fix44.Logon;
 import quickfix.fix44.News;
+import quickfix.fix44.ResendRequest;
 import quickfix.fix44.TestRequest;
+import quickfix.test.ReflectionUtil;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -229,6 +233,23 @@ public class SessionTest {
         }
     }
 
+    @Test
+    public void testNonpersistedGapFill() throws Exception {
+        SessionID sessionID = new SessionID("FIX.4.4:SENDER->TARGET");
+        Session session = SessionFactoryTestSupport.createNonpersistedSession(sessionID, new UnitTestApplication(), false);
+        session.getStore().setNextTargetMsgSeqNum(200);
+        SessionState state = ReflectionUtil.getField(session, "state", SessionState.class);
+        state.setLogonReceived(true);
+        ResendRequest resendRequest = new ResendRequest();
+        resendRequest.getHeader().setField(new SenderCompID(sessionID.getTargetCompID()));
+        resendRequest.getHeader().setField(new TargetCompID(sessionID.getSenderCompID()));
+        resendRequest.getHeader().setField(new SendingTime(new Date()));
+        resendRequest.set(new BeginSeqNo(1));
+        resendRequest.set(new EndSeqNo(100));
+        session.next(resendRequest);
+        assertEquals(201, state.getNextTargetMsgSeqNum());
+    }
+    
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");

@@ -889,70 +889,70 @@ public class Session {
             endSeqNo = expectedSenderNum - 1;
         }
 
-        // Just do a gap fill when messages aren't persisted
         if (!persistMessages) {
+            // Just do a gap fill when messages aren't persisted
             endSeqNo += 1;
             int next = state.getNextSenderMsgSeqNum();
             if (endSeqNo > next) {
                 endSeqNo = next;
             }
             generateSequenceReset(beginSeqNo, endSeqNo);
-            return;
-        }
+        } else {
+            // Persistent resend
+            ArrayList<String> messages = new ArrayList<String>();
+            state.get(beginSeqNo, endSeqNo, messages);
 
-        ArrayList<String> messages = new ArrayList<String>();
-        state.get(beginSeqNo, endSeqNo, messages);
+            int msgSeqNum = 0;
+            int begin = 0;
+            int current = beginSeqNo;
 
-        int msgSeqNum = 0;
-        int begin = 0;
-        int current = beginSeqNo;
+            for (String message : messages) {
+                Message msg = parseMessage((String) message);
+                msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
 
-        for (String message : messages) {
-            Message msg = parseMessage((String) message);
-            msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-
-            if ((current != msgSeqNum) && begin == 0) {
-                begin = current;
-            }
-
-            String msgType = msg.getHeader().getString(MsgType.FIELD);
-
-            if (isAdminMessage(msgType)) {
-                if (begin == 0) {
-                    begin = msgSeqNum;
+                if ((current != msgSeqNum) && begin == 0) {
+                    begin = current;
                 }
-            } else {
-                initializeResendFields(msg);
-                if (resendApproved(msg)) {
-                    if (begin != 0) {
-                        generateSequenceReset(begin, msgSeqNum);
-                    }
-                    getLog().onEvent("Resending Message: " + msgSeqNum);
-                    send(msg.toString());
-                    begin = 0;
-                } else {
+
+                String msgType = msg.getHeader().getString(MsgType.FIELD);
+
+                if (isAdminMessage(msgType)) {
                     if (begin == 0) {
                         begin = msgSeqNum;
                     }
+                } else {
+                    initializeResendFields(msg);
+                    if (resendApproved(msg)) {
+                        if (begin != 0) {
+                            generateSequenceReset(begin, msgSeqNum);
+                        }
+                        getLog().onEvent("Resending Message: " + msgSeqNum);
+                        send(msg.toString());
+                        begin = 0;
+                    } else {
+                        if (begin == 0) {
+                            begin = msgSeqNum;
+                        }
+                    }
                 }
+                current = msgSeqNum + 1;
             }
-            current = msgSeqNum + 1;
+
+            if (begin != 0) {
+                generateSequenceReset(begin, msgSeqNum + 1);
+            }
+
+            if (endSeqNo > msgSeqNum) {
+                endSeqNo = endSeqNo + 1;
+                int next = state.getNextSenderMsgSeqNum();
+                if (endSeqNo > next)
+                    endSeqNo = next;
+                generateSequenceReset(beginSeqNo, endSeqNo);
+            }
         }
 
-        if (begin != 0) {
-            generateSequenceReset(begin, msgSeqNum + 1);
-        }
-
-        if (endSeqNo > msgSeqNum) {
-            endSeqNo = endSeqNo + 1;
-            int next = state.getNextSenderMsgSeqNum();
-            if (endSeqNo > next)
-                endSeqNo = next;
-            generateSequenceReset(beginSeqNo, endSeqNo);
-        }
-
-        msgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
-        if (!isTargetTooHigh(msgSeqNum) && !isTargetTooLow(msgSeqNum)) {
+        int targetSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
+        if (!isTargetTooHigh(targetSeqNum) && !isTargetTooLow(targetSeqNum)) {
             state.incrNextTargetMsgSeqNum();
         }
     }

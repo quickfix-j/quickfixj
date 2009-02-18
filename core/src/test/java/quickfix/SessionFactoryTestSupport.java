@@ -22,6 +22,14 @@ public class SessionFactoryTestSupport implements SessionFactory {
                         1.5, null);
     }
 
+    public static Session createNonpersistedSession(SessionID sessionID, Application application,
+            boolean isInitiator) {
+        return new Session(application, new MemoryStoreFactory(), sessionID, null, null,
+                new ScreenLogFactory(true, true, true), new DefaultMessageFactory(), isInitiator
+                        ? 30 : 0, false, 30, true, true, false, false, false, false, false,
+                false/*persistMessages*/, false, 1.5, null);
+    }
+
     public static Session createSession() throws ConfigError {
         return instance.create(null, null);
     }
