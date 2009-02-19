@@ -425,4 +425,68 @@
 		<pathelement location="${test.src.dir}" />
 	</path>
 
+	<!-- =============================================================
+	.Net Ikvm Compilation
+	================================================================= -->
+
+	<target name="compile_dotnet">
+		<property name="keyfile" value=""/>
+		<property environment="env"/>
+        <input message="Enter version number" addproperty="version" />
+
+		<mkdir dir="${basedir}/target/dotnet"/>
+		<delete>
+	      <fileset dir="${basedir}/target/dotnet" includes="*.dll" />
+	    </delete>
+
+	    <exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
+	      <arg value="-target:library" />
+	      <arg value="${keyfile}" />
+	      <arg value="-version:${version}" />
+	      <arg value="-out:logging.dll" />
+	      <arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
+	      <!-- arg line="${basedir}/src/main/lib/optional/log4j-1.2.15.jar" />
+	      <arg line="${basedir}/src/main/lib/optional/slf4j-log4j12-1.5.3.jar" />
+	      <arg line="${basedir}/src/main/lib/optional/jcl-over-slf4j-1.5.3.jar" /-->
+	      <arg line="${basedir}/src/main/lib/slf4j-jdk14-1.5.3.jar" />
+	      <arg line="${basedir}/src/main/lib/slf4j-api-1.5.3.jar" />
+	    </exec>
+
+        <antcall target="compile_dll">
+          <param name="jarfile" value="${basedir}/src/main/lib/mina-core-1.1.0.jar"/>
+        </antcall>
+        <antcall target="compile_dll">
+          <param name="jarfile" value="${basedir}/src/main/lib/optional/mina-filter-ssl-1.1.0.jar"/>
+        </antcall>
+        <antcall target="compile_dll">
+          <param name="jarfile" value="${basedir}/target/quickfixj-all-${version}.jar"/>
+        </antcall>
+	  </target>
+
+	  <target name="compile_dll">
+	    <pathconvert property="references.dlls" pathsep=" -reference:" setonempty="false">
+	      <path>
+	        <fileset dir="${basedir}/target/dotnet" includes="*.dll" />
+	      </path>
+	    </pathconvert>
+
+	    <condition property="references" value="-reference:${references.dlls}">
+	      <isset property="references.dlls" />
+	    </condition>
+
+	    <property name="references" value="" />
+
+	    <echo>Jar file ${jarfile}</echo>
+	    <echo>Refs:${references}</echo>
+
+	    <exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
+	      <arg value="-target:library" />
+	      <arg value="${keyfile}" />
+	      <arg value="-version:${version}" />
+	      <arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
+	      <arg line="${references}" />
+	      <arg value="${jarfile}" />
+	    </exec>
+	  </target>
+
 </project>
