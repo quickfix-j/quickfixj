@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.quickfixj.CharsetSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -48,6 +50,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * @see quickfix.FileStoreFactory
  */
 public class FileStore implements MessageStore {
+    private Logger log = LoggerFactory.getLogger(getClass());
     private static final String READ_OPTION = "r";
     private static final String WRITE_OPTION = "w";
     private static final String SYNC_OPTION = "d";
@@ -242,7 +245,7 @@ public class FileStore implements MessageStore {
     private void deleteFile(String fileName) throws IOException {
         File file = new File(fileName);
         if (file.exists() && !file.delete()) {
-            System.err.println("File delete failed: " + fileName);
+            log.error("File delete failed: " + fileName);
         }
     }
 
