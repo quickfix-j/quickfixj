@@ -341,7 +341,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             this.acceptorSessions = acceptorSessions;
         }
 
-        public Session getSession(SessionID sessionID) {
+        public Session getSession(SessionID sessionID, SessionConnector connector) {
             return acceptorSessions.get(sessionID);
         }
     }

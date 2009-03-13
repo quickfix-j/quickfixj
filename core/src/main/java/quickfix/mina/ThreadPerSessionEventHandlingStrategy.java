@@ -47,6 +47,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         dispatcher.enqueue(message);
     }
 
+    /** There is no such thing as a SesionConnector for thread-per-session handler - we don't multiplex
+     * between multiple sessions here so this is null
+     */
+    public SessionConnector getSessionConnector() {
+        return null;
+    }
+
     protected void startDispatcherThread(MessageDispatchingThread dispatcher) {
         dispatcher.start();
     }

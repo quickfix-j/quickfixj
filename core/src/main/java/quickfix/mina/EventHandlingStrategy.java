@@ -28,4 +28,7 @@ import quickfix.Session;
  */
 public interface EventHandlingStrategy {
     void onMessage(Session quickfixSession, Message message);
+
+    /** Get the session connector associated with this strategy */
+    SessionConnector getSessionConnector();
 }

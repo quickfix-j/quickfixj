@@ -38,6 +38,7 @@ import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.mina.SessionConnector;
 
 /**
  * Dynamically defines sessions for an acceptor. This can be useful for
@@ -49,7 +50,7 @@ import quickfix.SessionSettings;
  */
 public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     public static final String WILDCARD = "*";
-    private static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD,
+    public static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD,
             WILDCARD, WILDCARD, WILDCARD, WILDCARD, null);
 
     private final List<TemplateMapping> templateMappings;
@@ -128,7 +129,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
                 messageFactory);
     }
 
-    public synchronized Session getSession(SessionID sessionID) {
+    public synchronized Session getSession(SessionID sessionID, SessionConnector sessionConnector) {
         Session s = Session.lookupSession(sessionID);
         if (s == null) {
             try {
@@ -147,6 +148,9 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
                 optionallySetValue(dynamicSettings, TARGETSUBID, sessionID.getTargetSubID());
                 optionallySetValue(dynamicSettings, TARGETLOCID, sessionID.getTargetLocationID());
                 s = sessionFactory.create(sessionID, dynamicSettings);
+                if(sessionConnector != null) {
+                    sessionConnector.addDynamicSession(s);
+                }
             } catch (ConfigError e) {
                 throw new QFJException(e);
             }

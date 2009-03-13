@@ -56,7 +56,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
                 SessionID sessionID = MessageUtils.getReverseSessionID(message);
-                qfSession = sessionProvider.getSession(sessionID);
+                qfSession = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
                 if (qfSession != null) {
                     Log sessionLog = qfSession.getLog();
                     if (qfSession.hasResponder()) {
@@ -101,7 +101,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
     protected Session findQFSession(IoSession protocolSession, SessionID sessionID) {
         Session s = super.findQFSession(protocolSession, sessionID);
         if (s == null) {
-            s = sessionProvider.getSession(sessionID);
+            s = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
         }
         return s;
     }

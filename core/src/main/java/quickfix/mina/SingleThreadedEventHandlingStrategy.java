@@ -50,6 +50,10 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
+    public SessionConnector getSessionConnector() {
+        return sessionConnector;
+    }
+
     public void block() {
         while (true) {
             synchronized (this) {

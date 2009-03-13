@@ -106,6 +106,16 @@ public abstract class SessionConnector {
         return new ArrayList<SessionID>(sessions.keySet());
     }
 
+    public void addDynamicSession(Session inSession) {
+        sessions.put(inSession.getSessionID(), inSession);
+        log.debug("adding session for "+inSession.getSessionID());
+    }
+
+    public void removeDynamicSession(SessionID inSessionID) {
+        sessions.remove(inSessionID);
+        log.debug("removing session for "+inSessionID);
+    }
+
     public SessionSettings getSettings() {
         return settings;
     }

@@ -127,6 +127,12 @@ public class ThreadPerSessionEventHandlingStrategyTest extends TestCase {
         strategy.getDispatcher(sessionID).run();
     }
 
+    // verify the assumption that this always returns null
+    public void testVerifyGetConnectorAssumption() throws Exception {
+        ThreadPerSessionEventHandlingStrategyUnderTest strategy = new ThreadPerSessionEventHandlingStrategyUnderTest();
+        assertNull(strategy.getSessionConnector());        
+    }
+
     private Session setUpSession(SessionID sessionID) throws ConfigError {
         DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
                 new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));

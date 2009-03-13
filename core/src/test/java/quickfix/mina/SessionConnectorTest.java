@@ -22,6 +22,7 @@ package quickfix.mina;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
+import java.util.HashMap;
 
 import junit.framework.TestCase;
 import quickfix.Acceptor;
@@ -74,6 +75,46 @@ public class SessionConnectorTest extends TestCase {
         assertEquals(settings, connector.getSettings());
     }
     
+    /** Test that adding/removing dynamic sessions works correctly */
+    public void testAddingRemovingDymaicSessions() throws Exception {
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
+        SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "me", "you");
+        SessionSettings settings = setUpSessionSettings(sessionID);
+        DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
+                new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+
+        SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
+        connector.setSessions(new HashMap<SessionID, Session>());
+        Session session = connector.createSession(sessionID);
+
+        // one-time use connector to create a slightly different session
+        SessionSettings settings2 = setUpSessionSettings(sessionID2);
+        SessionConnector connector2 = new SessionConnectorUnderTest(settings2, sessionFactory);
+        connector.setSessions(new HashMap<SessionID, Session>());
+        Session session2 = connector2.createSession(sessionID2);
+        assertNotNull(session);
+        assertNotNull(session2);
+
+        assertEquals(0, connector.getManagedSessions().size());
+        connector.addDynamicSession(session);
+        assertEquals(1, connector.getManagedSessions().size());
+        connector.addDynamicSession(session2);
+        assertEquals(2, connector.getManagedSessions().size());
+        // the list can be in arbitrary order so let's make sure that we get both
+        HashMap<SessionID, Session> map = new HashMap<SessionID, Session>();
+        for (Session s : connector.getManagedSessions()) {
+            map.put(s.getSessionID(), s);
+        }
+        assertEquals(session, map.get(session.getSessionID()));
+        assertEquals(session2, map.get(session2.getSessionID()));
+
+        connector.removeDynamicSession(session.getSessionID());
+        assertEquals(1, connector.getManagedSessions().size());
+        assertEquals(session2, connector.getManagedSessions().get(0));
+        connector.removeDynamicSession(session2.getSessionID());
+        assertEquals(0, connector.getManagedSessions().size());
+    }
+
     private SessionSettings setUpSessionSettings(SessionID sessionID) {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_USE_DATA_DICTIONARY, "N");
