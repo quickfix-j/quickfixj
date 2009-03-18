@@ -122,10 +122,12 @@
 		</manifest>
 		<jar destfile="${jar.output.dir}/${quickfixj.core.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
 			<fileset dir="${main.classes.dir}">
-				<exclude name="quickfix/fix4?/**" />
+				<exclude name="quickfix/fix??/**" />
+				<exclude name="quickfix/fixt??/**" />
 			</fileset>
 			<fileset dir="${main.resources.dir}">
 				<exclude name="FIX??.xml" />
+				<exclude name="FIXT??.xml" />
 			</fileset>
 			<fileset dir="${main.src.dir}">
 				<include name="**/*.cert" />
@@ -143,8 +145,8 @@
 		<create-message-jar fixVersion="42" />
 		<create-message-jar fixVersion="43" />
 		<create-message-jar fixVersion="44" />
-                <create-message-jar fixVersion="50" />
-                <create-message-jar fixVersion="t11" />
+		<create-message-jar fixVersion="50" />
+		<create-message-jar fixVersion="t11" />
 	</target>
 
 	<macrodef name="create-message-jar">
