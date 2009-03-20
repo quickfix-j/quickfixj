@@ -261,7 +261,7 @@ public class Session {
 
     private boolean enabled;
 
-    private final String responderSync = "SessionResponderSync";
+    private final String responderSync = new String("SessionResponderSync");
     // @GuardedBy(responderSync)
     private Responder responder;
 
