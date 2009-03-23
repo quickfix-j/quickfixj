@@ -154,7 +154,7 @@
 		<sequential>
 			<jar destfile="${jar.output.dir}/quickfixj-msg-fix@{fixVersion}-${version}.jar"
 				manifest="${jar.output.dir}/MANIFEST.MF">
-				<fileset dir="${main.resources.dir}">
+				<fileset dir="${main.resources.dir}" casesensitive="false">
 					<include name="FIX@{fixVersion}.xml" />
 				</fileset>
 				<fileset dir="${main.classes.dir}">
