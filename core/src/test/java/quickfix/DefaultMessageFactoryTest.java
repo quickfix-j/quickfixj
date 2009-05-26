@@ -21,18 +21,18 @@ public class DefaultMessageFactoryTest {
 
     @Test
     public void testMessageCreate() throws Exception {
-        assertEquals(quickfix.fix40.Advertisement.class, factory.create(BEGINSTRING_FIX40, MsgType.ADVERTISEMENT).getClass());
-        assertEquals(quickfix.fix41.Advertisement.class, factory.create(BEGINSTRING_FIX41, MsgType.ADVERTISEMENT).getClass());
-        assertEquals(quickfix.fix42.Advertisement.class, factory.create(BEGINSTRING_FIX42, MsgType.ADVERTISEMENT).getClass());
-        assertEquals(quickfix.fix43.Advertisement.class, factory.create(BEGINSTRING_FIX43, MsgType.ADVERTISEMENT).getClass());
-        assertEquals(quickfix.fix44.Advertisement.class, factory.create(BEGINSTRING_FIX44, MsgType.ADVERTISEMENT).getClass());
-        assertEquals(quickfix.fix50.Advertisement.class, factory.create(FIX50, MsgType.ADVERTISEMENT).getClass());
-        assertEquals(quickfix.Message.class, factory.create("unknown", MsgType.ADVERTISEMENT).getClass());
+        assertMessage(quickfix.fix40.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(BEGINSTRING_FIX40, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.fix41.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(BEGINSTRING_FIX41, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.fix42.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(BEGINSTRING_FIX42, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.fix43.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(BEGINSTRING_FIX43, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.fix44.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(BEGINSTRING_FIX44, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.fix50.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(FIX50, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.Message.class, MsgType.ADVERTISEMENT, factory.create("unknown", MsgType.ADVERTISEMENT));
     }
     
     @Test
     public void testFixtCreate() throws Exception {
-        assertEquals(quickfix.fixt11.Logon.class, factory.create(BEGINSTRING_FIXT11, MsgType.LOGON).getClass());
+        assertMessage(quickfix.fixt11.Logon.class, MsgType.LOGON, factory.create(BEGINSTRING_FIXT11, MsgType.LOGON));
     }
     
     @Test
@@ -52,5 +52,10 @@ public class DefaultMessageFactoryTest {
         assertEquals(quickfix.fix50.News.NoLinesOfText.class, factory.create(FIX50, MsgType.NEWS, NoLinesOfText.FIELD).getClass());
         assertNull("if group can't be created return null",
                 factory.create(BEGINSTRING_FIX40, MsgType.MARKET_DATA_SNAPSHOT_FULL_REFRESH, NoMDEntries.FIELD));
+    }
+    
+    private static void assertMessage(Class<?> expectedMessageClass, String expectedMessageType, Message message) throws Exception {
+        assertEquals(expectedMessageClass, message.getClass());
+        assertEquals(expectedMessageType, message.getHeader().getString(MsgType.FIELD));
     }
 }

@@ -20,6 +20,7 @@
 package quickfix;
 
 import static quickfix.FixVersions.*;
+import quickfix.field.MsgType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +75,11 @@ public class DefaultMessageFactory implements MessageFactory {
         if (messageFactory != null) {
             return messageFactory.create(beginString, msgType);
         }
-        return new Message();
+
+        Message message = new Message();
+        message.getHeader().setString(MsgType.FIELD, msgType);
+        
+        return message;
     }
 
     public Group create(String beginString, String msgType, int correspondingFieldID) {
