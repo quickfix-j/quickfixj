@@ -592,8 +592,8 @@ public class DataDictionary {
         }
 
         if (!bodyOnly) {
-            sessionDataDictionary.iterate(message.getHeader(), msgType, sessionDataDictionary);
-            sessionDataDictionary.iterate(message.getTrailer(), msgType, sessionDataDictionary);
+            sessionDataDictionary.iterate(message.getHeader(), HEADER_ID, sessionDataDictionary);
+            sessionDataDictionary.iterate(message.getTrailer(), TRAILER_ID, sessionDataDictionary);
         }
 
         applicationDataDictionary.iterate(message, msgType, applicationDataDictionary);

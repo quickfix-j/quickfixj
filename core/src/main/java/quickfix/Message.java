@@ -47,6 +47,7 @@ import quickfix.field.LastMsgSeqNumProcessed;
 import quickfix.field.MessageEncoding;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.NoHops;
 import quickfix.field.OnBehalfOfCompID;
 import quickfix.field.OnBehalfOfLocationID;
 import quickfix.field.OnBehalfOfSendingTime;
@@ -687,6 +688,7 @@ public class Message extends FieldMap {
         case OnBehalfOfSendingTime.FIELD:
         case ApplVerID.FIELD:
         case CstmApplVerID.FIELD:
+        case NoHops.FIELD:
             return true;
         default:
             return false;

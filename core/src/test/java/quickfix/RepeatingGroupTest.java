@@ -484,4 +484,16 @@ public class RepeatingGroupTest extends TestCase {
         return (sum + 1) % 256;
     }
 
+    public void testSettingGettingGroupWithStandardFieldsInHeader() throws Exception {
+        final Message m = new Message(
+                "8=FIX.4.49=8735=034=252=20080203-00:29:51.45356=ISLD49=TW627=2628=_TED02A629=20090717-13:25:31.896628=_GWSURV629=20090717-13:25:31.92810=012",
+                defaultDataDictionary, false);
+        try {
+            defaultDataDictionary.validate(m);
+        } catch (final IncorrectTagValue e) {
+            // not expected
+            Assert.fail("Exception occured");
+        }
+    }
+
 }
