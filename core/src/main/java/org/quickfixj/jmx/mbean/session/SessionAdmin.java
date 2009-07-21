@@ -171,7 +171,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
      */
     public void disconnect() throws IOException {
         logInvocation("disconnect");
-        session.disconnect();
+        session.disconnect("JMX admin", false);
     }
 
     public void resetSequence(int nextSeqNum) throws SessionNotFound {

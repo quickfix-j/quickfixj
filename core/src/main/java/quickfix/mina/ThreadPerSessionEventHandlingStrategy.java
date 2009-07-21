@@ -84,6 +84,10 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             }
         }
 
+        public int getQueueSize() {
+            return messages.size();
+        }
+
         public void run() {
             while (!stopped) {
                 try {
@@ -120,5 +124,12 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         return messages.take();
     }
     
+    public int getQueueSize() {
+        int ret = 0;
+        for(MessageDispatchingThread mdt : dispatchers.values()) {
+            ret+=mdt.getQueueSize();
+        }
+        return ret;
+    }
 
 }

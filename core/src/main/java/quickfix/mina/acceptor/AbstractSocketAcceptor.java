@@ -70,6 +70,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private final SessionFactory sessionFactory;
     private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<SocketAddress, AcceptorSocketDescriptor>();
     private final Map<TransportType, IoAcceptor> ioAcceptorForTransport = new HashMap<TransportType, IoAcceptor>();
+    private EventHandlingStrategy eventHandlingStrategy;
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -102,6 +103,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     protected synchronized void startAcceptingConnections(
             EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
         try {
+            this.eventHandlingStrategy = eventHandlingStrategy;
             startSessionTimer();
             SessionSettings settings = getSettings();
 
@@ -345,4 +347,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             return acceptorSessions.get(sessionID);
         }
     }
+
+    public int getQueueSize() {
+        return eventHandlingStrategy == null ? 0 : eventHandlingStrategy.getQueueSize();
+    }
+
 }

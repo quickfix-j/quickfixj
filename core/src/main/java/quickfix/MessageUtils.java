@@ -39,6 +39,8 @@ import quickfix.field.TargetSubID;
 
 public class MessageUtils {
 
+    private static final char FIELD_SEPARATOR = '\001';
+
     public static SessionID getSessionID(Message fixMessage) {
         Header header = fixMessage.getHeader();
         return new SessionID(getFieldOrDefault(header, BeginString.FIELD, null), getFieldOrDefault(
@@ -101,7 +103,8 @@ public class MessageUtils {
     public static Message parse(MessageFactory messageFactory,
             DataDictionary dataDictionary, String messageString)
             throws InvalidMessage {
-        String beginString = messageString.substring(2, 9);
+        final int index = messageString.indexOf(FIELD_SEPARATOR);
+        String beginString = messageString.substring(2, index);
         String messageType = getMessageType(messageString);
         quickfix.Message message = messageFactory.create(beginString,
                 messageType);
@@ -136,8 +139,8 @@ public class MessageUtils {
         MessageFactory messageFactory = session.getMessageFactory();
         
         DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
-        DataDictionary sessionDataDictionary = ddProvider.getSessionDataDictionary(beginString);
-        DataDictionary applicationDataDictionary = ddProvider.getApplicationDataDictionary(
+        DataDictionary sessionDataDictionary = ddProvider==null ? null : ddProvider.getSessionDataDictionary(beginString);
+        DataDictionary applicationDataDictionary = ddProvider==null ? null : ddProvider.getApplicationDataDictionary(
                 applVerID, customApplVerID);
 
         quickfix.Message message = messageFactory.create(beginString, msgType);
@@ -178,8 +181,8 @@ public class MessageUtils {
         return applVerID;
     }
 
-    static boolean isAdminMessage(String msgType) {
-        return msgType.length() == 1 && "0A12345".indexOf(msgType) != -1;
+    public static boolean isAdminMessage(String msgType) {
+        return msgType.length() == 1 && "0A12345h".indexOf(msgType) != -1;
     }
 
     public static boolean isHeartbeat(String message) {
@@ -201,7 +204,7 @@ public class MessageUtils {
     public static String getMessageType(String messageString) throws InvalidMessage {
         String value = getStringField(messageString, 35);
         if (value == null) {
-            throw new InvalidMessage("missing or garbled message type");
+            throw new InvalidMessage("Missing or garbled message type in " + messageString);
         }
         return value;
     }
@@ -211,12 +214,12 @@ public class MessageUtils {
         String tagString = Integer.toString(tag);
         int start = messageString.indexOf(tagString, 0);
         while (start != -1 && value == null) {
-            if ((start == 0 || messageString.charAt(start - 1) == '\001')) {
+            if ((start == 0 || messageString.charAt(start - 1) == FIELD_SEPARATOR)) {
                 int end = start + tagString.length();
                 if ((end + 1) < messageString.length() && messageString.charAt(end) == '=') {
                     // found tag, get value
                     start = end = (end + 1);
-                    for (; end < messageString.length() && messageString.charAt(end) != '\001'; end++)
+                    for (; end < messageString.length() && messageString.charAt(end) != FIELD_SEPARATOR; end++)
                         ;
                     if (end == messageString.length()) {
                         return null;

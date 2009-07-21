@@ -51,4 +51,11 @@ public interface ConnectorAdminMBean {
      * @throws IOException
      */
     String  getHostName() throws IOException;
+    
+    /**
+     * The size of the underlying event queue
+     * 
+     * @return size of the queue; if this counters grows, the application does not consume FIX message quick enough
+     */
+    int getQueueSize();
 }

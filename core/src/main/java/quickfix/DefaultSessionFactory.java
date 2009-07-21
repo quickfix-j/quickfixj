@@ -96,9 +96,9 @@ public class DefaultSessionFactory implements SessionFactory {
                         .getBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY);
             }
 
-            DefaultDataDictionaryProvider dataDictionaryProvider = new DefaultDataDictionaryProvider();
-            
+            DefaultDataDictionaryProvider dataDictionaryProvider = null;
             if (useDataDictionary) {
+                dataDictionaryProvider = new DefaultDataDictionaryProvider();
                 if (sessionID.isFIXT()) {
                     processFixtDataDictionaries(sessionID, settings, dataDictionaryProvider);
                 } else {

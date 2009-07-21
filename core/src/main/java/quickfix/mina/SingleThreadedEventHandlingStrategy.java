@@ -124,4 +124,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = true;
     }
 
+    public int getQueueSize() {
+        return eventQueue.size();
+    }
+
 }

@@ -31,4 +31,6 @@ public interface EventHandlingStrategy {
 
     /** Get the session connector associated with this strategy */
     SessionConnector getSessionConnector();
+    
+    int getQueueSize();
 }

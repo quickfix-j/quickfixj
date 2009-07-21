@@ -100,4 +100,8 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
         }
     }
 
+    public int getQueueSize() {
+        return acceptor.getQueueSize();
+    }
+
 }

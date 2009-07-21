@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class LogUtil {
     private final static Logger log = LoggerFactory.getLogger(LogUtil.class);
     
-    /*
+    /**
      * Logs a throwable as a session event, including the stack trace.
      * 
      * @param log a Session log
@@ -47,7 +47,7 @@ public class LogUtil {
         log.onEvent(stringWriter.toString());
     }
     
-    /*
+    /**
      * Logs a throwable as a session event, including the stack trace.
      * 
      * @param sessionID the session ID

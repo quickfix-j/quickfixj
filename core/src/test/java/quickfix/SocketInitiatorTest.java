@@ -73,7 +73,7 @@ public class SocketInitiatorTest extends TestCase {
                 log.info("Disconnect from server-side and assert that client session "
                         + "reconnects and logs on properly");
                 clientApplication.setUpLogonExpectation();
-                serverSession.disconnect();
+                serverSession.disconnect("Server side disconnection for testing", false);
                 for (int i = 0; i < 10; i++) {
                     Thread.sleep(100L);
                     if (serverSession.hasResponder()) {

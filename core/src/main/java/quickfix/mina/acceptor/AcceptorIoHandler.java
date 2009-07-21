@@ -39,8 +39,8 @@ class AcceptorIoHandler extends AbstractIoHandler {
 
     private final AcceptorSessionProvider sessionProvider;
 
-    public AcceptorIoHandler(AcceptorSessionProvider sessionProvider, NetworkingOptions networkingOptions,
-            EventHandlingStrategy eventHandingStrategy) {
+    public AcceptorIoHandler(AcceptorSessionProvider sessionProvider,
+            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandingStrategy) {
         super(networkingOptions);
         this.sessionProvider = sessionProvider;
         this.eventHandlingStrategy = eventHandingStrategy;

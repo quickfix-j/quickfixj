@@ -19,7 +19,7 @@
 
 package quickfix.mina;
 
-import static quickfix.MessageUtils.*;
+import static quickfix.MessageUtils.parse;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -50,22 +50,23 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         networkingOptions = options;
     }
 
+    @Override
     public void exceptionCaught(IoSession ioSession, Throwable cause) throws Exception {
         boolean disconnectNeeded = false;
-        Session quickFixSession = findQFSession(ioSession);
+        final Session quickFixSession = findQFSession(ioSession);
         if (cause instanceof ProtocolDecoderException && cause.getCause() != null) {
             cause = cause.getCause();
         }
         if (cause instanceof IOException) {
-            SocketAddress remoteAddress = ioSession.getRemoteAddress();
-            String message = cause.getMessage();
+            final SocketAddress remoteAddress = ioSession.getRemoteAddress();
+            final String message = cause.getMessage();
             log.error("socket exception (" + remoteAddress + "): " + message);
             disconnectNeeded = true;
         } else if (cause instanceof CriticalProtocolCodecException) {
             log.error("critical protocol codec error: " + cause.getMessage());
             disconnectNeeded = true;
         } else if (cause instanceof ProtocolCodecException) {
-            String text = "protocol handler exception: " + cause.getMessage();
+            final String text = "protocol handler exception: " + cause.getMessage();
             if (quickFixSession != null) {
                 quickFixSession.getLog().onEvent(text);
             } else {
@@ -80,38 +81,41 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         }
         if (disconnectNeeded) {
             if (quickFixSession != null) {
-                quickFixSession.disconnect();
+                quickFixSession.disconnect("", true);
             } else {
                 ioSession.close();
             }
         }
     }
 
+    @Override
     public void sessionCreated(IoSession ioSession) throws Exception {
         super.sessionCreated(ioSession);
         networkingOptions.apply(ioSession);
     }
 
+    @Override
     public void sessionClosed(IoSession ioSession) throws Exception {
-        Session quickFixSession = findQFSession(ioSession);
+        final Session quickFixSession = findQFSession(ioSession);
         if (quickFixSession != null) {
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
             if (quickFixSession.hasResponder()) {
-                quickFixSession.disconnect();
+                quickFixSession.disconnect("IO Session closed", false);
             }
         }
     }
 
+    @Override
     public void messageReceived(IoSession ioSession, Object message) throws Exception {
-        String messageString = (String) message;
-        SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
-        Session quickFixSession = findQFSession(ioSession, remoteSessionID);
+        final String messageString = (String) message;
+        final SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
+        final Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
             quickFixSession.getLog().onIncoming(messageString);
             try {
-                Message fixMessage = parse(quickFixSession, messageString);
+                final Message fixMessage = parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
-            } catch (InvalidMessage e) {
+            } catch (final InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
                     log.error("Invalid LOGON message, disconnecting: " + e.getMessage());
                     ioSession.close();

@@ -55,7 +55,7 @@ public abstract class SessionConnector {
     public final static String QF_SESSION = "QF_SESSION";
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Map<SessionID, Session> sessions;
+    private Map<SessionID, Session> sessions = Collections.emptyMap();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
     private final static ScheduledExecutorService scheduledExecutorService = Executors
@@ -170,8 +170,7 @@ public abstract class SessionConnector {
                 quickfix.Session session = (quickfix.Session) sessionItr.next();
                 try {
                     if (session.isLoggedOn()) {
-                        session.getLog().onEvent("Forcibly disconnecting session");
-                        session.disconnect();
+                        session.disconnect("Forcibly disconnecting session", false);
                     }
                 } catch (Throwable e) {
                     logError(session.getSessionID(), null, "Error during disconnect", e);
@@ -201,7 +200,7 @@ public abstract class SessionConnector {
                 Session session = sessionItr.next();
                 if (elapsed >= session.getLogoutTimeout() * 1000L) {
                     try {
-                        session.disconnect();
+                        session.disconnect("Logout timeout, force disconnect", false);
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
                     }

@@ -30,4 +30,8 @@ class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdmi
             throw JmxSupport.toIOException(e);
         }
     }
+
+    public int getQueueSize() {
+        return initiator.getQueueSize();
+    }
 }

@@ -329,7 +329,7 @@ public class Message extends FieldMap {
         if (header.isSetField(MsgType.FIELD)) {
             try {
                 final String msgType = header.getString(MsgType.FIELD);
-                return msgType.length() == 1 && "0A12345".indexOf(msgType.charAt(0)) != -1;
+                return MessageUtils.isAdminMessage(msgType);
             } catch (final FieldNotFound e) {
                 // shouldn't happen
             }
@@ -481,10 +481,10 @@ public class Message extends FieldMap {
             if (checkSum != checkSum(messageData)) {
                 // message will be ignored if checksum is wrong or missing
                 throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData)
-                        + ", Received CheckSum=" + checkSum);
+                        + ", Received CheckSum=" + checkSum + " in " + messageData);
             }
         } catch (final FieldNotFound e) {
-            throw new InvalidMessage("Field not found: " + e.field);
+            throw new InvalidMessage("Field not found: " + e.field + " in " + messageData);
         }
     }
 
@@ -496,7 +496,7 @@ public class Message extends FieldMap {
         if (doValidation && !validHeaderFieldOrder) {
             // Invalid message preamble (first three fields) is a serious
             // condition and is handled differently from other message parsing errors.
-            throw new InvalidMessage("Header fields out of order");
+            throw new InvalidMessage("Header fields out of order in " + messageData);
         }
 
         StringField field = extractField(dd, header);
@@ -526,7 +526,7 @@ public class Message extends FieldMap {
         try {
             res = header.getString(MsgType.FIELD);
         } catch (final FieldNotFound e) {
-            throw new InvalidMessage(e.getMessage());
+            throw new InvalidMessage(e.getMessage() + " in " + messageData);
         }
         return res;
     }
@@ -594,7 +594,8 @@ public class Message extends FieldMap {
                         parseGroup(msgType, field, groupDataDictionary, group);
                     } else {
                         throw new InvalidMessage("The group " + groupCountTag
-                                + " must set the delimiter field " + firstField);
+                                + " must set the delimiter field " + firstField + " in "
+                                + messageData);
                     }
                 } else {
                     if (groupDataDictionary.isField(field.getTag())) {
@@ -616,8 +617,9 @@ public class Message extends FieldMap {
                                 }
                             }
                         }
-
+                        if (group != null) {
                         group.setField(field);
+                        }
                     } else {
                         if (group != null) {
                             parent.addGroup(group);
@@ -743,7 +745,7 @@ public class Message extends FieldMap {
 
         final int equalsOffset = messageData.indexOf('=', position);
         if (equalsOffset == -1) {
-            throw new InvalidMessage("Equal sign not found in field");
+            throw new InvalidMessage("Equal sign not found in field" + " in " + messageData);
         }
 
         int tag = -1;
@@ -751,12 +753,12 @@ public class Message extends FieldMap {
             tag = Integer.parseInt(messageData.substring(position, equalsOffset));
         } catch (final NumberFormatException e) {
             position = messageData.indexOf('\001', position + 1) + 1;
-            throw new InvalidMessage("bad tag format: " + e.getMessage());
+            throw new InvalidMessage("Bad tag format: " + e.getMessage() + " in " + messageData);
         }
 
         int sohOffset = messageData.indexOf('\001', equalsOffset + 1);
         if (sohOffset == -1) {
-            throw new InvalidMessage("SOH not found at end of field: " + tag);
+            throw new InvalidMessage("SOH not found at end of field: " + tag + " in " + messageData);
         }
 
         if (dataDictionary != null && dataDictionary.isDataField(tag)) {
@@ -774,7 +776,7 @@ public class Message extends FieldMap {
                     fieldLength = group.getInt(lengthField);
                 }
             } catch (final FieldNotFound e1) {
-                throw new InvalidMessage("Tag " + e1.field + " not found.");
+                throw new InvalidMessage("Tag " + e1.field + " not found in " + messageData);
             }
             sohOffset = equalsOffset + 1 + fieldLength;
         }

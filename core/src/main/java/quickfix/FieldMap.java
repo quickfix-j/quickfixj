@@ -295,7 +295,7 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
-    protected void setField(int key, Field<?> field) {
+    public void setField(int key, Field<?> field) {
         fields.put(key, field);
     }
 

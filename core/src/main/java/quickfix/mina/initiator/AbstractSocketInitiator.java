@@ -60,6 +60,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = new HashSet<IoSessionInitiator>();
+	private EventHandlingStrategy eventHandlingStrategy;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -226,5 +227,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     public Set<IoSessionInitiator> getInitiators() {
         return Collections.unmodifiableSet(initiators);
+    }
+
+    public int getQueueSize() {
+        return eventHandlingStrategy == null ? 0 : eventHandlingStrategy.getQueueSize();
     }
 }
