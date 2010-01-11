@@ -98,7 +98,7 @@
 		<sequential>
 			<mkdir dir="@{output}" />
 			<javac destdir="@{output}" debug="${javac.debug}"
-					memoryMaximumSize="256m" fork="yes" nowarn="yes">
+					memoryMaximumSize="512m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />

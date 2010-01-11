@@ -1,3 +1,4 @@
+package quickfix;
 import static junit.framework.Assert.*;
 import static quickfix.FixVersions.*;
 

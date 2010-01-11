@@ -573,7 +573,7 @@ public class Message extends FieldMap {
         int previousOffset = -1;
         final int groupCountTag = field.getField();
         final int declaredGroupCount = Integer.parseInt(field.getValue());
-        parent.setField(groupCountTag, field);
+
         final int firstField = rg.getDelimeterField();
         boolean firstFieldFound = false;
         Group group = null;
