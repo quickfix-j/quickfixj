@@ -31,6 +31,8 @@ public class SSLSupport {
     public static final String SETTING_KEY_STORE_PWD = "SocketKeyStorePassword";
     public static final String SETTING_KEY_STORE_NAME = "SocketKeyStore";
     public static final String SETTING_USE_SSL = "SocketUseSSL";
+    public static final String SETTING_ENABLE_PROTOCOLE = "EnabledProtocols";
+    public static final String SETTING_CIPHER_SUITES = "CipherSuites";
     /* package */ static final String QUICKFIXJ_CERT = "quickfixj.cert";
     /* package */ static final String QUICKFIXJ_PW = "quickfixjpw";
 
@@ -56,6 +58,28 @@ public class SSLSupport {
             }
         }
         return keyStorePassword;
+    }
+    public static String getEnableProtocole(SessionSettings settings, SessionID sessionID) {
+        String strEnableProtocole = null;
+        if (settings.isSetting(sessionID, SSLSupport.SETTING_ENABLE_PROTOCOLE)) {
+            try {
+                strEnableProtocole = settings.getString(sessionID, SSLSupport.SETTING_ENABLE_PROTOCOLE);
+            } catch (ConfigError ignored) {
+            } catch (FieldConvertError ignored) {
+            }
+        }
+        return strEnableProtocole;
+    }
+    public static String getCipherSuite(SessionSettings settings, SessionID sessionID) {
+        String strCipherSuite = null;
+        if (settings.isSetting(sessionID, SSLSupport.SETTING_CIPHER_SUITES)) {
+            try {
+                strCipherSuite = settings.getString(sessionID, SSLSupport.SETTING_CIPHER_SUITES);
+            } catch (ConfigError ignored) {
+            } catch (FieldConvertError ignored) {
+            }
+        }
+        return strCipherSuite;
     }
     
 }

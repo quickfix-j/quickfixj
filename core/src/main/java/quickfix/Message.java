@@ -480,8 +480,8 @@ public class Message extends FieldMap {
             final int checkSum = trailer.getInt(CheckSum.FIELD);
             if (checkSum != checkSum(messageData)) {
                 // message will be ignored if checksum is wrong or missing
-                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData)
-                        + ", Received CheckSum=" + checkSum + " in " + messageData);
+                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData) + ", Received CheckSum="
+                        + checkSum + " in " + messageData);
             }
         } catch (final FieldNotFound e) {
             throw new InvalidMessage("Field not found: " + e.field + " in " + messageData);
@@ -594,8 +594,7 @@ public class Message extends FieldMap {
                         parseGroup(msgType, field, groupDataDictionary, group);
                     } else {
                         throw new InvalidMessage("The group " + groupCountTag
-                                + " must set the delimiter field " + firstField + " in "
-                                + messageData);
+                                + " must set the delimiter field " + firstField + " in " + messageData);
                     }
                 } else {
                     if (groupDataDictionary.isField(field.getTag())) {

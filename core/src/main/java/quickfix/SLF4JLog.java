@@ -24,25 +24,31 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
 
 /**
- * A Log using the SLFJ wrapper that supports JDK 1.4 logging, Log4J and others.
- * This log should be created using the associated factory.
+ * A Log using the SLFJ wrapper that supports JDK 1.4 logging, Log4J and others. This log should be created using the
+ * associated factory.
  * 
  * @see SLF4JLogFactory
  */
 public class SLF4JLog extends AbstractLog {
+
     public static final String DEFAULT_EVENT_CATEGORY = "quickfixj.event";
+
     public static final String DEFAULT_INCOMING_MSG_CATEGORY = "quickfixj.msg.incoming";
+
     public static final String DEFAULT_OUTGOING_MSG_CATEGORY = "quickfixj.msg.outgoing";
 
     private final Logger eventLog;
+
     private final Logger incomingMsgLog;
+
     private final Logger outgoingMsgLog;
+
     private final String logPrefix;
+
     private final String callerFQCN;
 
-    public SLF4JLog(SessionID sessionID, String eventCategory, String incomingMsgCategory,
-            String outgoingMsgCategory, boolean prependSessionID, boolean logHeartbeats,
-            String inCallerFQCN) {
+    public SLF4JLog(SessionID sessionID, String eventCategory, String incomingMsgCategory, String outgoingMsgCategory,
+            boolean prependSessionID, boolean logHeartbeats, String inCallerFQCN) {
         setLogHeartbeats(logHeartbeats);
         logPrefix = prependSessionID ? (sessionID + ": ") : null;
         eventLog = getLogger(sessionID, eventCategory, DEFAULT_EVENT_CATEGORY);
@@ -52,47 +58,48 @@ public class SLF4JLog extends AbstractLog {
     }
 
     private Logger getLogger(SessionID sessionID, String category, String defaultCategory) {
-        return LoggerFactory.getLogger(category != null
-                ? substituteVariables(sessionID, category)
-                : defaultCategory);
+        return LoggerFactory.getLogger(category != null ? substituteVariables(sessionID, category) : defaultCategory);
     }
 
     private static final String FIX_MAJOR_VERSION_VAR = "\\$\\{fixMajorVersion}";
+
     private static final String FIX_MINOR_VERSION_VAR = "\\$\\{fixMinorVersion}";
+
     private static final String SENDER_COMP_ID_VAR = "\\$\\{senderCompID}";
+
     private static final String SENDER_SUB_ID_VAR = "\\$\\{senderSubID}";
+
     private static final String SENDER_LOC_ID_VAR = "\\$\\{senderLocationID}";
+
     private static final String TARGET_COMP_ID_VAR = "\\$\\{targetCompID}";
+
     private static final String TARGET_SUB_ID_VAR = "\\$\\{targetSubID}";
+
     private static final String TARGET_LOC_ID_VAR = "\\$\\{targetLocationID}";
+
     private static final String QUALIFIER_VAR = "\\$\\{qualifier}";
 
     private String substituteVariables(SessionID sessionID, String category) {
         String[] beginStringFields = sessionID.getBeginString().split("\\.");
         String processedCategory = category;
-        processedCategory = processedCategory.replaceAll(FIX_MAJOR_VERSION_VAR,
-                beginStringFields[1]);
-        processedCategory = processedCategory.replaceAll(FIX_MINOR_VERSION_VAR,
-                beginStringFields[2]);
-        processedCategory = processedCategory.replaceAll(SENDER_COMP_ID_VAR, sessionID
-                .getSenderCompID());
-        processedCategory = processedCategory.replaceAll(SENDER_SUB_ID_VAR, sessionID
-                .getSenderSubID());
-        processedCategory = processedCategory.replaceAll(SENDER_LOC_ID_VAR, sessionID
-                .getSenderLocationID());
-        processedCategory = processedCategory.replaceAll(TARGET_COMP_ID_VAR, sessionID
-                .getTargetCompID());
-        processedCategory = processedCategory.replaceAll(TARGET_SUB_ID_VAR, sessionID
-                .getTargetSubID());
-        processedCategory = processedCategory.replaceAll(TARGET_LOC_ID_VAR, sessionID
-                .getTargetLocationID());
-        processedCategory = processedCategory.replaceAll(QUALIFIER_VAR, sessionID
-                .getSessionQualifier());
+        processedCategory = processedCategory.replaceAll(FIX_MAJOR_VERSION_VAR, beginStringFields[1]);
+        processedCategory = processedCategory.replaceAll(FIX_MINOR_VERSION_VAR, beginStringFields[2]);
+        processedCategory = processedCategory.replaceAll(SENDER_COMP_ID_VAR, sessionID.getSenderCompID());
+        processedCategory = processedCategory.replaceAll(SENDER_SUB_ID_VAR, sessionID.getSenderSubID());
+        processedCategory = processedCategory.replaceAll(SENDER_LOC_ID_VAR, sessionID.getSenderLocationID());
+        processedCategory = processedCategory.replaceAll(TARGET_COMP_ID_VAR, sessionID.getTargetCompID());
+        processedCategory = processedCategory.replaceAll(TARGET_SUB_ID_VAR, sessionID.getTargetSubID());
+        processedCategory = processedCategory.replaceAll(TARGET_LOC_ID_VAR, sessionID.getTargetLocationID());
+        processedCategory = processedCategory.replaceAll(QUALIFIER_VAR, sessionID.getSessionQualifier());
         return processedCategory;
     }
 
     public void onEvent(String text) {
         log(eventLog, text);
+    }
+
+    public void onErrorEvent(String text) {
+        logError(eventLog, text);
     }
 
     protected void logIncoming(String message) {
@@ -109,12 +116,16 @@ public class SLF4JLog extends AbstractLog {
             String message = logPrefix != null ? (logPrefix + text) : text;
             if (log instanceof LocationAwareLogger) {
                 LocationAwareLogger la = (LocationAwareLogger) log;
-                la.log(null, callerFQCN, LocationAwareLogger.INFO_INT,
-                        message, null);
+                la.log(null, callerFQCN, LocationAwareLogger.INFO_INT, message, null);
             } else {
                 log.info(message);
             }
         }
+    }
+
+    protected void logError(org.slf4j.Logger log, String text) {
+        String message = logPrefix != null ? (logPrefix + text) : text;
+        log.error(message);
     }
 
     public void clear() {

@@ -24,25 +24,35 @@ import java.io.PrintStream;
 import quickfix.field.converter.UtcTimestampConverter;
 
 /**
- * Screen log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
- * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
- * FACTORY.
+ * Screen log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY
+ * BE CREATED USING A FACTORY.
  * 
  * @see quickfix.ScreenLogFactory
  */
 public class ScreenLog extends AbstractLog {
+
     private static final String EVENT_CATEGORY = "event";
+    
+    private static final String ERROR_EVENT_CATEGORY = "error";
+
     private static final String OUTGOING_CATEGORY = "outgoing";
+
     private static final String INCOMING_CATEGORY = "incoming";
+
     private PrintStream out;
+
     private final SessionID sessionID;
+
     private final boolean incoming;
+
     private final boolean outgoing;
+
     private final boolean events;
+
     private final boolean includeMillis;
 
-    ScreenLog(boolean incoming, boolean outgoing, boolean events, boolean logHeartbeats,
-            boolean includeMillis, SessionID sessionID, PrintStream out) {
+    ScreenLog(boolean incoming, boolean outgoing, boolean events, boolean logHeartbeats, boolean includeMillis,
+            SessionID sessionID, PrintStream out) {
         setLogHeartbeats(logHeartbeats);
         this.out = out;
         this.incoming = incoming;
@@ -74,9 +84,13 @@ public class ScreenLog extends AbstractLog {
         }
     }
 
+    public void onErrorEvent(String message) {
+        log(message, ERROR_EVENT_CATEGORY);
+    }
+
     private void log(String message, String type) {
-        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis) + ", "
-                + sessionID + ", " + type + "> (" + message + ")");
+        out.println("<" + UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis) + ", " + sessionID + ", "
+                + type + "> (" + message + ")");
     }
 
     // For Testing

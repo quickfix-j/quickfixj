@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +36,8 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.common.ThreadModel;
 import org.apache.mina.filter.SSLFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import quickfix.ConfigError;
 import quickfix.LogUtil;
@@ -54,29 +57,37 @@ public class IoSessionInitiator {
     private final ConnectTask reconnectTask;
 
     private Future<?> reconnectFuture;
+    protected final static Logger log = LoggerFactory.getLogger("display."+IoSessionInitiator.class.getName());
 
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
-            long reconnectIntervalInSeconds, ScheduledExecutorService executor,
+            int reconnectIntervalInSeconds[], ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
-            String keyStorePassword) throws ConfigError {
+            String keyStorePassword, String[] enableProtocole, String[] cipherSuites) throws ConfigError {
         this.executor = executor;
+        final long reconnectIntervalInMillis[] = new long[reconnectIntervalInSeconds.length];
+        for (int ii = 0; ii != reconnectIntervalInSeconds.length; ++ii) {
+            reconnectIntervalInMillis[ii] = reconnectIntervalInSeconds[ii] * 1000L;
+        }        
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, userIoFilterChainBuilder,
-                    fixSession, reconnectIntervalInSeconds * 1000L, networkingOptions,
-                    eventHandlingStrategy, keyStoreName, keyStorePassword);
+                    fixSession, reconnectIntervalInMillis, networkingOptions,
+                    eventHandlingStrategy, keyStoreName, keyStorePassword, enableProtocole, cipherSuites);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
         }
+        log.info("[" + fixSession.getSessionID() + "] " + Arrays.asList(socketAddresses));        
     }
 
     private static class ConnectTask implements Runnable {
         private final SocketAddress[] socketAddresses;
         private final IoConnector ioConnector;
         private final Session fixSession;
-        private final long reconnectIntervalInMillis;
+        private final long[] reconnectIntervalInMillis;
         private String keyStoreName;
         private String keyStorePassword;
+        private String[] enableProtocole;
+        private String[] cipherSuites;
         private final InitiatorIoHandler ioHandler;
 
         private IoSession ioSession;
@@ -88,14 +99,16 @@ public class IoSessionInitiator {
 
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
                 IoFilterChainBuilder userIoFilterChainBuilder, Session fixSession,
-                long reconnectIntervalInMillis, NetworkingOptions networkingOptions,
+                long[] reconnectIntervalInMillis, NetworkingOptions networkingOptions,
                 EventHandlingStrategy eventHandlingStrategy, String keyStoreName,
-                String keyStorePassword) throws ConfigError, GeneralSecurityException {
+                String keyStorePassword, String[] enableProtocole, String[] cipherSuites) throws ConfigError, GeneralSecurityException {
             this.socketAddresses = socketAddresses;
             this.fixSession = fixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
             this.keyStoreName = keyStoreName;
             this.keyStorePassword = keyStorePassword;
+            this.enableProtocole = enableProtocole;
+            this.cipherSuites = cipherSuites;
             ioConnector = ProtocolFactory.createIoConnector(socketAddresses[0]);
             CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                     userIoFilterChainBuilder);
@@ -118,6 +131,8 @@ public class IoSessionInitiator {
                 throws GeneralSecurityException {
             SSLFilter sslFilter = new SSLFilter(SSLContextFactory.getInstance(keyStoreName,
                     keyStorePassword.toCharArray()));
+            if(enableProtocole != null)sslFilter.setEnabledProtocols(enableProtocole);
+            if(cipherSuites != null) sslFilter.setEnabledCipherSuites(cipherSuites);
             sslFilter.setUseClientMode(true);
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
         }
@@ -163,16 +178,16 @@ public class IoSessionInitiator {
         }
 
         private void handleConnectException(Throwable e) {
+        	++connectionFailureCount;        
             while (e.getCause() != null) {
                 e = e.getCause();
             }
-            if ((e instanceof IOException) && (e.getMessage() != null)) {
-                fixSession.getLog().onEvent(e.getMessage());
+            final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
+            if (e instanceof IOException) {
+                fixSession.getLog().onErrorEvent(e + nextRetryMsg);
             } else {
-                String msg = "Exception during connection";
-                LogUtil.logThrowable(fixSession.getLog(), msg, e);
+            	LogUtil.logThrowable(fixSession.getLog(), "Exception during connection" + nextRetryMsg, e);
             }
-            connectionFailureCount++;
             connectFuture = null;
         }
 
@@ -196,9 +211,22 @@ public class IoSessionInitiator {
             return (ioSession == null || !ioSession.isConnected()) && isTimeForReconnect()
                     && (fixSession.isEnabled() && fixSession.isSessionTime());
         }
+        
+        private long computeNextRetryConnectDelay() {
+            int index = connectionFailureCount - 1;
+            if (index < 0) index = 0;
+            long millis;
+            if (index >= reconnectIntervalInMillis.length) {
+                millis = reconnectIntervalInMillis[reconnectIntervalInMillis.length - 1];
+            } else {
+                millis = reconnectIntervalInMillis[index];
+            }
+            return millis;
+        }
+        
 
         private boolean isTimeForReconnect() {
-            return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= reconnectIntervalInMillis;
+            return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= computeNextRetryConnectDelay();
         }
 
         // TODO JMX Expose reconnect property

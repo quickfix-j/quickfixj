@@ -28,9 +28,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -61,8 +64,8 @@ import quickfix.field.converter.BooleanConverter;
  * @see quickfix.DefaultSessionFactory
  */
 public class SessionSettings {
-    private Logger log = LoggerFactory.getLogger(getClass());
-    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
     private static final String SESSION_SECTION_NAME = "session";
     private static final String DEFAULT_SECTION_NAME = "default";
@@ -100,7 +103,7 @@ public class SessionSettings {
         if (in == null) {
             try {
                 in = new FileInputStream(filename);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new ConfigError(e.getMessage());
             }
         }
@@ -146,7 +149,7 @@ public class SessionSettings {
      *             error during field type conversion.
      */
     public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
-        String value = interpolate(getSessionProperties(sessionID).getProperty(key));
+        final String value = interpolate(getSessionProperties(sessionID).getProperty(key));
         if (value == null) {
             throw new ConfigError(key + " not defined");
         }
@@ -162,7 +165,7 @@ public class SessionSettings {
      * @see java.util.Properties
      */
     public Properties getSessionProperties(SessionID sessionID) throws ConfigError {
-        Properties p = sections.get(sessionID);
+        final Properties p = sections.get(sessionID);
         if (p == null) {
             throw new ConfigError("Session not found");
         }
@@ -177,7 +180,7 @@ public class SessionSettings {
     public Properties getDefaultProperties() {
         try {
             return getSessionProperties(DEFAULT_SESSION_ID);
-        } catch (ConfigError e) {
+        } catch (final ConfigError e) {
             // shouldn't happen
             return new Properties();
         }
@@ -212,7 +215,7 @@ public class SessionSettings {
     public long getLong(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
             return Long.parseLong(getString(sessionID, key));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             throw new FieldConvertError(e.getMessage());
         }
     }
@@ -255,7 +258,7 @@ public class SessionSettings {
     public double getDouble(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
             return Double.parseDouble(getString(sessionID, key));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             throw new FieldConvertError(e.getMessage());
         }
     }
@@ -289,7 +292,7 @@ public class SessionSettings {
     public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
             return BooleanConverter.convert(getString(sessionID, key));
-        } catch (FieldConvertError e) {
+        } catch (final FieldConvertError e) {
             throw new ConfigError(e);
         }
     }
@@ -353,10 +356,10 @@ public class SessionSettings {
 
     }
 
-    private HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();
+    private final HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();
 
     public Iterator<SessionID> sectionIterator() {
-        HashSet<SessionID> nondefaultSessions = new HashSet<SessionID>(sections.keySet());
+        final HashSet<SessionID> nondefaultSessions = new HashSet<SessionID>(sections.keySet());
         nondefaultSessions.remove(DEFAULT_SESSION_ID);
         return nondefaultSessions.iterator();
     }
@@ -365,8 +368,8 @@ public class SessionSettings {
         try {
             Properties currentSection = null;
             String currentSectionId = null;
-            Tokenizer tokenizer = new Tokenizer();
-            Reader reader = new InputStreamReader(inputStream);
+            final Tokenizer tokenizer = new Tokenizer();
+            final Reader reader = new InputStreamReader(inputStream);
             Tokenizer.Token token = tokenizer.getToken(reader);
             while (token != null) {
                 if (token.getType() == Tokenizer.SECTION_TOKEN) {
@@ -379,17 +382,17 @@ public class SessionSettings {
                         currentSection = new Properties(getSessionProperties(DEFAULT_SESSION_ID));
                     }
                 } else if (token.getType() == Tokenizer.ID_TOKEN) {
-                    Tokenizer.Token valueToken = tokenizer.getToken(reader);
+                    final Tokenizer.Token valueToken = tokenizer.getToken(reader);
                     if (currentSection != null && token != null) {
-                        String value = interpolate(valueToken.getValue());
+                        final String value = interpolate(valueToken.getValue());
                         currentSection.put(token.getValue(), value);
                     }
                 }
                 token = tokenizer.getToken(reader);
             }
             storeSection(currentSectionId, currentSection);
-        } catch (IOException e) {
-            ConfigError configError = new ConfigError(e.getMessage());
+        } catch (final IOException e) {
+            final ConfigError configError = new ConfigError(e.getMessage());
             configError.fillInStackTrace();
             throw configError;
         }
@@ -397,14 +400,11 @@ public class SessionSettings {
 
     private void storeSection(String currentSectionId, Properties currentSection) {
         if (currentSectionId != null && currentSectionId.equals(SESSION_SECTION_NAME)) {
-            SessionID sessionId = new SessionID(
-                    currentSection.getProperty(BEGINSTRING),
-                    currentSection.getProperty(SENDERCOMPID), 
-                    currentSection.getProperty(SENDERSUBID), 
-                    currentSection.getProperty(SENDERLOCID), 
-                    currentSection.getProperty(TARGETCOMPID), 
-                    currentSection.getProperty(TARGETSUBID), 
-                    currentSection.getProperty(TARGETLOCID), 
+            final SessionID sessionId = new SessionID(currentSection.getProperty(BEGINSTRING),
+                    currentSection.getProperty(SENDERCOMPID), currentSection
+                            .getProperty(SENDERSUBID), currentSection.getProperty(SENDERLOCID),
+                    currentSection.getProperty(TARGETCOMPID), currentSection
+                            .getProperty(TARGETSUBID), currentSection.getProperty(TARGETLOCID),
                     currentSection.getProperty(SESSION_QUALIFIER));
             sections.put(sessionId, currentSection);
             currentSectionId = null;
@@ -449,9 +449,9 @@ public class SessionSettings {
         public static final int SECTION_TOKEN = 4;
 
         private static class Token {
-            private int type;
+            private final int type;
 
-            private String value;
+            private final String value;
 
             public Token(int type, String value) {
                 super();
@@ -467,6 +467,7 @@ public class SessionSettings {
                 return value;
             }
 
+            @Override
             public String toString() {
                 return type + ": " + value;
             }
@@ -474,7 +475,7 @@ public class SessionSettings {
 
         private char ch = '\0';
 
-        private StringBuffer sb = new StringBuffer();
+        private final StringBuffer sb = new StringBuffer();
 
         private Token getToken(Reader reader) throws IOException {
             if (ch == '\0') {
@@ -500,7 +501,7 @@ public class SessionSettings {
                 return new Token(VALUE_TOKEN, sb.toString().trim());
             } else if (ch == '[') {
                 ch = nextCharacter(reader);
-                Token id = getToken(reader);
+                final Token id = getToken(reader);
                 // check ]
                 ch = nextCharacter(reader); // skip ]
                 return new Token(SECTION_TOKEN, id.getValue());
@@ -542,20 +543,20 @@ public class SessionSettings {
         }
     }
 
-    private Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
+    private final Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
 
     private String interpolate(String value) {
         if (value == null || value.indexOf('$') == -1) {
             return value;
         }
-        StringBuffer buffer = new StringBuffer();
-        Matcher m = variablePattern.matcher(value);
+        final StringBuffer buffer = new StringBuffer();
+        final Matcher m = variablePattern.matcher(value);
         while (m.find()) {
             if (m.start() > 0 && value.charAt(m.start() - 1) == '\\') {
                 continue;
             }
-            String variable = m.group(1);
-            String variableValue = variableValues.getProperty(variable);
+            final String variable = m.group(1);
+            final String variableValue = variableValues.getProperty(variable);
             if (variableValue != null) {
                 m.appendReplacement(buffer, variableValue);
             }
@@ -603,7 +604,7 @@ public class SessionSettings {
      *
      * @param defaults
      */
-    public void set(Map<Object,Object> defaults) {
+    public void set(Map<Object, Object> defaults) {
         getOrCreateSessionProperties(DEFAULT_SESSION_ID).putAll(defaults);
     }
 
@@ -653,7 +654,7 @@ public class SessionSettings {
     }
 
     public void set(SessionID sessionID, Dictionary dictionary) throws ConfigError {
-        Properties p = getOrCreateSessionProperties(sessionID);
+        final Properties p = getOrCreateSessionProperties(sessionID);
         p.clear();
         p.putAll(dictionary.toMap());
     }
@@ -669,11 +670,11 @@ public class SessionSettings {
     public void toString(PrintWriter writer) {
         try {
             writeSection("[DEFAULT]", writer, getDefaultProperties());
-            Iterator<SessionID> s = sectionIterator();
+            final Iterator<SessionID> s = sectionIterator();
             while (s.hasNext()) {
                 try {
                     writeSection("[SESSION]", writer, getSessionProperties(s.next()));
-                } catch (ConfigError e) {
+                } catch (final ConfigError e) {
                     log.error("Invalid session", e);
                 }
             }
@@ -685,21 +686,62 @@ public class SessionSettings {
     public void toStream(OutputStream out) {
         toString(new PrintWriter(new OutputStreamWriter(out)));
     }
-    
+
     private void writeSection(String sectionName, PrintWriter writer, Properties properties) {
         writer.println(sectionName);
-        Iterator<Object> p = properties.keySet().iterator();
+        final Iterator<Object> p = properties.keySet().iterator();
         while (p.hasNext()) {
-            String key = (String) p.next();
+            final String key = (String) p.next();
             writer.print(key);
             writer.print("=");
             writer.println(properties.getProperty(key));
         }
     }
-    
+
+    @Override
     public String toString() {
-        StringWriter writer = new StringWriter();
+        final StringWriter writer = new StringWriter();
         toString(new PrintWriter(writer));
         return writer.toString();
     }
+
+    public static int[] parseSettingReconnectInterval(String raw) {
+        if (raw == null || raw.length() == 0) {
+            return null;
+        }
+        final String multiplierCharacter = raw.contains("*") ? "*" : "x";
+        final String[] data = raw.split(";");
+        final List<Integer> result = new ArrayList<Integer>();
+        for (final String multi : data) {
+            final String[] timesSec = multi.split(multiplierCharacter);
+            int times;
+            int secs;
+            try {
+                if (timesSec.length > 1) {
+                    times = Integer.parseInt(timesSec[0]);
+                    secs = Integer.parseInt(timesSec[1]);
+                } else {
+                    times = 1;
+                    secs = Integer.parseInt(timesSec[0]);
+                }
+            } catch (final NumberFormatException e) {
+                throw new InvalidParameterException(
+                        "Invalid number '"
+                                + multi
+                                + "' in '"
+                                + raw
+                                + "'. Expected format: [<multiplier>x]<seconds>;[<multiplier>x]<seconds>;...");
+            }
+            for (int ii = 0; ii != times; ++ii) {
+                result.add(secs);
+            }
+        }
+        final int[] ret = new int[result.size()];
+        int ii = 0;
+        for (final Integer sec : result) {
+            ret[ii++] = sec;
+        }
+        return ret;
+    }
+
 }

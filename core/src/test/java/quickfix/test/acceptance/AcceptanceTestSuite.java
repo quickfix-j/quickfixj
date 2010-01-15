@@ -23,6 +23,7 @@ import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import quickfix.test.acceptance.resynch.ResynchTest;
 import quickfix.test.acceptance.timer.TimerTest;
 
 public class AcceptanceTestSuite extends TestSuite {
@@ -228,6 +229,7 @@ public class AcceptanceTestSuite extends TestSuite {
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(scriptedTests, false));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(scriptedTests, true));
         acceptanceTests.addTestSuite(TimerTest.class);
+        acceptanceTests.addTestSuite(ResynchTest.class);
         return acceptanceTests;
     }
 }

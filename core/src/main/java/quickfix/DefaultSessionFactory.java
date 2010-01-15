@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -57,7 +57,8 @@ public class DefaultSessionFactory implements SessionFactory {
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
             String connectionType = null;
-            
+            boolean rejectInvalideMessage = getSetting(settings, sessionID, Session.REJECT_INVALID_MESSAGE, true);
+
             if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
                 connectionType = settings.getString(sessionID,
                         SessionFactory.SETTING_CONNECTION_TYPE);
@@ -78,7 +79,7 @@ public class DefaultSessionFactory implements SessionFactory {
             }
 
             DefaultApplVerID senderDefaultApplVerID = null;
-            
+
             if (sessionID.isFIXT()) {
                 if (!settings.isSetting(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID)) {
                     throw new ConfigError(Session.SETTING_DEFAULT_APPL_VER_ID
@@ -87,9 +88,9 @@ public class DefaultSessionFactory implements SessionFactory {
                 senderDefaultApplVerID = new DefaultApplVerID(toApplVerID(
                         settings.getString(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID))
                         .getValue());
-                
+
             }
-                
+
             boolean useDataDictionary = true;
             if (settings.isSetting(sessionID, Session.SETTING_USE_DATA_DICTIONARY)) {
                 useDataDictionary = settings
@@ -106,9 +107,10 @@ public class DefaultSessionFactory implements SessionFactory {
                 }
             }
 
-            
+
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
+                rejectInvalideMessage = false;
                 heartbeatInterval = (int) settings.getLong(sessionID, Session.SETTING_HEARTBTINT);
                 if (heartbeatInterval <= 0) {
                     throw new ConfigError("Heartbeat must be greater than zero");
@@ -153,12 +155,22 @@ public class DefaultSessionFactory implements SessionFactory {
             int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
+            boolean forceResync = getSetting(settings, sessionID, Session.SETTING_FORCE_RESYNC, false);
+                        final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
+            final boolean disconnectOnError = getSetting(settings, sessionID, Session.SETTING_DISCONNECT_ON_ERROR, false);
+            final boolean disableHeartBeatCheck = getSetting(settings, sessionID, Session.SETTING_DISABLE_HEART_BEAT_CHECK, false);
+            final boolean checkGapFieldOnAdminMessage = getSetting(settings, sessionID, Session.SETTING_CHECK_GAP_FIELD_ON_ADMIN_MESSAGE, true);
+            final boolean forceResendWhenCorruptedStore = getSetting(settings, sessionID, Session.SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE, false);
+
+            int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
+
+
             Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionaryProvider, new SessionSchedule(settings, sessionID), logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon,
                     checkCompID, redundantResentRequestAllowed, persistMessages,
-                    useClosedIntervalForResend, testRequestDelayMultiplier, senderDefaultApplVerID);
+                    useClosedIntervalForResend, testRequestDelayMultiplier, senderDefaultApplVerID, forceResync, logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck, rejectInvalideMessage, checkGapFieldOnAdminMessage, forceResendWhenCorruptedStore);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -290,6 +302,20 @@ public class DefaultSessionFactory implements SessionFactory {
             return dataDictionary;
         }
     }
+
+    private int[] getLogonIntervalsInSeconds(SessionSettings settings, SessionID sessionID) throws ConfigError {
+        if (settings.isSetting(sessionID, Initiator.SETTING_RECONNECT_INTERVAL)) {
+            try {
+                String raw = settings.getString(Initiator.SETTING_RECONNECT_INTERVAL);
+                int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
+                if (ret != null) return ret;
+            } catch (Throwable e) {
+                throw new ConfigError(e);
+            }
+        }
+        return new int[] { 5 }; // default value
+    }
+
 
     private boolean getSetting(SessionSettings settings, SessionID sessionID, String key,
             boolean defaultValue) throws ConfigError, FieldConvertError {

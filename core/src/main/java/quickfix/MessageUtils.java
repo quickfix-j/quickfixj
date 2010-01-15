@@ -104,6 +104,7 @@ public class MessageUtils {
             DataDictionary dataDictionary, String messageString)
             throws InvalidMessage {
         final int index = messageString.indexOf(FIELD_SEPARATOR);
+        if (index<0) throw new InvalidMessage("Message does not contain any field separator");
         String beginString = messageString.substring(2, index);
         String messageType = getMessageType(messageString);
         quickfix.Message message = messageFactory.create(beginString,

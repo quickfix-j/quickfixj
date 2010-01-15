@@ -51,6 +51,14 @@ public interface Log {
      * @param text
      *            the event description
      */
-    void onEvent(String text);
-    
+    void onEvent(String text);    
+
+    /**
+     * Logs an session error event.
+     * 
+     * @param text
+     *            the event description
+     */
+    void onErrorEvent(String text);
+
 }

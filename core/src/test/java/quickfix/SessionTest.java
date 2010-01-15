@@ -61,8 +61,9 @@ public class SessionTest {
         header.setInt(MsgSeqNum.FIELD, 1);
         header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
         session.next(logonResponse);
-        
-        assertTrue("Disconnect not called", responder.disconnectCalled);
+
+        // QFJ-383 disconnection is no more mandatory   
+        // assertTrue("Disconnect not called", responder.disconnectCalled);
     }
 
     // QFJ-60

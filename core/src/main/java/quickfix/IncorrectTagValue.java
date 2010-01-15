@@ -29,9 +29,25 @@ public class IncorrectTagValue extends Exception {
         this.field = field;
     }
 
+    public IncorrectTagValue(int field, String value) {
+        super();
+        this.field = field;
+        this.value = value;
+    }
+
     public IncorrectTagValue(String s) {
         super(s);
     }
 
-    public int field = 0;
+    @Override
+    public String toString() {
+        String str = super.toString();
+        if (field != 0) str += " field=" + field;
+        if (value != null) str += " value=" + value;
+        return str;
+    }
+
+    public int field;
+
+    public String value;
 }

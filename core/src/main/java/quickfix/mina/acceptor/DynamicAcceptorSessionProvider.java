@@ -50,12 +50,12 @@ import quickfix.mina.SessionConnector;
  */
 public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     public static final String WILDCARD = "*";
-    public static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD,
+    private static final SessionID ANY_SESSION = new SessionID(WILDCARD, WILDCARD, WILDCARD,
             WILDCARD, WILDCARD, WILDCARD, WILDCARD, null);
 
     private final List<TemplateMapping> templateMappings;
-    private final SessionSettings settings;
-    private final SessionFactory sessionFactory;
+    protected final SessionSettings settings;
+    protected final SessionFactory sessionFactory;
 
     /**
      * Mapping from a sessionID pattern to a session template ID.
@@ -158,11 +158,11 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
         return s;
     }
 
-    private void optionallySetValue(SessionSettings dynamicSettings, String key, String value) {
+    protected void optionallySetValue(SessionSettings dynamicSettings, String key, String value) {
         dynamicSettings.setString(key, value);
     }
 
-    private SessionID lookupTemplateID(SessionID sessionID) {
+    protected SessionID lookupTemplateID(SessionID sessionID) {
         for (TemplateMapping mapping : templateMappings) {
             if (isMatching(mapping.getPattern(), sessionID)) {
                 return mapping.getTemplateID();
@@ -185,7 +185,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
         return WILDCARD.equals(pattern) || (pattern != null && pattern.equals(value));
     }
 
-    private void copySettings(SessionSettings settings, Properties properties) {
+    protected void copySettings(SessionSettings settings, Properties properties) {
         Iterator<Map.Entry<Object, Object>> entries = properties.entrySet().iterator();
         while (entries.hasNext()) {
             Map.Entry<Object, Object> e = entries.next();

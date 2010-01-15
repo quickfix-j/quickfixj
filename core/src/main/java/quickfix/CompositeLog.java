@@ -31,11 +31,11 @@ class CompositeLog implements Log {
     private Logger defaultLog = LoggerFactory.getLogger(getClass());
     private final Log[] logs;
     private boolean rethrowException;
-    
+
     public CompositeLog(Log[] logs) {
         this.logs = logs;
     }
-    
+
     public void clear() {
         for (int i = 0; i < logs.length; i++) {
             try {
@@ -83,8 +83,19 @@ class CompositeLog implements Log {
         }
     }
 
+    public void onErrorEvent(String text) {
+        for (int i = 0; i < logs.length; i++) {
+            try {
+                logs[i].onErrorEvent(text);
+            } catch (Throwable e) {
+                handleError(e);
+            }
+        }
+    }
+
     // Test Support
     void setRethrowExceptions(boolean flag) {
         rethrowException = flag;
     }
+
 }

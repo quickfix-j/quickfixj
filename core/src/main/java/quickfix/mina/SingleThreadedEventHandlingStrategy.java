@@ -23,10 +23,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import quickfix.FieldNotFound;
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.SystemTime;
+import quickfix.field.MsgType;
 
 /**
  * Processes messages for all sessions in a single thread.
@@ -61,8 +63,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                     if (stopTime == 0) {
                         stopTime = SystemTime.currentTimeMillis();
                     }
-                    if (!sessionConnector.isLoggedOn()
-                            || SystemTime.currentTimeMillis() - stopTime > 5000L) {
+                    if (!sessionConnector.isLoggedOn() || SystemTime.currentTimeMillis() - stopTime > 5000L) {
                         sessionConnector.stopSessionTimer();
                         return;
                     }
@@ -109,6 +110,13 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             try {
                 if (quickfixSession.hasResponder()) {
                     quickfixSession.next(message);
+                } else {
+                    try {
+                        final String msgType = message.getHeader().getString(MsgType.FIELD);
+                        if (msgType.equals(MsgType.LOGOUT)) quickfixSession.next(message);
+                    } catch (FieldNotFound ex) {
+                        // ignore
+                    }
                 }
             } catch (Throwable e) {
                 LogUtil.logThrowable(quickfixSession.getSessionID(), e.getMessage(), e);

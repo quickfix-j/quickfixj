@@ -80,13 +80,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             try {
                 messages.put(message);
             } catch (InterruptedException e) {
-                quickfixSession.getLog().onEvent(e.getMessage());
+                quickfixSession.getLog().onErrorEvent(e.toString());
             }
         }
-
+        
         public int getQueueSize() {
             return messages.size();
-        }
+        }        
 
         public void run() {
             while (!stopped) {

@@ -27,8 +27,9 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import junit.framework.TestCase;
-import org.slf4j.spi.LocationAwareLogger;
+
 import org.slf4j.Marker;
+import org.slf4j.spi.LocationAwareLogger;
 
 public class SLF4JLogTest extends TestCase {
     public SLF4JLogTest(String name) {
@@ -60,6 +61,10 @@ public class SLF4JLogTest extends TestCase {
         log.onEvent(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY, loggedText);
 
+        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        log.onErrorEvent(loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY, loggedText);
+
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         log.onIncoming(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
@@ -76,6 +81,10 @@ public class SLF4JLogTest extends TestCase {
         setUpLoggerForTest("event");
         log.onEvent(loggedText);
         assertMessageLogged(sessionID, "event", loggedText);
+
+        setUpLoggerForTest("errorEvent");
+        log.onErrorEvent(loggedText);
+        assertMessageLogged(sessionID, "errorEvent", loggedText);
 
         setUpLoggerForTest("in");
         log.onIncoming(loggedText);
@@ -135,6 +144,11 @@ public class SLF4JLogTest extends TestCase {
         log.onEvent(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
+        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        getTestHandler(SLF4JLog.DEFAULT_EVENT_CATEGORY).setLevel(Level.SEVERE);
+        log.onErrorEvent(loggedText);
+        assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY);
+
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         getTestHandler(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY).setLevel(Level.WARNING);
         log.onIncoming(loggedText);
@@ -153,7 +167,8 @@ public class SLF4JLogTest extends TestCase {
      */
     public void testLog4j_correctFQCN() throws Exception {
         MyLog4JLog myLog4j = new MyLog4JLog();
-        SLF4JLog slf4jLog = new MySLF4JLog(new SessionID("FIX.4.2", "sender", "target"), "my-caller-fqcn", myLog4j);
+        SLF4JLog slf4jLog = new MySLF4JLog(new SessionID("FIX.4.2", "sender", "target"),
+                "my-caller-fqcn", myLog4j);
 
         String loggedText = "TEST123";
         slf4jLog.onEvent(loggedText);
@@ -224,18 +239,17 @@ public class SLF4JLogTest extends TestCase {
 
     }
 
-    public class MySLF4JLog extends SLF4JLog
-    {
+    public class MySLF4JLog extends SLF4JLog {
         private org.slf4j.Logger underlyingLog;
 
         public MySLF4JLog(SessionID sessionID, String inCallerFQCN, org.slf4j.Logger inUnderlyingLog) {
-            super(sessionID, "test-event-cat", "test-incoming-msg-cat", "test-outgoing-msg-cat", false,
-                    false, inCallerFQCN);
+            super(sessionID, "test-event-cat", "test-incoming-msg-cat", "test-outgoing-msg-cat",
+                    false, false, inCallerFQCN);
             underlyingLog = inUnderlyingLog;
         }
 
         protected void log(org.slf4j.Logger log, String text) {
-            super.log(underlyingLog,  text);
+            super.log(underlyingLog, text);
         }
     }
 

@@ -22,7 +22,6 @@ package quickfix.mina;
 import static quickfix.MessageUtils.parse;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
@@ -32,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.InvalidMessage;
-import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.MessageUtils;
 import quickfix.Session;
@@ -50,53 +48,48 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         networkingOptions = options;
     }
 
-    @Override
     public void exceptionCaught(IoSession ioSession, Throwable cause) throws Exception {
         boolean disconnectNeeded = false;
-        final Session quickFixSession = findQFSession(ioSession);
+        Session quickFixSession = findQFSession(ioSession);
+        Throwable realCause = cause;
         if (cause instanceof ProtocolDecoderException && cause.getCause() != null) {
-            cause = cause.getCause();
+            realCause = cause.getCause();
         }
-        if (cause instanceof IOException) {
-            final SocketAddress remoteAddress = ioSession.getRemoteAddress();
-            final String message = cause.getMessage();
-            log.error("socket exception (" + remoteAddress + "): " + message);
-            disconnectNeeded = true;
-        } else if (cause instanceof CriticalProtocolCodecException) {
-            log.error("critical protocol codec error: " + cause.getMessage());
-            disconnectNeeded = true;
-        } else if (cause instanceof ProtocolCodecException) {
-            final String text = "protocol handler exception: " + cause.getMessage();
-            if (quickFixSession != null) {
-                quickFixSession.getLog().onEvent(text);
+        String reason;
+        if (realCause instanceof IOException) {
+            if (quickFixSession != null && quickFixSession.isEnabled()) {
+                reason = "Socket exception (" + ioSession.getRemoteAddress() + "): " + cause;
             } else {
-                log.error(text);
+                reason = "Socket (" + ioSession.getRemoteAddress() + "): " + cause;
             }
+            disconnectNeeded = true;
+        } else if (realCause instanceof CriticalProtocolCodecException) {
+            reason = "Critical protocol codec error: " + cause;
+            disconnectNeeded = true;
+        } else if (realCause instanceof ProtocolCodecException) {
+            reason = "Protocol handler exception: " + cause;
         } else {
-            if (quickFixSession != null) {
-                LogUtil.logThrowable(quickFixSession.getLog(), cause.getMessage(), cause);
-            } else {
-                log.error("protocol handler exception", cause);
-            }
+            reason = cause.toString();
         }
         if (disconnectNeeded) {
             if (quickFixSession != null) {
-                quickFixSession.disconnect("", true);
+                quickFixSession.disconnect(reason, true);
             } else {
+                log.error(reason, cause);
                 ioSession.close();
             }
+        } else {
+            log.error(reason, cause);
         }
     }
 
-    @Override
     public void sessionCreated(IoSession ioSession) throws Exception {
         super.sessionCreated(ioSession);
         networkingOptions.apply(ioSession);
     }
 
-    @Override
     public void sessionClosed(IoSession ioSession) throws Exception {
-        final Session quickFixSession = findQFSession(ioSession);
+        Session quickFixSession = findQFSession(ioSession);
         if (quickFixSession != null) {
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
             if (quickFixSession.hasResponder()) {
@@ -105,17 +98,16 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         }
     }
 
-    @Override
     public void messageReceived(IoSession ioSession, Object message) throws Exception {
-        final String messageString = (String) message;
-        final SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
-        final Session quickFixSession = findQFSession(ioSession, remoteSessionID);
+        String messageString = (String) message;
+        SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
+        Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
             quickFixSession.getLog().onIncoming(messageString);
             try {
-                final Message fixMessage = parse(quickFixSession, messageString);
+                Message fixMessage = parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
-            } catch (final InvalidMessage e) {
+            } catch (InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
                     log.error("Invalid LOGON message, disconnecting: " + e.getMessage());
                     ioSession.close();

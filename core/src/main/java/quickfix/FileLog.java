@@ -91,7 +91,7 @@ public class FileLog extends AbstractLog {
         writeMessage(messages, message, false);
     }
 
-    private synchronized void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
+    private void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
         try {
             if (forceTimestamp || includeTimestampForMessages) {
                 writeTimeStamp(stream);
@@ -111,6 +111,10 @@ public class FileLog extends AbstractLog {
         writeMessage(events, message, true);
     }
 
+    public void onErrorEvent(String message) {
+        writeMessage(events, message, true);
+    }
+    
     private void writeTimeStamp(OutputStream out) throws IOException {
         String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis);
         out.write(formattedTime.getBytes(CharsetSupport.getCharset()));

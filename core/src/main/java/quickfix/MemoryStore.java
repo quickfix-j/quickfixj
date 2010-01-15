@@ -114,7 +114,7 @@ public class MemoryStore implements MessageStore {
         final String text = "memory store does not support refresh!";
         if (sessionID != null) {
             Session session = Session.lookupSession(sessionID);
-            session.getLog().onEvent("ERROR: " + text);
+            session.getLog().onErrorEvent("ERROR: " + text);
         } else {
             LoggerFactory.getLogger(MemoryStore.class).error(text);
         }

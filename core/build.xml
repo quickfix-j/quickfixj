@@ -170,7 +170,7 @@
 
 	<property name="junit.fork.dir" value="${basedir}/.." />
 	<property name="junit.output.dir" value="${target.dir}/test/junit" />
-	<property name="junit.haltonfailure" value="true" />
+	<property name="junit.haltonfailure" value="false" />
 
 	<target name="test" description="run all tests, if needed" depends="check.tests.uptodate" unless="tests.uptodate">
 		<antcall target="test.clean" />

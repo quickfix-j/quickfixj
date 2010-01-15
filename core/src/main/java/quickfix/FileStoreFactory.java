@@ -47,7 +47,7 @@ public class FileStoreFactory implements MessageStoreFactory {
      */
     public static final String SETTING_FILE_STORE_MAX_CACHED_MSGS = "FileStoreMaxCachedMsgs";
 
-    private final SessionSettings settings;
+    protected final SessionSettings settings;
         
     /**
      * Create the factory with configuration in session settings.

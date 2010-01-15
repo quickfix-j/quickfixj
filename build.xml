@@ -32,7 +32,7 @@
 		</sequential>
 	</macrodef>
 
-	<target name="jar" description="Create module jar files">
+	<target name="jar" description="Create module jar files" depends="query.version">
 		<iterate target="jar"/>
 	</target>
 

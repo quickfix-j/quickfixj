@@ -211,4 +211,8 @@ class JdbcLog extends AbstractLog {
         return JdbcUtil.setSessionIdParameters(sessionID, query, offset,
                 extendedSessionIdSupported, defaultSessionIdPropertyValue);
     }
+
+    public void onErrorEvent(String text) {
+        onEvent(text);
+    }
 }

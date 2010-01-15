@@ -28,11 +28,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Used by the session communications code. Not intended to be used by
- * applications.
- * 
- * All dynamic data is protected by the session's intrinsic lock. The
- * log and message store implementation must be thread safe.
+ * Used by the session communications code. Not intended to be used by applications. All dynamic data is protected by
+ * the session's intrinsic lock. The log and message store implementation must be thread safe.
  */
 public final class SessionState {
     private final Object lock;
@@ -68,8 +65,8 @@ public final class SessionState {
     // The messageQueue should be accessed from a single thread
     private final Map<Integer, Message> messageQueue = new LinkedHashMap<Integer, Message>();
 
-    public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator,
-                        MessageStore messageStore, double testRequestDelayMultiplier) {
+    public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator, MessageStore messageStore,
+            double testRequestDelayMultiplier) {
         this.lock = lock;
         this.initiator = initiator;
         this.messageStore = messageStore;
@@ -174,8 +171,7 @@ public final class SessionState {
 
     public boolean isLogonTimedOut() {
         synchronized (lock) {
-            return isLogonSent()
-                    && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
         }
     }
 
@@ -244,8 +240,7 @@ public final class SessionState {
     }
 
     public boolean isLogoutTimedOut() {
-        return isLogoutSent()
-                && ((SystemTime.currentTimeMillis() - getLastSentTime()) >= getLogoutTimeoutMs());
+        return isLogoutSent() && ((SystemTime.currentTimeMillis() - getLastSentTime()) >= getLogoutTimeoutMs());
     }
 
     public MessageStore getMessageStore() {
@@ -363,13 +358,22 @@ public final class SessionState {
         return messageStore.getCreationTime();
     }
 
+    private boolean needReset() throws IOException {
+        synchronized (lock) {
+            return messageStore.getNextSenderMsgSeqNum() != 1 || messageStore.getNextTargetMsgSeqNum() != 1;
+        }
+    }
+
     public void reset() {
         try {
-            messageStore.reset();
+            if (needReset()) {
+                messageStore.reset();
+            }
         } catch (IOException e) {
             throw new RuntimeError(e);
         }
     }
+
 
     public void setResendRange(int low, int high) {
         synchronized (lock) {
@@ -444,6 +448,9 @@ public final class SessionState {
         }
 
         public void onEvent(String text) {
+        }
+
+        public void onErrorEvent(String text) {
         }
 
         public void clear() {

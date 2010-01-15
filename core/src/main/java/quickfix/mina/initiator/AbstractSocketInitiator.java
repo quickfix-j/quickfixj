@@ -20,11 +20,13 @@
 package quickfix.mina.initiator;
 
 import java.net.SocketAddress;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,7 +87,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             createSessions();
             for (Session session : getSessionMap().values()) {
                 SessionID sessionID = session.getSessionID();
-                int reconnectingInterval = getReconnectIntervalInSeconds(sessionID);
+                int[] reconnectingIntervals = getReconnectIntervalInSeconds(sessionID);
 
                 SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
                 if (socketAddresses.length == 0) {
@@ -102,11 +104,15 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 }
                 String keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
                 String keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
+                String strEnableProtocole = SSLSupport.getEnableProtocole(getSettings(), sessionID);
+                String[] enableProtocole = strEnableProtocole != null ? strEnableProtocole.split(",") : null;
+                String strCipherSuites = SSLSupport.getCipherSuite(getSettings(), sessionID);
+                String[] cipherSuites = strCipherSuites != null ? strCipherSuites.split(",") : null;
 
                 IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
-                        socketAddresses, reconnectingInterval, getScheduledExecutorService(),
+                        socketAddresses, reconnectingIntervals, getScheduledExecutorService(),
                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder(),
-                        sslEnabled, keyStoreName, keyStorePassword);
+                        sslEnabled, keyStoreName, keyStorePassword, enableProtocole, cipherSuites );
 
                 initiators.add(ioSessionInitiator);
             }
@@ -145,18 +151,18 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         setSessions(initiatorSessions);
     }
 
-    private int getReconnectIntervalInSeconds(SessionID sessionID) throws ConfigError {
-        int reconnectInterval = 30;
+    private int[] getReconnectIntervalInSeconds(SessionID sessionID) throws ConfigError {
         SessionSettings settings = getSettings();
         if (settings.isSetting(sessionID, Initiator.SETTING_RECONNECT_INTERVAL)) {
             try {
-                reconnectInterval = (int) settings.getLong(sessionID,
-                        Initiator.SETTING_RECONNECT_INTERVAL);
-            } catch (FieldConvertError e) {
+                String raw = settings.getString(Initiator.SETTING_RECONNECT_INTERVAL);
+                int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
+                if (ret != null) return ret;
+            } catch (Throwable e) {
                 throw new ConfigError(e);
             }
         }
-        return reconnectInterval;
+        return new int[] { 30 };
     }
 
     private SocketAddress[] getSocketAddresses(SessionID sessionID) throws ConfigError {

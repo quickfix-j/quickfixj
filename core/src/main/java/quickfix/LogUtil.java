@@ -44,7 +44,7 @@ public class LogUtil {
         PrintWriter printWriter = new PrintWriter(stringWriter);
         printWriter.println(message);
         t.printStackTrace(printWriter);
-        log.onEvent(stringWriter.toString());
+        log.onErrorEvent(stringWriter.toString());
     }
     
     /**

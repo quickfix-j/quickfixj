@@ -255,6 +255,7 @@ public class DataDictionary {
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
+        if(messageFields.get(HEADER_ID) == null) return false;
         return messageFields.get(HEADER_ID).contains(field);
     }
 
@@ -576,7 +577,7 @@ public class DataDictionary {
 
         if (isVersionSpecified(sessionDataDictionary)
                 && !sessionDataDictionary.getVersion().equals(
-                        message.getHeader().getString(BeginString.FIELD))) {
+                        message.getHeader().getString(BeginString.FIELD)) && !message.getHeader().getString(BeginString.FIELD).equals("FIXT.1.1") && !sessionDataDictionary.getVersion().equals("FIX.5.0")) {
             throw new UnsupportedVersion();
         }
 

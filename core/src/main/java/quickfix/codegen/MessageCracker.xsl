@@ -18,7 +18,7 @@
 *****************************************************************************
 -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
  <xsl:output  method="text" encoding="UTF-8"/>
  <xsl:param name="fieldPackage"/>
  <xsl:param name="messagePackage"/>
@@ -34,23 +34,59 @@ import <xsl:value-of select="$fieldPackage"/>.*;
 
 public class MessageCracker <xsl:call-template name="base-class"/>
 {
+
+  <xsl:for-each select="//fix/messages/message">
+  private static final String <xsl:value-of select="@name"/>_MsgType = "<xsl:value-of select="@msgtype"/>";
+  </xsl:for-each>
+
+/**
+ * Callback for quickfix.Message message
+ *
+ * @param message
+ * @param sessionID
+ *
+ * @throws FieldNotFound
+ * @throws UnsupportedMessageType
+ * @throws IncorrectTagValue
+ */
 public void onMessage( quickfix.Message message, SessionID sessionID ) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue
   { throw new UnsupportedMessageType(); }
 <xsl:call-template name="virtual-functions"/>
 <xsl:call-template name="switch-statement"/>
-  };
+  }
 
 
 </xsl:template>
 
 <xsl:template name="virtual-functions">
- <xsl:for-each select="//fix/messages/message"> public void onMessage( <xsl:value-of select="@name"/> message, SessionID sessionID ) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue
+ <xsl:for-each select="//fix/messages/message">
+ /**
+ * Callback for FIX<xsl:value-of select="@name"/> message
+ *
+ * @param message
+ * @param sessionID
+ *
+ * @throws FieldNotFound
+ * @throws UnsupportedMessageType
+ * @throws IncorrectTagValue
+ */
+ @SuppressWarnings("unused")
+ public void onMessage( <xsl:value-of select="@name"/> message, SessionID sessionID ) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue
  <xsl:choose>
- <xsl:when test="(@msgcat='app' or @msgcat='Common') and @name='BusinessMessageReject'">   {}
+ <xsl:when test="(@msgcat='app' or @msgcat='Common') and @name='BusinessMessageReject'">
+ {
+    //
+ }
  </xsl:when>
- <xsl:when test="@msgcat='admin'">   {}
- </xsl:when>
- <xsl:when test="@msgcat='Session'">   {}
+ <xsl:when test="@msgcat='admin'">
+ {
+    //
+ }
+  </xsl:when>
+ <xsl:when test="@msgcat='Session'">
+ {
+    //
+ }
  </xsl:when>
  <xsl:otherwise>   { throw new UnsupportedMessageType(); }
  </xsl:otherwise>
@@ -63,6 +99,13 @@ public void onMessage( quickfix.Message message, SessionID sessionID ) throws Fi
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue
   { crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>((Message)message, sessionID); }
 
+ /**
+  * Cracker method for <xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/> messages
+  *
+  * @throws FieldNotFound
+  * @throws UnsupportedMessageType
+  * @throws IncorrectTagValue
+  */
   public void crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>( Message message, SessionID sessionID )
     throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue
   {

@@ -23,6 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidParameterException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
@@ -45,7 +47,7 @@ public class SessionSettingsTest extends TestCase {
         settingsString += "TargetCompID=CLIENT1\n";
         settingsString += "TargetSubID=HedgeFund\n";
         settingsString += "TargetLocationID=NYC\n";
-        
+
         SessionSettings settings = new SessionSettings(new ByteArrayInputStream(settingsString.getBytes()));
         SessionID id = settings.sectionIterator().next();
         assertEquals("Company", id.getSenderCompID());
@@ -55,7 +57,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("HedgeFund", id.getTargetSubID());
         assertEquals("NYC", id.getTargetLocationID());
     }
-   
+
     public void testSettings() throws Exception {
         SessionSettings settings = setUpSession();
 
@@ -63,14 +65,11 @@ public class SessionSettingsTest extends TestCase {
         SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
         SessionID sessionID3 = new SessionID("FIX.4.2", "FOO", "BAR");
 
-        assertEquals("wrong setting", "acceptor", settings.getString(sessionID1,
-                SessionFactory.SETTING_CONNECTION_TYPE));
-        assertEquals("wrong setting", "00:00:00", settings.getString(sessionID2,
-                Session.SETTING_END_TIME));
-        assertEquals("wrong setting", "CLIENT1", settings.getString(sessionID1,
-                SessionSettings.TARGETCOMPID));
-        assertEquals("wrong setting", "CLIENT2", settings.getString(sessionID2,
-                SessionSettings.TARGETCOMPID));
+        assertEquals("wrong setting", "acceptor", settings
+                .getString(sessionID1, SessionFactory.SETTING_CONNECTION_TYPE));
+        assertEquals("wrong setting", "00:00:00", settings.getString(sessionID2, Session.SETTING_END_TIME));
+        assertEquals("wrong setting", "CLIENT1", settings.getString(sessionID1, SessionSettings.TARGETCOMPID));
+        assertEquals("wrong setting", "CLIENT2", settings.getString(sessionID2, SessionSettings.TARGETCOMPID));
 
         try {
             settings.getString(new SessionID("FIX.4.2", "FOO", "BAR"), "xyz");
@@ -208,22 +207,22 @@ public class SessionSettingsTest extends TestCase {
     public void testFinalCommentWithoutTrailingNewline() throws Exception {
         SessionSettings settings = setUpSession("label=no trailing newline\n# a comment without trailing newline");
         SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
-        
+
         assertEquals("no trailing newline", settings.getString(sessionID2, "label"));
     }
-    
+
     public void testDefaultSetters() throws Exception {
-    	SessionSettings settings = setUpSession();
-    	settings.setBool("bool", true);
-    	assertEquals("wrong default value", true, settings.getBool("bool"));
-    	settings.setDouble("double", 10.00);
-    	assertEquals("wrong default value", 10.00, settings.getDouble("double"), 0);
-    	settings.setLong("long", 1000L);
-    	assertEquals("wrong default value", 1000L, settings.getLong("long"));
-    	settings.setString("string", "xyz");
-    	assertEquals("wrong default value", "xyz", settings.getString("string"));
+        SessionSettings settings = setUpSession();
+        settings.setBool("bool", true);
+        assertEquals("wrong default value", true, settings.getBool("bool"));
+        settings.setDouble("double", 10.00);
+        assertEquals("wrong default value", 10.00, settings.getDouble("double"), 0);
+        settings.setLong("long", 1000L);
+        assertEquals("wrong default value", 1000L, settings.getLong("long"));
+        settings.setString("string", "xyz");
+        assertEquals("wrong default value", "xyz", settings.getString("string"));
     }
-    
+
     public void testVariableInterpolationWithDefaultValueSource() throws Exception {
         System.setProperty("test.1", "FOO");
         System.setProperty("test.2", "BAR");
@@ -233,7 +232,7 @@ public class SessionSettingsTest extends TestCase {
         settings.setString("VariableTest", "ABC ${test.1} XYZ ${test.1}${test.2} 123");
         assertEquals("wrong default value", "ABC FOO XYZ FOOBAR 123", settings.getString("VariableTest"));
     }
-    
+
     // QFJ-204
     public void testVariableInterpolationInDefaultSection() throws Exception {
         System.setProperty("sender", "SENDER");
@@ -249,9 +248,9 @@ public class SessionSettingsTest extends TestCase {
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         assertEquals("wrong value", "SENDER", settings.getString(sessionID, "SenderCompID"));
         assertEquals("wrong value", "TARGET", settings.getString(sessionID, "TargetCompID"));
-        
 
     }
+
     public void testVariableInterpolationWithNoSysProps() throws Exception {
         System.setProperty("test.1", "FOO");
         System.setProperty("test.2", "BAR");
@@ -280,6 +279,7 @@ public class SessionSettingsTest extends TestCase {
 
     public void testConfigError() throws Exception {
         InputStream cfg = new InputStream() {
+
             public synchronized int read() throws IOException {
                 throw new IOException("TEST");
             }
@@ -292,7 +292,7 @@ public class SessionSettingsTest extends TestCase {
             // expected
         }
     }
-    
+
     public void testSettingsToStream() throws Exception {
         SessionSettings expectedSettings = setUpSession();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -307,8 +307,8 @@ public class SessionSettingsTest extends TestCase {
         Iterator<SessionID> sessionIDs = expectedSettings.sectionIterator();
         while (sessionIDs.hasNext()) {
             SessionID sessionID = (SessionID) sessionIDs.next();
-            assertSectionEquals(expectedSettings.getSessionProperties(sessionID), 
-                    actualSettings.getSessionProperties(sessionID));
+            assertSectionEquals(expectedSettings.getSessionProperties(sessionID), actualSettings
+                    .getSessionProperties(sessionID));
         }
     }
 
@@ -318,13 +318,35 @@ public class SessionSettingsTest extends TestCase {
         Iterator<Object> p = keySet.iterator();
         while (p.hasNext()) {
             String key = (String) p.next();
-            assertEquals("property doesn't match", expectedProperties.getProperty(key), actualProperties.getProperty(key));
+            assertEquals("property doesn't match", expectedProperties.getProperty(key), actualProperties
+                    .getProperty(key));
         }
     }
-    
+
     public void testToString() throws Exception {
         SessionSettings expectedSettings = setUpSession();
         String actualString = expectedSettings.toString();
         assertSettingsEqual(expectedSettings, actualString);
     }
+
+    public void testParseSettingReconnectInterval() {
+        assertTrue(Arrays.equals(null, SessionSettings.parseSettingReconnectInterval("")));
+        assertTrue(Arrays.equals(null, SessionSettings.parseSettingReconnectInterval(null)));
+        assertTrue(Arrays.equals(new int[] { 5 }, SessionSettings.parseSettingReconnectInterval("5")));
+        assertTrue(Arrays.equals(new int[] { 5, 5 }, SessionSettings.parseSettingReconnectInterval("2x5")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 5, 5 }, SessionSettings.parseSettingReconnectInterval("4x5")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 15, 15 }, SessionSettings.parseSettingReconnectInterval("2x5;2x15")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 15 }, SessionSettings.parseSettingReconnectInterval("2x5;15")));
+        assertTrue(Arrays
+                .equals(new int[] { 5, 5, 15, 30 }, SessionSettings.parseSettingReconnectInterval("2x5;15;30")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 5, 15, 15, 30 }, SessionSettings
+                .parseSettingReconnectInterval("3x5;2x15;30")));
+        try {
+            SessionSettings.parseSettingReconnectInterval("2x5;A");
+            fail("Must throw InvalidParameterException");
+        } catch (InvalidParameterException ex) {
+            // OK
+        }
+    }
+
 }

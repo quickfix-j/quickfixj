@@ -48,9 +48,10 @@ public class DayConverterTest extends TestCase {
             // expected
         }
         
+        // check that day values are US days either default local is set to France
         Locale.setDefault(Locale.FRANCE);
-        assertEquals(1, DayConverter.toInteger("DI"));
-        assertEquals(2, DayConverter.toInteger("lu"));
+        assertEquals(1, DayConverter.toInteger("Su"));
+        assertEquals(2, DayConverter.toInteger("Mo"));
     }
     
     public void testConversionToString() throws Exception {
@@ -65,8 +66,9 @@ public class DayConverterTest extends TestCase {
             // expected
         }
         
+        // check that day values are US days either default local is set to France
         Locale.setDefault(Locale.FRANCE);
-        assertEquals("dimanche", DayConverter.toString(1));
-        assertEquals("mercredi", DayConverter.toString(4));
+        assertEquals("sunday", DayConverter.toString(1));
+        assertEquals("wednesday", DayConverter.toString(4));
      }
 }

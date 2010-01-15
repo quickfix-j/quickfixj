@@ -37,8 +37,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.quickfixj.CharsetSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
@@ -50,7 +48,6 @@ import quickfix.field.converter.UtcTimestampConverter;
  * @see quickfix.FileStoreFactory
  */
 public class FileStore implements MessageStore {
-    private Logger log = LoggerFactory.getLogger(getClass());
     private static final String READ_OPTION = "r";
     private static final String WRITE_OPTION = "w";
     private static final String SYNC_OPTION = "d";
@@ -66,36 +63,33 @@ public class FileStore implements MessageStore {
     private final boolean syncWrites;
     private final int maxCachedMsgs;
     private final String charsetEncoding = CharsetSupport.getCharset();
-
-    private RandomAccessFile messageFile;
+    private RandomAccessFile messageFileReader;
+    private RandomAccessFile messageFileWriter;
     private DataOutputStream headerDataOutputStream;
     private FileOutputStream headerFileOutputStream;
     private RandomAccessFile sequenceNumberFile;
 
-    FileStore(String path, SessionID sessionID, boolean syncWrites, int maxCachedMsgs) throws IOException {
+    FileStore(String path, SessionID sessionID, boolean syncWrites, int maxCachedMsgs)
+            throws IOException {
         this.syncWrites = syncWrites;
         this.maxCachedMsgs = maxCachedMsgs;
-        
+
         if (maxCachedMsgs > 0) {
             messageIndex = new TreeMap<Long, long[]>();
         } else {
             messageIndex = null;
         }
 
-        if (path == null) {
-            path = ".";
-        }
-		path = new File(path).getAbsolutePath();
-		
-        String sessionName = FileUtil.sessionIdFileName(sessionID);
-        String prefix = FileUtil.fileAppendPath(path, sessionName + ".");
+        final String fullPath = new File(path == null ? "." : path).getAbsolutePath();
+        final String sessionName = FileUtil.sessionIdFileName(sessionID);
+        final String prefix = FileUtil.fileAppendPath(fullPath, sessionName + ".");
 
         msgFileName = prefix + "body";
         headerFileName = prefix + "header";
         seqNumFileName = prefix + "seqnums";
         sessionFileName = prefix + "session";
 
-        File directory = new File(msgFileName).getParentFile();
+        final File directory = new File(msgFileName).getParentFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -109,8 +103,9 @@ public class FileStore implements MessageStore {
         if (deleteFiles) {
             deleteFiles();
         }
-        
-        messageFile = new RandomAccessFile(msgFileName, getRandomAccessFileOptions());
+
+        messageFileWriter = new RandomAccessFile(msgFileName, getRandomAccessFileOptions());
+        messageFileReader = new RandomAccessFile(msgFileName, READ_OPTION);
         sequenceNumberFile = new RandomAccessFile(seqNumFileName, getRandomAccessFileOptions());
 
         initializeCache();
@@ -121,18 +116,19 @@ public class FileStore implements MessageStore {
         initializeMessageIndex();
         initializeSequenceNumbers();
         initializeSessionCreateTime();
-        messageFile.seek(messageFile.length());
+        messageFileWriter.seek(messageFileWriter.length());
     }
 
     private void initializeSessionCreateTime() throws IOException {
-        File sessionTimeFile = new File(sessionFileName);
+        final File sessionTimeFile = new File(sessionFileName);
         if (sessionTimeFile.exists()) {
-            DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
+            final DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
                     new FileInputStream(sessionTimeFile)));
             try {
-                Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter.convert(sessionTimeInput.readUTF()));
+                final Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter
+                        .convert(sessionTimeInput.readUTF()));
                 cache.setCreationTime(c);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new IOException(e.getMessage());
             } finally {
                 sessionTimeInput.close();
@@ -143,10 +139,10 @@ public class FileStore implements MessageStore {
     }
 
     private void storeSessionTimeStamp() throws IOException {
-        DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
+        final DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(sessionFileName, false)));
         try {
-            Date date = SystemTime.getDate();
+            final Date date = SystemTime.getDate();
             cache.setCreationTime(SystemTime.getUtcCalendar(date));
             sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(date, true));
         } finally {
@@ -164,8 +160,12 @@ public class FileStore implements MessageStore {
     private void initializeSequenceNumbers() throws IOException {
         sequenceNumberFile.seek(0);
         if (sequenceNumberFile.length() > 0) {
-            String s = sequenceNumberFile.readUTF();
-            int offset = s.indexOf(':');
+            final String s = sequenceNumberFile.readUTF();
+            final int offset = s.indexOf(':');
+            if (offset < 0) {
+                throw new IOException("Invalid sequenceNumbderFile '" + seqNumFileName
+                        + "' character ':' is missing");
+            }
             cache.setNextSenderMsgSeqNum(Integer.parseInt(s.substring(0, offset)));
             cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 1)));
         }
@@ -175,16 +175,16 @@ public class FileStore implements MessageStore {
         // this part is unnecessary if no offsets are being stored in memory
         if (messageIndex != null) {
             messageIndex.clear();
-            File headerFile = new File(headerFileName);
+            final File headerFile = new File(headerFileName);
             if (headerFile.exists()) {
-                DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(
-                        new FileInputStream(headerFile)));
+                final DataInputStream headerDataInputStream = new DataInputStream(
+                        new BufferedInputStream(new FileInputStream(headerFile)));
                 try {
                     while (headerDataInputStream.available() > 0) {
-                        int sequenceNumber = headerDataInputStream.readInt();
-                        long offset = headerDataInputStream.readLong();
-                        int size = headerDataInputStream.readInt();
-                        updateMessageIndex((long)sequenceNumber, new long[] { offset, size });
+                        final int sequenceNumber = headerDataInputStream.readInt();
+                        final long offset = headerDataInputStream.readLong();
+                        final int size = headerDataInputStream.readInt();
+                        updateMessageIndex((long) sequenceNumber, new long[] { offset, size });
                     }
                 } finally {
                     headerDataInputStream.close();
@@ -195,7 +195,7 @@ public class FileStore implements MessageStore {
         headerDataOutputStream = new DataOutputStream(new BufferedOutputStream(
                 headerFileOutputStream));
     }
-    
+
     private void updateMessageIndex(Long sequenceNum, long[] offsetAndSize) {
         // Remove the lowest indexed sequence number if this addition
         // would result the index growing to larger than maxCachedMsgs.
@@ -204,7 +204,7 @@ public class FileStore implements MessageStore {
             //messageIndex.pollFirstEntry();
             messageIndex.remove(messageIndex.firstKey());
         }
-        
+
         messageIndex.put(sequenceNum, offsetAndSize);
     }
 
@@ -218,7 +218,8 @@ public class FileStore implements MessageStore {
      */
     public void closeFiles() throws IOException {
         closeOutputStream(headerDataOutputStream);
-        closeFile(messageFile);
+        closeFile(messageFileWriter);
+        closeFile(messageFileReader);
         closeFile(sequenceNumberFile);
     }
 
@@ -243,9 +244,9 @@ public class FileStore implements MessageStore {
     }
 
     private void deleteFile(String fileName) throws IOException {
-        File file = new File(fileName);
+        final File file = new File(fileName);
         if (file.exists() && !file.delete()) {
-            log.error("File delete failed: " + fileName);
+            System.err.println("File delete failed: " + fileName);
         }
     }
 
@@ -298,31 +299,33 @@ public class FileStore implements MessageStore {
     /* (non-Javadoc)
      * @see quickfix.MessageStore#get(int, int, java.util.Collection)
      */
-    public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
-        Set<Integer> uncachedOffsetMsgIds = new HashSet<Integer>();
+    public void get(int startSequence, int endSequence, Collection<String> messages)
+            throws IOException {
+        final Set<Integer> uncachedOffsetMsgIds = new HashSet<Integer>();
         // Use a treemap to make sure the messages are sorted by sequence num
-        TreeMap<Integer, String> messagesFound = new TreeMap<Integer, String>();
+        final TreeMap<Integer, String> messagesFound = new TreeMap<Integer, String>();
         for (int i = startSequence; i <= endSequence; i++) {
-            String message = getMessage(i);
+            final String message = getMessage(i);
             if (message != null) {
                 messagesFound.put(i, message);
             } else {
                 uncachedOffsetMsgIds.add(i);
             }
         }
-        
+
         if (!uncachedOffsetMsgIds.isEmpty()) {
             // parse the header file to find missing messages
-            File headerFile = new File(headerFileName);
-            DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(
-                    new FileInputStream(headerFile)));
+            final File headerFile = new File(headerFileName);
+            final DataInputStream headerDataInputStream = new DataInputStream(
+                    new BufferedInputStream(new FileInputStream(headerFile)));
             try {
                 while (headerDataInputStream.available() > 0) {
-                    int sequenceNumber = headerDataInputStream.readInt();
-                    long offset = headerDataInputStream.readLong();
-                    int size = headerDataInputStream.readInt();
+                    final int sequenceNumber = headerDataInputStream.readInt();
+                    final long offset = headerDataInputStream.readLong();
+                    final int size = headerDataInputStream.readInt();
                     if (uncachedOffsetMsgIds.remove(sequenceNumber)) {
-                        String message = getMessage(new long[] {offset, size});
+                        final String message = getMessage(new long[] { offset, size },
+                                sequenceNumber);
                         if (message != null) {
                             messagesFound.put(sequenceNumber, message);
                         }
@@ -335,7 +338,7 @@ public class FileStore implements MessageStore {
                 headerDataInputStream.close();
             }
         }
-        
+
         messages.addAll(messagesFound.values());
     }
 
@@ -352,23 +355,27 @@ public class FileStore implements MessageStore {
     private String getMessage(int i) throws IOException {
         String message = null;
         if (messageIndex != null) {
-            long[] offsetAndSize = messageIndex.get((long)i);
+            final long[] offsetAndSize = messageIndex.get((long) i);
             if (offsetAndSize != null) {
-                message = getMessage(offsetAndSize);
+                message = getMessage(offsetAndSize, i);
             }
         }
         return message;
     }
 
-    private String getMessage(long[] offsetAndSize) throws IOException {
-        messageFile.seek(offsetAndSize[0]);
-        int size = (int) offsetAndSize[1];
-        byte[] data = new byte[size];
-        if (messageFile.read(data) != size) {
-            throw new IOException("Truncated input while reading message");
+    private String getMessage(long[] offsetAndSize, int i) throws IOException {
+        final long offset = offsetAndSize[0];
+        messageFileReader.seek(offset);
+        final int size = (int) offsetAndSize[1];
+        final byte[] data = new byte[size];
+        final int sizeRead = messageFileReader.read(data);
+        if (sizeRead != size) {
+            throw new IOException("Truncated input while reading message: messageIndex=" + i
+                    + ", offset=" + offset + ", expected size=" + size + ", size read from file="
+                    + sizeRead);
         }
-        String message = new String(data, charsetEncoding);
-        messageFile.seek(messageFile.length());
+        final String message = new String(data, charsetEncoding);
+        messageFileReader.seek(messageFileReader.length());
         return message;
     }
 
@@ -376,10 +383,10 @@ public class FileStore implements MessageStore {
      * @see quickfix.MessageStore#set(int, java.lang.String)
      */
     public boolean set(int sequence, String message) throws IOException {
-        long offset = messageFile.getFilePointer();
-        int size = message.length();
+        final long offset = messageFileWriter.getFilePointer();
+        final int size = message.length();
         if (messageIndex != null) {
-            updateMessageIndex((long)sequence, new long[] { offset, size });
+            updateMessageIndex((long) sequence, new long[] { offset, size });
         }
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
@@ -388,7 +395,7 @@ public class FileStore implements MessageStore {
         if (syncWrites) {
             headerFileOutputStream.getFD().sync();
         }
-        messageFile.write(message.getBytes(CharsetSupport.getCharset()));
+        messageFileWriter.write(message.getBytes(CharsetSupport.getCharset()));
         return true;
     }
 
@@ -398,7 +405,8 @@ public class FileStore implements MessageStore {
         // recommendations from Sun. The performance also appears higher
         // with this implementation. -- smb.
         // http://bugs.sun.com/bugdatabase/view_bug.do;:WuuT?bug_id=4259569
-        sequenceNumberFile.writeUTF(""+cache.getNextSenderMsgSeqNum()+':'+cache.getNextTargetMsgSeqNum());
+        sequenceNumberFile.writeUTF("" + cache.getNextSenderMsgSeqNum() + ':'
+                + cache.getNextTargetMsgSeqNum());
     }
 
     String getHeaderFileName() {

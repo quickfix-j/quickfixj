@@ -47,9 +47,8 @@ import quickfix.SessionSettings;
 import quickfix.field.converter.IntConverter;
 
 /**
- * An abstract base class for acceptors and initiators. Provides support
- * for common functionality and also serves as an abstraction where
- * the code doesn't need to make the acceptor/initator distinction.
+ * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
+ * abstraction where the code doesn't need to make the acceptor/initator distinction.
  */
 public abstract class SessionConnector {
     public final static String QF_SESSION = "QF_SESSION";
@@ -63,8 +62,7 @@ public abstract class SessionConnector {
     private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
     
-    public SessionConnector(SessionSettings settings, SessionFactory sessionFactory)
-            throws ConfigError {
+    public SessionConnector(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
         this.settings = settings;
         this.sessionFactory = sessionFactory;
         if (settings == null) {
@@ -184,17 +182,15 @@ public abstract class SessionConnector {
     }
 
     protected void waitForLogout() {
-        Set<quickfix.Session> loggedOnSessions = getLoggedOnSessions();
         long start = System.currentTimeMillis();
-        while (!loggedOnSessions.isEmpty()) {
-            
+        Set<Session> loggedOnSessions;
+        while (!(loggedOnSessions = getLoggedOnSessions()).isEmpty()) {
             try {
-                Thread.sleep(1000L);
+                Thread.sleep(100L);
             } catch (InterruptedException e) {
                 log.error(e.getMessage(), e);
             }
-            
-            long elapsed = System.currentTimeMillis() - start;
+            final long elapsed = System.currentTimeMillis() - start;
             Iterator<Session> sessionItr = loggedOnSessions.iterator();
             while (sessionItr.hasNext()) {
                 Session session = sessionItr.next();
@@ -207,7 +203,6 @@ public abstract class SessionConnector {
                     sessionItr.remove();
                 }
             }
-            
             // Be sure we don't look forever
             if (elapsed > 60000L) {
                 log.warn("Stopping session logout wait after 1 minute");
@@ -216,8 +211,7 @@ public abstract class SessionConnector {
         }
     }
 
-    protected void logError(SessionID sessionID, IoSession protocolSession, String message,
-            Throwable t) {
+    protected void logError(SessionID sessionID, IoSession protocolSession, String message, Throwable t) {
         log.error(message + getLogSuffix(sessionID, protocolSession), t);
     }
 
@@ -233,8 +227,8 @@ public abstract class SessionConnector {
     }
 
     protected void startSessionTimer() {
-        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(new SessionTimerTask(),
-                0, 1000L, TimeUnit.MILLISECONDS);
+        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(new SessionTimerTask(), 0, 1000L,
+                TimeUnit.MILLISECONDS);
     }
 
     protected void stopSessionTimer() {
@@ -256,8 +250,7 @@ public abstract class SessionConnector {
                     try {
                         session.next();
                     } catch (IOException e) {
-                        logError(session.getSessionID(), null, "Error in session timer processing",
-                                e);
+                        logError(session.getSessionID(), null, "Error in session timer processing", e);
                     }
                 }
             } catch (Throwable e) {
@@ -277,10 +270,9 @@ public abstract class SessionConnector {
     }
     
     /**
-     * Allows a custom IOFilterChainBuilder to be added to the session connector. This
-     * will allow modification of the MINA filter chain. Modifying the filter chain can
-     * be useful for logging, encryption/SSL and other purposes. The FIX codec filter name
-     * can be used to for inserting custom filters before or after the FIX message codec.
+     * Allows a custom IOFilterChainBuilder to be added to the session connector. This will allow modification of the
+     * MINA filter chain. Modifying the filter chain can be useful for logging, encryption/SSL and other purposes. The
+     * FIX codec filter name can be used to for inserting custom filters before or after the FIX message codec.
      * 
      * @param ioFilterChainBuilder
      * @see IoFilterChainBuilder
