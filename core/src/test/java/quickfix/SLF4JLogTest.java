@@ -61,9 +61,9 @@ public class SLF4JLogTest extends TestCase {
         log.onEvent(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY, loggedText);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
         log.onErrorEvent(loggedText);
-        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY, loggedText);
+        assertMessageLogged(sessionID, SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, loggedText);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         log.onIncoming(loggedText);
@@ -74,6 +74,7 @@ public class SLF4JLogTest extends TestCase {
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
 
         settings.setString(sessionID, SLF4JLogFactory.SETTING_EVENT_CATEGORY, "event");
+        settings.setString(sessionID, SLF4JLogFactory.SETTING_ERROR_EVENT_CATEGORY, "errorEvent");
         settings.setString(sessionID, SLF4JLogFactory.SETTING_INMSG_CATEGORY, "in");
         settings.setString(sessionID, SLF4JLogFactory.SETTING_OUTMSG_CATEGORY, "out");
         log = factory.create(sessionID);
@@ -144,8 +145,8 @@ public class SLF4JLogTest extends TestCase {
         log.onEvent(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
-        getTestHandler(SLF4JLog.DEFAULT_EVENT_CATEGORY).setLevel(Level.SEVERE);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
+        getTestHandler(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY).setLevel(Level.SEVERE);
         log.onErrorEvent(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
@@ -243,7 +244,7 @@ public class SLF4JLogTest extends TestCase {
         private org.slf4j.Logger underlyingLog;
 
         public MySLF4JLog(SessionID sessionID, String inCallerFQCN, org.slf4j.Logger inUnderlyingLog) {
-            super(sessionID, "test-event-cat", "test-incoming-msg-cat", "test-outgoing-msg-cat",
+            super(sessionID, "test-event-cat", "test-error-event-cat", "test-incoming-msg-cat", "test-outgoing-msg-cat",
                     false, false, inCallerFQCN);
             underlyingLog = inUnderlyingLog;
         }

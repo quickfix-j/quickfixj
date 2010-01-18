@@ -32,12 +32,16 @@ import org.slf4j.spi.LocationAwareLogger;
 public class SLF4JLog extends AbstractLog {
 
     public static final String DEFAULT_EVENT_CATEGORY = "quickfixj.event";
+    
+    public static final String DEFAULT_ERROR_EVENT_CATEGORY = "quickfixj.errorEvent";
 
     public static final String DEFAULT_INCOMING_MSG_CATEGORY = "quickfixj.msg.incoming";
 
     public static final String DEFAULT_OUTGOING_MSG_CATEGORY = "quickfixj.msg.outgoing";
 
     private final Logger eventLog;
+    
+    private final Logger errorEventLog;
 
     private final Logger incomingMsgLog;
 
@@ -47,11 +51,12 @@ public class SLF4JLog extends AbstractLog {
 
     private final String callerFQCN;
 
-    public SLF4JLog(SessionID sessionID, String eventCategory, String incomingMsgCategory, String outgoingMsgCategory,
+    public SLF4JLog(SessionID sessionID, String eventCategory, String errorEventCategory, String incomingMsgCategory, String outgoingMsgCategory,
             boolean prependSessionID, boolean logHeartbeats, String inCallerFQCN) {
         setLogHeartbeats(logHeartbeats);
         logPrefix = prependSessionID ? (sessionID + ": ") : null;
         eventLog = getLogger(sessionID, eventCategory, DEFAULT_EVENT_CATEGORY);
+        errorEventLog = getLogger(sessionID, errorEventCategory, DEFAULT_ERROR_EVENT_CATEGORY);
         incomingMsgLog = getLogger(sessionID, incomingMsgCategory, DEFAULT_INCOMING_MSG_CATEGORY);
         outgoingMsgLog = getLogger(sessionID, outgoingMsgCategory, DEFAULT_OUTGOING_MSG_CATEGORY);
         callerFQCN = inCallerFQCN;
@@ -99,7 +104,7 @@ public class SLF4JLog extends AbstractLog {
     }
 
     public void onErrorEvent(String text) {
-        logError(eventLog, text);
+        logError(errorEventLog, text);
     }
 
     protected void logIncoming(String message) {

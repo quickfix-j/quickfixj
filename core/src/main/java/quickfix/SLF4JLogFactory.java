@@ -27,6 +27,10 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
      * Log category for events.
      */
     public final static String SETTING_EVENT_CATEGORY = "SLF4JLogEventCategory";
+    /**
+     * Log category for error events.
+     */
+    public final static String SETTING_ERROR_EVENT_CATEGORY = "SLF4JLogErrorEventCategory";
 
     /**
      * Log category for incoming messages.
@@ -65,6 +69,7 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
      */
     public Log create(SessionID sessionID, String callerFQCN) {
         String eventCategory = null;
+        String errorEventCategory = null;
         String incomingMsgCategory = null;
         String outgoingMsgCategory = null;
         boolean prependSessionID = true;
@@ -72,6 +77,9 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
         try {
             if (settings.isSetting(sessionID, SETTING_EVENT_CATEGORY)) {
                 eventCategory = settings.getString(sessionID, SETTING_EVENT_CATEGORY);
+            }
+            if (settings.isSetting(sessionID, SETTING_ERROR_EVENT_CATEGORY)) {
+                errorEventCategory = settings.getString(sessionID, SETTING_ERROR_EVENT_CATEGORY);
             }
             if (settings.isSetting(sessionID, SETTING_INMSG_CATEGORY)) {
                 incomingMsgCategory = settings.getString(sessionID, SETTING_INMSG_CATEGORY);
@@ -90,7 +98,7 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return new SLF4JLog(sessionID, eventCategory, incomingMsgCategory, outgoingMsgCategory,
+        return new SLF4JLog(sessionID, eventCategory, errorEventCategory, incomingMsgCategory, outgoingMsgCategory,
                 prependSessionID, logHeartbeats, callerFQCN);
     }
     
