@@ -42,7 +42,7 @@ import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
 import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
-import quickfix.util.ExpectedTestFailure;
+import quickfix.test.util.ExpectedTestFailure;
 
 public class DataDictionaryTest extends TestCase {
 

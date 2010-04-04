@@ -1,4 +1,4 @@
-package quickfix.util;
+package quickfix.test.util;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

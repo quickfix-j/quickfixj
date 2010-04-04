@@ -28,7 +28,7 @@ import quickfix.fix44.Logon;
 import quickfix.fix44.News;
 import quickfix.fix44.ResendRequest;
 import quickfix.fix44.TestRequest;
-import quickfix.test.ReflectionUtil;
+import quickfix.test.util.ReflectionUtil;
 
 /**
  * Note: most session tests are in the form of acceptance tests.

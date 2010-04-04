@@ -45,7 +45,7 @@ import quickfix.SessionSettings;
 import quickfix.SystemTime;
 import quickfix.ThreadedSocketInitiator;
 import quickfix.test.acceptance.ATServer;
-import quickfix.util.ExpectedTestFailure;
+import quickfix.test.util.ExpectedTestFailure;
 
 public class SecureSocketTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());

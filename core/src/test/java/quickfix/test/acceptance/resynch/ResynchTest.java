@@ -23,6 +23,9 @@ import junit.framework.TestCase;
 import quickfix.ConfigError;
 import quickfix.SessionNotFound;
 
+/**
+ * This is testing the test framework rather than QFJ functionality per se
+ */
 public class ResynchTest extends TestCase {
     private Thread serverThread;
 

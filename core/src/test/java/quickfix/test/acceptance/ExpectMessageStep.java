@@ -32,7 +32,7 @@ import junit.framework.TestResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import quickfix.test.ReflectionUtil;
+import quickfix.test.util.ReflectionUtil;
 
 public class ExpectMessageStep implements TestStep {
     public static long TIMEOUT_IN_MS = 10000;

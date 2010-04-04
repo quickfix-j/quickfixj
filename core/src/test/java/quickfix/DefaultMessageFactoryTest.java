@@ -9,7 +9,7 @@ import quickfix.field.LinesOfText;
 import quickfix.field.MsgType;
 import quickfix.field.NoLinesOfText;
 import quickfix.field.NoMDEntries;
-import quickfix.util.ExpectedTestFailure;
+import quickfix.test.util.ExpectedTestFailure;
 
 /**
  * Verifies the behaviour of the {@link DefaultMessageFactory} class

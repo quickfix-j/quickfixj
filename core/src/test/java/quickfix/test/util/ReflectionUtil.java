@@ -1,4 +1,4 @@
-package quickfix.test;
+package quickfix.test.util;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
