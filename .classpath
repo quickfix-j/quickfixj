@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="core/src/main/java"/>
+	<classpathentry kind="src" path="core/target/generated-sources/messages"/>
 	<classpathentry kind="src" path="core/src/test/java"/>
-	<classpathentry kind="src" path="examples/src/main/java"/>
+	<classpathentry kind="src" path="core/src/test/resources"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/resources"/>
+	<classpathentry kind="src" path="examples/src/main/java"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-1.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/lib/mina-core-1.1.0.jar" sourcepath="core/src/main/lib/mina-core-1.1.0-sources.jar"/>
 	<classpathentry kind="lib" path="core/src/test/lib/hamcrest-all-1.1.jar"/>
 	<classpathentry kind="lib" path="core/src/test/lib/mockito-all-1.4.jar"/>
 	<classpathentry kind="lib" path="core/src/test/lib/junit-4.5.jar"/>
-	<classpathentry kind="src" path="core/target/src-generated"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-0.9.1.jar" sourcepath="core/src/main/lib/optional/proxool-0.9.1-sources.zip"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-cglib.jar"/>

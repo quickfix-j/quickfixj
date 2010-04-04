@@ -22,12 +22,17 @@ package quickfix;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.regex.Pattern;
 
 import junit.framework.TestCase;
 
 public class SerializationTest extends TestCase {
 
-    private String[] srcDirs = new String[] { "src-generated", "core/target/src-generated" };
+    private String[] srcDirs = new String[] { 
+            "generated-sources/messages", 
+            "core/target/generated-sources/messages" 
+            };
+    
     private String srcDir;
 
     public SerializationTest(String name) {
@@ -51,7 +56,7 @@ public class SerializationTest extends TestCase {
         srcDir = findSrcDir();
         // Check messages
         assertAllSerializations(srcDir, new MessageSerializationAssertion(),
-                new JavaMessageFileFilter());
+                new JavaMessageFileFilter(".*/fix42/.*"));
         // Check fields
         assertAllSerializations(srcDir, new FieldSerializationAssertion(),
                 new JavaFieldFileFilter());
@@ -70,13 +75,21 @@ public class SerializationTest extends TestCase {
     }
 
     private final class JavaMessageFileFilter implements FileFilter {
+        private final Pattern pathPattern;
+        
+        public JavaMessageFileFilter(String pathPattern) {
+            this.pathPattern = pathPattern != null ? Pattern.compile(pathPattern) : null;
+        }
+        
         // We want to take ONLY messages into account
         public boolean accept(File file) {
-            return (file.getName().endsWith(".java")
+            return ((pathPattern == null || 
+                        pathPattern.matcher(file.getAbsolutePath()).matches())
+                    && file.getName().endsWith(".java")
                     && !file.getParentFile().getName().equals("field")
                     && !file.getName().equals("Message.java")
-                    && !file.getName().equals("MessageCracker.java") && !file.getName().equals(
-                    "MessageFactory.java"))
+                    && !file.getName().equals("MessageCracker.java") 
+                    && !file.getName().equals("MessageFactory.java"))
                     || file.isDirectory();
         }
     }

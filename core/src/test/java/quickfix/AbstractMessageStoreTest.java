@@ -172,7 +172,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
     }
 
     protected String getConfigurationFileName() {
-        return "core/src/test/java/test.cfg";
+        return "core/src/test/resources/test.cfg";
     }
 
     protected void setTestEnabled(boolean b) {

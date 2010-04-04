@@ -1,19 +1,11 @@
 package quickfix.test.acceptance;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.extensions.TestSetup;
-import junit.framework.AssertionFailedError;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestResult;
-import junit.framework.TestSuite;
+import junit.framework.*;
 
 import org.apache.mina.common.TransportType;
 import org.apache.mina.util.AvailablePortFinder;
@@ -23,19 +15,25 @@ import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import quickfix.test.acceptance.resynch.ResynchTest;
-import quickfix.test.acceptance.timer.TimerTest;
-
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
     private static final String ATEST_TRANSPORT_KEY = "atest.transport";
     private static final String ATEST_SKIPSLOW_KEY = "atest.skipslow";
-    private static Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
-    private String acceptanceTestBaseDir = "core/src/test/java/quickfix/test/acceptance/definitions/";
-    private boolean skipSlowTests;
+    private static final Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
+    private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
+    private static final String acceptanceTestBaseDir;
+    
     private static TransportType transportType = TransportType.SOCKET;
     private static int port = 9887;
 
+    private boolean skipSlowTests;
+    private final boolean multithreaded;
+
+    static {
+        acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().
+            getResource(acceptanceTestResourcePath).getPath();
+    }
+    
     private static class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -80,6 +78,7 @@ public class AcceptanceTestSuite extends TestSuite {
             //printDatabasePoolingStatistics();
         }
     
+        @SuppressWarnings("unused")
         protected void printDatabasePoolingStatistics() {
             String[] aliases = ProxoolFacade.getAliases();
             try {
@@ -132,7 +131,8 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
-    public AcceptanceTestSuite() {
+    public AcceptanceTestSuite(boolean multithreaded) {
+        this.multithreaded = multithreaded;
         Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);
         if (timeout != null) {
             ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
@@ -140,9 +140,6 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
 
-        //addTest("fix50/1d_InvalidLogonNoDefaultApplVerID.def");
-        //if (true) return;
-        
         addTests(new File(acceptanceTestBaseDir + "server/fix40"));
         addTests(new File(acceptanceTestBaseDir + "server/fix41"));
         addTests(new File(acceptanceTestBaseDir + "server/fix42"));
@@ -151,6 +148,15 @@ public class AcceptanceTestSuite extends TestSuite {
         addTests(new File(acceptanceTestBaseDir + "server/fix50"));
     }
 
+    public String toString() {
+        return "FIX Integration Tests: " + (multithreaded ? "multithreaded" : "single threaded");
+    }
+    
+    public boolean isMultithreaded()
+    {
+        return multithreaded;
+    }
+    
     protected void addTest(String name) {
         addTests(new File(acceptanceTestBaseDir + "server/" + name));
     }
@@ -193,9 +199,9 @@ public class AcceptanceTestSuite extends TestSuite {
 
         private ATServer server;
 
-        private AcceptanceTestServerSetUp(AcceptanceTestSuite suite, boolean threaded) {
+        private AcceptanceTestServerSetUp(AcceptanceTestSuite suite) {
             super(suite);
-            this.threaded = threaded;
+            this.threaded = suite.isMultithreaded();
         }
 
         protected void setUp() throws Exception {
@@ -214,10 +220,6 @@ public class AcceptanceTestSuite extends TestSuite {
             }
             super.tearDown();
         }
-
-        public String toString() {
-            return "Acceptance Test Server Context";
-        }
     }
 
     public static Test suite() {
@@ -225,11 +227,8 @@ public class AcceptanceTestSuite extends TestSuite {
                 .getInstance(System.getProperty(ATEST_TRANSPORT_KEY, "SOCKET"));
         port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite();
-        final AcceptanceTestSuite scriptedTests = new AcceptanceTestSuite();
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(scriptedTests, false));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(scriptedTests, true));
-        acceptanceTests.addTestSuite(TimerTest.class);
-        acceptanceTests.addTestSuite(ResynchTest.class);
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite(false)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite(true)));
         return acceptanceTests;
     }
 }

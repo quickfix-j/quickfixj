@@ -1111,7 +1111,6 @@ public class Session {
                 endSeqNo = next;
             }
             generateSequenceReset(beginSeqNo, endSeqNo);
-            return;
         }
 
         final ArrayList<String> messages = new ArrayList<String>();

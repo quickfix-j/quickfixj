@@ -1,6 +1,8 @@
 <project name="core" basedir="." default="jar">
 	<import file="../module.xml" />
 
+	<property name="version" value="SNAPSHOT"/>
+	
 	<tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
 	</tstamp>
@@ -18,7 +20,7 @@
 	Generate FIX Message Code
 	================================================================= -->
 
-	<property name="target.generated.src.dir" value="${target.dir}/src-generated" />
+	<property name="target.generated.src.dir" value="${target.dir}/generated-sources/messages" />
 
 	<target name="check.generated.isuptodate">
 		<uptodate property="generated.isuptodate">
@@ -81,10 +83,16 @@
 	</target>
 
 	<target name="compile_main" if="main.java.available">
+		<copy todir="${main.classes.dir}">
+			<fileset dir="${main.resources.dir}"/>
+		</copy>
 		<do_compile srcref="main.src.path" classpathref="compile.classpath" output="${main.classes.dir}" />
 	</target>
 
 	<target name="compile_test" if="test.java.available">
+		<copy todir="${test.classes.dir}">
+			<fileset dir="${test.resources.dir}"/>
+		</copy>
 		<do_compile srcref="test.src.path" classpathref="compile.classpath" output="${test.classes.dir}" />
 	</target>
 
@@ -291,17 +299,25 @@
 	<target name="test.acceptance" description="run acceptance tests" depends="jar,check.atests.uptodate,test.acceptance.junit" />
 
 	<target name="test.acceptance.junit" unless="atests.uptodate" depends="compile, test.init">
-		<junit fork="${atest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="${atest.showoutput}" errorproperty="atests.failed" failureproperty="atests.failed" maxmemory="512m">
+		<junit fork="${atest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" 
+				printsummary="true" showoutput="${atest.showoutput}" 
+				errorproperty="atests.failed" failureproperty="atests.failed" maxmemory="512m">
 			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
 			<sysproperty key="atest.timeout" value="${atest.timeout}" />
 			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
 			<sysproperty key="atest.skipslow" value="${atest.skipslow}" />
 			<formatter type="xml" usefile="true" />
 			<classpath refid="test.classpath" />
-			<test todir="${junit.output.dir}" name="${atest.classname}" />
+			<batchtest todir="${junit.output.dir}">
+				<fileset dir="${test.src.dir}">
+					<include name="**/AcceptanceTestSuite.java" />
+					<include name="quickfix/test/acceptance/**/*Test.java" />
+				</fileset>
+			</batchtest>
 		</junit>
-		<!-- remove the logged output because it's too large for junitreport -->
-		<replaceregexp file="${atest.report}" flags="s" byline="false" match="system-err>.*&lt;/system-err" replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
+		<replaceregexp file="${atest.report}" flags="s" byline="false" 
+			match="system-err>.*&lt;/system-err" 
+			replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
 		<antcall target="create.atest.timestamp" />
 	</target>
 
