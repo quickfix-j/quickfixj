@@ -23,23 +23,24 @@ import quickfix.test.util.ReflectionUtil;
  *
  */
 public class SessionTest {
-    
+
     @Test
     public void testHandlingOfInvalidSequenceReset() throws Exception {
 
         Application application = new UnitTestApplication();
-        
+
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         Session session = createSession(sessionID, application, true, true);
-        
+
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
 
         session.logon();
         session.next();
-        
+
         Message logonRequest = new Message(responder.sentMessageData);
-        Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
+        Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(),
+                MsgType.LOGON);
         logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
         logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
         Message.Header header = logonResponse.getHeader();
@@ -52,6 +53,68 @@ public class SessionTest {
 
         // QFJ-383 disconnection is no more mandatory   
         // assertTrue("Disconnect not called", responder.disconnectCalled);
+    }
+
+    @Test
+    public void testInferResetSeqNumAcceptedWithNonInitialSequenceNumber() throws Exception {
+
+        Application application = new UnitTestApplication();
+
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        Session session = createSession(sessionID, application, true, true);
+
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+
+        Message logonRequest = new Message(responder.sentMessageData);
+        Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(),
+                MsgType.LOGON);
+        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
+        Message.Header header = logonResponse.getHeader();
+        header.setString(BeginString.FIELD, sessionID.getBeginString());
+        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        header.setInt(MsgSeqNum.FIELD, 2);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        session.next(logonResponse);
+
+        assertTrue("Should not infer a reset when the sequence number is not one",
+                responder.disconnectCalled);
+    }
+
+    @Test
+    public void testInferResetSeqNumAccepted() throws Exception {
+
+        Application application = new UnitTestApplication();
+
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        Session session = createSession(sessionID, application, true, true);
+
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+
+        Message logonRequest = new Message(responder.sentMessageData);
+        Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(),
+                MsgType.LOGON);
+        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
+        Message.Header header = logonResponse.getHeader();
+        header.setString(BeginString.FIELD, sessionID.getBeginString());
+        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        header.setInt(MsgSeqNum.FIELD, 1);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        session.next(logonResponse);
+
+        assertFalse("Should not disconnect when an accepted reset is inferred",
+                responder.disconnectCalled);
     }
 
     // QFJ-60
@@ -90,43 +153,44 @@ public class SessionTest {
         assertEquals(2, state.getNextTargetMsgSeqNum());
     }
 
-    @Test //QFJ-339
-    public void testSendingTimeRejectBeforeLogon() throws Exception 
-    {
+    @Test
+    //QFJ-339
+    public void testSendingTimeRejectBeforeLogon() throws Exception {
         Session session = setUpSession(new UnitTestApplication(), false, new UnitTestResponder());
-            
+
         Message message = new Logon();
         message.getHeader().setString(SenderCompID.FIELD, "SENDER");
         message.getHeader().setString(TargetCompID.FIELD, "TARGET");
-        message.getHeader().setString(SendingTime.FIELD, UtcTimestampConverter.convert(new Date(0), false));
+        message.getHeader().setString(SendingTime.FIELD,
+                UtcTimestampConverter.convert(new Date(0), false));
         message.getHeader().setInt(MsgSeqNum.FIELD, 1);
 
         SessionStateListener mockStateListener = mock(SessionStateListener.class);
         session.addStateListener(mockStateListener);
-        
+
         session.next(message);
-        
+
         verify(mockStateListener).onDisconnect();
         verifyNoMoreInteractions(mockStateListener);
     }
 
-    
-    @Test //QFJ-339
-    public void testCorruptLogonReject() throws Exception 
-    {
+    @Test
+    //QFJ-339
+    public void testCorruptLogonReject() throws Exception {
         Session session = setUpSession(new UnitTestApplication(), false, new UnitTestResponder());
-            
+
         Message message = new Logon();
         message.getHeader().setString(SenderCompID.FIELD, "SENDER");
         message.getHeader().setString(TargetCompID.FIELD, "TARGET");
-        message.getHeader().setString(SendingTime.FIELD, UtcTimestampConverter.convert(new Date(), false));
+        message.getHeader().setString(SendingTime.FIELD,
+                UtcTimestampConverter.convert(new Date(), false));
         message.getHeader().setInt(MsgSeqNum.FIELD, 100);
 
         SessionStateListener mockStateListener = mock(SessionStateListener.class);
         session.addStateListener(mockStateListener);
-        
+
         session.next(message);
-        
+
         verify(mockStateListener).onDisconnect();
         verifyNoMoreInteractions(mockStateListener);
     }
@@ -266,7 +330,8 @@ public class SessionTest {
     @Test
     public void testNonpersistedGapFill() throws Exception {
         SessionID sessionID = new SessionID("FIX.4.4:SENDER->TARGET");
-        Session session = SessionFactoryTestSupport.createNonpersistedSession(sessionID, new UnitTestApplication(), false);
+        Session session = SessionFactoryTestSupport.createNonpersistedSession(sessionID,
+                new UnitTestApplication(), false);
         session.getStore().setNextTargetMsgSeqNum(200);
         SessionState state = ReflectionUtil.getField(session, "state", SessionState.class);
         state.setLogonReceived(true);
@@ -279,7 +344,7 @@ public class SessionTest {
         session.next(resendRequest);
         assertEquals(201, state.getNextTargetMsgSeqNum());
     }
-    
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
@@ -319,7 +384,7 @@ public class SessionTest {
     private class UnitTestResponder implements Responder {
         public String sentMessageData;
         public boolean disconnectCalled;
-        
+
         public boolean send(String data) {
             sentMessageData = data;
             return true;
