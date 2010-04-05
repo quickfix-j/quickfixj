@@ -160,16 +160,36 @@ public class SessionSettings {
      * Return the settings for a session as a Properties object.
      *
      * @param sessionID
+     * @param includeDefaults if true, include settings defaults in properties
+     * @return the Properties object with the session settings
+     * @throws ConfigError
+     * @see java.util.Properties
+     */
+    public Properties getSessionProperties(SessionID sessionID, boolean includeDefaults) throws ConfigError {
+        final Properties p = sections.get(sessionID);
+        if (p == null) {
+            throw new ConfigError("Session not found");
+        }
+        if (includeDefaults) {
+            final Properties mergedProperties = sections.get(DEFAULT_SESSION_ID);
+            mergedProperties.putAll(p);
+            return mergedProperties;            
+        }
+        else {
+            return p;
+        }
+    }
+
+    /**
+     * Return the settings for a session as a Properties object.
+     *
+     * @param sessionID
      * @return the Properties object with the session settings
      * @throws ConfigError
      * @see java.util.Properties
      */
     public Properties getSessionProperties(SessionID sessionID) throws ConfigError {
-        final Properties p = sections.get(sessionID);
-        if (p == null) {
-            throw new ConfigError("Session not found");
-        }
-        return p;
+        return getSessionProperties(sessionID, false);
     }
 
     /**

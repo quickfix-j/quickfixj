@@ -115,6 +115,15 @@ public class SessionSettingsTest extends TestCase {
         assertFalse(sectionIterator.hasNext());
     }
 
+    public void testMergedProperties() throws Exception {
+        SessionSettings settings = setUpSession();
+        SessionID sessionID = new SessionID("FIX.4.2", "TW", "CLIENT1");
+
+        // Only defined in defaults
+        assertEquals("1234", settings.getSessionProperties(sessionID, true).get("TestLong"));
+        assertEquals(null, settings.getSessionProperties(sessionID, false).get("TestLong"));
+    }
+
     private SessionSettings setUpSession() throws ConfigError {
         return setUpSession(null);
     }
@@ -189,7 +198,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("fargle", settings.getString("baz"));
         assertEquals("bargle", settings.getString("FileStorePath"));
     }
-
+    
     public void testSpecialCharactersInKeys() throws Exception {
         SessionSettings settings = setUpSession("$$$foo bar.baz@@@=value\n");
         SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");

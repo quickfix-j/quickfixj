@@ -95,7 +95,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 }
 
                 NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
-                        .getSessionProperties(sessionID));
+                        .getSessionProperties(sessionID, true));
 
                 boolean sslEnabled = false;
                 if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)) {

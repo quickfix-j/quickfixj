@@ -369,7 +369,7 @@
 
 	<target name="export_binary_src" depends="module.export_binary_src">
 		<copy todir="${release.bin_src.staging.dir}" includeEmptyDirs="false">
-			<fileset dir="${basedir}/target/src-generated" />
+			<fileset dir="${target.generated.src.dir}" />
 		</copy>
 	</target>
 
