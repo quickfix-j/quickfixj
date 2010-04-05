@@ -37,14 +37,13 @@ import quickfix.Message;
  * Encodes a Message object or message string as a byte array to be
  * transmitted on MINA connection.
  */
-@SuppressWarnings("unchecked")
 public class FIXMessageEncoder implements MessageEncoder {
 
-    private static final Set<Class> TYPES;
+    private static final Set<Class<?>> TYPES;
     private final String charsetEncoding;
     
     static {
-        Set<Class> types = new HashSet<Class>();
+        Set<Class<?>> types = new HashSet<Class<?>>();
         types.add(Message.class);
         types.add(String.class);
         TYPES = Collections.unmodifiableSet(types);
@@ -54,7 +53,7 @@ public class FIXMessageEncoder implements MessageEncoder {
         charsetEncoding = CharsetSupport.getCharset();
     }
     
-    public Set<Class> getMessageTypes() {
+    public Set<Class<?>> getMessageTypes() {
         return TYPES;
     }
 
