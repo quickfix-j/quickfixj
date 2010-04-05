@@ -19,7 +19,7 @@
 
 package quickfix;
 
-class FieldException extends RuntimeException {
+public class FieldException extends RuntimeException {
 
     private final int field;
 

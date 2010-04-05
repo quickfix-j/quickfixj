@@ -385,4 +385,143 @@ public class FIXMessageDecoderTest {
         buffer.put(bytes);
         buffer.flip();
     }
+    
+    // =========================================================================================
+    // QFJ-505
+    
+    private static final String FIELD_DELIMITER = "\001";
+    private static final byte[] HEADER_PATTERN = getBytes("8=FIXt.?.?" + FIELD_DELIMITER + "9=");
+    
+    @Test
+    public void testCompleteHeader() {
+        //8=FIXT.1.1_9=
+        byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39, 0x3D};
+        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
+        Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
+    }
+    
+    @Test
+    public void testLongCompleteHeader() {
+        //8=FIXT.1.1_9======
+        byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
+        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
+        Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
+    }
+    
+    @Test
+    public void testIncompleteHeader() {
+        //8=FIXT.1.1_9
+        byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39};
+        ByteBuffer in = ByteBuffer.wrap(incompleteHeader);
+        BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
+        Assert.assertTrue("There should be no header detected", bufPos._offset == -1);
+    }
+
+    @Test
+    public void testCompleteHeader4() {
+        //8=FIX.4.4_9=
+        byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39, 0x3D};
+        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
+        Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
+    }
+    
+    @Test
+    public void testLongCompleteHeader4() {
+        //8=FIX.4.4_9======
+        byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
+        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
+        Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
+    }
+
+    
+    @Test
+    public void testIncompleteHeader4() {
+        //8=FIX.4.4_9
+        byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39};
+        ByteBuffer in = ByteBuffer.wrap(incompleteHeader);
+        BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
+        Assert.assertTrue("There should be no header detected", bufPos._offset == -1);
+    }
+    
+    
+    private static byte[] getBytes(String s) {
+        try {
+            return s.getBytes(CharsetSupport.getDefaultCharset());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+        
+    private static int startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
+        if (bufferOffset + minMaskLength(data) > buffer.limit()) {
+            return -1;
+        }
+        final int initOffset = bufferOffset;
+        int dataOffset = 0;
+        for (int bufferLimit = buffer.limit(); dataOffset < data.length
+                && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
+            if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
+                // Now check for optional characters, at this point we know we didn't
+                // match, so we can just check to see if we failed a match on an optional character,
+                // and if so then just rewind the buffer one byte and keep going.
+                if (Character.toUpperCase(data[dataOffset]) == buffer.get(bufferOffset))
+                    continue;
+                // Didn't match the optional character, so act like it was not included and keep going
+                if (Character.isLetter(data[dataOffset]) && Character.isLowerCase(data[dataOffset])) {
+                    --bufferOffset;
+                    continue;
+                }
+                return -1;
+            }
+        }
+        // Make sure every byte from the pattern was parsed
+        if(dataOffset < data.length) {
+            return -1;
+        }
+        return bufferOffset - initOffset;
+    }
+    
+    private static BufPos indexOf(ByteBuffer buffer, int position, byte[] data) {
+        for (int offset = position, limit = buffer.limit() - minMaskLength(data) + 1; offset < limit; offset++) {
+            int length;
+            if (buffer.get(offset) == data[0] && (length = startsWith(buffer, offset, data)) > 0) {
+                return new BufPos(offset, length);
+            }
+        }
+        return new BufPos(-1, 0);
+    }
+    
+    private static int minMaskLength(byte[] data) {
+        int len = 0;
+        for (int i = 0; i < data.length; ++i) {
+            if (Character.isLetter(data[i]) && Character.isLowerCase(data[i]))
+                continue;
+            ++len;
+        }
+        return len;
+    }
+    
+    static class BufPos {
+        int _offset;
+        int _length;
+
+        /**
+         * @param offset
+         * @param length
+         */
+        public BufPos(int offset, int length) {
+            _offset = offset;
+            _length = length;
+        }
+
+        public String toString() {
+            return _offset + "," + _length;
+        }
+    };    
+
 }
