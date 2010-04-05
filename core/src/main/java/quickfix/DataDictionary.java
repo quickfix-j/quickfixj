@@ -65,6 +65,9 @@ public class DataDictionary {
     public static final String ANY_VALUE = "__ANY__";
     public static final String HEADER_ID = "HEADER";
     public static final String TRAILER_ID = "TRAILER";
+    private static final String MESSAGE_CATEGORY_ADMIN = "admin".intern();
+    private static final String MESSAGE_CATEGORY_APP = "app".intern();
+    
     private static final int USER_DEFINED_TAG_MIN = 5000;
     private static final String NO = "N";
     private boolean hasVersion = false;
@@ -76,6 +79,7 @@ public class DataDictionary {
     private final Map<String, Set<Integer>> messageFields = new HashMap<String, Set<Integer>>();
     private final Map<String, Set<Integer>> requiredFields = new HashMap<String, Set<Integer>>();
     private final Set<String> messages = new HashSet<String>();
+    private final Map<String, String> messageCategory = new HashMap<String, String>();
     private final Map<String, String> messageTypeForName = new HashMap<String, String>();
     private final LinkedHashSet<Integer> fields = new LinkedHashSet<Integer>();
     private final Map<Integer, FieldType> fieldTypes = new HashMap<Integer, FieldType>();
@@ -222,6 +226,26 @@ public class DataDictionary {
      */
     public boolean isMsgType(String msgType) {
         return messages.contains(msgType);
+    }
+    
+    /**
+     * Predicate for determining if a message is in the admin category.
+     * @param msgType
+     * @return
+     */
+    public boolean isAdminMessage(String msgType) {
+        // Categories are interned
+        return messageCategory.get(msgType) == MESSAGE_CATEGORY_ADMIN;
+    }
+
+    /**
+     * Predicate for determining if a message is in the app category.
+     * @param msgType
+     * @return
+     */
+    public boolean isAppMessage(String msgType) {
+        // Categories are interned
+        return messageCategory.get(msgType) == MESSAGE_CATEGORY_APP;
     }
 
     private void addMsgField(String msgType, int field) {
@@ -967,6 +991,11 @@ public class DataDictionary {
                     throw new ConfigError("<message> does not have a msgtype attribute");
                 }
 
+                final String msgcat = getAttribute(messageNode, "msgcat");
+                if (msgcat != null) {
+                    messageCategory.put(msgtype, msgcat.intern());
+                }
+                
                 final String name = getAttribute(messageNode, "name");
                 addMsgType(msgtype, name);
 

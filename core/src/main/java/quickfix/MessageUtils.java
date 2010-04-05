@@ -145,7 +145,7 @@ public class MessageUtils {
                 applVerID, customApplVerID);
 
         quickfix.Message message = messageFactory.create(beginString, msgType);
-        DataDictionary payloadDictionary = MessageUtils.isAdminMessage(msgType)
+        DataDictionary payloadDictionary = sessionDataDictionary.isAdminMessage(msgType)
                 ? sessionDataDictionary
                 : applicationDataDictionary;
         

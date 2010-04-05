@@ -24,24 +24,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
-import quickfix.field.Account;
-import quickfix.field.BodyLength;
-import quickfix.field.CheckSum;
-import quickfix.field.ClOrdID;
-import quickfix.field.HandlInst;
-import quickfix.field.LastMkt;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.NoHops;
-import quickfix.field.OrdType;
-import quickfix.field.OrderQty;
-import quickfix.field.Price;
-import quickfix.field.SenderCompID;
-import quickfix.field.SendingTime;
-import quickfix.field.Side;
-import quickfix.field.Symbol;
-import quickfix.field.TargetCompID;
-import quickfix.field.TimeInForce;
-import quickfix.field.TransactTime;
+import quickfix.field.*;
 import quickfix.test.util.ExpectedTestFailure;
 
 public class DataDictionaryTest extends TestCase {
@@ -260,6 +243,14 @@ public class DataDictionaryTest extends TestCase {
     public void testWildcardEnumValue() throws Exception {
         DataDictionary dd = getDictionary();
         assertTrue(dd.isFieldValue(65, "FOO"));
+    }
+    
+    public void testMessageCategory() throws Exception {
+        DataDictionary dd = getDictionary();
+        assertTrue(dd.isAdminMessage(MsgType.LOGON));
+        assertFalse(dd.isAppMessage(MsgType.LOGON));
+        assertFalse(dd.isAdminMessage(MsgType.ORDER_SINGLE));
+        assertTrue(dd.isAppMessage(MsgType.ORDER_SINGLE));
     }
 
     public void testAllowUnknownFields() throws Exception {

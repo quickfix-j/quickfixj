@@ -1,10 +1,8 @@
 package quickfix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static quickfix.SessionFactoryTestSupport.createSession;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import static quickfix.SessionFactoryTestSupport.*;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -12,18 +10,8 @@ import java.util.Date;
 
 import org.junit.Test;
 
-import quickfix.field.BeginSeqNo;
-import quickfix.field.BeginString;
-import quickfix.field.EncryptMethod;
-import quickfix.field.EndSeqNo;
-import quickfix.field.Headline;
-import quickfix.field.HeartBtInt;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.MsgType;
-import quickfix.field.SenderCompID;
-import quickfix.field.SendingTime;
-import quickfix.field.TargetCompID;
-import quickfix.field.TestReqID;
+import quickfix.field.*;
+import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix44.Logon;
 import quickfix.fix44.News;
 import quickfix.fix44.ResendRequest;
@@ -100,6 +88,47 @@ public class SessionTest {
 
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(2, state.getNextTargetMsgSeqNum());
+    }
+
+    @Test //QFJ-339
+    public void testSendingTimeRejectBeforeLogon() throws Exception 
+    {
+        Session session = setUpSession(new UnitTestApplication(), false, new UnitTestResponder());
+            
+        Message message = new Logon();
+        message.getHeader().setString(SenderCompID.FIELD, "SENDER");
+        message.getHeader().setString(TargetCompID.FIELD, "TARGET");
+        message.getHeader().setString(SendingTime.FIELD, UtcTimestampConverter.convert(new Date(0), false));
+        message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+
+        SessionStateListener mockStateListener = mock(SessionStateListener.class);
+        session.addStateListener(mockStateListener);
+        
+        session.next(message);
+        
+        verify(mockStateListener).onDisconnect();
+        verifyNoMoreInteractions(mockStateListener);
+    }
+
+    
+    @Test //QFJ-339
+    public void testCorruptLogonReject() throws Exception 
+    {
+        Session session = setUpSession(new UnitTestApplication(), false, new UnitTestResponder());
+            
+        Message message = new Logon();
+        message.getHeader().setString(SenderCompID.FIELD, "SENDER");
+        message.getHeader().setString(TargetCompID.FIELD, "TARGET");
+        message.getHeader().setString(SendingTime.FIELD, UtcTimestampConverter.convert(new Date(), false));
+        message.getHeader().setInt(MsgSeqNum.FIELD, 100);
+
+        SessionStateListener mockStateListener = mock(SessionStateListener.class);
+        session.addStateListener(mockStateListener);
+        
+        session.next(message);
+        
+        verify(mockStateListener).onDisconnect();
+        verifyNoMoreInteractions(mockStateListener);
     }
 
     @Test

@@ -452,7 +452,7 @@ public class Message extends FieldMap {
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
             DataDictionary applicationDictionary, boolean doValidation) throws InvalidMessage {
-        if (MessageUtils.isAdminMessage(MessageUtils.getMessageType(messageData))) {
+        if (sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
             applicationDictionary = sessionDictionary;
         }
         parse(messageData, sessionDictionary, applicationDictionary, doValidation);
