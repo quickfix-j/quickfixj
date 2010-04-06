@@ -815,11 +815,13 @@ public class DataDictionary {
             while (groupIter.hasNext()) {
                 final Map.Entry<Integer, List<Group>> entry = groupIter.next();
                 final GroupInfo p = getGroup(msgType, (entry.getKey()).intValue());
-                final List<Group> groupInstances = entry.getValue();
-                for (int i = 0; i < groupInstances.size(); i++) {
-                    final FieldMap groupFields = groupInstances.get(i);
-                    p.getDataDictionary().checkHasRequired(groupFields, groupFields, groupFields,
-                            msgType, bodyOnly);
+                if (p != null) {
+                    final List<Group> groupInstances = entry.getValue();
+                    for (int i = 0; i < groupInstances.size(); i++) {
+                        final FieldMap groupFields = groupInstances.get(i);
+                        p.getDataDictionary().checkHasRequired(groupFields, groupFields, groupFields,
+                                msgType, bodyOnly);
+                    }                    
                 }
             }
         }
