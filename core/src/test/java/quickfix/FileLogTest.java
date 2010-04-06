@@ -19,27 +19,27 @@
 
 package quickfix;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
 
-import junit.framework.TestCase;
-
+import org.junit.Before;
+import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 
 import quickfix.field.converter.UtcTimestampConverter;
 
-public class FileLogTest extends TestCase {
-    public FileLogTest(String name) {
-        super(name);
-    }
+public class FileLogTest {
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
     }
 
+    @Test
     public void testLog() throws Exception {
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
@@ -91,6 +91,7 @@ public class FileLogTest extends TestCase {
         return tempdir.getAbsolutePath();
     }
 
+    @Test
     public void testHeartbeatFiltering() throws Exception {
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
@@ -133,6 +134,7 @@ public class FileLogTest extends TestCase {
 
     }
 
+    @Test
     public void testLogWithMessageTimestamps() throws Exception {
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));
@@ -162,6 +164,7 @@ public class FileLogTest extends TestCase {
                 .getMessagesFileName()));
     }
 
+    @Test
     public void testLogWithMillisInTimestamp() throws Exception {
         long systemTime = System.currentTimeMillis();
         SystemTime.setTimeSource(new MockSystemTimeSource(systemTime));

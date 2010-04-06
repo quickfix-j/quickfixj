@@ -6,6 +6,7 @@ import static quickfix.SessionFactoryTestSupport.*;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.Date;
 
 import org.junit.Test;
@@ -24,6 +25,39 @@ import quickfix.test.util.ReflectionUtil;
  */
 public class SessionTest {
 
+    @Test
+    public void testDisposalOfFileResources() throws Exception {
+        Application application = new UnitTestApplication();
+
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        
+        MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
+        DisposableMessageStore mockMessageStore = mock(DisposableMessageStore.class);
+        stub(mockMessageStoreFactory.create(sessionID)).toReturn(mockMessageStore);
+        
+        LogFactory mockLogFactory = mock(LogFactory.class);
+        DisposableLog mockLog = mock(DisposableLog.class);
+        stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
+        
+        Session session = new Session(application, mockMessageStoreFactory, sessionID, null, null,
+                mockLogFactory, new DefaultMessageFactory(), 30, 
+                false, 30, true, true, false, false, false, false, false, true, false, 1.5, 
+                null, false, new int[] { 5 }, false, false, false, true, true, false);
+
+        // Simulate socket disconnect
+        session.setResponder(null);
+        
+        verify(mockMessageStore).onDisconnect();
+        verifyNoMoreInteractions(mockMessageStore);
+        
+        verify(mockLog, atLeastOnce()).onEvent(anyString());
+        verify(mockLog).onDisconnect();
+        verifyNoMoreInteractions(mockLog);
+    }
+    
+    private interface DisposableMessageStore extends MessageStore, SessionStateListener { }
+    private interface DisposableLog extends Log, SessionStateListener { }
+    
     @Test
     public void testHandlingOfInvalidSequenceReset() throws Exception {
 

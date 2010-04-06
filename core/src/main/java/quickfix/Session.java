@@ -412,8 +412,18 @@ public class Session {
         this.checkGapFieldOnAdminMessage = checkGapFieldOnAdminMessage;
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
 
-        state = new SessionState(this, logFactory != null ? logFactory.create(sessionID) : null,
-                heartbeatInterval, heartbeatInterval != 0, messageStoreFactory.create(sessionID),
+        Log engineLog = logFactory.create(sessionID);
+        if (engineLog instanceof SessionStateListener) {
+            addStateListener((SessionStateListener)engineLog);
+        }
+        
+        MessageStore messageStore = messageStoreFactory.create(sessionID);
+        if (messageStore instanceof SessionStateListener) {
+            addStateListener((SessionStateListener)messageStore);
+        }
+        
+        state = new SessionState(this, logFactory != null ? engineLog : null,
+                heartbeatInterval, heartbeatInterval != 0, messageStore,
                 testRequestDelayMultiplier);
 
         registerSession(this);
@@ -1808,7 +1818,9 @@ public class Session {
     }
 
     /**
-     * @deprecated
+     * Use disconnect(reason, logError) instead.
+     * 
+     * @deprecated 
      */
     public void disconnect() throws IOException {
         disconnect("Other reason", true);
