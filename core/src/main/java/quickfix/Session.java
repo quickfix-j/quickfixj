@@ -1978,8 +1978,7 @@ public class Session {
         Message msg = state.dequeue(num);
 
         if (msg != null) {
-            getLog().onEvent(
-                    "Processing queued message: " + num + ", pending: " + state.getQueuedSeqNums());
+            getLog().onEvent("Processing queued message: " + num);
 
             String msgType = msg.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {

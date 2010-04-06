@@ -483,8 +483,7 @@ public class DataDictionary {
      *            true = checked, false = not checked
      */
     public void setCheckFieldsOutOfOrder(boolean flag) {
-        // TODO implement checkFieldsOutOfOrder
-        checkFieldsOutOfOrder = flag;
+       checkFieldsOutOfOrder = flag;
     }
 
     public boolean isCheckFieldsOutOfOrder() {

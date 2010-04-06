@@ -51,7 +51,7 @@ public class MessageCracker extends quickfix.fixt11.MessageCracker {
             crack44((quickfix.fix44.Message) message, sessionID);
         } else if (beginString.equals(FIX50)) {
             crack50((quickfix.fix50.Message) message, sessionID);
-        } else if (beginString.equals("FIXT.1.1")) {
+        } else if (beginString.equals(BEGINSTRING_FIXT11)) {
             if (MessageUtils.isAdminMessage(message.getHeader().getString(MsgType.FIELD))) {
                 crack11((quickfix.fixt11.Message) message, sessionID);
             } else {
