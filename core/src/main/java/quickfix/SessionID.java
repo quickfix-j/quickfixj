@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +37,7 @@ import quickfix.field.TargetSubID;
  * that it's possible to have multiple sessions to the same counterparty
  * but using different FIX versions (and/or session qualifiers). 
  */
-public class SessionID {
+public class SessionID implements Serializable {
     private static Pattern pattern = Pattern.compile("(.*?):(.*?)(?:/(.*?)|)(?:/(.*?)|)->(.*?)(?:/(.*?)|)(?:/(.*?)|)(?::(.*)|)");
     public static final String NOT_SET = "";
 

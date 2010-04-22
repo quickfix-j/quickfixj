@@ -19,24 +19,29 @@
 
 package quickfix.test.acceptance.resynch;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import quickfix.ConfigError;
 import quickfix.SessionNotFound;
 
 /**
  * This is testing the test framework rather than QFJ functionality per se
  */
-public class ResynchTest extends TestCase {
+public class ResynchTest  {
     private Thread serverThread;
 
     ResynchTestServer server;
 
+    @Test
     public void testAcceptorTimerSync() throws ConfigError, SessionNotFound, InterruptedException {
         serverThread.start();
         server.waitForInitialization();
         new ResynchTestClient().run();
     }
 
+    @Test
     public void testAcceptorTimerUnsync() throws ConfigError, SessionNotFound, InterruptedException {
         server.setUnsynchMode(true);
         serverThread.start();
@@ -46,6 +51,7 @@ public class ResynchTest extends TestCase {
         client.run();
     }
 
+    @Test
     public void testAcceptorTimerUnsyncWith() throws ConfigError, SessionNotFound, InterruptedException {
         server.setUnsynchMode(true);
         serverThread.start();
@@ -56,14 +62,14 @@ public class ResynchTest extends TestCase {
         client.run();
     }
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         server = new ResynchTestServer();
         serverThread = new Thread(server, "TimerTestServer");
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         serverThread.interrupt();
-        super.tearDown();
     }
 }
