@@ -31,8 +31,11 @@
  <xsl:copy-of select="document('COPYRIGHT.xml')"/>
   
 package <xsl:value-of select="$messagePackage"/>;
-
+<xsl:choose>
+      <xsl:when test="//fix/@major='4' or //fix/@type='FIXT'">
 import quickfix.FieldNotFound;
+      </xsl:when>
+</xsl:choose>
 import quickfix.field.*;
 <xsl:call-template name="extra-imports"/>
 	 

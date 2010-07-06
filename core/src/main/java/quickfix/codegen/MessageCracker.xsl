@@ -35,10 +35,6 @@ import <xsl:value-of select="$fieldPackage"/>.*;
 public class MessageCracker <xsl:call-template name="base-class"/>
 {
 
-  <xsl:for-each select="//fix/messages/message">
-  private static final String <xsl:value-of select="@name"/>_MsgType = "<xsl:value-of select="@msgtype"/>";
-  </xsl:for-each>
-
 /**
  * Callback for quickfix.Message message
  *
@@ -70,7 +66,6 @@ public void onMessage( quickfix.Message message, SessionID sessionID ) throws Fi
  * @throws UnsupportedMessageType
  * @throws IncorrectTagValue
  */
- @SuppressWarnings("unused")
  public void onMessage( <xsl:value-of select="@name"/> message, SessionID sessionID ) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue
  <xsl:choose>
  <xsl:when test="(@msgcat='app' or @msgcat='Common') and @name='BusinessMessageReject'">
