@@ -412,7 +412,7 @@
 				<fileset dir="core/src/test/lib" includes="*.jar">
 					<exclude name="mockito*"/>
 					<exclude name="hamcrest*"/>
-                                        <exclude name="junit*"/>
+                    <exclude name="junit*"/>
 				</fileset>
 				<fileset dir="core/src/main/lib/java4"
 					includes="retrotranslator/*runtime*.jar"/>
@@ -431,7 +431,10 @@
 					<exclude name="**/DefaultDataDictionaryProviderTest.java"/>
                     <exclude name="**/DefaultMessageFactoryTest.java"/>
                     <exclude name="**/DefaultSessionFactoryTest.java"/>
+                    <exclude name="**/FileLogTest.java"/>
+                    <exclude name="**/MessageTest.java"/>
                     <exclude name="**/SessionTest.java"/>
+                    <exclude name="**/ThreadPerSessionEventHandlingStrategyTest.java"/>
                     <exclude name="**/FIXMessageDecoderTest.java"/>
                     <exclude name="**/MessageUtilsTest.java"/>
 				</fileset>
