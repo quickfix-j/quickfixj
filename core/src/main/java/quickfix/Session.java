@@ -22,11 +22,13 @@ package quickfix;
 import static quickfix.LogUtil.logThrowable;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -295,6 +297,8 @@ public class Session {
 
     public static final String SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE = "ForceResendWhenCorruptedStore";
 
+    public static final String SETTING_ALLOWED_REMOTE_ADDRESSES = "AllowedRemoteAddresses";
+
     // @GuardedBy(sessions)
     private static final Map<SessionID, Session> sessions = new HashMap<SessionID, Session>();
 
@@ -343,10 +347,6 @@ public class Session {
     private boolean checkGapFieldOnAdminMessage;
     private boolean forceResendWhenCorruptedStore = false;
 
-    public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {
-        this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
-    }
-
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
             .getMulticaster();
@@ -355,6 +355,7 @@ public class Session {
     private final DefaultApplVerID senderDefaultApplVerID;
     private boolean forceResync = false;
     private final int[] logonIntervals;
+    private final Set<InetAddress> allowedRemoteAddresses;
 
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
@@ -371,7 +372,7 @@ public class Session {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, false, new int[] { 5 }, false, false,
-                false, true, false, false);
+                false, true, false, false, null);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -385,7 +386,7 @@ public class Session {
             DefaultApplVerID senderDefaultApplVerID, boolean forceResync, int[] logonIntervals,
             boolean resetOnError, boolean disconnectOnError, boolean ignoreHeartBeatFailure,
             boolean rejectInvalidMessage, boolean checkGapFieldOnAdminMessage,
-            boolean forceResendWhenCorruptedStore) {
+            boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -411,6 +412,7 @@ public class Session {
         this.rejectInvalidMessage = rejectInvalidMessage;
         this.checkGapFieldOnAdminMessage = checkGapFieldOnAdminMessage;
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
+        this.allowedRemoteAddresses = allowedRemoteAddresses;
 
         final Log engineLog = logFactory.create(sessionID);
         if (engineLog instanceof SessionStateListener) {
@@ -2476,6 +2478,17 @@ public class Session {
 
     public void setCheckGapFieldOnAdminMessage(boolean checkGapFieldOnAdminMessage) {
         this.checkGapFieldOnAdminMessage = checkGapFieldOnAdminMessage;
+    }
+
+    public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {
+        this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
+    }
+
+    public boolean isAllowedForSession(InetAddress remoteInetAddress) {
+        if (allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()) {
+            return true;
+        }
+        return allowedRemoteAddresses.contains(remoteInetAddress);
     }
 
 }

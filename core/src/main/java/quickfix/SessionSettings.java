@@ -28,6 +28,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,7 +67,7 @@ import quickfix.field.converter.BooleanConverter;
  * @see quickfix.DefaultSessionFactory
  */
 public class SessionSettings {
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(SessionSettings.class);
 
     private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
     private static final String SESSION_SECTION_NAME = "session";
@@ -165,7 +168,8 @@ public class SessionSettings {
      * @throws ConfigError
      * @see java.util.Properties
      */
-    public Properties getSessionProperties(SessionID sessionID, boolean includeDefaults) throws ConfigError {
+    public Properties getSessionProperties(SessionID sessionID, boolean includeDefaults)
+            throws ConfigError {
         final Properties p = sections.get(sessionID);
         if (p == null) {
             throw new ConfigError("Session not found");
@@ -173,9 +177,8 @@ public class SessionSettings {
         if (includeDefaults) {
             final Properties mergedProperties = sections.get(DEFAULT_SESSION_ID);
             mergedProperties.putAll(p);
-            return mergedProperties;            
-        }
-        else {
+            return mergedProperties;
+        } else {
             return p;
         }
     }
@@ -421,10 +424,12 @@ public class SessionSettings {
     private void storeSection(String currentSectionId, Properties currentSection) {
         if (currentSectionId != null && currentSectionId.equals(SESSION_SECTION_NAME)) {
             final SessionID sessionId = new SessionID(currentSection.getProperty(BEGINSTRING),
-                    currentSection.getProperty(SENDERCOMPID), currentSection
-                            .getProperty(SENDERSUBID), currentSection.getProperty(SENDERLOCID),
-                    currentSection.getProperty(TARGETCOMPID), currentSection
-                            .getProperty(TARGETSUBID), currentSection.getProperty(TARGETLOCID),
+                    currentSection.getProperty(SENDERCOMPID),
+                    currentSection.getProperty(SENDERSUBID),
+                    currentSection.getProperty(SENDERLOCID),
+                    currentSection.getProperty(TARGETCOMPID),
+                    currentSection.getProperty(TARGETSUBID),
+                    currentSection.getProperty(TARGETLOCID),
                     currentSection.getProperty(SESSION_QUALIFIER));
             sections.put(sessionId, currentSection);
             currentSectionId = null;
@@ -762,6 +767,22 @@ public class SessionSettings {
             ret[ii++] = sec;
         }
         return ret;
+    }
+
+    public static Set<InetAddress> parseRemoteAddresses(String raw) {
+        if (raw == null || raw.length() == 0) {
+            return null;
+        }
+        final String[] data = raw.split(",");
+        final Set<InetAddress> result = new HashSet<InetAddress>();
+        for (final String multi : data) {
+            try {
+                result.add(InetAddress.getByName(multi));
+            } catch (final UnknownHostException e) {
+                log.error("Ignored unknown host : " + multi, e);
+            }
+        }
+        return result;
     }
 
 }
