@@ -59,7 +59,7 @@ public class DefaultSessionFactory implements SessionFactory {
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
             String connectionType = null;
-            boolean rejectInvalideMessage = getSetting(settings, sessionID,
+            final boolean rejectInvalideMessage = getSetting(settings, sessionID,
                     Session.REJECT_INVALID_MESSAGE, true);
 
             if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
@@ -117,7 +117,6 @@ public class DefaultSessionFactory implements SessionFactory {
 
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
-                rejectInvalideMessage = false;
                 heartbeatInterval = (int) settings.getLong(sessionID, Session.SETTING_HEARTBTINT);
                 if (heartbeatInterval <= 0) {
                     throw new ConfigError("Heartbeat must be greater than zero");
