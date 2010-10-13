@@ -17,7 +17,7 @@
  * are not clear to you.
  ******************************************************************************/
 
-package quickfix.codegen;
+package org.quickfixj.codegenerator;
 
 import java.io.BufferedOutputStream;
 import java.io.File;

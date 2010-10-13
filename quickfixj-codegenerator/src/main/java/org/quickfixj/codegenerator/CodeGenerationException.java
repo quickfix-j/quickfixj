@@ -17,7 +17,7 @@
  * are not clear to you.
  ******************************************************************************/
 
-package quickfix.codegen;
+package org.quickfixj.codegenerator;
 
 /**
  * Signals an error in the code generation software.
