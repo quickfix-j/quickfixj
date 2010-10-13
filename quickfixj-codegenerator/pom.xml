@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>quickfixj</groupId>
+  <artifactId>quickfixj-codegenerator</artifactId>
+  <packaging>maven-plugin</packaging>
+  <version>1.6.0-SNAPSHOT</version>
+  <name>QuickFIX/J Code Generator Maven Plugin</name>
+   <description>
+    The codegenerator plugin allows creating Java sources for FIX Messages from a QuickFIX XML dictionary
+  </description>
+	<parent>
+		<groupId>quickfixj</groupId>
+		<artifactId>quickfixj-all</artifactId>
+		<version>1.6.0-SNAPSHOT</version>
+	</parent>
+   <licenses>
+      <license>
+         <name>Apache License 2.0</name>
+         <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+         <distribution>repo</distribution>
+      </license>
+   </licenses>
+  <url>http://www.quickfixj.org</url>
+   <prerequisites>
+      <maven>2.0</maven>
+   </prerequisites>
+   <properties>
+      <jdkLevel>1.5</jdkLevel> 
+   </properties>   
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>2.0</version>
+    </dependency>
+      <dependency>
+         <groupId>org.codehaus.plexus</groupId>
+         <artifactId>plexus-compiler-api</artifactId>
+         <version>1.5.1</version>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.maven</groupId>
+         <artifactId>maven-project</artifactId>
+         <version>2.0</version>
+      </dependency>
+      <dependency>
+         <groupId>org.codehaus.plexus</groupId>
+         <artifactId>plexus-utils</artifactId>
+         <version>1.0.4</version>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.maven.shared</groupId>
+         <artifactId>maven-plugin-testing-harness</artifactId>
+         <version>1.1</version>
+         <scope>test</scope>
+      </dependency>
+  </dependencies>
+   <build>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId> 
+            <artifactId>maven-compiler-plugin</artifactId> 
+            <configuration> 
+                <source>1.5</source>
+                <target>1.5</target>
+            </configuration>         
+         </plugin>
+         <plugin> 
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <version>2.3</version>
+            <configuration> 
+               <targetJdk>1.5</targetJdk>
+            </configuration> 
+         </plugin>      
+      </plugins>
+   </build>
+   <developers>
+      <developer>
+         <id>rockdreamer</id>
+         <name>Claudio Bantaloukas</name>
+         <email>rockdreamer@gmail.com</email>
+         <url>http://www.rdfm.org</url>
+         <organization>Private</organization>
+         <timezone>+1 GMT</timezone>
+      </developer>
+   </developers>
+
+ </project>
