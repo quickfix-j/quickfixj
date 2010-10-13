@@ -44,12 +44,11 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.apache.maven.plugin.logging.Log;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
@@ -60,8 +59,6 @@ public class MessageCodeGenerator {
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
 
-    private Logger log = LoggerFactory.getLogger(getClass());
-
     //  An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
     private static final long SERIAL_UID = 20050617;
@@ -71,6 +68,15 @@ public class MessageCodeGenerator {
 
     //  The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
+
+    private Log log = null;
+    public Log getLog() {
+		return log;
+	}
+
+	public void setLog(Log log) {
+		this.log = log;
+	}
 
     private void generateMessageBaseClass(Task task) throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
@@ -111,9 +117,9 @@ public class MessageCodeGenerator {
 
     private void generateFieldClasses(Task task) throws ParserConfigurationException, SAXException,
             IOException {
-        log.info(task.getName() + ": generating field classes");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getFieldDirectory()
                 + "/";
+        log.info(task.getName() + ": generating field classes in "+outputDirectory);
         writePackageDocumentation(outputDirectory, "FIX field definitions for " + task.getName());
         Document document = getSpecification(task);
         List<String> fieldNames = getNames(document.getDocumentElement(), "fields/field");
