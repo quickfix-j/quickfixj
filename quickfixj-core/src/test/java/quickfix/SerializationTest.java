@@ -29,6 +29,7 @@ import junit.framework.TestCase;
 public class SerializationTest extends TestCase {
 
     private String[] srcDirs = new String[] { 
+            "target/generated-sources" ,
             "generated-sources/messages", 
             "core/target/generated-sources/messages" 
             };
@@ -217,6 +218,8 @@ public class SerializationTest extends TestCase {
 
         public void assertSerialization(String fieldClassName) {
             Field<?> sourceField = (Field<?>) objectFromClassName(fieldClassName);
+            assertNotNull("Cannot obtain object for class:"+fieldClassName, sourceField);
+            
             String sourceFIXString = sourceField.toString();
 
             Field<?> serializedField = (Field<?>) buildSerializedObject(sourceField);
@@ -307,11 +310,19 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private static final String classesBaseDirForEclipse = "classes";
-    private static final String classesBaseDirForAnt = "core/target/classes/main";
+	private static final String [] classesBaseDirs = {
+		"classes",
+		"core/target/classes/main",
+		"target/classes"
+	};
 
     private String getBaseDirectory() {
-        return new File(classesBaseDirForEclipse).exists() ? classesBaseDirForEclipse : classesBaseDirForAnt;
+	for (String p: classesBaseDirs){
+         if (new File(p).exists() ){
+		return p;
+	 }
+	}
+	return null;
     }
 
     public void testSerialVersionUUID() throws ClassNotFoundException {
