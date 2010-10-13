@@ -67,6 +67,8 @@ public class JdbcTestSupport {
             if (tableName != null) {
                 preprocessedSql = preprocessedSql.replaceAll("CREATE TABLE [a-z]+", "CREATE TABLE "
                         + tableName);
+                preprocessedSql = preprocessedSql.replaceAll("DROP TABLE [a-z]+", "DROP TABLE "
+                        + tableName);
                 preprocessedSql = preprocessedSql.replaceAll("DELETE FROM [a-z]+", "DELETE FROM "
                         + tableName);
             }
@@ -88,7 +90,7 @@ public class JdbcTestSupport {
     public static void loadSQL(Connection connection, String resource,
             HypersonicPreprocessor sqlPreprocessor) throws SQLException, IOException {
         Statement stmt = connection.createStatement();
-        InputStream sqlInput = new FileInputStream(resource);
+        InputStream sqlInput = FileUtil.open(Message.class,resource);
         String sql = getString(sqlInput);
         if (sqlPreprocessor != null) {
             sql = sqlPreprocessor.preprocessSQL(sql);
