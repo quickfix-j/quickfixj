@@ -201,8 +201,14 @@ public class MessageCodeGenerator {
 
     private Transformer createTransformer(Task task, String xsltFile)
             throws TransformerFactoryConfigurationError, TransformerConfigurationException {
-        StreamSource styleSource = new StreamSource(new File(task.getTransformDirectory() + "/"
-                + xsltFile));
+    	StreamSource styleSource;
+    	File xslt = new File(task.getTransformDirectory() + "/" + xsltFile);
+    	if (xslt.exists()){
+    		styleSource = new StreamSource(xslt);
+    	} else {
+    		log.info("Loading predefined xslt file:"+xsltFile);
+    		styleSource = new StreamSource( this.getClass().getResourceAsStream(xsltFile));
+    	}
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer transformer = transformerFactory.newTransformer(styleSource);
         return transformer;
@@ -216,7 +222,7 @@ public class MessageCodeGenerator {
         if (document == null) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            document = builder.parse(new File(task.getSpecification()));
+            document = builder.parse(task.getSpecification());
             specificationCache.put(task.getName(), document);
         }
         return document;
@@ -322,12 +328,12 @@ public class MessageCodeGenerator {
 
     public static class Task {
         private String name;
-        private String specification;
-        private String outputBaseDirectory;
+        private File specification;
+        private File outputBaseDirectory;
         private String messagePackage;
         private String fieldPackage;
         private boolean overwrite = true;
-        private String transformDirectory;
+        private File transformDirectory;
         private boolean orderedFields;
         private boolean useDecimal;
         private long specificationLastModified;
@@ -348,7 +354,7 @@ public class MessageCodeGenerator {
             return orderedFields;
         }
 
-        public String getTransformDirectory() {
+        public File getTransformDirectory() {
             return transformDirectory;
         }
 
@@ -380,20 +386,21 @@ public class MessageCodeGenerator {
             this.messagePackage = messagePackage;
         }
 
-        public String getOutputBaseDirectory() {
+        public File getOutputBaseDirectory() {
             return outputBaseDirectory;
         }
 
-        public void setOutputBaseDirectory(String outputBaseDirectory) {
-            this.outputBaseDirectory = outputBaseDirectory;
+        public void setOutputBaseDirectory(File outputDirectory) {
+            this.outputBaseDirectory = outputDirectory;
         }
 
-        public String getSpecification() {
+        public File getSpecification() {
             return specification;
         }
 
-        public void setSpecification(String specification) {
-            this.specification = specification;
+        public void setSpecification(File dictFile) {
+            this.specification = dictFile;
+            this.specificationLastModified = dictFile.lastModified();
         }
 
         public boolean isOverwrite() {
@@ -404,8 +411,8 @@ public class MessageCodeGenerator {
             this.overwrite = overwrite;
         }
 
-        public void setTransformDirectory(String transformDirectory) {
-            this.transformDirectory = transformDirectory;
+        public void setTransformDirectory(File schemaDirectory) {
+            this.transformDirectory = schemaDirectory;
         }
 
         public void setDecimalGenerated(boolean useDecimal) {
@@ -450,10 +457,10 @@ public class MessageCodeGenerator {
                 Task task = new Task();
                 task.setName(vers[i]);
                 final String temp = stripSpaces(vers[i]);
-                task.setSpecification(args[0] + "/" + temp + ".xml");
-                task.setTransformDirectory(args[1]);
+                task.setSpecification(new File(args[0] + "/" + temp + ".xml"));
+                task.setTransformDirectory(new File(args[1]));
                 task.setMessagePackage("quickfix." + temp.toLowerCase());
-                task.setOutputBaseDirectory(args[2]);
+                task.setOutputBaseDirectory(new File(args[2]));
                 task.setFieldPackage("quickfix.field");
                 task.setOverwrite(overwrite);
                 task.setOrderedFields(orderedFields);
