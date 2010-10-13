@@ -129,12 +129,12 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
             if (messagesTableName != null) {
                 dropTable(connection, messagesTableName);
             }
-            loadSQL(connection, "core/src/main/config/sql/mysql/messages_table.sql",
+            loadSQL(connection, "config/sql/hsqldb/messages_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(messagesTableName));
             if (sessionsTableName != null) {
                 dropTable(connection, sessionsTableName);
             }
-            loadSQL(connection, "core/src/main/config/sql/mysql/sessions_table.sql",
+            loadSQL(connection, "config/sql/hsqldb/sessions_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(sessionsTableName));
         } finally {
             close(null, connection);

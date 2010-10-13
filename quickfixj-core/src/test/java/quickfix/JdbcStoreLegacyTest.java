@@ -35,10 +35,10 @@ public class JdbcStoreLegacyTest extends JdbcStoreTest {
         try {
             connection = getDataSource().getConnection();
             JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/messages_table.sql",
+                    "config/sql/hsqldb/messages_table.sql",
                     new JdbcTestSupport.HypersonicLegacyPreprocessor(messagesTableName));
             JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/sessions_table.sql",
+                    "config/sql/hsqldb/sessions_table.sql",
                     new JdbcTestSupport.HypersonicLegacyPreprocessor(sessionsTableName));
         } finally {
             JdbcUtil.close(null, connection);

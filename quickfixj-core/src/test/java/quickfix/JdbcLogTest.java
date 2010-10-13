@@ -108,7 +108,7 @@ public class JdbcLogTest extends TestCase {
     }
 
     private void dropTable(String tableName) throws SQLException {
-        connection.prepareStatement("DROP TABLE IF EXISTS " + tableName + ";")
+        connection.prepareStatement("DROP TABLE " + tableName + " IF EXISTS;")
                 .execute();
     }
 
@@ -165,10 +165,10 @@ public class JdbcLogTest extends TestCase {
     protected void initializeTableDefinitions(Connection connection) throws ConfigError {
         try {
             JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/messages_log_table.sql",
+                    "config/sql/hsqldb/messages_log_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(null));
             JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/event_log_table.sql",
+                    "config/sql/hsqldb/event_log_table.sql",
                     new JdbcTestSupport.HypersonicPreprocessor(null));
         } catch (Exception e) {
             throw new ConfigError(e);

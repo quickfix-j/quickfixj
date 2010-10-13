@@ -26,10 +26,10 @@ public class JdbcLogLegacyTest extends JdbcLogTest {
     protected void initializeTableDefinitions(Connection connection) throws ConfigError {
         try {
             JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/messages_log_table.sql",
+                    "config/sql/hsqldb/messages_log_table.sql",
                     new JdbcTestSupport.HypersonicLegacyPreprocessor(null));
             JdbcTestSupport.loadSQL(connection,
-                    "core/src/main/config/sql/mysql/event_log_table.sql",
+                    "config/sql/hsqldb/event_log_table.sql",
                     new JdbcTestSupport.HypersonicLegacyPreprocessor(null));
         } catch (Exception e) {
             throw new ConfigError(e);
