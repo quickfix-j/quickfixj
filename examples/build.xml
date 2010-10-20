@@ -17,11 +17,11 @@
     <property name="jar.output.file" value="quickfixj-examples-${version}.jar"/>
 
 	<path id="compile.classpath">
-		<fileset dir="../core/src/main/lib">
+		<fileset dir="../lib">
 			<include name="*.jar"/>
 			<include name="optional/mx4j-*.jar"/>
 		</fileset>
-		<fileset dir="../core/target">
+		<fileset dir="../quickfixj-core/target/">
 			<include name="quickfixj*.jar"/>
 		</fileset>
 	</path>
@@ -56,12 +56,12 @@
 	================================================================= -->
 
 	<path id="script.path">
-		<fileset dir="../core/src/main/lib">
+		<fileset dir="../lib">
 			<include name="mina*.jar"/>
 			<include name="slf4j*.jar"/>
 			<exclude name="*-sources.jar"/>
 		</fileset>
-		<fileset dir="../core/target">
+		<fileset dir="../quickfixj-core/target">
 			<include name="*.jar"/>
 		</fileset>
 		<fileset dir="../examples/target">
@@ -118,8 +118,8 @@
 		<property name="comment" value="Scripts for the QFJ binary distribution"/>
 		
 		<pathconvert targetos="unix" property="script.path.dos.src" refid="${classpath}" pathsep=";">
-			<map from="${project.dir}/core/src/main/lib" to="%QFJ_HOME%/lib"/>
-			<map from="${project.dir}/core/target" to="%QFJ_HOME%"/>
+			<map from="${project.dir}/lib" to="%QFJ_HOME%/lib"/>
+			<map from="${project.dir}/quickfixj-core/target" to="%QFJ_HOME%"/>
 			<map from="${project.dir}/examples/target" to="%QFJ_HOME%"/>
 		</pathconvert>
 		
@@ -135,8 +135,8 @@
 		</copy>
 
 		<pathconvert targetos="unix" property="script.path.unix.src" refid="${classpath}">
-			<map from="${project.dir}/core/src/main/lib" to="$qfjhome/lib"/>
-			<map from="${project.dir}/core/target" to="$qfjhome"/>
+			<map from="${project.dir}/lib" to="$qfjhome/lib"/>
+			<map from="${project.dir}/quickfixj-core/target" to="$qfjhome"/>
 			<map from="${project.dir}/examples/target" to="$qfjhome"/>
 		</pathconvert>
 

@@ -1,83 +1,17 @@
 <project name="core" basedir="." default="jar">
 	<import file="../module.xml" />
 
-	<property name="version" value="SNAPSHOT" />
-
 	<tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
 	</tstamp>
 
-	<path id="jalopy.classpath" description="Jalopy tool path">
-		<fileset dir="${main.lib.dir}/build">
-			<include name="jalopy*.jar" />
-		</fileset>
-		<fileset dir="${main.optional.lib.dir}">
-			<include name="log4j*.jar" />
-		</fileset>
-	</path>
-
-	<!-- =============================================================
-	Generate FIX Message Code
-	================================================================= -->
-
-	<property name="target.generated.src.dir" value="${target.dir}/generated-sources/messages" />
-
-	<target name="check.generated.isuptodate">
-		<uptodate property="generated.isuptodate">
-			<srcfiles dir="${main.resources.dir}" includes="FIX4*.xml" />
-			<globmapper from="FIX*.xml" to="${basedir}/${target.generated.src.dir}/quickfix/fix*/Message.java" />
-		</uptodate>
-	</target>
-
-	<target name="generate.code" unless="generated.isuptodate" depends="check.generated.isuptodate" description="generate FIX message code">
-		<antcall target="regenerate.code" />
-		<antcall target="format.generated.code" />
-	</target>
-
-	<property name="generator.decimal" value="false" />
-	<property name="generator.orderedFields" value="false" />
-
-	<target name="regenerate.code">
-		<mkdir dir="${main.classes.dir}" />
-		<javac srcdir="${main.src.dir}/quickfix/codegen" includes="MessageCodeGenerator.java,CodeGenerationException.java" destdir="${main.classes.dir}" classpathref="main.lib.classpath" encoding="UTF-8">
-			<compilerarg line="${javac.args}" />
-		</javac>
-		<java classname="quickfix.codegen.MessageCodeGenerator" fork="yes">
-			<jvmarg value="-Xms128m" />
-			<jvmarg value="-Xmx256m" />
-			<jvmarg value="-Dgenerator.decimal=${generator.decimal}" />
-			<jvmarg value="-Dgenerator.orderedFields=${generator.orderedFields}" />
-			<arg value="${main.resources.dir}" />
-			<arg value="${main.src.dir}/quickfix/codegen" />
-			<arg value="${target.generated.src.dir}" />
-			<classpath>
-				<pathelement location="${main.classes.dir}" />
-				<path refid="main.lib.classpath" />
-			</classpath>
-		</java>
-	</target>
-
-	<!-- ==================================================================== -->
-	<!-- Defines the Jalopy task -->
-	<!-- ==================================================================== -->
-
-	<taskdef name="jalopy" classname="de.hunsicker.jalopy.plugin.ant.AntPlugin" classpathref="jalopy.classpath" />
-
-	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy.
-		Mostly interested in getting all the tabbing right." unless="skip.jalopy">
-		<jalopy classpathref="main.lib.classpath" fileformat="unix" encoding="UTF-8">
-			<fileset dir="${target.generated.src.dir}">
-				<include name="**/*.java" />
-			</fileset>
-		</jalopy>
-	</target>
 
 
 	<!-- =============================================================
 	Compile Sources
 	================================================================= -->
 
-	<target name="compile" depends="generate.code" description="compile the sources">
+	<target name="compile" description="compile the sources">
 		<antcall target="compile_main" />
 		<antcall target="compile_test" />
 	</target>
@@ -118,15 +52,14 @@
 	Build JAR
 	================================================================= -->
 
-	<property name="quickfixj.core.jar" value="quickfixj-core-${version}.jar" />
-	<property name="quickfixj.all.jar" value="quickfixj-all-${version}.jar" />
+	<property name="quickfixj.core.jar" value="quickfixj-core-${quickfixj.version}.jar" />
 
 	<target name="jar" description="build jar files" depends="compile">
 		<mkdir dir="${target.dir}" />
 		<manifest file="${jar.output.dir}/MANIFEST.MF">
 			<attribute name="Main-Class" value="org.quickfixj.Version" />
 			<attribute name="Implementation-Title" value="QuickFIX/J Core" />
-			<attribute name="Implementation-Version" value="${version}" />
+			<attribute name="Implementation-Version" value="${quickfixj.version}" />
 		</manifest>
 		<jar destfile="${jar.output.dir}/${quickfixj.core.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
 			<fileset dir="${main.classes.dir}">
@@ -141,36 +74,7 @@
 				<include name="**/*.cert" />
 			</fileset>
 		</jar>
-		<jar destfile="${jar.output.dir}/${quickfixj.all.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
-			<fileset dir="${main.classes.dir}" />
-			<fileset dir="${main.resources.dir}" />
-			<fileset dir="${main.src.dir}">
-				<include name="**/*.cert" />
-			</fileset>
-		</jar>
-		<create-message-jar fixVersion="40" />
-		<create-message-jar fixVersion="41" />
-		<create-message-jar fixVersion="42" />
-		<create-message-jar fixVersion="43" />
-		<create-message-jar fixVersion="44" />
-		<create-message-jar fixVersion="50" />
-		<create-message-jar fixVersion="t11" />
 	</target>
-
-	<macrodef name="create-message-jar">
-		<attribute name="fixVersion" />
-		<sequential>
-			<jar destfile="${jar.output.dir}/quickfixj-msg-fix@{fixVersion}-${version}.jar"
-				manifest="${jar.output.dir}/MANIFEST.MF">
-				<fileset dir="${main.resources.dir}" casesensitive="false">
-					<include name="FIX@{fixVersion}.xml" />
-				</fileset>
-				<fileset dir="${main.classes.dir}">
-					<include name="quickfix/fix@{fixVersion}/**" />
-				</fileset>
-			</jar>
-		</sequential>
-	</macrodef>
 
 	<!-- =============================================================
 	Run Tests
@@ -454,6 +358,7 @@
 
 	<path id="compile.classpath">
 		<pathelement location="${main.classes.dir}" />
+		<pathelement location="${main.messages.classes.dir}" />
 		<pathelement location="${test.classes.dir}" />
 		<path refid="main.lib.classpath" />
 		<path refid="main.optional.lib.classpath" />
@@ -463,7 +368,7 @@
 	<path id="test.classpath">
 		<pathelement location="${jar.output.dir}/${quickfixj.core.jar}" />
 		<fileset dir="${jar.output.dir}">
-			<include name="quickfixj-msg-fix*-${version}.jar" />
+			<include name="quickfixj-msg-fix*-${quickfixj.version}.jar" />
 		</fileset>
 		<pathelement location="${test.classes.dir}" />
 		<pathelement location="${test.src.dir}" />
@@ -476,7 +381,6 @@
 
 	<path id="main.src.path">
 		<pathelement location="${main.src.dir}" />
-		<pathelement location="${target.generated.src.dir}" />
 	</path>
 
 	<path id="test.src.path">
@@ -490,7 +394,7 @@
 	<target name="compile_dotnet">
 		<property name="keyfile" value="" />
 		<property environment="env" />
-		<input message="Enter version number" addproperty="version" />
+		<input message="Enter version number" addproperty="quickfixj.version" />
 
 		<mkdir dir="${basedir}/target/dotnet" />
 		<delete>
@@ -500,7 +404,7 @@
 		<exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
 			<arg value="-target:library" />
 			<arg value="${keyfile}" />
-			<arg value="-version:${version}" />
+			<arg value="-version:${quickfixj.version}" />
 			<arg value="-out:logging.dll" />
 			<arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
 			<!-- arg line="${basedir}/src/main/lib/optional/log4j-1.2.15.jar" />
@@ -517,7 +421,7 @@
           <param name="jarfile" value="${basedir}/src/main/lib/optional/mina-filter-compression-2.0.7.jar"/>
 		</antcall>
 		<antcall target="compile_dll">
-			<param name="jarfile" value="${basedir}/target/quickfixj-all-${version}.jar" />
+			<param name="jarfile" value="${basedir}/target/quickfixj-all-${quickfixj.version}.jar" />
 		</antcall>
 	</target>
 
@@ -540,7 +444,7 @@
 		<exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
 			<arg value="-target:library" />
 			<arg value="${keyfile}" />
-			<arg value="-version:${version}" />
+			<arg value="-version:${quickfixj.version}" />
 			<arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
 			<arg line="${references}" />
 			<arg value="${jarfile}" />

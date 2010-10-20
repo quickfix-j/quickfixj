@@ -3,6 +3,8 @@
 		This is the shared module build file for QFJ modules.
 	</description>
 			
+	<property name="quickfixj.version" value="SNAPSHOT" />
+	<property name="top.dir" value=".." />
 	<property name="main.dir" value="src/main" />
 	<property name="test.dir" value="src/test" />
 	<property name="target.dir" value="target" />
@@ -13,15 +15,20 @@
 	<property name="test.src.dir" value="${test.dir}/java" />
 	<property name="test.resources.dir" value="${test.dir}/resources" />
 
-	<property name="main.lib.dir" value="${main.dir}/lib" />
-	<property name="main-1.4.lib.dir" value="${main.dir}/lib/java4" />
-	<property name="main.optional.lib.dir" value="${main.dir}/lib/optional" />
-	<property name="test.lib.dir" value="${test.dir}/lib" />
+	<property name="target.generated.src.dir" value="${target.dir}/generated-sources/" />
 
 	<property name="target.classes.dir" value="${target.dir}/classes"/>
 	<property name="main.classes.dir" value="${target.classes.dir}/main" />
 	<property name="test.classes.dir" value="${target.classes.dir}/test" />
 	<property name="jar.output.dir" value="${target.dir}" />
+
+	<property name="main.messages.dir" value="${top.dir}/quickfixj-messages/${main.resources.dir}" />
+	<property name="main.messages.classes.dir" value="${top.dir}/quickfixj-messages/${main.classes.dir}" />
+	
+	<property name="main.lib.dir" value="${top.dir}/lib" />
+	<property name="main-1.4.lib.dir" value="${main.lib.dir}/java4" />
+	<property name="main.optional.lib.dir" value="${main.lib.dir}/optional" />
+	<property name="test.lib.dir" value="${main.lib.dir}/test" />
 
 	<property name="javadoc.input.dir" value="${main.dir}/doc" />
 	<property name="javadoc.output.dir" value="${target.dir}/doc/api" />

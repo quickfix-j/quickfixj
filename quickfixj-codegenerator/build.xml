@@ -1,0 +1,139 @@
+<project name="core" basedir="." default="jar">
+	<import file="../module.xml" />
+
+	<property name="version" value="SNAPSHOT"/>
+	
+	<tstamp>
+		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
+	</tstamp>
+
+	<target name="compile.codegenerator">
+		<mkdir dir="${main.classes.dir}" />
+		<javac srcdir="${main.src.dir}/quickfixj/codegenerator" includes="MessageCodeGenerator.java,CodeGenerationException.java" destdir="${main.classes.dir}" encoding="UTF-8">
+			<compilerarg line="${javac.args}" />
+		</javac>
+	</target>
+
+	<property name="javac.debug" value="true" />
+	<property name="javac.args" value="" />
+
+	<property name="quickfixj.codegenerator.jar" value="quickfixj-codegenerator-${version}.jar" />
+
+	<target name="jar" description="build jar files" depends="compile.codegenerator">
+		<mkdir dir="${target.dir}" />
+		<manifest file="${jar.output.dir}/MANIFEST.MF">
+			<attribute name="Main-Class" value="quickfixj.codegenerator.MessageCodeGenerator" />
+			<attribute name="Implementation-Title" value="QuickFIX/J Code Generator" />
+			<attribute name="Implementation-Version" value="${version}" />
+		</manifest>
+		<jar destfile="${jar.output.dir}/${quickfixj.codegenerator.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
+			<fileset dir="${main.classes.dir}">
+			</fileset>
+			<fileset dir="${main.resources.dir}">
+			</fileset>
+			<fileset dir="${main.src.dir}">
+				<include name="**/*.cert" />
+			</fileset>
+		</jar>
+	</target>
+
+
+	<target name="javadoc" depends="check.javadoc.uptodate" unless="javadoc.uptodate" description="generate Javadocs">
+		<description>Generate the Javadocs for the main sources.</description>
+		<mkdir dir="${javadoc.output.dir}" />
+
+		<javadoc overview="${javadoc.input.dir}/javadoc_overview.html" noindex="yes" stylesheetfile="${javadoc.input.dir}/javadoc.css" destdir="${javadoc.output.dir}" protected="yes" maxmemory="768m" breakiterator="yes" classpathref="compile.classpath">
+			<sourcepath>
+				<pathelement location="${main.src.dir}" />
+				<pathelement location="${target.generated.src.dir}" />
+			</sourcepath>
+			<packageset dir="${main.src.dir}">
+				<include name="quickfixj/codegenerator" />
+			</packageset>
+		</javadoc>
+	</target>
+
+	<target name="check.javadoc.uptodate">
+		<uptodate property="javadoc.uptodate" targetfile="${javadoc.output.dir}/index.html">
+			<srcfiles dir="${main.src.dir}" includes="**/*.java" />
+			<srcfiles dir="${target.generated.src.dir}" includes="**/*.java" />
+		</uptodate>
+	</target>
+
+	<!-- =============================================================
+	Custom Exports
+	================================================================= -->
+
+	<target name="export_binary_src" depends="module.export_binary_src">
+		<copy todir="${release.bin_src.staging.dir}" includeEmptyDirs="false">
+			<fileset dir="${target.generated.src.dir}" />
+		</copy>
+	</target>
+
+	<target name="export_binaries" depends="module.export_binaries">
+		<copy todir="${release.bin.staging.dir}/lib">
+			<fileset dir="src/main/lib">
+				<include name="*.jar"/>
+				<include name="optional/*.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="${release.bin.staging.dir}/doc">
+			<fileset dir="src/main/doc" includes="usermanual/**/*" />
+		</copy>
+		<copy todir="${release.bin.staging.dir}/etc">
+			<fileset dir="src/main/resources" includes="**/*" />
+			<fileset dir="src/main/config" includes="**/*" />
+		</copy>
+	</target>
+
+	<!-- =============================================================
+	Path References
+	================================================================= -->
+
+	<path id="main.lib.classpath">
+		<fileset dir="${main.lib.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="main.optional.lib.classpath">
+		<fileset dir="${main.optional.lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<path id="test.lib.classpath">
+		<fileset dir="${test.lib.dir}">
+			<include name="*.jar" />
+			<exclude name="**/java4/*"/>
+		</fileset>
+	</path>
+
+	<path id="compile.classpath">
+		<pathelement location="${main.classes.dir}" />
+		<pathelement location="${test.classes.dir}" />
+		<path refid="main.lib.classpath" />
+		<path refid="main.optional.lib.classpath" />
+		<path refid="test.lib.classpath" />
+	</path>
+
+	<path id="test.classpath">
+		<pathelement location="${jar.output.dir}/${quickfixj.core.jar}" />
+		<fileset dir="${jar.output.dir}">
+			<include name="quickfixj-msg-fix*-${version}.jar"/>
+		</fileset>
+		<pathelement location="${test.classes.dir}" />
+		<pathelement location="${test.src.dir}" />
+		<!-- for FIX_Custom*.xml -->
+		<path refid="main.lib.classpath" />
+		<path refid="main.optional.lib.classpath" />
+		<path refid="test.lib.classpath" />
+
+	</path>
+
+	<path id="main.src.path">
+		<pathelement location="${main.src.dir}" />
+		<pathelement location="${target.generated.src.dir}" />
+	</path>
+
+</project>
