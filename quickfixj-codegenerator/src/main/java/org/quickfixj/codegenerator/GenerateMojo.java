@@ -97,7 +97,7 @@ public class GenerateMojo
      * {@link QuickFixSourceGenerator} instance used for code generation.
      * 
      */
-    private MessageCodeGenerator sgen;
+    private MavenMessageCodeGenerator sgen;
 
     /**
      * {@inheritDoc}
@@ -113,7 +113,7 @@ public class GenerateMojo
         }
 
         try {
-            sgen = new MessageCodeGenerator( );
+            sgen = new MavenMessageCodeGenerator( );
             if ( getLog().isInfoEnabled() )
             {
                 getLog().info( "Successfully created an instance of the QuickFIX source generator" );

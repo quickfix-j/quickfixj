@@ -48,7 +48,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.apache.maven.plugin.logging.Log;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
@@ -69,19 +68,21 @@ public class MessageCodeGenerator {
     //  The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
 
-    private Log log = null;
-    public Log getLog() {
-		return log;
-	}
-
-	public void setLog(Log log) {
-		this.log = log;
-	}
+    protected void logInfo(String msg){
+        System.out.println(msg);
+    }
+    protected void logDebug(String msg){
+        System.out.println(msg);
+    }
+    protected void logError(String msg, Throwable e){
+        System.err.println(msg);
+        e.printStackTrace();
+    }
 
     private void generateMessageBaseClass(Task task) throws TransformerConfigurationException,
             FileNotFoundException, ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
-        log.info(task.getName() + ": generating message base class");
+        logInfo(task.getName() + ": generating message base class");
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
         generateClassCode(task, "Message", parameters);
@@ -103,7 +104,7 @@ public class MessageCodeGenerator {
             throws ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
-        log.debug("generating " + className + " for " + task.getName());
+        logDebug("generating " + className + " for " + task.getName());
         if (parameters == null) {
             parameters = new HashMap<String, String>();
         }
@@ -119,7 +120,7 @@ public class MessageCodeGenerator {
             IOException {
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getFieldDirectory()
                 + "/";
-        log.info(task.getName() + ": generating field classes in "+outputDirectory);
+        logInfo(task.getName() + ": generating field classes in "+outputDirectory);
         writePackageDocumentation(outputDirectory, "FIX field definitions for " + task.getName());
         Document document = getSpecification(task);
         List<String> fieldNames = getNames(document.getDocumentElement(), "fields/field");
@@ -129,7 +130,7 @@ public class MessageCodeGenerator {
                 String fieldName = fieldNames.get(i);
                 String outputFile = outputDirectory + fieldName + ".java";
                 if (!new File(outputFile).exists()) {
-                    log.debug("field: " + fieldName);
+                    logDebug("field: " + fieldName);
                     Map<String, String> parameters = new HashMap<String, String>();
                     parameters.put("fieldName", fieldName);
                     parameters.put("fieldPackage", task.getFieldPackage());
@@ -142,14 +143,14 @@ public class MessageCodeGenerator {
                 }
             }
         } catch (Exception e) {
-            log.error("error while generating field classes", e);
+            logError("error while generating field classes", e);
         }
     }
 
     private void generateMessageSubclasses(Task task) throws ParserConfigurationException,
             SAXException, IOException, TransformerConfigurationException, FileNotFoundException,
             TransformerFactoryConfigurationError, TransformerException {
-        log.info(task.getName() + ": generating message subclasses");
+        logInfo(task.getName() + ": generating message subclasses");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
                 + "/";
         writePackageDocumentation(outputDirectory, "Message classes");
@@ -158,7 +159,7 @@ public class MessageCodeGenerator {
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
         for (int i = 0; i < messageNames.size(); i++) {
             String messageName = messageNames.get(i);
-            log.debug("generating message class: " + messageName);
+            logDebug("generating message class: " + messageName);
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", messageName);
             parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
@@ -173,7 +174,7 @@ public class MessageCodeGenerator {
     private void generateComponentClasses(Task task) throws ParserConfigurationException,
             SAXException, IOException, TransformerConfigurationException, FileNotFoundException,
             TransformerFactoryConfigurationError, TransformerException {
-        log.info(task.getName() + ": generating component classes");
+        logInfo(task.getName() + ": generating component classes");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
                 + "/component/";
         Document document = getSpecification(task);
@@ -185,7 +186,7 @@ public class MessageCodeGenerator {
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
         for (int i = 0; i < componentNames.size(); i++) {
             String componentName = componentNames.get(i);
-            log.debug("generating component class: " + componentName);
+            logDebug("generating component class: " + componentName);
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", componentName);
             parameters.put("baseClass", "quickfix.MessageComponent");
@@ -206,7 +207,7 @@ public class MessageCodeGenerator {
     	if (xslt.exists()){
     		styleSource = new StreamSource(xslt);
     	} else {
-    		log.info("Loading predefined xslt file:"+xsltFile);
+    		logInfo("Loading predefined xslt file:"+xsltFile);
     		styleSource = new StreamSource( this.getClass().getResourceAsStream(xsltFile));
     	}
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -286,11 +287,11 @@ public class MessageCodeGenerator {
                 return;
             }
             if (outputFile.lastModified() > task.getSpecificationLastModified()) {
-                log.debug("Skipping file " + outputFile.getName());
+                logDebug("Skipping file " + outputFile.getName());
                 return;
             }
         }
-        log.debug("spec has mod " + task.getSpecificationLastModified() +
+        logDebug("spec has mod " + task.getSpecificationLastModified() +
                 " output has mod " + outputFile.lastModified());
 
         DOMSource source = new DOMSource(document);
@@ -303,7 +304,7 @@ public class MessageCodeGenerator {
             try {
                 bos.close();
             } catch (IOException ioe) {
-                log.error("error closing " + outputFile, ioe);
+                logError("error closing " + outputFile, ioe);
             }
         }
     }
@@ -469,10 +470,10 @@ public class MessageCodeGenerator {
             }
             double duration = System.currentTimeMillis() - start;
             DecimalFormat durationFormat = new DecimalFormat("#.###");
-            codeGenerator.log.info("Time for generation: "
+            codeGenerator.logInfo("Time for generation: "
                     + durationFormat.format(duration / 1000L) + " seconds");
         } catch (Exception e) {
-            codeGenerator.log.error("error during code generation", e);
+            codeGenerator.logError("error during code generation", e);
             System.exit(1);
         }
     }
