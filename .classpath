@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="core/src/main/java"/>
-	<classpathentry kind="src" path="core/target/generated-sources/messages"/>
-	<classpathentry kind="src" path="core/src/test/java"/>
-	<classpathentry kind="src" path="core/src/test/resources"/>
-	<classpathentry exported="true" kind="lib" path="core/src/main/resources"/>
-	<classpathentry kind="lib" path="core/src/main/lib/mina-core-2.0.7.jar" sourcepath="core/src/main/lib/apache-mina-2.0.7-src.zip"/>
 	<classpathentry kind="src" path="examples/src/main/java"/>
-	<classpathentry kind="lib" path="core/src/test/lib/hamcrest-all-1.1.jar"/>
-	<classpathentry kind="lib" path="core/src/test/lib/mockito-all-1.4.jar"/>
-	<classpathentry kind="lib" path="core/src/test/lib/junit-4.5.jar"/>
+	<classpathentry kind="src" output="quickfixj-messages/target/classes/main" path="quickfixj-messages/target/generated-sources"/>
+	<classpathentry kind="src" path="quickfixj-core/src/main/java"/>
+	<classpathentry kind="src" path="quickfixj-core/src/main/resources"/>
+	<classpathentry kind="src" output="quickfixj-messages/target/classes/main" path="quickfixj-messages/src/main/resources"/>
+	<classpathentry excluding="quickfixj/codegenerator/GenerateMojo.java|quickfixj/codegenerator/MavenMessageCodeGenerator.java" kind="src" output="quickfixj-codegenerator/target/classes/main" path="quickfixj-codegenerator/src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-0.9.1.jar" sourcepath="core/src/main/lib/optional/proxool-0.9.1-sources.zip"/>
-	<classpathentry kind="lib" path="core/src/main/lib/optional/proxool-cglib.jar"/>
-	<classpathentry exported="true" kind="lib" path="core/src/main/lib/optional/sleepycat-je_2.1.30.jar"/>
-	<classpathentry exported="true" kind="lib" path="core/src/test/lib/hsqldb-1.8.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="core/src/test/lib/jsch-0.1.21.jar"/>
-	<classpathentry exported="true" kind="lib" path="core/src/test/lib/tyrex-1.0.3.jar"/>
-	<classpathentry kind="lib" path="core/src/main/lib/slf4j-api-1.6.3.jar"/>
-	<classpathentry kind="lib" path="core/src/main/lib/slf4j-jdk14-1.6.3.jar"/>
-	<classpathentry kind="lib" path="core/src/main/lib/optional/dom4j-1.6.1.jar"/>
-	<classpathentry kind="lib" path="core/src/main/lib/optional/jaxen-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/optional/proxool-0.9.1.jar" sourcepath="lib/optional/proxool-0.9.1-sources.zip"/>
+	<classpathentry kind="lib" path="lib/optional/proxool-cglib.jar"/>
+	<classpathentry kind="lib" path="lib/optional/sleepycat-je_2.1.30.jar"/>
+	<classpathentry kind="lib" path="lib/optional/dom4j-1.6.1.jar"/>
+	<classpathentry kind="lib" path="lib/optional/jaxen-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/test/hamcrest-all-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/test/hsqldb-1.8.0.jar"/>
+	<classpathentry kind="lib" path="lib/test/jsch-0.1.21.jar"/>
+	<classpathentry kind="lib" path="lib/test/junit-4.5.jar"/>
+	<classpathentry kind="lib" path="lib/test/mockito-all-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/test/tyrex-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/mina-core-2.0.7.jar" sourcepath="lib/mina-core-2.0.7-sources.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.6.3.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.6.3.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
