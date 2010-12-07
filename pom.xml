@@ -11,6 +11,12 @@
    The Financial Information eXchange (FIX) protocol is a messaging standard developed specifically for the real-time electronic exchange of securities transactions. FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
 	QuickFIX/J is a full featured messaging engine for the FIX protocol. It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
   </description>
+    <distributionManagement>
+    <repository>
+      <id>ssh-repository</id>
+      <url>scpexe://www.rdfm.org/var/www/vhosts/rdfm.org/httpdocs/mvn</url>
+    </repository>
+  </distributionManagement>
 	<licenses>
 		<license>
 			<name>QuickFIX Software License</name>
@@ -35,6 +41,14 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh-external</artifactId>
+				<version>1.0-beta-7</version>
+			</extension>
+		</extensions>
+	
 	</build>
 
 	<developers>
