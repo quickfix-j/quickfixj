@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.math.BigDecimal;
@@ -583,8 +582,6 @@ public class MessageTest {
     @Test
     public void testMessageGroupRemovalUsingGroupObject() {
         final Message message = new Message();
-        final int length = message.calculateLength();
-        final int messageFieldWithZeroLengthGroup = length + "79=0\001".length();
 
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
 
@@ -595,9 +592,9 @@ public class MessageTest {
         message.removeGroup(numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-        assertZeroLengthField(message);
-        assertEquals("wrong message length", messageFieldWithZeroLengthGroup, message
-                .calculateLength());
+        
+        assertNoZeroLengthGroupTag(message);
+        assertEquals("wrong message length", 0, message.calculateLength());
 
         // Remove one at a time
 
@@ -611,22 +608,14 @@ public class MessageTest {
         message.removeGroup(1, numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-        assertZeroLengthField(message);
-        assertEquals("wrong message length", messageFieldWithZeroLengthGroup, message
-                .calculateLength());
-    }
-
-    private void assertZeroLengthField(Message message) {
-        assertTrue("Incorrect length in message.toString()", message.toString()
-                .contains("\00178=0"));
+        
+        assertNoZeroLengthGroupTag(message);
+        assertEquals("wrong message length", 0, message.calculateLength());
     }
 
     @Test
     public void testMessageGroupRemovalUsingGroupFieldTag() {
         final Message message = new Message();
-        final int length = message.calculateLength();
-        final int messageFieldWithZeroLengthGroup = length + "79=0\001".length();
-        final int expectedTotalWithZeroLengthGroup = new IntField(78, 0).getTotal();
 
         NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
 
@@ -637,10 +626,11 @@ public class MessageTest {
         message.removeGroup(numAllocs.getFieldTag());
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-        assertZeroLengthField(message);
-        assertEquals("wrong message length", messageFieldWithZeroLengthGroup, message
-                .calculateLength());
-        assertEquals("wrong total", expectedTotalWithZeroLengthGroup, message.calculateTotal());
+        
+        assertNoZeroLengthGroupTag(message);
+        assertEquals("wrong message length", 0, message.calculateLength());
+
+        assertEquals("wrong total", 0, message.calculateTotal());
 
         // Remove one at a time
 
@@ -655,18 +645,16 @@ public class MessageTest {
         message.removeGroup(1, numAllocs.getFieldTag());
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-        assertZeroLengthField(message);
-        assertEquals("wrong message length", messageFieldWithZeroLengthGroup, message
-                .calculateLength());
-        assertEquals("wrong total", expectedTotalWithZeroLengthGroup, message.calculateTotal());
+        
+        assertNoZeroLengthGroupTag(message);
+        assertEquals("wrong message length", 0, message.calculateLength());
+        
+        assertEquals("wrong total", 0, message.calculateTotal());
     }
 
     @Test
     public void testMessageGroupRemovalFromEmptyGroup() {
         final Message message = new Message();
-        final int length = message.calculateLength();
-        final int messageFieldWithZeroLengthGroup = length + "79=0\001".length();
-        final int expectedTotalWithZeroLengthGroup = new IntField(78, 0).getTotal();
         final NewOrderSingle.NoAllocs numAllocs = setUpGroups(message);
         message.removeGroup(numAllocs);
 
@@ -674,10 +662,13 @@ public class MessageTest {
         message.removeGroup(1, numAllocs);
 
         assertEquals("wrong # of group members", 0, message.getGroupCount(numAllocs.getFieldTag()));
-        assertZeroLengthField(message);
-        assertEquals("wrong message length", messageFieldWithZeroLengthGroup, message
-                .calculateLength());
-        assertEquals("wrong total", expectedTotalWithZeroLengthGroup, message.calculateTotal());
+        
+        assertNoZeroLengthGroupTag(message);
+        assertEquals("wrong message length", 0, message.calculateLength());
+    }
+
+    private void assertNoZeroLengthGroupTag(final Message message) {
+        assertFalse("Zero-length group tag exists in message string", message.toString().contains("\00178="));
     }
 
     @Test
