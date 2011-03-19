@@ -19,10 +19,12 @@
 
 package quickfix;
 
+import java.net.InetAddress;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
@@ -57,7 +59,9 @@ public class DefaultSessionFactory implements SessionFactory {
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         try {
             String connectionType = null;
-            boolean rejectInvalideMessage = getSetting(settings, sessionID, Session.REJECT_INVALID_MESSAGE, true);
+
+            boolean rejectInvalideMessage = getSetting(settings, sessionID,
+                    Session.REJECT_INVALID_MESSAGE, true);
 
             if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
                 connectionType = settings.getString(sessionID,
@@ -76,6 +80,11 @@ public class DefaultSessionFactory implements SessionFactory {
             if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)
                     && settings.isSetting(sessionID, SessionSettings.SESSION_QUALIFIER)) {
                 throw new ConfigError("SessionQualifier cannot be used with acceptor.");
+            }
+
+            if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)
+                    && settings.isSetting(sessionID, Session.SETTING_ALLOWED_REMOTE_ADDRESSES)) {
+                throw new ConfigError("AllowedRemoteAddresses cannot be used with initiator");
             }
 
             DefaultApplVerID senderDefaultApplVerID = null;
@@ -110,7 +119,6 @@ public class DefaultSessionFactory implements SessionFactory {
 
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
-                rejectInvalideMessage = false;
                 heartbeatInterval = (int) settings.getLong(sessionID, Session.SETTING_HEARTBTINT);
                 if (heartbeatInterval <= 0) {
                     throw new ConfigError("Heartbeat must be greater than zero");
@@ -162,15 +170,18 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean checkGapFieldOnAdminMessage = getSetting(settings, sessionID, Session.SETTING_CHECK_GAP_FIELD_ON_ADMIN_MESSAGE, true);
             final boolean forceResendWhenCorruptedStore = getSetting(settings, sessionID, Session.SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE, false);
 
-            int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
+            final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
+            final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
 
-
-            Session session = new Session(application, messageStoreFactory, sessionID,
+            final Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionaryProvider, new SessionSchedule(settings, sessionID), logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
-                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon,
-                    checkCompID, redundantResentRequestAllowed, persistMessages,
-                    useClosedIntervalForResend, testRequestDelayMultiplier, senderDefaultApplVerID, forceResync, logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck, rejectInvalideMessage, checkGapFieldOnAdminMessage, forceResendWhenCorruptedStore);
+                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
+                    redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
+                    testRequestDelayMultiplier, senderDefaultApplVerID, forceResync,
+                    logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck,
+                    rejectInvalideMessage, checkGapFieldOnAdminMessage,
+                    forceResendWhenCorruptedStore, allowedRemoteAddresses);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -195,8 +206,8 @@ public class DefaultSessionFactory implements SessionFactory {
         DataDictionary dataDictionary = createDataDictionary(sessionID, settings,
                 Session.SETTING_DATA_DICTIONARY, sessionID.getBeginString());
         dataDictionaryProvider.addTransportDictionary(sessionID.getBeginString(), dataDictionary);
-        dataDictionaryProvider.addApplicationDictionary(MessageUtils.toApplVerID(sessionID
-                .getBeginString()), null, dataDictionary);
+        dataDictionaryProvider.addApplicationDictionary(
+                MessageUtils.toApplVerID(sessionID.getBeginString()), null, dataDictionary);
     }
 
     private DataDictionary createDataDictionary(SessionID sessionID, SessionSettings settings,
@@ -230,7 +241,8 @@ public class DefaultSessionFactory implements SessionFactory {
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
             DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
             FieldConvertError {
-        dataDictionaryProvider.addTransportDictionary(sessionID.getBeginString(),
+        dataDictionaryProvider.addTransportDictionary(
+                sessionID.getBeginString(),
                 createDataDictionary(sessionID, settings, Session.SETTING_TRANSPORT_DATA_DICTIONARY,
                         sessionID.getBeginString()));
 
@@ -256,8 +268,8 @@ public class DefaultSessionFactory implements SessionFactory {
                     String beginStringQualifier = key.substring(offset + 1);
                     DataDictionary dd = createDataDictionary(sessionID, settings, key,
                             beginStringQualifier);
-                    dataDictionaryProvider.addApplicationDictionary(MessageUtils
-                            .toApplVerID(beginStringQualifier), null, dd);
+                    dataDictionaryProvider.addApplicationDictionary(
+                            MessageUtils.toApplVerID(beginStringQualifier), null, dd);
 
                 }
             }
@@ -316,6 +328,20 @@ public class DefaultSessionFactory implements SessionFactory {
         return new int[] { 5 }; // default value
     }
 
+
+    private Set<InetAddress> getInetAddresses(SessionSettings settings, SessionID sessionID)
+            throws ConfigError {
+        if (settings.isSetting(sessionID, Session.SETTING_ALLOWED_REMOTE_ADDRESSES)) {
+            try {
+                final String raw = settings.getString(sessionID,
+                        Session.SETTING_ALLOWED_REMOTE_ADDRESSES);
+                return SessionSettings.parseRemoteAddresses(raw);
+            } catch (final Throwable e) {
+                throw new ConfigError(e);
+            }
+        }
+        return null; // default value
+    }
 
     private boolean getSetting(SessionSettings settings, SessionID sessionID, String key,
             boolean defaultValue) throws ConfigError, FieldConvertError {
