@@ -541,12 +541,15 @@ public abstract class FieldMap implements Serializable {
             final Integer groupCountTag = entry.getKey();
             if (!isOrderedField(groupCountTag.intValue(), fieldOrder)) {
                 final List<Group> groups = entry.getValue();
-                final IntField countField = new IntField(groupCountTag.intValue(), groups.size());
-                countField.toString(buffer);
-                buffer.append('\001');
-                for (int i = 0; i < groups.size(); i++) {
-                    final FieldMap groupFields = groups.get(i);
-                    groupFields.calculateString(buffer, preFields, postFields);
+                int groupCount = groups.size();
+                if (groupCount > 0) {
+                    final IntField countField = new IntField(groupCountTag.intValue(), groupCount);
+                    countField.toString(buffer);
+                    buffer.append('\001');
+                    for (int i = 0; i < groupCount; i++) {
+                        final FieldMap groupFields = groups.get(i);
+                        groupFields.calculateString(buffer, preFields, postFields);
+                    }
                 }
             }
         }

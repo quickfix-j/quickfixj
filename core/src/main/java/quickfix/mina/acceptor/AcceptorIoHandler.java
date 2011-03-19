@@ -21,6 +21,7 @@ package quickfix.mina.acceptor;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import org.apache.mina.common.IoSession;
 
@@ -93,15 +94,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
             }
         }
 
-        if (qfSession == null) {
-            // [QFJ-117] this can happen if a late test request arrives after we 
-            // gave up waiting and closed the session.
-            log.error("Attempt to process message for non existant or closed session (only "
-                    + "legal action for logon messages). MsgType="
-                    + message.getHeader().getString(MsgType.FIELD));
-        } else {
-            eventHandlingStrategy.onMessage(qfSession, message);
-        }
+        eventHandlingStrategy.onMessage(qfSession, message);      
     }
 
     @Override
@@ -110,14 +103,16 @@ class AcceptorIoHandler extends AbstractIoHandler {
         if (s == null) {
             s = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
         }
-        if (s != null && protocolSession.getAttribute(SessionConnector.QF_SESSION) == null) {
-            final InetAddress remoteAddress = ((InetSocketAddress) protocolSession
-                    .getRemoteAddress()).getAddress();
-            if (!s.isAllowedForSession(remoteAddress)) {
-                s.getLog().onEvent(
-                        "Refused connection to session " + s.getSessionID() + " from "
-                                + protocolSession.getRemoteAddress());
-                return null;
+        if (s != null && protocolSession.getAttribute(SessionConnector.QF_SESSION) == null) {          
+            SocketAddress remoteAddress = protocolSession.getRemoteAddress();
+            if (remoteAddress instanceof InetSocketAddress) {
+                final InetAddress remoteInetAddress = ((InetSocketAddress) remoteAddress).getAddress();
+                if (!s.isAllowedForSession(remoteInetAddress)) {
+                    s.getLog().onEvent(
+                            "Refused connection to session " + s.getSessionID() + " from "
+                                    + remoteAddress);
+                    return null;
+                }
             }
         }
         return s;
