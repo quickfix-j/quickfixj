@@ -67,7 +67,7 @@ public class DataDictionary {
     public static final String TRAILER_ID = "TRAILER";
     private static final String MESSAGE_CATEGORY_ADMIN = "admin".intern();
     private static final String MESSAGE_CATEGORY_APP = "app".intern();
-    
+
     private static final int USER_DEFINED_TAG_MIN = 5000;
     private static final String NO = "N";
     private boolean hasVersion = false;
@@ -227,11 +227,12 @@ public class DataDictionary {
     public boolean isMsgType(String msgType) {
         return messages.contains(msgType);
     }
-    
+
     /**
      * Predicate for determining if a message is in the admin category.
-     * @param msgType
-     * @return
+     * @param msgType the messageType
+     * @return true, if the msgType is a AdminMessage
+     *         false, if the msgType is a ApplicationMessage
      */
     public boolean isAdminMessage(String msgType) {
         // Categories are interned
@@ -240,8 +241,9 @@ public class DataDictionary {
 
     /**
      * Predicate for determining if a message is in the app category.
-     * @param msgType
-     * @return
+     * @param msgType the messageType
+     * @return true, if the msgType is a ApplicationMessage
+     *         false, if the msgType is a AdminMessage
      */
     public boolean isAppMessage(String msgType) {
         // Categories are interned
@@ -279,7 +281,9 @@ public class DataDictionary {
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
-        if(messageFields.get(HEADER_ID) == null) return false;
+        if (messageFields.get(HEADER_ID) == null) {
+            return false;
+        }
         return messageFields.get(HEADER_ID).contains(field);
     }
 
@@ -483,7 +487,7 @@ public class DataDictionary {
      *            true = checked, false = not checked
      */
     public void setCheckFieldsOutOfOrder(boolean flag) {
-       checkFieldsOutOfOrder = flag;
+        checkFieldsOutOfOrder = flag;
     }
 
     public boolean isCheckFieldsOutOfOrder() {
@@ -600,7 +604,9 @@ public class DataDictionary {
 
         if (isVersionSpecified(sessionDataDictionary)
                 && !sessionDataDictionary.getVersion().equals(
-                        message.getHeader().getString(BeginString.FIELD)) && !message.getHeader().getString(BeginString.FIELD).equals("FIXT.1.1") && !sessionDataDictionary.getVersion().equals("FIX.5.0")) {
+                        message.getHeader().getString(BeginString.FIELD))
+                && !message.getHeader().getString(BeginString.FIELD).equals("FIXT.1.1")
+                && !sessionDataDictionary.getVersion().equals("FIX.5.0")) {
             throw new UnsupportedVersion();
         }
 
@@ -611,8 +617,8 @@ public class DataDictionary {
         final String msgType = message.getHeader().getString(MsgType.FIELD);
         if (isVersionSpecified(applicationDataDictionary)) {
             applicationDataDictionary.checkMsgType(msgType);
-            applicationDataDictionary.checkHasRequired(message.getHeader(), message, message
-                    .getTrailer(), msgType, bodyOnly);
+            applicationDataDictionary.checkHasRequired(message.getHeader(), message,
+                    message.getTrailer(), msgType, bodyOnly);
         }
 
         if (!bodyOnly) {
@@ -758,8 +764,8 @@ public class DataDictionary {
     // / Check if a field has a value.
     private void checkHasValue(StringField field) {
         if (checkFieldsHaveValues && field.getValue().length() == 0) {
-            throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE, field
-                    .getField());
+            throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
+                    field.getField());
         }
     }
 
@@ -819,9 +825,9 @@ public class DataDictionary {
                     final List<Group> groupInstances = entry.getValue();
                     for (int i = 0; i < groupInstances.size(); i++) {
                         final FieldMap groupFields = groupInstances.get(i);
-                        p.getDataDictionary().checkHasRequired(groupFields, groupFields, groupFields,
-                                msgType, bodyOnly);
-                    }                    
+                        p.getDataDictionary().checkHasRequired(groupFields, groupFields,
+                                groupFields, msgType, bodyOnly);
+                    }
                 }
             }
         }
@@ -996,7 +1002,7 @@ public class DataDictionary {
                 if (msgcat != null) {
                     messageCategory.put(msgtype, msgcat.intern());
                 }
-                
+
                 final String name = getAttribute(messageNode, "name");
                 addMsgType(msgtype, name);
 
@@ -1043,8 +1049,8 @@ public class DataDictionary {
                 if (required == null) {
                     throw new ConfigError("<component> does not have a 'required' attribute");
                 }
-                addXMLComponentFields(document, fieldNode, msgtype, this, required
-                        .equalsIgnoreCase("Y"));
+                addXMLComponentFields(document, fieldNode, msgtype, this,
+                        required.equalsIgnoreCase("Y"));
             }
             if (fieldNode.getNodeName().equals("group")) {
                 final String required = getAttribute(fieldNode, "required");

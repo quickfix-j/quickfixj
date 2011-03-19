@@ -20,13 +20,11 @@
 package quickfix.mina.initiator;
 
 import java.net.SocketAddress;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +60,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = new HashSet<IoSessionInitiator>();
-	private EventHandlingStrategy eventHandlingStrategy;
+    private EventHandlingStrategy eventHandlingStrategy;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -75,26 +73,27 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             throws ConfigError {
         super(settings, sessionFactory);
         //try {
-            ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
-            ByteBuffer.setUseDirectBuffers(false);
-//        } catch (FieldConvertError e) {
-//            throw new ConfigError(e);
-//        }
+        ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
+        ByteBuffer.setUseDirectBuffers(false);
+        //        } catch (FieldConvertError e) {
+        //            throw new ConfigError(e);
+        //        }
     }
 
-    protected void createSessionInitiators(EventHandlingStrategy eventHandlingStrategy) throws ConfigError {
+    protected void createSessionInitiators(EventHandlingStrategy eventHandlingStrategy)
+            throws ConfigError {
         try {
             createSessions();
-            for (Session session : getSessionMap().values()) {
-                SessionID sessionID = session.getSessionID();
-                int[] reconnectingIntervals = getReconnectIntervalInSeconds(sessionID);
+            for (final Session session : getSessionMap().values()) {
+                final SessionID sessionID = session.getSessionID();
+                final int[] reconnectingIntervals = getReconnectIntervalInSeconds(sessionID);
 
-                SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
+                final SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
                 if (socketAddresses.length == 0) {
                     throw new ConfigError("Must specify at least one socket address");
                 }
 
-                NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
+                final NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
                         .getSessionProperties(sessionID, true));
 
                 boolean sslEnabled = false;
@@ -102,40 +101,45 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     sslEnabled = BooleanConverter.convert(getSettings().getString(sessionID,
                             SSLSupport.SETTING_USE_SSL));
                 }
-                String keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
-                String keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
-                String strEnableProtocole = SSLSupport.getEnableProtocole(getSettings(), sessionID);
-                String[] enableProtocole = strEnableProtocole != null ? strEnableProtocole.split(",") : null;
-                String strCipherSuites = SSLSupport.getCipherSuite(getSettings(), sessionID);
-                String[] cipherSuites = strCipherSuites != null ? strCipherSuites.split(",") : null;
+                final String keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
+                final String keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(),
+                        sessionID);
+                final String strEnableProtocole = SSLSupport.getEnableProtocole(getSettings(),
+                        sessionID);
+                final String[] enableProtocole = strEnableProtocole != null ? strEnableProtocole
+                        .split(",") : null;
+                final String strCipherSuites = SSLSupport.getCipherSuite(getSettings(), sessionID);
+                final String[] cipherSuites = strCipherSuites != null
+                        ? strCipherSuites.split(",")
+                        : null;
 
-                IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
+                final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                         socketAddresses, reconnectingIntervals, getScheduledExecutorService(),
                         networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder(),
-                        sslEnabled, keyStoreName, keyStorePassword, enableProtocole, cipherSuites );
+                        sslEnabled, keyStoreName, keyStorePassword, enableProtocole, cipherSuites);
 
                 initiators.add(ioSessionInitiator);
             }
-        } catch (FieldConvertError e) {
+        } catch (final FieldConvertError e) {
             throw new ConfigError(e);
         }
     }
 
     private void createSessions() throws ConfigError, FieldConvertError {
-        SessionSettings settings = getSettings();
+        final SessionSettings settings = getSettings();
         boolean continueInitOnError = false;
         if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
             continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
         }
 
-        Map<SessionID, Session> initiatorSessions = new HashMap<SessionID, Session>();
-        for (Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
-            SessionID sessionID = i.next();
+        final Map<SessionID, Session> initiatorSessions = new HashMap<SessionID, Session>();
+        for (final Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
+            final SessionID sessionID = i.next();
             if (isInitiatorSession(sessionID)) {
                 try {
-                    Session quickfixSession = createSession(sessionID);
+                    final Session quickfixSession = createSession(sessionID);
                     initiatorSessions.put(sessionID, quickfixSession);
-                } catch (Throwable e) {
+                } catch (final Throwable e) {
                     if (continueInitOnError) {
                         log.error("error during session initialization, continuing...", e);
                     } else {
@@ -152,13 +156,16 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private int[] getReconnectIntervalInSeconds(SessionID sessionID) throws ConfigError {
-        SessionSettings settings = getSettings();
+        final SessionSettings settings = getSettings();
         if (settings.isSetting(sessionID, Initiator.SETTING_RECONNECT_INTERVAL)) {
             try {
-                String raw = settings.getString(Initiator.SETTING_RECONNECT_INTERVAL);
-                int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
-                if (ret != null) return ret;
-            } catch (Throwable e) {
+                final String raw = settings.getString(sessionID,
+                        Initiator.SETTING_RECONNECT_INTERVAL);
+                final int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
+                if (ret != null) {
+                    return ret;
+                }
+            } catch (final Throwable e) {
                 throw new ConfigError(e);
             }
         }
@@ -166,22 +173,22 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private SocketAddress[] getSocketAddresses(SessionID sessionID) throws ConfigError {
-        SessionSettings settings = getSettings();
-        ArrayList<SocketAddress> addresses = new ArrayList<SocketAddress>();
+        final SessionSettings settings = getSettings();
+        final ArrayList<SocketAddress> addresses = new ArrayList<SocketAddress>();
         for (int index = 0;; index++) {
             try {
-                String protocolKey = Initiator.SETTING_SOCKET_CONNECT_PROTOCOL
+                final String protocolKey = Initiator.SETTING_SOCKET_CONNECT_PROTOCOL
                         + (index == 0 ? "" : Integer.toString(index));
-                String hostKey = Initiator.SETTING_SOCKET_CONNECT_HOST
+                final String hostKey = Initiator.SETTING_SOCKET_CONNECT_HOST
                         + (index == 0 ? "" : Integer.toString(index));
-                String portKey = Initiator.SETTING_SOCKET_CONNECT_PORT
+                final String portKey = Initiator.SETTING_SOCKET_CONNECT_PORT
                         + (index == 0 ? "" : Integer.toString(index));
                 TransportType transportType = TransportType.SOCKET;
                 if (settings.isSetting(sessionID, protocolKey)) {
                     try {
                         transportType = TransportType.getInstance(settings.getString(sessionID,
                                 protocolKey));
-                    } catch (IllegalArgumentException e) {
+                    } catch (final IllegalArgumentException e) {
                         // Unknown transport type
                         throw new ConfigError(e);
                     }
@@ -193,12 +200,12 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     } else {
                         host = settings.getString(sessionID, hostKey);
                     }
-                    int port = (int) settings.getLong(sessionID, portKey);
+                    final int port = (int) settings.getLong(sessionID, portKey);
                     addresses.add(ProtocolFactory.createSocketAddress(transportType, host, port));
                 } else {
                     break;
                 }
-            } catch (FieldConvertError e) {
+            } catch (final FieldConvertError e) {
                 throw (ConfigError) new ConfigError(e.getMessage()).initCause(e);
             }
         }
@@ -211,7 +218,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {
-        SessionSettings settings = getSettings();
+        final SessionSettings settings = getSettings();
         return !settings.isSetting((SessionID) sectionKey, SessionFactory.SETTING_CONNECTION_TYPE)
                 || settings.getString((SessionID) sectionKey,
                         SessionFactory.SETTING_CONNECTION_TYPE).equals("initiator");
@@ -219,13 +226,13 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected void startInitiators() {
         startSessionTimer();
-        for (IoSessionInitiator initiator : initiators) {
+        for (final IoSessionInitiator initiator : initiators) {
             initiator.start();
         }
     }
 
     protected void stopInitiators() {
-        for (IoSessionInitiator initiator : initiators) {
+        for (final IoSessionInitiator initiator : initiators) {
             initiator.stop();
         }
         super.stopSessionTimer();

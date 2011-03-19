@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LogUtil {
     private final static Logger log = LoggerFactory.getLogger(LogUtil.class);
-    
+
     /**
      * Logs a throwable as a session event, including the stack trace.
      * 
@@ -40,22 +40,22 @@ public class LogUtil {
      * @param t the exception to log
      */
     public static void logThrowable(Log log, String message, Throwable t) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
+        final StringWriter stringWriter = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(stringWriter);
         printWriter.println(message);
         t.printStackTrace(printWriter);
         log.onErrorEvent(stringWriter.toString());
     }
-    
+
     /**
      * Logs a throwable as a session event, including the stack trace.
      * 
      * @param sessionID the session ID
      * @param message the error message
-     * @param the exception to log
+     * @param t the exception to log
      */
     public static void logThrowable(SessionID sessionID, String message, Throwable t) {
-        Session session = Session.lookupSession(sessionID);
+        final Session session = Session.lookupSession(sessionID);
         if (session != null) {
             logThrowable(session.getLog(), message, t);
         } else {

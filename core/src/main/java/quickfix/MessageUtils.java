@@ -42,7 +42,7 @@ public class MessageUtils {
     private static final char FIELD_SEPARATOR = '\001';
 
     public static SessionID getSessionID(Message fixMessage) {
-        Header header = fixMessage.getHeader();
+        final Header header = fixMessage.getHeader();
         return new SessionID(getFieldOrDefault(header, BeginString.FIELD, null), getFieldOrDefault(
                 header, SenderCompID.FIELD, null), getFieldOrDefault(header, SenderSubID.FIELD,
                 null), getFieldOrDefault(header, SenderLocationID.FIELD, null), getFieldOrDefault(
@@ -60,7 +60,7 @@ public class MessageUtils {
     }
 
     public static SessionID getReverseSessionID(Message fixMessage) {
-        Header header = fixMessage.getHeader();
+        final Header header = fixMessage.getHeader();
         return new SessionID(getFieldOrDefault(header, BeginString.FIELD, null), getFieldOrDefault(
                 header, TargetCompID.FIELD, null), getFieldOrDefault(header, TargetSubID.FIELD,
                 null), getFieldOrDefault(header, TargetLocationID.FIELD, null), getFieldOrDefault(
@@ -81,7 +81,7 @@ public class MessageUtils {
         if (fields.isSetField(tag)) {
             try {
                 return fields.getString(tag);
-            } catch (FieldNotFound e) {
+            } catch (final FieldNotFound e) {
                 // ignore, should never happen
                 return null;
             }
@@ -100,20 +100,18 @@ public class MessageUtils {
      * @return the parsed message
      * @throws InvalidMessage
      */
-    public static Message parse(MessageFactory messageFactory,
-            DataDictionary dataDictionary, String messageString)
-            throws InvalidMessage {
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+            String messageString) throws InvalidMessage {
         final int index = messageString.indexOf(FIELD_SEPARATOR);
-        if (index<0) throw new InvalidMessage("Message does not contain any field separator");
-        String beginString = messageString.substring(2, index);
-        String messageType = getMessageType(messageString);
-        quickfix.Message message = messageFactory.create(beginString,
-                messageType);
-        message.fromString(messageString, dataDictionary,
-                dataDictionary != null);
+        if (index < 0) {
+            throw new InvalidMessage("Message does not contain any field separator");
+        }
+        final String beginString = messageString.substring(2, index);
+        final String messageType = getMessageType(messageString);
+        final quickfix.Message message = messageFactory.create(beginString, messageType);
+        message.fromString(messageString, dataDictionary, dataDictionary != null);
         return message;
     }
-
 
     /**
      * NOTE: This method is intended for internal use.
@@ -124,9 +122,9 @@ public class MessageUtils {
      * @throws InvalidMessage
      */
     public static Message parse(Session session, String messageString) throws InvalidMessage {
-        String beginString = getStringField(messageString, BeginString.FIELD);
-        String msgType = getMessageType(messageString);
-        
+        final String beginString = getStringField(messageString, BeginString.FIELD);
+        final String msgType = getMessageType(messageString);
+
         ApplVerID applVerID = null;
         String customApplVerID = null;
 
@@ -136,40 +134,42 @@ public class MessageUtils {
         } else {
             applVerID = toApplVerID(beginString);
         }
-        
-        MessageFactory messageFactory = session.getMessageFactory();
-        
-        DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
-        DataDictionary sessionDataDictionary = ddProvider==null ? null : ddProvider.getSessionDataDictionary(beginString);
-        DataDictionary applicationDataDictionary = ddProvider==null ? null : ddProvider.getApplicationDataDictionary(
-                applVerID, customApplVerID);
 
-        quickfix.Message message = messageFactory.create(beginString, msgType);
-        DataDictionary payloadDictionary = sessionDataDictionary.isAdminMessage(msgType)
+        final MessageFactory messageFactory = session.getMessageFactory();
+
+        final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
+        final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
+                .getSessionDataDictionary(beginString);
+        final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
+                .getApplicationDataDictionary(applVerID, customApplVerID);
+
+        final quickfix.Message message = messageFactory.create(beginString, msgType);
+        final DataDictionary payloadDictionary = MessageUtils.isAdminMessage(msgType)
                 ? sessionDataDictionary
                 : applicationDataDictionary;
-        
+
         message.parse(messageString, sessionDataDictionary, payloadDictionary,
                 payloadDictionary != null);
-        
+
         return message;
     }
 
     private static ApplVerID getApplVerID(Session session, String messageString)
             throws InvalidMessage {
         ApplVerID applVerID = null;
-        
-        String applVerIdString = getStringField(messageString, ApplVerID.FIELD);
+
+        final String applVerIdString = getStringField(messageString, ApplVerID.FIELD);
         if (applVerIdString != null) {
             applVerID = new ApplVerID(applVerIdString);
         }
-        
+
         if (applVerID == null) {
             applVerID = session.getTargetDefaultApplicationVersionID();
         }
-        
+
         if (applVerID == null && isLogon(messageString)) {
-            String defaultApplVerIdString = getStringField(messageString, DefaultApplVerID.FIELD);
+            final String defaultApplVerIdString = getStringField(messageString,
+                    DefaultApplVerID.FIELD);
             if (defaultApplVerIdString != null) {
                 applVerID = new ApplVerID(defaultApplVerIdString);
             }
@@ -178,7 +178,7 @@ public class MessageUtils {
         if (applVerID == null) {
             throw new InvalidMessage("Can't determine ApplVerID for message");
         }
-        
+
         return applVerID;
     }
 
@@ -197,13 +197,13 @@ public class MessageUtils {
     private static boolean isMessageType(String message, String msgType) {
         try {
             return msgType.equals(getMessageType(message));
-        } catch (InvalidMessage e) {
+        } catch (final InvalidMessage e) {
             return false;
         }
     }
 
     public static String getMessageType(String messageString) throws InvalidMessage {
-        String value = getStringField(messageString, 35);
+        final String value = getStringField(messageString, 35);
         if (value == null) {
             throw new InvalidMessage("Missing or garbled message type in " + messageString);
         }
@@ -212,7 +212,7 @@ public class MessageUtils {
 
     public static String getStringField(String messageString, int tag) {
         String value = null;
-        String tagString = Integer.toString(tag);
+        final String tagString = Integer.toString(tag);
         int start = messageString.indexOf(tagString, 0);
         while (start != -1 && value == null) {
             if ((start == 0 || messageString.charAt(start - 1) == FIELD_SEPARATOR)) {
@@ -220,8 +220,10 @@ public class MessageUtils {
                 if ((end + 1) < messageString.length() && messageString.charAt(end) == '=') {
                     // found tag, get value
                     start = end = (end + 1);
-                    for (; end < messageString.length() && messageString.charAt(end) != FIELD_SEPARATOR; end++)
+                    for (; end < messageString.length()
+                            && messageString.charAt(end) != FIELD_SEPARATOR; end++) {
                         ;
+                    }
                     if (end == messageString.length()) {
                         return null;
                     } else {
@@ -233,7 +235,7 @@ public class MessageUtils {
         }
         return value;
     }
-    
+
     private static Map<String, String> applVerIDtoBeginString = new HashMap<String, String>() {
         {
             // No support for earlier versions of FIX
@@ -254,12 +256,12 @@ public class MessageUtils {
      * @see ApplVerID
      */
     public static String toBeginString(ApplVerID applVerID) throws QFJException {
-        String beginString = applVerIDtoBeginString.get(applVerID.getValue());
+        final String beginString = applVerIDtoBeginString.get(applVerID.getValue());
         if (beginString == null) {
             throw new QFJException("Unknown or unsupported ApplVerID: " + applVerID.getValue());
         }
         return beginString;
-    }    
+    }
 
     private static Map<String, ApplVerID> beginStringToApplVerID = new HashMap<String, ApplVerID>() {
         {
@@ -281,10 +283,10 @@ public class MessageUtils {
      * @see FixVersions
      */
     public static ApplVerID toApplVerID(String beginString) throws QFJException {
-        ApplVerID applVerID = beginStringToApplVerID.get(beginString);
+        final ApplVerID applVerID = beginStringToApplVerID.get(beginString);
         if (applVerID == null) {
             throw new QFJException("Can't convert to ApplVerID: " + beginString);
         }
         return applVerID;
-    }    
+    }
 }
