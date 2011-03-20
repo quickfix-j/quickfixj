@@ -19,58 +19,153 @@
 
 package quickfix;
 
-import static quickfix.FixVersions.*;
-import quickfix.field.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Helper class for delegating message types for various FIX versions to
  * type-safe onMessage methods.
  */
-public class MessageCracker extends quickfix.fixt11.MessageCracker {
+public class MessageCracker {
+    private Map<Class<?>, Invoker> invokers = new HashMap<Class<?>, Invoker>();
+
+    @Target( { ElementType.METHOD })
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Handler {
+
+    }
+
+    public class RedundantHandlerException extends RuntimeException {
+        private final Class<?> messageClass;
+        private final Method originalMethod;
+        private final Method redundantMethod;
+
+        public RedundantHandlerException(Class<?> messageClass, Method originalMethod,
+                Method redundantMethod) {
+            this.messageClass = messageClass;
+            this.originalMethod = originalMethod;
+            this.redundantMethod = redundantMethod;
+        }
+
+        @Override
+        public String toString() {
+            return "Duplicate handler method for " + messageClass + ", orginal method is "
+                    + originalMethod + ", redundant method is " + redundantMethod;
+        }
+    }
+
+    protected MessageCracker() {
+        initialize(this);
+    }
+
+    public MessageCracker(Object messageHandler) {
+        initialize(messageHandler);
+    }
+
+    public void initialize(Object messageHandler) {
+        Class<?> handlerClass = messageHandler.getClass();
+        for (Method method : handlerClass.getMethods()) {
+            if (isHandlerMethod(method)) {
+                Class<?> messageClass = method.getParameterTypes()[0];
+                method.setAccessible(true);
+                Invoker invoker = new Invoker(messageHandler, method);
+                Invoker existingInvoker = invokers.get(messageClass);
+                if (existingInvoker != null) {
+                    throw new RedundantHandlerException(messageClass, existingInvoker.getMethod(),
+                            method);
+                }
+                invokers.put(messageClass, invoker);
+            }
+        }
+    }
+
+    private boolean isHandlerMethod(Method method) {
+        int modifiers = method.getModifiers();
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        return !Modifier.isPrivate(modifiers) && matchesConventionOrAnnotation(method)
+                && parameterTypes.length == 2 && Message.class.isAssignableFrom(parameterTypes[0])
+                && parameterTypes[1] == SessionID.class;
+    }
+
+    private boolean matchesConventionOrAnnotation(Method method) {
+        return method.getName().equals("onMessage") || method.isAnnotationPresent(Handler.class);
+    }
+
+    private class Invoker {
+        private final Object target;
+        private final Method method;
+
+        public Invoker(Object target, Method method) {
+            this.target = target;
+            this.method = method;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public void Invoke(Message message, SessionID sessionID) throws IllegalArgumentException,
+                IllegalAccessException, InvocationTargetException {
+            method.invoke(target, message, sessionID);
+        }
+    }
 
     /**
-     * Process ("crack") a FIX message and call the type-safe onMessage method for
-     * that message type and FIX version.
+     * Process ("crack") a FIX message and call the registered handlers for that type, if any
      */
     public void crack(quickfix.Message message, SessionID sessionID) throws UnsupportedMessageType,
             FieldNotFound, IncorrectTagValue {
-        crack(message, sessionID, message.getHeader().getString(BeginString.FIELD));
-    }
-
-    private void crack(quickfix.Message message, SessionID sessionID, String beginString)
-            throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
-        if (beginString.equals(BEGINSTRING_FIX40)) {
-            crack40((quickfix.fix40.Message) message, sessionID);
-        } else if (beginString.equals(BEGINSTRING_FIX41)) {
-            crack41((quickfix.fix41.Message) message, sessionID);
-        } else if (beginString.equals(BEGINSTRING_FIX42)) {
-            crack42((quickfix.fix42.Message) message, sessionID);
-        } else if (beginString.equals(BEGINSTRING_FIX43)) {
-            crack43((quickfix.fix43.Message) message, sessionID);
-        } else if (beginString.equals(BEGINSTRING_FIX44)) {
-            crack44((quickfix.fix44.Message) message, sessionID);
-        } else if (beginString.equals(FIX50)) {
-            crack50((quickfix.fix50.Message) message, sessionID);
-        } else if (beginString.equals(BEGINSTRING_FIXT11)) {
-            if (MessageUtils.isAdminMessage(message.getHeader().getString(MsgType.FIELD))) {
-                crack11((quickfix.fixt11.Message) message, sessionID);
-            } else {
-                ApplVerID applVerID = message.getHeader().isSetField(ApplVerID.FIELD) ? new ApplVerID(message
-                        .getHeader().getString(ApplVerID.FIELD)) : null;
-                if (applVerID == null) {
-                    Session session = lookupSession(sessionID);
-                    applVerID = session.getTargetDefaultApplicationVersionID();
+        Invoker invoker = invokers.get(message.getClass());
+        if (invoker != null) {
+            try {
+                invoker.Invoke(message, sessionID);
+            } catch (InvocationTargetException ite) {
+                try {
+                    throw ((InvocationTargetException)ite).getTargetException();
                 }
-                crack(message, sessionID, MessageUtils.toBeginString(applVerID));
+                catch (UnsupportedMessageType e) {
+                    throw e;
+                }
+                catch (FieldNotFound e) {
+                    throw e;
+                }
+                catch (IncorrectTagValue e) {
+                    throw e;
+                }
+                catch (Throwable t) {
+                    propagate(t);
+                }
+            }
+            catch (Exception e) {
+                propagate(e);
             }
         } else {
             onMessage(message, sessionID);
         }
     }
 
-    // Test hook
-    Session lookupSession(SessionID sessionID) {
-        return Session.lookupSession(sessionID);
+    private void propagate(Throwable e) {
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        } else if (e instanceof Error) {
+            throw (Error)e;
+        } else {
+            throw new RuntimeException(e);
+        }
     }
 
+    /**
+     * Fallback method that is called if no invokers are found.
+     */
+    protected void onMessage(quickfix.Message message, SessionID sessionID) throws FieldNotFound,
+            UnsupportedMessageType, IncorrectTagValue {
+        throw new UnsupportedMessageType();
+    }
 }

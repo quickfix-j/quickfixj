@@ -32,7 +32,7 @@ package <xsl:value-of select="$messagePackage"/>;
 import quickfix.*;
 import <xsl:value-of select="$fieldPackage"/>.*;
 
-public class MessageCracker <xsl:call-template name="base-class"/>
+public class MessageCracker 
 {
 
 /**

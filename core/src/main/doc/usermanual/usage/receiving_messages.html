@@ -115,6 +115,42 @@ import quickfix.MessageCracker;
 public class MyApplication
   extends MessageCracker implements quickfix.Application
 </pre>
+<p>
+QuickFIX/J version 1.16 or newer supports a new version of <code>MessageCracker</code> that dynamically discovers message handling method using either a method naming convention (similar to earlier versions of QuickFIX/J)
+or by tagging handlers methods with the <code>@Handler</code> annotation.
+</p>
+<p>
+Examples...
+</p>
+<pre class="code">
+import quickfix.Application;
+import quickfix.MessageCracker;
+
+
+public class MyApplication extends MessageCracker implements quickfix.Application
+{
+	public void fromApp(Message message, SessionID sessionID)
+	      throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+	  crack(message, sessionID);
+	}
+	
+	// Using annotation
+    @Handler
+    public void myEmailHandler(quickfix.fix50.Email email, SessionID sessionID) {
+         // handler implementation
+    }
+    
+    // By convention (notice different version of FIX. It's an error to have two handlers for the same message)
+    // Convention is "onMessage" method with message object as first argument and SessionID as second argument
+    public void onMessage(quickfix.fix44.Email email, SessionID sessionID) {
+        // handler implementation
+    }
+}
+</pre>
+<p>
+If you'd rather use composition rather than inheritance of the <code>MessageCracker</code> you can construct a message cracker with a delegate object.
+The delegate message handler methods will be automatically discovered.
+<p>
 <div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
 
 </body>
