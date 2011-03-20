@@ -129,12 +129,12 @@ import quickfix.MessageCracker;
 
 public class MyApplication extends MessageCracker implements quickfix.Application
 {
-	public void fromApp(Message message, SessionID sessionID)
+    public void fromApp(Message message, SessionID sessionID)
 	      throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 	  crack(message, sessionID);
-	}
-	
-	// Using annotation
+    }
+    
+    // Using annotation
     @Handler
     public void myEmailHandler(quickfix.fix50.Email email, SessionID sessionID) {
          // handler implementation
@@ -149,7 +149,10 @@ public class MyApplication extends MessageCracker implements quickfix.Applicatio
 </pre>
 <p>
 If you'd rather use composition rather than inheritance of the <code>MessageCracker</code> you can construct a message cracker with a delegate object.
-The delegate message handler methods will be automatically discovered.
+The delegate message handler methods will be automatically discovered. Message crackers for each FIX version are still generated for backward compatibility
+but it's more efficient to define the specific handlers you need. The generated classes define handlers for all messages defined by that version of FIX.
+This requires the JVM to load those classes when the cracker is loaded. Most applications only need to handle a small subset of the messages defined by
+a FIX version so loading all the messages classes is excessive overhead in those cases.
 <p>
 <div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>
 
