@@ -52,7 +52,7 @@ public class TabularDataAdapter {
         return table;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("rawtypes")
     public TabularData fromMap(String keyLabel, String valueLabel, Map data)
             throws OpenDataException {
         TabularData table = null;

@@ -301,11 +301,7 @@ public class DataDictionaryTest extends TestCase {
     }
     
     public static DataDictionary getDictionary(String fileName) throws Exception {
-        DataDictionary dd = new DataDictionary(DataDictionaryTest.class.getClassLoader()
+        return new DataDictionary(DataDictionaryTest.class.getClassLoader()
                 .getResourceAsStream(fileName));
-        if (dd == null) {
-            dd = getDictionary();
-        }
-        return dd;
     }
 }

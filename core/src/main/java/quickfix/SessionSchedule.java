@@ -170,10 +170,6 @@ class SessionSchedule {
             return weekDay;
         }
 
-        public int getTimeInSeconds() {
-            return timeInSeconds;
-        }
-
         public boolean equals(Object o) {
             if (this == o) {
                 return true;

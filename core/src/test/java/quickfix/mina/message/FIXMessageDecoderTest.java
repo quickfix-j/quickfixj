@@ -36,7 +36,6 @@ import java.util.List;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
 import org.apache.mina.filter.codec.demux.MessageDecoderResult;
 import org.junit.After;

@@ -32,7 +32,7 @@ public class CompositeTypeFactory {
     private ArrayList<String> itemNames = new ArrayList<String>();
     private ArrayList<String> itemDescriptions = new ArrayList<String>();
     
-    @SuppressWarnings("unchecked") // Java 5/6 incompatibility
+    @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
     private ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
 
     public CompositeTypeFactory(String name, String description) {
@@ -40,12 +40,12 @@ public class CompositeTypeFactory {
         this.description = description;
     }
 
-    @SuppressWarnings("unchecked") // Java 5/6 incompatibility
+    @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
     public void defineItem(String itemName, OpenType itemType) {
         defineItem(itemName, null, itemType);
     }
 
-    @SuppressWarnings("unchecked") // Java 5/6 incompatibility
+    @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
     public void defineItem(String itemName, String itemDesc, OpenType itemType) {
         itemNames.add(itemName);
         itemDescriptions.add(itemDesc);

@@ -38,7 +38,6 @@ import quickfix.field.EncryptMethod;
 import quickfix.field.HeartBtInt;
 import quickfix.field.SenderCompID;
 import quickfix.field.TargetCompID;
-import quickfix.fix50.Email;
 
 public class MessageCrackerTest {
     private int messageCracked;

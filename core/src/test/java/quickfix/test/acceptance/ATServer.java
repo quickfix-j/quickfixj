@@ -68,12 +68,11 @@ public class ATServer implements Runnable {
         // defaults
     }
 
-    @SuppressWarnings("unchecked")
     public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port) {
         this.threaded = threaded;
         this.transportType = transportType;
         this.port = port;
-        Enumeration e = suite.tests();
+        Enumeration<junit.framework.Test> e = suite.tests();
         while (e.hasMoreElements()) {
             fixVersions.add(e.nextElement().toString().substring(0, 5));
         }

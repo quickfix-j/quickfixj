@@ -535,30 +535,29 @@ public class DataDictionary {
     }
 
     @SuppressWarnings("unchecked")
-    private void copyMap(Map lhs, Map rhs) {
+    private <K,V> void copyMap(Map<K,V> lhs, Map<K,V> rhs) {
         lhs.clear();
-        final Iterator entries = rhs.entrySet().iterator();
+        final Iterator<?> entries = rhs.entrySet().iterator();
         while (entries.hasNext()) {
-            final Map.Entry entry = (Map.Entry) entries.next();
+            final Map.Entry<K,V> entry = (Map.Entry<K,V>) entries.next();
             Object value = entry.getValue();
             if (value instanceof Collection) {
-                Collection copy;
+                Collection<V> copy;
                 try {
-                    copy = (Collection) value.getClass().newInstance();
+                    copy = (Collection<V>) value.getClass().newInstance();
                 } catch (final RuntimeException e) {
                     throw e;
                 } catch (final java.lang.Exception e) {
                     throw new RuntimeException(e);
                 }
-                copyCollection(copy, (Collection) value);
+                copyCollection(copy, (Collection<V>) value);
                 value = copy;
             }
-            lhs.put(entry.getKey(), value);
+            lhs.put(entry.getKey(), (V) value);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void copyCollection(Collection lhs, Collection rhs) {
+    private <V> void copyCollection(Collection<V> lhs, Collection<V> rhs) {
         lhs.clear();
         lhs.addAll(rhs);
     }
@@ -1229,13 +1228,13 @@ public class DataDictionary {
             stringValue = value2;
         }
 
-        public int getIntValue() {
-            return intValue;
-        }
+        //public int getIntValue() {
+        //    return intValue;
+        //}
 
-        public String getStringValue() {
-            return stringValue;
-        }
+        //public String getStringValue() {
+        //    return stringValue;
+        //}
 
         public boolean equals(Object other) {
             if (this == other) {

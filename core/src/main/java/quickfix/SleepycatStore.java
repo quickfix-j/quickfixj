@@ -152,9 +152,9 @@ public class SleepycatStore implements MessageStore {
             return nextTargetMsgSeqNum;
         }
 
-        public void setCreationTime(Calendar creationTime) {
-            this.creationTime = creationTime;
-        }
+        //public void setCreationTime(Calendar creationTime) {
+        //    this.creationTime = creationTime;
+        //}
 
         public void setNextSenderMsgSeqNum(int nextSenderMsgSeqNum) {
             this.nextSenderMsgSeqNum = nextSenderMsgSeqNum;

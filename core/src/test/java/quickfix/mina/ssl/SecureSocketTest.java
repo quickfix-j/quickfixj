@@ -204,10 +204,10 @@ public class SecureSocketTest extends TestCase {
 
         }
 
-        public void stopAfterLogon(Initiator initiator) {
-            this.initiator = initiator;
-            this.stopAfterLogon = true;
-        }
+        //public void stopAfterLogon(Initiator initiator) {
+        //    this.initiator = initiator;
+        //    this.stopAfterLogon = true;
+        //}
 
         public void setUpLogonExpectation() {
             logonLatch = new CountDownLatch(1);

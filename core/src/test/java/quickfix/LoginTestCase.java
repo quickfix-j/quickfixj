@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import quickfix.*;
-
 /*******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved. 
  * 
@@ -58,11 +56,10 @@ public class LoginTestCase {
         }).start();
     }
 
-    @SuppressWarnings("unchecked")
     private static SessionSettings createSettings(String senderCompID) {
         SessionSettings settings = new SessionSettings();
 
-        Map defaults = new HashMap();
+        Map<Object,Object> defaults = new HashMap<Object,Object>();
         defaults.put("FileStorePath", "examples/target/data/banzai");
         defaults.put("ConnectionType", "initiator");
         defaults.put("TargetCompID", "EXEC");

@@ -231,14 +231,17 @@ public class IoSessionInitiator {
 
         // TODO JMX Expose reconnect property
 
+        @SuppressWarnings("unused") // exposed via JMX
         public synchronized int getConnectionFailureCount() {
             return connectionFailureCount;
         }
 
+        @SuppressWarnings("unused") // exposed via JMX
         public synchronized long getLastReconnectAttemptTime() {
             return lastReconnectAttemptTime;
         }
 
+        @SuppressWarnings("unused") // exposed via JMX
         public synchronized long getLastConnectTime() {
             return lastConnectTime;
         }

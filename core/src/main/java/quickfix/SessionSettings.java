@@ -465,7 +465,7 @@ public class SessionSettings {
     }
 
     private static class Tokenizer {
-        public static final int NONE_TOKEN = 1;
+        //public static final int NONE_TOKEN = 1;
 
         public static final int ID_TOKEN = 2;
 
