@@ -407,4 +407,19 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
                 -1, System.currentTimeMillis(), eventName);
         sendNotification(notification);
     }
+
+    public void sendTestRequest() {
+        session.generateTestRequest(System.currentTimeMillis()+"");
+        
+    }
+
+    public void sendHeartBeat() {
+        session.generateHeartbeat();
+        
+    }
+
+    public void sendLogoutMessage() {
+        session.generateLogout();
+        
+    }
 }

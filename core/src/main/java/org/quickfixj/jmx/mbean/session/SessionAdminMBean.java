@@ -179,6 +179,21 @@ public interface SessionAdminMBean {
      * Tell the session to logon.
      */
     void logon();
+    
+    /**
+     * Send a test Request message
+     */
+    void sendTestRequest();
+    /**
+     * Send a heartBeat message 
+     */
+    void sendHeartBeat();
+    
+    /**
+     *  Send a logout message
+     */
+    
+    void sendLogoutMessage();
 
     /** Reset current sequence number */
     void resetSequence(int nextSeqNum) throws SessionNotFound;
