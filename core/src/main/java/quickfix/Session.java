@@ -1282,7 +1282,7 @@ public class Session {
         disconnect(msg, false);
     }
 
-    private void generateLogout() {
+    public void generateLogout() {
         generateLogout(null);
     }
 
@@ -1779,14 +1779,14 @@ public class Session {
         return System.currentTimeMillis() - lastSessionLogon >= computeNextLogonDelayMillis();
     }
 
-    private void generateHeartbeat() {
+    public void generateHeartbeat() {
         final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
                 MsgType.HEARTBEAT);
         initializeHeader(heartbeat.getHeader());
         sendRaw(heartbeat, 0);
     }
 
-    private void generateTestRequest(String id) {
+    public void generateTestRequest(String id) {
         state.incrementTestRequestCounter();
         final Message testRequest = messageFactory.create(sessionID.getBeginString(),
                 MsgType.TEST_REQUEST);
