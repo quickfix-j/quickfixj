@@ -74,7 +74,45 @@ public class SessionConnectorTest extends TestCase {
         assertNotNull(connector.getScheduledExecutorService());
         assertEquals(settings, connector.getSettings());
     }
+
     
+    public void testOneSessionLoggedOnOneSessionNotLoggedOne() throws Exception {
+        SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
+        SessionSettings settings = setUpSessionSettings(sessionID1);
+        DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
+                new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+        
+        SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
+        
+        Session session1 = connector.createSession(sessionID1);
+        assertNotNull(session1);
+        
+        Map<SessionID, Session> sessions = new HashMap<SessionID, Session>();
+        sessions.put(session1.getSessionID(), session1);
+        connector.setSessions(sessions);
+        assertEquals(1, connector.getManagedSessions().size());
+        assertEquals(session1, connector.getManagedSessions().get(0));
+        
+        assertFalse(connector.isLoggedOn());
+        
+        Field stateField = session1.getClass().getDeclaredField("state");
+        stateField.setAccessible(true);
+        SessionState state = (SessionState) stateField.get(session1);
+
+        state.setLogonSent(true);
+        state.setLogonReceived(true);
+        assertTrue(connector.isLoggedOn());
+        
+        SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD1");
+        settings.setString(sessionID2, SessionFactory.SETTING_CONNECTION_TYPE,
+                SessionFactory.ACCEPTOR_CONNECTION_TYPE);
+        Session session2 = connector.createSession(sessionID2);
+        assertNotNull(session2);
+        sessions.put(session2.getSessionID(), session2);
+        assertFalse(connector.isLoggedOn());
+        
+    }
+
     /** Test that adding/removing dynamic sessions works correctly */
     public void testAddingRemovingDymaicSessions() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");

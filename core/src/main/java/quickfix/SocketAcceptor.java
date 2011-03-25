@@ -20,6 +20,7 @@
 
 package quickfix;
 
+import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
@@ -61,7 +62,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     private void initialize() throws ConfigError {
         synchronized (isStarted) {
             if (isStarted.equals(Boolean.FALSE)) {
-                startAcceptingConnections(eventHandlingStrategy);
+                startAcceptingConnections();
             }
             isStarted = Boolean.TRUE;
         }
@@ -77,5 +78,10 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
         Session.unregisterSessions(getSessions());
+    }
+
+    @Override
+    protected EventHandlingStrategy getEventHandlingStrategy() {
+        return eventHandlingStrategy;
     }
 }

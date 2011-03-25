@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.ThreadPerSessionEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
@@ -44,7 +45,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     }
 
     public void start() throws ConfigError, RuntimeError {
-        startAcceptingConnections(eventHandlingStrategy);
+        startAcceptingConnections();
     }
     
     public void stop() {
@@ -61,6 +62,11 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
 
     public void block() throws ConfigError, RuntimeError {
         throw new UnsupportedOperationException("Blocking not supported: "+getClass());
+    }
+
+    @Override
+    protected EventHandlingStrategy getEventHandlingStrategy() {
+        return eventHandlingStrategy;
     }
 
 }

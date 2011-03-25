@@ -21,9 +21,9 @@ package quickfix.mina;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -41,13 +41,14 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      * to stop, it can take up to this long to terminate.
      */
     private static final long THREAD_WAIT_FOR_MESSAGE_MS = 250;
-    private final Map<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
+    private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
 
     public void onMessage(Session quickfixSession, Message message) {
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
-            dispatcher = new MessageDispatchingThread(quickfixSession);
-            dispatchers.put(quickfixSession.getSessionID(), dispatcher);
+            MessageDispatchingThread temp = new MessageDispatchingThread(quickfixSession);
+            dispatcher = dispatchers.putIfAbsent(quickfixSession.getSessionID(), temp);
+            if (dispatcher == null) dispatcher = temp;
             startDispatcherThread(dispatcher);
         }
         dispatcher.enqueue(message);

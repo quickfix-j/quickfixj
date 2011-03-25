@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.ThreadPerSessionEventHandlingStrategy;
 import quickfix.mina.initiator.AbstractSocketInitiator;
 
@@ -47,7 +48,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     }
 
     public void start() throws ConfigError, RuntimeError {
-        createSessionInitiators(eventHandlingStrategy);
+        createSessionInitiators();
         startInitiators();
     }
 
@@ -67,6 +68,11 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
 
     public void block() throws ConfigError, RuntimeError {
         throw new UnsupportedOperationException("Blocking not supported: " + getClass());
+    }
+
+    @Override
+    protected EventHandlingStrategy getEventHandlingStrategy() {
+        return eventHandlingStrategy;
     }
 
 }

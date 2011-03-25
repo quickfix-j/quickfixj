@@ -659,6 +659,13 @@ public abstract class FieldMap implements Serializable {
         setGroupCount(countTag, currentGroups.size());
     }
 
+    public void addGroupRef(Group group) {
+        int countTag = group.getFieldTag();
+        List<Group> currentGroups = getGroups(countTag);
+        currentGroups.add(group);
+        setGroupCount(countTag, currentGroups.size());
+    }
+
     protected void setGroupCount(int countTag, int groupSize) {
         if (groupSize == 0) {
             return;
@@ -692,9 +699,19 @@ public abstract class FieldMap implements Serializable {
         if (num > groupList.size()) {
             throw new FieldNotFound(group.getFieldTag() + ", index=" + num);
         }
-        group.setFields(groupList.get(num - 1));
-        group.setGroups(groupList.get(num - 1));
+        final Group grp = groupList.get(num - 1);
+        group.setFields(grp);
+        group.setGroups(grp);
         return group;
+    }
+
+    public Group getGroup(int num, int groupTag) throws FieldNotFound {
+        List<Group> groupList = getGroups(groupTag);
+        if (num > groupList.size()) {
+            throw new FieldNotFound(groupTag + ", index=" + num);
+        }
+        final Group grp = (Group) groupList.get(num - 1);
+        return grp;
     }
 
     public void replaceGroup(int num, Group group) {

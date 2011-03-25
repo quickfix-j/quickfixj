@@ -573,7 +573,7 @@ public class Message extends FieldMap {
         int previousOffset = -1;
         final int groupCountTag = field.getField();
         final int declaredGroupCount = Integer.parseInt(field.getValue());
-
+        parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimeterField();
         boolean firstFieldFound = false;
         Group group = null;
@@ -582,7 +582,7 @@ public class Message extends FieldMap {
             field = extractField(group, dd, parent);
             if (field.getTag() == firstField) {
                 if (group != null) {
-                    parent.addGroup(group);
+                    parent.addGroupRef(group);
                 }
                 group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
                 group.setField(field);
@@ -621,7 +621,7 @@ public class Message extends FieldMap {
                         }
                     } else {
                         if (group != null) {
-                            parent.addGroup(group);
+                            parent.addGroupRef(group);
                         }
                         pushBack(field);
                         inGroupParse = false;

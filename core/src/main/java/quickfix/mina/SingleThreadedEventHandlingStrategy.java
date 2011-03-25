@@ -65,6 +65,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                     }
                     if (!sessionConnector.isLoggedOn() || SystemTime.currentTimeMillis() - stopTime > 5000L) {
                         sessionConnector.stopSessionTimer();
+                        //reset the stoptime
+                        stopTime=0;
                         return;
                     }
                 }

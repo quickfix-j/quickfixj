@@ -20,6 +20,7 @@
 
 package quickfix;
 
+import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.initiator.AbstractSocketInitiator;
 
@@ -81,7 +82,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     private synchronized void initialize() throws ConfigError {
         if (!isInitialized) {
-            createSessionInitiators(eventHandlingStrategy);
+            createSessionInitiators();
             isInitialized = true;
         } else {
             for (Session session : getSessionMap().values()) {
@@ -90,4 +91,10 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
         startInitiators();
    }
+    
+    @Override
+    protected EventHandlingStrategy getEventHandlingStrategy() {
+        return eventHandlingStrategy;
+    }
+    
 }

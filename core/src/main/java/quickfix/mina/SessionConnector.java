@@ -130,8 +130,21 @@ public abstract class SessionConnector {
         }
     }
 
+    /**
+     * Check if we have at least one session and that all the sessions are logged on
+     * @return false if no session or at least one session is not logged on
+     */
     public boolean isLoggedOn() {
-        return ! getLoggedOnSessions().isEmpty();
+    	//if no session, not logged on
+        if (sessions.isEmpty()) return false;
+        Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
+        while (sessionItr.hasNext()) {
+            Session session = sessionItr.next();
+            //at least one session not logged on
+            if (!session.isLoggedOn()) return false;
+        }
+        //all the sessions are logged on
+        return true;
     }
 
     private Set<quickfix.Session> getLoggedOnSessions() {
@@ -229,11 +242,12 @@ public abstract class SessionConnector {
     protected void startSessionTimer() {
         sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(new SessionTimerTask(), 0, 1000L,
                 TimeUnit.MILLISECONDS);
+        log.info("SessionTimer started");
     }
 
     protected void stopSessionTimer() {
         if (sessionTimerFuture != null) {
-            sessionTimerFuture.cancel(false);
+            if (sessionTimerFuture.cancel(false)) log.info("SessionTimer canceled");
         }
     }
 

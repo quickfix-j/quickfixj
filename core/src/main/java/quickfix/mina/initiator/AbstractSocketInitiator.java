@@ -60,7 +60,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = new HashSet<IoSessionInitiator>();
-    private EventHandlingStrategy eventHandlingStrategy;
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -72,15 +71,11 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
-        //try {
-        ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
-        ByteBuffer.setUseDirectBuffers(false);
-        //        } catch (FieldConvertError e) {
-        //            throw new ConfigError(e);
-        //        }
+            ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
+            ByteBuffer.setUseDirectBuffers(false);
     }
 
-    protected void createSessionInitiators(EventHandlingStrategy eventHandlingStrategy)
+    protected void createSessionInitiators()
             throws ConfigError {
         try {
             createSessions();
@@ -115,7 +110,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
                 final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                         socketAddresses, reconnectingIntervals, getScheduledExecutorService(),
-                        networkingOptions, eventHandlingStrategy, getIoFilterChainBuilder(),
+                        networkingOptions, getEventHandlingStrategy(), getIoFilterChainBuilder(),
                         sslEnabled, keyStoreName, keyStorePassword, enableProtocole, cipherSuites);
 
                 initiators.add(ioSessionInitiator);
@@ -243,6 +238,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     public int getQueueSize() {
-        return eventHandlingStrategy == null ? 0 : eventHandlingStrategy.getQueueSize();
+        final EventHandlingStrategy ehs = getEventHandlingStrategy();
+        return ehs == null ? 0 : ehs.getQueueSize();
     }
+
+    protected abstract EventHandlingStrategy getEventHandlingStrategy() ;
 }
