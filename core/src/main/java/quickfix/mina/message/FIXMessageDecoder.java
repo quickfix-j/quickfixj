@@ -179,7 +179,8 @@ public class FIXMessageDecoder implements MessageDecoder {
                         }
                     } else {
                         if (hasRemaining(in)) {
-                            handleError(in, in.position() + 1, "Error in message length format",
+                            String messageString = getMessageStringForError(in);
+                            handleError(in, in.position() + 1, "Length format error in message (last character:"+ch+"): "+ messageString,
                                     false);
                             continue;
                         } else {
@@ -275,6 +276,14 @@ public class FIXMessageDecoder implements MessageDecoder {
     private String getMessageString(ByteBuffer buffer) throws UnsupportedEncodingException {
         byte[] data = new byte[position - buffer.position()];
         buffer.get(data);
+        return new String(data, charsetEncoding);
+    }
+    
+    private String getMessageStringForError(ByteBuffer buffer) throws UnsupportedEncodingException {
+        int initialPosition = buffer.position();
+        byte[] data = new byte[buffer.limit() - initialPosition];
+        buffer.get(data);
+        buffer.position(position - initialPosition);
         return new String(data, charsetEncoding);
     }
 
