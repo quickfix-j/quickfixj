@@ -22,8 +22,6 @@ package quickfix.field.converter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import quickfix.FieldConvertError;
 import quickfix.RuntimeError;
@@ -32,7 +30,6 @@ import quickfix.RuntimeError;
  * Converts between a double and a String.
  */
 public class DoubleConverter {
-    private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
     private static ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>();
 
     /**
@@ -89,10 +86,8 @@ public class DoubleConverter {
      */
     public static double convert(String value) throws FieldConvertError {
         try {
-            Matcher matcher = decimalPattern.matcher(value);
-            if (!matcher.matches()) {
-                throw new NumberFormatException();
-            }
+            if(value.charAt(0) == '+')  throw new FieldConvertError("invalid double value: " + value);
+            //other cases will be handled by parseDouble anyway
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid double value: " + value);
