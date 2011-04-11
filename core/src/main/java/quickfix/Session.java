@@ -673,7 +673,7 @@ public class Session {
     }
 
     /**
-     * Used internally by initiator implementation.
+     * Used internally
      *
      * @return true if session is enabled, false otherwise.
      */
@@ -922,24 +922,7 @@ public class Session {
             } else if (msgType.equals(MsgType.SEQUENCE_RESET)) {
                 nextSequenceReset(message);
             } else if (msgType.equals(MsgType.LOGOUT)) {
-                boolean doNextLogout = true;
-                if (forceResync && message.isSetField(Text.FIELD)) {
-                    final String txt = message.getString(Text.FIELD);
-                    final Integer expected = extractExpectedSequenceNumber(txt);
-                    if (expected != null) {
-                        final int targetSeqNum = message.getHeader().getInt(MsgSeqNum.FIELD) + 1;
-                        final int senderSeqNum = expected.intValue();
-                        forceStoreResync(targetSeqNum, senderSeqNum);
-                        doNextLogout = false;
-                        fromCallback(msgType, message, sessionID);
-                        getLog().onErrorEvent(
-                                "Forcing next sequence resync senderSeqNum = " + senderSeqNum
-                                        + ", targetSeqNum = " + targetSeqNum);
-                    }
-                }
-                if (doNextLogout) {
-                    nextLogout(message);
-                }
+                nextLogout(message);
             } else if (msgType.equals(MsgType.RESEND_REQUEST)) {
                 nextResendRequest(message);
             } else if (msgType.equals(MsgType.REJECT)) {
@@ -1123,6 +1106,8 @@ public class Session {
                 endSeqNo = next;
             }
             generateSequenceReset(beginSeqNo, endSeqNo);
+            // shouldn't we return ????
+            return;
         }
 
         final ArrayList<String> messages = new ArrayList<String>();
@@ -1158,6 +1143,7 @@ public class Session {
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
 
+            //shouldn't we let Reject message be resent??
             if (isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
                 if (begin == 0) {
                     begin = msgSeqNum;
@@ -1295,7 +1281,7 @@ public class Session {
         sendRaw(logout, 0);
         state.setLogoutSent(true);
     }
-
+    
     private void nextSequenceReset(Message sequenceReset) throws IOException, RejectLogon,
             FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         boolean isGapFill = false;
@@ -1535,7 +1521,7 @@ public class Session {
                 doTargetTooHigh(msg);
                 return false;
             } else if (checkTooLow && isTargetTooLow(msgSeqNum)) {
-                if (!doTargetTooLow(msg) || !forceResync) {
+                if (!doTargetTooLow(msg)) {
                     return false;
                 }
             }
@@ -1572,18 +1558,10 @@ public class Session {
     private boolean doTargetTooLow(Message msg) throws FieldNotFound, IOException {
         if (!isPossibleDuplicate(msg)) {
             final int msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-            if (forceResync) {
-                getLog().onErrorEvent(
-                        "Forcing sequence resync, expected target num = " + getExpectedTargetNum()
-                                + ", received = " + msgSeqNum);
-                forceStoreResync(msg);
-                return true;
-            } else {
-                final String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
-                        + " but received " + msgSeqNum;
-                generateLogout(text);
-                throw new SessionException(text);
-            }
+            final String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
+                    + " but received " + msgSeqNum;
+            generateLogout(text);
+            throw new SessionException(text);
         }
         return validatePossDup(msg);
     }
@@ -1675,8 +1653,7 @@ public class Session {
 
     private boolean verify(Message message) throws RejectLogon, FieldNotFound, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException {
-        final boolean checkGap = checkGapFieldOnAdminMessage || !message.isAdmin();
-        return verify(message, checkGap, checkGap);
+        return verify(message,  !forceResync,  !forceResync);
     }
 
     /**
@@ -1881,7 +1858,8 @@ public class Session {
         if (resetOnDisconnect) {
             resetState();
         }
-
+        //now enabled again
+        setEnabled(true);
     }
 
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -1932,7 +1910,7 @@ public class Session {
         }
 
         final int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
-        if (forceResync && isTargetTooHigh(sequence) && !resetOnLogon) {
+        if (isTargetTooHigh(sequence) && !resetOnLogon) {
             forceResyncWhenTooHighIfNeeded(logon);
         }
 
@@ -2172,6 +2150,7 @@ public class Session {
             if (num == 0) {
                 final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
                 if (persistMessages) {
+                    //should we store admin messages or only application + filtered admin messages (eg reject)
                     state.set(msgSeqNum, messageString);
                 }
                 state.incrNextSenderMsgSeqNum();

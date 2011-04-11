@@ -106,7 +106,7 @@
 		<sequential>
 			<mkdir dir="@{output}" />
 			<javac destdir="@{output}" debug="${javac.debug}"
-					memoryMaximumSize="512m" fork="yes" nowarn="yes">
+					memoryMaximumSize="2048m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />
@@ -241,7 +241,7 @@
 		<touch file="${utest.timestamp}" />
 	</target>
 
-	<target name="test.unit.junit" depends="compile, test.init" unless="utests.uptodate">
+	<target name="test.unit.junit" depends="test.init" unless="utests.uptodate">
 		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="false" errorproperty="utests.failed" failureproperty="utests.failed" haltonfailure="${junit.haltonfailure}">
 			<!-- The plain formatter is breaking the Pulse CI report generator -->
 			<!-- <formatter type="plain" usefile="true" /> -->
