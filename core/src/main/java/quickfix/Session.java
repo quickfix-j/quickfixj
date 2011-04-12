@@ -1106,80 +1106,78 @@ public class Session {
                 endSeqNo = next;
             }
             generateSequenceReset(beginSeqNo, endSeqNo);
-            // shouldn't we return ????
-            return;
-        }
+        } else {
 
-        final ArrayList<String> messages = new ArrayList<String>();
-
-        try {
-            state.get(beginSeqNo, endSeqNo, messages);
-        } catch (final IOException e) {
-            if (forceResendWhenCorruptedStore) {
-                log.error("Cannot read messages from stores, resend HeartBeats", e);
-                for (int i = beginSeqNo; i < endSeqNo; i++) {
-                    final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
-                            MsgType.HEARTBEAT);
-                    initializeHeader(heartbeat.getHeader());
-                    heartbeat.getHeader().setInt(MsgSeqNum.FIELD, i);
-                    messages.add(heartbeat.toString());
-                }
-            } else {
-                throw e;
-            }
-        }
-
-        int msgSeqNum = 0;
-        int begin = 0;
-        int current = beginSeqNo;
-
-        for (final String message : messages) {
-            final Message msg = parseMessage(message);
-            msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-
-            if ((current != msgSeqNum) && begin == 0) {
-                begin = current;
-            }
-
-            final String msgType = msg.getHeader().getString(MsgType.FIELD);
-
-            if (isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
-                if (begin == 0) {
-                    begin = msgSeqNum;
-                }
-            } else {
-                initializeResendFields(msg);
-                if (resendApproved(msg)) {
-                    if (begin != 0) {
-                        generateSequenceReset(begin, msgSeqNum);
+            final ArrayList<String> messages = new ArrayList<String>();
+    
+            try {
+                state.get(beginSeqNo, endSeqNo, messages);
+            } catch (final IOException e) {
+                if (forceResendWhenCorruptedStore) {
+                    log.error("Cannot read messages from stores, resend HeartBeats", e);
+                    for (int i = beginSeqNo; i < endSeqNo; i++) {
+                        final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
+                                MsgType.HEARTBEAT);
+                        initializeHeader(heartbeat.getHeader());
+                        heartbeat.getHeader().setInt(MsgSeqNum.FIELD, i);
+                        messages.add(heartbeat.toString());
                     }
-                    getLog().onEvent("Resending Message: " + msgSeqNum);
-                    send(msg.toString());
-                    begin = 0;
                 } else {
+                    throw e;
+                }
+            }
+    
+            int msgSeqNum = 0;
+            int begin = 0;
+            int current = beginSeqNo;
+    
+            for (final String message : messages) {
+                final Message msg = parseMessage(message);
+                msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
+    
+                if ((current != msgSeqNum) && begin == 0) {
+                    begin = current;
+                }
+    
+                final String msgType = msg.getHeader().getString(MsgType.FIELD);
+    
+                if (isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
                     if (begin == 0) {
                         begin = msgSeqNum;
                     }
+                } else {
+                    initializeResendFields(msg);
+                    if (resendApproved(msg)) {
+                        if (begin != 0) {
+                            generateSequenceReset(begin, msgSeqNum);
+                        }
+                        getLog().onEvent("Resending Message: " + msgSeqNum);
+                        send(msg.toString());
+                        begin = 0;
+                    } else {
+                        if (begin == 0) {
+                            begin = msgSeqNum;
+                        }
+                    }
                 }
+                current = msgSeqNum + 1;
             }
-            current = msgSeqNum + 1;
-        }
-
-        if (begin != 0) {
-            generateSequenceReset(begin, msgSeqNum + 1);
-        }
-
-        if (endSeqNo > msgSeqNum) {
-            endSeqNo = endSeqNo + 1;
-            final int next = state.getNextSenderMsgSeqNum();
-            if (endSeqNo > next) {
-                endSeqNo = next;
+    
+            if (begin != 0) {
+                generateSequenceReset(begin, msgSeqNum + 1);
             }
-            generateSequenceReset(beginSeqNo, endSeqNo);
+    
+            if (endSeqNo > msgSeqNum) {
+                endSeqNo = endSeqNo + 1;
+                final int next = state.getNextSenderMsgSeqNum();
+                if (endSeqNo > next) {
+                    endSeqNo = next;
+                }
+                generateSequenceReset(beginSeqNo, endSeqNo);
+            }
         }
-
-        msgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
-        if (!isTargetTooHigh(msgSeqNum) && !isTargetTooLow(msgSeqNum)) {
+        int resendRequestMsgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
+        if (!isTargetTooHigh(resendRequestMsgSeqNum) && !isTargetTooLow(resendRequestMsgSeqNum)) {
             state.incrNextTargetMsgSeqNum();
         }
     }
