@@ -145,24 +145,12 @@ public class SessionTest {
         assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
 
         session.next(createHeartbeatMessage(1002));
-        System.out.println("last to app " + application.lastToAppMessage());
-        System.out.println("last from app " + application.lastFromAppMessage());
-        System.out.println("last to admin " + application.lastToAdminMessage());
-        System.out.println("last from admin " + application.lastFromAdminMessage());
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
 
         session.next(createHeartbeatMessage(1003));
-        System.out.println("last to app " + application.lastToAppMessage());
-        System.out.println("last from app " + application.lastFromAppMessage());
-        System.out.println("last to admin " + application.lastToAdminMessage());
-        System.out.println("last from admin " + application.lastFromAdminMessage());
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
 
         session.next(createHeartbeatMessage(1001));
-        System.out.println("last to app " + application.lastToAppMessage());
-        System.out.println("last from app " + application.lastFromAppMessage());
-        System.out.println("last to admin " + application.lastToAdminMessage());
-        System.out.println("last from admin " + application.lastFromAdminMessage());
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
 
         

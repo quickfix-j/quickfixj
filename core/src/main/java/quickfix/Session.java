@@ -1143,7 +1143,6 @@ public class Session {
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
 
-            //shouldn't we let Reject message be resent??
             if (isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
                 if (begin == 0) {
                     begin = msgSeqNum;
@@ -1281,7 +1280,7 @@ public class Session {
         sendRaw(logout, 0);
         state.setLogoutSent(true);
     }
-    
+
     private void nextSequenceReset(Message sequenceReset) throws IOException, RejectLogon,
             FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         boolean isGapFill = false;
@@ -1521,9 +1520,8 @@ public class Session {
                 doTargetTooHigh(msg);
                 return false;
             } else if (checkTooLow && isTargetTooLow(msgSeqNum)) {
-                if (!doTargetTooLow(msg)) {
-                    return false;
-                }
+                doTargetTooLow(msg);
+                return false;
             }
 
             // Handle poss dup where msgSeq is as expected
@@ -1901,6 +1899,9 @@ public class Session {
             return;
         }
 
+        //reset logout messages
+        state.setLogoutReceived(false);
+        state.setLogoutSent(false);
         state.setLogonReceived(true);
         lastSessionLogon = 0;
         logonAttempts = 0;
@@ -2150,7 +2151,6 @@ public class Session {
             if (num == 0) {
                 final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
                 if (persistMessages) {
-                    //should we store admin messages or only application + filtered admin messages (eg reject)
                     state.set(msgSeqNum, messageString);
                 }
                 state.incrNextSenderMsgSeqNum();
