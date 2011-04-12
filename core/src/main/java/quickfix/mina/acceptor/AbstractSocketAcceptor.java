@@ -127,7 +127,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 AcceptorSessionProvider sessionProvider = sessionProviders
                         .get(socketDescriptor.getAddress());
                 if (sessionProvider == null) {
-                    sessionProvider = new StaticAcceptorSessionProvider(socketDescriptor
+                    sessionProvider = new DefaultAcceptorSessionProvider(socketDescriptor
                             .getAcceptedSessions());
                 }
 
@@ -352,4 +352,31 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     protected abstract EventHandlingStrategy getEventHandlingStrategy() ;
 
+    private class DefaultAcceptorSessionProvider
+        implements AcceptorSessionProvider
+    {
+        private final Map<SessionID,Session> acceptorSessions;
+
+        public DefaultAcceptorSessionProvider(Map<SessionID, Session> acceptorSessions)
+        {
+            this.acceptorSessions = acceptorSessions;
+        }
+
+        public Session getSession(SessionID sessionID, SessionConnector ignored)
+        {
+            Session session = acceptorSessions.get(sessionID);
+            if(session == null)
+                session = acceptorSessions.get(reduceSessionID(sessionID));
+            return session;
+        }
+
+        /**
+         * Remove the extra fields added to the session ID in QF-272.
+         */
+        private SessionID reduceSessionID(SessionID sessionID)
+        {
+            // Acceptors don't use qualifiers.
+            return new SessionID(sessionID.getBeginString(), sessionID.getSenderCompID(), sessionID.getTargetCompID());
+        }
+    }
 }
