@@ -46,7 +46,6 @@ public class FileLog extends AbstractLog {
         }
     }
     
-    private SessionID sessionID;
     private String messagesFileName;
     private String eventFileName;
     private boolean syncAfterWrite;
@@ -58,7 +57,6 @@ public class FileLog extends AbstractLog {
     private boolean includeTimestampForMessages;
     
     FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages, boolean logHeartbeats) throws FileNotFoundException {
-        this.sessionID = sessionID;
         String sessionName = FileUtil.sessionIdFileName(sessionID);
         
         setLogHeartbeats(logHeartbeats);
@@ -103,7 +101,9 @@ public class FileLog extends AbstractLog {
                 stream.getFD().sync();
             }
         } catch (IOException e) {
-            LogUtil.logThrowable(sessionID, "error writing message to log", e);
+        	//QFJ-459: no point trying to log the error in the file if we had an IOException
+        	//we will end up with a java.lang.StackOverflowError
+            LogUtil.logThrowable("error writing message to log", e);
         }
     }
 
