@@ -286,6 +286,21 @@ public class DataDictionaryTest extends TestCase {
         dictionary.validate(newSingle);
     }
     
+    //QFJ-535
+    public void testValidateFieldsOutOfOrderForGroups() throws Exception{
+        final DataDictionary dictionary = new DataDictionary(getDictionary());
+        dictionary.setCheckFieldsOutOfOrder(false);
+        Message messageWithGroupLevel1 = new Message(
+                "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount736=currency661=110=130",
+                dictionary);
+        dictionary.validate(messageWithGroupLevel1);
+        
+        Message messageWithGroupLevel2 = new Message(
+                "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount539=1524=1538=1525=a10=145",
+                dictionary);
+        dictionary.validate(messageWithGroupLevel2);
+    }
+    
     //
     // Group Validation Tests in RepeatingGroupTest
     //

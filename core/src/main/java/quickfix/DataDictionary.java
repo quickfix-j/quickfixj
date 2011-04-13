@@ -488,6 +488,9 @@ public class DataDictionary {
      */
     public void setCheckFieldsOutOfOrder(boolean flag) {
         checkFieldsOutOfOrder = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckFieldsOutOfOrder(flag);
+        }
     }
 
     public boolean isCheckFieldsOutOfOrder() {
@@ -502,6 +505,9 @@ public class DataDictionary {
      */
     public void setCheckFieldsHaveValues(boolean flag) {
         checkFieldsHaveValues = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckFieldsHaveValues(flag);
+        }
     }
 
     /**
@@ -512,8 +518,18 @@ public class DataDictionary {
      */
     public void setCheckUserDefinedFields(boolean flag) {
         checkUserDefinedFields = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckUserDefinedFields(flag);
+        }
     }
 
+    public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
+        allowUnknownMessageFields = allowUnknownFields;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
+        }
+    }
+    
     private void copyFrom(DataDictionary rhs) {
         hasVersion = rhs.hasVersion;
         beginString = rhs.beginString;
@@ -1303,7 +1319,4 @@ public class DataDictionary {
         }
     }
 
-    public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
-        allowUnknownMessageFields = allowUnknownFields;
-    }
 }
