@@ -93,9 +93,9 @@ public class DefaultSessionFactoryTest {
         assertThat(provider.getSessionDataDictionary(sessionID.getBeginString()),
                 is(notNullValue()));
 
-        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX42), null),
+        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX42)),
                 is(notNullValue()));
-        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX40), null),
+        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX40)),
                 is(notNullValue()));
     }
 
@@ -108,7 +108,7 @@ public class DefaultSessionFactoryTest {
         DataDictionaryProvider provider = session.getDataDictionaryProvider();
         assertThat(provider.getSessionDataDictionary(sessionID.getBeginString()),
                 is(notNullValue()));
-        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX42), null),
+        assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX42)),
                 is(notNullValue()));
     }
 

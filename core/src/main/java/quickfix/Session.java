@@ -40,7 +40,6 @@ import quickfix.field.ApplVerID;
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
 import quickfix.field.BusinessRejectReason;
-import quickfix.field.CstmApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.EncryptMethod;
 import quickfix.field.EndSeqNo;
@@ -864,16 +863,12 @@ public class Session {
                 final DataDictionary sessionDataDictionary = dataDictionaryProvider
                         .getSessionDataDictionary(beginString);
 
-                final String customApplVerID = header.isSetField(CstmApplVerID.FIELD) ? header
-                        .getString(CstmApplVerID.FIELD) : null;
-
                 final ApplVerID applVerID = header.isSetField(ApplVerID.FIELD) ? new ApplVerID(
                         header.getString(ApplVerID.FIELD)) : targetDefaultApplVerID.get();
 
                 final DataDictionary applicationDataDictionary = isAdminMessage(msgType)
                         ? dataDictionaryProvider.getSessionDataDictionary(beginString)
-                        : dataDictionaryProvider.getApplicationDataDictionary(applVerID,
-                                customApplVerID);
+                        : dataDictionaryProvider.getApplicationDataDictionary(applVerID);
 
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {

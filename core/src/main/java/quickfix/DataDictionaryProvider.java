@@ -41,9 +41,8 @@ public interface DataDictionaryProvider {
      * 
      * @param applVerID the application version ID. Prior to FIXT.1.1, the applVerID 
      * will be determined by BeginString field.
-     * @param customApplVerID the custom application ID. (optional, can be null)
      * @return the data dictionary for the specified application version or null if no such
      * dictionary is available.
      */
-    DataDictionary getApplicationDataDictionary(ApplVerID applVerID, String customApplVerID);
+    DataDictionary getApplicationDataDictionary(ApplVerID applVerID);
 }

@@ -56,14 +56,12 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
         return dd;
     }
 
-    public DataDictionary getApplicationDataDictionary(ApplVerID applVerID, String customApplVerID) {
-        AppVersionKey appVersionKey = new AppVersionKey(applVerID, customApplVerID);
+    public DataDictionary getApplicationDataDictionary(ApplVerID applVerID) {
+        AppVersionKey appVersionKey = new AppVersionKey(applVerID);
         DataDictionary dd = applicationDictionaries.get(appVersionKey);
         if (dd == null && findDataDictionaries) {
             String beginString = toBeginString(applVerID);
-            String path = beginString.replace(".", "")
-                    + (customApplVerID != null ? CUSTOM_APPL_VERSION_DELIM + customApplVerID : "")
-                    + ".xml";
+            String path = beginString.replace(".", "") + ".xml";
             try {
                 dd = new DataDictionary(path);
                 applicationDictionaries.put(appVersionKey, dd);
@@ -78,18 +76,15 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
         transportDictionaries.put(beginString, dd);
     }
 
-    public void addApplicationDictionary(ApplVerID applVerID, String customApplVerID,
-            DataDictionary dataDictionary) {
-        applicationDictionaries.put(new AppVersionKey(applVerID, customApplVerID), dataDictionary);
+    public void addApplicationDictionary(ApplVerID applVerID, DataDictionary dataDictionary) {
+        applicationDictionaries.put(new AppVersionKey(applVerID), dataDictionary);
     }
 
     private static class AppVersionKey {
         private final ApplVerID applVerID;
-        private final String customApplVerID;
 
-        public AppVersionKey(ApplVerID applVerID, String customApplVerID) {
+        public AppVersionKey(ApplVerID applVerID) {
             this.applVerID = applVerID;
-            this.customApplVerID = customApplVerID;
         }
 
         @Override
@@ -97,7 +92,6 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
             final int prime = 31;
             int result = 1;
             result = prime * result + ((applVerID == null) ? 0 : applVerID.hashCode());
-            result = prime * result + ((customApplVerID == null) ? 0 : customApplVerID.hashCode());
             return result;
         }
 
@@ -118,13 +112,6 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
                     return false;
                 }
             } else if (!applVerID.equals(other.applVerID)) {
-                return false;
-            }
-            if (customApplVerID == null) {
-                if (other.customApplVerID != null) {
-                    return false;
-                }
-            } else if (!customApplVerID.equals(other.customApplVerID)) {
                 return false;
             }
             return true;

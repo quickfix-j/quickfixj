@@ -207,7 +207,7 @@ public class DefaultSessionFactory implements SessionFactory {
                 Session.SETTING_DATA_DICTIONARY, sessionID.getBeginString());
         dataDictionaryProvider.addTransportDictionary(sessionID.getBeginString(), dataDictionary);
         dataDictionaryProvider.addApplicationDictionary(
-                MessageUtils.toApplVerID(sessionID.getBeginString()), null, dataDictionary);
+                MessageUtils.toApplVerID(sessionID.getBeginString()), dataDictionary);
     }
 
     private DataDictionary createDataDictionary(SessionID sessionID, SessionSettings settings,
@@ -240,7 +240,8 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
             DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
-            FieldConvertError {
+            FieldConvertError
+    {
         dataDictionaryProvider.addTransportDictionary(
                 sessionID.getBeginString(),
                 createDataDictionary(sessionID, settings, Session.SETTING_TRANSPORT_DATA_DICTIONARY,
@@ -256,7 +257,7 @@ public class DefaultSessionFactory implements SessionFactory {
                             Session.SETTING_DEFAULT_APPL_VER_ID));
                     final DataDictionary dd = createDataDictionary(sessionID, settings,
                             Session.SETTING_APP_DATA_DICTIONARY, sessionID.getBeginString());
-                    dataDictionaryProvider.addApplicationDictionary(applVerID, null, dd);
+                    dataDictionaryProvider.addApplicationDictionary(applVerID, dd);
                 } else {
                     // Process qualified app data dictionary properties
                     final int offset = key.indexOf('.');
@@ -269,7 +270,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     final DataDictionary dd = createDataDictionary(sessionID, settings, key,
                             beginStringQualifier);
                     dataDictionaryProvider.addApplicationDictionary(
-                            MessageUtils.toApplVerID(beginStringQualifier), null, dd);
+                            MessageUtils.toApplVerID(beginStringQualifier), dd);
 
                 }
             }
