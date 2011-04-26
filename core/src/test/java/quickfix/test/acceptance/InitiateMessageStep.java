@@ -44,7 +44,7 @@ public class InitiateMessageStep implements TestStep {
 
     // Matches FIX.X.X or FIXT.X.X style begin string
     private static final Pattern MESSAGE_PATTERN = Pattern
-            .compile("I(\\d,)*(8=FIXT?\\.\\d\\.\\d\\001)(.*?)(10=.*|)$");
+              .compile("I(\\d,)*(8=FIXT?\\.\\d\\.\\d\\001)(.*?\\001)(10=.*|)$");
 
     private static final Pattern TIME_PATTERN = Pattern.compile("<TIME([+-](\\d+))*>");
 
