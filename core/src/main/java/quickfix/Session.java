@@ -1854,8 +1854,8 @@ public class Session {
         if (resetOnDisconnect) {
             resetState();
         }
-        //now enabled again
-        setEnabled(true);
+        // QFJ-457 now enabled again if acceptor
+        if (!state.isInitiator()) setEnabled(true);
     }
 
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
