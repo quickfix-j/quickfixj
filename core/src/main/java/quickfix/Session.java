@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -312,7 +313,7 @@ public class Session {
 
     private boolean enabled;
 
-    private final String responderSync = "SessionResponderSync";
+    private final ReentrantLock responderSync = new ReentrantLock(true);
     // @GuardedBy(responderSync)
     private Responder responder;
 
@@ -455,19 +456,25 @@ public class Session {
      * @param responder a responder implementation
      */
     public void setResponder(Responder responder) {
-        synchronized (responderSync) {
+        responderSync.lock();
+        try {
             this.responder = responder;
             if (responder != null) {
                 stateListener.onConnect();
             } else {
                 stateListener.onDisconnect();
             }
+        } finally {
+            responderSync.unlock();
         }
     }
 
     public Responder getResponder() {
-        synchronized (responderSync) {
+        responderSync.lock();
+        try {
             return responder;
+        } finally {
+            responderSync.unlock();
         }
     }
 
@@ -1812,7 +1819,8 @@ public class Session {
      *             IO error
      */
     public void disconnect(String reason, boolean logError) throws IOException {
-        synchronized (responderSync) {
+        responderSync.lock();
+        try {
             if (!hasResponder()) {
                 getLog().onEvent("Already disconnected: " + reason);
                 return;
@@ -1825,6 +1833,8 @@ public class Session {
             }
             responder.disconnect();
             setResponder(null);
+        } finally {
+            responderSync.unlock();
         }
 
         final boolean logonReceived = state.isLogonReceived();
@@ -2194,13 +2204,18 @@ public class Session {
 
     private boolean send(String messageString) {
         getLog().onOutgoing(messageString);
-        synchronized (responderSync) {
-            if (!hasResponder()) {
-                getLog().onEvent("No responder, not sending message: " + messageString);
-                return false;
-            }
-            return getResponder().send(messageString);
+        Responder responder;
+        responderSync.lock();
+        try {
+            responder = this.responder;
+        } finally {
+            responderSync.unlock();
         }
+        if (responder == null) {
+            getLog().onEvent("No responder, not sending message: " + messageString);
+            return false;
+        }
+        return responder.send(messageString);
     }
 
     private boolean isCorrectCompID(String senderCompID, String targetCompID) {
