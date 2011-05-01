@@ -121,7 +121,7 @@ public class DefaultDataDictionaryProviderTest {
         try {
             provider.getApplicationDataDictionary(new ApplVerID("Invalid_Test"));
         } catch (QFJException e) {
-            assertThat(e.getCause(), is(ConfigError.class));
+            assertThat(e.getMessage(), containsString("Unknown or unsupported ApplVerID"));
         }
     }
 
