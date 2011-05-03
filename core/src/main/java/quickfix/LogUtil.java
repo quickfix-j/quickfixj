@@ -66,16 +66,4 @@ public class LogUtil {
         }
     }
     
-    /**
-     * Logs a throwable as a session event, including the stack trace.
-     * But does not try to log in the filelog (used when an exception occured when trying to write in the file)
-     * see QFJ-459
-     * @param message 
-     *              the error message
-     * @param t 
-     *              the exception to log
-     */
-    public static void logThrowable(String message, Throwable t) {
-        log.error(message, t);
-    }
 }

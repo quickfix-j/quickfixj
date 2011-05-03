@@ -103,7 +103,8 @@ public class FileLog extends AbstractLog {
         } catch (IOException e) {
         	//QFJ-459: no point trying to log the error in the file if we had an IOException
         	//we will end up with a java.lang.StackOverflowError
-            LogUtil.logThrowable("error writing message to log", e);
+            System.err.println("error writing message to log : "+message);
+            e.printStackTrace(System.err);
         }
     }
 
