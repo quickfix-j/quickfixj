@@ -181,10 +181,16 @@
 	<property name="junit.haltonfailure" value="false" />
 
 	<target name="test" description="run all tests, if needed" depends="check.tests.uptodate" unless="tests.uptodate">
+		<!-- to prevent exiting before running acceptance tests if unit test failed -->
+		<property name="bypass.test.failure" value="do.test"/>
 		<antcall target="test.clean" />
 		<antcall target="test.unit" />
 		<antcall target="test.acceptance" />
 		<antcall target="test.report" />
+		<antcall target="checkfailures" inheritall="false">
+			<param name="utests.failed" value="${utests.failed}"/>
+			<param name="atests.failed" value="${atests.failed}"/>
+		</antcall>
 	</target>
 
 	<target name="test.clean" description="Clean test output, forces tests to be run." unless="tests.uptodate">
@@ -240,6 +246,11 @@
 		<description>Update test timestamp if tests passed.</description>
 		<touch file="${utest.timestamp}" />
 	</target>
+	
+	<target name="checkfailures" unless="bypass.test.failure">
+		<fail if="utests.failed" message="Unit test failed" />
+		<fail if="atests.failed" message="Acceptance test failed" />
+	</target>
 
 	<target name="test.unit.junit" depends="compile, test.init" unless="utests.uptodate">
 		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="false" errorproperty="utests.failed" failureproperty="utests.failed" haltonfailure="${junit.haltonfailure}">
@@ -256,8 +267,8 @@
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>
-
 		</junit>
+		<antcall target="checkfailures" inheritall="true"/>
 	</target>
 
 	<target name="test.one.junit" depends="compile, test.init,jar" unless="utests.uptodate" description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
@@ -270,7 +281,7 @@
 		<exec executable="cat">
 			<arg value="${junit.output.dir}/TEST-${onejunit.testname}.txt" />
 		</exec>
-		<fail if="utests.failed" message="Unit test failed" />
+		<antcall target="checkfailures" inheritall="true"/>
 	</target>
 
 	<!-- Run Acceptance Tests -->
@@ -318,6 +329,7 @@
 		<replaceregexp file="${atest.report}" flags="s" byline="false" 
 			match="system-err>.*&lt;/system-err" 
 			replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
+		<antcall target="checkfailures"  inheritall="true"/>
 		<antcall target="create.atest.timestamp" />
 	</target>
 
