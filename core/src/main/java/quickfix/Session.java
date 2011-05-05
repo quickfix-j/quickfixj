@@ -205,7 +205,7 @@ public class Session {
      * When logout response contains "expecting XXX", the sequence numbers of forcibly resynchronized. Valid values are
      * "Y" or "N". Default is "N".
      */
-    public static final String SETTING_FORCE_RESYNC = "ForceResync";
+    public static final String SETTING_VALIDATE_SEQUENCE_NUMBERS = "ValidateSequenceNumbers";
 
     /**
      * Session setting for doing an automatic sequence number reset on
@@ -289,12 +289,6 @@ public class Session {
      */
     public static final String REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
 
-    /**
-     * Allow to disable gap field check on administrative message. Valid
-     * values are "Y" or "N". Default is "Y".
-     */
-    public static final String SETTING_CHECK_GAP_FIELD_ON_ADMIN_MESSAGE = "CheckGapFieldOnAdminMessage";
-
     public static final String SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE = "ForceResendWhenCorruptedStore";
 
     public static final String SETTING_ALLOWED_REMOTE_ADDRESSES = "AllowedRemoteAddresses";
@@ -344,7 +338,6 @@ public class Session {
     private final boolean useClosedRangeForResend;
     private boolean disableHeartBeatCheck = false;
     private boolean rejectInvalidMessage = false;
-    private boolean checkGapFieldOnAdminMessage;
     private boolean forceResendWhenCorruptedStore = false;
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
@@ -353,7 +346,7 @@ public class Session {
 
     private final AtomicReference<ApplVerID> targetDefaultApplVerID = new AtomicReference<ApplVerID>();
     private final DefaultApplVerID senderDefaultApplVerID;
-    private boolean forceResync = false;
+    private boolean validateSequenceNumbers  = true;
     private final int[] logonIntervals;
     private final Set<InetAddress> allowedRemoteAddresses;
 
@@ -371,8 +364,8 @@ public class Session {
         this(application, messageStoreFactory, sessionID, dataDictionaryProvider, sessionSchedule,
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true,
                 false, false, false, false, true, false, true, false,
-                DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, false, new int[] { 5 }, false, false,
-                false, true, false, false, null);
+                DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
+                false, true, false, null);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -383,9 +376,9 @@ public class Session {
             boolean refreshMessageStoreAtLogon, boolean checkCompID,
             boolean redundantResentRequestsAllowed, boolean persistMessages,
             boolean useClosedRangeForResend, double testRequestDelayMultiplier,
-            DefaultApplVerID senderDefaultApplVerID, boolean forceResync, int[] logonIntervals,
+            DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers, int[] logonIntervals,
             boolean resetOnError, boolean disconnectOnError, boolean ignoreHeartBeatFailure,
-            boolean rejectInvalidMessage, boolean checkGapFieldOnAdminMessage,
+            boolean rejectInvalidMessage, 
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses) {
         this.application = application;
         this.sessionID = sessionID;
@@ -404,13 +397,12 @@ public class Session {
         this.persistMessages = persistMessages;
         this.useClosedRangeForResend = useClosedRangeForResend;
         this.senderDefaultApplVerID = senderDefaultApplVerID;
-        this.forceResync = forceResync;
+        this.validateSequenceNumbers = validateSequenceNumbers;
         this.logonIntervals = logonIntervals;
         this.resetOnError = resetOnError;
         this.disconnectOnError = disconnectOnError;
         disableHeartBeatCheck = ignoreHeartBeatFailure;
         this.rejectInvalidMessage = rejectInvalidMessage;
-        this.checkGapFieldOnAdminMessage = checkGapFieldOnAdminMessage;
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
         this.allowedRemoteAddresses = allowedRemoteAddresses;
 
@@ -883,7 +875,7 @@ public class Session {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incomming message with " + e + ": " + message);
+                        getLog().onErrorEvent("Warn: incoming message with " + e + ": " + message);
                     }
                 } catch (final FieldException e) {
                     if (message.isSetField(e.getField())) {
@@ -891,7 +883,7 @@ public class Session {
                             throw e;
                         } else {
                             getLog().onErrorEvent(
-                                    "Warn: incomming message with incorrect field: "
+                                    "Warn: incoming message with incorrect field: "
                                             + message.getField(e.getField()) + ": " + message);
                         }
                     } else {
@@ -899,7 +891,7 @@ public class Session {
                             throw e;
                         } else {
                             getLog().onErrorEvent(
-                                    "Warn: incomming message with missing field: " + e.getField()
+                                    "Warn: incoming message with missing field: " + e.getField()
                                             + ": " + e.getMessage() + ": " + message);
                         }
                     }
@@ -907,7 +899,7 @@ public class Session {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incomming " + e + ": " + message);
+                        getLog().onErrorEvent("Warn: incoming " + e + ": " + message);
                     }
                 }
 
@@ -1649,7 +1641,7 @@ public class Session {
 
     private boolean verify(Message message) throws RejectLogon, FieldNotFound, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException {
-        return verify(message,  !forceResync,  !forceResync);
+        return verify(message,  validateSequenceNumbers,  validateSequenceNumbers);
     }
 
     /**
@@ -2447,14 +2439,6 @@ public class Session {
 
     public void setRejectInvalidMessage(boolean RejectInvalidMessage) {
         rejectInvalidMessage = RejectInvalidMessage;
-    }
-
-    public boolean isCheckGapFieldOnAdminMessage() {
-        return checkGapFieldOnAdminMessage;
-    }
-
-    public void setCheckGapFieldOnAdminMessage(boolean checkGapFieldOnAdminMessage) {
-        this.checkGapFieldOnAdminMessage = checkGapFieldOnAdminMessage;
     }
 
     public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {

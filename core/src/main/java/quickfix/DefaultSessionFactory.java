@@ -163,11 +163,10 @@ public class DefaultSessionFactory implements SessionFactory {
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
-            final boolean forceResync = getSetting(settings, sessionID, Session.SETTING_FORCE_RESYNC, false);
-                        final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
+            final boolean validateSequenceNumbers = getSetting(settings, sessionID, Session.SETTING_VALIDATE_SEQUENCE_NUMBERS, true);
+            final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
             final boolean disconnectOnError = getSetting(settings, sessionID, Session.SETTING_DISCONNECT_ON_ERROR, false);
             final boolean disableHeartBeatCheck = getSetting(settings, sessionID, Session.SETTING_DISABLE_HEART_BEAT_CHECK, false);
-            final boolean checkGapFieldOnAdminMessage = getSetting(settings, sessionID, Session.SETTING_CHECK_GAP_FIELD_ON_ADMIN_MESSAGE, true);
             final boolean forceResendWhenCorruptedStore = getSetting(settings, sessionID, Session.SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE, false);
 
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
@@ -178,9 +177,9 @@ public class DefaultSessionFactory implements SessionFactory {
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
-                    testRequestDelayMultiplier, senderDefaultApplVerID, forceResync,
+                    testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck,
-                    rejectInvalideMessage, checkGapFieldOnAdminMessage,
+                    rejectInvalideMessage, 
                     forceResendWhenCorruptedStore, allowedRemoteAddresses);
 
             session.setLogonTimeout(logonTimeout);

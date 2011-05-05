@@ -62,8 +62,8 @@ public class SessionTest {
 
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
-                false, false, false, false, false, true, false, 1.5, null, false, new int[] { 5 },
-                false, false, false, true, true, false, null);
+                false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
+                false, false, false, true, false, null);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -114,12 +114,12 @@ public class SessionTest {
     }
 
     @Test
-    public void testForceResync() throws Exception {
+    public void testSessionWithoutValidateSequenceNumbers() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = createSession(sessionID, application, true, true, true);
+        final Session session = createSession(sessionID, application, true, true, false);
 
         final UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
