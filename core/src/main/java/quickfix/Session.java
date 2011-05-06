@@ -49,7 +49,6 @@ import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NewSeqNo;
-import quickfix.field.NextExpectedMsgSeqNum;
 import quickfix.field.OrigSendingTime;
 import quickfix.field.PossDupFlag;
 import quickfix.field.RefMsgType;
@@ -186,6 +185,11 @@ public class Session {
     public static final String SETTING_VALIDATE_FIELDS_HAVE_VALUES = "ValidateFieldsHaveValues";
 
     /**
+     * Allow to bypass the message validation. Default is "Y".
+     */
+    public static final String SETTING_VALIDATE_INCOMING_MESSAGE  = "ValidateIncomingMessage";
+
+    /**
      * Session setting for logon timeout (in seconds).
      */
     public static final String SETTING_LOGON_TIMEOUT = "LogonTimeout";
@@ -202,8 +206,12 @@ public class Session {
     public static final String SETTING_RESET_ON_LOGOUT = "ResetOnLogout";
 
     /**
-     * When logout response contains "expecting XXX", the sequence numbers of forcibly resynchronized. Valid values are
-     * "Y" or "N". Default is "N".
+     * Check the next expected target SeqNum against the received SeqNum. Default is "Y".
+     * If a mismatch is detected, apply the following logic:
+     * <ul>
+     * <li>if lower than expected SeqNum , logout</li>
+     * <li>if higher, send a resend request</li>
+     * </ul>
      */
     public static final String SETTING_VALIDATE_SEQUENCE_NUMBERS = "ValidateSequenceNumbers";
 
@@ -347,12 +355,12 @@ public class Session {
     private final AtomicReference<ApplVerID> targetDefaultApplVerID = new AtomicReference<ApplVerID>();
     private final DefaultApplVerID senderDefaultApplVerID;
     private boolean validateSequenceNumbers  = true;
+    private boolean validateIncomingMessage  = true;
     private final int[] logonIntervals;
     private final Set<InetAddress> allowedRemoteAddresses;
 
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
-    private static final int GAP_TO_FORCE_RESYNC = 250;
 
     private final AtomicBoolean resetting = new AtomicBoolean(false);
 
@@ -365,7 +373,7 @@ public class Session {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, true, false, null);
+                false, true, false, null, true);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -379,7 +387,7 @@ public class Session {
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers, int[] logonIntervals,
             boolean resetOnError, boolean disconnectOnError, boolean ignoreHeartBeatFailure,
             boolean rejectInvalidMessage, 
-            boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses) {
+            boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses, boolean validateIncomingMessage) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -405,6 +413,7 @@ public class Session {
         this.rejectInvalidMessage = rejectInvalidMessage;
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
         this.allowedRemoteAddresses = allowedRemoteAddresses;
+        this.validateIncomingMessage = validateIncomingMessage;
 
         final Log engineLog = logFactory.create(sessionID);
         if (engineLog instanceof SessionStateListener) {
@@ -852,7 +861,7 @@ public class Session {
                 }
             }
 
-            if (dataDictionaryProvider != null) {
+            if (validateIncomingMessage && dataDictionaryProvider != null) {
                 final DataDictionary sessionDataDictionary = dataDictionaryProvider
                         .getSessionDataDictionary(beginString);
 
@@ -1061,7 +1070,7 @@ public class Session {
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        if (!verify(reject, false, true)) {
+        if (!verify(reject, false, validateSequenceNumbers)) {
             return;
         }
         state.incrNextTargetMsgSeqNum();
@@ -1275,14 +1284,14 @@ public class Session {
             FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         boolean isGapFill = false;
         if (sequenceReset.isSetField(GapFillFlag.FIELD)) {
-            isGapFill = sequenceReset.getBoolean(GapFillFlag.FIELD);
+            isGapFill = sequenceReset.getBoolean(GapFillFlag.FIELD) && validateSequenceNumbers;
         }
 
         if (!verify(sequenceReset, isGapFill, isGapFill)) {
             return;
         }
 
-        if (sequenceReset.isSetField(NewSeqNo.FIELD)) {
+        if (validateSequenceNumbers && sequenceReset.isSetField(NewSeqNo.FIELD)) {
             final int newSequence = sequenceReset.getInt(NewSeqNo.FIELD);
 
             getLog().onEvent(
@@ -1552,33 +1561,6 @@ public class Session {
             throw new SessionException(text);
         }
         return validatePossDup(msg);
-    }
-
-    private void forceStoreResync(Message msg) throws FieldNotFound, IOException {
-        final int nextTargetMsgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-        final int nextSenderMsgSeqNum = msg.isSetField(NextExpectedMsgSeqNum.FIELD) ? msg
-                .getInt(NextExpectedMsgSeqNum.FIELD) : nextTargetMsgSeqNum;
-        forceStoreResync(nextTargetMsgSeqNum, nextSenderMsgSeqNum);
-    }
-
-    private void forceStoreResync(int nextTargetMsgSeqNum, int nextSenderMsgSeqNum)
-            throws IOException {
-
-        final int actualSenderMsgSeqNum = state.getMessageStore().getNextSenderMsgSeqNum();
-
-        if (actualSenderMsgSeqNum < nextSenderMsgSeqNum) {
-            // fill gaps with HeartBeat
-            final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
-                    MsgType.HEARTBEAT);
-            initializeHeader(heartbeat.getHeader());
-            for (int i = actualSenderMsgSeqNum; i < nextSenderMsgSeqNum; i++) {
-                heartbeat.getHeader().setInt(MsgSeqNum.FIELD, i);
-                state.getMessageStore().set(i, heartbeat.toString());
-            }
-        }
-
-        state.getMessageStore().setNextTargetMsgSeqNum(nextTargetMsgSeqNum);
-        state.getMessageStore().setNextSenderMsgSeqNum(nextSenderMsgSeqNum);
     }
 
     private void doBadCompID(Message msg) throws IOException, FieldNotFound {
@@ -1852,8 +1834,6 @@ public class Session {
 
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        final String senderCompID = logon.getHeader().getString(SenderCompID.FIELD);
-        final String targetCompID = logon.getHeader().getString(TargetCompID.FIELD);
 
         if (isStateRefreshNeeded(MsgType.LOGON)) {
             getLog().onEvent("Refreshing message/state store at logon");
@@ -1885,7 +1865,7 @@ public class Session {
             resetState();
         }
 
-        if (!verify(logon, false, true)) {
+        if (!verify(logon, false, validateSequenceNumbers)) {
             return;
         }
 
@@ -1896,14 +1876,7 @@ public class Session {
         lastSessionLogon = 0;
         logonAttempts = 0;
 
-        if (isCorrectCompID(senderCompID, targetCompID)) {
-            state.setLogonReceived(true);
-        }
-
         final int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
-        if (isTargetTooHigh(sequence) && !resetOnLogon) {
-            forceResyncWhenTooHighIfNeeded(logon);
-        }
 
         getLog().onEvent("Received logon");
         if (!state.isInitiator()) {
@@ -1919,9 +1892,10 @@ public class Session {
         state.setResetSent(false);
         state.setResetReceived(false);
 
-        if (isTargetTooHigh(sequence) && !resetOnLogon) {
+        if (validateSequenceNumbers && isTargetTooHigh(sequence) && !resetOnLogon) {
             doTargetTooHigh(logon);
         } else {
+            // either in sync or no seqnum validation or store reset above
             state.incrNextTargetMsgSeqNum();
             nextQueued();
         }
@@ -1933,18 +1907,6 @@ public class Session {
                 logApplicationException("onLogon()", t);
             }
             stateListener.onLogon();
-        }
-    }
-
-    private void forceResyncWhenTooHighIfNeeded(Message msg) throws FieldNotFound, IOException {
-        final int msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-        final boolean highGap = msgSeqNum - getExpectedTargetNum() > GAP_TO_FORCE_RESYNC;
-        if (highGap) {
-            getLog().onErrorEvent(
-                    "MsgSeqNum too high, expecting " + getExpectedTargetNum() + " but received "
-                            + msgSeqNum + ", forcing sequence resync because gap > "
-                            + GAP_TO_FORCE_RESYNC);
-            forceStoreResync(msg);
         }
     }
 
@@ -1992,18 +1954,19 @@ public class Session {
         }
     }
 
-    private void doTargetTooHigh(Message msg) throws FieldNotFound {
+    private void doTargetTooHigh(Message msg) throws FieldNotFound, IOException {
         final Message.Header header = msg.getHeader();
         final String beginString = header.getString(BeginString.FIELD);
         final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
         getLog().onErrorEvent(
                 "MsgSeqNum too high, expecting " + getExpectedTargetNum() + " but received "
-                        + msgSeqNum);
+                        + msgSeqNum + ": " + msg);
         // automatically reset or disconnect the session if we have a problem when the connector is running
         if (resetOrDisconnectIfRequired(msg)) {
             return;
         }
         state.enqueue(msgSeqNum, msg);
+        getLog().onEvent("Enqueued at pos " + msgSeqNum + ": " + msg);
 
         if (state.isResendRequested()) {
             final int[] range = state.getResendRange();

@@ -63,7 +63,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, false, null);
+                false, false, false, true, false, null, true);
 
         // Simulate socket disconnect
         session.setResponder(null);

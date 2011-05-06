@@ -25,7 +25,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                         ? 30
                         : 0, false, 30, true, resetOnLogon, false, false, false, false, false,
                 true, false, 1.5, null, validateSequenceNumbers, new int[] { 5 }, false, false, false, true,
-                false, null);
+                false, null, true);
     }
 
     public static Session createSession(SessionID sessionID, Application application,
@@ -40,7 +40,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                         ? 30
                         : 0, false, 30, true, true, false, false, false, false, false,
                 false/*persistMessages*/, false, 1.5, null, true, new int[] { 5 }, false, false,
-                false, true, false, null);
+                false, true, false, null, true);
     }
 
     public static Session createSession() throws ConfigError {
