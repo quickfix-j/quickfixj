@@ -24,7 +24,27 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
-import quickfix.field.*;
+import quickfix.field.Account;
+import quickfix.field.BodyLength;
+import quickfix.field.CheckSum;
+import quickfix.field.ClOrdID;
+import quickfix.field.HandlInst;
+import quickfix.field.LastMkt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.NoHops;
+import quickfix.field.OrdType;
+import quickfix.field.OrderQty;
+import quickfix.field.Price;
+import quickfix.field.SenderCompID;
+import quickfix.field.SenderSubID;
+import quickfix.field.SendingTime;
+import quickfix.field.Side;
+import quickfix.field.Symbol;
+import quickfix.field.TargetCompID;
+import quickfix.field.TimeInForce;
+import quickfix.field.TransactTime;
+import quickfix.fix44.NewOrderSingle;
 import quickfix.test.util.ExpectedTestFailure;
 
 public class DataDictionaryTest extends TestCase {
@@ -287,9 +307,9 @@ public class DataDictionaryTest extends TestCase {
     }
     
     //QFJ-535
-    public void testValidateFieldsOutOfOrderForGroups() throws Exception{
+    public void testValidateFieldsOutOfOrderForGroups() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
-        dictionary.setCheckFieldsOutOfOrder(false);
+        dictionary.setCheckUnorderedGroupFields(false);
         Message messageWithGroupLevel1 = new Message(
                 "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount736=currency661=110=130",
                 dictionary);
@@ -300,6 +320,87 @@ public class DataDictionaryTest extends TestCase {
                 dictionary);
         dictionary.validate(messageWithGroupLevel2);
     }
+    
+    //QFJ-535
+    public void testNewOrderSingleWithCorrectTag50() throws Exception {
+
+        final DataDictionary dataDictionary = getDictionary();
+        dataDictionary.setCheckFieldsOutOfOrder(true);
+        
+        String correctFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|50=trader|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
+                + "432=20110531|15=CHF|22=8|55=symbol|48=CH1234.CHF|21=1|60=20110420-11:17:39.000|63=0|207=VX|10=009|").replace('|', '\001');
+
+        //in any case, it must be validated as the message is correct
+        //doValidation and checkFieldsOutOfOrder
+        final NewOrderSingle nos1 = new NewOrderSingle();
+        nos1.fromString(correctFixMessage, dataDictionary, true);
+        dataDictionary.validate(nos1);
+        assertTrue(nos1.getHeader().isSetField(new SenderSubID()));
+
+        //doNotValidation and checkFieldsOutOfOrder
+        final NewOrderSingle nos2 = new NewOrderSingle();
+        nos2.fromString(correctFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos2);
+        assertTrue(nos2.getHeader().isSetField(new SenderSubID()));
+        
+        dataDictionary.setCheckFieldsOutOfOrder(false);
+        
+        //doValidation and no checkFieldsOutOfOrder
+        final NewOrderSingle nos3 = new NewOrderSingle();
+        nos3.fromString(correctFixMessage, dataDictionary, true);
+        dataDictionary.validate(nos3);
+        assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
+
+        //doNotValidation and no checkFieldsOutOfOrder
+        final NewOrderSingle nos4 = new NewOrderSingle();
+        nos4.fromString(correctFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos4);
+        assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
+        
+        
+        
+    }
+    public void testNewOrderSingleWithMisplacedTag50() throws Exception {
+        
+        final DataDictionary dataDictionary = getDictionary();
+        dataDictionary.setCheckFieldsOutOfOrder(true);
+        
+        String incorrectFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
+            + "432=20110531|15=CHF|22=8|55=symbol|48=CH1234.CHF|21=1|60=20110420-11:17:39.000|63=0|207=VX|50=trader|10=009|").replace('|', '\001');
+        
+        //doValidation and checkFieldsOutOfOrder -> should fail
+        final NewOrderSingle nos1 = new NewOrderSingle();
+        try  {
+            nos1.fromString(incorrectFixMessage, dataDictionary, true);
+        } catch (FieldException fe) {
+            //expected exception
+        }
+        
+        //doNotValidation and checkFieldsOutOfOrder -> should NOT fail
+        final NewOrderSingle nos2 = new NewOrderSingle();
+        nos2.fromString(incorrectFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos2);
+        assertTrue(nos2.getHeader().isSetField(new SenderSubID()));
+        
+        dataDictionary.setCheckFieldsOutOfOrder(false);
+        
+        //doValidation and no checkFieldsOutOfOrder -> should NOT fail
+        final NewOrderSingle nos3 = new NewOrderSingle();
+        nos3.fromString(incorrectFixMessage, dataDictionary, true);
+        dataDictionary.validate(nos3);
+        assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
+        
+      //doNotValidation and no checkFieldsOutOfOrder -> should NOT fail
+        final NewOrderSingle nos4 = new NewOrderSingle();
+        nos4.fromString(incorrectFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos4);
+        assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
+        
+        
+        
+    }
+
+    
     
     //
     // Group Validation Tests in RepeatingGroupTest

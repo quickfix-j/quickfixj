@@ -172,11 +172,17 @@ public class Session {
     public static final String SETTING_APP_DATA_DICTIONARY = "AppDataDictionary";
 
     /**
-     * Session validation setting for enabling whether field ordering is
-     * validated. Values are "Y" or "N". Default is "Y".
+     * Default is "Y".
+     * If set to N, fields that are out of order (i.e. body fields in the header, or header fields in the body) will not be rejected.
      */
     public static final String SETTING_VALIDATE_FIELDS_OUT_OF_ORDER = "ValidateFieldsOutOfOrder";
 
+    /**
+     * Session validation setting for enabling whether field ordering is
+     * validated. Values are "Y" or "N". Default is "Y".
+     */
+    public static final String SETTING_VALIDATE_UNORDERED_GROUP_FIELDS = "ValidateUnorderedGroupFields";
+    
     /**
      * Session validation setting for enabling whether field values are
      * validated. Empty fields values are not allowed. Values are "Y" or "N".
@@ -871,7 +877,7 @@ public class Session {
                 final ApplVerID applVerID = header.isSetField(ApplVerID.FIELD) ? new ApplVerID(
                         header.getString(ApplVerID.FIELD)) : targetDefaultApplVerID.get();
 
-                final DataDictionary applicationDataDictionary = isAdminMessage(msgType)
+                final DataDictionary applicationDataDictionary = MessageUtils.isAdminMessage(msgType)
                         ? dataDictionaryProvider.getSessionDataDictionary(beginString)
                         : dataDictionaryProvider.getApplicationDataDictionary(applVerID,
                                 customApplVerID);
@@ -1025,24 +1031,8 @@ public class Session {
             return false;
         }
         // do not interfere in admin and logon/logout messages etc.
-        if (msg != null) {
-            if (msg.isAdmin()) {
-                return false;
-            }
-            try {
-                final String msgType = msg.getHeader().getString(MsgType.FIELD);
-                if (MsgType.LOGON.equals(msgType)) {
-                    return false;
-                }
-                if (MsgType.LOGOUT.equals(msgType)) {
-                    return false;
-                }
-                if (MsgType.TRADING_SESSION_STATUS.equals(msgType)) {
-                    return false;
-                }
-            } catch (final Exception e) {
-                return false;
-            }
+        if (msg != null && msg.isAdmin()) {
+            return false;
         }
         if (resetOnError) {
             try {
@@ -1142,7 +1132,7 @@ public class Session {
     
                 final String msgType = msg.getHeader().getString(MsgType.FIELD);
     
-                if (isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
+                if (MessageUtils.isAdminMessage(msgType) && !forceResendWhenCorruptedStore) {
                     if (begin == 0) {
                         begin = msgSeqNum;
                     }
@@ -1185,10 +1175,6 @@ public class Session {
 
     private String formatEndSeqNum(int seqNo) {
         return (seqNo == 0 ? "infinity" : Integer.toString(seqNo));
-    }
-
-    private boolean isAdminMessage(String msgType) {
-        return msgType.length() == 1 && "0A12345".indexOf(msgType) != -1;
     }
 
     private Message parseMessage(String messageData) throws InvalidMessage {
@@ -1591,7 +1577,7 @@ public class Session {
         // Application exceptions will prevent the incoming sequence number from being incremented
         // and may result in resend requests and the next startup. This way, a buggy application
         // can be fixed and then reprocess previously sent messages.
-        if (isAdminMessage(msgType)) {
+        if (MessageUtils.isAdminMessage(msgType)) {
             application.fromAdmin(msg, sessionID);
         } else {
             application.fromApp(msg, sessionID);

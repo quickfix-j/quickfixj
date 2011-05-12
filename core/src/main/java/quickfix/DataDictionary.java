@@ -74,6 +74,7 @@ public class DataDictionary {
     private boolean checkFieldsOutOfOrder = true;
     private boolean checkFieldsHaveValues = true;
     private boolean checkUserDefinedFields = true;
+    private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
     private String beginString;
     private final Map<String, Set<Integer>> messageFields = new HashMap<String, Set<Integer>>();
@@ -488,15 +489,26 @@ public class DataDictionary {
      */
     public void setCheckFieldsOutOfOrder(boolean flag) {
         checkFieldsOutOfOrder = flag;
-        for (GroupInfo gi : groups.values()) {
-            gi.getDataDictionary().setCheckFieldsOutOfOrder(flag);
-        }
     }
 
     public boolean isCheckFieldsOutOfOrder() {
         return checkFieldsOutOfOrder;
     }
 
+    public boolean isCheckUnorderedGroupFields() {
+        return checkUnorderedGroupFields;
+    }
+
+    /**
+     * Controls whether group fields are in the same order
+     * @param flag   true = checked, false = not checked
+     */
+    public void setCheckUnorderedGroupFields(boolean flag) {
+        checkUnorderedGroupFields = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckUnorderedGroupFields(flag);
+        }
+    }
     /**
      * Controls whether empty field values are checked.
      *
