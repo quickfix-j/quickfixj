@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static quickfix.SessionFactoryTestSupport.createSession;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -32,9 +33,9 @@ import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
 import quickfix.field.converter.UtcTimestampConverter;
-import quickfix.fix44.Logout;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
+import quickfix.fix44.Logout;
 import quickfix.fix44.News;
 import quickfix.fix44.ResendRequest;
 import quickfix.fix44.TestRequest;
@@ -53,11 +54,11 @@ public class SessionTest {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 
         final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
-        final DisposableMessageStore mockMessageStore = mock(DisposableMessageStore.class);
+        final CloseableMessageStore mockMessageStore = mock(CloseableMessageStore.class);
         stub(mockMessageStoreFactory.create(sessionID)).toReturn(mockMessageStore);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
-        final DisposableLog mockLog = mock(DisposableLog.class);
+        final CloseableLog mockLog = mock(CloseableLog.class);
         stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
 
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
@@ -68,49 +69,56 @@ public class SessionTest {
         // Simulate socket disconnect
         session.setResponder(null);
 
-        verify(mockMessageStore).onDisconnect();
+        session.close();
+        
+        verify(mockMessageStore).close();
         verifyNoMoreInteractions(mockMessageStore);
 
         verify(mockLog, atLeastOnce()).onEvent(anyString());
-        verify(mockLog).onDisconnect();
+        verify(mockLog).close();
         verifyNoMoreInteractions(mockLog);
     }
 
-    private interface DisposableMessageStore extends MessageStore, SessionStateListener {
-    }
-
-    private interface DisposableLog extends Log, SessionStateListener {
-    }
-
+    /**
+     * This is a smoke test for handling noncloseable resources. Obviously, these
+     * resources should not be closed. If they are, it will generate an error (probably
+     * a class cast exception).
+     * @throws Exception
+     */
     @Test
-    public void testHandlingOfInvalidSequenceReset() throws Exception {
-
+    public void testNondisposableFileResources() throws Exception {
         final Application application = new UnitTestApplication();
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = createSession(sessionID, application, true, true);
 
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
+        final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
+        final MessageStore mockMessageStore = mock(MessageStore.class);
+        stub(mockMessageStoreFactory.create(sessionID)).toReturn(mockMessageStore);
 
-        session.logon();
-        session.next();
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+        final Log mockLog = mock(Log.class);
+        stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
 
-        final Message logonRequest = new Message(responder.sentMessageData);
-        final Message logonResponse = new DefaultMessageFactory().create(
-                sessionID.getBeginString(), MsgType.LOGON);
-        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
-        final Message.Header header = logonResponse.getHeader();
-        header.setString(BeginString.FIELD, sessionID.getBeginString());
-        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
-        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
-        header.setInt(MsgSeqNum.FIELD, 1);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
-        session.next(logonResponse);
+        final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
+                null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
+                false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
+                false, false, false, true, false, null, true);
 
-        // QFJ-383 disconnection is no more mandatory   
-        // assertTrue("Disconnect not called", responder.disconnectCalled);
+        // Simulate socket disconnect
+        session.setResponder(null);
+
+        session.close();
+        
+        verifyNoMoreInteractions(mockMessageStore);
+
+        verify(mockLog, atLeastOnce()).onEvent(anyString());
+        verifyNoMoreInteractions(mockLog);
+    }
+
+    private interface CloseableMessageStore extends MessageStore, Closeable {
+    }
+
+    private interface CloseableLog extends Log, Closeable {
     }
 
     @Test
@@ -128,17 +136,7 @@ public class SessionTest {
         session.next();
 
         final Message logonRequest = new Message(responder.sentMessageData);
-        final Message logonResponse = new DefaultMessageFactory().create(
-                sessionID.getBeginString(), MsgType.LOGON);
-        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
-        final Message.Header header = logonResponse.getHeader();
-        header.setString(BeginString.FIELD, sessionID.getBeginString());
-        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
-        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
-        header.setInt(MsgSeqNum.FIELD, 1);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
-        session.next(logonResponse);
+        session.next(createLogonResponse(sessionID, logonRequest, 1));
 
         assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
         assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
@@ -151,9 +149,7 @@ public class SessionTest {
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
 
         session.next(createHeartbeatMessage(1001));
-        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
-
-        
+        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));        
     }
 
     @Test
@@ -171,17 +167,7 @@ public class SessionTest {
         session.next();
 
         final Message logonRequest = new Message(responder.sentMessageData);
-        final Message logonResponse = new DefaultMessageFactory().create(
-                sessionID.getBeginString(), MsgType.LOGON);
-        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
-        final Message.Header header = logonResponse.getHeader();
-        header.setString(BeginString.FIELD, sessionID.getBeginString());
-        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
-        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
-        header.setInt(MsgSeqNum.FIELD, 2);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
-        session.next(logonResponse);
+        session.next(createLogonResponse(sessionID, logonRequest, 2));
 
         assertTrue("Should not infer a reset when the sequence number is not one",
                 responder.disconnectCalled);
@@ -202,16 +188,7 @@ public class SessionTest {
         session.next();
 
         final Message logonRequest = new Message(responder.sentMessageData);
-        final Message logonResponse = new DefaultMessageFactory().create(
-                sessionID.getBeginString(), MsgType.LOGON);
-        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
-        final Message.Header header = logonResponse.getHeader();
-        header.setString(BeginString.FIELD, sessionID.getBeginString());
-        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
-        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
-        header.setInt(MsgSeqNum.FIELD, 1);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        final Message logonResponse = createLogonResponse(sessionID, logonRequest, 1);
         session.next(logonResponse);
 
         assertFalse("Should not disconnect when an accepted reset is inferred",
@@ -510,6 +487,21 @@ public class SessionTest {
         assertEquals(false, state.isLogoutReceived());
         assertEquals(false, state.isLogoutTimedOut());
         return session;
+    }
+
+    private Message createLogonResponse(final SessionID sessionID, final Message logonRequest,
+            int responseSequenceNumber) throws FieldNotFound {
+        final Message logonResponse = new DefaultMessageFactory().create(
+                sessionID.getBeginString(), MsgType.LOGON);
+        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
+        final Message.Header header = logonResponse.getHeader();
+        header.setString(BeginString.FIELD, sessionID.getBeginString());
+        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        header.setInt(MsgSeqNum.FIELD, responseSequenceNumber);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        return logonResponse;
     }
 
     private void logonTo(Session session) throws FieldNotFound, RejectLogon, IncorrectDataFormat,

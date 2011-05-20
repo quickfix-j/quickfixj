@@ -21,6 +21,7 @@ package quickfix;
 
 import static quickfix.LogUtil.logThrowable;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ import quickfix.field.Text;
  * and ending when the session is reset. The Sesion could span many sequential
  * connections (it cannot operate on multiple connection simultaneously).
  */
-public class Session {
+public class Session implements Closeable {
     /**
      * Session setting for heartbeat interval (in seconds).
      */
@@ -608,7 +609,14 @@ public class Session {
     static void unregisterSessions(List<SessionID> sessionIds) {
         synchronized (sessions) {
             for (final SessionID sessionId : sessionIds) {
-                sessions.remove(sessionId);
+                Session session = sessions.remove(sessionId);
+                if (session != null) {
+                    try {
+                        session.close();
+                    } catch (IOException e) {
+                        log.error("Failed to close session resources", e);
+                    }
+                }                
             }
         }
     }
@@ -2401,4 +2409,18 @@ public class Session {
         return allowedRemoteAddresses.contains(remoteInetAddress);
     }
 
+    /**
+     * Closes session resources. This is for internal use and should typically 
+     * not be called by an user application.
+     */
+    public void close() throws IOException {
+        closeIfCloseable(getLog());
+        closeIfCloseable(getStore());
+    }
+
+    private void closeIfCloseable(Object resource) throws IOException {
+        if (resource instanceof Closeable) {
+            ((Closeable)resource).close();
+        }
+    }
 }

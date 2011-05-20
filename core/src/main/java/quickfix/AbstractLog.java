@@ -19,7 +19,10 @@
 
 package quickfix;
 
-abstract class AbstractLog implements Log {
+import java.io.Closeable;
+import java.io.IOException;
+
+abstract class AbstractLog implements Log, Closeable {
     private boolean logHeartbeats;
 
     protected void setLogHeartbeats(boolean logHeartbeats) {
@@ -43,4 +46,8 @@ abstract class AbstractLog implements Log {
     }
     
     protected abstract void logOutgoing(String message);
+
+    public void close() throws IOException {
+        // default is to do nothing
+    }    
 }

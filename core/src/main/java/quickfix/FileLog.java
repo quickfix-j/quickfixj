@@ -134,11 +134,26 @@ public class FileLog extends AbstractLog {
         this.syncAfterWrite = syncAfterWrite;
     }
     
+    /**
+     * Closes the messages and events files.
+     * 
+     * @deprecated Use close instead.
+     * @throws IOException
+     */
     public void closeFiles() throws IOException {
+        close();
+    }
+    
+    /**
+     * Closed the messages and events files.
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
         messages.close();
         events.close();
     }
-    
+
     /**
      * Deletes the log files. Do not perform any log operations while performing
      * this operation.

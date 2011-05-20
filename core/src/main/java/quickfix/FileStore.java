@@ -21,6 +21,7 @@ package quickfix;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -47,7 +48,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * 
  * @see quickfix.FileStoreFactory
  */
-public class FileStore implements MessageStore {
+public class FileStore implements MessageStore, Closeable {
     private static final String READ_OPTION = "r";
     private static final String WRITE_OPTION = "w";
     private static final String SYNC_OPTION = "d";
@@ -214,9 +215,18 @@ public class FileStore implements MessageStore {
 
     /**
      * Close the store's files.
+     * @deprecated use close instead
      * @throws IOException
      */
     public void closeFiles() throws IOException {
+        close();
+    }
+
+    /**
+     * Close the store's files.
+     * @throws IOException
+     */
+    public void close() throws IOException {
         closeOutputStream(headerDataOutputStream);
         closeFile(messageFileWriter);
         closeFile(messageFileReader);
@@ -236,7 +246,7 @@ public class FileStore implements MessageStore {
     }
 
     public void deleteFiles() throws IOException {
-        closeFiles();
+        close();
         deleteFile(headerFileName);
         deleteFile(msgFileName);
         deleteFile(seqNumFileName);
