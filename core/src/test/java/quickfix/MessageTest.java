@@ -536,12 +536,13 @@ public class MessageTest {
         assertGroupContent(message, numAllocs);
     }
 
+    // Includes test for QFJ-413. Repeating group check for size = 0
     @Test
     public void testMessageGroupCountValidation() throws Exception {
         final String data = "8=FIX.4.49=22235=D49=SenderCompId56=TargetCompId34=3752=20070223-22:28:33"
                 + "11=18333922=838=140=244=1248=BHP54=255=BHP59=1"
-                + "60=20060223-22:38:33526=362078=379=AllocACC180=1010.1"
-                + "79=AllocACC280=2020.2453=2448=8447=D452=4448=AAA35354447=D452=310=082";
+                + "60=20060223-22:38:33526=362078=079=AllocACC180=1010.1"
+                + "79=AllocACC280=2020.2453=2448=8447=D452=4448=AAA35354447=D452=310=079";
         final Message message = new Message();
         final DataDictionary dd = DataDictionaryTest.getDictionary();
         message.fromString(data, dd, true);
