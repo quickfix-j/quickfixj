@@ -4,9 +4,11 @@ package org.quickfixj.jmx.mbean.connector;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
+import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
@@ -20,8 +22,9 @@ class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdmi
 
     private final AbstractSocketInitiator initiator;
 
-    protected SocketInitiatorAdmin(AbstractSocketInitiator connector, SessionJmxExporter sessionExporter) {
-        super(connector, sessionExporter);
+    protected SocketInitiatorAdmin(JmxExporter jmxExporter, AbstractSocketInitiator connector, 
+            ObjectName connectorName, SessionJmxExporter sessionExporter) {
+        super(jmxExporter, connector, connectorName, connector.getSettings(), sessionExporter);
         initiator = (AbstractSocketInitiator) connector;
     }
 

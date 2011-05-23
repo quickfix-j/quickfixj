@@ -29,6 +29,7 @@ import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
+import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
@@ -47,10 +48,11 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
     private final SessionJmxExporter sessionExporter;
 
-    public SocketAcceptorAdmin(AbstractSocketAcceptor connector, SessionJmxExporter sessionExporter) {
-        super(connector, sessionExporter);
+    public SocketAcceptorAdmin(JmxExporter jmxExporter, AbstractSocketAcceptor connector, 
+            ObjectName connectorName, SessionJmxExporter sessionExporter) {
+        super(jmxExporter, connector, connectorName, connector.getSettings(), sessionExporter);
         this.sessionExporter = sessionExporter;
-        acceptor = (AbstractSocketAcceptor) connector;
+        acceptor = connector;
     }
 
     public static class SessionAcceptorAddressRow {

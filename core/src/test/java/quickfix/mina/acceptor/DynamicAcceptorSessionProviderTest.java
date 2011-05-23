@@ -148,6 +148,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         provider.getSession(id2, connector);
         assertEquals(2, connector.sessions.size());
     }
+    
     private static class MySessionConnector extends SessionConnector {
         private HashMap<SessionID, Session> sessions = new HashMap<SessionID, Session>();
 
@@ -163,6 +164,18 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         @Override
         public void removeDynamicSession(SessionID inSessionID) {
             sessions.remove(inSessionID);
+        }
+
+        public void start() throws ConfigError, RuntimeError {
+        }
+
+        public void stop() {
+        }
+
+        public void stop(boolean force) {
+        }
+
+        public void block() throws ConfigError, RuntimeError {
         }
     }
 }

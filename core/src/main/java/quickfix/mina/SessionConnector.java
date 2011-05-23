@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.ConfigError;
+import quickfix.Connector;
 import quickfix.FieldConvertError;
 import quickfix.Session;
 import quickfix.SessionFactory;
@@ -50,7 +51,7 @@ import quickfix.field.converter.IntConverter;
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
  * abstraction where the code doesn't need to make the acceptor/initator distinction.
  */
-public abstract class SessionConnector {
+public abstract class SessionConnector implements Connector {
     public final static String QF_SESSION = "QF_SESSION";
     protected final Logger log = LoggerFactory.getLogger(getClass());
 

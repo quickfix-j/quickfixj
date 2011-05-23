@@ -30,6 +30,7 @@ import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
+import quickfix.RuntimeError;
 import quickfix.ScreenLogFactory;
 import quickfix.Session;
 import quickfix.SessionFactory;
@@ -168,6 +169,18 @@ public class SessionConnectorTest extends TestCase {
 
         public SessionConnectorUnderTest(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
             super(settings, sessionFactory);
+        }
+
+        public void start() throws ConfigError, RuntimeError {
+        }
+
+        public void stop() {
+        }
+
+        public void stop(boolean force) {
+        }
+
+        public void block() throws ConfigError, RuntimeError {
         }
     }
 }
