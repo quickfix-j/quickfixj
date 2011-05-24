@@ -55,7 +55,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private boolean unsynchMode = false;
-
+    private boolean validateSequenceNumbers = true;
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
     }
@@ -94,6 +94,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
             defaults.put("TargetCompID", "TW");
             defaults.put("FileStorePath", "output/data/server");
             defaults.put("ValidateUserDefinedFields", "Y");
+            defaults.put("ValidateSequenceNumbers", validateSequenceNumbers ? "Y" : "N");
             settings.set(defaults);
 
             SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
@@ -144,6 +145,14 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
     public void setUnsynchMode(boolean unsynchMode) {
         this.unsynchMode = unsynchMode;
+    }
+    
+    public void setValidateSequenceNumbers(boolean validateSequenceNumbers) {
+        this.validateSequenceNumbers = validateSequenceNumbers;
+    }
+    
+    public boolean isValidateSequenceNumbers() {
+        return validateSequenceNumbers;
     }
 
     public boolean isUnsynchMode() {
