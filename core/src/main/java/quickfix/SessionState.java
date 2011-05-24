@@ -57,7 +57,21 @@ public final class SessionState {
     private double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
-    private int[] resendRange = new int[] { 0, 0 };
+    /** 
+     * The resend range when sending a resend request.
+     * If a gap is detected and messages from x to y are needed, the received messages are checked against the values x and y that are stored in the resendRange.
+     * Some FIX Engine do not support resendRequest range greater than a given value. There, in this case, the ResendRequest have to be splitted.
+     * E.g.: CME will reject any resend request for more than 2500 messages
+     * The solution is to send resend request with smaller range until the global range has been requested.
+     * 
+     * the resendRange contains 3 values: 
+     * <ol>
+     * <li>the begin index of the global resend request</li> 
+     * <li>the last index of the global resend request</li> 
+     * <li>the actual last index of the splitted sub resend request</li>
+     * </ol> 
+     */
+    private int[] resendRange = new int[] { 0, 0, 0 };
     private boolean resetSent;
     private boolean resetReceived;
     private String logoutReason;
@@ -379,6 +393,14 @@ public final class SessionState {
         synchronized (lock) {
             resendRange[0] = low;
             resendRange[1] = high;
+        }
+    }
+    
+    public void setResendRange(int low, int high, int currentResend) {
+        synchronized (lock) {
+            resendRange[0] = low;
+            resendRange[1] = high;
+            resendRange[2] = currentResend;
         }
     }
 

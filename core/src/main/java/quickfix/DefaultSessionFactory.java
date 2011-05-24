@@ -169,6 +169,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean disconnectOnError = getSetting(settings, sessionID, Session.SETTING_DISCONNECT_ON_ERROR, false);
             final boolean disableHeartBeatCheck = getSetting(settings, sessionID, Session.SETTING_DISABLE_HEART_BEAT_CHECK, false);
             final boolean forceResendWhenCorruptedStore = getSetting(settings, sessionID, Session.SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE, false);
+            final int resendRequestChunkSize = getSetting(settings, sessionID, Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, Session.DEFAULT_RESEND_RANGE_CHUNK_SIZE);
 
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
@@ -181,7 +182,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck,
                     rejectInvalideMessage, 
-                    forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage);
+                    forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
