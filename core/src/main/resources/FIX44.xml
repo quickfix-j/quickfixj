@@ -6551,6 +6551,20 @@
       <value enum="7" description="STEPPED_COUPON"/>
       <value enum="8" description="COUPON_PERIOD"/>
       <value enum="9" description="WHEN_AND_IF_ISSUED"/>
+      <value enum="10" description="ORIGINAL_ISSUE_DISCOUNT"/> 
+      <value enum="11" description="CALLABLE_PUTTABLE"/> 
+      <value enum="12" description="ESCROWED_TO_MATURITY"/> 
+      <value enum="13" description="ESCROWED_TO_REDEMPTION_DATE"/> 
+      <value enum="14" description="PRE_REFUNDED"/> 
+      <value enum="15" description="IN_DEFAULT"/> 
+      <value enum="16" description="UNRATED"/> 
+      <value enum="17" description="TAXABLE"/> 
+      <value enum="18" description="INDEXED"/> 
+      <value enum="19" description="SUBJECT_TO_ALTERNATIVE_MINIMUM_TAX"/> 
+      <value enum="20" description="ORIGINAL_ISSUE_DISCOUNT_PRICE_SUPPLY_PRICE_IN_THE_INSTRATTRIBVALUE"/> 
+      <value enum="21" description="CALLABLE_BELOW_MATURITY_VALUE"/> 
+      <value enum="22" description="CALLABLE_WITHOUT_NOTICE_BY_MAIL_TO_HOLDER_UNLESS_REGISTERED"/> 
+      <value enum="99" description="TEXT_SUPPLY_THE_TEXT_OF_THE_ATTRIBUTE_OR_DISCLAIMER_IN_THE_INSTRATTRIBVALUE"/>       
     </field>
     <field number="872" name="InstrAttribValue" type="STRING"/>
     <field number="873" name="DatedDate" type="LOCALMKTDATE"/>
