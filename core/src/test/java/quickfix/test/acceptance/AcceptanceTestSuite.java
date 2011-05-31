@@ -259,6 +259,16 @@ public class AcceptanceTestSuite extends TestSuite {
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", true,  resendRequestChunkSizeProperties )));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", false,resendRequestChunkSizeProperties )));
     
+        Map<Object, Object> lastMsgSeqNumProcessedProperties = new HashMap<Object, Object>();
+        lastMsgSeqNumProcessedProperties.put(Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, "Y");
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", true,  lastMsgSeqNumProcessedProperties )));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", false,lastMsgSeqNumProcessedProperties )));
+        
+        Map<Object, Object> nextExpectedMsgSeqNumProperties = new HashMap<Object, Object>();
+        nextExpectedMsgSeqNumProperties.put(Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, "Y");
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true,  nextExpectedMsgSeqNumProperties )));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties )));
+        
         return acceptanceTests;
     }
 
