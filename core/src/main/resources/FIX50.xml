@@ -5000,12 +5000,12 @@
     <field number="149" name="URLLink" type="STRING"/>
     <field number="150" name="ExecType" type="CHAR">
       <value enum="0" description="NEW"/>
-      
+
       <!-- The 1,2 values are not part of FIX 5.0, but they must be
            here for the field code generation to be correct. -->
       <value enum="1" description="PARTIAL_FILL"/>
       <value enum="2" description="FILL"/>
-      
+
       <value enum="3" description="DONE_FOR_DAY"/>
       <value enum="4" description="CANCELED"/>
       <value enum="5" description="REPLACE"/>
@@ -6936,7 +6936,7 @@
       <value enum="TQ" description="TRANSACTION_QUANTITY"/>
       <value enum="IAS" description="INTRA_SPREAD_QTY"/>
       <value enum="IES" description="INTER_SPREAD_QTY"/>
-			<value enum="FIN" description="END_OF_DAY_QTY"/>
+            <value enum="FIN" description="END_OF_DAY_QTY"/>
       <value enum="SOD" description="START_OF_DAY_QTY"/>
       <value enum="EX" description="OPTION_EXERCISE_QTY"/>
       <value enum="AS" description="OPTION_ASSIGNMENT"/>
@@ -6945,7 +6945,7 @@
       <value enum="PIT" description="PIT_TRADE_QTY"/>
       <value enum="TRF" description="TRANSFER_TRADE_QTY"/>
       <value enum="ETR" description="ELECTRONIC_TRADE_QTY"/>
-			<value enum="ALC" description="ALLOCATION_TRADE_QTY"/>
+            <value enum="ALC" description="ALLOCATION_TRADE_QTY"/>
       <value enum="PA" description="ADJUSTMENT_QTY"/>
       <value enum="ASF" description="AS_OF_TRADE_QTY"/>
       <value enum="DLV" description="DELIVERY_QTY"/>
@@ -7536,10 +7536,10 @@
       <value enum="17" description="TAXABLE"/>
       <value enum="18" description="INDEXED"/>
       <value enum="19" description="SUBJECT_TO_ALTERNATIVE_MINIMUM_TAX"/>
-      <value enum="20" description="ORIGINAL_ISSUE_DISCOUNT_PRICE_SUPPLY_PRICE_IN_THE_INSTRATTRIBVALUE"/>
+      <value enum="20" description="ORIGINAL_ISSUE_DISCOUNT_PRICE"/>
       <value enum="21" description="CALLABLE_BELOW_MATURITY_VALUE"/>
       <value enum="22" description="CALLABLE_WITHOUT_NOTICE_BY_MAIL_TO_HOLDER_UNLESS_REGISTERED"/>
-      <value enum="99" description="TEXT_SUPPLY_THE_TEXT_OF_THE_ATTRIBUTE_OR_DISCLAIMER_IN_THE_INSTRATTRIBVALUE"/>
+      <value enum="99" description="TEXT"/>
     </field>
     <field number="872" name="InstrAttribValue" type="STRING"/>
     <field number="873" name="DatedDate" type="LOCALMKTDATE"/>
