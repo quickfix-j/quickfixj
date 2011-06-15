@@ -27,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
+import org.quickfixj.jmx.JmxExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +82,10 @@ public class Banzai {
 
         initiator = new SocketInitiator(application, messageStoreFactory, settings, logFactory,
                 messageFactory);
-
+       
+        JmxExporter exporter = new JmxExporter();
+        exporter.register(initiator);
+        
         frame = new BanzaiFrame(orderTableModel, executionTableModel, application);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }

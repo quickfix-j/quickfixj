@@ -17,6 +17,8 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -45,6 +47,7 @@ import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+import quickfix.mina.SessionConnector;
 
 abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration {
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -171,18 +174,33 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     }
 
     public void postRegister(Boolean registrationDone) {
+        if (connector instanceof SessionConnector) {
+            ((SessionConnector)connector).addPropertyChangeListener(new PropertyChangeListener() {               
+                public void propertyChange(PropertyChangeEvent evt) {
+                    if (SessionConnector.SESSIONS_PROPERTY.equals(evt.getPropertyName())) {                    
+                        registerSessions(); 
+                    }
+                }
+            });
+        }
+        registerSessions();
+    }
+
+    private void registerSessions() {
         final ArrayList<SessionID> sessionIDs = connector.getSessions();
         for (int i = 0; i < sessionIDs.size(); i++) {
             final SessionID sessionID = sessionIDs.get(i);
-            try {
-                final ObjectName name = sessionExporter.register(
+            if (sessionExporter.getSessionName(sessionID) == null) {
+                try {
+                    final ObjectName name = sessionExporter.register(
                         jmxExporter, Session.lookupSession(sessionID),
                         connectorName, settings);
-                sessionNames.add(name);
-            } catch (RuntimeException e) {
-                throw e;
-            } catch (Exception e) {
-                throw new QFJException("Connector MBean postregistration failed", e);
+                    sessionNames.add(name);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new QFJException("Connector MBean postregistration failed", e);
+                }
             }
         }
     }

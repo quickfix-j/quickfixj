@@ -19,6 +19,8 @@
 
 package quickfix.mina;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,9 +54,13 @@ import quickfix.field.converter.IntConverter;
  * abstraction where the code doesn't need to make the acceptor/initator distinction.
  */
 public abstract class SessionConnector implements Connector {
+    public static final String SESSIONS_PROPERTY = "sessions";
     public final static String QF_SESSION = "QF_SESSION";
+    
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
+    protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    
     private Map<SessionID, Session> sessions = Collections.emptyMap();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
@@ -71,8 +77,17 @@ public abstract class SessionConnector implements Connector {
         }
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+    }
+    
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.removePropertyChangeListener(listener);
+    }
+    
     protected void setSessions(Map<SessionID, Session> sessions) {
         this.sessions = sessions;
+        propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
     /**
@@ -108,11 +123,13 @@ public abstract class SessionConnector implements Connector {
     public void addDynamicSession(Session inSession) {
         sessions.put(inSession.getSessionID(), inSession);
         log.debug("adding session for "+inSession.getSessionID());
+        propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
     public void removeDynamicSession(SessionID inSessionID) {
         sessions.remove(inSessionID);
         log.debug("removing session for "+inSessionID);
+        propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
     public SessionSettings getSettings() {
