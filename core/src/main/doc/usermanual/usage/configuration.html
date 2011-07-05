@@ -333,6 +333,35 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD>ValidateUnorderedGroupFields</TD>
+    <TD>Session validation setting for enabling whether field ordering is
+     * validated. Values are "Y" or "N". Default is "Y".</TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ValidateIncomingMessage</TD>
+    <TD>Allow to bypass the message validation (against the dictionary). Default is "Y".</TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD>ValidateSequenceNumbers</TD>
+    <TD>Check the next expected target SeqNum against the received SeqNum. Default is "Y".
+      If enabled and a mismatch is detected, apply the following logic:
+      <ul>
+      <li>if lower than expected SeqNum , logout</li>
+      <li>if higher, send a resend request</li>
+      </ul>
+      If not enabled and a mismatch is detected, nothing is done.
+     </TD>
+    <TD>Y<br>
+      N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD>AllowUnknownMsgFields</TD>
     <TD>Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
      (not user defined fields). Use ValidateUserDefinedFields for controlling validation of tags >= 5000.</TD>
@@ -913,6 +942,36 @@
 
     <TD> Y<br>N</TD>
     <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ResetOnError</I> </TD>
+    <TD> Session setting for doing an automatic reset when an error occurs. Valid values are "Y" or "N". Default is "N". A reset means disconnect, sequence numbers reset, store cleaned and reconnect, as for a daily reset.</TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>DisconnectOnError</I> </TD>
+    <TD> Session setting for doing an automatic disconnect when an error occurs. Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>EnableLastMsgSeqNumProcessed</I> </TD>
+    <TD> Add the last msg seq number processed  in the header(optional tag 369). Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>EnableNextExpectedMsgSeqNum</I> </TD>
+    <TD> Add the next msg seq number expected on the logon message(optional tag 789). Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>ResendRequestChunkSize</I> </TD>
+    <TD> Setting to limit the size of a resend request in case of missing messages. This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest. Default to 0 if not set. 0 disabling the splitting. E.g. if the ResendRequestChunkSize is set to 5 and a gap of 7 messages is detected, a first resend request will be sent for 5 messages. When this gap has been filled, another resend request for 2 messages will be sent. If the ResendRequestChunkSize is set to 0, only one ResendRequest for all the missing messages will be sent.</TD>
+    <TD> any positive integer</TD>
+    <TD> 0 (for no splitting) </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD>ContinueInitializationOnError</TD>
