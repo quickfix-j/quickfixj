@@ -163,12 +163,15 @@ public class DefaultSessionFactory implements SessionFactory {
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
-            final boolean forceResync = getSetting(settings, sessionID, Session.SETTING_FORCE_RESYNC, false);
-                        final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
+            final boolean validateSequenceNumbers = getSetting(settings, sessionID, Session.SETTING_VALIDATE_SEQUENCE_NUMBERS, true);
+            final boolean validateIncomingMessage  = getSetting(settings, sessionID, Session.SETTING_VALIDATE_INCOMING_MESSAGE, true);
+            final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
             final boolean disconnectOnError = getSetting(settings, sessionID, Session.SETTING_DISCONNECT_ON_ERROR, false);
             final boolean disableHeartBeatCheck = getSetting(settings, sessionID, Session.SETTING_DISABLE_HEART_BEAT_CHECK, false);
-            final boolean checkGapFieldOnAdminMessage = getSetting(settings, sessionID, Session.SETTING_CHECK_GAP_FIELD_ON_ADMIN_MESSAGE, true);
             final boolean forceResendWhenCorruptedStore = getSetting(settings, sessionID, Session.SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE, false);
+            final boolean enableNextExpectedMsgSeqNum = getSetting(settings, sessionID, Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, false);
+            final boolean enableLastMsgSeqNumProcessed = getSetting(settings, sessionID, Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, false);
+            final int resendRequestChunkSize = getSetting(settings, sessionID, Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, Session.DEFAULT_RESEND_RANGE_CHUNK_SIZE);
 
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
@@ -178,10 +181,10 @@ public class DefaultSessionFactory implements SessionFactory {
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
-                    testRequestDelayMultiplier, senderDefaultApplVerID, forceResync,
+                    testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck,
-                    rejectInvalideMessage, checkGapFieldOnAdminMessage,
-                    forceResendWhenCorruptedStore, allowedRemoteAddresses);
+                    rejectInvalideMessage, 
+                    forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -223,6 +226,16 @@ public class DefaultSessionFactory implements SessionFactory {
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES)) {
             dataDictionary.setCheckFieldsHaveValues(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES));
+        }
+
+        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS)) {
+            dataDictionary.setCheckUnorderedGroupFields(settings.getBool(sessionID,
+                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
+        }
+
+        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS)) {
+            dataDictionary.setCheckUnorderedGroupFields(settings.getBool(sessionID,
+                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {

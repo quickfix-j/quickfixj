@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -24,7 +24,27 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import junit.framework.TestCase;
-import quickfix.field.*;
+import quickfix.field.Account;
+import quickfix.field.BodyLength;
+import quickfix.field.CheckSum;
+import quickfix.field.ClOrdID;
+import quickfix.field.HandlInst;
+import quickfix.field.LastMkt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.NoHops;
+import quickfix.field.OrdType;
+import quickfix.field.OrderQty;
+import quickfix.field.Price;
+import quickfix.field.SenderCompID;
+import quickfix.field.SenderSubID;
+import quickfix.field.SendingTime;
+import quickfix.field.Side;
+import quickfix.field.Symbol;
+import quickfix.field.TargetCompID;
+import quickfix.field.TimeInForce;
+import quickfix.field.TransactTime;
+import quickfix.fix44.NewOrderSingle;
 import quickfix.test.util.ExpectedTestFailure;
 
 public class DataDictionaryTest extends TestCase {
@@ -205,6 +225,7 @@ public class DataDictionaryTest extends TestCase {
 
         final DataDictionary dd = getDictionary();
         new ExpectedTestFailure(FieldException.class, "field=") {
+            @Override
             protected void execute() throws Throwable {
                 dd.validate(newSingle);
             }
@@ -212,6 +233,29 @@ public class DataDictionaryTest extends TestCase {
 
         dd.validate(newSingle, true);
 
+    }
+
+    public void testMessageDataDictionaryMismatch() throws Exception {
+        final quickfix.fix43.NewOrderSingle newSingle = new quickfix.fix43.NewOrderSingle(
+                new ClOrdID("123"), new HandlInst(HandlInst.MANUAL_ORDER), new Side(Side.BUY), new TransactTime(), new OrdType(
+                        OrdType.LIMIT));
+        newSingle.setField(new OrderQty(42));
+        newSingle.setField(new Price(42.37));
+        newSingle.setField(new Symbol("QFJ"));
+        newSingle.setField(new TimeInForce(TimeInForce.DAY));
+        newSingle.setField(new Account("testAccount"));
+
+        final DataDictionary dd = getDictionary();
+        new ExpectedTestFailure(UnsupportedVersion.class, null) {
+            @Override
+            protected void execute() throws Throwable {
+                dd.validate(newSingle);
+            }
+        }.run();
+
+        // TODO: This is unexpected for pre-FIX 5.0 messages:
+        //   If bodyOnly is true, the correct data dictionary is not checked.
+        dd.validate(newSingle, true);
     }
 
     // QF C++ treats the string argument as a filename although it's
@@ -244,7 +288,7 @@ public class DataDictionaryTest extends TestCase {
         DataDictionary dd = getDictionary();
         assertTrue(dd.isFieldValue(65, "FOO"));
     }
-    
+
     public void testMessageCategory() throws Exception {
         DataDictionary dd = getDictionary();
         assertTrue(dd.isAdminMessage(MsgType.LOGON));
@@ -270,13 +314,14 @@ public class DataDictionaryTest extends TestCase {
         newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
-        
+
         // Invalid field for this message
         newSingle.setField(new LastMkt("FOO"));
 
         final DataDictionary dictionary = new DataDictionary(getDictionary());
 
         new ExpectedTestFailure(FieldException.class, "field=") {
+            @Override
             protected void execute() throws Throwable {
                 dictionary.validate(newSingle);
             }
@@ -285,11 +330,107 @@ public class DataDictionaryTest extends TestCase {
         dictionary.setAllowUnknownMessageFields(true);
         dictionary.validate(newSingle);
     }
-    
+
+    //QFJ-535
+    public void testValidateFieldsOutOfOrderForGroups() throws Exception {
+        final DataDictionary dictionary = new DataDictionary(getDictionary());
+        dictionary.setCheckUnorderedGroupFields(false);
+        Message messageWithGroupLevel1 = new Message(
+                "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount736=currency661=110=130",
+                dictionary);
+        dictionary.validate(messageWithGroupLevel1);
+
+        Message messageWithGroupLevel2 = new Message(
+                "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount539=1524=1538=1525=a10=145",
+                dictionary);
+        dictionary.validate(messageWithGroupLevel2);
+    }
+
+    //QFJ-535
+    public void testNewOrderSingleWithCorrectTag50() throws Exception {
+
+        final DataDictionary dataDictionary = getDictionary();
+        dataDictionary.setCheckFieldsOutOfOrder(true);
+
+        String correctFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|50=trader|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
+                + "432=20110531|15=CHF|22=8|55=symbol|48=CH1234.CHF|21=1|60=20110420-11:17:39.000|63=0|207=VX|10=009|").replace('|', '\001');
+
+        //in any case, it must be validated as the message is correct
+        //doValidation and checkFieldsOutOfOrder
+        final NewOrderSingle nos1 = new NewOrderSingle();
+        nos1.fromString(correctFixMessage, dataDictionary, true);
+        dataDictionary.validate(nos1);
+        assertTrue(nos1.getHeader().isSetField(new SenderSubID()));
+
+        //doNotValidation and checkFieldsOutOfOrder
+        final NewOrderSingle nos2 = new NewOrderSingle();
+        nos2.fromString(correctFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos2);
+        assertTrue(nos2.getHeader().isSetField(new SenderSubID()));
+
+        dataDictionary.setCheckFieldsOutOfOrder(false);
+
+        //doValidation and no checkFieldsOutOfOrder
+        final NewOrderSingle nos3 = new NewOrderSingle();
+        nos3.fromString(correctFixMessage, dataDictionary, true);
+        dataDictionary.validate(nos3);
+        assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
+
+        //doNotValidation and no checkFieldsOutOfOrder
+        final NewOrderSingle nos4 = new NewOrderSingle();
+        nos4.fromString(correctFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos4);
+        assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
+
+
+
+    }
+    public void testNewOrderSingleWithMisplacedTag50() throws Exception {
+
+        final DataDictionary dataDictionary = getDictionary();
+        dataDictionary.setCheckFieldsOutOfOrder(true);
+
+        String incorrectFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
+            + "432=20110531|15=CHF|22=8|55=symbol|48=CH1234.CHF|21=1|60=20110420-11:17:39.000|63=0|207=VX|50=trader|10=009|").replace('|', '\001');
+
+        //doValidation and checkFieldsOutOfOrder -> should fail
+        final NewOrderSingle nos1 = new NewOrderSingle();
+        try  {
+            nos1.fromString(incorrectFixMessage, dataDictionary, true);
+        } catch (FieldException fe) {
+            //expected exception
+        }
+
+        //doNotValidation and checkFieldsOutOfOrder -> should NOT fail
+        final NewOrderSingle nos2 = new NewOrderSingle();
+        nos2.fromString(incorrectFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos2);
+        assertTrue(nos2.getHeader().isSetField(new SenderSubID()));
+
+        dataDictionary.setCheckFieldsOutOfOrder(false);
+
+        //doValidation and no checkFieldsOutOfOrder -> should NOT fail
+        final NewOrderSingle nos3 = new NewOrderSingle();
+        nos3.fromString(incorrectFixMessage, dataDictionary, true);
+        dataDictionary.validate(nos3);
+        assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
+
+      //doNotValidation and no checkFieldsOutOfOrder -> should NOT fail
+        final NewOrderSingle nos4 = new NewOrderSingle();
+        nos4.fromString(incorrectFixMessage, dataDictionary, false);
+        dataDictionary.validate(nos4);
+        assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
+
+
+
+    }
+
+
+
     //
     // Group Validation Tests in RepeatingGroupTest
     //
-    
+
     private static DataDictionary testDataDictionary;
 
     public static DataDictionary getDictionary() throws Exception {
@@ -299,7 +440,7 @@ public class DataDictionaryTest extends TestCase {
         }
         return testDataDictionary;
     }
-    
+
     public static DataDictionary getDictionary(String fileName) throws Exception {
         return new DataDictionary(DataDictionaryTest.class.getClassLoader()
                 .getResourceAsStream(fileName));

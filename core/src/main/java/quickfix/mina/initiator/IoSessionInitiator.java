@@ -59,7 +59,7 @@ public class IoSessionInitiator {
     private Future<?> reconnectFuture;
     protected final static Logger log = LoggerFactory.getLogger("display."+IoSessionInitiator.class.getName());
 
-    public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
+    public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,  SocketAddress localAddress, 
             int reconnectIntervalInSeconds[], ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
@@ -70,7 +70,7 @@ public class IoSessionInitiator {
             reconnectIntervalInMillis[ii] = reconnectIntervalInSeconds[ii] * 1000L;
         }        
         try {
-            reconnectTask = new ConnectTask(sslEnabled, socketAddresses, userIoFilterChainBuilder,
+            reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress, userIoFilterChainBuilder,
                     fixSession, reconnectIntervalInMillis, networkingOptions,
                     eventHandlingStrategy, keyStoreName, keyStorePassword, enableProtocole, cipherSuites);
         } catch (GeneralSecurityException e) {
@@ -81,6 +81,7 @@ public class IoSessionInitiator {
 
     private static class ConnectTask implements Runnable {
         private final SocketAddress[] socketAddresses;
+        private final SocketAddress localAddress;
         private final IoConnector ioConnector;
         private final Session fixSession;
         private final long[] reconnectIntervalInMillis;
@@ -98,11 +99,12 @@ public class IoSessionInitiator {
         private ConnectFuture connectFuture;
 
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
-                IoFilterChainBuilder userIoFilterChainBuilder, Session fixSession,
+                SocketAddress localAddress, IoFilterChainBuilder userIoFilterChainBuilder, Session fixSession,
                 long[] reconnectIntervalInMillis, NetworkingOptions networkingOptions,
                 EventHandlingStrategy eventHandlingStrategy, String keyStoreName,
                 String keyStorePassword, String[] enableProtocole, String[] cipherSuites) throws ConfigError, GeneralSecurityException {
             this.socketAddresses = socketAddresses;
+            this.localAddress = localAddress;
             this.fixSession = fixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
             this.keyStoreName = keyStoreName;
@@ -151,7 +153,12 @@ public class IoSessionInitiator {
             lastReconnectAttemptTime = SystemTime.currentTimeMillis();
             SocketAddress nextSocketAddress = getNextSocketAddress();
             try {
-                connectFuture = ioConnector.connect(nextSocketAddress, ioHandler);
+            	if (localAddress == null) {
+                    connectFuture = ioConnector.connect(nextSocketAddress, ioHandler);
+                } else {
+                	//QFJ-482
+                    connectFuture = ioConnector.connect(nextSocketAddress, localAddress, ioHandler);
+                }
                 pollConnectFuture();
             } catch (Throwable e) {
                 handleConnectException(e);
@@ -184,7 +191,7 @@ public class IoSessionInitiator {
             }
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
             if (e instanceof IOException) {
-                fixSession.getLog().onErrorEvent(e + nextRetryMsg);
+                fixSession.getLog().onErrorEvent(e.getClass().getName() + ": " + e + nextRetryMsg);
             } else {
             	LogUtil.logThrowable(fixSession.getLog(), "Exception during connection" + nextRetryMsg, e);
             }

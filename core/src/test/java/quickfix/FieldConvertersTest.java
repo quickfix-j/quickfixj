@@ -40,6 +40,7 @@ public class FieldConvertersTest extends TestCase {
         assertEquals("123", IntConverter.convert(123));
         assertEquals(123, IntConverter.convert("123"));
         assertEquals(-1, IntConverter.convert("-1"));
+        assertEquals(23, IntConverter.convert("00023"));
         try {
             IntConverter.convert("abc");
             fail();
@@ -76,6 +77,7 @@ public class FieldConvertersTest extends TestCase {
         assertEquals(0, DoubleConverter.convert(".0"), 0);
         assertEquals(0.06, DoubleConverter.convert("000.06"), 0);
         assertEquals(0.06, DoubleConverter.convert("0.0600"), 0);
+        assertEquals(23.0, DoubleConverter.convert("00023."), 0);
 
         try {
             DoubleConverter.convert("abc");
@@ -101,7 +103,18 @@ public class FieldConvertersTest extends TestCase {
         } catch (FieldConvertError e) {
             // expected
         }
-        
+        try {
+            DoubleConverter.convert("1E6");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            DoubleConverter.convert("1e6");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
         assertEquals("1.500", DoubleConverter.convert(1.5, 3));
         assertEquals("45.00000", DoubleConverter.convert(45, 5));
         assertEquals("5.00", DoubleConverter.convert(5, 2));

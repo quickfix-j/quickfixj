@@ -74,6 +74,7 @@ public class DataDictionary {
     private boolean checkFieldsOutOfOrder = true;
     private boolean checkFieldsHaveValues = true;
     private boolean checkUserDefinedFields = true;
+    private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
     private String beginString;
     private final Map<String, Set<Integer>> messageFields = new HashMap<String, Set<Integer>>();
@@ -494,6 +495,20 @@ public class DataDictionary {
         return checkFieldsOutOfOrder;
     }
 
+    public boolean isCheckUnorderedGroupFields() {
+        return checkUnorderedGroupFields;
+    }
+
+    /**
+     * Controls whether group fields are in the same order
+     * @param flag   true = checked, false = not checked
+     */
+    public void setCheckUnorderedGroupFields(boolean flag) {
+        checkUnorderedGroupFields = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckUnorderedGroupFields(flag);
+        }
+    }
     /**
      * Controls whether empty field values are checked.
      *
@@ -502,6 +517,9 @@ public class DataDictionary {
      */
     public void setCheckFieldsHaveValues(boolean flag) {
         checkFieldsHaveValues = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckFieldsHaveValues(flag);
+        }
     }
 
     /**
@@ -512,8 +530,18 @@ public class DataDictionary {
      */
     public void setCheckUserDefinedFields(boolean flag) {
         checkUserDefinedFields = flag;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setCheckUserDefinedFields(flag);
+        }
     }
 
+    public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
+        allowUnknownMessageFields = allowUnknownFields;
+        for (GroupInfo gi : groups.values()) {
+            gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
+        }
+    }
+    
     private void copyFrom(DataDictionary rhs) {
         hasVersion = rhs.hasVersion;
         beginString = rhs.beginString;
@@ -1303,7 +1331,4 @@ public class DataDictionary {
         }
     }
 
-    public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
-        allowUnknownMessageFields = allowUnknownFields;
-    }
 }

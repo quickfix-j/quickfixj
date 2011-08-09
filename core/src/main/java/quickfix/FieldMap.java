@@ -667,9 +667,6 @@ public abstract class FieldMap implements Serializable {
     }
 
     protected void setGroupCount(int countTag, int groupSize) {
-        if (groupSize == 0) {
-            return;
-        }
         try {
             StringField count;
             if (groupSize == 1) {
@@ -733,7 +730,9 @@ public abstract class FieldMap implements Serializable {
         if (num <= groupList.size()) {
             groupList.remove(num - 1);
         }
-        setGroupCount(field, groupList.size());
+        if (groupList.size() > 0) {
+            setGroupCount(field, groupList.size());
+        }
     }
 
     public void removeGroup(int num, Group group) {

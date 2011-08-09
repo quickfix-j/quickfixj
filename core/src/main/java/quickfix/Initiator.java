@@ -51,4 +51,20 @@ public interface Initiator extends Connector {
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
     public static final String SETTING_SOCKET_CONNECT_PORT = "SocketConnectPort";
+
+    /**
+     * Initiator setting for local/bind host. Only valid when session connection
+     * type is "initiator".
+     *
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    public static final String SETTING_SOCKET_LOCAL_HOST = "SocketLocalHost";
+
+    /**
+     * Initiator setting for local/bind port. Only valid when session connection
+     * type is "initiator".
+     *
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    public static final String SETTING_SOCKET_LOCAL_PORT = "SocketLocalPort";
 }

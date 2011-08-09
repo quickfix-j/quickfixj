@@ -17,6 +17,7 @@
 
 package org.quickfixj.jmx.mbean.session;
 
+import org.quickfixj.QFJException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.*;
@@ -25,6 +26,7 @@ import quickfix.field.NewSeqNo;
 import quickfix.field.converter.UtcTimestampConverter;
 
 import javax.management.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -40,9 +42,12 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
 
     private MBeanServer mbeanServer;
 
-    public SessionAdmin(Session session, ObjectName connnectorName) {
+    private final ObjectName settingsName;
+
+    public SessionAdmin(Session session, ObjectName connnectorName, ObjectName settingsName) {
         this.session = session;
         this.connectorName = connnectorName;
+        this.settingsName = settingsName;
     }
 
     /* (non-Javadoc)
@@ -353,6 +358,13 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     }
 
     public void postDeregister() {
+        try {
+            mbeanServer.unregisterMBean(settingsName);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new QFJException("Connector MBean postregistration failed", e);
+        }
     }
 
     public void postRegister(Boolean registrationDone) {

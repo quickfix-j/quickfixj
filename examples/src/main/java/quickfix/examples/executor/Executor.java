@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.JMException;
+import javax.management.ObjectName;
 
 import org.quickfixj.jmx.JmxExporter;
 import org.slf4j.Logger;
@@ -58,7 +59,10 @@ public class Executor {
     private final static Logger log = LoggerFactory.getLogger(Executor.class);
     private final SocketAcceptor acceptor;
     private final Map<InetSocketAddress, List<TemplateMapping>> dynamicSessionMappings = new HashMap<InetSocketAddress, List<TemplateMapping>>();
-
+    
+    private final JmxExporter jmxExporter;
+    private final ObjectName connectorObjectName;
+    
     public Executor(SessionSettings settings) throws ConfigError, FieldConvertError, JMException {
         Application application = new Application(settings);
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
@@ -71,8 +75,9 @@ public class Executor {
         configureDynamicSessions(settings, application, messageStoreFactory, logFactory,
                 messageFactory);
 
-        JmxExporter jmxExporter = new JmxExporter();
-        jmxExporter.export(acceptor);
+        jmxExporter = new JmxExporter();
+        connectorObjectName = jmxExporter.register(acceptor);
+        log.info("Acceptor registered with JMX, name=" + connectorObjectName);
     }
 
     private void configureDynamicSessions(SessionSettings settings, Application application,
@@ -132,6 +137,11 @@ public class Executor {
     }
 
     private void stop() {
+        try {
+            jmxExporter.getMBeanServer().unregisterMBean(connectorObjectName);
+        } catch (Exception e) {
+            log.error("Failed to unregister acceptor from JMX", e);
+        }
         acceptor.stop();
     }
 

@@ -119,9 +119,6 @@ public class ResynchTestClient extends MessageCracker implements Application {
         defaults.put("TargetCompID", "ISLD");
         defaults.put("FileStorePath", "core/target/data/resynch_test");
         defaults.put("ValidateUserDefinedFields", "Y");
-        if (forceResynch) {
-            defaults.put("ForceResync", "Y");
-        }
         settings.set(defaults);
 
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");

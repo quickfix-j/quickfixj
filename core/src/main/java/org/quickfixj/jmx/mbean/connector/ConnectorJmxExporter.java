@@ -17,7 +17,6 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MalformedObjectNameException;
@@ -27,49 +26,43 @@ import org.quickfixj.QFJException;
 import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.ObjectNameFactory;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import quickfix.Acceptor;
-import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.initiator.AbstractSocketInitiator;
 
 public class ConnectorJmxExporter {
-    private final Logger log = LoggerFactory.getLogger(getClass());
     private final SessionJmxExporter sessionExporter = new SessionJmxExporter();
     private final static AtomicInteger connectorIdCounter = new AtomicInteger();
 
-    public void export(JmxExporter jmxExporter, SessionConnector connector) {
-        export(jmxExporter, connector, Integer.toString(connectorIdCounter.incrementAndGet()));
+    public ObjectName register(JmxExporter jmxExporter, SessionConnector connector) {
+        return register(jmxExporter, connector, Integer.toString(connectorIdCounter.incrementAndGet()));
     }
 
-    public void export(JmxExporter jmxExporter, SessionConnector connector, String connectorId) {
+    public ObjectName register(JmxExporter jmxExporter, SessionConnector connector, String connectorId) {
         try {
+            final ObjectName connectorName = getConnectorName(connector, connectorId);
+
             ConnectorAdmin connectorAdmin;
             if (connector instanceof AbstractSocketAcceptor) {
-                connectorAdmin = new SocketAcceptorAdmin((AbstractSocketAcceptor) connector,
-                        sessionExporter);
+                connectorAdmin = new SocketAcceptorAdmin(jmxExporter, (AbstractSocketAcceptor) connector,
+                        connectorName, sessionExporter);
             } else if (connector instanceof AbstractSocketInitiator) {
-                connectorAdmin = new SocketInitiatorAdmin((AbstractSocketInitiator) connector,
-                        sessionExporter);
+                connectorAdmin = new SocketInitiatorAdmin(jmxExporter, (AbstractSocketInitiator) connector,
+                        connectorName, sessionExporter);
             } else {
                 throw new QFJException("Unknown connector type: " + connector.getClass().getName());
             }
 
-            final ObjectName connectorName = getConnectorName(connector, connectorId);
-
             jmxExporter.registerMBean(connectorAdmin, connectorName);
-            final ArrayList<SessionID> sessionIDs = connector.getSessions();
-            for (int i = 0; i < sessionIDs.size(); i++) {
-                final SessionID sessionID = sessionIDs.get(i);
-                sessionExporter.export(jmxExporter, Session.lookupSession(sessionID),
-                        connectorName, connector.getSettings());
-            }
+            
+            return connectorName;
+        } catch (final RuntimeException e) {
+            throw e;
         } catch (final Exception e) {
-            log.error("Failed to export connector MBean", e);
+            throw new QFJException("Failed to export connector MBean", e);           
         }
     }
 

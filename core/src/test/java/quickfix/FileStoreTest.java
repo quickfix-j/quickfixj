@@ -65,7 +65,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         FileStore store = (FileStore) getStore();
         store.setNextSenderMsgSeqNum(123);
         store.setNextTargetMsgSeqNum(321);
-        store.closeFiles();
+        store.close();
         store.initialize(false);
 
         assertEquals(123, store.getNextSenderMsgSeqNum());
@@ -73,13 +73,13 @@ public class FileStoreTest extends AbstractMessageStoreTest {
     }
     
     protected void closeMessageStore(MessageStore store) throws IOException {
-        ((FileStore)store).closeFiles();
+        ((FileStore)store).close();
     }
 
     public void testInitialSessionCreationTime() throws Exception {
         FileStore store = (FileStore)getStore();
         Date creationTime1 = store.getCreationTime();
-        store.closeFiles();
+        store.close();
         Thread.sleep(100);
         store.initialize(false);
         Date creationTime2 = store.getCreationTime();

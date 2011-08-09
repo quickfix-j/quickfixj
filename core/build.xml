@@ -179,16 +179,28 @@
 	<property name="junit.fork.dir" value="${basedir}/.." />
 	<property name="junit.output.dir" value="${target.dir}/test/junit" />
 	<property name="junit.haltonfailure" value="false" />
-
+	<property name="error.file" value="${target.dir}/test/ERROR" />
+	
 	<target name="test" description="run all tests, if needed" depends="check.tests.uptodate" unless="tests.uptodate">
+		<!-- to prevent exiting before running acceptance tests if unit test failed -->
+		<property name="bypass.test.failure" value="do.test"/>
 		<antcall target="test.clean" />
-		<antcall target="test.unit" />
-		<antcall target="test.acceptance" />
+		<antcall target="test.unit">
+			<param name="bypass.checkfailure" value="bypass"/>
+		</antcall>
+		<antcall target="test.acceptance" >
+			<param name="bypass.checkfailure" value="bypass"/>
+		</antcall>
 		<antcall target="test.report" />
+		<antcall target="checkfailures"/>
 	</target>
 
-	<target name="test.clean" description="Clean test output, forces tests to be run." unless="tests.uptodate">
+	<target name="test.clean" description="Clean test output, forces tests to be run." depends="clean.errorfile" unless="bypass.checkfailure">
 		<delete dir="${test.output.dir}" />
+	</target>
+
+	<target name="clean.errorfile" description="Clean the test error output." unless="tests.uptodate">
+		<delete file="${error.file}"/>
 	</target>
 
 	<target name="test.report" unless="tests.uptodate">
@@ -224,6 +236,22 @@
 		</copy>
 	</target>
 
+	
+	<target name="reportfailures" if="tests.failed">
+		<echo message="reporting failure for ${test.name}"/>
+		<echo file="${error.file}" message="${test.name}" append="true"/>
+	</target>
+	
+	<target name="checkfailures" unless="bypass.checkfailure">
+		<fail message="Test failure">
+		    <condition>
+			<resourcecount count="1">
+				<fileset dir="${target.dir}/test/" includes="ERROR"/>
+			</resourcecount>
+		    </condition>
+		</fail>
+	</target>
+
 	<!-- Run Unit Tests	-->
 
 	<target name="check.utests.uptodate">
@@ -236,13 +264,13 @@
 	<property name="utest.fork" value="yes" />
 	<property name="utest.timestamp" value="${target.dir}/test/.utest_timestamp" />
 
-	<target name="test.unit" description="run unit tests" depends="jar,check.utests.uptodate,test.unit.junit" unless="utests.failed">
+	<target name="test.unit" description="run unit tests" depends="jar,check.utests.uptodate,test.unit.junit" unless="tests.failed">
 		<description>Update test timestamp if tests passed.</description>
 		<touch file="${utest.timestamp}" />
 	</target>
 
-	<target name="test.unit.junit" depends="compile, test.init" unless="utests.uptodate">
-		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="false" errorproperty="utests.failed" failureproperty="utests.failed" haltonfailure="${junit.haltonfailure}">
+	<target name="test.unit.junit" depends="compile, test.init,clean.errorfile" unless="utests.uptodate">
+		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="false" errorproperty="tests.failed" failureproperty="tests.failed" haltonfailure="${junit.haltonfailure}">
 			<!-- The plain formatter is breaking the Pulse CI report generator -->
 			<!-- <formatter type="plain" usefile="true" /> -->
 			<formatter type="xml" usefile="true" />
@@ -256,13 +284,16 @@
 					<exclude name="**/Abstract*Test.java" />
 				</fileset>
 			</batchtest>
-
 		</junit>
+		<antcall target="reportfailures">
+			<param name="test.name" value="Unit tests"/>
+		</antcall>
+		<antcall target="checkfailures"/>
 	</target>
 
-	<target name="test.one.junit" depends="compile, test.init,jar" unless="utests.uptodate" description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
+	<target name="test.one.junit" depends="compile, test.init,clean.errorfile,jar" unless="utests.uptodate" description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
 		<echo message="Testing class (${onejunit.testname})" />
-		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="true" errorproperty="utests.failed" failureproperty="utests.failed">
+		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="true" errorproperty="tests.failed" failureproperty="tests.failed">
 			<formatter type="plain" usefile="true" />
 			<classpath refid="test.classpath" />
 			<test name="${onejunit.testname}" todir="${junit.output.dir}" />
@@ -270,7 +301,10 @@
 		<exec executable="cat">
 			<arg value="${junit.output.dir}/TEST-${onejunit.testname}.txt" />
 		</exec>
-		<fail if="utests.failed" message="Unit test failed" />
+		<antcall target="reportfailures">
+			<param name="test.name" value="Unit test ${onejunit.testname}"/>
+		</antcall>
+		<antcall target="checkfailures"/>
 	</target>
 
 	<!-- Run Acceptance Tests -->
@@ -293,15 +327,16 @@
 		<description>Check if any classes are newer than the timestamp file</description>
 		<uptodate property="atests.uptodate" targetfile="${atest.timestamp}">
 			<srcfiles dir="${main.classes.dir}" includes="**/*" />
+			<srcfiles dir="${test.resources.dir}" includes="**/*" />
 		</uptodate>
 	</target>
 
 	<target name="test.acceptance" description="run acceptance tests" depends="jar,check.atests.uptodate,test.acceptance.junit" />
 
-	<target name="test.acceptance.junit" unless="atests.uptodate" depends="compile, test.init">
+	<target name="test.acceptance.junit" unless="atests.uptodate" depends="compile, test.init,clean.errorfile">
 		<junit fork="${atest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" 
 				printsummary="true" showoutput="${atest.showoutput}" 
-				errorproperty="atests.failed" failureproperty="atests.failed" maxmemory="512m">
+				errorproperty="tests.failed" failureproperty="tests.failed" maxmemory="512m">
 			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
 			<sysproperty key="atest.timeout" value="${atest.timeout}" />
 			<sysproperty key="atest.reconnectDelay" value="${atest.reconnectDelay}" />
@@ -318,10 +353,14 @@
 		<replaceregexp file="${atest.report}" flags="s" byline="false" 
 			match="system-err>.*&lt;/system-err" 
 			replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
+		<antcall target="reportfailures">
+			<param name="test.name" value="Acceptance tests"/>
+		</antcall>
+		<antcall target="checkfailures"/>
 		<antcall target="create.atest.timestamp" />
 	</target>
 
-	<target name="create.atest.timestamp" unless="atests.failed">
+	<target name="create.atest.timestamp" unless="tests.failed">
 		<description>Update test timestamp if tests passed.</description>
 		<touch file="${atest.timestamp}" />
 	</target>

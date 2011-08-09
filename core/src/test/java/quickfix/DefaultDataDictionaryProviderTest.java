@@ -30,7 +30,6 @@ import org.quickfixj.QFJException;
 import quickfix.field.ApplVerID;
 
 public class DefaultDataDictionaryProviderTest {
-    private static final String CUSTOM_APP_VERSION = "Custom_Test";
     private static DataDictionary dictionaryForTest1;
     private static DataDictionary dictionaryForTest2;
 

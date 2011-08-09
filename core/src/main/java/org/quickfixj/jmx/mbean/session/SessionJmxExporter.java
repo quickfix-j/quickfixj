@@ -21,18 +21,21 @@ import quickfix.SessionSettings;
 public class SessionJmxExporter {
     private Map<SessionID, ObjectName> sessionObjectNames = new HashMap<SessionID, ObjectName>();
 
-    public void export(JmxExporter jmxExporter, Session session, ObjectName connectorName,
+    public ObjectName register(JmxExporter jmxExporter, Session session, ObjectName connectorName,
             SessionSettings settings) throws JMException, ConfigError {
-        ObjectName sessionName = createSessionName(session.getSessionID());
-        sessionObjectNames.put(session.getSessionID(), sessionName);
-        SessionAdmin sessionAdmin = new SessionAdmin(session, connectorName);
-        session.addStateListener(sessionAdmin);
-        jmxExporter.registerMBean(sessionAdmin, sessionName);
         ObjectNameFactory settingsNameFactory = new ObjectNameFactory();
         settingsNameFactory.addProperty("type", "Settings");
         addSessionIdProperties(session.getSessionID(), settingsNameFactory);
+        ObjectName settingsName = settingsNameFactory.createName();
         jmxExporter.registerMBean(new SessionSettingsAdmin(session.getSessionID(), settings),
-                settingsNameFactory.createName());
+                settingsName);
+
+        ObjectName sessionName = createSessionName(session.getSessionID());
+        sessionObjectNames.put(session.getSessionID(), sessionName);
+        SessionAdmin sessionAdmin = new SessionAdmin(session, connectorName, settingsName);
+        session.addStateListener(sessionAdmin);
+        jmxExporter.registerMBean(sessionAdmin, sessionName);
+        return sessionName;
     }
 
     public ObjectName getSessionName(SessionID sessionID) {

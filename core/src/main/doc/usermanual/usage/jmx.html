@@ -34,9 +34,14 @@ using the <code>JmxExporter</code> utility class.
     (application, messageStoreFactory, settings, logFactory, messageFactory);
 
 <b>JmxExporter jmxExporter = new JmxExporter();
-jmxExporter.export(acceptor);</b>
+ObjectName connectorObjectName = jmxExporter.register(acceptor);</b>
 
 acceptor.start();
+
+// Later... if you need to unregister the connector MBean
+// This should only be needed if you destroying connectors in 
+// an application (not typical).
+<b>jmxExporter.getMBeanServer().unregisterMBean(connectorObjectName);</b>
 </pre>
 
 By default, the exporter will try to use the Java 5+ platform MBean server. You can also 
@@ -140,6 +145,10 @@ many other options. The following table lists a few examples.
 	</tr>
 </thead>
 <tbody>
+	<tr>
+		<td nowrap="true"><a href="http://visualvm.java.net/">VisualVM</a></td>
+		<td>Part of the JDK</td><td></td>
+	</tr>
 	<tr>
 		<td><a href="http://mx4j.sourceforge.net/">MX4J</a></td>
 		<td>Open Source</td><td>Includes an HTTP adapter that 

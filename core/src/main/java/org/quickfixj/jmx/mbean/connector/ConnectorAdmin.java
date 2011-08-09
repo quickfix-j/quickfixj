@@ -17,6 +17,8 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,10 +26,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.management.MBeanRegistration;
+import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
 
+import org.quickfixj.QFJException;
+import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
@@ -40,15 +46,15 @@ import quickfix.Initiator;
 import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
+import quickfix.mina.SessionConnector;
 
-abstract class ConnectorAdmin implements ConnectorAdminMBean {
+abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration {
     private Logger log = LoggerFactory.getLogger(getClass());
 
     public final static String ACCEPTOR_ROLE = "ACCEPTOR";
 
     public final static String INITIATOR_ROLE = "INITIATOR";
-
-    private String role = "N/A";
 
     private final Connector connector;
 
@@ -56,7 +62,23 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
 
     private final SessionJmxExporter sessionExporter;
 
-    public ConnectorAdmin(Connector connector, SessionJmxExporter sessionExporter) {
+    private final JmxExporter jmxExporter;
+
+    private final ObjectName connectorName;
+
+    private final List<ObjectName> sessionNames = new ArrayList<ObjectName>();
+
+    private final SessionSettings settings;
+    
+    private String role = "N/A";
+
+    private MBeanServer mbeanServer;
+
+    public ConnectorAdmin(JmxExporter jmxExporter, Connector connector, ObjectName connectorName, 
+            SessionSettings settings, SessionJmxExporter sessionExporter) {
+        this.jmxExporter = jmxExporter;
+        this.connectorName = connectorName;
+        this.settings = settings;
         this.sessionExporter = sessionExporter;
         if (connector instanceof Acceptor) {
             role = ACCEPTOR_ROLE;
@@ -146,4 +168,55 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean {
         stop(false);
     }
 
+    public ObjectName preRegister(MBeanServer server, ObjectName name) throws Exception {
+        this.mbeanServer = server;
+        return name;
+    }
+
+    public void postRegister(Boolean registrationDone) {
+        if (connector instanceof SessionConnector) {
+            ((SessionConnector)connector).addPropertyChangeListener(new PropertyChangeListener() {               
+                public void propertyChange(PropertyChangeEvent evt) {
+                    if (SessionConnector.SESSIONS_PROPERTY.equals(evt.getPropertyName())) {                    
+                        registerSessions(); 
+                    }
+                }
+            });
+        }
+        registerSessions();
+    }
+
+    private void registerSessions() {
+        final ArrayList<SessionID> sessionIDs = connector.getSessions();
+        for (int i = 0; i < sessionIDs.size(); i++) {
+            final SessionID sessionID = sessionIDs.get(i);
+            if (sessionExporter.getSessionName(sessionID) == null) {
+                try {
+                    final ObjectName name = sessionExporter.register(
+                        jmxExporter, Session.lookupSession(sessionID),
+                        connectorName, settings);
+                    sessionNames.add(name);
+                } catch (RuntimeException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new QFJException("Connector MBean postregistration failed", e);
+                }
+            }
+        }
+    }
+
+    public void preDeregister() throws Exception {
+    }
+
+    public void postDeregister() {
+        for (ObjectName sessionName : sessionNames) {
+            try {
+                mbeanServer.unregisterMBean(sessionName);
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new QFJException("Connector MBean postregistration failed", e);
+            }
+        }
+    }
 }

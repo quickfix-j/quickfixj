@@ -19,7 +19,11 @@ package org.quickfixj.jmx.mbean;
 
 import java.io.IOException;
 
-public class JmxSupport {
+public final class JmxSupport {
+    private JmxSupport() {
+        
+    }
+    
     public static IOException toIOException(Exception e) throws IOException {
         IOException ioe = new IOException(e.getMessage());
         ioe.setStackTrace(e.getStackTrace());

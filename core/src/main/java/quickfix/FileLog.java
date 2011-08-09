@@ -46,7 +46,6 @@ public class FileLog extends AbstractLog {
         }
     }
     
-    private SessionID sessionID;
     private String messagesFileName;
     private String eventFileName;
     private boolean syncAfterWrite;
@@ -58,7 +57,6 @@ public class FileLog extends AbstractLog {
     private boolean includeTimestampForMessages;
     
     FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages, boolean logHeartbeats) throws FileNotFoundException {
-        this.sessionID = sessionID;
         String sessionName = FileUtil.sessionIdFileName(sessionID);
         
         setLogHeartbeats(logHeartbeats);
@@ -103,7 +101,10 @@ public class FileLog extends AbstractLog {
                 stream.getFD().sync();
             }
         } catch (IOException e) {
-            LogUtil.logThrowable(sessionID, "error writing message to log", e);
+        	//QFJ-459: no point trying to log the error in the file if we had an IOException
+        	//we will end up with a java.lang.StackOverflowError
+            System.err.println("error writing message to log : "+message);
+            e.printStackTrace(System.err);
         }
     }
 
@@ -133,11 +134,26 @@ public class FileLog extends AbstractLog {
         this.syncAfterWrite = syncAfterWrite;
     }
     
+    /**
+     * Closes the messages and events files.
+     * 
+     * @deprecated Use close instead.
+     * @throws IOException
+     */
     public void closeFiles() throws IOException {
+        close();
+    }
+    
+    /**
+     * Closed the messages and events files.
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
         messages.close();
         events.close();
     }
-    
+
     /**
      * Deletes the log files. Do not perform any log operations while performing
      * this operation.

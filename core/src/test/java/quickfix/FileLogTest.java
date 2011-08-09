@@ -71,7 +71,7 @@ public class FileLogTest {
         assertEquals(prefix + ".event.log", new File(log.getEventFileName()).getName());
 
         log.onEvent("EVENTTEST");
-        log.closeFiles();
+        log.close();
 
         String formattedTime = UtcTimestampConverter.convert(new Date(systemTime), false);
         assertEquals("wrong message", formattedTime + ": EVENTTEST\n", readLog(log
@@ -192,5 +192,26 @@ public class FileLogTest {
         in.close();
         return new String(data, CharsetSupport.getCharset());
 
+    }
+    
+    @Test
+    public void testLogErrorWhenFilesystemRemoved() throws IOException{
+        //QFJ-459
+        long systemTime = System.currentTimeMillis();
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
+        SessionSettings settings = new SessionSettings();
+        settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, getTempDirectory());
+        settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, false);
+        FileLogFactory factory = new FileLogFactory(settings);
+        
+        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+                sessionID, new DefaultDataDictionaryProvider(), null, factory,
+                new DefaultMessageFactory(), 0);
+        Session.registerSession(session);
+        
+        FileLog log = (FileLog) session.getLog();
+        log.close();
+        log.logIncoming("test");
+        //no stack overflow exception thrown
     }
 }

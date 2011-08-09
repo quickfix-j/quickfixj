@@ -259,7 +259,7 @@ public class RepeatingGroupTest extends TestCase {
         try {
             defaultDataDictionary = new DataDictionary("FIX44.xml");
             defaultDataDictionaryWithIgnoreOutOfOrder = new DataDictionary("FIX44.xml");
-            defaultDataDictionaryWithIgnoreOutOfOrder.setCheckFieldsOutOfOrder(false);
+            defaultDataDictionaryWithIgnoreOutOfOrder.setCheckUnorderedGroupFields(false);
             customDataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         } catch (final ConfigError e) {
             e.printStackTrace();

@@ -33,19 +33,23 @@ public class UnitTestApplication implements Application {
     
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+        System.out.println("from app ["+sessionId+"] "+message);
         fromAppMessages.add(message);
     }
 
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+        System.out.println("to app ["+sessionId+"] "+message);
         toAppMessages.add(message);
     }
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        System.out.println("from admin ["+sessionId+"] "+message);
         fromAdminMessages.add(message);
     }
 
     public void toAdmin(Message message, SessionID sessionId) {
+        System.out.println("to admin ["+sessionId+"] "+message);
         toAdminMessages.add(message);
     }
 
@@ -69,5 +73,22 @@ public class UnitTestApplication implements Application {
         logonSessions.clear();;
         logoutSessions.clear();;
         createSessions.clear();;
+    }
+    
+    public Message lastFromAppMessage() {
+        if (fromAppMessages.size() == 0) return null; 
+        return fromAppMessages.get(fromAppMessages.size() - 1);
+    }
+    public Message lastFromAdminMessage() {
+        if (fromAdminMessages.size() == 0) return null; 
+        return fromAdminMessages.get(fromAdminMessages.size() - 1);
+    }
+    public Message lastToAppMessage() {
+        if (toAppMessages.size() == 0) return null; 
+        return toAppMessages.get(toAppMessages.size() - 1);
+    }
+    public Message lastToAdminMessage() {
+        if (toAdminMessages.size() == 0) return null; 
+        return toAdminMessages.get(toAdminMessages.size() - 1);
     }
 }
