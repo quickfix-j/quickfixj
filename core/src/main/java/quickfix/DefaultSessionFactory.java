@@ -332,7 +332,7 @@ public class DefaultSessionFactory implements SessionFactory {
     private int[] getLogonIntervalsInSeconds(SessionSettings settings, SessionID sessionID) throws ConfigError {
         if (settings.isSetting(sessionID, Initiator.SETTING_RECONNECT_INTERVAL)) {
             try {
-                final String raw = settings.getString(Initiator.SETTING_RECONNECT_INTERVAL);
+                final String raw = settings.getString(sessionID, Initiator.SETTING_RECONNECT_INTERVAL);
                 final int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
                 if (ret != null) return ret;
             } catch (final Throwable e) {

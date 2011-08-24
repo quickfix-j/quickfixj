@@ -211,4 +211,13 @@ public class DefaultSessionFactoryTest {
         settings.setString(sessionID, Session.SETTING_HEARTBTINT, "10");
         settings.setString(sessionID, "BeginString", "FIX.4.2");
     }
+    
+
+    //QFJ-629
+    @Test
+    public void testReconnectIntervalInDefaultSession() throws Exception {
+        settings.setString(sessionID, "ReconnectInterval", "2x5;3x15");
+        factory.create(sessionID, settings);
+    }
+
 }
