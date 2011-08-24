@@ -432,6 +432,7 @@
                     <exclude name="**/DefaultMessageFactoryTest.java"/>
                     <exclude name="**/DefaultSessionFactoryTest.java"/>
                     <exclude name="**/FileLogTest.java"/>
+                    <exclude name="**/MessageCrackerTest.java"/>
                     <exclude name="**/MessageTest.java"/>
                     <exclude name="**/SessionTest.java"/>
                     <exclude name="**/ThreadPerSessionEventHandlingStrategyTest.java"/>
