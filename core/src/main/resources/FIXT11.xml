@@ -302,6 +302,8 @@
             <value description="FIX43" enum="5"/>
             <value description="FIX44" enum="6"/>
             <value description="FIX50" enum="7"/>
+            <value description="FIX50SP1" enum="8"/>
+            <value description="FIX50SP2" enum="9"/>
         </field>
         <field name="CstmApplVerID" number="1129" type="STRING"/>
         <field name="RefApplVerID" number="1130" type="STRING"/>
