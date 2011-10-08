@@ -1369,22 +1369,26 @@ public class Session implements Closeable {
                             + newSequence);
             if (newSequence > getExpectedTargetNum()) {
                 int[] range = state.getResendRange();
-                if (newSequence >= range[1]) {
+                if (range[2] > 0) {
+                    if (newSequence >= range[1]) {
+                        state.setNextTargetMsgSeqNum(newSequence);
+                    } else if (newSequence >= range[2]) {
+                        state.setNextTargetMsgSeqNum(newSequence + 1);
+                        String beginString = sequenceReset.getHeader().getString(BeginString.FIELD);
+                        sendResendRequest(beginString, range[1] + 1, newSequence + 1, range[1]);
+                    }
+                } else {
                     state.setNextTargetMsgSeqNum(newSequence);
-                } else if (range[2] > 0 && newSequence >= range[2]) {
-                    state.setNextTargetMsgSeqNum(newSequence + 1);
-                    String beginString = sequenceReset.getHeader().getString(BeginString.FIELD);
-                    sendResendRequest(beginString, range[1] + 1, newSequence+1, range[1]);
                 }
             } else if (newSequence < getExpectedTargetNum()) {
-                
-                    getLog().onErrorEvent(
-                            "Invalid SequenceReset: newSequence=" + newSequence + " < expected="
-                                    + getExpectedTargetNum());
-                    if (resetOrDisconnectIfRequired(sequenceReset)) {
-                        return;
-                    }
-                    generateReject(sequenceReset, SessionRejectReason.VALUE_IS_INCORRECT, 0);
+
+                getLog().onErrorEvent(
+                        "Invalid SequenceReset: newSequence=" + newSequence + " < expected="
+                                + getExpectedTargetNum());
+                if (resetOrDisconnectIfRequired(sequenceReset)) {
+                    return;
+                }
+                generateReject(sequenceReset, SessionRejectReason.VALUE_IS_INCORRECT, 0);
             }
         }
     }
