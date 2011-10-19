@@ -3213,6 +3213,7 @@
       <group name="NoLegs" required="N">
         <component name="InstrumentLeg"/>
         <field name="LegQty" required="N"/>
+        <field name="LegOrderQty" required="N"/>
         <field name="LegSwapType" required="N"/>
         <component name="LegStipulations"/>
         <field name="LegPositionEffect" required="N"/>
@@ -3223,7 +3224,6 @@
         <field name="LegSettlType" required="N"/>
         <field name="LegSettlDate" required="N"/>
         <field name="LegLastPx" required="N"/>
-        <field name="LegOrderQty" required="N"/>
         <field name="LegSettlCurrency" required="N"/>
         <field name="LegLastForwardPoints" required="N"/>
         <field name="LegCalculatedCcyLastQty" required="N"/>
