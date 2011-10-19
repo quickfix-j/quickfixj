@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -175,7 +175,8 @@ public class SessionSettings {
             throw new ConfigError("Session not found");
         }
         if (includeDefaults) {
-            final Properties mergedProperties = sections.get(DEFAULT_SESSION_ID);
+            final Properties mergedProperties = new Properties();
+            mergedProperties.putAll(sections.get(DEFAULT_SESSION_ID));
             mergedProperties.putAll(p);
             return mergedProperties;
         } else {
@@ -594,27 +595,27 @@ public class SessionSettings {
      * Set properties that will be the source of variable values in the settings. A variable
      * is of the form ${variable} and will be replaced with values from the
      * map when the setting is retrieved.
-     * 
+     *
      * By default, the System properties are used for variable values. If
      * you use this method, it will override the defaults so use the Properties
      * default value mechanism if you want to chain a custom properties object
      * with System properties as the default.
-     * 
+     *
      * <code><pre>
      * // Custom properties with System properties as default
      * Properties myprops = new Properties(System.getProperties());
      * myprops.load(getPropertiesInputStream());
      * settings.setVariableValues(myprops);
-     * 
+     *
      * // Custom properties with System properties as override
      * Properties myprops = new Properties();
      * myprops.load(getPropertiesInputStream());
      * myprops.putAll(System.getProperties());
      * settings.setVariableValues(myprops);
      * </pre></code>
-     * 
+     *
      * @param variableValues
-     * 
+     *
      * @see java.util.Properties
      * @see java.lang.System
      */
