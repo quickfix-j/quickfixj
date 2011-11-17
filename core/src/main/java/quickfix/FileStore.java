@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -45,7 +45,7 @@ import quickfix.field.converter.UtcTimestampConverter;
  * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
  * COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A
  * FACTORY.
- * 
+ *
  * @see quickfix.FileStoreFactory
  */
 public class FileStore implements MessageStore, Closeable {
@@ -122,7 +122,7 @@ public class FileStore implements MessageStore, Closeable {
 
     private void initializeSessionCreateTime() throws IOException {
         final File sessionTimeFile = new File(sessionFileName);
-        if (sessionTimeFile.exists()) {
+        if (sessionTimeFile.exists() && sessionTimeFile.length() > 0) {
             final DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
                     new FileInputStream(sessionTimeFile)));
             try {
@@ -218,6 +218,7 @@ public class FileStore implements MessageStore, Closeable {
      * @deprecated use close instead
      * @throws IOException
      */
+    @Deprecated
     public void closeFiles() throws IOException {
         close();
     }
@@ -353,10 +354,10 @@ public class FileStore implements MessageStore, Closeable {
     }
 
     /**
-     * This method is here for JNI API consistency but it's not 
-     * implemented. Use get(int, int, Collection) with the same 
+     * This method is here for JNI API consistency but it's not
+     * implemented. Use get(int, int, Collection) with the same
      * start and end sequence.
-     * 
+     *
      */
     public boolean get(int sequence, String message) throws IOException {
         throw new UnsupportedOperationException("not supported");

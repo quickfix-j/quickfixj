@@ -1,26 +1,43 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
 package quickfix;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.quickfixj.CharsetSupport;
 import org.slf4j.Logger;
@@ -31,12 +48,12 @@ import quickfix.field.converter.UtcTimestampConverter;
 /**
  * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY
  * BE CREATED USING A FACTORY.
- * 
+ *
  * @see quickfix.CachedFileStoreFactory
  */
 public class CachedFileStore implements MessageStore {
-    
-    private Logger log = LoggerFactory.getLogger(getClass());
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String READ_OPTION = "r";
 
@@ -46,7 +63,7 @@ public class CachedFileStore implements MessageStore {
 
     private static final String NOSYNC_OPTION = "";
 
-    private MemoryStore cache = new MemoryStore();
+    private final MemoryStore cache = new MemoryStore();
 
     private final String msgFileName;
 
@@ -66,25 +83,25 @@ public class CachedFileStore implements MessageStore {
 
     private final boolean syncWrites;
 
-    private CachedHashMap messageIndex = new CachedHashMap(100);
+    private final CachedHashMap messageIndex = new CachedHashMap(100);
 
     private FileOutputStream headerFileOutputStream;
 
-    private String charsetEncoding = CharsetSupport.getCharset();
+    private final String charsetEncoding = CharsetSupport.getCharset();
 
     CachedFileStore(String path, SessionID sessionID, boolean syncWrites) throws IOException {
         this.syncWrites = syncWrites;
 
         final String fullPath = new File(path == null ? "." : path).getAbsolutePath();
-        String sessionName = FileUtil.sessionIdFileName(sessionID);
-        String prefix = FileUtil.fileAppendPath(fullPath, sessionName + ".");
+        final String sessionName = FileUtil.sessionIdFileName(sessionID);
+        final String prefix = FileUtil.fileAppendPath(fullPath, sessionName + ".");
 
         msgFileName = prefix + "body";
         headerFileName = prefix + "header";
         seqNumFileName = prefix + "seqnums";
         sessionFileName = prefix + "session";
 
-        File directory = new File(msgFileName).getParentFile();
+        final File directory = new File(msgFileName).getParentFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
@@ -115,13 +132,15 @@ public class CachedFileStore implements MessageStore {
     }
 
     private void initializeSessionCreateTime() throws IOException {
-        File sessionTimeFile = new File(sessionFileName);
-        if (sessionTimeFile.exists()) {
-            DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(new FileInputStream(sessionTimeFile)));
+        final File sessionTimeFile = new File(sessionFileName);
+        if (sessionTimeFile.exists() && sessionTimeFile.length() > 0) {
+            final DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
+                    new FileInputStream(sessionTimeFile)));
             try {
-                Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter.convert(sessionTimeInput.readUTF()));
+                final Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter
+                        .convert(sessionTimeInput.readUTF()));
                 cache.setCreationTime(c);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new IOException(e.getMessage());
             } finally {
                 sessionTimeInput.close();
@@ -132,9 +151,10 @@ public class CachedFileStore implements MessageStore {
     }
 
     private void storeSessionTimeStamp() throws IOException {
-        DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(sessionFileName, false)));
+        final DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
+                new FileOutputStream(sessionFileName, false)));
         try {
-            Date date = SystemTime.getDate();
+            final Date date = SystemTime.getDate();
             cache.setCreationTime(SystemTime.getUtcCalendar(date));
             sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(date, true));
         } finally {
@@ -153,10 +173,11 @@ public class CachedFileStore implements MessageStore {
     private void initializeSequenceNumbers() throws IOException {
         sequenceNumberFile.seek(0);
         if (sequenceNumberFile.length() > 0) {
-            String s = sequenceNumberFile.readUTF();
-            int offset = s.indexOf(':');
+            final String s = sequenceNumberFile.readUTF();
+            final int offset = s.indexOf(':');
             if (offset < 0) {
-                throw new IOException("Invalid sequenceNumbderFile '" + seqNumFileName + "' character ':' is missing");
+                throw new IOException("Invalid sequenceNumbderFile '" + seqNumFileName
+                        + "' character ':' is missing");
             }
             cache.setNextSenderMsgSeqNum(Integer.parseInt(s.substring(0, offset)));
             cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 1)));
@@ -164,14 +185,15 @@ public class CachedFileStore implements MessageStore {
     }
 
     private void initializeMessageIndex() throws IOException {
-        File headerFile = new File(headerFileName);
+        final File headerFile = new File(headerFileName);
         if (headerFile.exists()) {
-            DataInputStream headerDataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(headerFile)));
+            final DataInputStream headerDataInputStream = new DataInputStream(
+                    new BufferedInputStream(new FileInputStream(headerFile)));
             try {
                 while (headerDataInputStream.available() > 0) {
-                    int sequenceNumber = headerDataInputStream.readInt();
-                    long offset = headerDataInputStream.readLong();
-                    int size = headerDataInputStream.readInt();
+                    final int sequenceNumber = headerDataInputStream.readInt();
+                    final long offset = headerDataInputStream.readLong();
+                    final int size = headerDataInputStream.readInt();
                     messageIndex.put(Long.valueOf(sequenceNumber), new long[] { offset, size });
                 }
             } finally {
@@ -179,7 +201,8 @@ public class CachedFileStore implements MessageStore {
             }
         }
         headerFileOutputStream = new FileOutputStream(headerFileName, true);
-        headerDataOutputStream = new DataOutputStream(new BufferedOutputStream(headerFileOutputStream));
+        headerDataOutputStream = new DataOutputStream(new BufferedOutputStream(
+                headerFileOutputStream));
     }
 
     private String getRandomAccessFileOptions() {
@@ -188,7 +211,7 @@ public class CachedFileStore implements MessageStore {
 
     /**
      * Close the store's files.
-     * 
+     *
      * @throws IOException
      */
     public void closeFiles() throws IOException {
@@ -219,7 +242,7 @@ public class CachedFileStore implements MessageStore {
     }
 
     private void deleteFile(String fileName) throws IOException {
-        File file = new File(fileName);
+        final File file = new File(fileName);
         if (file.exists() && !file.delete()) {
             log.error("File delete failed: " + fileName);
         }
@@ -281,8 +304,9 @@ public class CachedFileStore implements MessageStore {
      * (non-Javadoc)
      * @see quickfix.MessageStore#get(int, int, java.util.Collection)
      */
-    public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
-        Collection<String> readedMsg = getMessage(startSequence, endSequence);
+    public void get(int startSequence, int endSequence, Collection<String> messages)
+            throws IOException {
+        final Collection<String> readedMsg = getMessage(startSequence, endSequence);
         messages.addAll(readedMsg);
     }
 
@@ -290,17 +314,18 @@ public class CachedFileStore implements MessageStore {
      * This method is here for JNI API consistency but it's not implemented. Use get(int, int, Collection) with the same
      * start and end sequence.
      */
-    public boolean get(int sequence, String message){
+    public boolean get(int sequence, String message) {
         throw new UnsupportedOperationException("not supported");
     }
 
     private String read(long offset, long size) throws IOException {
         String message = null;
-        byte[] data = new byte[(int) size];
+        final byte[] data = new byte[(int) size];
 
         messageFileReader.seek(offset);
         if (messageFileReader.read(data) != size) {
-            throw new IOException("Truncated input while reading message: "+new String(data, charsetEncoding));
+            throw new IOException("Truncated input while reading message: "
+                    + new String(data, charsetEncoding));
         }
         message = new String(data, charsetEncoding);
 
@@ -308,12 +333,12 @@ public class CachedFileStore implements MessageStore {
     }
 
     private Collection<String> getMessage(long startSequence, long endSequence) throws IOException {
-        Collection<String> messages = new ArrayList<String>();
+        final Collection<String> messages = new ArrayList<String>();
 
-        List<long[]> offsetAndSizes = messageIndex.get(startSequence, endSequence);
-        for (long[] offsetAndSize : offsetAndSizes) {
+        final List<long[]> offsetAndSizes = messageIndex.get(startSequence, endSequence);
+        for (final long[] offsetAndSize : offsetAndSizes) {
             if (offsetAndSize != null) {
-                String message = read(offsetAndSize[0], offsetAndSize[1]);
+                final String message = read(offsetAndSize[0], offsetAndSize[1]);
                 messages.add(message);
             }
         }
@@ -327,8 +352,8 @@ public class CachedFileStore implements MessageStore {
      * @see quickfix.MessageStore#set(int, java.lang.String)
      */
     public boolean set(int sequence, String message) throws IOException {
-        long offset = messageFileWriter.getFilePointer();
-        int size = message.length();
+        final long offset = messageFileWriter.getFilePointer();
+        final int size = message.length();
         messageIndex.put(Long.valueOf(sequence), new long[] { offset, size });
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
@@ -347,7 +372,8 @@ public class CachedFileStore implements MessageStore {
         // recommendations from Sun. The performance also appears higher
         // with this implementation. -- smb.
         // http://bugs.sun.com/bugdatabase/view_bug.do;:WuuT?bug_id=4259569
-        sequenceNumberFile.writeUTF("" + cache.getNextSenderMsgSeqNum() + ':' + cache.getNextTargetMsgSeqNum());
+        sequenceNumberFile.writeUTF("" + cache.getNextSenderMsgSeqNum() + ':'
+                + cache.getNextTargetMsgSeqNum());
     }
 
     String getHeaderFileName() {
@@ -383,11 +409,11 @@ public class CachedFileStore implements MessageStore {
      */
     private class CachedHashMap implements Map<Long, long[]> {
 
-        private TreeMap<Long, long[]> cacheIndex = new TreeMap<Long, long[]>();
+        private final TreeMap<Long, long[]> cacheIndex = new TreeMap<Long, long[]>();
 
         private int currentSize;
 
-        private int maxSize;
+        private final int maxSize;
 
         public CachedHashMap(int _maxSize) {
             currentSize = 0;
@@ -413,8 +439,9 @@ public class CachedFileStore implements MessageStore {
 
         public long[] get(Object key) {
             final long[] v = cacheIndex.get(key);
-            if (v != null)
+            if (v != null) {
                 return v;
+            }
             return seekMessageIndex((Long) key);
         }
 
@@ -430,7 +457,7 @@ public class CachedFileStore implements MessageStore {
             cacheIndex.put(key, value);
             currentSize++;
             if (currentSize > maxSize) {
-                Iterator<Entry<Long, long[]>> it = cacheIndex.entrySet().iterator();
+                final Iterator<Entry<Long, long[]>> it = cacheIndex.entrySet().iterator();
                 it.next();
                 it.remove();
                 currentSize--;
@@ -455,11 +482,12 @@ public class CachedFileStore implements MessageStore {
         }
 
         private long[] seekMessageIndex(final long index) {
-            File headerFile = new File(headerFileName);
+            final File headerFile = new File(headerFileName);
             if (headerFile.exists()) {
                 DataInputStream headerDataInputStream = null;
                 try {
-                    headerDataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(headerFile)));
+                    headerDataInputStream = new DataInputStream(new BufferedInputStream(
+                            new FileInputStream(headerFile)));
                     while (headerDataInputStream.available() > 0) {
                         final int sequenceNumber = headerDataInputStream.readInt();
                         final long offset = headerDataInputStream.readLong();
@@ -468,14 +496,14 @@ public class CachedFileStore implements MessageStore {
                             return new long[] { offset, size };
                         }
                     }
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     return null;
                 } finally {
                     try {
                         if (headerDataInputStream != null) {
                             headerDataInputStream.close();
                         }
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         log.error("", e);
                     }
                 }
@@ -484,22 +512,24 @@ public class CachedFileStore implements MessageStore {
         }
 
         private List<long[]> seekMessageIndex(final long startSequence, final long endSequence) {
-            TreeMap<Integer  , long[]> indexPerSequenceNumber = new TreeMap<Integer , long[]>();
-            File headerFile = new File(headerFileName);
+            final TreeMap<Integer, long[]> indexPerSequenceNumber = new TreeMap<Integer, long[]>();
+            final File headerFile = new File(headerFileName);
             if (headerFile.exists()) {
                 DataInputStream headerDataInputStream = null;
                 try {
-                    headerDataInputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(headerFile)));
+                    headerDataInputStream = new DataInputStream(new BufferedInputStream(
+                            new FileInputStream(headerFile)));
                     while (headerDataInputStream.available() > 0) {
                         final int sequenceNumber = headerDataInputStream.readInt();
-                      final Integer sequenceNumberInteger = Integer.valueOf(sequenceNumber);
+                        final Integer sequenceNumberInteger = Integer.valueOf(sequenceNumber);
                         final long offset = headerDataInputStream.readLong();
                         final int size = headerDataInputStream.readInt();
                         if (sequenceNumber >= startSequence && sequenceNumber <= endSequence) {
-                           indexPerSequenceNumber.put(sequenceNumberInteger, new long[] { offset, size });
+                            indexPerSequenceNumber.put(sequenceNumberInteger, new long[] { offset,
+                                    size });
                         }
                     }
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     log.error("", e);
                     return null;
                 } finally {
@@ -507,7 +537,7 @@ public class CachedFileStore implements MessageStore {
                         if (headerDataInputStream != null) {
                             headerDataInputStream.close();
                         }
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         log.error("", e);
                     }
                 }
