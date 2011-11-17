@@ -82,7 +82,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
 
         // wait for threads to stop
-        while (dispatchersToShutdown.size() > 0) {
+        while (!dispatchersToShutdown.isEmpty()) {
             try {
                 Thread.sleep(100);
             } catch (final InterruptedException e) {
