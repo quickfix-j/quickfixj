@@ -880,6 +880,13 @@ public class Session implements Closeable {
                 } else {
                     targetDefaultApplVerID.set(MessageUtils.toApplVerID(beginString));
                 }
+
+                // QFJ-648
+                if (message.isSetField(HeartBtInt.FIELD)) {
+                    if (message.getInt(HeartBtInt.FIELD) < 0) {
+                        throw new RejectLogon("HeartBtInt must not be negative");
+                    }
+                }
             }
 
             if (validateIncomingMessage && dataDictionaryProvider != null) {
