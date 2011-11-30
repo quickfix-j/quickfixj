@@ -1376,7 +1376,8 @@ public class Session implements Closeable {
                 if (resetOrDisconnectIfRequired(sequenceReset)) {
                     return;
                 }
-                generateReject(sequenceReset, SessionRejectReason.VALUE_IS_INCORRECT, 0);
+                generateReject(sequenceReset, SessionRejectReason.VALUE_IS_INCORRECT,
+                        NewSeqNo.FIELD);
             }
         }
     }
