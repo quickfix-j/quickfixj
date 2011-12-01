@@ -70,7 +70,7 @@ public class SessionTest {
         session.setResponder(null);
 
         session.close();
-        
+
         verify(mockMessageStore).close();
         verifyNoMoreInteractions(mockMessageStore);
 
@@ -108,7 +108,7 @@ public class SessionTest {
         session.setResponder(null);
 
         session.close();
-        
+
         verifyNoMoreInteractions(mockMessageStore);
 
         verify(mockLog, atLeastOnce()).onEvent(anyString());
@@ -149,7 +149,7 @@ public class SessionTest {
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
 
         session.next(createHeartbeatMessage(1001));
-        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));        
+        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
     }
 
     @Test
@@ -193,6 +193,43 @@ public class SessionTest {
 
         assertFalse("Should not disconnect when an accepted reset is inferred",
                 responder.disconnectCalled);
+    }
+
+    // QFJ-650
+    @Test
+    public void testLogoutOnMissingMsgSeqNum() throws Exception {
+
+        final Application application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+
+        final TestRequest testRequest = (TestRequest) createAdminMessage(2);
+        session.next(testRequest);
+
+        assertEquals(3, state.getNextSenderMsgSeqNum());
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+
+        testRequest.getHeader().removeField(MsgSeqNum.FIELD);
+        // this should disconnect the session due to the missing MsgSeqNum
+        session.next(testRequest);
+        assertFalse("Session should be disconnected", session.isLoggedOn());
+
+        // make sure that the target seq num has not been incremented
+        assertEquals(4, state.getNextSenderMsgSeqNum());
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+        logonTo(session, 3);
+        assertEquals(5, state.getNextSenderMsgSeqNum());
+        assertEquals(4, state.getNextTargetMsgSeqNum());
+        assertTrue("Session should be connected", session.isLoggedOn());
+
     }
 
     // QFJ-60
@@ -433,13 +470,14 @@ public class SessionTest {
         resendRequest.getHeader().setField(new SenderCompID(sessionID.getTargetCompID()));
         resendRequest.getHeader().setField(new TargetCompID(sessionID.getSenderCompID()));
         resendRequest.getHeader().setField(new SendingTime(new Date()));
+        resendRequest.getHeader().setField(new MsgSeqNum(200));
         resendRequest.set(new BeginSeqNo(1));
         resendRequest.set(new EndSeqNo(100));
         session.next(resendRequest);
         assertEquals(201, state.getNextTargetMsgSeqNum());
     }
 
-    
+
     @Test
     //QFJ-457
     public void testAcceptorRelogon() throws Exception {
@@ -469,7 +507,7 @@ public class SessionTest {
         assertFalse(Logout.MSGTYPE .equals(lastToAdminMessage.getHeader().getString(MsgType.FIELD)));
 
     }
-    
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
