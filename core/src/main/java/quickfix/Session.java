@@ -448,7 +448,7 @@ public class Session implements Closeable {
         this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
 
-        final Log engineLog = logFactory.create(sessionID);
+        final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
             addStateListener((SessionStateListener) engineLog);
         }
@@ -457,9 +457,9 @@ public class Session implements Closeable {
         if (messageStore instanceof SessionStateListener) {
             addStateListener((SessionStateListener) messageStore);
         }
-
-        state = new SessionState(this, logFactory != null ? engineLog : null, heartbeatInterval,
-                heartbeatInterval != 0, messageStore, testRequestDelayMultiplier);
+        
+        state = new SessionState(this, engineLog, heartbeatInterval, heartbeatInterval != 0,
+                messageStore, testRequestDelayMultiplier);
 
         registerSession(this);
 
