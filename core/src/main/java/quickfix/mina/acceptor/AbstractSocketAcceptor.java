@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -77,11 +77,6 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
         ByteBuffer.setUseDirectBuffers(false);
         this.sessionFactory = sessionFactory;
-        try {
-            createSessions(settings);
-        } catch (FieldConvertError e) {
-            throw new ConfigError(e);
-        }
     }
 
     protected AbstractSocketAcceptor(Application application,
@@ -101,6 +96,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     // TODO SYNC Does this method really need synchronization?
     protected synchronized void startAcceptingConnections() throws ConfigError {
         try {
+            createSessions(getSettings());
             startSessionTimer();
             SessionSettings settings = getSettings();
 
@@ -110,7 +106,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                         .next();
                 IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor.getAddress());
                 IoServiceConfig serviceConfig = ioAcceptor.getDefaultConfig();
-                
+
                 CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                         getIoFilterChainBuilder());
 
@@ -134,7 +130,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 if (serviceConfig instanceof SocketAcceptorConfig) {
                     ((SocketAcceptorConfig)serviceConfig).setDisconnectOnUnbind(false);
                 }
-                
+
                 ioAcceptor.bind(socketDescriptor.getAddress(), new AcceptorIoHandler(
                         sessionProvider, new NetworkingOptions(settings.getDefaultProperties()),
                         getEventHandlingStrategy()));
@@ -234,12 +230,12 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             SessionID sessionID = (SessionID) i.next();
             String connectionType = settings.getString(sessionID,
                     SessionFactory.SETTING_CONNECTION_TYPE);
-            
+
             boolean isTemplate = false;
             if (settings.isSetting(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE)) {
                 isTemplate = settings.getBool(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE);
             }
-            
+
             if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
                 AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
                 if (!isTemplate) {
@@ -344,7 +340,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             return acceptorSessions.get(sessionID);
         }
     }
-    
+
     public int getQueueSize() {
         final EventHandlingStrategy ehs = getEventHandlingStrategy();
         return ehs == null ? 0 : ehs.getQueueSize();

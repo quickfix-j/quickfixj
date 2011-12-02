@@ -79,6 +79,9 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
         Session.unregisterSessions(getSessions());
+        synchronized (lock) {
+            isStarted = Boolean.FALSE;
+        }
     }
 
     @Override
