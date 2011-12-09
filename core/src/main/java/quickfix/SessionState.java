@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -37,7 +37,7 @@ public final class SessionState {
 
     // MessageStore implementation must be thread safe
     private final MessageStore messageStore;
-    
+
     private final Lock senderMsgSeqNumLock = new ReentrantLock();
     private final Lock targetMsgSeqNumLock = new ReentrantLock();
 
@@ -57,19 +57,19 @@ public final class SessionState {
     private double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
-    /** 
+    /**
      * The resend range when sending a resend request.
      * If a gap is detected and messages from x to y are needed, the received messages are checked against the values x and y that are stored in the resendRange.
      * Some FIX Engine do not support resendRequest range greater than a given value. There, in this case, the ResendRequest have to be splitted.
      * E.g.: CME will reject any resend request for more than 2500 messages
      * The solution is to send resend request with smaller range until the global range has been requested.
-     * 
-     * the resendRange contains 3 values: 
+     *
+     * the resendRange contains 3 values:
      * <ol>
-     * <li>the begin index of the global resend request</li> 
-     * <li>the last index of the global resend request</li> 
+     * <li>the begin index of the global resend request</li>
+     * <li>the last index of the global resend request</li>
      * <li>the actual last index of the splitted sub resend request</li>
-     * </ol> 
+     * </ol>
      */
     private int[] resendRange = new int[] { 0, 0, 0 };
     private boolean resetSent;
@@ -323,11 +323,11 @@ public final class SessionState {
     public Message getNextQueuedMessage() {
         return messageQueue.size() > 0 ? messageQueue.values().iterator().next() : null;
     }
-    
+
     public Collection<Integer> getQueuedSeqNums() {
         return messageQueue.keySet();
     }
-    
+
     public void clearQueue() {
         messageQueue.clear();
     }
@@ -372,17 +372,9 @@ public final class SessionState {
         return messageStore.getCreationTime();
     }
 
-    private boolean needReset() throws IOException {
-        synchronized (lock) {
-            return messageStore.getNextSenderMsgSeqNum() != 1 || messageStore.getNextTargetMsgSeqNum() != 1;
-        }
-    }
-
     public void reset() {
         try {
-            if (needReset()) {
-                messageStore.reset();
-            }
+            messageStore.reset();
         } catch (IOException e) {
             throw new RuntimeError(e);
         }
@@ -395,7 +387,7 @@ public final class SessionState {
             resendRange[1] = high;
         }
     }
-    
+
     public void setResendRange(int low, int high, int currentResend) {
         synchronized (lock) {
             resendRange[0] = low;
@@ -461,7 +453,7 @@ public final class SessionState {
     public Object getLock() {
         return lock;
     }
-    
+
     private final static class NullLog implements Log {
         public void onOutgoing(String message) {
         }

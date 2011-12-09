@@ -18,6 +18,15 @@ public class SessionFactoryTestSupport implements SessionFactory {
                         : 0);
     }
 
+    public static Session createFileStoreSession(SessionID sessionID, Application application,
+            boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
+        return new Session(application, new FileStoreFactory(settings), sessionID, null,
+                sessionSchedule,
+                new ScreenLogFactory(true, true, true), new DefaultMessageFactory(), isInitiator
+                        ? 30
+                        : 0);
+    }
+
     public static Session createSession(SessionID sessionID, Application application,
             boolean isInitiator, boolean resetOnLogon, boolean validateSequenceNumbers) {
         return new Session(application, new MemoryStoreFactory(), sessionID, null, null,
@@ -32,7 +41,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
             boolean isInitiator, boolean resetOnLogon) {
         return createSession(sessionID, application, isInitiator, resetOnLogon, false);
     }
-    
+
     public static Session createNonpersistedSession(SessionID sessionID, Application application,
             boolean isInitiator) {
         return new Session(application, new MemoryStoreFactory(), sessionID, null, null,

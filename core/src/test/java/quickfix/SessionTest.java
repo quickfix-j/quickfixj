@@ -13,9 +13,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static quickfix.SessionFactoryTestSupport.createSession;
 
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.Test;
@@ -230,6 +236,130 @@ public class SessionTest {
         assertEquals(4, state.getNextTargetMsgSeqNum());
         assertTrue("Session should be connected", session.isLoggedOn());
 
+    }
+
+    /**
+     * QFJ-357
+     * Until QF/J 1.5.1 the behaviour was observed that a Logout message was always sent as first message.
+     * This could be be provoked by altering the Session file to contain an old timestamp and deleting
+     * the filestore files to set the sequence numbers to 1. On the next Logon attempt, the Session would get reset
+     * and a Logout message would get sent.
+     * On versions newer than 1.5.1 this test should pass.
+     */
+    @Test
+    public void testLogonIsFirstMessage() throws Exception {
+
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, false,
+                new UnitTestResponder(), settings, sessionID);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
+
+        // we should only answer with a Logon message
+        assertEquals(1, application.toAdminMessages.size());
+        for (Message message : application.toAdminMessages) {
+            assertEquals(MsgType.LOGON, message.getHeader().getString(MsgType.FIELD));
+        }
+
+        // no reset should have been triggered by QF/J after the Logon attempt
+        assertEquals(0, application.sessionResets);
+        assertTrue("Session should be connected", session.isLoggedOn());
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+
+    }
+
+    /**
+     * QFJ-357
+     * This test should make sure that outside the Session time _only_ a Logout
+     * message is sent to the counterparty. Formerly it could be observed sometimes
+     * that there was a Logon message with a Logout message immediately following.
+     */
+    @Test
+    public void testLogonOutsideSessionTimeIsRejected() throws Exception {
+
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // construct a session schedule which will almost never accept a connection
+        final Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_WEEK, 1);
+        settings.setString("StartTime", "00:00:01");
+        settings.setString("EndTime", "00:00:02");
+        settings.setString("StartDay", DayConverter.toString(calendar.get(Calendar.DAY_OF_WEEK)));
+        settings.setString("EndDay", DayConverter.toString(calendar.get(Calendar.DAY_OF_WEEK)));
+
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, false, new UnitTestResponder(),
+                settings, sessionID);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
+
+        // we should only answer with a Logout message
+        assertEquals(1, application.toAdminMessages.size());
+        for (Message message : application.toAdminMessages) {
+            assertEquals(MsgType.LOGOUT, message.getHeader().getString(MsgType.FIELD));
+        }
+
+        assertFalse("Session should not be connected", session.isLoggedOn());
+
+        // Normally, next() is called periodically; we only do it here to reset the seqNums.
+        // The seqNums should be reset because it was tried to establish a connection
+        // outside of the session schedule.
+        session.next();
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+    }
+
+    // QFJ-357
+    private void setupFileStoreForQFJ357(final SessionID sessionID, final SessionSettings settings)
+            throws ConfigError, FieldConvertError, FileNotFoundException, IOException {
+
+        // construct the path to the filestore (mostly c&p from FileStore class)
+        settings.setString(FileStoreFactory.SETTING_FILE_STORE_PATH,
+                System.getProperty("java.io.tmpdir"));
+        final String path = settings.getString(FileStoreFactory.SETTING_FILE_STORE_PATH);
+        final String fullPath = new File(path == null ? "." : path).getAbsolutePath();
+        final String sessionName = FileUtil.sessionIdFileName(sessionID);
+        final String prefix = FileUtil.fileAppendPath(fullPath, sessionName + ".");
+        final String sessionFileName = prefix + "session";
+        final DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
+                new FileOutputStream(sessionFileName, false)));
+        try {
+            // removing the file does NOT trigger the reset in the Session
+            // constructor, so we fake an outdated session
+            sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(new Date(0), true));
+        } finally {
+            sessionTimeOutput.close();
+        }
+
+        // delete files to have the message store reset seqNums to 1
+        // (on QF/J 1.5.1 this triggered the needReset() method to return false)
+        final String msgFileName = prefix + "body";
+        final String headerFileName = prefix + "header";
+        final String seqNumFileName = prefix + "seqnums";
+        new File(msgFileName).delete();
+        new File(headerFileName).delete();
+        new File(seqNumFileName).delete();
     }
 
     // QFJ-60
@@ -513,6 +643,28 @@ public class SessionTest {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         final Session session = SessionFactoryTestSupport.createSession(sessionID, application,
                 isInitiator);
+        session.setResponder(responder);
+        final SessionState state = getSessionState(session);
+        assertEquals(isInitiator, state.isInitiator());
+        assertEquals(false, state.isLogonSent());
+        assertEquals(false, state.isLogonReceived());
+        assertEquals(false, state.isLogonAlreadySent());
+        assertEquals(isInitiator, state.isLogonSendNeeded());
+        assertEquals(false, state.isLogonTimedOut());
+        assertEquals(false, state.isLogoutSent());
+        assertEquals(false, state.isLogoutReceived());
+        assertEquals(false, state.isLogoutTimedOut());
+        return session;
+    }
+
+    private Session setUpFileStoreSession(Application application, boolean isInitiator,
+            Responder responder, SessionSettings settings, SessionID sessionID)
+            throws NoSuchFieldException, IllegalAccessException, ConfigError, FieldConvertError,
+            IOException {
+
+        final SessionSchedule sessionSchedule = new SessionSchedule(settings, sessionID);
+        final Session session = SessionFactoryTestSupport.createFileStoreSession(sessionID,
+                application, isInitiator, settings, sessionSchedule);
         session.setResponder(responder);
         final SessionState state = getSessionState(session);
         assertEquals(isInitiator, state.isInitiator());

@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -22,7 +22,7 @@ package quickfix;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UnitTestApplication implements Application {
+public class UnitTestApplication implements ApplicationExtended {
     public List<Message> fromAppMessages = new ArrayList<Message>();
     public List<Message> toAppMessages = new ArrayList<Message>();
     public List<Message> fromAdminMessages = new ArrayList<Message>();
@@ -30,7 +30,12 @@ public class UnitTestApplication implements Application {
     public List<SessionID> logonSessions = new ArrayList<SessionID>();
     public List<SessionID> logoutSessions = new ArrayList<SessionID>();
     public List<SessionID> createSessions = new ArrayList<SessionID>();
-    
+    public int sessionResets = 0;
+
+    public boolean canLogon(SessionID sessionID) {
+        return true;
+    }
+
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         System.out.println("from app ["+sessionId+"] "+message);
@@ -53,6 +58,11 @@ public class UnitTestApplication implements Application {
         toAdminMessages.add(message);
     }
 
+    public void onBeforeSessionReset(SessionID sessionId) {
+        System.out.println("onBeforeSessionReset [" + sessionId + "]");
+        sessionResets++;
+    }
+
     public void onLogout(SessionID sessionId) {
         logoutSessions.add(sessionId);
     }
@@ -64,7 +74,7 @@ public class UnitTestApplication implements Application {
     public void onCreate(SessionID sessionId) {
         createSessions.add(sessionId);
     }
-    
+
     public void clear() {
         fromAppMessages.clear();;
         toAppMessages.clear();;
@@ -74,21 +84,26 @@ public class UnitTestApplication implements Application {
         logoutSessions.clear();;
         createSessions.clear();;
     }
-    
+
     public Message lastFromAppMessage() {
-        if (fromAppMessages.size() == 0) return null; 
+        if (fromAppMessages.size() == 0)
+            return null;
         return fromAppMessages.get(fromAppMessages.size() - 1);
     }
     public Message lastFromAdminMessage() {
-        if (fromAdminMessages.size() == 0) return null; 
+        if (fromAdminMessages.size() == 0)
+            return null;
         return fromAdminMessages.get(fromAdminMessages.size() - 1);
     }
     public Message lastToAppMessage() {
-        if (toAppMessages.size() == 0) return null; 
+        if (toAppMessages.size() == 0)
+            return null;
         return toAppMessages.get(toAppMessages.size() - 1);
     }
     public Message lastToAdminMessage() {
-        if (toAdminMessages.size() == 0) return null; 
+        if (toAdminMessages.size() == 0)
+            return null;
         return toAdminMessages.get(toAdminMessages.size() - 1);
     }
+
 }
