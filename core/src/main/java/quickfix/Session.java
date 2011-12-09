@@ -312,10 +312,7 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM = "EnableNextExpectedMsgSeqNum";
 
-    /**
-     * Allow to ignore heart beat message
-     */
-    public static final String REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
+    public static final String SETTING_REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
 
     public static final String SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE = "ForceResendWhenCorruptedStore";
 
@@ -2181,16 +2178,24 @@ public class Session implements Closeable {
         final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
 
         if (!msgType.equals(MsgType.SEQUENCE_RESET)) {
-            if (!header.isSetField(OrigSendingTime.FIELD)) {
-                generateReject(msg, SessionRejectReason.REQUIRED_TAG_MISSING, OrigSendingTime.FIELD);
-                return false;
-            }
-
-            final Date origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
-            if (origSendingTime.compareTo(sendingTime) > 0) {
-                generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
-                generateLogout();
-                return false;
+            if (header.isSetField(OrigSendingTime.FIELD)) {
+                final Date origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
+                if (origSendingTime.compareTo(sendingTime) > 0) {
+                    generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
+                    generateLogout();
+                    return false;
+                }
+            } else {
+                // QFJ-654: only warn on missing OrigSendingTime
+                // field on a PossDup message
+                if (rejectInvalidMessage) {
+                    generateReject(msg, SessionRejectReason.REQUIRED_TAG_MISSING,
+                            OrigSendingTime.FIELD);
+                    return false;
+                }
+                getLog().onErrorEvent(
+                        "Warn: incoming message with " + new FieldNotFound(OrigSendingTime.FIELD)
+                                + ": " + msg);
             }
         }
 
@@ -2593,8 +2598,8 @@ public class Session implements Closeable {
         disableHeartBeatCheck = ignoreHeartBeatFailure;
     }
 
-    public void setRejectInvalidMessage(boolean RejectInvalidMessage) {
-        rejectInvalidMessage = RejectInvalidMessage;
+    public void setRejectInvalidMessage(boolean rejectInvalidMessage) {
+        this.rejectInvalidMessage = rejectInvalidMessage;
     }
 
     public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {

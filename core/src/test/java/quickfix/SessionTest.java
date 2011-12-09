@@ -3,6 +3,7 @@ package quickfix;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
@@ -34,6 +35,7 @@ import quickfix.field.Headline;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.PossDupFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
@@ -43,6 +45,7 @@ import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
 import quickfix.fix44.Logout;
 import quickfix.fix44.News;
+import quickfix.fix44.Reject;
 import quickfix.fix44.ResendRequest;
 import quickfix.fix44.TestRequest;
 import quickfix.test.util.ReflectionUtil;
@@ -156,6 +159,66 @@ public class SessionTest {
 
         session.next(createHeartbeatMessage(1001));
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+    }
+
+    // QFJ-654
+    @Test
+    public void testPossDupMessageWithoutOrigSendingTime() throws Exception {
+
+        // test default behaviour, i.e. that the message is rejected
+        // when not setting 122/OrigSendingTime
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        UnitTestApplication application = new UnitTestApplication();
+        Session session = createSession(sessionID, application, true, true, true);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+
+        Message logonRequest = new Message(responder.sentMessageData);
+        session.next(createLogonResponse(sessionID, logonRequest, 1));
+
+        assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+
+        News newsMessage = createAppMessage(2);
+        newsMessage.getHeader().setBoolean(PossDupFlag.FIELD, true);
+        session.next(newsMessage);
+        assertTrue(Reject.MSGTYPE.equals(application.lastToAdminMessage().getHeader()
+                .getString(MsgType.FIELD)));
+        assertNull(application.lastFromAppMessage());
+
+
+        // test that the message is NOT rejected when
+        // setting rejectInvalidMessage=false
+        // and not setting 122/OrigSendingTime
+        application = new UnitTestApplication();
+        session = createSession(sessionID, application, true, true, true);
+        responder = new UnitTestResponder();
+        session.setRejectInvalidMessage(false);
+
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+
+        logonRequest = new Message(responder.sentMessageData);
+        session.next(createLogonResponse(sessionID, logonRequest, 1));
+
+        assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+
+        newsMessage = createAppMessage(2);
+        newsMessage.getHeader().setBoolean(PossDupFlag.FIELD, true);
+        session.next(newsMessage);
+        assertTrue(Logon.MSGTYPE.equals(application.lastToAdminMessage().getHeader()
+                .getString(MsgType.FIELD)));
+        assertNull(application.lastToAppMessage());
+        assertTrue(News.MSGTYPE.equals(application.lastFromAppMessage().getHeader()
+                .getString(MsgType.FIELD)));
     }
 
     @Test
