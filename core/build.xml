@@ -1,7 +1,7 @@
 <project name="core" basedir="." default="jar">
 	<import file="../module.xml" />
 
-	<property name="version" value="SNAPSHOT"/>
+	<property name="version" value="1.5.2"/>
 	
 	<tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
@@ -106,7 +106,7 @@
 		<sequential>
 			<mkdir dir="@{output}" />
 			<javac destdir="@{output}" debug="${javac.debug}"
-					memoryMaximumSize="512m" fork="yes" nowarn="yes">
+					memoryMaximumSize="2048m" fork="yes" nowarn="yes">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />

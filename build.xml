@@ -1,7 +1,7 @@
 <project name="master" basedir="." default="">
 	<property file="${user.home}/.build"/>
 	
-	<property name="jvm.java4" value="C:/Development/j2sdk1.4.2_13/bin/java"/>
+	<property name="jvm.java4" value="C:/java/j2sdk1.4.2_19/bin/java"/>
 
 	<property name="release.output.dir" value="${basedir}/dist"/>
 
