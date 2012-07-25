@@ -358,6 +358,7 @@ public class SessionSettingsTest extends TestCase {
         assertTrue(Arrays.equals(null, SessionSettings.parseSettingReconnectInterval(null)));
         assertTrue(Arrays.equals(new int[] { 5 },
                 SessionSettings.parseSettingReconnectInterval("5")));
+
         assertTrue(Arrays.equals(new int[] { 5, 5 },
                 SessionSettings.parseSettingReconnectInterval("2x5")));
         assertTrue(Arrays.equals(new int[] { 5, 5, 5, 5 },
@@ -370,8 +371,21 @@ public class SessionSettingsTest extends TestCase {
                 SessionSettings.parseSettingReconnectInterval("2x5;15;30")));
         assertTrue(Arrays.equals(new int[] { 5, 5, 5, 15, 15, 30 },
                 SessionSettings.parseSettingReconnectInterval("3x5;2x15;30")));
+
+        assertTrue(Arrays.equals(new int[] { 5, 5 },
+                SessionSettings.parseSettingReconnectInterval("2*5")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 5, 5 },
+                SessionSettings.parseSettingReconnectInterval("4*5")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 15, 15 },
+                SessionSettings.parseSettingReconnectInterval("2*5;2*15")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 15 },
+                SessionSettings.parseSettingReconnectInterval("2*5;15")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 15, 30 },
+                SessionSettings.parseSettingReconnectInterval("2*5;15;30")));
+        assertTrue(Arrays.equals(new int[] { 5, 5, 5, 15, 15, 30 },
+                SessionSettings.parseSettingReconnectInterval("3*5;2*15;30")));
         try {
-            SessionSettings.parseSettingReconnectInterval("2x5;A");
+            SessionSettings.parseSettingReconnectInterval("2*5;A");
             fail("Must throw InvalidParameterException");
         } catch (final InvalidParameterException ex) {
             // OK

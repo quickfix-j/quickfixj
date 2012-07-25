@@ -735,7 +735,7 @@ public class SessionSettings {
         if (raw == null || raw.length() == 0) {
             return null;
         }
-        final String multiplierCharacter = raw.contains("*") ? "*" : "x";
+        final String multiplierCharacter = raw.contains("*") ? "\\*" : "x";
         final String[] data = raw.split(";");
         final List<Integer> result = new ArrayList<Integer>();
         for (final String multi : data) {
