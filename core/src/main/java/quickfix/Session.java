@@ -1795,9 +1795,6 @@ public class Session implements Closeable {
                     // ApplicationExtended can prevent the automatic login
                     if (application instanceof ApplicationExtended) {
                         if (!((ApplicationExtended) application).canLogon(sessionID)) {
-                            getLog().onEvent(
-                                    "Do not initiate logon, Application can not logon on "
-                                            + sessionID);
                             return;
                         }
                     }
