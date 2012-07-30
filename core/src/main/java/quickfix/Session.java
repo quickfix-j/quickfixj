@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
@@ -372,6 +373,8 @@ public class Session implements Closeable {
     private boolean forceResendWhenCorruptedStore = false;
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
+
+    private final AtomicBoolean isResetting = new AtomicBoolean();
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
@@ -787,15 +790,22 @@ public class Session implements Closeable {
      * @throws IOException IO error
      * @see SessionState#reset()
      */
-    public synchronized void reset() throws IOException {
-        if (hasResponder()) {
-            if (application instanceof ApplicationExtended) {
-                ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
-            }
-            generateLogout();
-            disconnect("Session reset", false);
+    public void reset() throws IOException {
+        if (!isResetting.compareAndSet(false, true)) {
+            return;
         }
-        resetState();
+        try {
+            if (hasResponder()) {
+                if (application instanceof ApplicationExtended) {
+                    ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
+                }
+                generateLogout();
+                disconnect("Session reset", false);
+            }
+            resetState();
+        } finally {
+            isResetting.set(false);
+        }
     }
 
     /**
