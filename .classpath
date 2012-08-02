@@ -20,5 +20,7 @@
 	<classpathentry exported="true" kind="lib" path="core/src/test/lib/tyrex-1.0.3.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/slf4j-api-1.6.3.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/slf4j-jdk14-1.6.3.jar"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/dom4j-1.6.1.jar"/>
+    <classpathentry kind="lib" path="core/src/main/lib/optional/jaxen-1.1.1.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
