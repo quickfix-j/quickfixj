@@ -343,7 +343,7 @@ public class Message extends FieldMap {
 
     @Override
     public boolean isEmpty() {
-        return super.isEmpty() && header.isEmpty() && trailer.isEmpty();
+        return super.isEmpty() && header.isEmpty() && trailer.isEmpty() && position == 0;
     }
 
     @Override
@@ -351,6 +351,7 @@ public class Message extends FieldMap {
         super.clear();
         header.clear();
         trailer.clear();
+        position = 0;
     }
 
     public static class Header extends FieldMap {
