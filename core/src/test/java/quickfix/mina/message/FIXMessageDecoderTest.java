@@ -137,6 +137,20 @@ public class FIXMessageDecoderTest {
                 .decodable(null, buffer));
     }
 
+    @Test 
+    public void testPartialHeader2() throws Exception {
+        setUpBuffer("8=FIX.4.2\0019");
+        assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
+                .decodable(null, buffer));
+    }
+    
+    @Test 
+    public void testPartialHeaderFixt() throws Exception {
+        setUpBuffer("8=FIXT.1.1\0019");
+        assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
+                .decodable(null, buffer));
+    }
+    
     // QFJ-376
     @Test
     public void testGarbageData() throws Exception {
@@ -156,18 +170,26 @@ public class FIXMessageDecoderTest {
     public void testSplitMessage() throws Exception {
         String data = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001";
         for (int i = 1; i < data.length(); i++) {
-            doSplitMessageTest(i, data);
+            doSplitMessageTest(i, data, 12);
         }
     }
-
-    private void doSplitMessageTest(int splitOffset, String data) throws ProtocolCodecException {
+    
+    @Test 
+    public void testSplitMessageFixt() throws Exception {
+        String data = "8=FIXT.1.1\0019=12\00135=X\001108=30\00110=049\001";
+        for (int i = 1; i < data.length(); i++) {
+            doSplitMessageTest(i, data, 13);
+        }
+    }
+    
+    private void doSplitMessageTest(int splitOffset, String data, int headerSize) throws ProtocolCodecException {
         String firstChunk = data.substring(0, splitOffset);
         String remaining = data.substring(splitOffset);
         buffer.put(firstChunk.getBytes());
         buffer.flip();
         decoderOutput.reset();
 
-        if (splitOffset < 12) {
+        if (splitOffset < headerSize) {
             assertEquals("shouldn't recognize header; offset=" + splitOffset,
                     MessageDecoderResult.NEED_DATA, decoder.decodable(null, buffer));
         } else {
@@ -326,6 +348,17 @@ public class FIXMessageDecoderTest {
 
     @Test 
     public void testMinaDemux() throws Exception {
+        String message = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
+        doTestMinaDemux(message);
+    }
+
+    @Test 
+    public void testMinaDemuxFixt() throws Exception {
+        String message = "8=FIXT.1.1\0019=12\00135=X\001108=30\00110=036\001";
+        doTestMinaDemux(message);
+    }
+
+    private void doTestMinaDemux(String message) throws Exception, UnsupportedEncodingException {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
         codecFactory.register(FIXMessageDecoder.class);
 
@@ -337,7 +370,7 @@ public class FIXMessageDecoderTest {
         int count = 5;
         String data = "";
         for (int i = 0; i < count; i++) {
-            data += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
+            data += message;
         }
 
         for (int i = 1; i < data.length(); i++) {
@@ -357,8 +390,7 @@ public class FIXMessageDecoderTest {
             output.reset();
             buffer.clear();
         }
-
-    }
+   }
 
     private void assertMessageFound(String data) throws ProtocolCodecException {
         assertMessageFound(data, 1);

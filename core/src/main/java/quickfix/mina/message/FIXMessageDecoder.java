@@ -123,7 +123,7 @@ public class FIXMessageDecoder implements MessageDecoder {
         }
         if (messageCount > 0) {
             // Mina will compact the buffer because we can't detect a header
-            if (in.remaining() < minMaskLength(HEADER_PATTERN)) {
+            if (state == SEEKING_HEADER) {
                 position = 0;
             }
             return MessageDecoderResult.OK;
@@ -345,6 +345,10 @@ public class FIXMessageDecoder implements MessageDecoder {
                 }
                 return -1;
             }
+        }
+        if(dataOffset != data.length){
+           // when minMaskLength(data) != data.length we might run out of buffer before we run out of data
+           return -1;
         }
         return bufferOffset - initOffset;
     }
