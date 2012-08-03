@@ -33,7 +33,9 @@ public interface FixVersions {
      * FIX 5.0 does not have a begin string.
      */
     public static final String FIX50 = "FIX.5.0";
-
+    public static final String FIX50SP1 = "FIX.5.0SP1";
+    public static final String FIX50SP2 = "FIX.5.0SP2";
+    
     // FIXT.x.x support
     
     public static final String FIXT_SESSION_PREFIX = "FIXT.";

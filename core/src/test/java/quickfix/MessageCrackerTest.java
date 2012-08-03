@@ -47,7 +47,7 @@ public class MessageCrackerTest {
     public void setUp() throws Exception {
         mockSession = mock(Session.class);
         stub(mockSession.getTargetDefaultApplicationVersionID()).toReturn(
-                new ApplVerID(ApplVerID.FIX50));
+                new ApplVerID(ApplVerID.FIX50SP2));
     }
 
     @Test(expected=UnsupportedMessageType.class)
@@ -213,7 +213,7 @@ public class MessageCrackerTest {
         message.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIXT11);
         message.getHeader().setString(SenderCompID.FIELD, "SENDER");
         message.getHeader().setString(TargetCompID.FIELD, "TARGET");
-        message.getHeader().setString(ApplVerID.FIELD, ApplVerID.FIX50);
+        message.getHeader().setString(ApplVerID.FIELD, ApplVerID.FIX50SP2);
 
         MessageCracker cracker = new MessageCracker() {
             @SuppressWarnings("unused")

@@ -25,6 +25,7 @@ import quickfix.field.BeginString;
 import quickfix.field.LegSymbol;
 import quickfix.field.OrderID;
 import quickfix.field.SessionRejectReason;
+import quickfix.field.SettlDate2;
 import quickfix.field.Symbol;
 import quickfix.fix44.Quote;
 
@@ -116,6 +117,25 @@ public class RepeatingGroupTest extends TestCase {
         // Adding a second fake nested group to avoid being the case of having
         // one element which is not relevant :-)
         final quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs oneMoreNestedgroup = new quickfix.fix44.QuoteRequest.NoRelatedSym.NoLegs();
+        oneMoreNestedgroup.setField(new LegSymbol("Donald"));
+        gNoRelatedSym.addGroup(oneMoreNestedgroup);
+
+        return gNoRelatedSym;
+    }
+
+    private quickfix.fix50.QuoteRequest.NoRelatedSym buildNestedGroupWithStandardFieldsFIX50(
+            String settingValue) {
+        // The root group
+        final quickfix.fix50.QuoteRequest.NoRelatedSym gNoRelatedSym = new quickfix.fix50.QuoteRequest.NoRelatedSym();
+
+        // The nested group
+        final quickfix.fix50.QuoteRequest.NoRelatedSym.NoLegs nestedgroup = new quickfix.fix50.QuoteRequest.NoRelatedSym.NoLegs();
+        nestedgroup.setField(new LegSymbol(settingValue));
+        gNoRelatedSym.addGroup(nestedgroup);
+
+        // Adding a second fake nested group to avoid being the case of having
+        // one element which is not relevant :-)
+        final quickfix.fix50.QuoteRequest.NoRelatedSym.NoLegs oneMoreNestedgroup = new quickfix.fix50.QuoteRequest.NoRelatedSym.NoLegs();
         oneMoreNestedgroup.setField(new LegSymbol("Donald"));
         gNoRelatedSym.addGroup(oneMoreNestedgroup);
 
@@ -299,6 +319,34 @@ public class RepeatingGroupTest extends TestCase {
 
         assertEquals("Message validation failed", sourceFIXString, validateFIXString);
 
+    }
+
+    public void testValidationWithNestedGroupAndStandardFieldsFIX50SP2() throws InvalidMessage, ConfigError {
+        final quickfix.fix50.QuoteRequest quoteRequest = new quickfix.fix50.QuoteRequest();
+
+        final quickfix.field.QuoteReqID gQuoteReqID = new quickfix.field.QuoteReqID();
+        gQuoteReqID.setValue("12342");
+        quoteRequest.setField(gQuoteReqID);
+
+        final quickfix.fix50.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithStandardFieldsFIX50("DEFAULT_VALUE");
+        gNoRelatedSym.setField(new Symbol("SYM00"));
+        gNoRelatedSym.setField(new SettlDate2("20120801"));
+
+        quoteRequest.addGroup(gNoRelatedSym);
+
+        quoteRequest.addGroup(gNoRelatedSym);
+
+        final String sourceFIXString = quoteRequest.toString();
+        final DataDictionary fix50DataDictionary = new DataDictionary("FIX50SP2.xml");
+        final quickfix.fix50.QuoteRequest validatedMessage = (quickfix.fix50.QuoteRequest) buildValidatedMessage(
+                sourceFIXString, fix50DataDictionary);
+        String validateFIXString = null;
+        if (validatedMessage != null) {
+            validateFIXString = validatedMessage.toString();
+        }
+
+        assertEquals("Message validation failed", sourceFIXString, validateFIXString);
+        assertEquals(2, validatedMessage.getGroupCount(gNoRelatedSym.getFieldTag()));
     }
 
     public void testValidationWithNestedGroupAndStandardFieldsWithoutDelimiter() {

@@ -134,4 +134,12 @@ public class DefaultDataDictionaryProviderTest {
             assertThat(e.getMessage(), containsString(" 999"));
         }
     }
+    
+    @Test
+    public void testDataDictionaryForFIX50SP() throws Exception {
+        DefaultDataDictionaryProvider provider = new DefaultDataDictionaryProvider();
+        provider.getApplicationDataDictionary(new ApplVerID(FIX50SP1) );
+        provider.getApplicationDataDictionary(new ApplVerID(FIX50SP2) );
+    }
+
 }
