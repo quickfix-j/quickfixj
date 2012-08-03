@@ -162,6 +162,7 @@ public class Generator {
             builder.append("    <field number=\"" + tag + "\" name=\"" + field.getFieldName() + "\" type=\"" + fieldType.toUpperCase() + "\"");
             if (!field.getEnums().isEmpty()) {
                 builder.append(">\n");
+                Set<String> enumDescCache = new HashSet<String>();
                 for (Enum theEnum : field.getEnums()) {
                     String enumDesc = theEnum.getDesc().toUpperCase();
                     enumDesc = enumDesc.replaceAll("\\(.*\\)", "" );    // remove stuff in parentheses
@@ -169,7 +170,19 @@ public class Generator {
                     enumDesc = enumDesc.replaceAll("\"","" );
                     enumDesc = enumDesc.trim();                         // trim leading and trailing whitespaces
                     enumDesc = enumDesc.replaceAll("\\W+","_" );        // replace rest of non-word characters by _
-                    builder.append("      <value enum=\"" + theEnum.getEnumName() + "\" description=\"" + enumDesc + "\"/>\n");
+                    char firstChar = enumDesc.charAt(0);
+                    if ( Character.isDigit(firstChar) ) {
+                        enumDesc = "_" + enumDesc;                      // make it a valid JAVA identifier
+                    }
+                    boolean add = enumDescCache.add(enumDesc);
+                    if ( add ) {
+                        builder.append("      <value enum=\"" + theEnum.getEnumName() + "\" description=\"" + enumDesc + "\"/>\n");
+                    } else {
+                        // FIXME ugly workaround to avoid duplicate entries
+                        enumDesc = enumDesc + "_1";
+                        enumDescCache.add(enumDesc);
+                        builder.append("      <value enum=\"" + theEnum.getEnumName() + "\" description=\"" + enumDesc + "\"/>\n");
+                    }
                 }
                 builder.append("    </field>\n");
             } else {
