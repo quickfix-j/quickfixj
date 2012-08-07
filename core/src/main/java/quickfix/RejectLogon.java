@@ -25,29 +25,43 @@ package quickfix;
 public class RejectLogon extends Exception {
 
     private final boolean logoutBeforeDisconnect;
+    private final int     sessionStatus;
 
     public RejectLogon() {
-        this(null, true);
+        this(null, true, -1);
     }
 
     /**
      * @param msg text to print to session event log
      */
     public RejectLogon(String msg) {
-        this(msg, true);
+        this(msg, true, -1);
+    }
+
+    /**
+     * @param msg text to print to session event log
+     */
+    public RejectLogon(String msg, int sessionStatus) {
+        this(msg, true, sessionStatus);
     }
 
     /**
      * @param msg text to print to session event log
      * @param logoutBeforeDisconnect controls whether a logout is sent 
+     * @param sessionStatus can be used to supply a SessionStatus value
      * before the disconnect, defaults to true.
      */
-    public RejectLogon(String msg, boolean logoutBeforeDisconnect) {
+    public RejectLogon(String msg, boolean logoutBeforeDisconnect, int sessionStatus) {
         super(msg);
         this.logoutBeforeDisconnect = logoutBeforeDisconnect;
+        this.sessionStatus = sessionStatus;
     }
     
     public boolean isLogoutBeforeDisconnect() {
         return logoutBeforeDisconnect ;
+    }
+    
+    public int getSessionStatus() {
+        return sessionStatus;
     }
 }

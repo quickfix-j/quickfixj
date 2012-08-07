@@ -62,6 +62,7 @@ import quickfix.field.SenderLocationID;
 import quickfix.field.SenderSubID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionRejectReason;
+import quickfix.field.SessionStatus;
 import quickfix.field.TargetCompID;
 import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
@@ -1024,7 +1025,11 @@ public class Session implements Closeable {
             final String rejectMessage = e.getMessage() != null ? (": " + e) : "";
             getLog().onErrorEvent("Logon rejected" + rejectMessage);
             if (e.isLogoutBeforeDisconnect()) {
-                generateLogout(e.getMessage());
+                if (e.getSessionStatus() > -1) {
+                    generateLogout(e.getMessage(), new SessionStatus(e.getSessionStatus()));
+                } else {
+                    generateLogout(e.getMessage());
+                }
             }
             state.incrNextTargetMsgSeqNum();
             disconnect("Logon rejected: " + e, true);
@@ -1326,15 +1331,19 @@ public class Session implements Closeable {
     }
 
     public void generateLogout() {
-        generateLogout(null, null);
+        generateLogout(null, null, null);
     }
 
     private void generateLogout(Message otherLogout) {
-        generateLogout(otherLogout, null);
+        generateLogout(otherLogout, null, null);
     }
 
     private void generateLogout(String reason) {
-        generateLogout(null, reason);
+        generateLogout(null, reason, null);
+    }
+
+    private void generateLogout(String reason, SessionStatus sessionStatus) {
+        generateLogout(null, reason, sessionStatus);
     }
 
     /**
@@ -1342,11 +1351,14 @@ public class Session implements Closeable {
      * @param otherLogout if not null, the logout message that is causing a logout to be sent
      * @param text
      */
-    private void generateLogout(Message otherLogout, String text) {
+    private void generateLogout(Message otherLogout, String text, SessionStatus sessionStatus) {
         final Message logout = messageFactory.create(sessionID.getBeginString(), MsgType.LOGOUT);
         initializeHeader(logout.getHeader());
         if (text != null && !"".equals(text)) {
             logout.setString(Text.FIELD, text);
+        }
+        if (sessionStatus != null) {
+            logout.setInt(SessionStatus.FIELD, sessionStatus.getValue());
         }
         if (otherLogout != null && enableLastMsgSeqNumProcessed) {
             try {

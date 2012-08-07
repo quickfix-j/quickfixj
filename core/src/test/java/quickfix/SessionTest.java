@@ -38,6 +38,7 @@ import quickfix.field.MsgType;
 import quickfix.field.PossDupFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
+import quickfix.field.SessionStatus;
 import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
 import quickfix.field.converter.UtcTimestampConverter;
@@ -460,6 +461,40 @@ public class SessionTest {
 
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(2, state.getNextTargetMsgSeqNum());
+    }
+
+    // QFJ-696
+    @Test
+    public void testRejectLogonWithSessionStatus() throws Exception {
+
+        // Create application that rejects all logons
+        Application application = new UnitTestApplication() {
+
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                throw new RejectLogon("FOR TEST", SessionStatus.SESSION_ACTIVE);
+            }
+
+        };
+
+        logonTo(setUpSession(application, false, new UnitTestResponder()));
+        assertEquals( SessionStatus.SESSION_ACTIVE, ((UnitTestApplication) application).lastToAdminMessage().getInt(SessionStatus.FIELD) );
+        
+        application = new UnitTestApplication() {
+
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                throw new RejectLogon("FOR TEST", -1);
+            }
+
+        };
+
+        logonTo(setUpSession(application, false, new UnitTestResponder()));
+        assertFalse( ((UnitTestApplication) application).lastToAdminMessage().isSetField(SessionStatus.FIELD) );
     }
 
     @Test
