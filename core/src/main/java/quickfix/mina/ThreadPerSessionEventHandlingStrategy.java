@@ -42,7 +42,6 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      */
     private static final long THREAD_WAIT_FOR_MESSAGE_MS = 250;
     private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
-
     private final SessionConnector sessionConnector;
 
     public ThreadPerSessionEventHandlingStrategy(SessionConnector connector) {
@@ -62,7 +61,8 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         dispatcher.enqueue(message);
     }
 
-    /** The SesionConnector is not directly required for thread-per-session handler - we don't multiplex
+    /**
+     * The SesionConnector is not directly required for thread-per-session handler - we don't multiplex
      * between multiple sessions here.
      * However it is made available here for other callers (such as SessionProviders wishing to register dynamic sessions).
      */
@@ -99,13 +99,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
     }
 
-    class MessageDispatchingThread extends Thread {
+    protected class MessageDispatchingThread extends Thread {
         private final Session quickfixSession;
         private final BlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
-        private volatile boolean stopped = false;
-        private volatile boolean stopping = false;
+        private volatile boolean stopped;
+        private volatile boolean stopping;
 
-        public MessageDispatchingThread(Session session) {
+        private MessageDispatchingThread(Session session) {
             super("QF/J Session dispatcher: " + session.getSessionID());
             quickfixSession = session;
         }
@@ -126,19 +126,24 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         public void run() {
             while (!stopping) {
                 try {
-                    final Message message = getNextMessage(messages);
-                    if (message != null && quickfixSession.hasResponder()) {
-                        quickfixSession.next(message);
+                    if (quickfixSession.hasResponder()) {
+                        final Message message = getNextMessage(messages);
+                        if (message != null && quickfixSession.hasResponder()) {
+                            quickfixSession.next(message);
+                        }
+                    } else {
+                        stopping = true;
                     }
                 } catch (final InterruptedException e) {
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
                             "Message dispatcher interrupted", e);
-                    return;
+                    stopping = true;
                 } catch (final Throwable e) {
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
                             "Error during message processing", e);
                 }
             }
+            dispatchers.remove(quickfixSession.getSessionID());
             stopped = true;
         }
 
@@ -152,12 +157,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
     }
 
-    BlockingQueue<Message> getMessages(SessionID sessionID) {
-        final MessageDispatchingThread dispatcher = getDispatcher(sessionID);
-        return dispatcher.messages;
-    }
-
-    MessageDispatchingThread getDispatcher(SessionID sessionID) {
+    protected MessageDispatchingThread getDispatcher(SessionID sessionID) {
         return dispatchers.get(sessionID);
     }
 
@@ -168,8 +168,8 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      * @param messages
      * @return next message or null if nothing arrived within the timeout period
      * @throws InterruptedException
-    */
-    Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
+     */
+    protected Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
         return messages.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
