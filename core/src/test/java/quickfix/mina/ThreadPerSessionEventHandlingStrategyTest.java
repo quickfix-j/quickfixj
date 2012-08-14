@@ -203,13 +203,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
 
         assertEquals(1, application.fromAdminMessages.size());
 
-        session.disconnect("test", true);
-        assertFalse(session.hasResponder());
-        // sleep some time to let the thread stop
-        Thread.sleep(100);
-        assertNull(strategy.getDispatcher(sessionID));
-
-        final Thread[] threads = new Thread[1024];
+        Thread[] threads = new Thread[1024];
         Thread.enumerate(threads);
 
         Thread dispatcherThread = null;
@@ -222,8 +216,33 @@ public class ThreadPerSessionEventHandlingStrategyTest {
             }
         }
 
-        assertNull(dispatcherThread);
+        session.disconnect("test", true);
+        assertFalse(session.hasResponder());
+
+        // sleep some time to let the thread stop
+        for (int i = 0; i < 20; i++) {
+            Thread.sleep(100);
+            if (!dispatcherThread.isAlive()) {
+                break;
+            }
+        }
         assertNull(strategy.getDispatcher(sessionID));
+
+        threads = new Thread[1024];
+        Thread.enumerate(threads);
+
+        dispatcherThread = null;
+        for (final Thread thread : threads) {
+            if (thread != null && thread.getName().startsWith("QF/J Session dispatcher")) {
+                dispatcherThread = thread;
+                // Dispatcher threads are not daemon threads
+                assertThat(dispatcherThread.isDaemon(), is(false));
+                break;
+            }
+        }
+        
+        // the session dispatcher should be dead and hence not listed in the threads array
+        assertNull(dispatcherThread);
     }
 
     @Test
