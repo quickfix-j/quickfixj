@@ -19,30 +19,39 @@
 
 package quickfix;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import junit.framework.TestCase;
 
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoFilterChainBuilder;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.common.TransportType;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.test.acceptance.ATServer;
 
-public class SocketInitiatorTest extends TestCase {
+public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final TransportType transportProtocol = TransportType.SOCKET;
 
-    protected void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         SystemTime.setTimeSource(null);
     }
 
+    @Test
     public void testLogonAfterServerDisconnect() throws Exception {
         final WriteCounter initiatorWriteCounter = new WriteCounter("initiator");
         ServerThread serverThread = new ServerThread();
@@ -91,11 +100,12 @@ public class SocketInitiatorTest extends TestCase {
         assertTrue("Initiator write count = 0, filter problem?",
                 initiatorWriteCounter.getCount() > 0);
         assertTrue("Acceptor write count = 0, filter problem?", serverThread.getWriteCount() > 0);
-        assertTrue("Initiator sessionCreated not called", initiatorWriteCounter
-                .wasSessionCreatedCalled());
+        assertTrue("Initiator sessionCreated not called",
+                initiatorWriteCounter.wasSessionCreatedCalled());
         assertTrue("Acceptor sessionCreated not called", serverThread.wasSessionCreatedCalled());
     }
 
+    @Test
     public void testBlockLogoffAfterLogon() throws Exception {
         ServerThread serverThread = new ServerThread();
         try {
@@ -124,16 +134,42 @@ public class SocketInitiatorTest extends TestCase {
         }
     }
 
+    @Test
     public void testInitiatorStopStart() throws Exception {
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
         SessionSettings settings = getClientSessionSettings(clientSessionID);
         ClientApplication clientApplication = new ClientApplication();
-        Initiator initiator = new SocketInitiator(clientApplication,
-                new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+        Initiator initiator = new SocketInitiator(clientApplication, new MemoryStoreFactory(),
+                settings, new DefaultMessageFactory());
 
-        doTestOfRestart(clientSessionID, clientApplication, initiator);
+        doTestOfRestart(clientSessionID, clientApplication, initiator, null);
     }
 
+    @Test
+    public void testInitiatorStopStartFileLog() throws Exception {
+
+        File messageLog = new File(getTempDirectory() + File.separatorChar
+                + "FIX.4.2-TW-ISLD.messages.log");
+        File eventLog = new File(getTempDirectory() + File.separatorChar
+                + "FIX.4.2-TW-ISLD.event.log");
+        messageLog.delete();
+        eventLog.delete();
+
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        ClientApplication clientApplication = new ClientApplication();
+        settings.setString("FileLogPath", getTempDirectory());
+        settings.setString("ResetOnLogon", "Y");
+        FileLogFactory logFactory = new FileLogFactory(settings);
+        Initiator initiator = new SocketInitiator(clientApplication, new MemoryStoreFactory(),
+                settings, logFactory, new DefaultMessageFactory());
+        doTestOfRestart(clientSessionID, clientApplication, initiator, messageLog);
+
+        messageLog.delete();
+        eventLog.delete();
+    }
+
+    @Test
     public void testInitiatorStopStartThreaded() throws Exception {
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
         SessionSettings settings = getClientSessionSettings(clientSessionID);
@@ -141,30 +177,47 @@ public class SocketInitiatorTest extends TestCase {
         Initiator initiator = new ThreadedSocketInitiator(clientApplication,
                 new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
-        doTestOfRestart(clientSessionID, clientApplication, initiator);
+        doTestOfRestart(clientSessionID, clientApplication, initiator, null);
     }
 
     private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,
-            final Initiator initiator) throws InterruptedException, ConfigError {
+            final Initiator initiator, File messageLog) throws InterruptedException, ConfigError {
         ServerThread serverThread = new ServerThread();
         try {
             serverThread.start();
             serverThread.waitForInitialization();
-
+            long messageLogLength = 0;
             try {
                 clientApplication.setUpLogonExpectation();
                 initiator.start();
+                assertTrue(initiator.getSessions().contains(clientSessionID));
+                assertTrue(initiator.getSessions().size() == 1);
+
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
-                
+
                 initiator.stop();
                 assertFalse(clientSession.isLoggedOn());
-                
+                assertTrue(initiator.getSessions().contains(clientSessionID));
+                assertTrue(initiator.getSessions().size() == 1);
+                if (messageLog != null) {
+                    messageLogLength = messageLog.length();
+                    assertTrue(messageLog.length() > 0);
+                }
+
                 clientApplication.setUpLogonExpectation();
-                
+
                 initiator.start();
                 clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
+                assertTrue(initiator.getSessions().contains(clientSessionID));
+                assertTrue(initiator.getSessions().size() == 1);
+
+                if (messageLog != null) {
+                    // QFJ-698: check that we were still able to write to the messageLog after the restart
+                    assertTrue(messageLog.length() > messageLogLength);
+                }
+
             } finally {
                 initiator.stop();
             }
@@ -186,6 +239,7 @@ public class SocketInitiatorTest extends TestCase {
         defaults.put("EndTime", "00:00:00");
         defaults.put("HeartBtInt", "30");
         defaults.put("ReconnectInterval", "2");
+        defaults.put("ResetOnLogon", "Y");
         defaults.put("FileStorePath", "core/target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.set(defaults);
@@ -292,6 +346,12 @@ public class SocketInitiatorTest extends TestCase {
         public boolean wasSessionCreatedCalled() {
             return writeCounter.wasSessionCreatedCalled();
         }
+    }
+
+    private String getTempDirectory() throws IOException {
+        File path = File.createTempFile("test", "");
+        File tempdir = path.getParentFile();
+        return tempdir.getAbsolutePath();
     }
 
 }

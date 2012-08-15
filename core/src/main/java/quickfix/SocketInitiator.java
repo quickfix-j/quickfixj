@@ -17,7 +17,6 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
 import quickfix.mina.EventHandlingStrategy;
@@ -29,12 +28,13 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private boolean isInitialized;
+    private Boolean isStarted = Boolean.FALSE;
+    private final Object lock = new Object();
     private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
-        new SingleThreadedEventHandlingStrategy(this);
+    	new SingleThreadedEventHandlingStrategy(this);
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
-                SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
+            SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
                 messageFactory);
         if (settings == null) {
@@ -55,7 +55,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
         super(settings, sessionFactory);
     }
 
-
     public void block() throws ConfigError, RuntimeError {
         initialize();
         eventHandlingStrategy.block();
@@ -65,7 +64,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
         initialize();
         eventHandlingStrategy.blockInThread();
     }
-    
+
     public void stop() {
         stop(false);
     }
@@ -77,24 +76,28 @@ public class SocketInitiator extends AbstractSocketInitiator {
             stopInitiators();
         } finally {
             Session.unregisterSessions(getSessions());
+            synchronized (lock) {
+                isStarted = Boolean.FALSE;
+            }
         }
     }
 
-    private synchronized void initialize() throws ConfigError {
-        if (!isInitialized) {
-            createSessionInitiators();
-            isInitialized = true;
-        } else {
-            for (Session session : getSessionMap().values()) {
-                Session.registerSession(session);
+    private void initialize() throws ConfigError {
+        synchronized (lock) {
+            if (isStarted.equals(Boolean.FALSE)) {
+                createSessionInitiators();
+                for (Session session : getSessionMap().values()) {
+                    Session.registerSession(session);
+                }
+                startInitiators();
+                isStarted = Boolean.TRUE;
             }
         }
-        startInitiators();
-   }
-    
+    }
+
     @Override
     protected EventHandlingStrategy getEventHandlingStrategy() {
         return eventHandlingStrategy;
     }
-    
+
 }
