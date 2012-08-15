@@ -36,7 +36,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     private static ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
-    private static HashMap<String, Calendar> dateCache = new HashMap<String, Calendar>();
+    private static HashMap<String, Long> dateCache = new HashMap<String, Long>();
 
     /**
      * Convert a timestamp (represented as a Date) to a String.
@@ -71,29 +71,29 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
      */
     public static Date convert(String value) throws FieldConvertError {
         verifyFormat(value);
-        String dateString = value.substring(0, 8);
-        Calendar c = getCalendarForDay(value, dateString);
         long timeOffset = (parseLong(value.substring(9, 11)) * 3600000L)
                 + (parseLong(value.substring(12, 14)) * 60000L)
                 + (parseLong(value.substring(15, 17)) * 1000L);
         if (value.length() == 21) {
             timeOffset += parseLong(value.substring(18, 21));
         }
-        return new Date(c.getTimeInMillis() + timeOffset);
+        return new Date(getMillisForDay(value) + timeOffset);
     }
 
-    private static Calendar getCalendarForDay(String value, String dateString) {
-        Calendar c = dateCache.get(dateString);
-        if (c == null) {
-            c = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
+    private static Long getMillisForDay(String value) {
+        String dateString = value.substring(0, 8);
+    	Long millis = dateCache.get(dateString);
+        if (millis == null) {
+            Calendar c = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
             c.setTimeZone(SystemTime.UTC_TIMEZONE);
             int year = Integer.parseInt(value.substring(0, 4));
             int month = Integer.parseInt(value.substring(4, 6));
             int day = Integer.parseInt(value.substring(6, 8));
             c.set(year, month - 1, day);
-            dateCache.put(dateString, c);
+            millis = c.getTimeInMillis();
+            dateCache.put(dateString, c.getTimeInMillis());
         }
-        return c;
+        return millis;
     }
 
     private static void verifyFormat(String value) throws FieldConvertError {
