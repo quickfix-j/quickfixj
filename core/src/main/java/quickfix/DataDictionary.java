@@ -400,13 +400,13 @@ public class DataDictionary {
      */
     public boolean isFieldValue(int field, String value) {
         final Set<String> validValues = fieldValues.get(field);
+        
+        if (validValues == null || validValues.size() == 0) {
+            return false;
+        }
 
         if (validValues.contains(ANY_VALUE)) {
             return true;
-        }
-
-        if (validValues == null || validValues.size() == 0) {
-            return false;
         }
 
         if (!isMultipleValueStringField(field)) {
@@ -1132,7 +1132,7 @@ public class DataDictionary {
 
         final Node componentNode = components.get(name);
         if (componentNode == null) {
-            throw new ConfigError("Component not found");
+            throw new ConfigError("Component " + name + " not found");
         }
 
         final NodeList componentFieldNodes = componentNode.getChildNodes();
