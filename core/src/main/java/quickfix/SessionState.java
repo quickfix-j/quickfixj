@@ -53,7 +53,6 @@ public final class SessionState {
     private int testRequestCounter;
     private long lastSentTime;
     private long lastReceivedTime;
-    private boolean withinHeartBeat;
     private double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
@@ -296,12 +295,6 @@ public final class SessionState {
     public boolean isTimedOut() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
         return millisSinceLastReceivedTime >= 2.4 * getHeartBeatMillis();
-    }
-
-    public boolean isWithinHeartBeat() {
-        synchronized (lock) {
-            return withinHeartBeat;
-        }
     }
 
     public boolean set(int sequence, String message) throws IOException {

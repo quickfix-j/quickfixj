@@ -1830,10 +1830,6 @@ public class Session implements Closeable {
             disconnect("Timed out waiting for heartbeat", true);
         }
 
-        if (state.isWithinHeartBeat()) {
-            return;
-        }
-
         if (state.isTimedOut()) {
             if (!disableHeartBeatCheck) {
                 disconnect("Timed out waiting for heartbeat", true);
