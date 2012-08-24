@@ -59,7 +59,8 @@ public class FileStore implements MessageStore, Closeable {
 
     private final String msgFileName;
     private final String headerFileName;
-    private final String seqNumFileName;
+    private final String senderSeqNumFileName;
+    private final String targetSeqNumFileName;
     private final String sessionFileName;
     private final boolean syncWrites;
     private final int maxCachedMsgs;
@@ -68,7 +69,8 @@ public class FileStore implements MessageStore, Closeable {
     private RandomAccessFile messageFileWriter;
     private DataOutputStream headerDataOutputStream;
     private FileOutputStream headerFileOutputStream;
-    private RandomAccessFile sequenceNumberFile;
+    private RandomAccessFile senderSequenceNumberFile;
+    private RandomAccessFile targetSequenceNumberFile;
 
     FileStore(String path, SessionID sessionID, boolean syncWrites, int maxCachedMsgs)
             throws IOException {
@@ -87,7 +89,8 @@ public class FileStore implements MessageStore, Closeable {
 
         msgFileName = prefix + "body";
         headerFileName = prefix + "header";
-        seqNumFileName = prefix + "seqnums";
+        senderSeqNumFileName = prefix + "senderseqnums";
+        targetSeqNumFileName = prefix + "targetseqnums";
         sessionFileName = prefix + "session";
 
         final File directory = new File(msgFileName).getParentFile();
@@ -107,7 +110,8 @@ public class FileStore implements MessageStore, Closeable {
 
         messageFileWriter = new RandomAccessFile(msgFileName, getRandomAccessFileOptions());
         messageFileReader = new RandomAccessFile(msgFileName, READ_OPTION);
-        sequenceNumberFile = new RandomAccessFile(seqNumFileName, getRandomAccessFileOptions());
+        senderSequenceNumberFile = new RandomAccessFile(senderSeqNumFileName, getRandomAccessFileOptions());
+        targetSequenceNumberFile = new RandomAccessFile(targetSeqNumFileName, getRandomAccessFileOptions());
 
         initializeCache();
     }
@@ -159,16 +163,15 @@ public class FileStore implements MessageStore, Closeable {
     }
 
     private void initializeSequenceNumbers() throws IOException {
-        sequenceNumberFile.seek(0);
-        if (sequenceNumberFile.length() > 0) {
-            final String s = sequenceNumberFile.readUTF();
-            final int offset = s.indexOf(':');
-            if (offset < 0) {
-                throw new IOException("Invalid sequenceNumbderFile '" + seqNumFileName
-                        + "' character ':' is missing");
-            }
-            cache.setNextSenderMsgSeqNum(Integer.parseInt(s.substring(0, offset)));
-            cache.setNextTargetMsgSeqNum(Integer.parseInt(s.substring(offset + 1)));
+        senderSequenceNumberFile.seek(0);
+        targetSequenceNumberFile.seek(0);
+        if (senderSequenceNumberFile.length() > 0) {
+            final String s = senderSequenceNumberFile.readUTF();
+            cache.setNextSenderMsgSeqNum(Integer.parseInt(s));
+        }
+        if (targetSequenceNumberFile.length() > 0) {
+            final String s = targetSequenceNumberFile.readUTF();
+            cache.setNextTargetMsgSeqNum(Integer.parseInt(s));
         }
     }
 
@@ -231,7 +234,8 @@ public class FileStore implements MessageStore, Closeable {
         closeOutputStream(headerDataOutputStream);
         closeFile(messageFileWriter);
         closeFile(messageFileReader);
-        closeFile(sequenceNumberFile);
+        closeFile(senderSequenceNumberFile);
+        closeFile(targetSequenceNumberFile);
     }
 
     private void closeFile(RandomAccessFile file) throws IOException {
@@ -250,7 +254,8 @@ public class FileStore implements MessageStore, Closeable {
         close();
         deleteFile(headerFileName);
         deleteFile(msgFileName);
-        deleteFile(seqNumFileName);
+        deleteFile(senderSeqNumFileName);
+        deleteFile(targetSeqNumFileName);
         deleteFile(sessionFileName);
     }
 
@@ -280,7 +285,7 @@ public class FileStore implements MessageStore, Closeable {
      */
     public void setNextSenderMsgSeqNum(int next) throws IOException {
         cache.setNextSenderMsgSeqNum(next);
-        storeSequenceNumbers();
+        storeSenderSequenceNumber();
     }
 
     /* (non-Javadoc)
@@ -288,7 +293,7 @@ public class FileStore implements MessageStore, Closeable {
      */
     public void setNextTargetMsgSeqNum(int next) throws IOException {
         cache.setNextTargetMsgSeqNum(next);
-        storeSequenceNumbers();
+        storeTargetSequenceNumber();
     }
 
     /* (non-Javadoc)
@@ -296,7 +301,7 @@ public class FileStore implements MessageStore, Closeable {
      */
     public void incrNextSenderMsgSeqNum() throws IOException {
         cache.incrNextSenderMsgSeqNum();
-        storeSequenceNumbers();
+        storeSenderSequenceNumber();
     }
 
     /* (non-Javadoc)
@@ -304,7 +309,7 @@ public class FileStore implements MessageStore, Closeable {
      */
     public void incrNextTargetMsgSeqNum() throws IOException {
         cache.incrNextTargetMsgSeqNum();
-        storeSequenceNumbers();
+        storeTargetSequenceNumber();
     }
 
     /* (non-Javadoc)
@@ -410,14 +415,14 @@ public class FileStore implements MessageStore, Closeable {
         return true;
     }
 
-    private void storeSequenceNumbers() throws IOException {
-        sequenceNumberFile.seek(0);
-        // I changed this from explicitly using a StringBuffer because of
-        // recommendations from Sun. The performance also appears higher
-        // with this implementation. -- smb.
-        // http://bugs.sun.com/bugdatabase/view_bug.do;:WuuT?bug_id=4259569
-        sequenceNumberFile.writeUTF("" + cache.getNextSenderMsgSeqNum() + ':'
-                + cache.getNextTargetMsgSeqNum());
+    private void storeSenderSequenceNumber() throws IOException {
+        senderSequenceNumberFile.seek(0);
+        senderSequenceNumberFile.writeUTF("" + cache.getNextSenderMsgSeqNum());
+    }
+
+    private void storeTargetSequenceNumber() throws IOException {
+        targetSequenceNumberFile.seek(0);
+        targetSequenceNumberFile.writeUTF("" + cache.getNextTargetMsgSeqNum());
     }
 
     String getHeaderFileName() {
@@ -428,8 +433,12 @@ public class FileStore implements MessageStore, Closeable {
         return msgFileName;
     }
 
-    String getSeqNumFileName() {
-        return seqNumFileName;
+    String getSeqNumSenderFileName() {
+        return senderSeqNumFileName;
+    }
+
+    String getSeqNumTargetFileName() {
+        return targetSeqNumFileName;
     }
 
     /*
