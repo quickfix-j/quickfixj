@@ -378,7 +378,7 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>CheckLatency</I> </TD>
 
-    <TD> If set to Y, messages must be received from the counterparty within a defined number of seconds (see MaxLatency). It is useful to turn this off if a system uses localtime for it's timestamps instead of GMT.</TD>
+    <TD> If set to Y, messages must be received from the counterparty within a defined number of seconds (see MaxLatency). It is useful to turn this off if a system uses localtime for its timestamps instead of GMT.</TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
   </TR>
@@ -389,6 +389,18 @@
     <TD> positive integer</TD>
     <TD> 120 </TD>
 
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> RejectInvalidMessage </TD>
+    <TD> If RejectInvalidMessage is set to N, only a warning will be logged on reception of message that fails data dictionary validation.</TD>
+    <TD> Y<br>N</TD>
+    <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> RequiresOrigSendingTime </TD>
+    <TD> If RequiresOrigSendingTime is set to N, PossDup messages lacking that field will not be rejected.</TD>
+    <TD> Y<br>N</TD>
+    <TD> Y </TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">

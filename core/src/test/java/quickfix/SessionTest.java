@@ -74,7 +74,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, false, null, true,0, false, false);
+                false, false, false, true, true, false, null,true, 0, false, false);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -112,7 +112,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, false, null, true,0, false, false);
+                false, false, false, true, true, false, null,true, 0, false, false);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -162,7 +162,7 @@ public class SessionTest {
         assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
     }
 
-    // QFJ-654
+    // QFJ-703
     @Test
     public void testPossDupMessageWithoutOrigSendingTime() throws Exception {
 
@@ -193,12 +193,12 @@ public class SessionTest {
 
 
         // test that the message is NOT rejected when
-        // setting rejectInvalidMessage=false
+        // setting requiresOrigSendingTime=false
         // and not setting 122/OrigSendingTime
         application = new UnitTestApplication();
         session = createSession(sessionID, application, true, true, true);
         responder = new UnitTestResponder();
-        session.setRejectInvalidMessage(false);
+        session.setRequiresOrigSendingTime(false);
 
         session.setResponder(responder);
 

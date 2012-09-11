@@ -315,6 +315,8 @@ public class Session implements Closeable {
     public static final String SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM = "EnableNextExpectedMsgSeqNum";
 
     public static final String SETTING_REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
+    
+    public static final String SETTING_REQUIRES_ORIG_SENDING_TIME = "RequiresOrigSendingTime";
 
     public static final String SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE = "ForceResendWhenCorruptedStore";
 
@@ -371,6 +373,7 @@ public class Session implements Closeable {
     private final boolean useClosedRangeForResend;
     private boolean disableHeartBeatCheck = false;
     private boolean rejectInvalidMessage = false;
+    private boolean requiresOrigSendingTime = false;
     private boolean forceResendWhenCorruptedStore = false;
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
@@ -401,7 +404,7 @@ public class Session implements Closeable {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
+                false, true, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -415,9 +418,10 @@ public class Session implements Closeable {
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
             int[] logonIntervals, boolean resetOnError, boolean disconnectOnError,
             boolean ignoreHeartBeatFailure, boolean rejectInvalidMessage,
-            boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
-            boolean validateIncomingMessage, int resendRequestChunkSize,
-            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed) {
+            boolean requiresOrigSendingTime, boolean forceResendWhenCorruptedStore,
+            Set<InetAddress> allowedRemoteAddresses, boolean validateIncomingMessage,
+            int resendRequestChunkSize, boolean enableNextExpectedMsgSeqNum,
+            boolean enableLastMsgSeqNumProcessed) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -441,6 +445,7 @@ public class Session implements Closeable {
         this.disconnectOnError = disconnectOnError;
         disableHeartBeatCheck = ignoreHeartBeatFailure;
         this.rejectInvalidMessage = rejectInvalidMessage;
+        this.requiresOrigSendingTime = requiresOrigSendingTime;
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
         this.allowedRemoteAddresses = allowedRemoteAddresses;
         this.validateIncomingMessage = validateIncomingMessage;
@@ -2201,16 +2206,12 @@ public class Session implements Closeable {
                     return false;
                 }
             } else {
-                // QFJ-654: only warn on missing OrigSendingTime
-                // field on a PossDup message
-                if (rejectInvalidMessage) {
+                // QFJ-703
+                if (requiresOrigSendingTime) {
                     generateReject(msg, SessionRejectReason.REQUIRED_TAG_MISSING,
                             OrigSendingTime.FIELD);
                     return false;
                 }
-                getLog().onErrorEvent(
-                        "Warn: incoming message with " + new FieldNotFound(OrigSendingTime.FIELD)
-                                + ": " + msg);
             }
         }
 
@@ -2615,6 +2616,10 @@ public class Session implements Closeable {
 
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {
         this.rejectInvalidMessage = rejectInvalidMessage;
+    }
+
+    public void setRequiresOrigSendingTime(boolean requiresOrigSendingTime) {
+        this.requiresOrigSendingTime = requiresOrigSendingTime;
     }
 
     public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {
