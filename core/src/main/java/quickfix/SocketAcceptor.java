@@ -74,12 +74,13 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     public void stop(boolean forceDisconnect) {
-        eventHandlingStrategy.stopHandlingMessages();
-        stopAcceptingConnections();
-        logoutAllSessions(forceDisconnect);
-        stopSessionTimer();
-        Session.unregisterSessions(getSessions());
-        synchronized (lock) {
+        try {
+            eventHandlingStrategy.stopHandlingMessages();
+            stopAcceptingConnections();
+            logoutAllSessions(forceDisconnect);
+            stopSessionTimer();
+        } finally {
+            Session.unregisterSessions(getSessions());
             isStarted = Boolean.FALSE;
         }
     }

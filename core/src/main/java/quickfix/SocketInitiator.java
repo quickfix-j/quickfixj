@@ -76,9 +76,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
             stopInitiators();
         } finally {
             Session.unregisterSessions(getSessions());
-            synchronized (lock) {
-                isStarted = Boolean.FALSE;
-            }
+            isStarted = Boolean.FALSE;
         }
     }
 
