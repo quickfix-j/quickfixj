@@ -26,9 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The default factory for creating FIX message instances. Create subclasses
- * of this factory for generating custom messages using nonstandard message
- * types.
+ * The default factory for creating FIX message instances.
  */
 public class DefaultMessageFactory implements MessageFactory {
     private final Map<String,MessageFactory> messageFactories
