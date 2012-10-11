@@ -417,7 +417,7 @@ public class RepeatingGroupTest extends TestCase {
 
     }
 
-    public void testOutOfOrderGroupMembersDelimeterField() throws Exception {
+    public void testOutOfOrderGroupMembersDelimiterField() throws Exception {
         final Message m = new Message(
                 "8=FIX.4.49=035=D34=249=TW52=<TIME>56=ISLD11=ID21=140=154=1"
                         + "38=200.0055=INTC78=280=5079=acct180=15079=acct260=<TIME>10=000",
@@ -433,7 +433,7 @@ public class RepeatingGroupTest extends TestCase {
         }
     }
 
-    public void testIgnoreOutOfOrderGroupMembersDelimeterField() throws Exception {
+    public void testIgnoreOutOfOrderGroupMembersDelimiterField() throws Exception {
         final Message m = new Message(
                 "8=FIX.4.49=035=D34=249=TW52=<TIME>56=ISLD11=ID21=140=154=1"
                         + "38=200.0055=INTC78=280=5079=acct180=15079=acct260=<TIME>10=000",

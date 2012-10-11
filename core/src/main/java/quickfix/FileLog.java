@@ -37,10 +37,10 @@ import quickfix.field.converter.UtcTimestampConverter;
  * @see quickfix.FileLogFactory
  */
 public class FileLog extends AbstractLog {
-    private static final byte[] TIME_STAMP_DELIMETER;
+    private static final byte[] TIME_STAMP_DELIMITER;
     static {
         try {
-            TIME_STAMP_DELIMETER = ": ".getBytes(CharsetSupport.getCharset());
+            TIME_STAMP_DELIMITER = ": ".getBytes(CharsetSupport.getCharset());
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -119,7 +119,7 @@ public class FileLog extends AbstractLog {
     private void writeTimeStamp(OutputStream out) throws IOException {
         String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis);
         out.write(formattedTime.getBytes(CharsetSupport.getCharset()));
-        out.write(TIME_STAMP_DELIMETER);
+        out.write(TIME_STAMP_DELIMITER);
     }
 
     String getEventFileName() {

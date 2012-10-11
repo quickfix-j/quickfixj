@@ -27,9 +27,9 @@ public class Group extends FieldMap {
     private int delim;
 
     /**
-     * Create a group with the specified count and delimeter fields.
+     * Create a group with the specified count and delimiter fields.
      * @param field the count tag number
-     * @param delim the delimeter tag number (first group field)
+     * @param delim the delimiter tag number (first group field)
      */
     public Group(int field, int delim) {
         this(field, delim, new int[] { delim });
@@ -46,7 +46,7 @@ public class Group extends FieldMap {
     }
     
     /**
-     * Create a group with the specified count and delimeter fields and
+     * Create a group with the specified count and delimiter fields and
      * field ordering.
      * @param field
      * @param delim
@@ -59,7 +59,7 @@ public class Group extends FieldMap {
     }
     
     /**
-     * @return the group delimeter tag number.
+     * @return the group delimiter tag number.
      */
     public int delim() {
         return delim;

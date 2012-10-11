@@ -1293,12 +1293,12 @@ public class DataDictionary {
      * Contains meta-data for FIX repeating groups
      */
     public static final class GroupInfo {
-        private final int delimeterField;
+        private final int delimiterField;
 
         private final DataDictionary dataDictionary;
 
         private GroupInfo(int field, DataDictionary dictionary) {
-            delimeterField = field;
+            delimiterField = field;
             dataDictionary = dictionary;
         }
 
@@ -1307,12 +1307,23 @@ public class DataDictionary {
         }
 
         /**
-         * Returns the delimeter field used to start a repeating group instance.
+         * Returns the delimiter field used to start a repeating group instance.
          *
-         * @return delimeter field
+         * @return delimiter field
+         * @deprecated use getDelimiterField() instead
          */
+        @Deprecated
         public int getDelimeterField() {
-            return delimeterField;
+            return delimiterField;
+        }
+
+        /**
+         * Returns the delimiter field used to start a repeating group instance.
+         *
+         * @return delimiter field
+         */
+        public int getDelimiterField() {
+            return delimiterField;
         }
 
         public boolean equals(Object other) {
@@ -1322,12 +1333,12 @@ public class DataDictionary {
             if (!(other instanceof GroupInfo)) {
                 return false;
             }
-            return delimeterField == ((GroupInfo) other).delimeterField
+            return delimiterField == ((GroupInfo) other).delimiterField
                     && dataDictionary.equals(((GroupInfo) other).dataDictionary);
         }
 
         public int hashCode() {
-            return delimeterField;
+            return delimiterField;
         }
     }
 

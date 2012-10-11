@@ -579,7 +579,7 @@ public class Message extends FieldMap {
         final int groupCountTag = field.getField();
         final int declaredGroupCount = Integer.parseInt(field.getValue());
         parent.setField(groupCountTag, field);
-        final int firstField = rg.getDelimeterField();
+        final int firstField = rg.getDelimiterField();
         boolean firstFieldFound = false;
         Group group = null;
         boolean inGroupParse = true;
