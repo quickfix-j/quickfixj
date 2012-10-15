@@ -359,6 +359,14 @@ public class Message extends FieldMap {
         private static final int[] EXCLUDED_HEADER_FIELDS = { BeginString.FIELD, BodyLength.FIELD,
                 MsgType.FIELD };
 
+        public Header() {
+            super();
+        }
+        
+        public Header(int[] fieldOrder) {
+            super(fieldOrder);
+        }
+
         @Override
         protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, EXCLUDED_HEADER_FIELDS, postFields);
@@ -373,6 +381,10 @@ public class Message extends FieldMap {
 
         public Trailer() {
             super(TRAILER_FIELD_ORDER);
+        }
+
+        public Trailer(int[] fieldOrder) {
+            super(fieldOrder);
         }
 
         @Override

@@ -88,6 +88,7 @@ import quickfix.field.Signature;
 import quickfix.field.SignatureLength;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
+import quickfix.field.TargetSubID;
 import quickfix.field.TotNoOrders;
 import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
@@ -131,6 +132,68 @@ public class MessageTest {
         return new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
                 HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
                 new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+    }
+
+    @Test
+    public void testHeaderCustomFieldOrdering() throws Exception {
+        
+        class MyMessage extends Message {
+        
+            final int[] headerFieldOrder = {
+                BeginString.FIELD,
+                BodyLength.FIELD,
+                MsgType.FIELD,
+                TargetSubID.FIELD,
+                SendingTime.FIELD,
+                MsgSeqNum.FIELD,
+                SenderCompID.FIELD,
+                TargetCompID.FIELD
+            };
+
+            public MyMessage() {
+                super();
+                header = new Header(headerFieldOrder);
+            }
+            
+            @Override
+            public String toString() {
+                return super.toString();
+            }
+        }
+
+        final MyMessage myMessage = new MyMessage();
+        
+        myMessage.getHeader().setField(new SenderCompID("foo"));
+        myMessage.getHeader().setField(new MsgSeqNum(22));
+        myMessage.getHeader().setString(SendingTime.FIELD, "20120922-11:00:00");
+        myMessage.getHeader().setField(new TargetCompID("bar"));
+        
+        assertTrue(myMessage.toString().contains("52=20120922-11:00:00\00134=22\00149=foo\00156=bar"));
+    }
+
+    @Test
+    public void testTrailerCustomFieldOrdering() throws Exception {
+        
+        class MyMessage extends Message {
+        
+            final int[] trailerFieldOrder = { Signature.FIELD, SignatureLength.FIELD, CheckSum.FIELD };
+
+            public MyMessage() {
+                super();
+                trailer = new Trailer(trailerFieldOrder);
+            }
+            
+            @Override
+            public String toString() {
+                return super.toString();
+            }
+        }
+
+        final MyMessage myMessage = new MyMessage();
+        
+        myMessage.getTrailer().setField(new Signature("FOO"));
+        myMessage.getTrailer().setField(new SignatureLength(3));
+        assertTrue(myMessage.toString().contains("89=FOO\00193=3\001"));
     }
 
     @Test
