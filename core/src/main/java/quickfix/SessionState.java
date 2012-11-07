@@ -78,7 +78,7 @@ public final class SessionState {
 
     /*
      * If this is anything other than zero it's the value of the 789/NextExpectedMsgSeqNum tag in the last Logon message sent.
-     * It's used to determine if the recipient has enough information (assuming they support 789) to avoid the need
+     * It is used to determine if the recipient has enough information (assuming they support 789) to avoid the need
      * for a resend request i.e. they should be resending any necessary missing messages already. This value is used
      * to populate the resendRange if necessary.
      */
