@@ -1251,6 +1251,9 @@ public class Session implements Closeable {
         String msg;
         if (!state.isLogoutSent()) {
             msg = "Received logout request";
+            if (logout.isSetField(Text.FIELD)) {
+                msg += ": " + logout.getString(Text.FIELD);
+            }
             getLog().onEvent(msg);
             generateLogout(logout);
             getLog().onEvent("Sent logout response");
