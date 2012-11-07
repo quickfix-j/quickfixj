@@ -1741,7 +1741,7 @@ public class Session implements Closeable {
         }
 
         if (state.isLogoutTimedOut()) {
-            disconnect("Timed out waiting for heartbeat", true);
+            disconnect("Timed out waiting for logout response", true);
         }
 
         if (state.isTimedOut()) {
