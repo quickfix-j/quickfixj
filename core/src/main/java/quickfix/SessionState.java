@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -74,6 +75,14 @@ public final class SessionState {
     private boolean resetSent;
     private boolean resetReceived;
     private String logoutReason;
+
+    /*
+     * If this is anything other than zero it's the value of the 789/NextExpectedMsgSeqNum tag in the last Logon message sent.
+     * It's used to determine if the recipient has enough information (assuming they support 789) to avoid the need
+     * for a resend request i.e. they should be resending any necessary missing messages already. This value is used
+     * to populate the resendRange if necessary.
+     */
+    private final AtomicInteger nextExpectedMsgSeqNum = new AtomicInteger(0);
 
     // The messageQueue should be accessed from a single thread
     private final Map<Integer, Message> messageQueue = new LinkedHashMap<Integer, Message>();
@@ -423,6 +432,50 @@ public final class SessionState {
         synchronized (lock) {
             this.resetSent = resetSent;
         }
+    }
+
+    /**
+     * No actual resend request has occurred but at logon we populated tag 789 so that the other side knows we
+     * are missing messages without an explicit resend request and should immediately reply with the missing
+     * messages.
+     * 
+     * This is expected to be called only in the scenario where target is too high on logon and tag 789 is supported.
+     */
+    public void setResetRangeFromLastExpectedLogonNextSeqNumLogon() {
+        synchronized (lock) {
+            // we have already requested all msgs from nextExpectedMsgSeqNum to infinity
+            setResendRange(getLastExpectedLogonNextSeqNum(), 0);
+            // clean up the variable (not really needed)
+            setLastExpectedLogonNextSeqNum(0);
+        }
+    }
+    
+    /**
+     * @param nextExpectedMsgSeqNum
+     * 
+     * This method is thread safe (atomic set).
+     */
+    public void setLastExpectedLogonNextSeqNum(int lastExpectedLogonNextSeqNum) {
+        this.nextExpectedMsgSeqNum.set(lastExpectedLogonNextSeqNum);
+    }
+
+    /**
+     * @return nextExpectedMsgSeqNum
+     * 
+     * This method is thread safe (atomic get).
+     */
+    public int getLastExpectedLogonNextSeqNum() {
+        return this.nextExpectedMsgSeqNum.get();
+    }
+
+    /**
+     * @return true if we populated tag 789 at logon and our sequence 
+     * numbers don't line up we are in an implicit resend mode.
+     * 
+     * This method is thread safe (atomic get).
+     */
+    public boolean isExpectedLogonNextSeqNumSent() {
+        return this.nextExpectedMsgSeqNum.get() != 0;
     }
 
     public void setLogoutReason(String reason) {

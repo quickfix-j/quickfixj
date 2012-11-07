@@ -355,7 +355,8 @@
       <li>if lower than expected SeqNum , logout</li>
       <li>if higher, send a resend request</li>
       </ul>
-      If not enabled and a mismatch is detected, nothing is done.
+      If not enabled and a mismatch is detected, nothing is done.<br>
+      Must be enabled for EnableNextExpectedMsgSeqNum to work.
      </TD>
     <TD>Y<br>
       N</TD>
@@ -969,13 +970,13 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EnableLastMsgSeqNumProcessed</I> </TD>
-    <TD> Add the last msg seq number processed  in the header(optional tag 369). Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Add tag LastMsgSeqNumProcessed in the header (optional tag 369). Valid values are "Y" or "N". Default is "N".</TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EnableNextExpectedMsgSeqNum</I> </TD>
-    <TD> Add the next msg seq number expected on the logon message(optional tag 789). Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Add tag NextExpectedMsgSeqNum (optional tag 789) on the sent Logon message and use value of tag 789 on received Logon message to synchronize session. Valid values are "Y" or "N". Default is "N". This should not be enabled for FIX versions &lt; 4.4. Only works when ValidateSequenceNumbers is enabled.</TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
