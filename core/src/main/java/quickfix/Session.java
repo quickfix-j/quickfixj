@@ -1780,7 +1780,7 @@ public class Session implements Closeable {
     }
 
     private boolean isTimeToGenerateLogon() {
-        return System.currentTimeMillis() - lastSessionLogon >= computeNextLogonDelayMillis();
+        return SystemTime.currentTimeMillis() - lastSessionLogon >= computeNextLogonDelayMillis();
     }
 
     public void generateHeartbeat() {
@@ -1820,6 +1820,7 @@ public class Session implements Closeable {
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
         state.clearTestRequestCounter();
         state.setLogonSent(true);
+        logonAttempts++;
 
         if (enableNextExpectedMsgSeqNum) {
             final int nextExpectedMsgNum = getExpectedTargetNum();
@@ -1946,8 +1947,6 @@ public class Session implements Closeable {
         state.setLogoutReceived(false);
         state.setLogoutSent(false);
         state.setLogonReceived(true);
-        lastSessionLogon = 0;
-        logonAttempts = 0;
 
         // remember the expected sender sequence number of any logon response for future use
         final int nextSenderMsgNumAtLogonReceived = state.getMessageStore().getNextSenderMsgSeqNum();
@@ -2055,6 +2054,8 @@ public class Session implements Closeable {
                 logApplicationException("onLogon()", t);
             }
             stateListener.onLogon();
+            lastSessionLogon = SystemTime.currentTimeMillis();
+            logonAttempts = 0;
         }
     }
 
