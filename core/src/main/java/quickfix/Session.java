@@ -1851,51 +1851,51 @@ public class Session implements Closeable {
      *             IO error
      */
     public void disconnect(String reason, boolean logError) throws IOException {
-        synchronized (responderSync) {
-            if (!hasResponder()) {
-                getLog().onEvent("Already disconnected: " + reason);
-                return;
+        try {
+            synchronized (responderSync) {
+                if (!hasResponder()) {
+                    getLog().onEvent("Already disconnected: " + reason);
+                    return;
+                }
+                final String msg = "Disconnecting: " + reason;
+                if (logError) {
+                    getLog().onErrorEvent(msg);
+                } else {
+                    log.info("[" + getSessionID() + "] " + msg);
+                }
+                responder.disconnect();
+                setResponder(null);
             }
-            final String msg = "Disconnecting: " + reason;
-            if (logError) {
-                getLog().onErrorEvent(msg);
-            } else {
-                log.info("[" + getSessionID() + "] " + msg);
-            }
-            responder.disconnect();
-            setResponder(null);
-        }
 
-        final boolean logonReceived = state.isLogonReceived();
-        final boolean logonSent = state.isLogonSent();
-        if (logonReceived || logonSent) {
+            final boolean logonReceived = state.isLogonReceived();
+            final boolean logonSent = state.isLogonSent();
+            if (logonReceived || logonSent) {
+                try {
+                    application.onLogout(sessionID);
+                } catch (final Throwable t) {
+                    logApplicationException("onLogout()", t);
+                }
+
+                stateListener.onLogout();
+            }
+            // QFJ-457 now enabled again if acceptor
+            if (!state.isInitiator()) {
+                setEnabled(true);
+            }
+        } finally {
             state.setLogonReceived(false);
             state.setLogonSent(false);
-
-            try {
-                application.onLogout(sessionID);
-            } catch (final Throwable t) {
-                logApplicationException("onLogout()", t);
+            state.setLogoutSent(false);
+            state.setLogoutReceived(false);
+            state.setResetReceived(false);
+            state.setResetSent(false);
+            state.clearQueue();
+            state.clearLogoutReason();
+            state.setResendRange(0, 0);
+            
+            if (resetOnDisconnect) {
+                resetState();
             }
-
-            stateListener.onLogout();
-        }
-
-        state.setLogoutSent(false);
-        state.setLogoutReceived(false);
-        state.setResetReceived(false);
-        state.setResetSent(false);
-
-        state.clearQueue();
-        state.clearLogoutReason();
-        state.setResendRange(0, 0);
-
-        if (resetOnDisconnect) {
-            resetState();
-        }
-        // QFJ-457 now enabled again if acceptor
-        if (!state.isInitiator()) {
-            setEnabled(true);
         }
     }
 

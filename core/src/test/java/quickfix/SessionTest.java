@@ -736,6 +736,57 @@ public class SessionTest {
 
     }
 
+    @Test
+    // QFJ-444
+    public void testStateFlagsAreResetOnLogout() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final Message logout = new Logout();
+        logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
+        logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
+        logout.getHeader().setString(SendingTime.FIELD,
+                UtcTimestampConverter.convert(new Date(), false));
+        logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
+
+        logonTo(session);
+        assertFalse(session.isLogoutSent());
+        assertFalse(session.isLogoutReceived());
+        assertTrue(session.isLogonReceived());
+        assertTrue(session.isLogonSent());
+
+        /*
+         * Setting the responder to NULL here was formerly causing that
+         * the flags logoutReceived and logoutSent (amongst others) were not
+         * reset to false because the Session.disconnect() method returned
+         * too early since no responder was set anymore.
+         */
+        session.setResponder(null);
+        session.next(logout);
+        
+        assertFalse(session.isLogoutReceived());
+        assertFalse(session.isLogoutSent());
+        assertFalse(session.isLogonReceived());
+        assertFalse(session.isLogonSent());
+
+        session.setResponder(new UnitTestResponder());
+        logonTo(session, 3);
+        assertFalse(session.isLogoutSent());
+        assertFalse(session.isLogoutReceived());
+        assertTrue(session.isLogonReceived());
+        assertTrue(session.isLogonSent());
+
+        session.disconnect("Forced by UnitTest", true);
+        assertFalse(session.isLogoutReceived());
+        assertFalse(session.isLogoutSent());
+        assertFalse(session.isLogonReceived());
+        assertFalse(session.isLogonSent());
+        
+        // onLogout was called
+        assertTrue( application.logoutSessions.size() == 1 );
+    }
+    
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
