@@ -472,7 +472,7 @@ public class Session implements Closeable {
 
         getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
         try {
-            if (!checkSessionTime(false)) {
+            if (!checkSessionTime()) {
                 getLog().onEvent("Session state is not current; resetting " + sessionID);
                 reset();
             }
@@ -521,31 +521,24 @@ public class Session implements Closeable {
         return getResponder() != null;
     }
 
-    private synchronized boolean checkSessionTime(boolean updateLastSessionTimeCheck)
+    private synchronized boolean checkSessionTime()
             throws IOException {
         if (sessionSchedule == null) {
             return true;
         }
-
-        //
         // Only check the session time once per second at most. It isn't
         // necessary to do for every message received.
-        //
-        // QFJ-357: Exception: When called from the Session constructor, this method
-        // should not update the lastSessionTimeCheck since a subsequently
-        // sent (on Initiators) or received Logon message within one second after
-        // Session creation would cause the method to still return false and
-        // hence logout and disconnect the Session at once.
-        //
+        // QFJ-357/QFJ-716/QFJ-527: Exception: We will check the session time again
+        // if lastSessionTimeResult was false. This is because lastSessionTimeResult
+        // will always be false when this method is called from the constructor and
+        // hence a session that is started within one second after creation will get
+        // disconnected immediately.
         final Date date = SystemTime.getDate();
-        if ((date.getTime() - lastSessionTimeCheck) >= 1000L) {
+        if (!lastSessionTimeResult || (date.getTime() - lastSessionTimeCheck) >= 1000L) {
             final Date getSessionCreationTime = state.getCreationTime();
             lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date),
                     SystemTime.getUtcCalendar(getSessionCreationTime));
-
-            if (updateLastSessionTimeCheck) {
-                lastSessionTimeCheck = date.getTime();
-            }
+            lastSessionTimeCheck = date.getTime();
             return lastSessionTimeResult;
         } else {
             return lastSessionTimeResult;
@@ -792,7 +785,7 @@ public class Session implements Closeable {
     }
 
     /**
-     * Logs out and disconnects session and then resets session state.
+     * Logs out and disconnects session (if logged on) and then resets session state.
      *
      * @throws IOException IO error
      * @see SessionState#reset()
@@ -802,7 +795,7 @@ public class Session implements Closeable {
             return;
         }
         try {
-            if (hasResponder()) {
+            if (hasResponder() && isLoggedOn()) {
                 if (application instanceof ApplicationExtended) {
                     ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
                 }
@@ -1708,7 +1701,7 @@ public class Session implements Closeable {
             }
         }
 
-        if (!checkSessionTime(true)) {
+        if (!checkSessionTime()) {
             reset();
             return;
         }
@@ -1905,7 +1898,7 @@ public class Session implements Closeable {
         // QFJ-357
         // If this check is not done here, the Logon would be accepted and
         // immediately followed by a Logout (due to check in Session.next()).
-        if (!checkSessionTime(true)) {
+        if (!checkSessionTime()) {
             throw new RejectLogon("Logon attempt not within session time");
         }
 

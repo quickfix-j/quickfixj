@@ -1,5 +1,6 @@
 package quickfix;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -32,19 +33,21 @@ public class SessionResetTest {
 
 
     @Test
+    // QFJ-645, QFJ-716
     public void testSessionResetDeadlock() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         final Session session = SessionFactoryTestSupport.createSession(sessionID,
-                application, true, true);
-
+                application, true, false);
         final UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
+        session.addStateListener(responder);
         session.logon();
         session.next();
 
+        assertFalse(responder.onResetCalled);
+        
         final Message logonRequest = new Message(responder.sentMessageData);
         final Message logonResponse = new DefaultMessageFactory().create(
                 sessionID.getBeginString(), MsgType.LOGON);
@@ -57,8 +60,7 @@ public class SessionResetTest {
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
         header.setInt(MsgSeqNum.FIELD, 1);
         header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
-
-
+        
         Thread resetThread = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -88,7 +90,7 @@ public class SessionResetTest {
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         long[] threadIds = bean.findDeadlockedThreads();
         assertNull("no threads should be deadlocked", threadIds);
-        assertTrue("session should have been disconnected due to reset", responder.disconnectCalled);
+        assertTrue("session should have been reset", responder.onResetCalled);
     }
 
 
@@ -102,9 +104,9 @@ public class SessionResetTest {
     }
 
 
-    private class UnitTestResponder implements Responder {
+    private class UnitTestResponder implements Responder, SessionStateListener {
         public String sentMessageData;
-        public boolean disconnectCalled;
+        public boolean onResetCalled;
 
         public boolean send(String data) {
             sentMessageData = data;
@@ -116,7 +118,31 @@ public class SessionResetTest {
         }
 
         public void disconnect() {
-            disconnectCalled = true;
+        }
+
+        public void onConnect() {
+        }
+
+        public void onDisconnect() {
+        }
+
+        public void onLogon() {
+        }
+
+        public void onLogout() {
+        }
+
+        public void onReset() {
+            onResetCalled = true;
+        }
+
+        public void onRefresh() {
+        }
+
+        public void onMissedHeartBeat() {
+        }
+
+        public void onHeartBeatTimeout() {
         }
     }
 

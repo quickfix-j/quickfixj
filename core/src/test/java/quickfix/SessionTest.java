@@ -22,9 +22,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Calendar;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import quickfix.field.BeginSeqNo;
@@ -41,6 +44,7 @@ import quickfix.field.SendingTime;
 import quickfix.field.SessionStatus;
 import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
+import quickfix.field.Text;
 import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
@@ -56,6 +60,11 @@ import quickfix.test.util.ReflectionUtil;
  *
  */
 public class SessionTest {
+
+    @AfterClass
+    public static void cleanup() {
+        SystemTime.setTimeSource(null);
+    }
 
     @Test
     public void testDisposalOfFileResources() throws Exception {
@@ -74,7 +83,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, true, false, null,true, 0, false, false);
+                false, false, false, true, true, false, null, true, 0, false, false);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -112,7 +121,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, true, false, null,true, 0, false, false);
+                false, false, false, true, true, false, null, true, 0, false, false);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -153,13 +162,16 @@ public class SessionTest {
         assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
 
         session.next(createHeartbeatMessage(1002));
-        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader()
+                .getString(MsgType.FIELD)));
 
         session.next(createHeartbeatMessage(1003));
-        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader()
+                .getString(MsgType.FIELD)));
 
         session.next(createHeartbeatMessage(1001));
-        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+        assertFalse(ResendRequest.MSGTYPE.equals(application.lastToAdminMessage().getHeader()
+                .getString(MsgType.FIELD)));
     }
 
     // QFJ-703
@@ -190,7 +202,6 @@ public class SessionTest {
         assertTrue(Reject.MSGTYPE.equals(application.lastToAdminMessage().getHeader()
                 .getString(MsgType.FIELD)));
         assertNull(application.lastFromAppMessage());
-
 
         // test that the message is NOT rejected when
         // setting requiresOrigSendingTime=false
@@ -311,59 +322,11 @@ public class SessionTest {
      * On versions newer than 1.5.1 this test should pass.
      */
     @Test
-    public void testLogonIsFirstMessage() throws Exception {
+    public void testLogonIsFirstMessageOnAcceptor() throws Exception {
 
         // set up some basic stuff
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         final SessionSettings settings = SessionSettingsTest.setUpSession(null);
-
-        setupFileStoreForQFJ357(sessionID, settings);
-
-        // Session gets constructed, triggering a reset
-        final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpFileStoreSession(application, false,
-                new UnitTestResponder(), settings, sessionID);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        // we should only answer with a Logon message
-        assertEquals(1, application.toAdminMessages.size());
-        for (Message message : application.toAdminMessages) {
-            assertEquals(MsgType.LOGON, message.getHeader().getString(MsgType.FIELD));
-        }
-
-        // no reset should have been triggered by QF/J after the Logon attempt
-        assertEquals(0, application.sessionResets);
-        assertTrue("Session should be connected", session.isLoggedOn());
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-    }
-
-    /**
-     * QFJ-357
-     * This test should make sure that outside the Session time _only_ a Logout
-     * message is sent to the counterparty. Formerly it could be observed sometimes
-     * that there was a Logon message with a Logout message immediately following.
-     */
-    @Test
-    public void testLogonOutsideSessionTimeIsRejected() throws Exception {
-
-        // set up some basic stuff
-        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
-        // construct a session schedule which will almost never accept a connection
-        final Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DAY_OF_WEEK, 1);
-        settings.setString("StartTime", "00:00:01");
-        settings.setString("EndTime", "00:00:02");
-        settings.setString("StartDay", DayConverter.toString(calendar.get(Calendar.DAY_OF_WEEK)));
-        settings.setString("EndDay", DayConverter.toString(calendar.get(Calendar.DAY_OF_WEEK)));
 
         setupFileStoreForQFJ357(sessionID, settings);
 
@@ -378,14 +341,149 @@ public class SessionTest {
 
         logonTo(session);
 
+        // we should only answer with a Logon message
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0).getHeader().getString(MsgType.FIELD));
+
+        // no reset should have been triggered by QF/J after the Logon attempt
+        assertEquals(0, application.sessionResets);
+        assertTrue("Session should be connected", session.isLoggedOn());
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+
+    }
+
+    @Test
+    // QFJ-716
+    public void testStartOfInitiatorOutsideOfSessionTime() throws Exception {
+
+        final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        final Date now = new Date();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(now.getTime());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // we want to start the initiator before the StartTime
+        settings.setString("StartTime", dateFormat.format(now.getTime() + 1800000));    // add 30 minutes
+        settings.setString("EndTime", dateFormat.format(now.getTime() + 3600000));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, true, new UnitTestResponder(),
+                settings, sessionID);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        systemTimeSource.increment(10000);
+        session.next();
+        systemTimeSource.increment(10000);
+        session.next();
+
+        // we should send no messages since we are outside of session time
+        assertEquals(0, application.toAdminMessages.size());
+        // no reset should have been triggered by QF/J (since we were not logged on)
+        assertEquals(0, application.sessionResets);
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        // increase time to be within session time
+        systemTimeSource.increment(1900000);
+        session.next();
+        session.next();
+
+        // we should have sent a Logon since the StartTime has been reached now
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0).getHeader().getString(MsgType.FIELD));
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+    }
+
+    @Test
+    // QFJ-716 - we need to make sure that the first message sent is a Logon
+    public void testStartOfInitiatorInsideOfSessionTime() throws Exception {
+
+        final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        final Date now = new Date();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(now.getTime());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // we want to start the initiator before the StartTime
+        settings.setString("StartTime", dateFormat.format(now.getTime() - 2000)); // make sure we start inside the Session time    
+        settings.setString("EndTime", dateFormat.format(now.getTime() + 3600000));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, true, new UnitTestResponder(),
+                settings, sessionID);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        systemTimeSource.increment(1000);
+        session.next();
+        systemTimeSource.increment(1000);
+        session.next();
+
+        // we should have sent a Logon since we are inside of the SessionTime
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0).getHeader().getString(MsgType.FIELD));
+        // no reset should have been triggered by QF/J
+        assertEquals(0, application.sessionResets);
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+    }
+
+    /**
+     * QFJ-357
+     * This test should make sure that outside the Session time _only_ a Logout
+     * message is sent to the counterparty. Formerly it could be observed sometimes
+     * that there was a Logon message with a Logout message immediately following.
+     */
+    @Test
+    public void testLogonOutsideSessionTimeIsRejected() throws Exception {
+
+        final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        final Date now = new Date();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(now.getTime());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // construct a session schedule which is not active at the moment
+        settings.setString("StartTime", dateFormat.format(now.getTime() + 1800000));    // add 30 minutes
+        settings.setString("EndTime", dateFormat.format(now.getTime() + 3600000));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, false, new UnitTestResponder(),
+                settings, sessionID);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
         // we should only answer with a Logout message
         assertEquals(1, application.toAdminMessages.size());
-        for (Message message : application.toAdminMessages) {
-            assertEquals(MsgType.LOGOUT, message.getHeader().getString(MsgType.FIELD));
-        }
-
+        assertEquals(MsgType.LOGOUT, application.toAdminMessages.get(0).getHeader().getString(MsgType.FIELD));
         assertFalse("Session should not be connected", session.isLoggedOn());
-
+        assertTrue(application.toAdminMessages.get(0).getString(Text.FIELD).contains("Logon attempt not within session time"));
         // Normally, next() is called periodically; we only do it here to reset the seqNums.
         // The seqNums should be reset because it was tried to establish a connection
         // outside of the session schedule.
@@ -420,10 +518,12 @@ public class SessionTest {
         // (on QF/J 1.5.1 this triggered the needReset() method to return false)
         final String msgFileName = prefix + "body";
         final String headerFileName = prefix + "header";
-        final String seqNumFileName = prefix + "seqnums";
+        final String senderSeqNumFileName = prefix + "senderseqnums";
+        final String targetSeqNumFileName = prefix + "targetseqnums";
         new File(msgFileName).delete();
         new File(headerFileName).delete();
-        new File(seqNumFileName).delete();
+        new File(senderSeqNumFileName).delete();
+        new File(targetSeqNumFileName).delete();
     }
 
     // QFJ-60
@@ -480,8 +580,9 @@ public class SessionTest {
         };
 
         logonTo(setUpSession(application, false, new UnitTestResponder()));
-        assertEquals( SessionStatus.SESSION_ACTIVE, ((UnitTestApplication) application).lastToAdminMessage().getInt(SessionStatus.FIELD) );
-        
+        assertEquals(SessionStatus.SESSION_ACTIVE, ((UnitTestApplication) application)
+                .lastToAdminMessage().getInt(SessionStatus.FIELD));
+
         application = new UnitTestApplication() {
 
             @Override
@@ -494,7 +595,8 @@ public class SessionTest {
         };
 
         logonTo(setUpSession(application, false, new UnitTestResponder()));
-        assertFalse( ((UnitTestApplication) application).lastToAdminMessage().isSetField(SessionStatus.FIELD) );
+        assertFalse(((UnitTestApplication) application).lastToAdminMessage().isSetField(
+                SessionStatus.FIELD));
     }
 
     @Test
@@ -540,7 +642,6 @@ public class SessionTest {
         verify(mockStateListener).onDisconnect();
         verifyNoMoreInteractions(mockStateListener);
     }
-
 
     @Test
     public void testSequenceRollbackOnCallbackException() throws Exception {
@@ -705,13 +806,11 @@ public class SessionTest {
         assertEquals(201, state.getNextTargetMsgSeqNum());
     }
 
-
     @Test
     //QFJ-457
     public void testAcceptorRelogon() throws Exception {
-        final UnitTestApplication application = new UnitTestApplication() ;
-        final Session session = setUpSession(application , false,
-                new UnitTestResponder());
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
 
         logonTo(session);
         assertTrue(session.isEnabled());
@@ -728,11 +827,11 @@ public class SessionTest {
         logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
         session.next(logout);
 
-//        session.reset();
+        //        session.reset();
         assertFalse(session.isLoggedOn());
         logonTo(session, 3);
         Message lastToAdminMessage = application.lastToAdminMessage();
-        assertFalse(Logout.MSGTYPE .equals(lastToAdminMessage.getHeader().getString(MsgType.FIELD)));
+        assertFalse(Logout.MSGTYPE.equals(lastToAdminMessage.getHeader().getString(MsgType.FIELD)));
 
     }
 
@@ -763,7 +862,7 @@ public class SessionTest {
          */
         session.setResponder(null);
         session.next(logout);
-        
+
         assertFalse(session.isLogoutReceived());
         assertFalse(session.isLogoutSent());
         assertFalse(session.isLogonReceived());
@@ -781,11 +880,10 @@ public class SessionTest {
         assertFalse(session.isLogoutSent());
         assertFalse(session.isLogonReceived());
         assertFalse(session.isLogonSent());
-        
+
         // onLogout was called
-        assertTrue( application.logoutSessions.size() == 1 );
+        assertTrue(application.logoutSessions.size() == 1);
     }
-    
 
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
