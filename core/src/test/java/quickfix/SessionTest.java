@@ -83,7 +83,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, true, false, null, true, 0, false, false);
+                false, false, false, true, false, true, false, null, true, 0, false, false);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -121,7 +121,7 @@ public class SessionTest {
         final Session session = new Session(application, mockMessageStoreFactory, sessionID, null,
                 null, mockLogFactory, new DefaultMessageFactory(), 30, false, 30, true, true,
                 false, false, false, false, false, true, false, 1.5, null, true, new int[] { 5 },
-                false, false, false, true, true, false, null, true, 0, false, false);
+                false, false, false, true, false, true, false, null, true, 0, false, false);
 
         // Simulate socket disconnect
         session.setResponder(null);
@@ -722,7 +722,6 @@ public class SessionTest {
     @Test
     public void testDontCatchErrorsFromCallback() throws Exception {
 
-        // Create application that rejects all logons
         final Application application = new UnitTestApplication() {
 
             @Override
@@ -731,17 +730,77 @@ public class SessionTest {
                 super.fromApp(message, sessionId);
                 throw new Error("TEST");
             }
-
         };
 
         final Session session = setUpSession(application, false, new UnitTestResponder());
         logonTo(session);
 
         try {
-            session.next(createAppMessage(2));
+            session.next(createHeartbeatMessage(2)); // should increment target seqnum
+            session.next(createHeartbeatMessage(3)); // should increment target seqnum
+            session.next(createHeartbeatMessage(4)); // should increment target seqnum
+            assertEquals(5, session.getExpectedTargetNum());
+            session.next(createAppMessage(5)); // should NOT increment target seqnum
             fail("No error thrown");
-        } catch (final Error e) {
-            assertEquals("TEST", e.getMessage());
+        } catch (final Throwable t) {
+            assertEquals("java.lang.Error: TEST", t.getMessage());
+            assertEquals(5, session.getExpectedTargetNum());
+            assertEquals(2, session.getExpectedSenderNum());
+            session.next(createHeartbeatMessage(5)); // should increment target seqnum
+            assertEquals(6, session.getExpectedTargetNum());
+            assertEquals(2, session.getExpectedSenderNum());
+        }
+    }
+
+    // QFJ-572
+    @Test
+    public void testCatchErrorsFromCallbackAndSendReject() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication() {
+
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                final String msgType = message.getHeader().getString(MsgType.FIELD);
+                if (MsgType.HEARTBEAT.equals(msgType)) {
+                    throw new Error("TESTAdmin");
+                }
+            }
+
+            @Override
+            public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+                super.fromApp(message, sessionId);
+                throw new Error("TEST");
+            }
+        };
+
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        session.setRejectMessageOnUnhandledException(true);
+        logonTo(session);
+
+        try {
+            session.next(createAppMessage(2));
+            assertEquals(3, session.getExpectedTargetNum());
+            assertEquals(3, session.getExpectedSenderNum());
+            assertEquals(MsgType.NEWS, application.lastFromAppMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(MsgType.BUSINESS_MESSAGE_REJECT, application.lastToAppMessage().getHeader().getString(MsgType.FIELD));
+            
+            session.next(createHeartbeatMessage(3));
+            assertEquals(4, session.getExpectedTargetNum());
+            assertEquals(4, session.getExpectedSenderNum());
+            assertEquals(MsgType.HEARTBEAT, application.lastFromAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(MsgType.REJECT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        
+            session.next(createAdminMessage(4));
+            assertEquals(5, session.getExpectedTargetNum());
+            assertEquals(5, session.getExpectedSenderNum());
+            assertEquals(MsgType.TEST_REQUEST, application.lastFromAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(MsgType.HEARTBEAT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+
+        } catch (final Throwable t) {
+            fail("Error was thrown: " + t.getMessage());
         }
     }
 
@@ -762,7 +821,7 @@ public class SessionTest {
         return state;
     }
 
-    /** Veifies that the session has been registered before the logger tries accessing it
+    /** Verifies that the session has been registered before the logger tries accessing it
      * Use case:
      *  JdbcLogger not setup correctly, barfs during Session creation, tries to log and
      * can't find the session in global session list yet.

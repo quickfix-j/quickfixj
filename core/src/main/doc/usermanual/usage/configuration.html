@@ -398,6 +398,14 @@
     <TD> Y </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> RejectMessageOnUnhandledException </TD>
+    <TD> If RejectMessageOnUnhandledException is set to Y, an uncaught Exception or Error in the application's message processing will lead to a (BusinessMessage)Reject being sent to the counterparty and the incoming message sequence number will be incremented.<br>
+         If this configuration is disabled (default), the problematic incoming message is discarded and the message sequence number is not incremented. Processing of the next valid message will cause detection of a sequence gap and a ResendRequest will be generated.
+    </TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> RequiresOrigSendingTime </TD>
     <TD> If RequiresOrigSendingTime is set to N, PossDup messages lacking that field will not be rejected.</TD>
     <TD> Y<br>N</TD>

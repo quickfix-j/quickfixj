@@ -317,7 +317,9 @@ public class Session implements Closeable {
     public static final String SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM = "EnableNextExpectedMsgSeqNum";
 
     public static final String SETTING_REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
-    
+
+    public static final String SETTING_REJECT_MESSAGE_ON_UNHANDLED_EXCEPTION = "RejectMessageOnUnhandledException";
+
     public static final String SETTING_REQUIRES_ORIG_SENDING_TIME = "RequiresOrigSendingTime";
 
     public static final String SETTING_FORCE_RESEND_WHEN_CORRUPTED_STORE = "ForceResendWhenCorruptedStore";
@@ -375,6 +377,7 @@ public class Session implements Closeable {
     private final boolean useClosedRangeForResend;
     private boolean disableHeartBeatCheck = false;
     private boolean rejectInvalidMessage = false;
+    private boolean rejectMessageOnUnhandledException = false;
     private boolean requiresOrigSendingTime = false;
     private boolean forceResendWhenCorruptedStore = false;
     private boolean enableNextExpectedMsgSeqNum = false;
@@ -406,7 +409,7 @@ public class Session implements Closeable {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, true, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
+                false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -420,10 +423,10 @@ public class Session implements Closeable {
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
             int[] logonIntervals, boolean resetOnError, boolean disconnectOnError,
             boolean ignoreHeartBeatFailure, boolean rejectInvalidMessage,
-            boolean requiresOrigSendingTime, boolean forceResendWhenCorruptedStore,
-            Set<InetAddress> allowedRemoteAddresses, boolean validateIncomingMessage,
-            int resendRequestChunkSize, boolean enableNextExpectedMsgSeqNum,
-            boolean enableLastMsgSeqNumProcessed) {
+            boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
+            boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
+            boolean validateIncomingMessage, int resendRequestChunkSize,
+            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -446,6 +449,7 @@ public class Session implements Closeable {
         this.disconnectOnError = disconnectOnError;
         disableHeartBeatCheck = ignoreHeartBeatFailure;
         this.rejectInvalidMessage = rejectInvalidMessage;
+        this.rejectMessageOnUnhandledException = rejectMessageOnUnhandledException;
         this.requiresOrigSendingTime = requiresOrigSendingTime;
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
         this.allowedRemoteAddresses = allowedRemoteAddresses;
@@ -889,9 +893,7 @@ public class Session implements Closeable {
         }
 
         try {
-
             final String beginString = header.getString(BeginString.FIELD);
-
             if (!beginString.equals(sessionID.getBeginString())) {
                 throw new UnsupportedVersion();
             }
@@ -1061,6 +1063,32 @@ public class Session implements Closeable {
             LogUtil.logThrowable(sessionID, "Error processing message: " + message, e);
             if (resetOrDisconnectIfRequired(message)) {
                 return;
+            }
+        } catch (Throwable t) { // QFJ-572
+            // If there are any other Throwables we might catch them here if desired.
+            // They were most probably thrown out of fromCallback().
+            if (rejectMessageOnUnhandledException) {
+                getLog().onErrorEvent("Rejecting message: " + t + ": " + message);
+                if (resetOrDisconnectIfRequired(message)) {
+                    return;
+                }
+                if (!(MessageUtils.isAdminMessage(msgType))
+                        && (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0)) {
+                    generateBusinessReject(message, BusinessRejectReason.APPLICATION_NOT_AVAILABLE,
+                            0);
+                } else {
+                    if (msgType.equals(MsgType.LOGON)) {
+                        disconnect("Problem processing Logon message", true);
+                    } else {
+                        generateReject(message, SessionRejectReason.OTHER, 0);
+                    }
+                }
+            } else {
+                // Re-throw as quickfix.RuntimeError to keep close to the former behaviour
+                // and to have a clear notion of what is thrown out of this method.
+                // Throwing RuntimeError here means that the target seqnum is not incremented
+                // and a resend will be triggered by the next incoming message.
+                throw new RuntimeError(t);
             }
         }
 
@@ -1399,7 +1427,6 @@ public class Session implements Closeable {
 
         reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
-        reject.setField(new Text(reason));
 
         String msgType = "";
         if (header.isSetField(MsgType.FIELD)) {
@@ -1416,9 +1443,21 @@ public class Session implements Closeable {
             if (!msgType.equals("")) {
                 reject.setString(RefMsgType.FIELD, msgType);
             }
-            if ((beginString.equals(FixVersions.BEGINSTRING_FIX42) && err <= SessionRejectReason.INVALID_MSGTYPE)
-                    || beginString.compareTo(FixVersions.BEGINSTRING_FIX42) > 0) {
+            if (beginString.compareTo(FixVersions.BEGINSTRING_FIX44) > 0) {
                 reject.setInt(SessionRejectReason.FIELD, err);
+            } else if (beginString.compareTo(FixVersions.BEGINSTRING_FIX44) == 0) {
+                if (err == SessionRejectReason.OTHER
+                        || err <= SessionRejectReason.NON_DATA_VALUE_INCLUDES_FIELD_DELIMITER) {
+                    reject.setInt(SessionRejectReason.FIELD, err);
+                }
+            } else if (beginString.compareTo(FixVersions.BEGINSTRING_FIX43) == 0) {
+                if (err <= SessionRejectReason.NON_DATA_VALUE_INCLUDES_FIELD_DELIMITER) {
+                    reject.setInt(SessionRejectReason.FIELD, err);
+                }
+            } else if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) == 0) {
+                if (err <= SessionRejectReason.INVALID_MSGTYPE) {
+                    reject.setInt(SessionRejectReason.FIELD, err);
+                }
             }
         }
 
@@ -1648,6 +1687,7 @@ public class Session implements Closeable {
         // Application exceptions will prevent the incoming sequence number from being incremented
         // and may result in resend requests and the next startup. This way, a buggy application
         // can be fixed and then reprocess previously sent messages.
+        // QFJ-572: Behaviour depends on the setting of flag rejectMessageOnUnhandledException.
         if (MessageUtils.isAdminMessage(msgType)) {
             application.fromAdmin(msg, sessionID);
         } else {
@@ -2683,11 +2723,14 @@ public class Session implements Closeable {
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {
         this.rejectInvalidMessage = rejectInvalidMessage;
     }
+    
+    public void setRejectMessageOnUnhandledException(boolean rejectMessageOnUnhandledException) {
+        this.rejectMessageOnUnhandledException = rejectMessageOnUnhandledException;
+    }
 
     public void setRequiresOrigSendingTime(boolean requiresOrigSendingTime) {
         this.requiresOrigSendingTime = requiresOrigSendingTime;
     }
-
     public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
     }

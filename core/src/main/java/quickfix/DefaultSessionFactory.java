@@ -62,6 +62,9 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final boolean rejectInvalidMessage = getSetting(settings, sessionID,
                     Session.SETTING_REJECT_INVALID_MESSAGE, true);
+         
+            final boolean rejectMessageOnUnhandledException = getSetting(settings, sessionID,
+                    Session.SETTING_REJECT_MESSAGE_ON_UNHANDLED_EXCEPTION, false);
 
             final boolean requiresOrigSendingTime = getSetting(settings, sessionID,
                     Session.SETTING_REQUIRES_ORIG_SENDING_TIME, true);
@@ -186,9 +189,9 @@ public class DefaultSessionFactory implements SessionFactory {
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck,
-                    rejectInvalidMessage, requiresOrigSendingTime, forceResendWhenCorruptedStore,
-                    allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize,
-                    enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed);
+                    rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
+                    forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
+                    resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
