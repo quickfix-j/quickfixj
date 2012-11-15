@@ -246,7 +246,8 @@ public class DataDictionaryTest extends TestCase {
         newSingle.setField(new Account("testAccount"));
 
         final DataDictionary dd = getDictionary();
-        new ExpectedTestFailure(UnsupportedVersion.class, null) {
+        new ExpectedTestFailure(UnsupportedVersion.class,
+                "Message version 'FIX.4.3' does not match the data dictionary version 'FIX.4.4'") {
             @Override
             protected void execute() throws Throwable {
                 dd.validate(newSingle);
@@ -421,7 +422,7 @@ public class DataDictionaryTest extends TestCase {
         dataDictionary.validate(nos4);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
 
-
+        
 
     }
 

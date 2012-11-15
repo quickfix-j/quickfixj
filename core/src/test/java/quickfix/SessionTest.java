@@ -276,6 +276,36 @@ public class SessionTest {
                 responder.disconnectCalled);
     }
 
+    @Test
+    // QFJ-603
+    public void testUnsupportedVersion() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = createSession(sessionID, application, true, true);
+
+        final UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+
+        final Message logonRequest = new Message(responder.sentMessageData);
+        final Message logonResponse = createLogonResponse(sessionID, logonRequest, 1);
+        session.next(logonResponse);
+
+        final News newsMessage = createAppMessage(2);
+        // set a BeginString unsupported by the session
+        newsMessage.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX40);
+        session.next(newsMessage);
+        final Message lastToAdminMessage = application.lastToAdminMessage();
+        assertEquals(MsgType.LOGOUT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
+        assertEquals(
+                "Incorrect BeginString: Message version 'FIX.4.0' does not match the session version 'FIX.4.4'",
+                lastToAdminMessage.getString(Text.FIELD));
+        assertTrue(responder.disconnectCalled);
+    }
+
     // QFJ-650
     @Test
     public void testLogoutOnMissingMsgSeqNum() throws Exception {

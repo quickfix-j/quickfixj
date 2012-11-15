@@ -634,7 +634,8 @@ public class DataDictionary {
                         message.getHeader().getString(BeginString.FIELD))
                 && !message.getHeader().getString(BeginString.FIELD).equals("FIXT.1.1")
                 && !sessionDataDictionary.getVersion().equals("FIX.5.0")) {
-            throw new UnsupportedVersion();
+            throw new UnsupportedVersion("Message version '" + message.getHeader().getString(BeginString.FIELD)
+                    + "' does not match the data dictionary version '" + sessionDataDictionary.getVersion() + "'");
         }
 
         if (!message.hasValidStructure() && message.getException() != null) {
@@ -1264,6 +1265,7 @@ public class DataDictionary {
         //    return stringValue;
         //}
 
+        @Override
         public boolean equals(Object other) {
             if (this == other) {
                 return true;
@@ -1275,6 +1277,7 @@ public class DataDictionary {
                     && stringValue.equals(((IntStringPair) other).stringValue);
         }
 
+        @Override
         public int hashCode() {
             return stringValue.hashCode() + intValue;
         }
@@ -1282,6 +1285,7 @@ public class DataDictionary {
         /**
          * For debugging
          */
+        @Override
         public String toString() {
             final StringBuffer b = new StringBuffer();
             b.append('(').append(intValue).append(',').append(stringValue).append(')');
@@ -1326,6 +1330,7 @@ public class DataDictionary {
             return delimiterField;
         }
 
+        @Override
         public boolean equals(Object other) {
             if (this == other) {
                 return true;
@@ -1337,6 +1342,7 @@ public class DataDictionary {
                     && dataDictionary.equals(((GroupInfo) other).dataDictionary);
         }
 
+        @Override
         public int hashCode() {
             return delimiterField;
         }

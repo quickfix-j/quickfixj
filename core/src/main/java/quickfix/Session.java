@@ -892,10 +892,12 @@ public class Session implements Closeable {
             return;
         }
 
+        final String sessionBeginString = sessionID.getBeginString();
         try {
             final String beginString = header.getString(BeginString.FIELD);
-            if (!beginString.equals(sessionID.getBeginString())) {
-                throw new UnsupportedVersion();
+            if (!beginString.equals(sessionBeginString)) {
+                throw new UnsupportedVersion("Message version '" + beginString
+                        + "' does not match the session version '" + sessionBeginString + "'");
             }
 
             if (msgType.equals(MsgType.LOGON)) {
@@ -996,7 +998,7 @@ public class Session implements Closeable {
             if (resetOrDisconnectIfRequired(message)) {
                 return;
             }
-            if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
+            if (sessionBeginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
                     && message.isApp()) {
                 generateBusinessReject(message,
                         BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, e.field);
@@ -1039,7 +1041,7 @@ public class Session implements Closeable {
             if (resetOrDisconnectIfRequired(message)) {
                 return;
             }
-            if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+            if (sessionBeginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
                 generateBusinessReject(message, BusinessRejectReason.UNSUPPORTED_MESSAGE_TYPE, 0);
             } else {
                 generateReject(message, "Unsupported message type");
@@ -1052,7 +1054,7 @@ public class Session implements Closeable {
             if (msgType.equals(MsgType.LOGOUT)) {
                 nextLogout(message);
             } else {
-                generateLogout("Incorrect BeginString");
+                generateLogout("Incorrect BeginString: " + e.getMessage());
                 state.incrNextTargetMsgSeqNum();
                 // 1d_InvalidLogonWrongBeginString.def appears to require
                 // a disconnect although the C++ didn't appear to be doing it.
@@ -1073,7 +1075,7 @@ public class Session implements Closeable {
                     return;
                 }
                 if (!(MessageUtils.isAdminMessage(msgType))
-                        && (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0)) {
+                        && (sessionBeginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0)) {
                     generateBusinessReject(message, BusinessRejectReason.APPLICATION_NOT_AVAILABLE,
                             0);
                 } else {

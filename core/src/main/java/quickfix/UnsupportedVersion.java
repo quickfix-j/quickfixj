@@ -20,5 +20,8 @@
 package quickfix;
 
 class UnsupportedVersion extends RuntimeException {
-
+    
+    public UnsupportedVersion(final String message) {
+        super(message);
+    }
 }
