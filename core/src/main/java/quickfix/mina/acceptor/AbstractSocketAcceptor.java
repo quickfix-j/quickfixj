@@ -135,7 +135,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 ioAcceptor.bind(address, new AcceptorIoHandler(
                         sessionProvider, new NetworkingOptions(settings.getDefaultProperties()),
                         getEventHandlingStrategy()));
-                log.info("Listening for connections at " + address);
+                log.info("Listening for connections at " + address + " for session(s) "
+                        + socketDescriptor.getAcceptedSessions().keySet());
             }
         } catch (FieldConvertError e) {
             throw new ConfigError(e);

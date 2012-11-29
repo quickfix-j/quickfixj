@@ -44,10 +44,10 @@ class AcceptorIoHandler extends AbstractIoHandler {
     private final AcceptorSessionProvider sessionProvider;
 
     public AcceptorIoHandler(AcceptorSessionProvider sessionProvider,
-            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandingStrategy) {
+            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy) {
         super(networkingOptions);
         this.sessionProvider = sessionProvider;
-        eventHandlingStrategy = eventHandingStrategy;
+        this.eventHandlingStrategy = eventHandlingStrategy;
     }
 
     @Override
@@ -85,7 +85,11 @@ class AcceptorIoHandler extends AbstractIoHandler {
                             networkingOptions.getSynchronousWrites(), networkingOptions
                                     .getSynchronousWriteTimeout()));
                 } else {
-                    log.error("Unknown session ID during logon: " + sessionID);
+                    log.error("Unknown session ID during logon: " + sessionID
+                            + " cannot be found in session list "
+                            + eventHandlingStrategy.getSessionConnector().getSessions()
+                            + " (connecting from " + protocolSession.getRemoteAddress() + " to "
+                            + protocolSession.getLocalAddress() + ")");
                     return;
                 }
             } else {
