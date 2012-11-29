@@ -19,14 +19,16 @@
 
 package quickfix.mina.acceptor;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.HashMap;
 import java.util.Properties;
 
-import junit.framework.TestCase;
-
 import org.apache.mina.common.IoSession;
+import org.junit.Test;
 
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
@@ -38,7 +40,9 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
-public class AcceptorIoHandlerTest extends TestCase {
+public class AcceptorIoHandlerTest {
+    
+    @Test
     public void testMessageBeforeLogon() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
         stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null);
@@ -60,6 +64,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         return new AbstractSocketAcceptor.StaticAcceptorSessionProvider(acceptorSessions);
     }
 
+    @Test
     public void testMessageBeforeLogonWithBoundSession() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
 
@@ -85,6 +90,7 @@ public class AcceptorIoHandlerTest extends TestCase {
         verify(mockEventHandlingStrategy).onMessage(qfSession, logout);
     }
 
+    @Test
     public void testMessageBeforeLogonWithKnownButUnboundSession() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
 
