@@ -30,8 +30,10 @@ import java.util.TimeZone;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import quickfix.field.ApplVerID;
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
+import quickfix.field.DefaultApplVerID;
 import quickfix.field.EncryptMethod;
 import quickfix.field.EndSeqNo;
 import quickfix.field.Headline;
@@ -717,6 +719,74 @@ public class SessionTest {
 
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(3, state.getNextTargetMsgSeqNum());
+    }
+
+    /**
+     * QFJ-721: Receiving a non-Logon message after having sent a Logon on a non-FIXT session
+     * formerly lead to a NPE since the field targetDefaultApplVerID was not initialized in all cases.
+     */
+    @Test
+    public void testNonLogonMessageNonFIXT() throws Exception {
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final ApplVerID applVerID = MessageUtils.toApplVerID(FixVersions.BEGINSTRING_FIX44);
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application,
+                true, false, true, true, null);
+        session.setResponder(new UnitTestResponder());
+
+        assertTrue(session.isUsingDataDictionary());
+        assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
+        session.next();
+        session.next();
+        Message createHeartbeatMessage = createHeartbeatMessage(1);
+        createHeartbeatMessage.toString(); // calculate checksum, length
+        processMessage(session, createHeartbeatMessage);
+        assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
+        assertFalse(session.isLoggedOn());
+    }
+
+    /**
+     * QFJ-721: For FIXT sessions the targetDefaultApplVerID should have been set after the Logon. 
+     */
+    @Test
+    public void testNonLogonMessageFIXT() throws Exception {
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
+                "TARGET");
+        final ApplVerID applVerID = MessageUtils.toApplVerID(FixVersions.FIX50SP2);
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application,
+                true, false, true, true, new DefaultApplVerID(ApplVerID.FIX50SP2));
+        session.setResponder(new UnitTestResponder());
+
+        // construct example messages
+        final quickfix.fixt11.Heartbeat heartbeat = new quickfix.fixt11.Heartbeat();
+        setUpHeader(session.getSessionID(), heartbeat, true, 1);
+        heartbeat.toString(); // calculate checksum, length
+        final quickfix.fixt11.Logon logon = new quickfix.fixt11.Logon();
+        setUpHeader(session.getSessionID(), logon, true, 1);
+        logon.setInt(HeartBtInt.FIELD, 30);
+        logon.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logon.setString(DefaultApplVerID.FIELD, ApplVerID.FIX50SP2);
+        logon.toString(); // calculate checksum, length
+        
+        assertTrue(session.isUsingDataDictionary());
+        assertNull(session.getTargetDefaultApplicationVersionID());
+        session.next();
+        session.next();
+        session.next(heartbeat);
+        assertNull(session.getTargetDefaultApplicationVersionID());
+        assertFalse(session.isLoggedOn());
+        
+        // retry Logon
+        session.setResponder(new UnitTestResponder());
+        session.next();
+        session.next();
+        assertNull(session.getTargetDefaultApplicationVersionID());
+        session.next(logon);
+        assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
+        assertTrue(session.isLoggedOn());
     }
 
     private void processMessage(Session session, Message message) throws FieldNotFound,

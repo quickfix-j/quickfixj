@@ -484,6 +484,11 @@ public class Session implements Closeable {
             LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
 
+        //QFJ-721: for non-FIXT sessions we do not need to set targetDefaultApplVerID from Logon
+        if (!sessionID.isFIXT()) {
+            targetDefaultApplVerID.set(MessageUtils.toApplVerID(sessionID.getBeginString()));
+        }
+        
         setEnabled(true);
 
         getLog().onEvent("Created session: " + sessionID);
@@ -904,9 +909,6 @@ public class Session implements Closeable {
                 if (sessionID.isFIXT()) {
                     targetDefaultApplVerID.set(new ApplVerID(message
                             .getString(DefaultApplVerID.FIELD)));
-
-                } else {
-                    targetDefaultApplVerID.set(MessageUtils.toApplVerID(beginString));
                 }
 
                 // QFJ-648

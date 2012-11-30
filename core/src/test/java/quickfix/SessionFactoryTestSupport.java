@@ -1,5 +1,7 @@
 package quickfix;
 
+import quickfix.field.DefaultApplVerID;
+
 public class SessionFactoryTestSupport implements SessionFactory {
     private static SessionFactoryTestSupport instance = new SessionFactoryTestSupport();
 
@@ -35,6 +37,17 @@ public class SessionFactoryTestSupport implements SessionFactory {
                         : 0, false, 30, true, resetOnLogon, false, false, false, false, false,
                 true, false, 1.5, null, validateSequenceNumbers, new int[] { 5 }, false, false, false, true,
                 false, true, false,null, true, 0, false, false);
+    }
+
+    public static Session createSession(SessionID sessionID, Application application,
+            boolean isInitiator, boolean resetOnLogon, boolean validateSequenceNumbers,
+            boolean useDataDictionary, DefaultApplVerID senderDefaultApplVerID) {
+        return new Session(application, new MemoryStoreFactory(), sessionID,
+                new DefaultDataDictionaryProvider(), null, new ScreenLogFactory(true, true, true),
+                new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, true, resetOnLogon,
+                false, false, false, false, false, true, false, 1.5, senderDefaultApplVerID,
+                validateSequenceNumbers, new int[] { 5 }, false, false, false, true, false, true,
+                false, null, true, 0, false, false);
     }
 
     public static Session createSession(SessionID sessionID, Application application,
