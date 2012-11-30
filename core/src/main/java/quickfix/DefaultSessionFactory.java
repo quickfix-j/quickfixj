@@ -164,7 +164,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_PERSIST_MESSAGES, true);
 
             final boolean useClosedIntervalForResend = getSetting(settings, sessionID,
-                    Session.USE_CLOSED_RESEND_INTERVAL, false);
+                    Session.SETTING_USE_CLOSED_RESEND_INTERVAL, false);
 
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);

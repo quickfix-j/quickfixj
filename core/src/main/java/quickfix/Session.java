@@ -286,7 +286,7 @@ public class Session implements Closeable {
      * as the end sequence of the gap. Not recommended by the FIX specification, but
      * needed for some counterparties.
      */
-    public static final String USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
+    public static final String SETTING_USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
 
     /**
      * Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
