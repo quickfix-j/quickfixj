@@ -23,10 +23,10 @@
     <th>Setting</th><th>Required?</th>
   </tr>
   <tr><td>BeginString</td><td style="text-align: center; background: 8f8">Y</td></tr>
-  <tr><td>SenderCompID</td><td style="text-align: center; background: 8f8"">Y</td></tr>
+  <tr><td>SenderCompID</td><td style="text-align: center; background: 8f8">Y</td></tr>
   <tr><td>SenderSubID</td><td style="text-align: center">N</td></tr>
   <tr><td>SenderLocationID</td><td style="text-align: center">N</td></tr>
-  <tr><td>TargetCompID</td><td style="text-align: center; background: 8f8"">Y</td></tr>
+  <tr><td>TargetCompID</td><td style="text-align: center; background: 8f8">Y</td></tr>
   <tr><td>TargetSubID</td><td style="text-align: center">N</td></tr>
   <tr><td>TargetLocationID</td><td style="text-align: center">N</td></tr>
   </table>
@@ -306,8 +306,6 @@
   </code></pre>
      This would use FIX42.xml for the default application version ID and FIX44.xml for
      any FIX 4.4 messages.
-     </p>
-
     <TD> Valid XML data dictionary file path.
     </TD>
 
@@ -317,7 +315,8 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ValidateFieldsOutOfOrder</I> </TD>
-    <TD> If set to N, fields that are out of order (i.e. body fields in the header, or header fields in the body) will not be rejected. Useful for connecting to systems which do not properly order fields.</TD>
+    <TD> If set to N, fields that are out of order (i.e. body fields in the header, or header fields in the body) will not be rejected.
+        Useful for connecting to systems which do not properly order fields.</TD>
     <TD> Y<br>N</TD>
 
     <TD> Y </TD>
@@ -330,7 +329,7 @@
     <TD> Y </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ValidateUserDefinedFields</TD>
+    <TD><I>ValidateUserDefinedFields</I></TD>
     <TD>If set to N, user defined fields will not be rejected if they are not
       defined in the data dictionary, or are present in messages they do not
       belong to.</TD>
@@ -339,7 +338,7 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ValidateUnorderedGroupFields</TD>
+    <TD><I>ValidateUnorderedGroupFields</I></TD>
     <TD>Session validation setting for enabling whether field ordering is
      * validated. Values are "Y" or "N". Default is "Y".</TD>
     <TD>Y<br>
@@ -347,14 +346,14 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ValidateIncomingMessage</TD>
+    <TD><I>ValidateIncomingMessage</I></TD>
     <TD>Allow to bypass the message validation (against the dictionary). Default is "Y".</TD>
     <TD>Y<br>
       N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ValidateSequenceNumbers</TD>
+    <TD><I>ValidateSequenceNumbers</I></TD>
     <TD>Check the next expected target SeqNum against the received SeqNum. Default is "Y".
       If enabled and a mismatch is detected, apply the following logic:
       <ul>
@@ -369,7 +368,7 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>AllowUnknownMsgFields</TD>
+    <TD><I>AllowUnknownMsgFields</I></TD>
     <TD>Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
      (not user defined fields). Use ValidateUserDefinedFields for controlling validation of tags >= 5000.</TD>
     <TD>Y<br>
@@ -378,41 +377,46 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>CheckCompID</I> </TD>
-    <TD> If set to Y, messages must be received from the counterparty with the correct SenderCompID and TargetCompID. Some systems will send you different CompIDs by design, so you must set this to N. </TD>
+    <TD> If set to Y, messages must be received from the counterparty with the correct SenderCompID and TargetCompID.
+        Some systems will send you different CompIDs by design, so you must set this to N. </TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>CheckLatency</I> </TD>
 
-    <TD> If set to Y, messages must be received from the counterparty within a defined number of seconds (see MaxLatency). It is useful to turn this off if a system uses localtime for its timestamps instead of GMT.</TD>
+    <TD> If set to Y, messages must be received from the counterparty within a defined number of seconds (see MaxLatency).
+        It is useful to turn this off if a system uses localtime for its timestamps instead of GMT.</TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
 
     <TD> <I>MaxLatency</I> </TD>
-    <TD> If CheckLatency is set to Y, this defines the number of seconds latency allowed for a message to be processed. Default is 120.</TD>
+    <TD> If CheckLatency is set to Y, this defines the number of seconds latency allowed for a message to be processed.</TD>
     <TD> positive integer</TD>
     <TD> 120 </TD>
 
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> RejectInvalidMessage </TD>
+    <TD> <I>RejectInvalidMessage</I> </TD>
     <TD> If RejectInvalidMessage is set to N, only a warning will be logged on reception of message that fails data dictionary validation.</TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> RejectMessageOnUnhandledException </TD>
-    <TD> If RejectMessageOnUnhandledException is set to Y, an uncaught Exception or Error in the application's message processing will lead to a (BusinessMessage)Reject being sent to the counterparty and the incoming message sequence number will be incremented.<br>
-         If this configuration is disabled (default), the problematic incoming message is discarded and the message sequence number is not incremented. Processing of the next valid message will cause detection of a sequence gap and a ResendRequest will be generated.
+    <TD> <I>RejectMessageOnUnhandledException</I> </TD>
+    <TD> If this configuration is enabled, an uncaught Exception or Error in the application's message processing
+         will lead to a (BusinessMessage)Reject being sent to the counterparty and the incoming message sequence number will be incremented.
+         <p>
+         If disabled (default), the problematic incoming message is discarded and the message sequence number is not incremented.
+         Processing of the next valid message will cause detection of a sequence gap and a ResendRequest will be generated.
     </TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> RequiresOrigSendingTime </TD>
+    <TD> <I>RequiresOrigSendingTime</I> </TD>
     <TD> If RequiresOrigSendingTime is set to N, PossDup messages lacking that field will not be rejected.</TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
@@ -551,7 +555,7 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD valign="top"> <I>SocketUseSSL</I></TD>
     <TD>Enables SSL usage for QFJ acceptor or initiator.</TD>
-    <TD> "Y" or "N"</TD>
+    <TD> Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
@@ -594,7 +598,7 @@
      </ol>
       The purpose of this option is to detect if the peer host crashes.
     </TD>
-    <TD> "Y" or "N"</TD>
+    <TD> Y<BR>N</TD>
     <TD></TD>
   </TR>
 
@@ -606,7 +610,7 @@
      When the option is disabled (which is the default) urgent data
      is silently discarded.
 </TD>
-    <TD> "Y" or "N"</TD>
+    <TD> Y<BR>N</TD>
     <TD></TD>
   </TR>
 
@@ -629,7 +633,7 @@
     <TD>Sets SO_REUSEADDR for a socket.  This is used only for MulticastSockets
      in java, and it is set by default for MulticastSockets.
     </TD>
-    <TD>"Y" or "N"</TD>
+    <TD>Y<BR>N</TD>
     <TD></TD>
   </TR>
 
@@ -669,8 +673,8 @@
      to the network is not buffered pending acknowledgement of
      previously written data.
     </TD>
-    <TD>"Y" or "N"</TD>
-    <TD>Default is "Y".</TD>
+    <TD>Y<BR>N</TD>
+    <TD>Y</TD>
   </TR>
 
                                     <TR ALIGN="left" VALIGN="middle">
@@ -681,8 +685,8 @@
      As the underlying network implementation may ignore this
      value applications should consider it a hint.
 
-     <P> The tc <B>must</B> be in the range <code> 0 <= tc <=
-     255</code> or an IllegalArgumentException will be thrown.
+     <P> The tc <B>must</B> be in the range 0 &le; tc &le; 255
+     or an IllegalArgumentException will be thrown.
      <p>Notes:
      <p> for Internet Protocol v4 the value consists of an octet
      with precedence and TOS fields as detailed in RFC 1349. The
@@ -714,8 +718,8 @@
         degradation. The MINA communication layer is asynchronous by design, but this option will override
         that behavior if needed.
     </TD>
-    <TD>"Y" or "N"</TD>
-    <TD>"N"</TD>
+    <TD>Y<BR>N</TD>
+    <TD>N</TD>
   </TR>
 
   <TR ALIGN="left" VALIGN="middle">
@@ -740,26 +744,27 @@
     </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>PersistMessages</TD>
-    <TD> If set to N, no messages will be persisted. This will force QFJ to always send GapFills instead of resending messages. Use this if you know you never want to resend a message. Useful for market data streams.</TD>
+    <TD><I>PersistMessages</I></TD>
+    <TD> If set to N, no messages will be persisted. This will force QFJ to always send GapFills instead of resending messages.
+        Use this if you know you never want to resend a message. Useful for market data streams.</TD>
     <TD> Y<br>N</TD>
     <TD> Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>FileStorePath</TD>
+    <TD><I>FileStorePath</I></TD>
     <TD> Directory to store sequence number and message files. Only used with FileStoreFactory. </TD>
     <TD> valid directory for storing files, must have write access </TD>
 
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>FileStoreMaxCachedMsgs</TD>
+    <TD><I>FileStoreMaxCachedMsgs</I></TD>
     <TD> Maximum number of message index entries to cache in memory. </TD>
     <TD>Integer. A zero will not cache any entries.</TD>
     <TD>Integer.MAX_VALUE</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcDataSourceName</TD>
+    <TD><I>JdbcDataSourceName</I></TD>
     <TD>JNDI name for the JDBC data source. This technique for finding the data source can
         be used as an alternative to specifying the driver details. It allows better integration
         with application servers and servlet containers that are already configured with
@@ -770,7 +775,7 @@
     <TD>&nbsp;</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcDriver</TD>
+    <TD><I>JdbcDriver</I></TD>
     <TD>JDBC driver for JDBC logger. Also used for JDBC log.</TD>
     <TD>Class name for the JDBC driver. Specify driver properties directly will cause the
     creation of a Proxool data source that supports connection pooling. If you are using a
@@ -778,56 +783,56 @@
     method on the Jdbc-related factories to set the data source directly.</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcURL</TD>
+    <TD><I>JdbcURL</I></TD>
     <TD>JDBC database URL. Also used for JDBC log.</TD>
     <TD>Depends on the JDBC database driver.</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcUser</TD>
+    <TD><I>JdbcUser</I></TD>
     <TD>JDBC user. Also used for JDBC log.</TD>
     <TD>&nbsp;</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcPassword</TD>
+    <TD><I>JdbcPassword</I></TD>
     <TD>JDBC password. Also used for JDBC log.</TD>
     <TD>&nbsp;</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcStoreMessagesTableName</TD>
+    <TD><I>JdbcStoreMessagesTableName</I></TD>
     <TD>Table name for messages table.</TD>
     <TD>A valid SQL table name.</TD>
     <TD>messages</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcStoreSessionsTableName</TD>
+    <TD><I>JdbcStoreSessionsTableName</I></TD>
     <TD>Table name for sessions table.</TD>
     <TD>A valid SQL table name.</TD>
     <TD>sessions</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcLogHeartBeats</TD>
+    <TD><I>JdbcLogHeartBeats</I></TD>
     <TD>Controls filtering of heartbeats for message logging (both in and out).</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcLogIncomingTable</TD>
+    <TD><I>JdbcLogIncomingTable</I></TD>
     <TD>The name of the JDBC log incoming table.</TD>
     <TD>valid table name</TD>
     <TD>messages_log</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcLogOutgoingTable</TD>
+    <TD><I>JdbcLogOutgoingTable</I></TD>
     <TD>The name of the JDBC log outgoing table.</TD>
     <TD>valid table name</TD>
     <TD>messages_log</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcLogEventTable</TD>
+    <TD><I>JdbcLogEventTable</I></TD>
     <TD>The name of the JDBC log events table.</TD>
     <TD>valid table name</TD>
     <TD>event_log</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcSessionIdDefaultPropertyValue</TD>
+    <TD><I>JdbcSessionIdDefaultPropertyValue</I></TD>
     <TD>The default value for Session ID bean properties is an empty string. Oracle treats
     this as a SQL NULL and that causes problems. This configuration setting allows you to
     set the default value for unspecified Session ID properties.</TD>
@@ -840,32 +845,32 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>FileLogPath</TD>
+    <TD><I>FileLogPath</I></TD>
     <TD> Directory to store logs. Only used with FileLogFactory. </TD>
     <TD> valid directory for storing files, must have write access </TD>
 
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>FileLogHeartbeats</TD>
+    <TD><I>FileLogHeartbeats</I></TD>
     <TD> Controls logging of heartbeat messages.</TD>
-    <TD>Y or N </TD>
+    <TD>Y<BR>N </TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>FileIncludeMilliseconds</TD>
+    <TD><I>FileIncludeMilliseconds</I></TD>
     <TD> Controls whether milliseconds are included in log time stamps. </TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>FileIncludeTimeStampForMessages</TD>
+    <TD><I>FileIncludeTimeStampForMessages</I></TD>
     <TD> Controls whether time stamps are included on message log entries. </TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SLF4JLogEventCategory</TD>
+    <TD><I>SLF4JLogEventCategory</I></TD>
     <TD>Log category for logged events.</TD>
     <TD>Depends on log engine. The SLF4J adapter for JDK 1.4 logging is included by default.
     An adapter for Log4J and the Log4J JAR are in the lib/optional directory. See
@@ -886,71 +891,71 @@
     <TD>quickfixj.event</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SLF4JLogIncomingMessageCategory</TD>
+    <TD><I>SLF4JLogIncomingMessageCategory</I></TD>
     <TD><p>Log category for incoming messages.</p>
       </TD>
     <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
     <TD>quickfixj.msg.incoming</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SLF4JLogOutgoingMessageCategory</TD>
+    <TD><I>SLF4JLogOutgoingMessageCategory</I></TD>
     <TD>Log category for outgoing messages.</TD>
     <TD>Depends on log engine. See "SL4JLogEventCategory".</TD>
     <TD>quickfixj.msg.outgoing</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SLF4JLogPrependSessionID</TD>
+    <TD><I>SLF4JLogPrependSessionID</I></TD>
     <TD>Controls whether session ID is prepended to log message.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SLF4JLogHeartbeats</TD>
+    <TD><I>SLF4JLogHeartbeats</I></TD>
     <TD>Controls whether heartbeats are logged.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
    <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcDriver</TD>
+    <TD><I>JdbcDriver</I></TD>
     <TD>JDBC driver for JDBC logger. Also used for JDBC message store.</TD>
     <TD>Classname for the JDBC driver.</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcURL</TD>
+    <TD><I>JdbcURL</I></TD>
     <TD>JDBC database URL. Also used for JDBC message store.</TD>
     <TD>Depends on the JDBC database driver.</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcUser</TD>
+    <TD><I>JdbcUser</I></TD>
     <TD>JDBC user. Also used for JDBC message store.</TD>
     <TD>&nbsp;</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>JdbcPassword</TD>
+    <TD><I>JdbcPassword</I></TD>
     <TD>JDBC password. Also used for JDBC message store.</TD>
     <TD>&nbsp;</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogEvents</TD>
+    <TD><I>ScreenLogEvents</I></TD>
     <TD>Log events to screen.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogShowIncoming</TD>
+    <TD><I>ScreenLogShowIncoming</I></TD>
     <TD>Log incoming messages to screen.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogShowOutgoing</TD>
+    <TD><I>ScreenLogShowOutgoing</I></TD>
     <TD>Log outgoing messages to screen.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ScreenLogShowHeartBeats</TD>
+    <TD><I>ScreenLogShowHeartBeats</I></TD>
     <TD>Filter heartbeats from output (both incoming and outgoing)</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
 
@@ -981,44 +986,52 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnError</I> </TD>
-    <TD> Session setting for doing an automatic reset when an error occurs. Valid values are "Y" or "N". Default is "N". A reset means disconnect, sequence numbers reset, store cleaned and reconnect, as for a daily reset.</TD>
+    <TD> Session setting for doing an automatic reset when an error occurs.
+        A reset means disconnect, sequence numbers reset, store cleaned and reconnect, as for a daily reset.</TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>DisconnectOnError</I> </TD>
-    <TD> Session setting for doing an automatic disconnect when an error occurs. Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Session setting for doing an automatic disconnect when an error occurs.</TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EnableLastMsgSeqNumProcessed</I> </TD>
-    <TD> Add tag LastMsgSeqNumProcessed in the header (optional tag 369). Valid values are "Y" or "N". Default is "N".</TD>
+    <TD> Add tag LastMsgSeqNumProcessed in the header (optional tag 369).</TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EnableNextExpectedMsgSeqNum</I> </TD>
-    <TD> Add tag NextExpectedMsgSeqNum (optional tag 789) on the sent Logon message and use value of tag 789 on received Logon message to synchronize session. Valid values are "Y" or "N". Default is "N". This should not be enabled for FIX versions &lt; 4.4. Only works when ValidateSequenceNumbers is enabled.</TD>
+    <TD> Add tag NextExpectedMsgSeqNum (optional tag 789) on the sent Logon message and use value of tag 789 on received Logon message to synchronize session.
+        This should not be enabled for FIX versions &lt; 4.4. Only works when ValidateSequenceNumbers is enabled.</TD>
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResendRequestChunkSize</I> </TD>
-    <TD> Setting to limit the size of a resend request in case of missing messages. This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest. Default to 0 if not set. 0 disabling the splitting. E.g. if the ResendRequestChunkSize is set to 5 and a gap of 7 messages is detected, a first resend request will be sent for 5 messages. When this gap has been filled, another resend request for 2 messages will be sent. If the ResendRequestChunkSize is set to 0, only one ResendRequest for all the missing messages will be sent.</TD>
+    <TD> Setting to limit the size of a resend request in case of missing messages.
+        This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest.
+        <P>
+         E.g. if the ResendRequestChunkSize is set to 5 and a gap of 7 messages is detected,
+         a first resend request will be sent for 5 messages.
+         When this gap has been filled, another resend request for 2 messages will be sent.
+         If the ResendRequestChunkSize is set to 0, only one ResendRequest for all the missing messages will be sent.</TD>
     <TD> any positive integer</TD>
-    <TD> 0 (for no splitting) </TD>
+    <TD> 0 (disables splitting) </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>ContinueInitializationOnError</I></TD>
     <TD>Continue initializing sessions if an error occurs.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>SendRedundantResendRequests</I></TD>
     <TD>Allows sending of redundant resend requests.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
@@ -1032,12 +1045,12 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>DisableHeartBeatCheck</I></TD>
     <TD> Heartbeat detection is disabled. A disconnect due to a missing heartbeat will never occur.</TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>ForceResendWhenCorruptedStore</I></TD>
     <TD> Fill in heartbeats on resend when reading from message store fails. </TD>
-    <TD>Y or N</TD>
+    <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
   </tbody>
