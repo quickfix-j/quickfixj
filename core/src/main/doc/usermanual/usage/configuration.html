@@ -215,6 +215,12 @@
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>NonStopSession</I> </TD>
+    <TD> If set the session will <I>never</I> reset. </TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>MillisecondsInTimeStamp</I> </TD>
     <TD> Determines if milliseconds should be added to
     timestamps. Only available for FIX.4.2 and greater. </TD>
@@ -506,8 +512,9 @@
     <TD> <I>SocketAcceptAddress</I></TD>
 
     <TD> Local IP address to for binding accept port.</TD>
-    <TD> A hostname or IP address parseable by java.net.InetAddress. Currently,
-      this must be defined in the [DEFAULT] section.</TD>
+    <TD> A hostname or IP address parseable by <code>java.net.InetAddress</code>.<BR>
+         Currently, this must be defined in the [DEFAULT] section.
+    </TD>
     <TD>Accept connections on any network interface.</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
@@ -518,6 +525,14 @@
     </TD>
     <TD> "TCP" or "VM_PIPE".  </TD>
     <TD>"TCP" </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>AllowedRemoteAddresses</I> </TD>
+    <TD> List of remote IP addresses which are allowed to connect to this acceptor.
+    </TD>
+    <TD> comma-separated list of hostnames or IP addresses parseable by <code>java.net.InetAddress</code>
+    </TD>
+    <TD> empty, ie all remote addresses are allowed </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>RefreshOnLogon</I></TD>
@@ -840,14 +855,14 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD>FileIncludeMilliseconds</TD>
     <TD> Controls whether milliseconds are included in log time stamps. </TD>
-    <TD>"Y" or "N"</TD>
-    <TD>"N"</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD>FileIncludeTimeStampForMessages</TD>
     <TD> Controls whether time stamps are included on message log entries. </TD>
-    <TD>"Y" or "N"</TD>
-    <TD>"N"</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD>SLF4JLogEventCategory</TD>
@@ -995,14 +1010,33 @@
     <TD> 0 (for no splitting) </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>ContinueInitializationOnError</TD>
+    <TD><I>ContinueInitializationOnError</I></TD>
     <TD>Continue initializing sessions if an error occurs.</TD>
     <TD>Y or N</TD>
     <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD>SendRedundantResendRequests</TD>
+    <TD><I>SendRedundantResendRequests</I></TD>
     <TD>Allows sending of redundant resend requests.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>TestRequestDelayMultiplier</I></TD>
+    <TD>Fraction of the heartbeat interval which defines the additional time to wait
+    if a TestRequest sent after a missing heartbeat times out.
+    </TD>
+    <TD>0..1</TD>
+    <TD>0.5</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>DisableHeartBeatCheck</I></TD>
+    <TD> Heartbeat detection is disabled. A disconnect due to a missing heartbeat will never occur.</TD>
+    <TD>Y or N</TD>
+    <TD>N</TD>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>ForceResendWhenCorruptedStore</I></TD>
+    <TD> Fill in heartbeats on resend when reading from message store fails. </TD>
     <TD>Y or N</TD>
     <TD>N</TD>
   </TR>
