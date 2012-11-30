@@ -422,7 +422,7 @@ public class Session implements Closeable {
             boolean useClosedRangeForResend, double testRequestDelayMultiplier,
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
             int[] logonIntervals, boolean resetOnError, boolean disconnectOnError,
-            boolean ignoreHeartBeatFailure, boolean rejectInvalidMessage,
+            boolean disableHeartBeatCheck, boolean rejectInvalidMessage,
             boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
@@ -447,7 +447,7 @@ public class Session implements Closeable {
         this.logonIntervals = logonIntervals;
         this.resetOnError = resetOnError;
         this.disconnectOnError = disconnectOnError;
-        disableHeartBeatCheck = ignoreHeartBeatFailure;
+        this.disableHeartBeatCheck = disableHeartBeatCheck;
         this.rejectInvalidMessage = rejectInvalidMessage;
         this.rejectMessageOnUnhandledException = rejectMessageOnUnhandledException;
         this.requiresOrigSendingTime = requiresOrigSendingTime;
