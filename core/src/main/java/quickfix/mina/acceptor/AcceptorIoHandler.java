@@ -30,6 +30,8 @@ import quickfix.Message;
 import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.field.ApplVerID;
+import quickfix.field.DefaultApplVerID;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgType;
 import quickfix.mina.AbstractIoHandler;
@@ -84,6 +86,15 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     qfSession.setResponder(new IoSessionResponder(protocolSession,
                             networkingOptions.getSynchronousWrites(), networkingOptions
                                     .getSynchronousWriteTimeout()));
+                    if (sessionID.isFIXT()) { // QFJ-592
+                        if (message.isSetField(DefaultApplVerID.FIELD)) {
+                            final ApplVerID applVerID = new ApplVerID(
+                                    message.getString(DefaultApplVerID.FIELD));
+                            qfSession.setTargetDefaultApplicationVersionID(applVerID);
+                            log.info("Setting DefaultApplVerID (" + DefaultApplVerID.FIELD + "="
+                                    + applVerID.getValue() + ") from Logon");
+                        }
+                    }
                 } else {
                     log.error("Unknown session ID during logon: " + sessionID
                             + " cannot be found in session list "

@@ -19,29 +19,76 @@
 
 package quickfix.mina.acceptor;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.mina.common.IoSession;
 import org.junit.Test;
 
+import quickfix.FixVersions;
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
 import quickfix.SessionID;
+import quickfix.UnitTestApplication;
+import quickfix.field.ApplVerID;
+import quickfix.field.DefaultApplVerID;
+import quickfix.field.EncryptMethod;
+import quickfix.field.HeartBtInt;
+import quickfix.field.MsgSeqNum;
 import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
 import quickfix.fix44.Logout;
+import quickfix.fixt11.Logon;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
 public class AcceptorIoHandlerTest {
-    
+
+    /**
+     * QFJ-592
+     * We need to make sure that the targetDefaultApplVerID gets set as early as possible,
+     * hence we set it before the Logon message is put to the event queue.
+     */
+    @Test
+    public void testFIXTLogonAndApplVerID() throws Exception {
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
+        IoSession mockIoSession = mock(IoSession.class);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
+                "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID,
+                new UnitTestApplication(), false);
+        stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
+
+        final HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
+        acceptorSessions.put(sessionID, session);
+        final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
+
+        final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
+                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+
+        final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
+        final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
+                new HeartBtInt(30), defaultApplVerID);
+        message.getHeader().setString(TargetCompID.FIELD, sessionID.getSenderCompID());
+        message.getHeader().setString(SenderCompID.FIELD, sessionID.getTargetCompID());
+        message.getHeader().setField(new SendingTime(new Date()));
+        message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+
+        handler.processMessage(mockIoSession, message);
+        assertEquals(defaultApplVerID.getValue(), session.getTargetDefaultApplicationVersionID()
+                .getValue());
+    }
+
     @Test
     public void testMessageBeforeLogon() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);

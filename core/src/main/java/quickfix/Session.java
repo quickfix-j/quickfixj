@@ -2680,6 +2680,16 @@ public class Session implements Closeable {
         return targetDefaultApplVerID.get();
     }
 
+    /**
+     * Sets the default application version ID for messages received by this session.
+     * This is called by the AcceptorIoHandler upon reception of a Logon message and
+     * should not be called by user code.
+     * @param applVerID
+     */
+    public void setTargetDefaultApplicationVersionID(ApplVerID applVerID) {
+        targetDefaultApplVerID.set(applVerID);
+    }
+    
     private static String extractNumber(String txt, int from) {
         String ret = "";
         for (int i = from; i != txt.length(); ++i) {
