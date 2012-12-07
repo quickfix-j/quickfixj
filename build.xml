@@ -1,7 +1,7 @@
 <project name="master" basedir="." default="">
 	<property file="${user.home}/.build"/>
 	
-	<property name="jvm.java4" value="C:/Development/j2sdk1.4.2_13/bin/java"/>
+       <property name="jvm.java4" value="C:/Development/j2sdk1.4.2_13/bin/java"/>
 
 	<property name="release.output.dir" value="${basedir}/dist"/>
 
@@ -435,6 +435,10 @@
                     <exclude name="**/MessageCrackerTest.java"/>
                     <exclude name="**/MessageTest.java"/>
                     <exclude name="**/SessionTest.java"/>
+                    <exclude name="**/SessionResetTest.java"/>
+                    <exclude name="**/SocketInitiatorTest.java"/>
+                    <exclude name="**/SSLAndNonSSLTest.java"/>
+                    <exclude name="**/AcceptorIoHandlerTest.java"/>
                     <exclude name="**/ThreadPerSessionEventHandlingStrategyTest.java"/>
                     <exclude name="**/FIXMessageDecoderTest.java"/>
                     <exclude name="**/MessageUtilsTest.java"/>
