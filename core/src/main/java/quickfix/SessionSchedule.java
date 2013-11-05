@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Corresponds to SessionTime in C++ code
  */
-class SessionSchedule {
+public class SessionSchedule {
     private static final int NOT_SET = -1;
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})(.*)");
     private final TimeEndPoint startTime;
@@ -39,7 +39,7 @@ class SessionSchedule {
     private final boolean nonStopSession;
     protected final static Logger log = LoggerFactory.getLogger(SessionSchedule.class);
 
-    SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
+    public SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
             
         if (settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION)) {
@@ -76,25 +76,10 @@ class SessionSchedule {
             throw new ConfigError("Session " + sessionID + ": could not parse time '"
                     + settings.getString(sessionID, timeSetting) + "'.");
         }
-
-        TimeZone timeZone = getTimeZone(matcher.group(4), defaultTimeZone);
-
-        Calendar localTime = SystemTime.getUtcCalendar();
-        localTime.setTimeZone(timeZone);
-
-        localTime.set(Calendar.HOUR_OF_DAY, Integer.parseInt(matcher.group(1)));
-        localTime.set(Calendar.MINUTE, Integer.parseInt(matcher.group(2)));
-        localTime.set(Calendar.SECOND, Integer.parseInt(matcher.group(3)));
-
-        int scheduleDay = getDay(settings, sessionID, daySetting, NOT_SET);
-        if (scheduleDay != NOT_SET) {
-            localTime.set(Calendar.DAY_OF_WEEK, scheduleDay);
-        }
-
-        Calendar utcTime = SystemTime.getUtcCalendar();
-        utcTime.setTime(localTime.getTime());
-
-        return new TimeEndPoint(scheduleDay == NOT_SET ? NOT_SET : utcTime.get(Calendar.DAY_OF_WEEK), utcTime, utcTime.getTimeZone());
+        
+        return new TimeEndPoint(getDay(settings, sessionID, daySetting, NOT_SET), 
+        		Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)), 
+        		Integer.parseInt(matcher.group(3)), getTimeZone(matcher.group(4), defaultTimeZone));
     }
 
     private TimeZone getDefaultTimeZone(SessionSettings settings, SessionID sessionID)
@@ -124,10 +109,6 @@ class SessionSchedule {
         private final int second;
         private final int timeInSeconds;
         private final TimeZone tz;
-
-        public TimeEndPoint(int day, Calendar c, TimeZone tz) {
-            this(day, c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), c.get(Calendar.SECOND), tz);
-        }
 
         public TimeEndPoint(int day, int hour, int minute, int second, TimeZone tz) {
             weekDay = day;
@@ -194,27 +175,32 @@ class SessionSchedule {
     private TimeInterval theMostRecentIntervalBefore(Calendar t) {
         TimeInterval timeInterval = new TimeInterval();
         Calendar intervalStart = timeInterval.getStart();
-
+        intervalStart.setTimeZone(startTime.getTimeZone());
         intervalStart.setTimeInMillis(t.getTimeInMillis());
         intervalStart.set(Calendar.HOUR_OF_DAY, startTime.getHour());
         intervalStart.set(Calendar.MINUTE, startTime.getMinute());
         intervalStart.set(Calendar.SECOND, startTime.getSecond());
         intervalStart.set(Calendar.MILLISECOND, 0);
-        if (isSet(startTime.getDay())) {
-            intervalStart.set(Calendar.DAY_OF_WEEK, startTime.getDay());
-            if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
-                intervalStart.add(Calendar.WEEK_OF_YEAR, -1);
-            }
-        } else if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
-            intervalStart.add(Calendar.DAY_OF_YEAR, -1);
-        }
-
+        
         Calendar intervalEnd = timeInterval.getEnd();
-        intervalEnd.setTimeInMillis(intervalStart.getTimeInMillis());
+        intervalEnd.setTimeZone(endTime.getTimeZone());
+        intervalEnd.setTimeInMillis(t.getTimeInMillis());
         intervalEnd.set(Calendar.HOUR_OF_DAY, endTime.getHour());
         intervalEnd.set(Calendar.MINUTE, endTime.getMinute());
         intervalEnd.set(Calendar.SECOND, endTime.getSecond());
         intervalEnd.set(Calendar.MILLISECOND, 0);
+        
+        if (isSet(startTime.getDay())) {
+            intervalStart.set(Calendar.DAY_OF_WEEK, startTime.getDay());
+            if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
+                intervalStart.add(Calendar.WEEK_OF_YEAR, -1);
+                intervalEnd.add(Calendar.WEEK_OF_YEAR, -1);
+            }
+        } else if (intervalStart.getTimeInMillis() > t.getTimeInMillis()) {
+            intervalStart.add(Calendar.DAY_OF_YEAR, -1);
+            intervalEnd.add(Calendar.DAY_OF_YEAR, -1);
+        }        
+        
         if (isSet(endTime.getDay())) {
             intervalEnd.set(Calendar.DAY_OF_WEEK, endTime.getDay());
             if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
@@ -233,7 +219,7 @@ class SessionSchedule {
         private Calendar end = SystemTime.getUtcCalendar();
 
         public boolean isContainingTime(Calendar t) {
-            return t.equals(start) || t.equals(end) || (t.after(start) && t.before(end));
+        	return t.compareTo(start) >= 0 && t.compareTo(end) <= 0;
         }
 
         public String toString() {
@@ -303,8 +289,8 @@ class SessionSchedule {
         formatTimeInterval(buf, ti, timeFormat, false);
 
         // Now the localized equivalents, if necessary
-        if (startTime.getTimeZone() != SystemTime.UTC_TIMEZONE
-                || endTime.getTimeZone() != SystemTime.UTC_TIMEZONE) {
+        if (!startTime.getTimeZone().equals(SystemTime.UTC_TIMEZONE)
+                || !endTime.getTimeZone().equals(SystemTime.UTC_TIMEZONE)) {
             buf.append(" (");
             formatTimeInterval(buf, ti, timeFormat, true);
             buf.append(")");

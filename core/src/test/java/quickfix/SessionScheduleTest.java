@@ -50,6 +50,7 @@ public class SessionScheduleTest extends TestCase {
         super.tearDown();
     }
 
+    
     public void testSessionAlwaysActive() throws Exception {
         Calendar start = getUtcTime(0, 0, 0);
         Calendar end = getUtcTime(0, 0, 0);
@@ -145,7 +146,7 @@ public class SessionScheduleTest extends TestCase {
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
         assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
     }
-
+//
     private void doIsSessionTimeTest(SessionSettings settings, SessionID sessionID,
             boolean expectedInSession, int year, int month, int day, int hour, int minute,
             int second, String timeZoneID) throws ConfigError, FieldConvertError {
@@ -669,6 +670,103 @@ public class SessionScheduleTest extends TestCase {
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.WEDNESDAY), "14:00:00", DayConverter.toString(Calendar.FRIDAY), "18:00:00");
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.WEDNESDAY), "14:00:00", DayConverter.toString(Calendar.FRIDAY), "12:00:00");
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.FRIDAY), "14:00:00", DayConverter.toString(Calendar.FRIDAY), "13:59:00");
+    }
+    
+    public void testSettingsWithDST() throws Exception {
+    	SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_TIMEZONE, "Europe/Zurich");
+        settings.setString(Session.SETTING_START_TIME, "01:30:00");
+        settings.setString(Session.SETTING_END_TIME, "03:15:00");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        //
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 20, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 20, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 20, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 20, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 20, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		//
+        schedule = new SessionSchedule(settings, sessionID);
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 27, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 27, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 27, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 27, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 27, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		//
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 28, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 28, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 28, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 28, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 28, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		//
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 29, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 29, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 29, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2012, Calendar.OCTOBER, 29, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2012, Calendar.OCTOBER, 29, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		//
+        schedule = new SessionSchedule(settings, sessionID);
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.MARCH, 30, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.MARCH, 30, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.MARCH, 30, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.MARCH, 30, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.MARCH, 30, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		//
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.MARCH, 31, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.MARCH, 31, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.MARCH, 31, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich")); // -> this is 03:16 !
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.MARCH, 31, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.MARCH, 31, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		//
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.APRIL, 1, 01, 29, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.APRIL, 1, 01, 31, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.APRIL, 1, 02, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, true, 2013, Calendar.APRIL, 1, 03, 14, 0, TimeZone.getTimeZone("Europe/Zurich"));
+		doIsSessionTimeTest(schedule, false, 2013, Calendar.APRIL, 1, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
+    }
+    
+	public void testSettingsWithStartEndDayWithDST() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_TIMEZONE, "America/New_York");
+        settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.SUNDAY));
+        settings.setString(Session.SETTING_START_TIME, "20:00:00");
+        settings.setString(Session.SETTING_END_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_END_TIME, "17:00:00");
+        
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+        
+        //System.out.println(schedule);
+        
+        //November,2 -> Sunday
+        doIsSessionTimeTest(schedule, true, 2008, Calendar.NOVEMBER, 2, 20, 0, 0,
+                TimeZone.getTimeZone("America/New_York"));
+        //November,7 -> Friday
+        doIsSessionTimeTest(schedule, true, 2008, Calendar.NOVEMBER, 7, 17, 0, 0,
+                TimeZone.getTimeZone("America/New_York"));
+    }
+	
+	public void testSettingsWithStartEndDayWithDSTMocked() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_TIMEZONE, "America/New_York");
+        settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.SUNDAY));
+        settings.setString(Session.SETTING_START_TIME, "20:00:00");
+        settings.setString(Session.SETTING_END_DAY, DayConverter.toString(Calendar.FRIDAY));
+        settings.setString(Session.SETTING_END_TIME, "17:00:00");
+        
+        mockSystemTimeSource.setTime(getTimeStamp(2008, Calendar.NOVEMBER, 2, 18, 0, 0, TimeZone.getTimeZone("America/New_York")));
+        
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+        
+        //System.out.println(schedule);
+        
+        //November,2 -> Sunday
+        doIsSessionTimeTest(schedule, true, 2008, Calendar.NOVEMBER, 2, 20, 0, 0,
+                TimeZone.getTimeZone("America/New_York"));
+        //November,7 -> Friday
+        doIsSessionTimeTest(schedule, true, 2008, Calendar.NOVEMBER, 7, 17, 0, 0,
+                TimeZone.getTimeZone("America/New_York"));
     }
 
     private void doWeeklyIsSameSessionTest(String startDay, String startTimeString, String endDay,
