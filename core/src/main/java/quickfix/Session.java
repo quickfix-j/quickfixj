@@ -704,10 +704,14 @@ public class Session implements Closeable {
     }
 
     private void insertSendingTime(Message.Header header) {
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), includeMillis());
+    }
+
+    private boolean includeMillis() {
         final boolean includeMillis = sessionID.getBeginString().compareTo(
                 FixVersions.BEGINSTRING_FIX42) >= 0
                 && millisecondsInTimeStamp;
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), includeMillis);
+        return includeMillis;
     }
 
     /**
@@ -1225,7 +1229,8 @@ public class Session implements Closeable {
         final Header header = sequenceReset.getHeader();
         header.setBoolean(PossDupFlag.FIELD, true);
         initializeHeader(header);
-        header.setUtcTimeStamp(OrigSendingTime.FIELD, header.getUtcTimeStamp(SendingTime.FIELD));
+        header.setUtcTimeStamp(OrigSendingTime.FIELD, header.getUtcTimeStamp(SendingTime.FIELD),
+                includeMillis());
         header.setInt(MsgSeqNum.FIELD, beginSeqNo);
         sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
         sequenceReset.setBoolean(GapFillFlag.FIELD, true);
@@ -1258,7 +1263,7 @@ public class Session implements Closeable {
     private void initializeResendFields(Message message) throws FieldNotFound {
         final Message.Header header = message.getHeader();
         final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
-        header.setUtcTimeStamp(OrigSendingTime.FIELD, sendingTime);
+        header.setUtcTimeStamp(OrigSendingTime.FIELD, sendingTime, includeMillis());
         header.setBoolean(PossDupFlag.FIELD, true);
         insertSendingTime(header);
     }
