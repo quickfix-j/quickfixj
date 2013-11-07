@@ -1044,6 +1044,40 @@ public class SessionTest {
         assertTrue(application.logoutSessions.size() == 1);
     }
 
+    @Test
+    // QFJ-557
+    public void testGenerateRejectAndTargetSeqNum() throws Exception {
+
+        SessionID sessionID = new SessionID("FIX.4.2", "US", "THEM");
+        SessionSettings settings = new SessionSettings();
+        settings.setString(SessionFactory.SETTING_CONNECTION_TYPE,
+                SessionFactory.INITIATOR_CONNECTION_TYPE);
+        settings.setLong(Session.SETTING_HEARTBTINT, 30L);
+        settings.setString(Session.SETTING_TIMEZONE, "EST");
+        settings.setString(Session.SETTING_START_TIME, "00:00:00");
+        settings.setString(Session.SETTING_END_TIME, "00:00:00");
+        settings.setBool(Session.SETTING_CHECK_LATENCY, false);
+
+        Session session = new DefaultSessionFactory(new ApplicationAdapter(),
+                new MemoryStoreFactory(), new ScreenLogFactory(settings))
+                .create(sessionID, settings);
+
+        session.setResponder(new UnitTestResponder());
+
+        session.setNextSenderMsgSeqNum(177);
+        session.setNextTargetMsgSeqNum(223);
+        session.next();
+        String[] messages = {
+                "8=FIX.4.2\0019=0081\00135=A\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=227\00198=0\001108=30\00110=36\001",
+                "8=FIX.4.2\0019=0107\00135=z\001115=THEM\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=228\001336=1\001340=2\00176=US\001439=USS\00110=133\001",
+                "8=FIX.4.2\0019=0113\00135=4\00134=223\00143=Y\001122=20100908-17:59:30.642\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\001123=Y\00136=225\00110=110\001",
+                "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=225\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001" };
+        for (String message : messages)
+            session.next(MessageUtils.parse(session, message));
+
+        assertEquals(226, session.getStore().getNextTargetMsgSeqNum());
+    }
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");

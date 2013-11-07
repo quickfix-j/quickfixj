@@ -1400,8 +1400,9 @@ public class Session implements Closeable {
         }
         reject.setString(RefSeqNum.FIELD, msgSeqNum);
 
+        // QFJ-557: Only advance the sequence number if we are at the expected number.
         if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
-                && !isPossibleDuplicate(message)) {
+                && Integer.valueOf(msgSeqNum) == getExpectedTargetNum()) {
             state.incrNextTargetMsgSeqNum();
         }
 
@@ -1470,8 +1471,9 @@ public class Session implements Closeable {
 
         state.lockTargetMsgSeqNum();
         try {
+            // QFJ-557: Only advance the sequence number if we are at the expected number.
             if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
-                    && (msgSeqNum == getExpectedTargetNum() || !isPossibleDuplicate(message))) {
+                    && msgSeqNum == getExpectedTargetNum()) {
                 state.incrNextTargetMsgSeqNum();
             }
         } finally {
