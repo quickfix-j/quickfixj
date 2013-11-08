@@ -5,7 +5,7 @@
 	<classpathentry kind="src" path="core/src/test/java"/>
 	<classpathentry kind="src" path="core/src/test/resources"/>
 	<classpathentry exported="true" kind="lib" path="core/src/main/resources"/>
-	<classpathentry kind="lib" path="core/src/main/lib/mina-core-1.1.7.jar"/>
+	<classpathentry kind="lib" path="core/src/main/lib/mina-core-1.1.7.jar" sourcepath="core/src/main/lib/mina-core-1.1.7-sources.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/mina-filter-ssl-1.1.7.jar"/>
 	<classpathentry kind="src" path="examples/src/main/java"/>
 	<classpathentry kind="lib" path="core/src/test/lib/hamcrest-all-1.1.jar"/>
@@ -21,6 +21,6 @@
 	<classpathentry kind="lib" path="core/src/main/lib/slf4j-api-1.6.3.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/slf4j-jdk14-1.6.3.jar"/>
 	<classpathentry kind="lib" path="core/src/main/lib/optional/dom4j-1.6.1.jar"/>
-    <classpathentry kind="lib" path="core/src/main/lib/optional/jaxen-1.1.1.jar"/>
+	<classpathentry kind="lib" path="core/src/main/lib/optional/jaxen-1.1.1.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
