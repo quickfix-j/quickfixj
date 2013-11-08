@@ -55,7 +55,8 @@ class AcceptorIoHandler extends AbstractIoHandler {
     @Override
     public void sessionCreated(IoSession session) throws Exception {
         super.sessionCreated(session);
-        log.info("MINA session created: " + session.getRemoteAddress());
+        log.info("MINA session created: " + "local=" + session.getLocalAddress() + ", "
+                + session.getClass() + ", remote=" + session.getRemoteAddress());
     }
 
     @Override
