@@ -69,22 +69,6 @@
 		</fileset>
 	</path>
 
-	<path id="script.path.java4">
-		<fileset dir="../core/src/main/lib/java4">
-			<include name="*.jar"/>
-		</fileset>
-		<fileset dir="../core/src/main/lib/java4/optional">
-			<include name="mx4j*.jar"/>
-		</fileset>
-		<pathelement location="${jar.output.file}"/>
-		<fileset dir="../examples/target">
-			<include name="${jar.output.file}"/>
-		</fileset>
-		<fileset dir="../core/target">
-			<include name="*.jar"/>
-		</fileset>
-	</path>
-						
 	<target name="process.scripts.src">
 	    <dirname file="${basedir}" property="project.dir"/>	    
 		<property name="comment" value="Scripts for the QFJ source distribution (Java 5+)"/>
@@ -127,10 +111,6 @@
 			<param name="classpath" value="script.path"/>
 			<param name="targetdir" value="${release.bin.staging.dir}/bin"/>
 		</antcall>
-		<antcall target="process.scripts.bin" inheritAll="false">
-			<param name="classpath" value="script.path.java4"/>
-			<param name="targetdir" value="${staging.dir.java4}/bin"/>
-		</antcall>
 	</target>
 
 	<target name="process.scripts.bin">
@@ -138,7 +118,6 @@
 		<property name="comment" value="Scripts for the QFJ binary distribution"/>
 		
 		<pathconvert targetos="unix" property="script.path.dos.src" refid="${classpath}" pathsep=";">
-			<map from="${project.dir}/core/src/main/lib/java4" to="%QFJ_HOME%/lib"/>
 			<map from="${project.dir}/core/src/main/lib" to="%QFJ_HOME%/lib"/>
 			<map from="${project.dir}/core/target" to="%QFJ_HOME%"/>
 			<map from="${project.dir}/examples/target" to="%QFJ_HOME%"/>
@@ -156,7 +135,6 @@
 		</copy>
 
 		<pathconvert targetos="unix" property="script.path.unix.src" refid="${classpath}">
-			<map from="${project.dir}/core/src/main/lib/java4" to="$qfjhome/lib"/>
 			<map from="${project.dir}/core/src/main/lib" to="$qfjhome/lib"/>
 			<map from="${project.dir}/core/target" to="$qfjhome"/>
 			<map from="${project.dir}/examples/target" to="$qfjhome"/>

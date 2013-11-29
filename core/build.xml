@@ -1,8 +1,8 @@
 <project name="core" basedir="." default="jar">
 	<import file="../module.xml" />
 
-	<property name="version" value="SNAPSHOT"/>
-	
+	<property name="version" value="SNAPSHOT" />
+
 	<tstamp>
 		<format property="timestamp" pattern="yyyy-MM-dd hh:mm:ss" />
 	</tstamp>
@@ -84,14 +84,14 @@
 
 	<target name="compile_main" if="main.java.available">
 		<copy todir="${main.classes.dir}">
-			<fileset dir="${main.resources.dir}"/>
+			<fileset dir="${main.resources.dir}" />
 		</copy>
 		<do_compile srcref="main.src.path" classpathref="compile.classpath" output="${main.classes.dir}" />
 	</target>
 
 	<target name="compile_test" if="test.java.available">
 		<copy todir="${test.classes.dir}">
-			<fileset dir="${test.resources.dir}"/>
+			<fileset dir="${test.resources.dir}" />
 		</copy>
 		<do_compile srcref="test.src.path" classpathref="compile.classpath" output="${test.classes.dir}" />
 	</target>
@@ -142,8 +142,8 @@
 			</fileset>
 		</jar>
 		<jar destfile="${jar.output.dir}/${quickfixj.all.jar}" manifest="${jar.output.dir}/MANIFEST.MF">
-			<fileset dir="${main.classes.dir}"/>
-			<fileset dir="${main.resources.dir}"/>
+			<fileset dir="${main.classes.dir}" />
+			<fileset dir="${main.resources.dir}" />
 			<fileset dir="${main.src.dir}">
 				<include name="**/*.cert" />
 			</fileset>
@@ -180,19 +180,19 @@
 	<property name="junit.output.dir" value="${target.dir}/test/junit" />
 	<property name="junit.haltonfailure" value="false" />
 	<property name="error.file" value="${target.dir}/test/ERROR" />
-	
+
 	<target name="test" description="run all tests, if needed" depends="check.tests.uptodate" unless="tests.uptodate">
 		<!-- to prevent exiting before running acceptance tests if unit test failed -->
-		<property name="bypass.test.failure" value="do.test"/>
+		<property name="bypass.test.failure" value="do.test" />
 		<antcall target="test.clean" />
 		<antcall target="test.unit">
-			<param name="bypass.checkfailure" value="bypass"/>
+			<param name="bypass.checkfailure" value="bypass" />
 		</antcall>
-		<antcall target="test.acceptance" >
-			<param name="bypass.checkfailure" value="bypass"/>
+		<antcall target="test.acceptance">
+			<param name="bypass.checkfailure" value="bypass" />
 		</antcall>
 		<antcall target="test.report" />
-		<antcall target="checkfailures"/>
+		<antcall target="checkfailures" />
 	</target>
 
 	<target name="test.clean" description="Clean test output, forces tests to be run." depends="clean.errorfile" unless="bypass.checkfailure">
@@ -200,7 +200,7 @@
 	</target>
 
 	<target name="clean.errorfile" description="Clean the test error output." unless="tests.uptodate">
-		<delete file="${error.file}"/>
+		<delete file="${error.file}" />
 	</target>
 
 	<target name="test.report" unless="tests.uptodate">
@@ -236,19 +236,19 @@
 		</copy>
 	</target>
 
-	
+
 	<target name="reportfailures" if="tests.failed">
-		<echo message="reporting failure for ${test.name}"/>
-		<echo file="${error.file}" message="${test.name}" append="true"/>
+		<echo message="reporting failure for ${test.name}" />
+		<echo file="${error.file}" message="${test.name}" append="true" />
 	</target>
-	
+
 	<target name="checkfailures" unless="bypass.checkfailure">
 		<fail message="Test failure">
-		    <condition>
-			<resourcecount count="1">
-				<fileset dir="${target.dir}/test/" includes="ERROR"/>
-			</resourcecount>
-		    </condition>
+			<condition>
+				<resourcecount count="1">
+					<fileset dir="${target.dir}/test/" includes="ERROR" />
+				</resourcecount>
+			</condition>
 		</fail>
 	</target>
 
@@ -286,9 +286,9 @@
 			</batchtest>
 		</junit>
 		<antcall target="reportfailures">
-			<param name="test.name" value="Unit tests"/>
+			<param name="test.name" value="Unit tests" />
 		</antcall>
-		<antcall target="checkfailures"/>
+		<antcall target="checkfailures" />
 	</target>
 
 	<target name="test.one.junit" depends="compile, test.init,clean.errorfile,jar" unless="utests.uptodate" description="Runs a single JUnit test specified with -Donejunit.testname - must be a full package path">
@@ -302,9 +302,9 @@
 			<arg value="${junit.output.dir}/TEST-${onejunit.testname}.txt" />
 		</exec>
 		<antcall target="reportfailures">
-			<param name="test.name" value="Unit test ${onejunit.testname}"/>
+			<param name="test.name" value="Unit test ${onejunit.testname}" />
 		</antcall>
-		<antcall target="checkfailures"/>
+		<antcall target="checkfailures" />
 	</target>
 
 	<!-- Run Acceptance Tests -->
@@ -334,8 +334,8 @@
 	<target name="test.acceptance" description="run acceptance tests" depends="jar,check.atests.uptodate,test.acceptance.junit" />
 
 	<target name="test.acceptance.junit" unless="atests.uptodate" depends="compile, test.init,clean.errorfile">
-		<junit fork="${atest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" 
-				printsummary="true" showoutput="${atest.showoutput}" 
+		<junit fork="${atest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}"
+				printsummary="true" showoutput="${atest.showoutput}"
 				errorproperty="tests.failed" failureproperty="tests.failed" maxmemory="512m">
 			<sysproperty key="atest.heartbeat" value="${atest.heartbeat}" />
 			<sysproperty key="atest.timeout" value="${atest.timeout}" />
@@ -350,13 +350,13 @@
 				</fileset>
 			</batchtest>
 		</junit>
-		<replaceregexp file="${atest.report}" flags="s" byline="false" 
-			match="system-err>.*&lt;/system-err" 
+		<replaceregexp file="${atest.report}" flags="s" byline="false"
+			match="system-err>.*&lt;/system-err"
 			replace="system-err>&lt;![CDATA[]]>&lt;/system-err" />
 		<antcall target="reportfailures">
-			<param name="test.name" value="Acceptance tests"/>
+			<param name="test.name" value="Acceptance tests" />
 		</antcall>
-		<antcall target="checkfailures"/>
+		<antcall target="checkfailures" />
 		<antcall target="create.atest.timestamp" />
 	</target>
 
@@ -415,8 +415,8 @@
 	<target name="export_binaries" depends="module.export_binaries">
 		<copy todir="${release.bin.staging.dir}/lib">
 			<fileset dir="src/main/lib">
-				<include name="*.jar"/>
-				<include name="optional/*.jar"/>
+				<include name="*.jar" />
+				<include name="optional/*.jar" />
 			</fileset>
 		</copy>
 		<copy todir="${release.bin.staging.dir}/doc">
@@ -447,7 +447,6 @@
 	<path id="test.lib.classpath">
 		<fileset dir="${test.lib.dir}">
 			<include name="*.jar" />
-			<exclude name="**/java4/*"/>
 		</fileset>
 	</path>
 
@@ -462,7 +461,7 @@
 	<path id="test.classpath">
 		<pathelement location="${jar.output.dir}/${quickfixj.core.jar}" />
 		<fileset dir="${jar.output.dir}">
-			<include name="quickfixj-msg-fix*-${version}.jar"/>
+			<include name="quickfixj-msg-fix*-${version}.jar" />
 		</fileset>
 		<pathelement location="${test.classes.dir}" />
 		<pathelement location="${test.src.dir}" />
@@ -487,63 +486,63 @@
 	================================================================= -->
 
 	<target name="compile_dotnet">
-		<property name="keyfile" value=""/>
-		<property environment="env"/>
-        <input message="Enter version number" addproperty="version" />
+		<property name="keyfile" value="" />
+		<property environment="env" />
+		<input message="Enter version number" addproperty="version" />
 
-		<mkdir dir="${basedir}/target/dotnet"/>
+		<mkdir dir="${basedir}/target/dotnet" />
 		<delete>
-	      <fileset dir="${basedir}/target/dotnet" includes="*.dll" />
-	    </delete>
+			<fileset dir="${basedir}/target/dotnet" includes="*.dll" />
+		</delete>
 
-	    <exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
-	      <arg value="-target:library" />
-	      <arg value="${keyfile}" />
-	      <arg value="-version:${version}" />
-	      <arg value="-out:logging.dll" />
-	      <arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
-	      <!-- arg line="${basedir}/src/main/lib/optional/log4j-1.2.15.jar" />
+		<exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
+			<arg value="-target:library" />
+			<arg value="${keyfile}" />
+			<arg value="-version:${version}" />
+			<arg value="-out:logging.dll" />
+			<arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
+			<!-- arg line="${basedir}/src/main/lib/optional/log4j-1.2.15.jar" />
 	      <arg line="${basedir}/src/main/lib/optional/slf4j-log4j12-1.5.3.jar" />
 	      <arg line="${basedir}/src/main/lib/optional/jcl-over-slf4j-1.5.3.jar" /-->
-	      <arg line="${basedir}/src/main/lib/slf4j-jdk14-1.5.3.jar" />
-	      <arg line="${basedir}/src/main/lib/slf4j-api-1.5.3.jar" />
-	    </exec>
+			<arg line="${basedir}/src/main/lib/slf4j-jdk14-1.5.3.jar" />
+			<arg line="${basedir}/src/main/lib/slf4j-api-1.5.3.jar" />
+		</exec>
 
-        <antcall target="compile_dll">
-          <param name="jarfile" value="${basedir}/src/main/lib/mina-core-1.1.0.jar"/>
-        </antcall>
-        <antcall target="compile_dll">
-          <param name="jarfile" value="${basedir}/src/main/lib/optional/mina-filter-ssl-1.1.0.jar"/>
-        </antcall>
-        <antcall target="compile_dll">
-          <param name="jarfile" value="${basedir}/target/quickfixj-all-${version}.jar"/>
-        </antcall>
-	  </target>
+		<antcall target="compile_dll">
+			<param name="jarfile" value="${basedir}/src/main/lib/mina-core-1.1.0.jar" />
+		</antcall>
+		<antcall target="compile_dll">
+			<param name="jarfile" value="${basedir}/src/main/lib/optional/mina-filter-ssl-1.1.0.jar" />
+		</antcall>
+		<antcall target="compile_dll">
+			<param name="jarfile" value="${basedir}/target/quickfixj-all-${version}.jar" />
+		</antcall>
+	</target>
 
-	  <target name="compile_dll">
-	    <pathconvert property="references.dlls" pathsep=" -reference:" setonempty="false">
-	      <path>
-	        <fileset dir="${basedir}/target/dotnet" includes="*.dll" />
-	      </path>
-	    </pathconvert>
+	<target name="compile_dll">
+		<pathconvert property="references.dlls" pathsep=" -reference:" setonempty="false">
+			<path>
+				<fileset dir="${basedir}/target/dotnet" includes="*.dll" />
+			</path>
+		</pathconvert>
 
-	    <condition property="references" value="-reference:${references.dlls}">
-	      <isset property="references.dlls" />
-	    </condition>
+		<condition property="references" value="-reference:${references.dlls}">
+			<isset property="references.dlls" />
+		</condition>
 
-	    <property name="references" value="" />
+		<property name="references" value="" />
 
-	    <echo>Jar file ${jarfile}</echo>
-	    <echo>Refs:${references}</echo>
+		<echo>Jar file ${jarfile}</echo>
+		<echo>Refs:${references}</echo>
 
-	    <exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
-	      <arg value="-target:library" />
-	      <arg value="${keyfile}" />
-	      <arg value="-version:${version}" />
-	      <arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
-	      <arg line="${references}" />
-	      <arg value="${jarfile}" />
-	    </exec>
-	  </target>
+		<exec executable="${env.IKVM_HOME}/ikvmc.exe" dir="${basedir}/target/dotnet" failonerror="true">
+			<arg value="-target:library" />
+			<arg value="${keyfile}" />
+			<arg value="-version:${version}" />
+			<arg value="-reference:${env.IKVM_HOME}/IKVM.OpenJDK.ClassLibrary.dll" />
+			<arg line="${references}" />
+			<arg value="${jarfile}" />
+		</exec>
+	</target>
 
 </project>
