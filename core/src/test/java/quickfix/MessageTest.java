@@ -716,6 +716,27 @@ public class MessageTest {
 
     }
 
+    /**
+     * QFJ-760
+     */
+    @Test
+    public void testMessageWithMissingChecksumField() throws Exception {
+        // checksum is "merged" into field 452, i.e. SOH is missing between field 452 and 10
+        String badMessage = "8=FIX.4.4\0019=275\00135=D\00134=3\00149=441000-XXXXX-X-XXXX-001\00152=20131113-10:22:31.567\00156=XXXXX\0011=A1\00111=9fef3663330e209e1bce\00118=H\001"
+                + "22=4\00138=200\00140=M\00148=XX0005519XXXX\00154=1\00155=[N/A]\00158=MassTest\00159=0\00160=20131113-10:22:31.567\001100=XXXX\001"
+                + "526=9fef3663330e209e1bce\001453=1\001448=XXXXXXXX030\001447=D\001452=3610=016\001";
+
+        Message msg = new Message();
+        try {
+            msg.fromString(badMessage, DataDictionaryTest.getDictionary(), true);
+            fail();
+        } catch (final InvalidMessage e) {
+            final String emsg = e.getMessage();
+            assertNotNull("No exception message", emsg);
+            assertTrue(emsg.startsWith("Field not found"));
+        }
+    }
+    
     @Test
     public void testMessageCloneWithGroups() {
         final Message message = new Message();

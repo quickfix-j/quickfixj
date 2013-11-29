@@ -597,6 +597,14 @@ public class Message extends FieldMap {
         boolean inGroupParse = true;
         while (inGroupParse) {
             field = extractField(group, dd, parent);
+            if (field == null) {
+                // QFJ-760: stop parsing since current position is greater than message length
+                if (group != null) {
+                    // add what we've already got and leave the rest to the validation (if enabled)
+                    parent.addGroup(group);
+                }
+                break;
+            }
             if (field.getTag() == firstField) {
                 if (group != null) {
                     parent.addGroupRef(group);
@@ -634,7 +642,7 @@ public class Message extends FieldMap {
                             }
                         }
                         if (group != null) {
-                        group.setField(field);
+                            group.setField(field);
                         }
                     } else {
                         if (group != null) {

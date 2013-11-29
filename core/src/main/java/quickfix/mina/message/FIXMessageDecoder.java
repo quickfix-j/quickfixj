@@ -45,7 +45,8 @@ import quickfix.mina.CriticalProtocolCodecException;
  * message string is then passed to MINA IO handlers for further processing.
  */
 public class FIXMessageDecoder implements MessageDecoder {
-    private static final String FIELD_DELIMITER = "\001";
+    private static final char SOH = '\001';
+    private static final String FIELD_DELIMITER = String.valueOf(SOH);
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -170,12 +171,10 @@ public class FIXMessageDecoder implements MessageDecoder {
                         }
                         bodyLength = bodyLength * 10 + (ch - '0');
                     }
-                    if (ch == '\001') {
+                    if (ch == SOH) {
                         state = READING_BODY;
                         if (log.isDebugEnabled()) {
-                            log
-                                    .debug("body length = " + bodyLength + ": "
-                                            + getBufferDebugInfo(in));
+                            log.debug("body length = " + bodyLength + ": " + getBufferDebugInfo(in));
                         }
                     } else {
                         if (hasRemaining(in)) {
@@ -203,6 +202,14 @@ public class FIXMessageDecoder implements MessageDecoder {
 
                 if (state == PARSING_CHECKSUM) {
                     if (startsWith(in, position, CHECKSUM_PATTERN) > 0) {
+                        // we are trying to parse the checksum but should
+                        // check if the CHECKSUM_PATTERN is preceded by SOH
+                        // or if the pattern just occurs inside of another field
+                        if (in.get(position - 1) != SOH) {
+                            handleError(in, position,
+                                    "checksum field not preceded by SOH, bad length?", isLogon(in));
+                            continue;
+                        }
                         if (log.isDebugEnabled()) {
                             log.debug("found checksum: " + getBufferDebugInfo(in));
                         }
@@ -223,9 +230,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     }
                     String messageString = getMessageString(in);
                     if (log.isDebugEnabled()) {
-                        log
-                                .debug("parsed message: " + getBufferDebugInfo(in) + " "
-                                        + messageString);
+                        log.debug("parsed message: " + getBufferDebugInfo(in) + " " + messageString);
                     }
                     out.write(messageString);
                     state = SEEKING_HEADER;

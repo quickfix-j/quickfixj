@@ -247,6 +247,20 @@ public class FIXMessageDecoderTest {
         assertMessageFound(goodMessage, 3);
     }
 
+    /**
+     * QFJ-760
+     */
+    @Test
+    public void testMessageWithoutChecksum() throws Exception {
+        String badMessage = "8=FIX.4.4\0019=275\00135=D\00134=3\00149=441000-XXXXX-X-XXXX-001\00152=20131113-10:22:31.567\00156=XXXXX\0011=A1\00111=9fef3663330e209e1bce\00118=H\001"
+                + "22=4\00138=200\00140=M\00148=XX0005519XXXX\00154=1\00155=[N/A]\00158=MassTest\00159=0\00160=20131113-10:22:31.567\001100=XXXX\001"
+                + "526=9fef3663330e209e1bce\00125029=12345\001453=1\001448=XXXXXXXX030\001447=D\001452=3610=016\001";
+        setUpBuffer(badMessage);
+
+        assertEquals("wrong decoder result", MessageDecoderResult.NEED_DATA,
+                decoder.decode(null, buffer, decoderOutput));
+    }
+
     @Test 
     public void testMessageExtraction() throws Exception {
         File testFile = setUpTestFile();
