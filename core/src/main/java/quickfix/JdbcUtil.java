@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -33,8 +32,6 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import org.logicalcobwebs.proxool.ProxoolDataSource;
-import org.quickfixj.QFJException;
-import org.slf4j.LoggerFactory;
 
 class JdbcUtil {
 
@@ -84,7 +81,7 @@ class JdbcUtil {
             ds.setPassword(password);
             
             // TODO JDBC Make these configurable
-            setMaximumActiveTime(ds, 5000);
+            ds.setMaximumActiveTime(5000);
             ds.setMaximumConnectionLifetime(28800000);
             ds.setMaximumConnectionCount(10);
             ds.setSimultaneousBuildThrottle(10);
@@ -94,37 +91,6 @@ class JdbcUtil {
             }
         }
         return ds;
-    }
-
-    private static void setMaximumActiveTime(ProxoolDataSource ds, long ms) {
-        // This is a hack for Proxool support in Java 4. The Proxool library changed
-        // the argument type for setMaximumActiveTime from int to long. The retrotranslated
-        // library was still referencing the long setter and it wasn't defined in the
-        // Java 4-compatible Proxool library. Therefore, we are using reflection to
-        // workaround the problem until Java 4 support is dropped.
-        // TODO Use normal setter when Java 4 support is dropped.
-        String methodName = "setMaximumActiveTime";
-        Method setter = null;
-        try {
-            setter = ds.getClass().getMethod(methodName, long.class);
-        } catch (NoSuchMethodException e) {
-            try {
-                setter = ds.getClass().getMethod(methodName, int.class);
-            } catch (NoSuchMethodException e1) {
-                // ignore
-            }
-        }
-
-        if (setter != null) {
-            try {
-                setter.invoke(ds, (int) ms);
-            } catch (Exception e) {
-                throw new QFJException(e);
-            }
-        } else {
-            LoggerFactory.getLogger(LogUtil.class).warn(
-                    "Couldn't set maximum active time on Proxool data source");
-        }
     }
 
     static void close(SessionID sessionID, Connection connection) {
