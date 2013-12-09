@@ -2209,21 +2209,20 @@ public class Session implements Closeable {
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
                 state.incrNextTargetMsgSeqNum();
             } else {
-                // TODO SESSION Is it really necessary to convert the queued message to a string?
-                next(msg.toString());
+                nextQueued(msg, msgType);
             }
             return true;
         }
         return false;
     }
 
-    private void next(String msg) throws InvalidMessage, FieldNotFound, RejectLogon,
+    private void nextQueued(Message msg, String msgType) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            next(parseMessage(msg));
+            next(msg);
         } catch (final InvalidMessage e) {
             final String message = "Invalid message: " + e;
-            if (MsgType.LOGON.equals(MessageUtils.getMessageType(msg))) {
+            if (MsgType.LOGON.equals(msgType)) {
                 disconnect(message, true);
             } else {
                 getLog().onErrorEvent(message);
