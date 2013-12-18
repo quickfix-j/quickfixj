@@ -1153,8 +1153,19 @@ public class Session implements Closeable {
     private void nextResendRequest(Message resendRequest) throws IOException, RejectLogon,
             FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType,
             InvalidMessage {
-        if (!verify(resendRequest, false, false)) {
+        // QFJ-653: Check if seqnums are too low.
+        // QFJ-673: Do not check if seqnums are too high in verify() since in case of a seqnum mismatch this will
+        // enqueue the ResendRequest for later processing. This might lead to a deadlock situation in
+        // which the counterparty waits for our messages to be resent and we are also waiting for our
+        // ResendRequest to be satisfied in order to process the queued ResendRequest of the counterparty.
+        // Instead, send out the requested messages and afterwards enqueue the ResendRequest in order to
+        // later increase the target seqnum in method nextQueued(int).
+        if (!verify(resendRequest, false, validateSequenceNumbers)) {
             return;
+        }
+        final int msgSeqNum = resendRequest.getHeader().getInt(MsgSeqNum.FIELD);
+        if (validateSequenceNumbers && isTargetTooHigh(msgSeqNum)) {
+            enqueueMessage(resendRequest, msgSeqNum);
         }
 
         final int beginSeqNo = resendRequest.getInt(BeginSeqNo.FIELD);
@@ -1630,7 +1641,7 @@ public class Session implements Closeable {
                 return false;
             }
 
-            if ((checkTooHigh || checkTooLow) && state.isResendRequested()) {
+            if ((checkTooHigh) && state.isResendRequested()) {
                 final int[] range;
                 synchronized (state.getLock()) {
                     range = state.getResendRange();
@@ -2207,6 +2218,7 @@ public class Session implements Closeable {
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
             if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
+                // Logon and ResendRequest processing has already been done, so we just need to increment the target seqnum.
                 state.incrNextTargetMsgSeqNum();
             } else {
                 nextQueued(msg, msgType);
@@ -2245,8 +2257,7 @@ public class Session implements Closeable {
         if (resetOrDisconnectIfRequired(msg)) {
             return;
         }
-        state.enqueue(msgSeqNum, msg);
-        getLog().onEvent("Enqueued at pos " + msgSeqNum + ": " + msg);
+        enqueueMessage(msg, msgSeqNum);
 
         if (state.isResendRequested()) {
             final int[] range = state.getResendRange();
@@ -2365,7 +2376,7 @@ public class Session implements Closeable {
     /**
      * Send the message
      * @param message is the message to send
-     * @param num is the seq num of the message to send, if 0,
+     * @param num is the seq num of the message to send, if 0, the next expected sender seqnum is used.
      * @return
      */
     private boolean sendRaw(Message message, int num) {
@@ -2451,6 +2462,11 @@ public class Session implements Closeable {
         } finally {
             state.unlockSenderMsgSeqNum();
         }
+    }
+
+    private void enqueueMessage(final Message msg, final int msgSeqNum) {
+        state.enqueue(msgSeqNum, msg);
+        getLog().onEvent("Enqueued at pos " + msgSeqNum + ": " + msg);
     }
 
     private void resetState() {

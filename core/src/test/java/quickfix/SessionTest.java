@@ -36,10 +36,13 @@ import quickfix.field.BeginString;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.EncryptMethod;
 import quickfix.field.EndSeqNo;
+import quickfix.field.GapFillFlag;
 import quickfix.field.Headline;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.NewSeqNo;
+import quickfix.field.OrigSendingTime;
 import quickfix.field.PossDupFlag;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
@@ -54,6 +57,7 @@ import quickfix.fix44.Logout;
 import quickfix.fix44.News;
 import quickfix.fix44.Reject;
 import quickfix.fix44.ResendRequest;
+import quickfix.fix44.SequenceReset;
 import quickfix.fix44.TestRequest;
 import quickfix.test.util.ReflectionUtil;
 
@@ -721,6 +725,120 @@ public class SessionTest {
         assertEquals(3, state.getNextTargetMsgSeqNum());
     }
 
+    // QFJ-673
+    @Test
+    public void testResendRequestIsProcessedAndQueued() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+
+        session.setNextSenderMsgSeqNum(1006);
+        logonTo(session, 6);
+        
+        assertTrue(state.isResendRequested());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+        processMessage(session, createResendRequest(7, 1005));
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+        processMessage(session, createSequenceReset(1, 6));
+        assertEquals(8, state.getNextTargetMsgSeqNum());
+        // we need to satisfy the resendrequest of the opposing side
+        assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils.getMessageType(application
+                .lastToAdminMessage().toString())));
+        assertTrue(state.isResendRequested());
+        processMessage(session, createHeartbeatMessage(8));
+        assertFalse(state.isResendRequested());
+        processMessage(session, createHeartbeatMessage(9));
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+        assertEquals(10, state.getNextTargetMsgSeqNum());
+    }
+
+    // QFJ-658
+    @Test
+    public void testResendRequestMsgSeqNum() throws Exception {
+
+        // test seqnum too low
+        final Application application = new UnitTestApplication() {};
+        Session session = setUpSession(application, false, new UnitTestResponder());
+        SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+        logonTo(session, 1);
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        processMessage(session, createResendRequest(1, 100));
+        assertFalse("Session should be logged out since seqnum too low!", session.isLoggedOn());
+
+        // test seqnum too high
+        session = setUpSession(application, false, new UnitTestResponder());
+        state = getSessionState(session);
+        
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+        logonTo(session, 1);
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        
+        assertFalse(state.isResendRequested());
+        processMessage(session, createHeartbeatMessage(8));
+        assertTrue(state.isResendRequested());
+        processMessage(session, createResendRequest(10, 100));
+
+        // satisfy ResendRequest
+        processMessage(session, createSequenceReset(2, 11));
+        assertEquals(11, state.getNextTargetMsgSeqNum());
+        processMessage(session, createHeartbeatMessage(11));
+        assertFalse(state.isResendRequested());
+        processMessage(session, createHeartbeatMessage(12));
+        assertTrue(session.isLoggedOn());
+    }
+
+    // QFJ-658 and acceptance test 20_SimultaneousResendRequests.def
+    @Test
+    public void testSimultaneousResendRequests() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        Session session = setUpSession(application, false, new UnitTestResponder());
+        SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+        logonTo(session, 1);
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+
+        processMessage(session, createAppMessage(2));
+        session.send(createAppMessage(2));
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+
+        processMessage(session, createAppMessage(3));
+        session.send(createAppMessage(3));
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+
+        processMessage(session, createHeartbeatMessage(7));
+        assertTrue(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+        processMessage(session, createResendRequest(8, 2));
+        assertTrue(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+        
+        processMessage(session, createHeartbeatMessage(4));
+        assertTrue(state.isResendRequested());
+        processMessage(session, createHeartbeatMessage(5));
+        assertTrue(state.isResendRequested());
+        processMessage(session, createHeartbeatMessage(6));
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+
+        // we need to satisfy the resendrequest of the opposing side
+        assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils.getMessageType(application
+                .lastToAdminMessage().toString())));
+        assertEquals(9, state.getNextTargetMsgSeqNum());
+        processMessage(session, createHeartbeatMessage(9));
+        processMessage(session, createHeartbeatMessage(10));
+        assertEquals(11, state.getNextTargetMsgSeqNum());
+    }
+
     /**
      * QFJ-721: Receiving a non-Logon message after having sent a Logon on a non-FIXT session
      * formerly lead to a NPE since the field targetDefaultApplVerID was not initialized in all cases.
@@ -796,7 +914,7 @@ public class SessionTest {
             session.next(message);
         } catch (final Throwable e) {
             // This simulated the behavior of the QFJ connectors
-            // The will just discard a message with an error (without
+            // They will just discard a message with an error (without
             // incrementing the sequence number).
         }
     }
@@ -816,6 +934,30 @@ public class SessionTest {
         msg.getHeader().setString(TargetCompID.FIELD, "SENDER");
         msg.getHeader().setInt(MsgSeqNum.FIELD, sequence);
         msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
+        return msg;
+    }
+
+    private Message createResendRequest(int sequence, int from) {
+        final ResendRequest msg = new ResendRequest();
+        msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
+        msg.getHeader().setString(TargetCompID.FIELD, "SENDER");
+        msg.getHeader().setInt(MsgSeqNum.FIELD, sequence);
+        msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
+        msg.setInt(BeginSeqNo.FIELD, from);
+        msg.setInt(EndSeqNo.FIELD, 0);
+        return msg;
+    }
+
+    private Message createSequenceReset(int sequence, int to) {
+        final SequenceReset msg = new SequenceReset();
+        msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
+        msg.getHeader().setString(TargetCompID.FIELD, "SENDER");
+        msg.getHeader().setInt(MsgSeqNum.FIELD, sequence);
+        msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
+        msg.getHeader().setBoolean(PossDupFlag.FIELD, true);
+        msg.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, new Date());
+        msg.setBoolean(GapFillFlag.FIELD, true);
+        msg.setInt(NewSeqNo.FIELD, to);
         return msg;
     }
 
