@@ -44,6 +44,7 @@ import quickfix.field.MsgType;
 import quickfix.field.NewSeqNo;
 import quickfix.field.OrigSendingTime;
 import quickfix.field.PossDupFlag;
+import quickfix.field.RefSeqNum;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionStatus;
@@ -347,6 +348,73 @@ public class SessionTest {
         assertEquals(4, state.getNextTargetMsgSeqNum());
         assertTrue("Session should be connected", session.isLoggedOn());
 
+    }
+
+    // QFJ-750
+    @Test
+    public void testLogoutMsgSeqNumTooHighOrLow() throws Exception {
+
+        final Application application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+
+        final TestRequest testRequest = (TestRequest) createAdminMessage(2);
+        session.next(testRequest);
+
+        assertEquals(3, state.getNextSenderMsgSeqNum());
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+
+        logoutFrom(session, 100);
+        assertFalse("Session should be disconnected", session.isLoggedOn());
+
+        // make sure that the target seq num has not been incremented
+        assertEquals(4, state.getNextSenderMsgSeqNum());
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+        logonTo(session, 3);
+        assertEquals(5, state.getNextSenderMsgSeqNum());
+        assertEquals(4, state.getNextTargetMsgSeqNum());
+        assertTrue("Session should be connected", session.isLoggedOn());
+        
+        logoutFrom(session, 1);
+        // make sure that the target seq num has not been incremented
+        assertEquals(6, state.getNextSenderMsgSeqNum());
+        assertEquals(4, state.getNextTargetMsgSeqNum());
+    }
+
+    @Test
+    public void testRejectMsgSeqNumTooHighOrLow() throws Exception {
+
+        final Application application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+
+        processMessage(session, createReject(2, 100));
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+        
+        // Reject with unexpected seqnum should not increment target seqnum
+        processMessage(session, createReject(50, 100));
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+
+        // Reject with unexpected seqnum should not increment target seqnum
+        processMessage(session, createReject(1, 100));
+        assertEquals(3, state.getNextTargetMsgSeqNum());
+        
     }
 
     /**
@@ -937,6 +1005,16 @@ public class SessionTest {
         return msg;
     }
 
+    private Message createReject(int sequence, int refSeqNum) {
+        final Reject msg = new Reject();
+        msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
+        msg.getHeader().setString(TargetCompID.FIELD, "SENDER");
+        msg.getHeader().setInt(MsgSeqNum.FIELD, sequence);
+        msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
+        msg.setInt(RefSeqNum.FIELD, refSeqNum);
+        return msg;
+    }
+
     private Message createResendRequest(int sequence, int from) {
         final ResendRequest msg = new ResendRequest();
         msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
@@ -1290,6 +1368,14 @@ public class SessionTest {
         session.next(receivedLogon);
     }
 
+    private void logoutFrom(Session session, int sequence) throws FieldNotFound, RejectLogon,
+            IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException,
+            InvalidMessage {
+        final Logout receivedLogout = new Logout();
+        setUpHeader(session.getSessionID(), receivedLogout, true, sequence);
+        session.next(receivedLogout);
+    }
+    
     private void setUpHeader(SessionID sessionID, Message message, boolean reversed, int sequence) {
         message.getHeader().setString(TargetCompID.FIELD,
                 reversed ? sessionID.getSenderCompID() : sessionID.getTargetCompID());

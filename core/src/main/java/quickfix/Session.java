@@ -1146,7 +1146,9 @@ public class Session implements Closeable {
         if (!verify(reject, false, validateSequenceNumbers)) {
             return;
         }
-        state.incrNextTargetMsgSeqNum();
+        if (getExpectedTargetNum() == reject.getHeader().getInt(MsgSeqNum.FIELD)) {
+            state.incrNextTargetMsgSeqNum();
+        }
         nextQueued();
     }
 
@@ -1208,7 +1210,7 @@ public class Session implements Closeable {
             resendMessages(messageOutSync, beginSeqNo, endSeqNo);
         }
         final int resendRequestMsgSeqNum = messageOutSync.getHeader().getInt(MsgSeqNum.FIELD);
-        if (!isTargetTooHigh(resendRequestMsgSeqNum) && !isTargetTooLow(resendRequestMsgSeqNum)) {
+        if (getExpectedTargetNum() == resendRequestMsgSeqNum) {
             state.incrNextTargetMsgSeqNum();
         }
     }
@@ -1305,7 +1307,10 @@ public class Session implements Closeable {
 
         state.setLogoutReceived(true);
 
-        state.incrNextTargetMsgSeqNum();
+        // QFJ-750
+        if (getExpectedTargetNum() == logout.getHeader().getInt(MsgSeqNum.FIELD)) {
+            state.incrNextTargetMsgSeqNum();
+        }
         if (resetOnLogout) {
             resetState();
         }
