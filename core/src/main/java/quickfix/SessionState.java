@@ -322,6 +322,16 @@ public final class SessionState {
         return messageQueue.remove(sequence);
     }
 
+    /**
+     * Remove messages from messageQueue up to a given sequence number.
+     * @param seqnum up to which sequence number messages should be deleted
+     */
+    public void dequeueMessagesUpTo(int seqnum) {
+        for (int i = 1; i < seqnum; i++) {
+            dequeue(i);
+        }
+    }
+
     public Message getNextQueuedMessage() {
         return messageQueue.size() > 0 ? messageQueue.values().iterator().next() : null;
     }

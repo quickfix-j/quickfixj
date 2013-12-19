@@ -808,7 +808,7 @@ public class SessionTest {
         assertEquals(1, state.getNextTargetMsgSeqNum());
         processMessage(session, createResendRequest(7, 1005));
         assertEquals(1, state.getNextTargetMsgSeqNum());
-        processMessage(session, createSequenceReset(1, 6));
+        processMessage(session, createSequenceReset(1, 6, true));
         assertEquals(8, state.getNextTargetMsgSeqNum());
         // we need to satisfy the resendrequest of the opposing side
         assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils.getMessageType(application
@@ -851,7 +851,7 @@ public class SessionTest {
         processMessage(session, createResendRequest(10, 100));
 
         // satisfy ResendRequest
-        processMessage(session, createSequenceReset(2, 11));
+        processMessage(session, createSequenceReset(2, 11, true));
         assertEquals(11, state.getNextTargetMsgSeqNum());
         processMessage(session, createHeartbeatMessage(11));
         assertFalse(state.isResendRequested());
@@ -905,6 +905,40 @@ public class SessionTest {
         processMessage(session, createHeartbeatMessage(9));
         processMessage(session, createHeartbeatMessage(10));
         assertEquals(11, state.getNextTargetMsgSeqNum());
+    }
+
+    // QFJ-750
+    @Test
+    public void testRemoveQueuedMessagesOnSequenceReset() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+
+        final int from = 10;
+        int numberOfMsgs = 200;
+        int to = from + numberOfMsgs;
+
+        logonTo(session, 1);
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        for (int i = from; i < to; i++) {
+            processMessage(session, createAppMessage(i));
+        }
+        for (int i = from; i < to; i++) {
+            assertTrue(state.getQueuedSeqNums().contains(i));
+        }
+
+        assertTrue(state.getQueuedSeqNums().size() == numberOfMsgs);
+        assertTrue(application.fromAppMessages.isEmpty());
+        // Create a sequence reset which will cause deletion of almost all messages
+        // from the sessionState queue since former messages are skipped.
+        // The remaining two messages will then be dequeued and processed by the app.
+        final int two = 2;
+        processMessage(session, createSequenceReset(2, to - two, true));
+        assertTrue(application.fromAppMessages.size() == two);
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+        assertTrue(state.getQueuedSeqNums().isEmpty());
     }
 
     /**
@@ -1026,7 +1060,7 @@ public class SessionTest {
         return msg;
     }
 
-    private Message createSequenceReset(int sequence, int to) {
+    private Message createSequenceReset(int sequence, int to, boolean gapFill) {
         final SequenceReset msg = new SequenceReset();
         msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
         msg.getHeader().setString(TargetCompID.FIELD, "SENDER");
@@ -1034,7 +1068,7 @@ public class SessionTest {
         msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
         msg.getHeader().setBoolean(PossDupFlag.FIELD, true);
         msg.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD, new Date());
-        msg.setBoolean(GapFillFlag.FIELD, true);
+        msg.setBoolean(GapFillFlag.FIELD, gapFill);
         msg.setInt(NewSeqNo.FIELD, to);
         return msg;
     }

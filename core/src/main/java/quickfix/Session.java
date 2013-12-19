@@ -1392,6 +1392,10 @@ public class Session implements Closeable {
                 } else {
                     state.setNextTargetMsgSeqNum(newSequence);
                 }
+                // QFJ-728: newSequence will be the seqnum of the next message so we
+                // delete all older messages from the queue since they are effectively skipped.
+                state.dequeueMessagesUpTo(newSequence);
+
             } else if (newSequence < getExpectedTargetNum()) {
 
                 getLog().onErrorEvent(
@@ -2217,7 +2221,6 @@ public class Session implements Closeable {
     private boolean nextQueued(int num) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
         final Message msg = state.dequeue(num);
-
         if (msg != null) {
             getLog().onEvent("Processing queued message: " + num);
 
