@@ -793,6 +793,40 @@ public class SessionTest {
         assertEquals(3, state.getNextTargetMsgSeqNum());
     }
 
+
+    // QFJ-271
+    @Test
+    public void testSequenceResetStackOverflow() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+
+        logonTo(session, 1);
+        
+        assertTrue(session.isLoggedOn());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        
+        for ( int i = 2; i <= 41; i++ ) {
+            processMessage(session, createAppMessage(i));
+        }
+        assertEquals(42, state.getNextTargetMsgSeqNum());
+
+        processMessage(session, createAppMessage(50));
+        processMessage(session, createSequenceReset(51, 51, true));
+        
+        for ( int i = 42; i <= 49; i++ ) {
+            processMessage(session, createAppMessage(i));
+        }
+        
+        assertEquals(51, state.getNextTargetMsgSeqNum());
+        processMessage(session, createHeartbeatMessage(51));
+        assertEquals(52, state.getNextTargetMsgSeqNum());
+        assertTrue(session.isLoggedOn());
+        assertFalse(state.isResendRequested());
+        assertTrue(state.getQueuedSeqNums().isEmpty());
+    }
+
     // QFJ-673
     @Test
     public void testResendRequestIsProcessedAndQueued() throws Exception {
