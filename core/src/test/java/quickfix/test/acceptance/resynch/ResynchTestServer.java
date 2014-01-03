@@ -68,6 +68,9 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     public void onCreate(SessionID sessionId) {
         if (isUnsynchMode()) {            
             Session session = Session.lookupSession(sessionId);
+            if (session == null) {
+                throw new RuntimeException("Could not lookup session " + sessionId);
+            }
             try {
                 session.setNextTargetMsgSeqNum(10);
             } catch (IOException e) {

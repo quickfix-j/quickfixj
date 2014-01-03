@@ -34,14 +34,14 @@ public class ResynchTest  {
 
     ResynchTestServer server;
     
-    @Test
+    @Test(timeout=30000)
     public void testAcceptorTimerSync() throws ConfigError, SessionNotFound, InterruptedException {
         serverThread.start();
         server.waitForInitialization();
         new ResynchTestClient().run();
     }
 
-    @Test
+    @Test(timeout=30000)
     public void testAcceptorTimerUnsyncWithValidatingSequenceNumbers() throws ConfigError, SessionNotFound, InterruptedException {
         server.setUnsynchMode(true);
         server.setValidateSequenceNumbers(true);
@@ -52,7 +52,7 @@ public class ResynchTest  {
         client.run();
     }
 
-    @Test
+    @Test(timeout=30000)
     public void testAcceptorTimerUnsyncWithoutValidatingSequenceNumbers() throws ConfigError, SessionNotFound, InterruptedException {
         server.setUnsynchMode(true);
         server.setValidateSequenceNumbers(false);
