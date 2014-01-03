@@ -50,7 +50,7 @@ public class ProtocolDecoderOutputForTest implements ProtocolDecoderOutput {
         messages.clear();
     }
 
-    public void flush() {
+    public void flush(org.apache.mina.core.filterchain.IoFilter.NextFilter filter,org.apache.mina.core.session.IoSession session) {
         // empty
     }
 }

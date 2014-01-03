@@ -76,7 +76,11 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     public void stop(boolean forceDisconnect) {
         try {
             eventHandlingStrategy.stopHandlingMessages();
-            stopAcceptingConnections();
+            try {
+                stopAcceptingConnections();
+            } catch (ConfigError e) {
+                log.error("Error when stopping acceptor.", e );
+            }
             logoutAllSessions(forceDisconnect);
             stopSessionTimer();
         } finally {

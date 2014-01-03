@@ -27,7 +27,7 @@ import quickfix.FieldConvertError;
 public class SSLSupport {
     // This will be moved else when settings mechanism is refactored.
 
-    public static final String FILTER_NAME = "SSLFilter";
+    public static final String FILTER_NAME = "SslFilter";
     public static final String SETTING_KEY_STORE_PWD = "SocketKeyStorePassword";
     public static final String SETTING_KEY_STORE_NAME = "SocketKeyStore";
     public static final String SETTING_USE_SSL = "SocketUseSSL";

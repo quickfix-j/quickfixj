@@ -29,15 +29,11 @@ import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoAcceptor;
-import org.apache.mina.common.IoServiceConfig;
-import org.apache.mina.common.SimpleByteBufferAllocator;
-import org.apache.mina.common.ThreadModel;
-import org.apache.mina.common.TransportType;
-import org.apache.mina.filter.SSLFilter;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.service.IoAcceptor;
+import org.apache.mina.core.buffer.SimpleBufferAllocator;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 
 import quickfix.Acceptor;
 import quickfix.Application;
@@ -69,13 +65,13 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private final Map<SocketAddress, AcceptorSessionProvider> sessionProviders = new HashMap<SocketAddress, AcceptorSessionProvider>();
     private final SessionFactory sessionFactory;
     private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<SocketAddress, AcceptorSocketDescriptor>();
-    private final Map<TransportTypeAndSSL, IoAcceptor> ioAcceptorForTransport = new HashMap<TransportTypeAndSSL, IoAcceptor>();
+    private final Map<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new HashMap<AcceptorSocketDescriptor, IoAcceptor>();
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
-        ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
-        ByteBuffer.setUseDirectBuffers(false);
+        IoBuffer.setAllocator(new SimpleBufferAllocator());
+        IoBuffer.setUseDirectBuffer(false);
         this.sessionFactory = sessionFactory;
     }
 
@@ -95,52 +91,36 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     // TODO SYNC Does this method really need synchronization?
     protected synchronized void startAcceptingConnections() throws ConfigError {
+
+        SocketAddress address = null;
         try {
             createSessions(getSettings());
             startSessionTimer();
-            SessionSettings settings = getSettings();
 
             Iterator<AcceptorSocketDescriptor> descriptors = socketDescriptorForAddress.values().iterator();
             while (descriptors.hasNext()) {
-                AcceptorSocketDescriptor socketDescriptor = descriptors
-                        .next();
-                SocketAddress address = socketDescriptor.getAddress();
-                boolean useSSL = socketDescriptor.isUseSSL();
-                IoAcceptor ioAcceptor = getIoAcceptor(address, useSSL);
-                IoServiceConfig serviceConfig = ioAcceptor.getDefaultConfig();
-                CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
-                        getIoFilterChainBuilder());
-
-                if (useSSL) {
+                AcceptorSocketDescriptor socketDescriptor = descriptors.next();
+                address = socketDescriptor.getAddress();
+                IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor);
+                CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(getIoFilterChainBuilder());
+                
+                if (socketDescriptor.isUseSSL()) {
                     installSSL(socketDescriptor, ioFilterChainBuilder);
                 }
 
                 ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
                         new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
-                serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
-                serviceConfig.setThreadModel(ThreadModel.MANUAL);
-
-                AcceptorSessionProvider sessionProvider = sessionProviders
-                        .get(address);
-                if (sessionProvider == null) {
-                    sessionProvider = new DefaultAcceptorSessionProvider(socketDescriptor
-                            .getAcceptedSessions());
-                }
-
-                if (serviceConfig instanceof SocketAcceptorConfig) {
-                    ((SocketAcceptorConfig)serviceConfig).setDisconnectOnUnbind(false);
-                }
-
-                ioAcceptor.bind(address, new AcceptorIoHandler(
-                        sessionProvider, new NetworkingOptions(settings.getDefaultProperties()),
-                        getEventHandlingStrategy()));
+                ioAcceptor.setFilterChainBuilder(ioFilterChainBuilder);
+                ioAcceptor.setCloseOnDeactivation(false);
+                ioAcceptor.bind(socketDescriptor.getAddress());  
                 log.info("Listening for connections at " + address + " for session(s) "
                         + socketDescriptor.getAcceptedSessions().keySet());
             }
         } catch (FieldConvertError e) {
             throw new ConfigError(e);
         } catch (Exception e) {
+            log.error("Cannot start acceptor session for " + address + ", error:" + e);
             throw new RuntimeError(e);
         }
     }
@@ -150,29 +130,46 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         log.info("Installing SSL filter for " + descriptor.getAddress());
         SSLContext sslContext = SSLContextFactory.getInstance(descriptor.getKeyStoreName(),
                 descriptor.getKeyStorePassword().toCharArray());
-        SSLFilter sslFilter = new SSLFilter(sslContext);
+        SslFilter sslFilter = new SslFilter(sslContext);
         sslFilter.setUseClientMode(false);
         ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
     }
 
-    private IoAcceptor getIoAcceptor(SocketAddress address, boolean useSSL) {
-        TransportType transportType = ProtocolFactory.getAddressTransportType(address);
-        TransportTypeAndSSL key = new TransportTypeAndSSL(transportType, useSSL);
-        IoAcceptor ioAcceptor = ioAcceptorForTransport.get(key);
-        if (ioAcceptor == null) {
+    private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor, boolean init) throws ConfigError {
+        int transportType = ProtocolFactory.getAddressTransportType(socketDescriptor.getAddress());
+        AcceptorSessionProvider sessionProvider = sessionProviders.get(socketDescriptor.getAddress());
+        if (sessionProvider == null) {
+            sessionProvider = new DefaultAcceptorSessionProvider(socketDescriptor.getAcceptedSessions());
+            sessionProviders.put(socketDescriptor.getAddress(),sessionProvider);
+        }
+        
+        IoAcceptor ioAcceptor = ioAcceptors.get(socketDescriptor);
+        if (ioAcceptor == null && init) {
             ioAcceptor = ProtocolFactory.createIoAcceptor(transportType);
-            ioAcceptorForTransport.put(key, ioAcceptor);
+            try {
+                SessionSettings settings = getSettings();
+                ioAcceptor.setHandler(new AcceptorIoHandler(sessionProvider, new NetworkingOptions(
+                        settings.getDefaultProperties()), getEventHandlingStrategy()));
+            } catch (FieldConvertError e) {
+                throw new ConfigError(e);
+            }
+            ioAcceptors.put(socketDescriptor, ioAcceptor);
+
         }
         return ioAcceptor;
     }
 
+    private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor) throws ConfigError {
+        return getIoAcceptor(socketDescriptor,true);
+    } 
+    
     private AcceptorSocketDescriptor getAcceptorSocketDescriptor(SessionSettings settings,
             SessionID sessionID) throws ConfigError, FieldConvertError {
-        TransportType acceptTransportType = TransportType.SOCKET;
+        int acceptTransportType = ProtocolFactory.SOCKET; 
         if (settings.isSetting(sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL)) {
             try {
-                acceptTransportType = TransportType.getInstance(settings.getString(sessionID,
-                        Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL));
+                acceptTransportType = ProtocolFactory.getTransportType(settings.getString(
+                        sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL));
             } catch (IllegalArgumentException e) {
                 // Unknown transport type
                 throw new ConfigError(e);
@@ -184,7 +181,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         String keyStorePassword = null;
         if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)
                 && getSettings().getBool(sessionID, SSLSupport.SETTING_USE_SSL)) {
-            if (acceptTransportType == TransportType.SOCKET) {
+            if (acceptTransportType == ProtocolFactory.SOCKET) {
                 useSSL = true;
                 keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
                 keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
@@ -255,19 +252,16 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         }
     }
 
-    protected void stopAcceptingConnections() {
-        Iterator<AcceptorSocketDescriptor> descriptors = socketDescriptorForAddress.values().iterator();
-        while (descriptors.hasNext()) {
-            AcceptorSocketDescriptor socketDescriptor = descriptors
-                    .next();
-            SocketAddress acceptorSocketAddress = socketDescriptor.getAddress();
-            log.info("No longer accepting connections on " + acceptorSocketAddress);
-            IoAcceptor ioAcceptor = getIoAcceptor(acceptorSocketAddress, socketDescriptor.isUseSSL());
-            if (ioAcceptor.isManaged(acceptorSocketAddress)) {
-                ioAcceptor.unbind(acceptorSocketAddress);
-            }
+    // XXX does this need to by synchronized?
+    protected void stopAcceptingConnections() throws ConfigError {
+        Iterator<IoAcceptor> ioIt = ioAcceptors.values().iterator();
+        while (ioIt.hasNext()) {
+            IoAcceptor ioAcceptor = ioIt.next();
+            SocketAddress localAddress = ioAcceptor.getLocalAddress();
+            ioAcceptor.unbind();
+            log.info("No longer accepting connections on " + localAddress);
+            ioIt.remove();
         }
-        ioAcceptorForTransport.clear();
     }
 
     private static class AcceptorSocketDescriptor {
@@ -312,7 +306,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     public Collection<IoAcceptor> getEndpoints() {
-        return ioAcceptorForTransport.values();
+        return ioAcceptors.values();
     }
 
     public Map<SessionID, SocketAddress> getAcceptorAddresses() {
@@ -352,77 +346,31 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     protected abstract EventHandlingStrategy getEventHandlingStrategy() ;
 
     private class DefaultAcceptorSessionProvider
-        implements AcceptorSessionProvider
-    {
-        private final Map<SessionID,Session> acceptorSessions;
+        implements AcceptorSessionProvider {
 
-        public DefaultAcceptorSessionProvider(Map<SessionID, Session> acceptorSessions)
-        {
+        private final Map<SessionID, Session> acceptorSessions;
+
+        public DefaultAcceptorSessionProvider(Map<SessionID, Session> acceptorSessions) {
             this.acceptorSessions = acceptorSessions;
         }
 
-        public Session getSession(SessionID sessionID, SessionConnector ignored)
-        {
+        public Session getSession(SessionID sessionID, SessionConnector ignored) {
             Session session = acceptorSessions.get(sessionID);
-            if(session == null)
-                session = acceptorSessions.get(reduceSessionID(sessionID));
+            if (session == null) {
+                SessionID reduced = reduceSessionID(sessionID);
+                session = acceptorSessions.get(reduced);
+            }
             return session;
         }
 
         /**
          * Remove the extra fields added to the session ID in QF-272.
          */
-        private SessionID reduceSessionID(SessionID sessionID)
-        {
+        private SessionID reduceSessionID(SessionID sessionID) {
             // Acceptors don't use qualifiers.
-            return new SessionID(sessionID.getBeginString(), sessionID.getSenderCompID(), sessionID.getTargetCompID());
+            return new SessionID(sessionID.getBeginString(), sessionID.getSenderCompID(),
+                    sessionID.getTargetCompID());
         }
     }
     
-    private class TransportTypeAndSSL {
-
-        private final TransportType transportType;
-        private final boolean useSSL;
-        
-        public TransportTypeAndSSL(final TransportType transportType, final boolean useSSL ) {
-            this.transportType = transportType;
-            this.useSSL = useSSL;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + getOuterType().hashCode();
-            result = prime * result + ((transportType == null) ? 0 : transportType.hashCode());
-            result = prime * result + (useSSL ? 1231 : 1237);
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            TransportTypeAndSSL other = (TransportTypeAndSSL) obj;
-            if (!getOuterType().equals(other.getOuterType()))
-                return false;
-            if (transportType == null) {
-                if (other.transportType != null)
-                    return false;
-            } else if (!transportType.equals(other.transportType))
-                return false;
-            if (useSSL != other.useSSL)
-                return false;
-            return true;
-        }
-
-        private AbstractSocketAcceptor getOuterType() {
-            return AbstractSocketAcceptor.this;
-        }
-
-    }
 }

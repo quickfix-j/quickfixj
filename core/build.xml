@@ -272,6 +272,8 @@
 	<target name="test.unit.junit" depends="compile, test.init,clean.errorfile" unless="utests.uptodate">
 		<junit fork="${utest.fork}" dir="${junit.fork.dir}" tempdir="${junit.output.dir}" printsummary="true" showoutput="false" errorproperty="tests.failed" failureproperty="tests.failed" haltonfailure="${junit.haltonfailure}">
 			<!-- The plain formatter is breaking the Pulse CI report generator -->
+			<jvmarg value="-Xms128m" />
+			<jvmarg value="-Xmx1024m" />
 			<!-- <formatter type="plain" usefile="true" /> -->
 			<formatter type="xml" usefile="true" />
 			<classpath refid="test.classpath" />
@@ -509,10 +511,10 @@
 		</exec>
 
 		<antcall target="compile_dll">
-			<param name="jarfile" value="${basedir}/src/main/lib/mina-core-1.1.0.jar" />
+          <param name="jarfile" value="${basedir}/src/main/lib/mina-core-2.0.7.jar"/>
 		</antcall>
 		<antcall target="compile_dll">
-			<param name="jarfile" value="${basedir}/src/main/lib/optional/mina-filter-ssl-1.1.0.jar" />
+          <param name="jarfile" value="${basedir}/src/main/lib/optional/mina-filter-compression-2.0.7.jar"/>
 		</antcall>
 		<antcall target="compile_dll">
 			<param name="jarfile" value="${basedir}/target/quickfixj-all-${version}.jar" />

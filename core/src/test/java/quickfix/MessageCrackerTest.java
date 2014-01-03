@@ -57,7 +57,6 @@ public class MessageCrackerTest {
                 new DefaultApplVerID(ApplVerID.FIX42));
 
         MessageCracker cracker = new MessageCracker() {
-            @SuppressWarnings("unused")
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) throws UnsupportedMessageType {
                 throw new UnsupportedMessageType();
@@ -74,7 +73,6 @@ public class MessageCrackerTest {
                 new DefaultApplVerID(ApplVerID.FIX42));
 
         MessageCracker cracker = new MessageCracker() {
-            @SuppressWarnings("unused")
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) throws FieldNotFound {
                 throw new FieldNotFound(10);
@@ -91,7 +89,6 @@ public class MessageCrackerTest {
                 new DefaultApplVerID(ApplVerID.FIX42));
 
         MessageCracker cracker = new MessageCracker() {
-            @SuppressWarnings("unused")
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) throws IncorrectTagValue {
                 throw new IncorrectTagValue("test");
@@ -108,7 +105,6 @@ public class MessageCrackerTest {
                 new DefaultApplVerID(ApplVerID.FIX42));
 
         MessageCracker cracker = new MessageCracker() {
-            @SuppressWarnings("unused")
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) throws InvalidObjectException {
                 throw new InvalidObjectException("test");
@@ -125,7 +121,6 @@ public class MessageCrackerTest {
                 new DefaultApplVerID(ApplVerID.FIX42));
 
         MessageCracker cracker = new MessageCracker() {
-            @SuppressWarnings("unused")
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) {
                 messageCracked++;
@@ -147,7 +142,6 @@ public class MessageCrackerTest {
                 messageCracked++;
             }
 
-            @SuppressWarnings("unused")
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) {
                 messageCracked++;
@@ -281,7 +275,6 @@ public class MessageCrackerTest {
     }
 
     private class MessageHandler {
-        @SuppressWarnings("unused")
         @MessageCracker.Handler
         public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) {
             messageCracked++;

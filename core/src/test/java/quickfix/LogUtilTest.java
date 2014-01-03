@@ -49,7 +49,7 @@ public class LogUtilTest extends TestCase {
         settings.setString(Session.SETTING_END_TIME, "13:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-        new Session(null, new MessageStoreFactory() {
+        Session session = new Session(null, new MessageStoreFactory() {
             public MessageStore create(SessionID sessionID) {
                 try {
                     return new MemoryStore() {
@@ -63,6 +63,11 @@ public class LogUtilTest extends TestCase {
                 }
             }
         }, sessionID, null, schedule, mockLogFactory, null, 0);
+        try {
+            session.close();
+        } catch (IOException e) {
+            // ignore
+        }
     }
 
     private LogFactory createLogFactory(ByteArrayOutputStream data) {

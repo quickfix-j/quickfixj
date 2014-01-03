@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.apache.mina.filter.codec.demux.MessageEncoder;
@@ -53,7 +53,7 @@ public class FIXMessageEncoder implements MessageEncoder {
         charsetEncoding = CharsetSupport.getCharset();
     }
     
-    public Set<Class<?>> getMessageTypes() {
+    public static Set<Class<?>> getMessageTypes() {
         return TYPES;
     }
 
@@ -71,7 +71,7 @@ public class FIXMessageEncoder implements MessageEncoder {
             }
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate(fixMessageString.length());
+        IoBuffer buffer = IoBuffer.allocate(fixMessageString.length());
         try {
             buffer.put(fixMessageString.getBytes(charsetEncoding));
         } catch (UnsupportedEncodingException e) {

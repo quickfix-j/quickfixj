@@ -55,7 +55,11 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     }
 
     public void stop(boolean forceDisconnect) {
-        stopAcceptingConnections();
+        try {
+            stopAcceptingConnections();
+        } catch (ConfigError e) {
+	        log.error("Error when stopping acceptor.", e );
+        }
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();
         eventHandlingStrategy.stopDispatcherThreads();

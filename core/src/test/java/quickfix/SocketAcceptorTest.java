@@ -25,10 +25,11 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
-import org.apache.mina.common.TransportType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import quickfix.mina.ProtocolFactory;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -120,8 +121,7 @@ public class SocketAcceptorTest extends TestCase {
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("BeginString", "FIX.4.2");
-        settings.setString(acceptorSessionID, "SocketAcceptProtocol",
-                TransportType.VM_PIPE.toString());
+        settings.setString(acceptorSessionID, "SocketAcceptProtocol",ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(acceptorSessionID, "SocketAcceptPort", "10000");
         settings.set(defaults);
 
@@ -142,8 +142,7 @@ public class SocketAcceptorTest extends TestCase {
         defaults.put("FileStorePath", "output/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
-        settings.setString(initiatorSessionID, "SocketConnectProtocol",
-                TransportType.VM_PIPE.toString());
+        settings.setString(initiatorSessionID, "SocketConnectProtocol",ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(initiatorSessionID, "SocketConnectHost", "127.0.0.1");
         settings.setString(initiatorSessionID, "SocketConnectPort", "10000");
         settings.set(defaults);

@@ -178,6 +178,7 @@ public class SLF4JLogTest extends TestCase {
         assertEquals(1, myLog4j.messages.size());
         assertEquals("my-caller-fqcn", myLog4j.fqcns.get(0));
         assertEquals("TEST123", myLog4j.messages.get(0));
+        slf4jLog.close();
     }
 
     private void assertMessageNotLogged(SessionID sessionID, String categoryName) {

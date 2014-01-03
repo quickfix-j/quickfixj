@@ -33,7 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.demux.DemuxingProtocolCodecFactory;
@@ -53,19 +53,19 @@ import quickfix.mina.CriticalProtocolCodecException;
 
 public class FIXMessageDecoderTest {
     private FIXMessageDecoder decoder;
-    private ByteBuffer buffer;
+    private IoBuffer buffer;
     private ProtocolDecoderOutputForTest decoderOutput;
 
     @Before
     public void setUp() throws Exception {
         decoder = new FIXMessageDecoder();
-        buffer = ByteBuffer.allocate(8192);
+        buffer = IoBuffer.allocate(8192);
         decoderOutput = new ProtocolDecoderOutputForTest();
     }
 
     @After
     public void tearDown() throws Exception {
-        buffer.release();
+        buffer.clear();
     }
 
     @Test 
@@ -115,7 +115,7 @@ public class FIXMessageDecoderTest {
 
     private void doWesternEuropeanDecodingTest() throws UnsupportedEncodingException, ProtocolCodecException, InvalidMessage, Exception, FieldNotFound {
         FIXMessageDecoder decoder = new FIXMessageDecoder();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
+        IoBuffer byteBuffer = IoBuffer.allocate(1024);
         // äbcfödçé
         String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
         byteBuffer.put(("8=FIX.4.49=1835=B148=" + headline + "10=253").getBytes("ISO-8859-1"));
@@ -374,11 +374,11 @@ public class FIXMessageDecoderTest {
 
     private void doTestMinaDemux(String message) throws Exception, UnsupportedEncodingException {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
-        codecFactory.register(FIXMessageDecoder.class);
+        codecFactory.addMessageDecoder(FIXMessageDecoder.class);
 
-        ProtocolDecoder decoder = codecFactory.getDecoder();
+		ProtocolDecoder decoder = codecFactory.getDecoder(null);
         ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
-
+        
         final IoSessionStub mockSession = new IoSessionStub();
         
         int count = 5;
@@ -399,7 +399,6 @@ public class FIXMessageDecoderTest {
             decoder.decode(mockSession, buffer, output);
 
             assertEquals("wrong message count", count, output.getMessageCount());
-            assertTrue(mockSession.getAttributeCalled);
             
             output.reset();
             buffer.clear();
@@ -441,7 +440,7 @@ public class FIXMessageDecoderTest {
     public void testCompleteHeader() {
         //8=FIXT.1.1_9=
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39, 0x3D};
-        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
@@ -450,7 +449,7 @@ public class FIXMessageDecoderTest {
     public void testLongCompleteHeader() {
         //8=FIXT.1.1_9======
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
-        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
@@ -459,7 +458,7 @@ public class FIXMessageDecoderTest {
     public void testIncompleteHeader() {
         //8=FIXT.1.1_9
         byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39};
-        ByteBuffer in = ByteBuffer.wrap(incompleteHeader);
+        IoBuffer in = IoBuffer.wrap(incompleteHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("There should be no header detected", bufPos._offset == -1);
     }
@@ -468,7 +467,7 @@ public class FIXMessageDecoderTest {
     public void testCompleteHeader4() {
         //8=FIX.4.4_9=
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39, 0x3D};
-        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
@@ -477,7 +476,7 @@ public class FIXMessageDecoderTest {
     public void testLongCompleteHeader4() {
         //8=FIX.4.4_9======
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
-        ByteBuffer in = ByteBuffer.wrap(completeHeader);
+        IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
@@ -487,7 +486,7 @@ public class FIXMessageDecoderTest {
     public void testIncompleteHeader4() {
         //8=FIX.4.4_9
         byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39};
-        ByteBuffer in = ByteBuffer.wrap(incompleteHeader);
+        IoBuffer in = IoBuffer.wrap(incompleteHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("There should be no header detected", bufPos._offset == -1);
     }
@@ -502,7 +501,7 @@ public class FIXMessageDecoderTest {
     }
     
         
-    private static int startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
+    private static int startsWith(IoBuffer buffer, int bufferOffset, byte[] data) {
         if (bufferOffset + minMaskLength(data) > buffer.limit()) {
             return -1;
         }
@@ -531,7 +530,7 @@ public class FIXMessageDecoderTest {
         return bufferOffset - initOffset;
     }
     
-    private static BufPos indexOf(ByteBuffer buffer, int position, byte[] data) {
+    private static BufPos indexOf(IoBuffer buffer, int position, byte[] data) {
         for (int offset = position, limit = buffer.limit() - minMaskLength(data) + 1; offset < limit; offset++) {
             int length;
             if (buffer.get(offset) == data[0] && (length = startsWith(buffer, offset, data)) > 0) {

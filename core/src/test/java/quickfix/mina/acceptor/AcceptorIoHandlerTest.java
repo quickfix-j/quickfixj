@@ -29,7 +29,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
 
 import quickfix.FixVersions;
@@ -52,7 +52,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
 public class AcceptorIoHandlerTest {
-
+    
     /**
      * QFJ-592
      * We need to make sure that the targetDefaultApplVerID gets set as early as possible,
@@ -97,7 +97,7 @@ public class AcceptorIoHandlerTest {
         EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
 
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
-
+ 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
@@ -127,9 +127,9 @@ public class AcceptorIoHandlerTest {
                 .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
 
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
-
+  
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
-                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                                                          new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
         handler.processMessage(mockIoSession, logout);
 
@@ -158,7 +158,6 @@ public class AcceptorIoHandlerTest {
 
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
         acceptorSessions.put(qfSession.getSessionID(), qfSession);
-
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 

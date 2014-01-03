@@ -21,41 +21,12 @@ package quickfix.mina.message;
 
 import java.net.SocketAddress;
 
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoHandler;
-import org.apache.mina.common.IoService;
-import org.apache.mina.common.IoServiceConfig;
-import org.apache.mina.common.IoSessionConfig;
-import org.apache.mina.common.TransportType;
-import org.apache.mina.common.support.BaseIoSession;
+import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.service.IoHandler;
+import org.apache.mina.core.service.IoService;
+import org.apache.mina.core.session.DummySession;
 
-public class IoSessionStub extends BaseIoSession {
-
-    public boolean getAttributeCalled;
-    
-    @Override
-    public Object getAttribute(String key) {
-        getAttributeCalled = true;
-        return super.getAttribute(key);
-    }
-
-    public boolean setAttributeCalled;
-    
-    @Override
-    public Object setAttribute(String key) {
-        setAttributeCalled = true;
-        return super.setAttribute(key);
-    }
-
-    @Override
-    protected void updateTrafficMask() {
-        throw new UnsupportedOperationException();
-        
-    }
-
-    public IoSessionConfig getConfig() {
-        throw new UnsupportedOperationException();
-    }
+public class IoSessionStub extends DummySession {
 
     public IoFilterChain getFilterChain() {
         throw new UnsupportedOperationException();
@@ -73,14 +44,6 @@ public class IoSessionStub extends BaseIoSession {
         throw new UnsupportedOperationException();
     }
 
-    public int getScheduledWriteBytes() {
-        throw new UnsupportedOperationException();
-    }
-
-    public int getScheduledWriteRequests() {
-        throw new UnsupportedOperationException();
-    }
-
     public IoService getService() {
         throw new UnsupportedOperationException();
     }
@@ -88,13 +51,4 @@ public class IoSessionStub extends BaseIoSession {
     public SocketAddress getServiceAddress() {
         throw new UnsupportedOperationException();
     }
-
-    public IoServiceConfig getServiceConfig() {
-        throw new UnsupportedOperationException();
-    }
-
-    public TransportType getTransportType() {
-        throw new UnsupportedOperationException();
-    }
-
 }

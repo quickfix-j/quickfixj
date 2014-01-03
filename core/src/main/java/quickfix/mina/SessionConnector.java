@@ -35,8 +35,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

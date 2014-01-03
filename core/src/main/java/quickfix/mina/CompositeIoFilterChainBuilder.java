@@ -19,9 +19,9 @@
 
 package quickfix.mina;
 
-import org.apache.mina.common.DefaultIoFilterChainBuilder;
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoFilterChainBuilder;
+import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
+import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 
 /**
  * (For internal usage only.) This is the filter that initializes the FIX 

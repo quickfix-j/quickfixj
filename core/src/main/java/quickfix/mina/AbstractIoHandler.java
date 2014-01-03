@@ -23,8 +23,8 @@ import static quickfix.MessageUtils.parse;
 
 import java.io.IOException;
 
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
@@ -76,7 +76,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 quickFixSession.disconnect(reason, true);
             } else {
                 log.error(reason, cause);
-                ioSession.close();
+				ioSession.close(true);
             }
         } else {
             log.error(reason, cause);
@@ -89,12 +89,18 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     }
 
     public void sessionClosed(IoSession ioSession) throws Exception {
-        Session quickFixSession = findQFSession(ioSession);
-        if (quickFixSession != null) {
-            ioSession.removeAttribute(SessionConnector.QF_SESSION);
-            if (quickFixSession.hasResponder()) {
-                quickFixSession.disconnect("IO Session closed", false);
+        try {
+            Session quickFixSession = findQFSession(ioSession);
+            if (quickFixSession != null) {
+                ioSession.removeAttribute(SessionConnector.QF_SESSION);
+                if (quickFixSession.hasResponder()) {
+                    quickFixSession.disconnect("IO Session closed", false);
+                }
             }
+			ioSession.close(false);
+		} catch (Exception e) {
+			ioSession.close(true);
+            throw e;
         }
     }
 
@@ -110,14 +116,14 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             } catch (InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
                     log.error("Invalid LOGON message, disconnecting: " + e.getMessage());
-                    ioSession.close();
+                    ioSession.close(true);
                 } else {
                     log.error("Invalid message: " + e.getMessage());
                 }
             }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
-            ioSession.close();
+            ioSession.close(true);
         }
     }
 

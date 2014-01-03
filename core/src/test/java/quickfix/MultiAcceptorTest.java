@@ -25,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
-import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.field.TestReqID;
 import quickfix.fix42.TestRequest;
+import quickfix.mina.ProtocolFactory;
 
 public class MultiAcceptorTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -96,15 +96,15 @@ public class MultiAcceptorTest extends TestCase {
 
     private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException,
             FieldNotFound {
-        TestRequest message = new TestRequest();
-        message.set(new TestReqID("TEST" + i));
-        SessionID sessionID = getSessionIDForClient(i);
+        	TestRequest message = new TestRequest();
+        	message.set(new TestReqID("TEST" + i));
+        	SessionID sessionID = getSessionIDForClient(i);
         
-        testAcceptorApplication.setMessageLatch(new CountDownLatch(1));
-        Session.sendToTarget(message, sessionID);
+        	testAcceptorApplication.setMessageLatch(new CountDownLatch(1));
+        	Session.sendToTarget(message, sessionID);
 
-        testAcceptorApplication.waitForMessages();
-        testAcceptorApplication.assertTestRequestOnSession("TEST" + i, sessionID);
+       	 	testAcceptorApplication.waitForMessages();
+       		testAcceptorApplication.assertTestRequestOnSession("TEST" + i, sessionID);
     }
 
     private SessionID getSessionIDForClient(int i) {
@@ -197,7 +197,7 @@ public class MultiAcceptorTest extends TestCase {
 
     private void configureInitiatorForSession(SessionSettings settings, int i, int port) {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "INITIATOR", "ACCEPTOR-" + i);
-        settings.setString(sessionID, "SocketConnectProtocol", TransportType.VM_PIPE.toString());
+        settings.setString(sessionID, "SocketConnectProtocol",ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(sessionID, "SocketConnectHost", "127.0.0.1");
         settings.setString(sessionID, "SocketConnectPort", Integer.toString(port));
     }
@@ -226,7 +226,7 @@ public class MultiAcceptorTest extends TestCase {
 
     private void configureAcceptorForSession(SessionSettings settings, int i, int port) {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + i, "INITIATOR");
-        settings.setString(sessionID, "SocketAcceptProtocol", TransportType.VM_PIPE.toString());
+        settings.setString(sessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(sessionID, "SocketAcceptPort", Integer.toString(port));
     }
 }

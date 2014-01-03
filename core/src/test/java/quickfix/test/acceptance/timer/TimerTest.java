@@ -34,6 +34,7 @@ public class TimerTest extends TestCase {
         super.setUp();
         TimerTestServer server = new TimerTestServer();
         serverThread = new Thread(server, "TimerTestServer");
+        serverThread.setDaemon(true);
         serverThread.start();
         server.waitForInitialization();
     }

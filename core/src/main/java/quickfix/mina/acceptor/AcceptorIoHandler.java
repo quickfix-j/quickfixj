@@ -23,7 +23,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.session.IoSession;
 
 import quickfix.Log;
 import quickfix.Message;
@@ -65,15 +65,14 @@ class AcceptorIoHandler extends AbstractIoHandler {
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
                 final SessionID sessionID = MessageUtils.getReverseSessionID(message);
-                qfSession = sessionProvider.getSession(sessionID,
-                        eventHandlingStrategy.getSessionConnector());
+                qfSession = sessionProvider.getSession(sessionID,eventHandlingStrategy.getSessionConnector());
                 if (qfSession != null) {
                     final Log sessionLog = qfSession.getLog();
                     if (qfSession.hasResponder()) {
                         // Session is already bound to another connection
                         sessionLog
                                 .onErrorEvent("Multiple logons/connections for this session are not allowed");
-                        protocolSession.close();
+                        protocolSession.close(true);
                         return;
                     }
                     sessionLog.onEvent("Accepting session " + qfSession.getSessionID() + " from "

@@ -68,6 +68,7 @@ public class ResynchTest  {
     public void setUp() throws Exception {
         server = new ResynchTestServer();
         serverThread = new Thread(server, "TimerTestServer");
+        serverThread.setDaemon(true);
     }
 
     @After

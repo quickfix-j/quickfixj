@@ -28,9 +28,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.SimpleByteBufferAllocator;
-import org.apache.mina.common.TransportType;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +70,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
-            ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
-            ByteBuffer.setUseDirectBuffers(false);
+            IoBuffer.setAllocator(new SimpleBufferAllocator());
+            IoBuffer.setUseDirectBuffer(false);
     }
 
     protected void createSessionInitiators()
@@ -140,7 +139,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             if (settings.isSetting(sessionID, Initiator.SETTING_SOCKET_LOCAL_PORT)) {
                 port = (int) settings.getLong(sessionID, Initiator.SETTING_SOCKET_LOCAL_PORT);
             }
-            localAddress = ProtocolFactory.createSocketAddress(TransportType.SOCKET, host, port);
+            localAddress = ProtocolFactory.createSocketAddress(ProtocolFactory.SOCKET, host, port);
             if (log.isInfoEnabled()) {
                 log.info("Using initiator local host: " + localAddress);
             }
@@ -206,11 +205,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                         + (index == 0 ? "" : Integer.toString(index));
                 final String portKey = Initiator.SETTING_SOCKET_CONNECT_PORT
                         + (index == 0 ? "" : Integer.toString(index));
-                TransportType transportType = TransportType.SOCKET;
+                int transportType = ProtocolFactory.SOCKET;
                 if (settings.isSetting(sessionID, protocolKey)) {
                     try {
-                        transportType = TransportType.getInstance(settings.getString(sessionID,
-                                protocolKey));
+                        transportType = ProtocolFactory.getTransportType(settings.getString(sessionID, protocolKey));
                     } catch (final IllegalArgumentException e) {
                         // Unknown transport type
                         throw new ConfigError(e);
@@ -236,8 +234,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         return addresses.toArray(new SocketAddress[addresses.size()]);
     }
 
-    private boolean isHostRequired(TransportType transportType) {
-        return transportType != TransportType.VM_PIPE;
+    private boolean isHostRequired(int transportType) {
+        return transportType != ProtocolFactory.VM_PIPE;
     }
 
     private boolean isInitiatorSession(Object sectionKey) throws ConfigError, FieldConvertError {

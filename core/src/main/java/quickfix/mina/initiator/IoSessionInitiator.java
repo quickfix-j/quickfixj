@@ -28,13 +28,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mina.common.ConnectFuture;
-import org.apache.mina.common.IoConnector;
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoServiceConfig;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.ThreadModel;
-import org.apache.mina.filter.SSLFilter;
+import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.service.IoConnector;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,22 +114,20 @@ public class IoSessionInitiator {
                     userIoFilterChainBuilder);
 
             if (sslEnabled) {
-                installSSLFilter(ioFilterChainBuilder);
+                installSslFilter(ioFilterChainBuilder);
             }
 
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
                     new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
-            IoServiceConfig serviceConfig = ioConnector.getDefaultConfig();
-            serviceConfig.setFilterChainBuilder(ioFilterChainBuilder);
-            serviceConfig.setThreadModel(ThreadModel.MANUAL);
+            ioConnector.setFilterChainBuilder(ioFilterChainBuilder);
             ioHandler = new InitiatorIoHandler(fixSession, networkingOptions,
                     eventHandlingStrategy);
         }
 
-        private void installSSLFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
+        private void installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
-            SSLFilter sslFilter = new SSLFilter(SSLContextFactory.getInstance(keyStoreName,
+            SslFilter sslFilter = new SslFilter(SSLContextFactory.getInstance(keyStoreName,
                     keyStorePassword.toCharArray()));
             if(enableProtocole != null)sslFilter.setEnabledProtocols(enableProtocole);
             if(cipherSuites != null) sslFilter.setEnabledCipherSuites(cipherSuites);
@@ -152,12 +148,13 @@ public class IoSessionInitiator {
         private void connect() {
             lastReconnectAttemptTime = SystemTime.currentTimeMillis();
             SocketAddress nextSocketAddress = getNextSocketAddress();
+            ioConnector.setHandler(ioHandler);
             try {
             	if (localAddress == null) {
-                    connectFuture = ioConnector.connect(nextSocketAddress, ioHandler);
+                    connectFuture = ioConnector.connect(nextSocketAddress);
                 } else {
                 	//QFJ-482
-                    connectFuture = ioConnector.connect(nextSocketAddress, localAddress, ioHandler);
+                    connectFuture = ioConnector.connect(nextSocketAddress, localAddress);
                 }
                 pollConnectFuture();
             } catch (Throwable e) {
@@ -167,7 +164,7 @@ public class IoSessionInitiator {
 
         private void pollConnectFuture() {
             try {
-                connectFuture.join(CONNECT_POLL_TIMEOUT);
+                connectFuture.awaitUninterruptibly(CONNECT_POLL_TIMEOUT);
                 if (connectFuture.getSession() != null) {
                     ioSession = connectFuture.getSession();
                     connectionFailureCount = 0;

@@ -26,19 +26,19 @@ import java.util.regex.Pattern;
 import junit.framework.Assert;
 import junit.framework.TestResult;
 
-import org.apache.mina.common.TransportType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.mina.ProtocolFactory;
 
 public class ConnectToServerStep implements TestStep {
     private Logger log = LoggerFactory.getLogger(getClass());
     private static final Pattern CONNECT_PATTERN = Pattern.compile("i(\\d+)*,?CONNECT");
     private String command;
     private int clientId = 0;
-    private TransportType transportType = TransportType.SOCKET;
+    private int transportType = ProtocolFactory.SOCKET;
     private final int port;
 
-    public ConnectToServerStep(String command, TransportType transportType, int port) {
+    public ConnectToServerStep(String command, int transportType, int port) {
         this.command = command;
         this.transportType = transportType;
         this.port = port;

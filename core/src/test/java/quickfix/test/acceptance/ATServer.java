@@ -30,8 +30,7 @@ import java.util.concurrent.CountDownLatch;
 import junit.framework.Assert;
 import junit.framework.TestSuite;
 
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.TransportType;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +44,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.ThreadedSocketAcceptor;
+import quickfix.mina.ProtocolFactory;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.ssl.SSLSupport;
 
@@ -57,7 +57,7 @@ public class ATServer implements Runnable {
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
     private AbstractSocketAcceptor acceptor;
-    private TransportType transportType = TransportType.SOCKET;
+    private int transportType = ProtocolFactory.SOCKET;
     private int port = 9877;
     private boolean threaded;
     private IoFilterChainBuilder ioFilterChainBuilder;
@@ -70,11 +70,11 @@ public class ATServer implements Runnable {
         // defaults
     }
 
-    public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port) {
+    public ATServer(TestSuite suite, boolean threaded, int transportType, int port) {
         this(suite, threaded, transportType, port, null);
     }
     
-    public ATServer(TestSuite suite, boolean threaded, TransportType transportType, int port, Map<Object, Object> overridenProperties) {
+    public ATServer(TestSuite suite, boolean threaded, int transportType, int port, Map<Object, Object> overridenProperties) {
         this.threaded = threaded;
         this.overridenProperties = overridenProperties;
         this.transportType = transportType;
@@ -91,7 +91,7 @@ public class ATServer implements Runnable {
         try {
             HashMap<Object, Object> defaults = new HashMap<Object, Object>();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptProtocol", transportType.toString());
+            defaults.put("SocketAcceptProtocol", ProtocolFactory.getTypeString(transportType));
             defaults.put("SocketAcceptPort", Integer.toString(port));
             defaults.put("SocketTcpNoDelay", "Y");
             defaults.put("StartTime", "00:00:00");

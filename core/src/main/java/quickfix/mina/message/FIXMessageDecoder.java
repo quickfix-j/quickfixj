@@ -28,8 +28,9 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.filterchain.IoFilter;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.apache.mina.filter.codec.demux.MessageDecoder;
@@ -109,14 +110,14 @@ public class FIXMessageDecoder implements MessageDecoder {
         resetState();
     }
 
-    public MessageDecoderResult decodable(IoSession session, ByteBuffer in) {
+    public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
         BufPos bufPos = indexOf(in, in.position(), HEADER_PATTERN);
         int headerOffset = bufPos._offset;
         return headerOffset != -1 ? MessageDecoderResult.OK : 
             (in.remaining() > MAX_UNDECODED_DATA_LENGTH ? MessageDecoderResult.NOT_OK : MessageDecoderResult.NEED_DATA);
     }
 
-    public MessageDecoderResult decode(IoSession session, ByteBuffer in, ProtocolDecoderOutput out)
+    public MessageDecoderResult decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out)
             throws ProtocolCodecException {
         int messageCount = 0;
         while (parseMessage(in, out)) {
@@ -140,7 +141,7 @@ public class FIXMessageDecoder implements MessageDecoder {
      * error has occurred. Otherwise, MINA will compact the buffer and we lose
      * data.
      */
-    private boolean parseMessage(ByteBuffer in, ProtocolDecoderOutput out)
+    private boolean parseMessage(IoBuffer in, ProtocolDecoderOutput out)
             throws ProtocolCodecException {
         try {
             boolean messageFound = false;
@@ -251,20 +252,20 @@ public class FIXMessageDecoder implements MessageDecoder {
         }
     }
 
-    private int remaining(ByteBuffer in) {
+    private int remaining(IoBuffer in) {
         return in.limit() - position;
     }
 
-    private String getBufferDebugInfo(ByteBuffer in) {
+    private String getBufferDebugInfo(IoBuffer in) {
         return "pos=" + in.position() + ",lim=" + in.limit() + ",rem=" + in.remaining()
                 + ",offset=" + position + ",state=" + state;
     }
 
-    private byte get(ByteBuffer in) {
+    private byte get(IoBuffer in) {
         return in.get(position++);
     }
 
-    private boolean hasRemaining(ByteBuffer in) {
+    private boolean hasRemaining(IoBuffer in) {
         return position < in.limit();
     }
 
@@ -278,13 +279,13 @@ public class FIXMessageDecoder implements MessageDecoder {
         return len;
     }
 
-    private String getMessageString(ByteBuffer buffer) throws UnsupportedEncodingException {
+    private String getMessageString(IoBuffer buffer) throws UnsupportedEncodingException {
         byte[] data = new byte[position - buffer.position()];
         buffer.get(data);
         return new String(data, charsetEncoding);
     }
     
-    private String getMessageStringForError(ByteBuffer buffer) throws UnsupportedEncodingException {
+    private String getMessageStringForError(IoBuffer buffer) throws UnsupportedEncodingException {
         int initialPosition = buffer.position();
         byte[] data = new byte[buffer.limit() - initialPosition];
         buffer.get(data);
@@ -292,7 +293,7 @@ public class FIXMessageDecoder implements MessageDecoder {
         return new String(data, charsetEncoding);
     }
 
-    private void handleError(ByteBuffer buffer, int recoveryPosition, String text,
+    private void handleError(IoBuffer buffer, int recoveryPosition, String text,
             boolean disconnect) throws ProtocolCodecException {
         buffer.position(recoveryPosition);
         position = recoveryPosition;
@@ -305,12 +306,12 @@ public class FIXMessageDecoder implements MessageDecoder {
         }
     }
 
-    private boolean isLogon(ByteBuffer buffer) {
+    private boolean isLogon(IoBuffer buffer) {
         BufPos bufPos = indexOf(buffer, buffer.position(), LOGON_PATTERN);
         return bufPos._offset != -1;
     }
 
-    private static BufPos indexOf(ByteBuffer buffer, int position, byte[] data) {
+    private static BufPos indexOf(IoBuffer buffer, int position, byte[] data) {
         for (int offset = position, limit = buffer.limit() - minMaskLength(data) + 1; offset < limit; offset++) {
             int length;
             if (buffer.get(offset) == data[0] && (length = startsWith(buffer, offset, data)) > 0) {
@@ -329,7 +330,7 @@ public class FIXMessageDecoder implements MessageDecoder {
      * @param data
      * @return
      */
-    private static int startsWith(ByteBuffer buffer, int bufferOffset, byte[] data) {
+    private static int startsWith(IoBuffer buffer, int bufferOffset, byte[] data) {
         if (bufferOffset + minMaskLength(data) > buffer.limit()) {
             return -1;
         }
@@ -408,21 +409,24 @@ public class FIXMessageDecoder implements MessageDecoder {
     public void extractMessages(File file, final MessageListener listener) throws IOException,
             ProtocolCodecException {
         // Set up a read-only memory-mapped file
-        FileChannel readOnlyChannel = new RandomAccessFile(file, "r").getChannel();
+    	RandomAccessFile fileIn = new RandomAccessFile(file, "r");
+        FileChannel readOnlyChannel = fileIn.getChannel();
         MappedByteBuffer memoryMappedBuffer = readOnlyChannel.map(FileChannel.MapMode.READ_ONLY, 0,
                 (int) readOnlyChannel.size());
 
-        decode(null, ByteBuffer.wrap(memoryMappedBuffer), new ProtocolDecoderOutput() {
+        decode(null, IoBuffer.wrap(memoryMappedBuffer), new ProtocolDecoderOutput() {
 
             public void write(Object message) {
                 listener.onMessage((String) message);
             }
 
-            public void flush() {
+            public void flush(IoFilter.NextFilter nextFilter, IoSession ioSession) {
                 // ignored
             }
 
         });
+        readOnlyChannel.close();
+        fileIn.close();
     }
 
     private static byte[] getBytes(String s) {

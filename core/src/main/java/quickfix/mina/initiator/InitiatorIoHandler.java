@@ -19,7 +19,7 @@
 
 package quickfix.mina.initiator;
 
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.session.IoSession;
 
 import quickfix.Message;
 import quickfix.Session;

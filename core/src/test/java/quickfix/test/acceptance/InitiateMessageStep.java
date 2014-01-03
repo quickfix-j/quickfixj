@@ -135,13 +135,8 @@ public class InitiateMessageStep implements TestStep {
 
     private int checksum(String message) {
         int sum = 0;
-        int fieldSum = 0;
         for (int i = 0; i < message.length(); i++) {
             sum += message.charAt(i);
-            fieldSum += message.charAt(i);
-            if (message.charAt(i) == '\001') {
-                fieldSum = 0;
-            }
         }
         return sum % 256;
     }

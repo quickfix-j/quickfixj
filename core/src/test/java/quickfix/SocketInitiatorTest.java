@@ -30,21 +30,21 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TransportType;
+import org.apache.mina.core.filterchain.IoFilterAdapter;
+import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.WriteRequest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import quickfix.mina.ProtocolFactory;
 import quickfix.test.acceptance.ATServer;
 
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final TransportType transportProtocol = TransportType.SOCKET;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -232,7 +232,7 @@ public class SocketInitiatorTest {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<Object, Object>();
         defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", transportProtocol.toString());
+        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", "9877");
         defaults.put("StartTime", "00:00:00");

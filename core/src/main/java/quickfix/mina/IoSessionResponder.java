@@ -19,8 +19,8 @@
 
 package quickfix.mina;
 
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.WriteFuture;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.future.WriteFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class IoSessionResponder implements Responder {
         WriteFuture future = ioSession.write(data);
         if (synchronousWrites) {
             try {
-                if (!future.join(synchronousWriteTimeout)) {
+                if (!future.awaitUninterruptibly(synchronousWriteTimeout)) {
                     log.error("Synchronous write timed out after " + synchronousWriteTimeout + "ms");
                     return false;
                 }
@@ -60,13 +60,13 @@ public class IoSessionResponder implements Responder {
     }
 
     public void disconnect() {
-        waitForScheduleMessagesToBeWritten();
+        waitForScheduleMessagesToBeWritten(); 
         // We cannot call join() on the CloseFuture returned
         // by the following call. We are using a minimal
         // threading model and calling join will prevent the
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
-        ioSession.close();
+        ioSession.close(true); // XXX might cause deadlock in MultiAcceptorTest if calling close(false), might be related to QFJ-738
     }
 
     private void waitForScheduleMessagesToBeWritten() {
@@ -77,7 +77,7 @@ public class IoSessionResponder implements Responder {
         //
         // Only wait for a limited time since MINA may deadlock
         // in some rare cases where a socket dies in a strange way.
-        for (int i = 0; i < 5 && ioSession.getScheduledWriteRequests() > 0; i++) {
+        for (int i = 0; i < 5 && ioSession.getScheduledWriteMessages() > 0; i++) {
             try {
                 Thread.sleep(10L);
             } catch (InterruptedException e) {

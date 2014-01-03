@@ -25,11 +25,10 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoFilterChainBuilder;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.TransportType;
+import org.apache.mina.core.filterchain.IoFilterAdapter;
+import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,12 +43,13 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SystemTime;
 import quickfix.ThreadedSocketInitiator;
+import quickfix.mina.ProtocolFactory;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.ExpectedTestFailure;
 
 public class SecureSocketTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final TransportType transportProtocol = TransportType.SOCKET;
+    private final int transportProtocol = ProtocolFactory.SOCKET;
 
     protected void setUp() throws Exception {
         SystemTime.setTimeSource(null);
@@ -172,7 +172,7 @@ public class SecureSocketTest extends TestCase {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<Object, Object>();
         defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", transportProtocol.toString());
+        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(transportProtocol));
         defaults.put("SocketUseSSL", "Y");
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", "9877");

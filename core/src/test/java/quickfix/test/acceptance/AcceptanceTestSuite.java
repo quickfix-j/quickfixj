@@ -17,13 +17,13 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
-import org.apache.mina.common.TransportType;
 import org.apache.mina.util.AvailablePortFinder;
 import org.logicalcobwebs.proxool.ProxoolException;
 import org.logicalcobwebs.proxool.ProxoolFacade;
 import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.mina.ProtocolFactory;
 
 import quickfix.Session;
 
@@ -35,7 +35,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
     private static final String acceptanceTestBaseDir;
     
-    private static TransportType transportType = TransportType.SOCKET;
+    private static int transportType = ProtocolFactory.SOCKET;
     private static int port = 9887;
 
     private boolean skipSlowTests;
@@ -122,7 +122,7 @@ public class AcceptanceTestSuite extends TestSuite {
                     } else if (line.startsWith("E")) {
                         steps.add(new ExpectMessageStep(line));
                     } else if (line.matches("^i\\d*,?CONNECT")) {
-                        steps.add(new ConnectToServerStep(line, transportType, port));
+                        steps.add(new ConnectToServerStep(line,transportType, port));
                     } else if (line.matches("^iSET_SESSION.*")) {
                         steps.add(new ConfigureSessionStep(line));
                     } else if (line.matches("^e\\d*,?DISCONNECT")) {
@@ -232,6 +232,7 @@ public class AcceptanceTestSuite extends TestSuite {
             server = new ATServer((TestSuite) getTest(), threaded, transportType, port,  overridenProperties);
             server.setUsingMemoryStore(true);
             serverThread = new Thread(server, "ATServer");
+            serverThread.setDaemon(true);
             serverThread.start();
             server.waitForInitialization();
         }
@@ -246,8 +247,7 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     public static Test suite() {
-        transportType = TransportType
-                .getInstance(System.getProperty(ATEST_TRANSPORT_KEY, "SOCKET"));
+        transportType = ProtocolFactory.getTransportType(System.getProperty(ATEST_TRANSPORT_KEY, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET)));
         port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite();
         //default server

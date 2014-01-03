@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mina.common.TransportType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +44,7 @@ import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.SystemTime;
 import quickfix.ThreadedSocketInitiator;
+import quickfix.mina.ProtocolFactory;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.test.acceptance.ATApplication;
 
@@ -98,7 +98,7 @@ public class SSLAndNonSSLTest {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<Object, Object>();
         defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", TransportType.SOCKET.toString());
+        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put("SocketUseSSL", socketUseSSL);
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", socketConnectPort);
@@ -179,7 +179,7 @@ public class SSLAndNonSSLTest {
             try {
                 HashMap<Object, Object> defaults = new HashMap<Object, Object>();
                 defaults.put("ConnectionType", "acceptor");
-                defaults.put("SocketAcceptProtocol", TransportType.SOCKET.toString());
+                defaults.put("SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
                 defaults.put("SocketTcpNoDelay", "Y");
                 defaults.put("StartTime", "00:00:00");
                 defaults.put("EndTime", "00:00:00");

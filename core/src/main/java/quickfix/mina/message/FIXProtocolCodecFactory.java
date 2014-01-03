@@ -28,7 +28,7 @@ public class FIXProtocolCodecFactory extends DemuxingProtocolCodecFactory {
     public static final String FILTER_NAME = "FIXCodec";
     
     public FIXProtocolCodecFactory() {
-        super.register(FIXMessageDecoder.class);
-        super.register(FIXMessageEncoder.class);
+        addMessageDecoder(FIXMessageDecoder.class);
+        addMessageEncoder(FIXMessageEncoder.getMessageTypes(),FIXMessageEncoder.class);
     }
 }
