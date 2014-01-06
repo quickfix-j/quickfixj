@@ -48,7 +48,12 @@ public class SessionSchedule {
         } else {
             nonStopSession = false;
         }
-            
+        TimeZone defaultTimeZone = getDefaultTimeZone(settings, sessionID);
+        if (nonStopSession) {
+            startTime = endTime = new TimeEndPoint(NOT_SET, 0, 0, 0, defaultTimeZone);
+            return;
+        }
+
         boolean startDayPresent = settings.isSetting(sessionID, Session.SETTING_START_DAY);
         boolean endDayPresent = settings.isSetting(sessionID, Session.SETTING_END_DAY);
 
@@ -59,8 +64,6 @@ public class SessionSchedule {
         if (endDayPresent && !startDayPresent) {
             throw new ConfigError("Session " + sessionID + ": EndDay used without StartDay");
         }
-
-        TimeZone defaultTimeZone = getDefaultTimeZone(settings, sessionID);
 
         startTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_START_TIME, Session.SETTING_START_DAY);
         endTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_END_TIME, Session.SETTING_END_DAY);

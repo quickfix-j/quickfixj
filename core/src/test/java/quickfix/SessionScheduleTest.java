@@ -146,7 +146,7 @@ public class SessionScheduleTest extends TestCase {
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
         assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
     }
-//
+
     private void doIsSessionTimeTest(SessionSettings settings, SessionID sessionID,
             boolean expectedInSession, int year, int month, int day, int hour, int minute,
             int second, String timeZoneID) throws ConfigError, FieldConvertError {
@@ -768,6 +768,15 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, true, 2008, Calendar.NOVEMBER, 7, 17, 0, 0,
                 TimeZone.getTimeZone("America/New_York"));
     }
+
+	// QFJ-767
+	public void testNonStopSession() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_NON_STOP_SESSION, "Y");
+        SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
+        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+        assertTrue(schedule.isSameSession(null, null));
+	}
 
     private void doWeeklyIsSameSessionTest(String startDay, String startTimeString, String endDay,
             String endTimeString) throws ConfigError, FieldConvertError, ParseException {
