@@ -322,6 +322,7 @@ public class SerializationTest extends TestCase {
         checkSerialVersionUID(baseDirectory, "quickfix/fix42");
         checkSerialVersionUID(baseDirectory, "quickfix/fix43");
         checkSerialVersionUID(baseDirectory, "quickfix/fix44");
+        checkSerialVersionUID(baseDirectory, "quickfix/fix50");
     }
 
     private void checkSerialVersionUID(String baseDirectory, String path) throws ClassNotFoundException {
