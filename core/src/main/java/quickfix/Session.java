@@ -384,6 +384,7 @@ public class Session implements Closeable {
     private boolean enableLastMsgSeqNumProcessed = false;
 
     private final AtomicBoolean isResetting = new AtomicBoolean();
+    private final AtomicBoolean isDisconnecting = new AtomicBoolean();
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
@@ -780,6 +781,15 @@ public class Session implements Closeable {
      */
     public boolean receivedLogout() {
         return state.isLogoutReceived();
+    }
+
+    /**
+     * Is the session currently disconnecting.
+     *  
+     * @return true if disconnection is in progress, false otherwise.
+     */
+    public boolean isDisconnecting() {
+        return isDisconnecting.get();
     }
 
     /**
@@ -1761,6 +1771,11 @@ public class Session implements Closeable {
      * @throws IOException IO error
      */
     public void next() throws IOException {
+
+        if (isDisconnecting()) {
+            return;
+        }
+
         if (!isEnabled()) {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
@@ -1915,6 +1930,10 @@ public class Session implements Closeable {
      *             IO error
      */
     public void disconnect(String reason, boolean logError) throws IOException {
+        if (!isDisconnecting.compareAndSet(false, true)) {
+            log.info("Already disconnecting.");
+            return;
+        }
         try {
             synchronized (responderSync) {
                 if (!hasResponder()) {
@@ -1956,10 +1975,11 @@ public class Session implements Closeable {
             state.clearQueue();
             state.clearLogoutReason();
             state.setResendRange(0, 0);
-            
+
             if (resetOnDisconnect) {
                 resetState();
             }
+            isDisconnecting.set(false);
         }
     }
 
@@ -1971,6 +1991,10 @@ public class Session implements Closeable {
         // immediately followed by a Logout (due to check in Session.next()).
         if (!checkSessionTime()) {
             throw new RejectLogon("Logon attempt not within session time");
+        }
+
+        if (isDisconnecting()) {
+            throw new RejectLogon("Disconnection still in progress");
         }
 
         if (isStateRefreshNeeded(MsgType.LOGON)) {
@@ -2505,13 +2529,15 @@ public class Session implements Closeable {
 
     private boolean send(String messageString) {
         getLog().onOutgoing(messageString);
+        Responder responder;
         synchronized (responderSync) {
-            if (!hasResponder()) {
-                getLog().onEvent("No responder, not sending message: " + messageString);
-                return false;
-            }
-            return getResponder().send(messageString);
+            responder = this.responder;
         }
+        if (responder == null) {
+            getLog().onEvent("No responder, not sending message: " + messageString);
+            return false;
+        }
+        return responder.send(messageString);
     }
 
     private boolean isCorrectCompID(String senderCompID, String targetCompID) {

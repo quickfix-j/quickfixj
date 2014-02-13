@@ -66,7 +66,7 @@ public class IoSessionResponder implements Responder {
         // threading model and calling join will prevent the
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
-        ioSession.close(true); // XXX might cause deadlock in MultiAcceptorTest if calling close(false), might be related to QFJ-738
+        ioSession.close(true);
     }
 
     private void waitForScheduleMessagesToBeWritten() {

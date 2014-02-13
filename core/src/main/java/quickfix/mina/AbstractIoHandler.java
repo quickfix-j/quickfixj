@@ -93,11 +93,11 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             Session quickFixSession = findQFSession(ioSession);
             if (quickFixSession != null) {
                 ioSession.removeAttribute(SessionConnector.QF_SESSION);
-                if (quickFixSession.hasResponder()) {
+                if (!quickFixSession.isDisconnecting()) {
                     quickFixSession.disconnect("IO Session closed", false);
                 }
             }
-			ioSession.close(false);
+			ioSession.close(true);
 		} catch (Exception e) {
 			ioSession.close(true);
             throw e;

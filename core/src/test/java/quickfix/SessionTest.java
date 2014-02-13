@@ -343,6 +343,7 @@ public class SessionTest {
         // make sure that the target seq num has not been incremented
         assertEquals(4, state.getNextSenderMsgSeqNum());
         assertEquals(3, state.getNextTargetMsgSeqNum());
+        session.setResponder(new UnitTestResponder());
         logonTo(session, 3);
         assertEquals(5, state.getNextSenderMsgSeqNum());
         assertEquals(4, state.getNextTargetMsgSeqNum());
@@ -378,6 +379,7 @@ public class SessionTest {
         // make sure that the target seq num has not been incremented
         assertEquals(4, state.getNextSenderMsgSeqNum());
         assertEquals(3, state.getNextTargetMsgSeqNum());
+        session.setResponder(new UnitTestResponder());
         logonTo(session, 3);
         assertEquals(5, state.getNextSenderMsgSeqNum());
         assertEquals(4, state.getNextTargetMsgSeqNum());
