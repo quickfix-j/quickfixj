@@ -62,6 +62,7 @@ public class SecureSocketTest extends TestCase {
         }
         ServerThread serverThread = new ServerThread("nonexistent", "pwd");
         try {
+            serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
 
@@ -144,6 +145,7 @@ public class SecureSocketTest extends TestCase {
         }
         ServerThread serverThread = new ServerThread(keyStoreName, keyStorePassword);
         try {
+            serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
 

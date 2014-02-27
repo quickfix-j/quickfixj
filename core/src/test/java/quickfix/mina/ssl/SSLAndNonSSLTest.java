@@ -69,6 +69,7 @@ public class SSLAndNonSSLTest {
     private void doLogonTest(String clientCompId, String port, String useSSL) throws InterruptedException, ConfigError {
         ServerThread serverThread = new ServerThread();
         try {
+            serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
 

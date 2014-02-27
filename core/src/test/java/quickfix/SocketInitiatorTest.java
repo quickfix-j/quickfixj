@@ -56,6 +56,7 @@ public class SocketInitiatorTest {
         final WriteCounter initiatorWriteCounter = new WriteCounter("initiator");
         ServerThread serverThread = new ServerThread();
         try {
+            serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
             SessionID serverSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW");
@@ -109,6 +110,7 @@ public class SocketInitiatorTest {
     public void testBlockLogoffAfterLogon() throws Exception {
         ServerThread serverThread = new ServerThread();
         try {
+            serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
 
@@ -184,6 +186,7 @@ public class SocketInitiatorTest {
             final Initiator initiator, File messageLog) throws InterruptedException, ConfigError {
         ServerThread serverThread = new ServerThread();
         try {
+            serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
             long messageLogLength = 0;
