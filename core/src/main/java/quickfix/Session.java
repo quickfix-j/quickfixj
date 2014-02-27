@@ -1622,7 +1622,6 @@ public class Session implements Closeable {
         String msgType;
         try {
             final Message.Header header = msg.getHeader();
-            final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
             msgType = header.getString(MsgType.FIELD);
             int msgSeqNum = 0;
             if (checkTooHigh || checkTooLow) {
@@ -1634,7 +1633,7 @@ public class Session implements Closeable {
                         + msgType + ")");
             }
 
-            if (!isGoodTime(sendingTime)) {
+            if (!isGoodTime(header)) {
                 doBadTime(msg);
                 return false;
             }
@@ -1713,10 +1712,11 @@ public class Session implements Closeable {
         }
     }
 
-    private boolean isGoodTime(Date sendingTime) {
+    private boolean isGoodTime(Header header) throws FieldNotFound {
         if (!checkLatency) {
             return true;
         }
+        final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
         return Math.abs(SystemTime.currentTimeMillis() - sendingTime.getTime()) / 1000 <= maxLatency;
     }
 
@@ -2343,11 +2343,11 @@ public class Session implements Closeable {
     private boolean validatePossDup(Message msg) throws FieldNotFound, IOException {
         final Message.Header header = msg.getHeader();
         final String msgType = header.getString(MsgType.FIELD);
-        final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
 
         if (!msgType.equals(MsgType.SEQUENCE_RESET)) {
             if (header.isSetField(OrigSendingTime.FIELD)) {
                 final Date origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
+                final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
                 if (origSendingTime.compareTo(sendingTime) > 0) {
                     generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
                     generateLogout();
