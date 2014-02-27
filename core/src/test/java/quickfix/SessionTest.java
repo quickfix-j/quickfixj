@@ -1368,6 +1368,46 @@ public class SessionTest {
         assertEquals(226, session.getStore().getNextTargetMsgSeqNum());
     }
 
+    @Test
+    //QFJ-776
+    public void testLogonWithoutTargetCompID() throws Exception {
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        UnitTestApplication application = new UnitTestApplication();
+        SessionSettings sessionSettings = SessionSettingsTest.setUpSession(null);
+        SessionFactoryTestSupport factoryTestSupport = new SessionFactoryTestSupport();
+        Session session = factoryTestSupport.create(sessionID, sessionSettings);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.logon();
+        assertTrue(session.getCheckCompID());
+
+        session.next();
+        Logon logonRequest = new Logon();
+        setUpHeader(session.getSessionID(), logonRequest, true, 1);
+        logonRequest.setInt(HeartBtInt.FIELD, 30);
+        logonRequest.getHeader().removeField(TargetCompID.FIELD);
+        session.next(logonRequest);
+        // session should not be logged on due to missing TargetCompID
+        assertFalse(session.isLoggedOn());
+
+        // create session which has checkCompID=N
+        session = createSession(sessionID, application, false, true);
+        session.setResponder(responder);
+        session.logon();
+        assertFalse(session.getCheckCompID());
+        logonRequest = new Logon();
+        setUpHeader(session.getSessionID(), logonRequest, true, 1);
+        logonRequest.setInt(HeartBtInt.FIELD, 30);
+        logonRequest.getHeader().removeField(TargetCompID.FIELD);
+        session.next(logonRequest);
+        assertTrue(session.isLoggedOn());
+
+        assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+    }
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");

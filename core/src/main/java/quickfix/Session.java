@@ -1622,8 +1622,6 @@ public class Session implements Closeable {
         String msgType;
         try {
             final Message.Header header = msg.getHeader();
-            final String senderCompID = header.getString(SenderCompID.FIELD);
-            final String targetCompID = header.getString(TargetCompID.FIELD);
             final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
             msgType = header.getString(MsgType.FIELD);
             int msgSeqNum = 0;
@@ -1641,7 +1639,7 @@ public class Session implements Closeable {
                 return false;
             }
 
-            if (!isCorrectCompID(senderCompID, targetCompID)) {
+            if (!isCorrectCompID(header)) {
                 doBadCompID(msg);
                 return false;
             }
@@ -2540,10 +2538,12 @@ public class Session implements Closeable {
         return responder.send(messageString);
     }
 
-    private boolean isCorrectCompID(String senderCompID, String targetCompID) {
+    private boolean isCorrectCompID(Header header) throws FieldNotFound {
         if (!checkCompID) {
             return true;
         }
+        final String senderCompID = header.getString(SenderCompID.FIELD);
+        final String targetCompID = header.getString(TargetCompID.FIELD);
         return sessionID.getSenderCompID().equals(targetCompID)
                 && sessionID.getTargetCompID().equals(senderCompID);
     }
