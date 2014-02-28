@@ -19,13 +19,18 @@
 
 package quickfix.test.acceptance;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.Assert;
 import junit.framework.TestSuite;
@@ -47,6 +52,7 @@ import quickfix.ThreadedSocketAcceptor;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.ssl.SSLSupport;
+import quickfix.test.util.ReflectionUtil;
 
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
@@ -171,7 +177,28 @@ public class ATServer implements Runnable {
             initializationLatch.countDown();
             CountDownLatch shutdownLatch = new CountDownLatch(1);
             try {
-                shutdownLatch.await();
+                // running all acceptance tests should hopefully not take longer than 15 mins
+                final boolean await = shutdownLatch.await(15, TimeUnit.MINUTES);
+                if (!await) {
+                    log.error("ShutdownLatch timed out. Dumping threads...");
+                    ReflectionUtil.dumpStackTraces();
+                    long[] threadIds = {};
+                    final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+                    threadIds = bean.findDeadlockedThreads();
+
+                    final List<String> deadlockedThreads = new ArrayList<String>();
+                    for (long threadId : threadIds) {
+                        final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                        deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                                + " state: " + threadInfo.getThreadState());
+                    }
+                    if (!deadlockedThreads.isEmpty()) {
+                        log.error("Showing deadlocked threads:");
+                        for (String deadlockedThread : deadlockedThreads) {
+                            log.error(deadlockedThread);
+                        }
+                    }
+                }
             } catch (InterruptedException e1) {
                 try {
                     acceptor.stop(true);
@@ -181,9 +208,14 @@ public class ATServer implements Runnable {
                     tearDownLatch.countDown();
                 }
                 log.info("server exiting");
+            } finally {
+                shutdownLatch.countDown();
             }
         } catch (Throwable e) {
             log.error("error in AT server", e);
+        } finally {
+            initializationLatch.countDown();
+            tearDownLatch.countDown();
         }
     }
 
