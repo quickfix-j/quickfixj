@@ -19,9 +19,14 @@
 
 package quickfix.test.acceptance;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,6 +81,24 @@ public class ExpectMessageStep implements TestStep {
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
             ReflectionUtil.dumpStackTraces();
+            long[] threadIds = {};
+            final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+            threadIds = bean.findDeadlockedThreads();
+
+            final List<String> deadlockedThreads = new ArrayList<String>();
+            if (threadIds != null) {
+                for (long threadId : threadIds) {
+                    final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                    deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                            + " state: " + threadInfo.getThreadState());
+                }
+            }
+            if (!deadlockedThreads.isEmpty()) {
+                log.error("Showing deadlocked threads:");
+                for (String deadlockedThread : deadlockedThreads) {
+                    log.error(deadlockedThread);
+                }
+            }
             Assert.fail("message timeout: expected=" + expectedFields);
         }
         Map<String, String> actualFields = simpleParse(message.toString());

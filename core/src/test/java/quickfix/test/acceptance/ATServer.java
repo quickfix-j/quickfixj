@@ -187,10 +187,12 @@ public class ATServer implements Runnable {
                     threadIds = bean.findDeadlockedThreads();
 
                     final List<String> deadlockedThreads = new ArrayList<String>();
-                    for (long threadId : threadIds) {
-                        final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-                        deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-                                + " state: " + threadInfo.getThreadState());
+                    if (threadIds != null) {
+                        for (long threadId : threadIds) {
+                            final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                            deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                                    + " state: " + threadInfo.getThreadState());
+                        }
                     }
                     if (!deadlockedThreads.isEmpty()) {
                         log.error("Showing deadlocked threads:");

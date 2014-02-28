@@ -65,7 +65,7 @@ public class TestConnection {
     public void tearDown() {
         Iterator<TestIoHandler> handlerItr = ioHandlers.values().iterator();
         while (handlerItr.hasNext()) {
-            CloseFuture closeFuture = handlerItr.next().getSession().close(false);
+            CloseFuture closeFuture = handlerItr.next().getSession().close(true);
             closeFuture.awaitUninterruptibly();
         }
         ioHandlers.clear();

@@ -219,10 +219,12 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
 
         public List<String> getDeadlockedThreads() {
             List<String> deadlockedThreads = new ArrayList<String>();
-            for (long threadId : threadIds) {
-                ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-                deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-                        + " state: " + threadInfo.getThreadState());
+            if ( null != threadIds ) {
+                for (long threadId : threadIds) {
+                    ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                    deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                            + " state: " + threadInfo.getThreadState());
+                }
             }
             return deadlockedThreads;
         }
