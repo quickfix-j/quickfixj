@@ -1633,12 +1633,12 @@ public class Session implements Closeable {
                         + msgType + ")");
             }
 
-            if (!isGoodTime(header)) {
+            if (!isGoodTime(msg)) {
                 doBadTime(msg);
                 return false;
             }
 
-            if (!isCorrectCompID(header)) {
+            if (!isCorrectCompID(msg)) {
                 doBadCompID(msg);
                 return false;
             }
@@ -1712,11 +1712,11 @@ public class Session implements Closeable {
         }
     }
 
-    private boolean isGoodTime(Header header) throws FieldNotFound {
+    private boolean isGoodTime(Message message) throws FieldNotFound {
         if (!checkLatency) {
             return true;
         }
-        final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
+        final Date sendingTime = message.getHeader().getUtcTimeStamp(SendingTime.FIELD);
         return Math.abs(SystemTime.currentTimeMillis() - sendingTime.getTime()) / 1000 <= maxLatency;
     }
 
@@ -2538,12 +2538,12 @@ public class Session implements Closeable {
         return responder.send(messageString);
     }
 
-    private boolean isCorrectCompID(Header header) throws FieldNotFound {
+    private boolean isCorrectCompID(Message message) throws FieldNotFound {
         if (!checkCompID) {
             return true;
         }
-        final String senderCompID = header.getString(SenderCompID.FIELD);
-        final String targetCompID = header.getString(TargetCompID.FIELD);
+        final String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
+        final String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
         return sessionID.getSenderCompID().equals(targetCompID)
                 && sessionID.getTargetCompID().equals(senderCompID);
     }
