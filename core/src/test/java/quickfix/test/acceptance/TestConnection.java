@@ -31,6 +31,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -55,7 +57,7 @@ import quickfix.test.util.ReflectionUtil;
 public class TestConnection {
     private static HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
     private Logger log = LoggerFactory.getLogger(getClass());
-    private HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
+    private ConcurrentMap<Integer, TestIoHandler> ioHandlers = new ConcurrentHashMap<Integer, TestIoHandler>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -63,9 +65,7 @@ public class TestConnection {
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        synchronized (ioHandlers) {
-            return ioHandlers.get(Integer.valueOf(clientId));
-        }
+        return ioHandlers.get(Integer.valueOf(clientId));
     }
 
     public void tearDown() {
@@ -109,13 +109,11 @@ public class TestConnection {
         }
 
         TestIoHandler testIoHandler = new TestIoHandler();
-        synchronized (ioHandlers) {
-            ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
-	    connector.setHandler(testIoHandler);
-            ConnectFuture future = connector.connect(address);
-            future.awaitUninterruptibly();
-            Assert.assertTrue("connection to server failed", future.isConnected());
-        }
+        ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
+        connector.setHandler(testIoHandler);
+        ConnectFuture future = connector.connect(address);
+        future.awaitUninterruptibly();
+        Assert.assertTrue("connection to server failed", future.isConnected());
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
