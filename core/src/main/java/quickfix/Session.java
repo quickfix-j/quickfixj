@@ -1770,10 +1770,6 @@ public class Session implements Closeable {
      */
     public void next() throws IOException {
 
-        if (isDisconnecting()) {
-            return;
-        }
-
         if (!isEnabled()) {
             if (isLoggedOn()) {
                 if (!state.isLogoutSent()) {
