@@ -112,7 +112,7 @@ public class TestConnection {
         ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
         connector.setHandler(testIoHandler);
         ConnectFuture future = connector.connect(address);
-        future.awaitUninterruptibly();
+        future.awaitUninterruptibly( 5000L );
         Assert.assertTrue("connection to server failed", future.isConnected());
     }
 
@@ -138,12 +138,13 @@ public class TestConnection {
         public void sessionClosed(IoSession session) throws Exception {
             super.sessionClosed(session);
             disconnectLatch.countDown();
+            sessionCreatedLatch.countDown();
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
             messages.add(message);
         }
-        
+
         public IoSession getSession() {
             try {
                 boolean await = sessionCreatedLatch.await(10, TimeUnit.SECONDS);
