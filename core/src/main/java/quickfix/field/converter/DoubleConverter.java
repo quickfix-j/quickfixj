@@ -57,7 +57,7 @@ public class DoubleConverter {
         }
         DecimalFormat f = decimalFormats[padding];
         if (f == null) {
-            StringBuffer buffer = new StringBuffer("0.");
+            StringBuilder buffer = new StringBuilder("0.");
             for (int i = 0; i < padding; i++) {
                 buffer.append('0');
             }

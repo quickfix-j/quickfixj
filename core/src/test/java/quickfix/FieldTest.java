@@ -180,7 +180,7 @@ public class FieldTest extends TestCase {
         assertEquals(RawData.FIELD, field.getTag());
         assertTrue(Arrays.equals(data, field.getObject()));
         
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         field.toString(sb);
         assertEquals("96=rawdata", sb.toString());
     }

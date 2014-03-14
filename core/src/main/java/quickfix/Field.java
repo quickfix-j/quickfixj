@@ -84,7 +84,7 @@ public /*abstract*/ class Field<T> implements Serializable{
         return data;
     }
 
-    /*package*/ void toString(StringBuffer buffer) {
+    /*package*/ void toString(StringBuilder buffer) {
         buffer.append(tag).append('=').append(objectAsString());
     }
 
@@ -124,7 +124,7 @@ public /*abstract*/ class Field<T> implements Serializable{
             return;
         }
         
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         toString(buffer);
         data = buffer.toString();
         

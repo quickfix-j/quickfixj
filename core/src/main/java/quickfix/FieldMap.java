@@ -507,7 +507,7 @@ public abstract class FieldMap implements Serializable {
         return groups.containsKey(field);
     }
 
-    protected void calculateString(StringBuffer buffer, int[] preFields, int[] postFields) {
+    protected void calculateString(StringBuilder buffer, int[] preFields, int[] postFields) {
         if (preFields != null) {
             for (final int preField : preFields) {
                 final Field<?> field = getField(preField, null);

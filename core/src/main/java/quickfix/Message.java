@@ -128,12 +128,18 @@ public class Message extends FieldMap {
         return message;
     }
 
+    /**
+     * Do not call this method concurrently while modifying the contents of the message.
+     * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
+     * since FieldMap.calculateString() is iterating over the TreeMap of fields.
+     */
     @Override
     public String toString() {
-        header.setField(new BodyLength(bodyLength()));
+        final int bodyLength = bodyLength();
+        header.setField(new BodyLength(bodyLength));
         trailer.setField(new CheckSum(checkSum()));
 
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder(bodyLength);
         header.calculateString(sb, null, null);
         calculateString(sb, null, null);
         trailer.calculateString(sb, null, null);
@@ -368,7 +374,7 @@ public class Message extends FieldMap {
         }
 
         @Override
-        protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
+        protected void calculateString(StringBuilder buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, EXCLUDED_HEADER_FIELDS, postFields);
         }
 
@@ -388,7 +394,7 @@ public class Message extends FieldMap {
         }
 
         @Override
-        protected void calculateString(StringBuffer buffer, int[] excludedFields, int[] postFields) {
+        protected void calculateString(StringBuilder buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
         }
     }
