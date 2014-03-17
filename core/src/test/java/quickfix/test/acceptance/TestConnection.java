@@ -121,16 +121,16 @@ public class TestConnection {
 
     private class TestIoHandler extends IoHandlerAdapter {
         private IoSession session;
-        private BlockingQueue<Object> messages = new LinkedBlockingQueue<Object>();
-        private CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
-        private CountDownLatch disconnectLatch = new CountDownLatch(1);
+        private final BlockingQueue<Object> messages = new LinkedBlockingQueue<Object>();
+//        private final CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
+        private final CountDownLatch disconnectLatch = new CountDownLatch(1);
 
         public void sessionCreated(IoSession session) throws Exception {
             super.sessionCreated(session);
             this.session = session;
             session.getFilterChain().addLast("codec",
                     new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
-            sessionCreatedLatch.countDown();
+//            sessionCreatedLatch.countDown();
         }
 
         public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
@@ -141,7 +141,7 @@ public class TestConnection {
         public void sessionClosed(IoSession session) throws Exception {
             super.sessionClosed(session);
             disconnectLatch.countDown();
-            sessionCreatedLatch.countDown();
+//            sessionCreatedLatch.countDown();
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
@@ -149,33 +149,34 @@ public class TestConnection {
         }
 
         public IoSession getSession() {
-            try {
-                boolean await = sessionCreatedLatch.await(10, TimeUnit.SECONDS);
-                if (!await) {
-                    log.error("sessionCreatedLatch timed out. Dumping threads...");
-                    ReflectionUtil.dumpStackTraces();
-                    long[] threadIds = {};
-                    final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-                    threadIds = bean.findDeadlockedThreads();
-
-                    final List<String> deadlockedThreads = new ArrayList<String>();
-                    if (threadIds != null) {
-                        for (long threadId : threadIds) {
-                            final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-                            deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-                                    + " state: " + threadInfo.getThreadState());
-                        }
-                    }
-                    if (!deadlockedThreads.isEmpty()) {
-                        log.error("Showing deadlocked threads:");
-                        for (String deadlockedThread : deadlockedThreads) {
-                            log.error(deadlockedThread);
-                        }
-                    }
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                boolean await = sessionCreatedLatch.await(10, TimeUnit.SECONDS);
+//                boolean await = true;
+//                if (!await) {
+//                    log.error("sessionCreatedLatch timed out. Dumping threads...");
+//                    ReflectionUtil.dumpStackTraces();
+//                    long[] threadIds = {};
+//                    final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+//                    threadIds = bean.findDeadlockedThreads();
+//
+//                    final List<String> deadlockedThreads = new ArrayList<String>();
+//                    if (threadIds != null) {
+//                        for (long threadId : threadIds) {
+//                            final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+//                            deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+//                                    + " state: " + threadInfo.getThreadState());
+//                        }
+//                    }
+//                    if (!deadlockedThreads.isEmpty()) {
+//                        log.error("Showing deadlocked threads:");
+//                        for (String deadlockedThread : deadlockedThreads) {
+//                            log.error(deadlockedThread);
+//                        }
+//                    }
+//                }
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
             return session;
         }
 
