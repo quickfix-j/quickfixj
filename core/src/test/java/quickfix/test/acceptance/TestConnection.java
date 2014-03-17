@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +48,7 @@ import org.apache.mina.transport.vmpipe.VmPipeAddress;
 import org.apache.mina.transport.vmpipe.VmPipeConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.test.util.ReflectionUtil;
@@ -57,7 +56,7 @@ import quickfix.test.util.ReflectionUtil;
 public class TestConnection {
     private static HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
     private Logger log = LoggerFactory.getLogger(getClass());
-    private ConcurrentMap<Integer, TestIoHandler> ioHandlers = new ConcurrentHashMap<Integer, TestIoHandler>();
+    private HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -65,7 +64,9 @@ public class TestConnection {
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        return ioHandlers.get(Integer.valueOf(clientId));
+        synchronized (ioHandlers) {
+        	return ioHandlers.get(Integer.valueOf(clientId));
+    	}
     }
 
     public void tearDown() {
@@ -109,11 +110,13 @@ public class TestConnection {
         }
 
         TestIoHandler testIoHandler = new TestIoHandler();
-        ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
-        connector.setHandler(testIoHandler);
-        ConnectFuture future = connector.connect(address);
-        future.awaitUninterruptibly( 5000L );
-        Assert.assertTrue("connection to server failed", future.isConnected());
+        synchronized (ioHandlers) {
+        	ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
+        	connector.setHandler(testIoHandler);
+        	ConnectFuture future = connector.connect(address);
+        	future.awaitUninterruptibly( 5000L );
+        	Assert.assertTrue("connection to server failed", future.isConnected());
+    	}
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
