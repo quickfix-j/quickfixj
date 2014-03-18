@@ -1287,7 +1287,7 @@ public class DataDictionary {
          */
         @Override
         public String toString() {
-            final StringBuffer b = new StringBuffer();
+            final StringBuilder b = new StringBuilder();
             b.append('(').append(intValue).append(',').append(stringValue).append(')');
             return b.toString();
         }

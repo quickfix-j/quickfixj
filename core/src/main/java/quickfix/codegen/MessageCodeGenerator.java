@@ -389,7 +389,7 @@ public class MessageCodeGenerator {
     }
 
     public static String stripSpaces(String str) {
-        StringBuffer b = new StringBuffer();
+        StringBuilder b = new StringBuilder();
         for (int i = 0; i < str.length(); ++i) {
             char t = str.charAt(i);
             if (t == ' ')

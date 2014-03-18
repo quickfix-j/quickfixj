@@ -279,7 +279,7 @@ public class SessionSchedule {
     }
 
     public String toString() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
 
         SimpleDateFormat dowFormat = new SimpleDateFormat("EEEE");
         dowFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -302,7 +302,7 @@ public class SessionSchedule {
         return buf.toString();
     }
 
-    private void formatTimeInterval(StringBuffer buf, TimeInterval timeInterval,
+    private void formatTimeInterval(StringBuilder buf, TimeInterval timeInterval,
             SimpleDateFormat timeFormat, boolean local) {
         if (!isDailySession()) {
             buf.append("weekly, ");
@@ -329,7 +329,7 @@ public class SessionSchedule {
         buf.append(timeFormat.format(timeInterval.getEnd().getTime()));
     }
 
-    private void formatDayOfWeek(StringBuffer buf, int dayOfWeek) {
+    private void formatDayOfWeek(StringBuilder buf, int dayOfWeek) {
         try {
             String dayName = DayConverter.toString(dayOfWeek).toUpperCase();
             if (dayName.length() > 3) {

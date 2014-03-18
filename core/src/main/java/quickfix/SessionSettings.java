@@ -501,7 +501,7 @@ public class SessionSettings {
 
         private char ch = '\0';
 
-        private final StringBuffer sb = new StringBuffer();
+        private final StringBuilder sb = new StringBuilder();
 
         private Token getToken(Reader reader) throws IOException {
             if (ch == '\0') {

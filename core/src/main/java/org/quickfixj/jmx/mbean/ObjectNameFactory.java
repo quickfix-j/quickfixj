@@ -22,7 +22,7 @@ import javax.management.ObjectName;
 
 public class ObjectNameFactory {
 
-    private StringBuffer sb = new StringBuffer();
+    private final StringBuilder sb = new StringBuilder();
 
     public void addProperty(String name, String value) {
         if (value != null && value.length() > 0) {
