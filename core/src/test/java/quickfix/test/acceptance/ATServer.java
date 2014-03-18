@@ -205,7 +205,9 @@ public class ATServer implements Runnable {
                 log.info("server exiting");
             } finally {
                 try {
-                    acceptor.stop(true);
+                    if ( null != acceptor ) {
+                        acceptor.stop(true);
+                    }
                 } catch (RuntimeException e) {
                     e.printStackTrace();
                 } finally {
@@ -218,6 +220,15 @@ public class ATServer implements Runnable {
         } finally {
             initializationLatch.countDown();
             tearDownLatch.countDown();
+            try {
+                if ( null != acceptor ) {
+                    acceptor.stop(true);
+                }
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            } finally {
+                tearDownLatch.countDown();
+            }
         }
     }
 
