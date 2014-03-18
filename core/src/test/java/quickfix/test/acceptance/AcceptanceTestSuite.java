@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import junit.extensions.TestSetup;
 import junit.framework.AssertionFailedError;
@@ -23,9 +25,9 @@ import org.logicalcobwebs.proxool.ProxoolFacade;
 import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.mina.ProtocolFactory;
 
 import quickfix.Session;
+import quickfix.mina.ProtocolFactory;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
@@ -217,7 +219,8 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final class AcceptanceTestServerSetUp extends TestSetup {
         private boolean threaded;
         private Map<Object, Object> overridenProperties;
-        private Thread serverThread;
+//        private Thread serverThread;
+        private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
         private ATServer server;
 
@@ -231,17 +234,16 @@ public class AcceptanceTestSuite extends TestSuite {
             super.setUp();
             server = new ATServer((TestSuite) getTest(), threaded, transportType, port,  overridenProperties);
             server.setUsingMemoryStore(true);
-            serverThread = new Thread(server, "ATServer");
-            serverThread.setDaemon(true);
-            serverThread.start();
+            executor.execute(server);
+//            serverThread = new Thread(server, "ATServer");
+//            serverThread.setDaemon(true);
+//            serverThread.start();
             server.waitForInitialization();
         }
 
         protected void tearDown() throws Exception {
-            if (serverThread != null) {
-                serverThread.interrupt();
-                server.waitForTearDown();
-            }
+            executor.shutdownNow();
+            server.waitForTearDown();
             super.tearDown();
         }
     }
