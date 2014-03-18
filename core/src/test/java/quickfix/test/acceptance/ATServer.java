@@ -177,8 +177,8 @@ public class ATServer implements Runnable {
             initializationLatch.countDown();
             CountDownLatch shutdownLatch = new CountDownLatch(1);
             try {
-                // running all acceptance tests should hopefully not take longer than 15 mins
-                final boolean await = shutdownLatch.await(15, TimeUnit.MINUTES);
+                // running all acceptance tests should hopefully not take longer than 30 mins
+                final boolean await = shutdownLatch.await(30, TimeUnit.MINUTES);
                 if (!await) {
                     log.error("ShutdownLatch timed out. Dumping threads...");
                     ReflectionUtil.dumpStackTraces();
@@ -202,6 +202,8 @@ public class ATServer implements Runnable {
                     }
                 }
             } catch (InterruptedException e1) {
+                log.info("server exiting");
+            } finally {
                 try {
                     acceptor.stop(true);
                 } catch (RuntimeException e) {
@@ -209,8 +211,6 @@ public class ATServer implements Runnable {
                 } finally {
                     tearDownLatch.countDown();
                 }
-                log.info("server exiting");
-            } finally {
                 shutdownLatch.countDown();
             }
         } catch (Throwable e) {
