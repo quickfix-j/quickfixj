@@ -36,6 +36,7 @@ import junit.framework.Assert;
 import junit.framework.TestSuite;
 
 import org.apache.mina.core.filterchain.IoFilterChainBuilder;
+import org.apache.mina.util.AvailablePortFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,6 +170,12 @@ public class ATServer implements Runnable {
             }
             assertSessionIds();
 
+            int tempPort = AvailablePortFinder.getNextAvailable(port);
+            if (tempPort != port) {
+                log.warn("Acceptor port is still bound! Waiting 5 seconds...");
+                Thread.sleep(5000);
+            }
+            
             acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
             acceptor.start();
 
