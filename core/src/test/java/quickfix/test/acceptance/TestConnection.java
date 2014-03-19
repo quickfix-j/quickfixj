@@ -20,11 +20,16 @@
 package quickfix.test.acceptance;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -46,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.test.util.ReflectionUtil;
 
 public class TestConnection {
     private static HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
@@ -116,7 +122,7 @@ public class TestConnection {
     private class TestIoHandler extends IoHandlerAdapter {
         private IoSession session;
         private final BlockingQueue<Object> messages = new LinkedBlockingQueue<Object>();
-//        private final CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
+        private final CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
         private final CountDownLatch disconnectLatch = new CountDownLatch(1);
 
         public void sessionCreated(IoSession session) throws Exception {
@@ -124,7 +130,7 @@ public class TestConnection {
             this.session = session;
             session.getFilterChain().addLast("codec",
                     new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
-//            sessionCreatedLatch.countDown();
+            sessionCreatedLatch.countDown();
         }
 
         public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
@@ -135,7 +141,7 @@ public class TestConnection {
         public void sessionClosed(IoSession session) throws Exception {
             super.sessionClosed(session);
             disconnectLatch.countDown();
-//            sessionCreatedLatch.countDown();
+            sessionCreatedLatch.countDown();
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
@@ -143,34 +149,33 @@ public class TestConnection {
         }
 
         public IoSession getSession() {
-//            try {
-//                boolean await = sessionCreatedLatch.await(10, TimeUnit.SECONDS);
-//                boolean await = true;
-//                if (!await) {
-//                    log.error("sessionCreatedLatch timed out. Dumping threads...");
-//                    ReflectionUtil.dumpStackTraces();
-//                    long[] threadIds = {};
-//                    final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-//                    threadIds = bean.findDeadlockedThreads();
-//
-//                    final List<String> deadlockedThreads = new ArrayList<String>();
-//                    if (threadIds != null) {
-//                        for (long threadId : threadIds) {
-//                            final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-//                            deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-//                                    + " state: " + threadInfo.getThreadState());
-//                        }
-//                    }
-//                    if (!deadlockedThreads.isEmpty()) {
-//                        log.error("Showing deadlocked threads:");
-//                        for (String deadlockedThread : deadlockedThreads) {
-//                            log.error(deadlockedThread);
-//                        }
-//                    }
-//                }
-//            } catch (InterruptedException e) {
-//                throw new RuntimeException(e);
-//            }
+            try {
+                boolean await = sessionCreatedLatch.await(10, TimeUnit.SECONDS);
+                if (!await) {
+                    log.error("sessionCreatedLatch timed out. Dumping threads...");
+                    ReflectionUtil.dumpStackTraces();
+                    long[] threadIds = {};
+                    final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+                    threadIds = bean.findDeadlockedThreads();
+
+                    final List<String> deadlockedThreads = new ArrayList<String>();
+                    if (threadIds != null) {
+                        for (long threadId : threadIds) {
+                            final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                            deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                                    + " state: " + threadInfo.getThreadState());
+                        }
+                    }
+                    if (!deadlockedThreads.isEmpty()) {
+                        log.error("Showing deadlocked threads:");
+                        for (String deadlockedThread : deadlockedThreads) {
+                            log.error(deadlockedThread);
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             return session;
         }
 
