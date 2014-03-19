@@ -619,6 +619,10 @@ public class Message extends FieldMap {
                 group.setField(field);
                 firstFieldFound = true;
                 previousOffset = -1;
+                // QFJ-742
+                if (groupDataDictionary.isGroup(msgType, field.getField())) {
+                    parseGroup(msgType, field, groupDataDictionary, group);
+                }
             } else {
                 if (groupDataDictionary.isGroup(msgType, field.getField())) {
                     if (firstFieldFound) {
