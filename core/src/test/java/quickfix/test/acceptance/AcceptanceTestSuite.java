@@ -242,6 +242,7 @@ public class AcceptanceTestSuite extends TestSuite {
         }
 
         protected void tearDown() throws Exception {
+            server.stop();
             executor.shutdownNow();
             server.waitForTearDown();
             super.tearDown();

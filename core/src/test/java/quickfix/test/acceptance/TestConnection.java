@@ -150,7 +150,7 @@ public class TestConnection {
 
         public IoSession getSession() {
             try {
-                boolean await = sessionCreatedLatch.await(10, TimeUnit.SECONDS);
+                boolean await = sessionCreatedLatch.await(70, TimeUnit.SECONDS);    // 10 seconds more than retry time in ATServer.run()
                 if (!await) {
                     log.error("sessionCreatedLatch timed out. Dumping threads...");
                     ReflectionUtil.dumpStackTraces();

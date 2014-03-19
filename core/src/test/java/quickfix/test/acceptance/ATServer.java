@@ -22,6 +22,7 @@ package quickfix.test.acceptance;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.net.BindException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -36,7 +37,6 @@ import junit.framework.Assert;
 import junit.framework.TestSuite;
 
 import org.apache.mina.core.filterchain.IoFilterChainBuilder;
-import org.apache.mina.util.AvailablePortFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +45,7 @@ import quickfix.FileStoreFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
+import quickfix.RuntimeError;
 import quickfix.ScreenLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -170,40 +171,16 @@ public class ATServer implements Runnable {
             }
             assertSessionIds();
 
-            for (int i = 0; i < 10; i++) {
-                int tempPort = AvailablePortFinder.getNextAvailable(port);
-                if (tempPort != port) {
-                    log.warn("Acceptor port " + port + " is still bound! Waiting 6 seconds (for a maximum of 60 seconds)...");
-                    Thread.sleep(6000);
-
-                    if ( i == 9 ) {
-                        log.error("Dumping threads...");
-                        ReflectionUtil.dumpStackTraces();
-                        long[] threadIds = {};
-                        final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-                        threadIds = bean.findDeadlockedThreads();
-                        
-                        final List<String> deadlockedThreads = new ArrayList<String>();
-                        if (threadIds != null) {
-                            for (long threadId : threadIds) {
-                                final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-                                deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-                                        + " state: " + threadInfo.getThreadState());
-                            }
-                        }
-                        if (!deadlockedThreads.isEmpty()) {
-                            log.error("Showing deadlocked threads:");
-                            for (String deadlockedThread : deadlockedThreads) {
-                                log.error(deadlockedThread);
-                            }
-                        }
-                        
-                    }
+            acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
+            try {
+                acceptor.start();
+            } catch (RuntimeError e) {
+                if ( e.getCause() instanceof BindException ) {
+                    log.warn("Acceptor port " + port + " is still bound! Waiting 60 seconds and trying again...");
+                    Thread.sleep(60000);
+                    acceptor.start();
                 }
             }
-            
-            acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
-            acceptor.start();
 
             assertSessionIds();
 
