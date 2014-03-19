@@ -175,29 +175,30 @@ public class ATServer implements Runnable {
                 if (tempPort != port) {
                     log.warn("Acceptor port " + port + " is still bound! Waiting 6 seconds (for a maximum of 60 seconds)...");
                     Thread.sleep(6000);
-                }
-                if ( i == 9 ) {
-                    log.error("Dumping threads...");
-                    ReflectionUtil.dumpStackTraces();
-                    long[] threadIds = {};
-                    final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-                    threadIds = bean.findDeadlockedThreads();
 
-                    final List<String> deadlockedThreads = new ArrayList<String>();
-                    if (threadIds != null) {
-                        for (long threadId : threadIds) {
-                            final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-                            deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-                                    + " state: " + threadInfo.getThreadState());
+                    if ( i == 9 ) {
+                        log.error("Dumping threads...");
+                        ReflectionUtil.dumpStackTraces();
+                        long[] threadIds = {};
+                        final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+                        threadIds = bean.findDeadlockedThreads();
+                        
+                        final List<String> deadlockedThreads = new ArrayList<String>();
+                        if (threadIds != null) {
+                            for (long threadId : threadIds) {
+                                final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                                deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                                        + " state: " + threadInfo.getThreadState());
+                            }
                         }
-                    }
-                    if (!deadlockedThreads.isEmpty()) {
-                        log.error("Showing deadlocked threads:");
-                        for (String deadlockedThread : deadlockedThreads) {
-                            log.error(deadlockedThread);
+                        if (!deadlockedThreads.isEmpty()) {
+                            log.error("Showing deadlocked threads:");
+                            for (String deadlockedThread : deadlockedThreads) {
+                                log.error(deadlockedThread);
+                            }
                         }
+                        
                     }
-
                 }
             }
             
