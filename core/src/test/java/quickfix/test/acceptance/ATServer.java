@@ -170,10 +170,12 @@ public class ATServer implements Runnable {
             }
             assertSessionIds();
 
-            int tempPort = AvailablePortFinder.getNextAvailable(port);
-            if (tempPort != port) {
-                log.warn("Acceptor port is still bound! Waiting 5 seconds...");
-                Thread.sleep(5000);
+            for (int i = 0; i < 10; i++) {
+                int tempPort = AvailablePortFinder.getNextAvailable(port);
+                if (tempPort != port) {
+                    log.warn("Acceptor port " + port + " is still bound! Waiting 6 seconds (for a maximum of 60 seconds)...");
+                    Thread.sleep(6000);
+                }
             }
             
             acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
