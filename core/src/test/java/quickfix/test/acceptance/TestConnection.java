@@ -20,16 +20,11 @@
 package quickfix.test.acceptance;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -51,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
-import quickfix.test.util.ReflectionUtil;
 
 public class TestConnection {
     private static HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();

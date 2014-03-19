@@ -204,22 +204,12 @@ public class ATServer implements Runnable {
             } catch (InterruptedException e1) {
                 log.info("server exiting");
             } finally {
-                try {
-                    if ( null != acceptor ) {
-                        acceptor.stop(true);
-                    }
-                } catch (RuntimeException e) {
-                    e.printStackTrace();
-                } finally {
-                    tearDownLatch.countDown();
-                }
                 shutdownLatch.countDown();
             }
         } catch (Throwable e) {
             log.error("error in AT server", e);
         } finally {
             initializationLatch.countDown();
-            tearDownLatch.countDown();
             try {
                 if ( null != acceptor ) {
                     acceptor.stop(true);
