@@ -296,6 +296,9 @@ public class DataDictionary {
      * @return true if field is a trailer field, false otherwise.
      */
     public boolean isTrailerField(int field) {
+        if (messageFields.get(TRAILER_ID) == null) {
+            return false;
+        }
         return messageFields.get(TRAILER_ID).contains(field);
     }
 
