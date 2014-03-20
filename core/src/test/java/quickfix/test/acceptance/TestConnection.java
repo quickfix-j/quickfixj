@@ -89,6 +89,11 @@ public class TestConnection {
     public void connect(int clientId, int transportType, int port)
             throws UnknownHostException, IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
+        if ( null != connector ) {
+            log.info("Disposing connector for clientId " + clientId );
+            connector.dispose();
+            connector = null;
+        }
         if (connector == null) {
             if (transportType == ProtocolFactory.SOCKET) {
                 connector = new NioSocketConnector();
@@ -99,7 +104,7 @@ public class TestConnection {
             }
             connectors.put(Integer.toString(clientId), connector);
         }
-        
+
         SocketAddress address;
         if (transportType == ProtocolFactory.SOCKET) {
             address = new InetSocketAddress("localhost", port);
