@@ -80,6 +80,7 @@ public class ExpectMessageStep implements TestStep {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
+            log.info("Dumping threads due to timeout when expecting a message...");
             ReflectionUtil.dumpStackTraces();
             long[] threadIds = {};
             final ThreadMXBean bean = ManagementFactory.getThreadMXBean();

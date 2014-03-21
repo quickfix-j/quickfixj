@@ -146,7 +146,6 @@ public class TestConnection {
         public void sessionClosed(IoSession session) throws Exception {
             super.sessionClosed(session);
             disconnectLatch.countDown();
-            sessionCreatedLatch.countDown();
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
