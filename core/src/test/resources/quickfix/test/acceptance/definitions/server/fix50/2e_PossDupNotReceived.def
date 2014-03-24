@@ -7,9 +7,9 @@ E8=FIXT.1.19=6835=A34=149=ISLD52=00000000-00:00:00.00056=TW98=0108=3011
 I8=FIXT.1.135=034=249=TW52=<TIME>56=ISLD
 
 # Already received, this should be ignored
-I8=FIXT.1.135=034=249=TW52=<TIME>122=<TIME>56=ISLD43=Y
+I8=FIXT.1.135=034=249=TW52=<TIME>122=<TIME-10>56=ISLD43=Y
 # Not yet received, this should be processed
-I8=FIXT.1.135=034=349=TW52=<TIME>122=<TIME>56=ISLD43=Y
+I8=FIXT.1.135=034=349=TW52=<TIME>122=<TIME-10>56=ISLD43=Y
 
 # logout message and response
 I8=FIXT.1.135=534=449=TW52=<TIME>56=ISLD
