@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.Message.Header;
+import quickfix.SessionState.ResendRange;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
@@ -1379,15 +1380,15 @@ public class Session implements Closeable {
                     "Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
                             + newSequence);
             if (newSequence > getExpectedTargetNum()) {
-                final int[] range = state.getResendRange();
-                if (range[2] > 0) {
-                    if (newSequence >= range[1]) {
+                final ResendRange range = state.getResendRange();
+                if (range.getCurrentEndSeqNo() > 0) {
+                    if (newSequence >= range.getEndSeqNo()) {
                         state.setNextTargetMsgSeqNum(newSequence);
-                    } else if (newSequence >= range[2]) {
+                    } else if (newSequence >= range.getCurrentEndSeqNo()) {
                         state.setNextTargetMsgSeqNum(newSequence + 1);
                         final String beginString = sequenceReset.getHeader().getString(
                                 BeginString.FIELD);
-                        sendResendRequest(beginString, range[1] + 1, newSequence + 1, range[1]);
+                        sendResendRequest(beginString, range.getEndSeqNo() + 1, newSequence + 1, range.getEndSeqNo());
                     }
                 } else {
                     state.setNextTargetMsgSeqNum(newSequence);
@@ -1648,19 +1649,19 @@ public class Session implements Closeable {
             }
 
             if ((checkTooHigh) && state.isResendRequested()) {
-                final int[] range;
+                final ResendRange range;
                 synchronized (state.getLock()) {
                     range = state.getResendRange();
-                    if (msgSeqNum >= range[1]) {
+                    if (msgSeqNum >= range.getEndSeqNo()) {
                         getLog().onEvent(
-                                "ResendRequest for messages FROM " + range[0] + " TO " + range[1]
+                                "ResendRequest for messages FROM " + range.getBeginSeqNo() + " TO " + range.getEndSeqNo()
                                         + " has been satisfied.");
                         state.setResendRange(0, 0, 0);
                     }
                 }
-                if (msgSeqNum < range[1] && range[2] > 0 && msgSeqNum >= range[2]) {
+                if (msgSeqNum < range.getEndSeqNo() && range.getCurrentEndSeqNo() > 0 && msgSeqNum >= range.getCurrentEndSeqNo()) {
                     final String beginString = header.getString(BeginString.FIELD);
-                    sendResendRequest(beginString, range[1] + 1, msgSeqNum + 1, range[1]);
+                    sendResendRequest(beginString, range.getEndSeqNo() + 1, msgSeqNum + 1, range.getEndSeqNo());
                 }
             }
         } catch (final FieldNotFound e) {
@@ -2267,11 +2268,11 @@ public class Session implements Closeable {
         enqueueMessage(msg, msgSeqNum);
 
         if (state.isResendRequested()) {
-            final int[] range = state.getResendRange();
+            final ResendRange range = state.getResendRange();
 
-            if (!redundantResentRequestsAllowed && msgSeqNum >= range[0]) {
+            if (!redundantResentRequestsAllowed && msgSeqNum >= range.getBeginSeqNo()) {
                 getLog().onEvent(
-                        "Already sent ResendRequest FROM: " + range[0] + " TO: " + range[1]
+                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + range.getEndSeqNo()
                                 + ".  Not sending another.");
                 return;
             }

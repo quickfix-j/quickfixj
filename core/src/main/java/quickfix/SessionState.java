@@ -57,21 +57,8 @@ public final class SessionState {
     private double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
-    /**
-     * The resend range when sending a resend request.
-     * If a gap is detected and messages from x to y are needed, the received messages are checked against the values x and y that are stored in the resendRange.
-     * Some FIX Engine do not support resendRequest range greater than a given value. There, in this case, the ResendRequest have to be splitted.
-     * E.g.: CME will reject any resend request for more than 2500 messages
-     * The solution is to send resend request with smaller range until the global range has been requested.
-     *
-     * the resendRange contains 3 values:
-     * <ol>
-     * <li>the begin index of the global resend request</li>
-     * <li>the last index of the global resend request</li>
-     * <li>the actual last index of the splitted sub resend request</li>
-     * </ol>
-     */
-    private int[] resendRange = new int[] { 0, 0, 0 };
+
+    private final ResendRange resendRange = new ResendRange();
     private boolean resetSent;
     private boolean resetReceived;
     private String logoutReason;
@@ -395,26 +382,26 @@ public final class SessionState {
 
     public void setResendRange(int low, int high) {
         synchronized (lock) {
-            resendRange[0] = low;
-            resendRange[1] = high;
+            resendRange.setBeginSeqNo(low);
+            resendRange.setEndSeqNo(high);
         }
     }
 
     public void setResendRange(int low, int high, int currentResend) {
         synchronized (lock) {
-            resendRange[0] = low;
-            resendRange[1] = high;
-            resendRange[2] = currentResend;
+            resendRange.setBeginSeqNo(low);
+            resendRange.setEndSeqNo(high);
+            resendRange.setCurrentEndSeqNo(currentResend);
         }
     }
 
     public boolean isResendRequested() {
         synchronized (lock) {
-            return !(resendRange[0] == 0 && resendRange[1] == 0);
+            return !(resendRange.getBeginSeqNo() == 0 && resendRange.getEndSeqNo() == 0);
         }
     }
 
-    public int[] getResendRange() {
+    public ResendRange getResendRange() {
         synchronized (lock) {
             return resendRange;
         }
@@ -524,6 +511,51 @@ public final class SessionState {
         }
 
         public void clear() {
+        }
+    }
+
+    /**
+     * The resend range when sending a resend request.
+     * If a gap is detected and messages from x to y are needed, the received messages are checked against the values x and y that are stored in the resendRange.
+     * Some FIX engines do not support resendRequest range greater than a given value. There, in this case, the ResendRequests have to be splitted.
+     * E.g.: CME will reject any resend request for more than 2500 messages.
+     * The solution is to send resend requests with smaller range until the global range has been requested.
+     *
+     * The resendRange contains 3 values:
+     * <ol>
+     * <li>the begin index of the global resend request</li>
+     * <li>the last index of the global resend request</li>
+     * <li>the current last index of the splitted sub resend request</li>
+     * </ol>
+     */
+    public static class ResendRange {
+
+        int beginSeqNo = 0;
+        int endSeqNo = 0;
+        int currentEndSeqNo = 0;
+
+        public int getBeginSeqNo() {
+            return beginSeqNo;
+        }
+
+        public void setBeginSeqNo(int beginSeqNo) {
+            this.beginSeqNo = beginSeqNo;
+        }
+
+        public int getEndSeqNo() {
+            return endSeqNo;
+        }
+        
+        public void setEndSeqNo(int endSeqNo) {
+            this.endSeqNo = endSeqNo;
+        }
+        
+        public int getCurrentEndSeqNo() {
+            return currentEndSeqNo;
+        }
+
+        public void setCurrentEndSeqNo(int currentEndSeqNo) {
+            this.currentEndSeqNo = currentEndSeqNo;
         }
     }
 }
