@@ -557,5 +557,9 @@ public final class SessionState {
         public void setCurrentEndSeqNo(int currentEndSeqNo) {
             this.currentEndSeqNo = currentEndSeqNo;
         }
+
+        public boolean isChunkedResendRequest() {
+            return getCurrentEndSeqNo() > 0;
+        }
     }
 }

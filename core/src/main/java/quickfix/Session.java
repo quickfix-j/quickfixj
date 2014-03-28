@@ -1380,18 +1380,21 @@ public class Session implements Closeable {
                     "Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
                             + newSequence);
             if (newSequence > getExpectedTargetNum()) {
+                state.setNextTargetMsgSeqNum(newSequence);
                 final ResendRange range = state.getResendRange();
-                if (range.getCurrentEndSeqNo() > 0) {
-                    if (newSequence >= range.getEndSeqNo()) {
-                        state.setNextTargetMsgSeqNum(newSequence);
-                    } else if (newSequence >= range.getCurrentEndSeqNo()) {
-                        state.setNextTargetMsgSeqNum(newSequence + 1);
+                if (range.isChunkedResendRequest()) {
+                    if (newSequence >= range.getCurrentEndSeqNo()
+                            && newSequence < range.getEndSeqNo()) {
+                        // If new seq no is beyond the range of the current chunk
+                        // and if we are not done with all resend chunks,
+                        // we send out a ResendRequest at once.
+                        // Alternatively, we could also wait for the next incoming message
+                        // which would trigger another resend.
                         final String beginString = sequenceReset.getHeader().getString(
                                 BeginString.FIELD);
-                        sendResendRequest(beginString, range.getEndSeqNo() + 1, newSequence + 1, range.getEndSeqNo());
+                        sendResendRequest(beginString, range.getEndSeqNo() + 1, newSequence + 1,
+                                range.getEndSeqNo());
                     }
-                } else {
-                    state.setNextTargetMsgSeqNum(newSequence);
                 }
                 // QFJ-728: newSequence will be the seqnum of the next message so we
                 // delete all older messages from the queue since they are effectively skipped.
@@ -1659,7 +1662,7 @@ public class Session implements Closeable {
                         state.setResendRange(0, 0, 0);
                     }
                 }
-                if (msgSeqNum < range.getEndSeqNo() && range.getCurrentEndSeqNo() > 0 && msgSeqNum >= range.getCurrentEndSeqNo()) {
+                if (msgSeqNum < range.getEndSeqNo() && range.isChunkedResendRequest() && msgSeqNum >= range.getCurrentEndSeqNo()) {
                     final String beginString = header.getString(BeginString.FIELD);
                     sendResendRequest(beginString, range.getEndSeqNo() + 1, msgSeqNum + 1, range.getEndSeqNo());
                 }

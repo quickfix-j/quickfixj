@@ -1408,6 +1408,89 @@ public class SessionTest {
         assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
     }
 
+    // QFJ-751
+    @Test
+    public void testSequenceResetGapFillWithZeroChunkSize() throws Exception {
+        testSequenceResetGapFillWithChunkSize(0);
+    }
+
+    // QFJ-751
+    @Test
+    public void testSequenceResetGapFillWithChunkSize5() throws Exception {
+        testSequenceResetGapFillWithChunkSize(5);
+    }
+
+    // QFJ-751
+    @Test
+    public void testSequenceResetGapFillWithChunkSize8() throws Exception {
+        testSequenceResetGapFillWithChunkSize(8);
+    }
+
+    // QFJ-751
+    @Test
+    public void testSequenceResetGapFillWithChunkSize10() throws Exception {
+        testSequenceResetGapFillWithChunkSize(10);
+    }
+
+    // QFJ-751
+    private void testSequenceResetGapFillWithChunkSize(int chunkSize) throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
+
+        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+                sessionID, null, null, new ScreenLogFactory(true, true, true),
+                new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, true, resetOnLogon,
+                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+                new int[] { 5 }, false, false, false, true, false, true, false, null, true,
+                chunkSize, false, false);
+
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        final SessionState state = getSessionState(session);
+        
+        session.logon();
+        session.next();
+
+        assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+
+        Message logonRequest = new Message(responder.sentMessageData);
+
+        // Deliver Logon response with too high sequence 20 instead of 1.
+        session.next(createLogonResponse(sessionID, logonRequest, 20));
+
+        assertTrue(state.isResendRequested());
+        // The expected target sequence should still be 1.
+        assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+
+        // Deliver the missing message #1.
+        session.next(createAppMessage(1));
+        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+
+        // Deliver the missing message #2.
+        session.next(createAppMessage(2));
+        assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
+
+        // Deliver SequenceReset-GapFill from 3 to 5
+        session.next(createSequenceReset(3, 5, true));
+
+        // Deliver the missing message #5.
+        session.next(createAppMessage(5));
+        /*
+         * The expected target sequence number should be 6 now.
+         */
+        assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
+        assertTrue(session.isLoggedOn());
+        assertTrue(state.isResendRequested());
+        for (int i = 6; i <= 19; i++) {
+            session.next(createAppMessage(i));
+        }
+        assertFalse(state.isResendRequested());
+        assertTrue(session.isLoggedOn());
+        // seqnum 20 will be retrieved from the queue, so we should be at 21 now
+        assertEquals(21, session.getStore().getNextTargetMsgSeqNum());
+    }
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
