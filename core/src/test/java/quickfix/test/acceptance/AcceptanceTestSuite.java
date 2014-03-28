@@ -235,9 +235,6 @@ public class AcceptanceTestSuite extends TestSuite {
             server = new ATServer((TestSuite) getTest(), threaded, transportType, port,  overridenProperties);
             server.setUsingMemoryStore(true);
             executor.execute(server);
-//            serverThread = new Thread(server, "ATServer");
-//            serverThread.setDaemon(true);
-//            serverThread.start();
             server.waitForInitialization();
         }
 
