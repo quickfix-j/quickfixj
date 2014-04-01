@@ -829,6 +829,28 @@ public class SessionTest {
         assertTrue(state.getQueuedSeqNums().isEmpty());
     }
 
+    // QFJ-493
+    @Test
+    public void testGapFillSatisfiesResendRequest() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpSession(application, false, new UnitTestResponder());
+        final SessionState state = getSessionState(session);
+        
+        session.setNextTargetMsgSeqNum(684);
+        logonTo(session, 687);
+        
+        assertTrue(state.isResendRequested());
+        assertEquals(684, state.getNextTargetMsgSeqNum());
+        processMessage(session, createResendRequest(688, 1));
+
+        processMessage(session, createSequenceReset(684, 688, true));
+        
+        processMessage(session, createHeartbeatMessage(689));
+        
+        assertFalse(state.isResendRequested());
+    }
+
     // QFJ-673
     @Test
     public void testResendRequestIsProcessedAndQueued() throws Exception {
