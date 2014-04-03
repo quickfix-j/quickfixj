@@ -111,7 +111,8 @@ public final class SessionState {
 
     public boolean isHeartBeatNeeded() {
         long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
-        return millisSinceLastSentTime >= getHeartBeatMillis() && getTestRequestCounter() == 0;
+        // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
+        return millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
     }
 
     public boolean isInitiator() {
@@ -378,7 +379,6 @@ public final class SessionState {
             throw new RuntimeError(e);
         }
     }
-
 
     public void setResendRange(int low, int high) {
         synchronized (lock) {
