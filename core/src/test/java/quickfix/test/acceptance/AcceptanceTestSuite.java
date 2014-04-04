@@ -75,6 +75,7 @@ public class AcceptanceTestSuite extends TestSuite {
         public void run(TestResult result) {
             result.startTest(this);
             TestConnection connection = null;
+            String failureString = "test " + filename + " failed with message: ";
             try {
                 connection = new TestConnection();
                 List<TestStep> testSteps = load(filename);
@@ -83,8 +84,10 @@ public class AcceptanceTestSuite extends TestSuite {
                 }
             } catch (AssertionFailedError e) {
                 result.addFailure(this, e);
+                log.error(failureString + e.getMessage());
             } catch (Throwable t) {
                 result.addError(this, t);
+                log.error(failureString + t.getMessage());
             } finally {
                 if (connection != null) {
                     connection.tearDown();
