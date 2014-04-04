@@ -67,9 +67,20 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
     public void onCreate(SessionID sessionId) {
         if (isUnsynchMode()) {            
+            // NB: there is a chance that lookupSession will fail since
+            // the sessions are kept in a ConcurrentHashMap which does not block.
+            // From JavaDoc: Retrievals reflect the results of the most recently
+            // completed update operations.
+            // For the sake of completion of the AcceptanceTests, we will try again once.
             Session session = Session.lookupSession(sessionId);
             if (session == null) {
-                throw new RuntimeException("Could not lookup session " + sessionId);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {}
+                session = Session.lookupSession(sessionId);
+                if (session == null) {
+                    throw new RuntimeException("Could not lookup session " + sessionId);
+                }
             }
             try {
                 session.setNextTargetMsgSeqNum(10);
