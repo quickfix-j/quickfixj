@@ -102,7 +102,7 @@ public class FileStore implements MessageStore, Closeable {
     }
 
     void initialize(boolean deleteFiles) throws IOException {
-        closeFiles();
+        close();
 
         if (deleteFiles) {
             deleteFiles();
@@ -214,16 +214,6 @@ public class FileStore implements MessageStore, Closeable {
 
     private String getRandomAccessFileOptions() {
         return READ_OPTION + WRITE_OPTION + (syncWrites ? SYNC_OPTION : NOSYNC_OPTION);
-    }
-
-    /**
-     * Close the store's files.
-     * @deprecated use close instead
-     * @throws IOException
-     */
-    @Deprecated
-    public void closeFiles() throws IOException {
-        close();
     }
 
     /**
