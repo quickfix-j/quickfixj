@@ -19,6 +19,12 @@
 
 package quickfix;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
@@ -29,28 +35,32 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import quickfix.field.converter.UtcTimeOnlyConverter;
 
-public class SessionScheduleTest extends TestCase {
+public class SessionScheduleTest {
     private MockSystemTimeSource mockSystemTimeSource;
     private Locale defaultLocale;
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         mockSystemTimeSource = new MockSystemTimeSource();
         SystemTime.setTimeSource(mockSystemTimeSource);
         defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.GERMANY);
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         SystemTime.setTimeSource(null);
         Locale.setDefault(defaultLocale);
-        super.tearDown();
     }
 
     
+    @Test
     public void testSessionAlwaysActive() throws Exception {
         Calendar start = getUtcTime(0, 0, 0);
         Calendar end = getUtcTime(0, 0, 0);
@@ -58,6 +68,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, true, 2004, 10, 10, 10, 0, 0);
     }
     
+    @Test
     public void testSessionTimeStartBeforeEnd() throws Exception {
         Calendar start = getUtcTime(3, 0, 0);
         Calendar end = getUtcTime(18, 0, 0);
@@ -85,6 +96,7 @@ public class SessionScheduleTest extends TestCase {
         return new SessionSchedule(settings, sessionID);
     }
 
+    @Test
     public void testSessionTimeEndBeforeStart() throws Exception {
         Calendar start = getUtcTime(18, 0, 0);
         Calendar end = getUtcTime(3, 0, 0);
@@ -95,6 +107,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2004, Calendar.NOVEMBER, 10, 17, 0, 0);
     }
 
+    @Test
     public void testShortSessionTestStartBeforeEnd() throws Exception {
         Calendar start = getUtcTime(18, 00, 0);
         Calendar end = getUtcTime(18, 30, 0);
@@ -106,6 +119,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2000, 10, 10, 19, 30, 0);
     }
 
+    @Test
     public void testShortSessionTestStartAfterEnd() throws Exception {
         Calendar start = getUtcTime(18, 30, 0);
         Calendar end = getUtcTime(18, 00, 0);
@@ -156,6 +170,7 @@ public class SessionScheduleTest extends TestCase {
         assertEquals("schedule is wrong", expectedInSession, schedule.isSessionTime());
     }
 
+    @Test
     public void testSessionTimeWithDay() throws Exception {
         Calendar start = getUtcTime(18, 0, 0);
         Calendar end = getUtcTime(3, 0, 0);
@@ -174,6 +189,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, true, 2004, Calendar.JULY, 26, 18, 0, 1);
     }
 
+    @Test
     public void testIsSameSessionWithoutDay() throws Exception {
         //=====================================================
         // start time is less than end time
@@ -266,6 +282,7 @@ public class SessionScheduleTest extends TestCase {
 
     }
 
+    @Test
     public void testIsSameSessionWithDay() throws Exception {
         Calendar start = getUtcTime(3, 0, 0);
         Calendar end = getUtcTime(18, 0, 0);
@@ -330,6 +347,7 @@ public class SessionScheduleTest extends TestCase {
 
     }
 
+    @Test
     public void testSettingsWithoutStartEndDay() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_START_TIME, "01:00:00 ");
@@ -341,6 +359,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2003, 5, 5, 6, 30, 0);
     }
 
+    @Test
     public void testSettingsWithStartEndDay() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.TUESDAY));
@@ -356,6 +375,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2006, 2, 4, 4, 30, 0);
     }
 
+    @Test
     // QFJ-228
     public void testSettingsWithStartEndDayWithDayRoll() throws Exception {
         SessionSettings settings = new SessionSettings();
@@ -371,6 +391,7 @@ public class SessionScheduleTest extends TestCase {
                 TimeZone.getTimeZone("America/Chicago"));
     }
 
+    @Test
     public void testSettingsWithoutStartEndDayWithTimeZone() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "  US/Eastern ");
@@ -384,6 +405,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2003, 5, 5, 16, 30, 0, tz);
     }
 
+    @Test
     public void testSettingsWithoutStartEndDayWithTimeZoneInTime() throws Exception {
         // This test is very susceptible to whether the system time starts
         // in daylight time or not, so we just force it that way.  Otherwise
@@ -406,6 +428,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(schedule, false, 2003, 5, 5, 16, 01, 0, tz);
     }
 
+    @Test
     public void testSettingsWithStartEndDayAndTimeZone() throws Exception {
         TimeZone tz = TimeZone.getTimeZone("US/Eastern");
         String scheduleStartDay = DayConverter.toString(Calendar.TUESDAY);
@@ -430,6 +453,7 @@ public class SessionScheduleTest extends TestCase {
                 scheduleStartDay, scheduleEndDay);
     }
 
+    @Test
     public void testSettingsWithStartGreaterThanEndDayAndTimeZone() throws Exception {
         String scheduleStartDay = DayConverter.toString(Calendar.FRIDAY);
         String scheduleEndDay = DayConverter.toString(Calendar.MONDAY);
@@ -458,6 +482,7 @@ public class SessionScheduleTest extends TestCase {
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4644278
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4832236
      */
+    @Test
     public void testThatUTCAndGMTAreTheSameNow() throws ConfigError, FieldConvertError,
             ParseException {
         SessionSettings settings = new SessionSettings();
@@ -514,6 +539,7 @@ public class SessionScheduleTest extends TestCase {
         doIsSessionTimeTest(settings, sessionID, false, 2006, Calendar.JULY, 27, 20, 50, 1, "UTC");
     }
 
+    @Test
     public void testBadDaySpecification() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
@@ -530,6 +556,7 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
+    @Test
     public void testBadTimeSpecification() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
@@ -554,6 +581,7 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
+    @Test
     public void testMissingStartOrEndDay() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/Eastern");
@@ -581,6 +609,7 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
+    @Test
     public void testBadTimeZone() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "US/BOGUS");
@@ -596,6 +625,7 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
+    @Test
     public void testWeeklyToString() throws ConfigError, FieldConvertError {
         // Just be sure it doesn't throw exceptions
         SessionSettings settings = new SessionSettings();
@@ -609,6 +639,7 @@ public class SessionScheduleTest extends TestCase {
         assertNotNull(schedule.toString());
     }
 
+    @Test
     public void testDailyToString() throws ConfigError, FieldConvertError {
         // Just be sure it doesn't throw exceptions
         SessionSettings settings = new SessionSettings();
@@ -620,6 +651,7 @@ public class SessionScheduleTest extends TestCase {
         assertNotNull(schedule.toString());
     }
 
+    @Test
     public void testWeeklyIsSessionTimePeriodically() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_START_DAY, DayConverter.toString(Calendar.FRIDAY));
@@ -663,6 +695,7 @@ public class SessionScheduleTest extends TestCase {
         }
     }
 
+    @Test
     public void testWeeklyIsSameSessionPeriodically() throws Exception {
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.WEDNESDAY), "14:00:00", DayConverter.toString(Calendar.WEDNESDAY), "12:00:00");
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.WEDNESDAY), "14:00:00", DayConverter.toString(Calendar.TUESDAY), "18:00:00");
@@ -672,6 +705,7 @@ public class SessionScheduleTest extends TestCase {
         doWeeklyIsSameSessionTest(DayConverter.toString(Calendar.FRIDAY), "14:00:00", DayConverter.toString(Calendar.FRIDAY), "13:59:00");
     }
     
+    @Test
     public void testSettingsWithDST() throws Exception {
     	SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "Europe/Zurich");
@@ -725,6 +759,7 @@ public class SessionScheduleTest extends TestCase {
 		doIsSessionTimeTest(schedule, false, 2013, Calendar.APRIL, 1, 03, 16, 0, TimeZone.getTimeZone("Europe/Zurich"));
     }
     
+    @Test
 	public void testSettingsWithStartEndDayWithDST() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "America/New_York");
@@ -746,6 +781,7 @@ public class SessionScheduleTest extends TestCase {
                 TimeZone.getTimeZone("America/New_York"));
     }
 	
+    @Test
 	public void testSettingsWithStartEndDayWithDSTMocked() throws Exception {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_TIMEZONE, "America/New_York");
@@ -769,6 +805,7 @@ public class SessionScheduleTest extends TestCase {
                 TimeZone.getTimeZone("America/New_York"));
     }
 
+    @Test
 	// QFJ-767
 	public void testNonStopSession() throws Exception {
         SessionSettings settings = new SessionSettings();
