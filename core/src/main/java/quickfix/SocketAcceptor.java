@@ -85,7 +85,9 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
             stopSessionTimer();
         } finally {
             Session.unregisterSessions(getSessions());
-            isStarted = Boolean.FALSE;
+            synchronized (lock) {
+                isStarted = Boolean.FALSE;
+            }
         }
     }
 
