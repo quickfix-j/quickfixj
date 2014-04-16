@@ -99,10 +99,8 @@ public class ResynchTestClient extends MessageCracker implements Application {
     }
     
     private void stop(boolean failed) {
-        synchronized (shutdownLatch) {
-            this.failed = failed;
-            shutdownLatch.countDown();
-        }
+        this.failed = failed;
+        shutdownLatch.countDown();
     }
 
     public void run() throws ConfigError, SessionNotFound, InterruptedException {
