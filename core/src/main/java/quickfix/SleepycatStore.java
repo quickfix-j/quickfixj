@@ -239,7 +239,9 @@ public class SleepycatStore implements MessageStore {
             convertToIOExceptionAndRethrow(e);
         } finally {
             try {
-                cursor.close();
+                if (cursor != null) {
+                    cursor.close();
+                }
             } catch (DatabaseException dbe) {
                 convertToIOExceptionAndRethrow(dbe);
             }
