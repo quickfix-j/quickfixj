@@ -372,6 +372,10 @@ public final class SessionState {
         return messageStore.getCreationTime();
     }
 
+    public boolean isResetNeeded() throws IOException {
+        return getNextSenderMsgSeqNum() != 1 || getNextTargetMsgSeqNum() != 1;
+    }
+
     public void reset() {
         try {
             messageStore.reset();

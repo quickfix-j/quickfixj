@@ -22,7 +22,7 @@ package quickfix;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UnitTestApplication implements ApplicationExtended {
+public class UnitTestApplication implements ApplicationExtended, SessionStateListener {
     public List<Message> fromAppMessages = new ArrayList<Message>();
     public List<Message> toAppMessages = new ArrayList<Message>();
     public List<Message> fromAdminMessages = new ArrayList<Message>();
@@ -60,7 +60,6 @@ public class UnitTestApplication implements ApplicationExtended {
 
     public void onBeforeSessionReset(SessionID sessionId) {
         System.out.println("onBeforeSessionReset [" + sessionId + "]");
-        sessionResets++;
     }
 
     public void onLogout(SessionID sessionId) {
@@ -104,6 +103,31 @@ public class UnitTestApplication implements ApplicationExtended {
         if (toAdminMessages.size() == 0)
             return null;
         return toAdminMessages.get(toAdminMessages.size() - 1);
+    }
+
+    public void onConnect() {
+    }
+
+    public void onDisconnect() {
+    }
+
+    public void onLogon() {
+    }
+
+    public void onLogout() {
+    }
+
+    public void onReset() {
+        sessionResets++;
+    }
+
+    public void onRefresh() {
+    }
+
+    public void onMissedHeartBeat() {
+    }
+
+    public void onHeartBeatTimeout() {
     }
 
 }

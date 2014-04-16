@@ -62,4 +62,10 @@ public class SystemTime {
         return c;
     }
 
+    public static Calendar getUtcCalendar(long time) {
+        Calendar c = getUtcCalendar();
+        c.setTimeInMillis(time);
+        return c;
+    }
+
 }

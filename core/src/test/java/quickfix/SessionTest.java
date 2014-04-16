@@ -460,6 +460,90 @@ public class SessionTest {
 
     }
 
+    // QFJ-773
+    @Test
+    public void testLogonLogoutOnAcceptor() throws Exception {
+
+        final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        final Date now = new Date();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(now.getTime());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        settings.setString("StartTime", dateFormat.format(now.getTime() - 100000));
+        settings.setString("EndTime", dateFormat.format(now.getTime() + 3600000));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final Session session = setUpFileStoreSession(application, false, responder, settings,
+                sessionID);
+        session.addStateListener(application);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        logonTo(session);
+
+        // we should only answer with a Logon message
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0).getHeader().getString(MsgType.FIELD));
+
+        // no reset should have been triggered by QF/J after the Logon attempt
+        assertEquals(0, application.sessionResets);
+        assertTrue("Session should be connected", session.isLoggedOn());
+
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        // increment time to force logout and reset
+        systemTimeSource.increment(3700000);
+        session.next();
+        assertEquals(SystemTime.getDate(), state.getCreationTime());
+        systemTimeSource.increment(10000);
+        session.next();
+        systemTimeSource.increment(10000);
+        session.next();
+        systemTimeSource.increment(10000);
+        session.next();
+        systemTimeSource.increment(10000);
+
+        // we should only reset once outside of the session time window
+        assertEquals(1, application.sessionResets);
+        assertFalse("Session should be disconnected", session.isLoggedOn());
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.setResponder(responder);
+        // this should get rejected since we are outside of the session time window
+        logonTo(session);
+        assertFalse("Session should be disconnected", session.isLoggedOn());
+
+        // if we now logon to the session, it will be considered new
+        // and a reset will be done
+        session.setResponder(responder);
+        session.next();
+        assertEquals(2, application.sessionResets);
+        systemTimeSource.increment(86100000); // jump one day but stay inside session time
+        session.next();
+        logonTo(session);
+        assertTrue("Session should be connected", session.isLoggedOn());
+        assertEquals(SystemTime.getDate(), state.getCreationTime());
+
+        // check that the creation time is not updated inside of the session time window
+        int delta = 60000;
+        systemTimeSource.increment(delta);
+        assertTrue( SystemTime.getDate().getTime() - state.getCreationTime().getTime() == delta );
+        session.next();
+        assertTrue("Session should be connected", session.isLoggedOn());
+    }
+
     @Test
     // QFJ-716
     public void testStartOfInitiatorOutsideOfSessionTime() throws Exception {
@@ -481,6 +565,7 @@ public class SessionTest {
         final UnitTestApplication application = new UnitTestApplication();
         final Session session = setUpFileStoreSession(application, true, new UnitTestResponder(),
                 settings, sessionID);
+        session.addStateListener(application);
         final SessionState state = getSessionState(session);
 
         assertEquals(1, state.getNextSenderMsgSeqNum());
@@ -503,12 +588,26 @@ public class SessionTest {
         systemTimeSource.increment(1900000);
         session.next();
         session.next();
-
         // we should have sent a Logon since the StartTime has been reached now
         assertEquals(1, application.toAdminMessages.size());
-        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0).getHeader().getString(MsgType.FIELD));
+        Message logon = application.toAdminMessages.get(0);
+        assertEquals(MsgType.LOGON, logon.getHeader().getString(MsgType.FIELD));
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(1, state.getNextTargetMsgSeqNum());
+        Message createLogonResponse = createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), logon, 1);
+        session.next(createLogonResponse);
+        assertTrue(session.isLoggedOn());
+        assertEquals(1, application.sessionResets);
+        
+        // increase time to be out of session time
+        systemTimeSource.increment(1900000);
+        session.next();
+        Message logout = application.lastToAdminMessage();
+        assertEquals(MsgType.LOGOUT, logout.getHeader().getString(MsgType.FIELD));
+        assertFalse(session.isLoggedOn());
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+        assertEquals(2, application.sessionResets);
     }
 
     @Test
@@ -1599,7 +1698,7 @@ public class SessionTest {
                 reversed ? sessionID.getSenderCompID() : sessionID.getTargetCompID());
         message.getHeader().setString(SenderCompID.FIELD,
                 reversed ? sessionID.getTargetCompID() : sessionID.getSenderCompID());
-        message.getHeader().setField(new SendingTime(new Date()));
+        message.getHeader().setField(new SendingTime(SystemTime.getDate()));
         message.getHeader().setInt(MsgSeqNum.FIELD, sequence);
     }
 

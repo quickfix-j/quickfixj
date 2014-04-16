@@ -349,15 +349,9 @@ public class Session implements Closeable {
     // @GuardedBy(responderSync)
     private Responder responder;
 
-    //
     // The session time checks were causing performance problems
-    // so we are caching the last session time check result and
-    // only recalculating it if it's been at least 1 second since
-    // the last check
-    //
-    // @GuardedBy(this)
+    // so we are checking only once per second.
     private long lastSessionTimeCheck = 0;
-    private boolean lastSessionTimeResult = false;
     private int logonAttempts = 0;
     private long lastSessionLogon = 0;
 
@@ -477,10 +471,7 @@ public class Session implements Closeable {
 
         getLog().onEvent("Session " + sessionID + " schedule is " + sessionSchedule);
         try {
-            if (!checkSessionTime()) {
-                getLog().onEvent("Session state is not current; resetting " + sessionID);
-                reset();
-            }
+            resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
         } catch (final IOException e) {
             LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
@@ -531,28 +522,13 @@ public class Session implements Closeable {
         return getResponder() != null;
     }
 
-    private synchronized boolean checkSessionTime()
+    private boolean isCurrentSession(final long time)
             throws IOException {
         if (sessionSchedule == null) {
             return true;
         }
-        // Only check the session time once per second at most. It isn't
-        // necessary to do for every message received.
-        // QFJ-357/QFJ-716/QFJ-527: Exception: We will check the session time again
-        // if lastSessionTimeResult was false. This is because lastSessionTimeResult
-        // will always be false when this method is called from the constructor and
-        // hence a session that is started within one second after creation will get
-        // disconnected immediately.
-        final Date date = SystemTime.getDate();
-        if (!lastSessionTimeResult || (date.getTime() - lastSessionTimeCheck) >= 1000L) {
-            final Date getSessionCreationTime = state.getCreationTime();
-            lastSessionTimeResult = sessionSchedule.isSameSession(SystemTime.getUtcCalendar(date),
-                    SystemTime.getUtcCalendar(getSessionCreationTime));
-            lastSessionTimeCheck = date.getTime();
-            return lastSessionTimeResult;
-        } else {
-            return lastSessionTimeResult;
-        }
+        return sessionSchedule.isSameSession(SystemTime.getUtcCalendar(time),
+                SystemTime.getUtcCalendar(state.getCreationTime()));
     }
 
     /**
@@ -1775,9 +1751,19 @@ public class Session implements Closeable {
             }
         }
 
-        if (!checkSessionTime()) {
-            reset();
-            return;
+        // Only check the session time once per second at most. It isn't
+        // necessary to do for every message received.
+        final long now = SystemTime.currentTimeMillis();
+        if ((now - lastSessionTimeCheck) >= 1000L) {
+            lastSessionTimeCheck = now;
+            if (!isSessionTime()) {
+                if (state.isResetNeeded()) {
+                    reset(); // only reset if seq nums are != 1
+                }
+                return; // since we are outside of session time window
+            } else {
+                resetIfSessionNotCurrent(sessionID, now);
+            }
         }
 
         // Return if we are not connected
@@ -1972,7 +1958,7 @@ public class Session implements Closeable {
         // QFJ-357
         // If this check is not done here, the Logon would be accepted and
         // immediately followed by a Logout (due to check in Session.next()).
-        if (!checkSessionTime()) {
+        if (!isSessionTime()) {
             throw new RejectLogon("Logon attempt not within session time");
         }
 
@@ -2566,6 +2552,9 @@ public class Session implements Closeable {
      * @return true if session should be active, false otherwise.
      */
     public boolean isSessionTime() {
+        if (sessionSchedule == null) {
+            return true;
+        }
         return sessionSchedule.isSessionTime();
     }
 
@@ -2807,4 +2796,12 @@ public class Session implements Closeable {
             ((Closeable) resource).close();
         }
     }
+    
+    private void resetIfSessionNotCurrent(SessionID sessionID, long time) throws IOException {
+        if (!isCurrentSession(time)) {
+            getLog().onEvent("Session state is not current; resetting " + sessionID);
+            reset();
+        }
+    }
+
 }
