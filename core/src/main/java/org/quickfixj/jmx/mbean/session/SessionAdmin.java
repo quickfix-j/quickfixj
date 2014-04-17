@@ -117,9 +117,9 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
      * @see quickfix.jmx.SessionMBean#getRemoteIPAddress()
      */
     public String getRemoteIPAddress() {
-        String remoteIPAddress = session.getRemoteIPAddress();
-        if (remoteIPAddress != null) {
-            return remoteIPAddress;
+        String remoteAddress = session.getRemoteAddress();
+        if (remoteAddress != null) {
+            return remoteAddress;
         } else {
             return "";
         }
