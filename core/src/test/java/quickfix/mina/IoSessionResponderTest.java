@@ -119,7 +119,7 @@ public class IoSessionResponderTest extends TestCase {
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0);
 
-        assertEquals("/1.2.3.4:5432", responder.getRemoteIPAddress());
+        assertEquals("/1.2.3.4:5432", responder.getRemoteAddress());
         verify(mockProtocolSession).getRemoteAddress();
         verifyNoMoreInteractions(mockProtocolSession);
     }

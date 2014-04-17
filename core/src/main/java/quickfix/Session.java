@@ -523,13 +523,13 @@ public class Session implements Closeable {
     }
 
     /**
-     * Provides remote IP address of the session connection, if any.
-     * @return remote IP address if connected, null if not.
+     * Provides remote address of the session connection, if any.
+     * @return remote address (host:port) if connected, null if not.
      */
-    public String getRemoteIPAddress() {
+    public String getRemoteAddress() {
         Responder responder = getResponder();
         if (responder != null) {
-            return responder.getRemoteIPAddress();
+            return responder.getRemoteAddress();
         }
         return null;
     }

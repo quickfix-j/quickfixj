@@ -45,8 +45,8 @@ public interface Responder {
     void disconnect();
 
     /**
-     * Provides remote IP address of the session connection, if any.
-     * @return remote IP address if connected, null if not.
+     * Provides remote address of the session connection, if any.
+     * @return remote address (host:port) if connected, null if not.
      */
-    String getRemoteIPAddress();
+    String getRemoteAddress();
 }

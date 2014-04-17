@@ -113,8 +113,8 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
         }
 
         public String getRemoteAddress() {
-            String remoteIPAddress = session.getRemoteIPAddress();
-            return remoteIPAddress != null ? remoteIPAddress : "N/A";
+            String remoteAddress = session.getRemoteAddress();
+            return remoteAddress != null ? remoteAddress : "N/A";
         }
     }
 

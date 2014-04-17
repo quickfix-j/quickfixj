@@ -1711,7 +1711,7 @@ public class SessionTest {
             return true;
         }
 
-        public String getRemoteIPAddress() {
+        public String getRemoteAddress() {
             return null;
         }
 

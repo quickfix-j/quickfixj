@@ -88,7 +88,7 @@ public class IoSessionResponder implements Responder {
         }
     }
 
-    public String getRemoteIPAddress() {
+    public String getRemoteAddress() {
         final SocketAddress remoteAddress = ioSession.getRemoteAddress();
         if (remoteAddress != null) {
             return remoteAddress.toString();
