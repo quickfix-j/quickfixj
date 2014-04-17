@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import quickfix.Acceptor;
 import quickfix.Connector;
 import quickfix.Initiator;
-import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -114,8 +113,8 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
         }
 
         public String getRemoteAddress() {
-            Responder responder = session.getResponder();
-            return responder != null ? responder.getRemoteIPAddress() : "N/A";
+            String remoteIPAddress = session.getRemoteIPAddress();
+            return remoteIPAddress != null ? remoteIPAddress : "N/A";
         }
     }
 

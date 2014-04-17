@@ -522,6 +522,18 @@ public class Session implements Closeable {
         return getResponder() != null;
     }
 
+    /**
+     * Provides remote IP address of the session connection, if any.
+     * @return remote IP address if connected, null if not.
+     */
+    public String getRemoteIPAddress() {
+        Responder responder = getResponder();
+        if (responder != null) {
+            return responder.getRemoteIPAddress();
+        }
+        return null;
+    }
+
     private boolean isCurrentSession(final long time)
             throws IOException {
         if (sessionSchedule == null) {

@@ -19,6 +19,8 @@
 
 package quickfix.mina;
 
+import java.net.SocketAddress;
+
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.future.WriteFuture;
 import org.slf4j.Logger;
@@ -27,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import quickfix.Responder;
 
 /**
- * The class that partially integrates the QuickFIX/J Session to a 
+ * The class that partially integrates the QuickFIX/J Session to 
  * the MINA networking code.
  */
 public class IoSessionResponder implements Responder {
@@ -87,7 +89,11 @@ public class IoSessionResponder implements Responder {
     }
 
     public String getRemoteIPAddress() {
-        return ioSession.getRemoteAddress().toString();
+        final SocketAddress remoteAddress = ioSession.getRemoteAddress();
+        if (remoteAddress != null) {
+            return remoteAddress.toString();
+        }
+        return null;
     }
 
 }

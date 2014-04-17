@@ -46,7 +46,7 @@ public interface Responder {
 
     /**
      * Provides remote IP address of the session connection, if any.
-     * @return remote IP address if connected, empty string if not.
+     * @return remote IP address if connected, null if not.
      */
     String getRemoteIPAddress();
 }
