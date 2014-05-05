@@ -116,7 +116,7 @@ public class FIXMessageDecoderTest {
     private void doWesternEuropeanDecodingTest() throws UnsupportedEncodingException, ProtocolCodecException, InvalidMessage, Exception, FieldNotFound {
         FIXMessageDecoder decoder = new FIXMessageDecoder();
         IoBuffer byteBuffer = IoBuffer.allocate(1024);
-        // äbcfödçé
+        // Ã¤bcfÃ¶dÃ§Ã©
         String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
         byteBuffer.put(("8=FIX.4.49=1835=B148=" + headline + "10=253").getBytes("ISO-8859-1"));
         byteBuffer.flip();

@@ -39,7 +39,7 @@
 
 	<target name="regenerate.code">
 		<mkdir dir="${main.classes.dir}" />
-		<javac srcdir="${main.src.dir}/quickfix/codegen" includes="MessageCodeGenerator.java,CodeGenerationException.java" destdir="${main.classes.dir}" classpathref="main.lib.classpath">
+		<javac srcdir="${main.src.dir}/quickfix/codegen" includes="MessageCodeGenerator.java,CodeGenerationException.java" destdir="${main.classes.dir}" classpathref="main.lib.classpath" encoding="UTF-8">
 			<compilerarg line="${javac.args}" />
 		</javac>
 		<java classname="quickfix.codegen.MessageCodeGenerator" fork="yes">
@@ -65,7 +65,7 @@
 
 	<target name="format.generated.code" description="Format the generated FIX message code using Jalopy.
 		Mostly interested in getting all the tabbing right." unless="skip.jalopy">
-		<jalopy classpathref="main.lib.classpath" fileformat="unix">
+		<jalopy classpathref="main.lib.classpath" fileformat="unix" encoding="UTF-8">
 			<fileset dir="${target.generated.src.dir}">
 				<include name="**/*.java" />
 			</fileset>
@@ -106,7 +106,7 @@
 		<sequential>
 			<mkdir dir="@{output}" />
 			<javac destdir="@{output}" debug="${javac.debug}"
-					memoryMaximumSize="512m" fork="yes" nowarn="yes">
+					memoryMaximumSize="512m" fork="yes" nowarn="yes" encoding="UTF-8">
 				<compilerarg line="${javac.args}" />
 				<classpath refid="@{classpathref}" />
 				<src refid="@{srcref}" />

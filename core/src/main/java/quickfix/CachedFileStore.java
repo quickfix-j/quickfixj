@@ -405,7 +405,7 @@ public class CachedFileStore implements MessageStore {
     }
 
     /**
-     * @author mratsimbazafy 29 août 2008
+     * @author mratsimbazafy 29 aoÃ»t 2008
      */
     private class CachedHashMap implements Map<Long, long[]> {
 

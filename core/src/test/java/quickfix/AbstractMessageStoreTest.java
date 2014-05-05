@@ -99,7 +99,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         if (!testEnabled) {
             return;
         }
-        // message 111 == äbcfödçé
+        // message 111 == Ã¤bcfÃ¶dÃ§Ã©
         assertTrue("set failed", store.set(111, "\u00E4bcf\u00F6d\u00E7\u00E9"));
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));

@@ -62,7 +62,7 @@ public class FileLogTest {
 
         // Also, tests encoding
         
-        // äbcfödçé
+        // Ã¤bcfÃ¶dÃ§Ã©
         String outgoingText = "OUTTEST \u00E4bcf\u00F6d\u00E7\u00E9";
         log.onOutgoing(outgoingText);
         assertEquals("wrong message", outgoingText + "\n", readLog(log.getMessagesFileName()));

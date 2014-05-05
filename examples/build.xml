@@ -28,7 +28,7 @@
 
 	<target name="compile" description="compile source code">
 		<mkdir dir="${main.classes.dir}" />
-		<javac destdir="${main.classes.dir}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes">
+		<javac destdir="${main.classes.dir}" debug="${javac.debug}" memoryMaximumSize="128m" fork="yes" encoding="UTF-8">
 			<classpath refid="compile.classpath"/>
 			<compilerarg line="${javac.args}" />
 			<src path="${main.src.dir}"/>
