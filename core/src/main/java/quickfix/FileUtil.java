@@ -34,16 +34,29 @@ public class FileUtil {
     }
 
     public static String sessionIdFileName(SessionID sessionID) {
-        return sessionID.getBeginString() + "-" + sessionID.getSenderCompID()
-                + optionalField("_", sessionID.getSenderSubID())
+        return replaceIllegalCharactersInFileName(sessionID.getBeginString() + "-"
+                + sessionID.getSenderCompID() + optionalField("_", sessionID.getSenderSubID())
                 + optionalField("_", sessionID.getSenderLocationID()) + "-"
                 + sessionID.getTargetCompID() + optionalField("_", sessionID.getTargetSubID())
                 + optionalField("_", sessionID.getTargetLocationID())
-                + optionalField("-", sessionID.getSessionQualifier());
+                + optionalField("-", sessionID.getSessionQualifier()));
     }
 
     private static String optionalField(String delim, String value) {
         return !value.equals(SessionID.NOT_SET) ? delim + value : "";
+    }
+
+    /**
+     * QFJ-775
+     * We replace some characters which are illegal on some file systems.
+     * Caution: this could lead to the fact that file store names for CompIDs
+     * FOO#FOO-BAR#BAR and FOO!FOO-BAR!BAR will eventually turn out to use
+     * the same file name FOO_FOO-BAR_BAR. In such cases you might consider
+     * using separate file store directories if your CompIDs contain
+     * special characters different from dot, dash or underscore.
+     */
+    private static String replaceIllegalCharactersInFileName(String fileName) {
+        return fileName.replaceAll("[^a-zA-Z0-9.-]", "_");
     }
 
     public enum Location {
