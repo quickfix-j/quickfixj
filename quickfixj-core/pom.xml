@@ -1,18 +1,18 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>quickfixj</groupId>
-	<artifactId>quickfixj-core</artifactId>
-	<version>1.6.0-SNAPSHOT</version>
-	<name>QuickFIX/J Core engine</name>
-	<description>
-    The core QuickFIX/J engine
-  </description>
 	<parent>
 		<groupId>quickfixj</groupId>
 		<artifactId>quickfixj-all</artifactId>
 		<version>1.6.0-SNAPSHOT</version>
 	</parent>
+
+	<groupId>quickfixj</groupId>
+	<artifactId>quickfixj-core</artifactId>
+	<version>1.6.0-SNAPSHOT</version>
+
+	<name>QuickFIX/J Core engine</name>
+	<description>The core QuickFIX/J engine</description>
+	<url>http://www.quickfixj.org</url>
 	<licenses>
 		<license>
 			<name>Apache License 2.0</name>
@@ -20,13 +20,18 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	<url>http://www.quickfixj.org</url>
-	<prerequisites>
-		<maven>2.0</maven>
-	</prerequisites>
-	<properties>
-		<jdkLevel>1.5</jdkLevel>
-	</properties>
+
+	<developers>
+		<developer>
+			<id>rockdreamer</id>
+			<name>Claudio Bantaloukas</name>
+			<email>rockdreamer@gmail.com</email>
+			<url>http://www.rdfm.org</url>
+			<organization>Private</organization>
+			<timezone>+1 GMT</timezone>
+		</developer>
+	</developers>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -34,13 +39,13 @@
 			<version>4.5</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>1.8.0.1</version>
@@ -58,18 +63,18 @@
 			<version>1.1</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>1.6.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.6.3</version>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>1.6.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.6.3</version>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.mina</groupId>
@@ -92,13 +97,29 @@
 			<version>2.1.30</version>
 			<type>jar</type>
 		</dependency>
-        <dependency>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-            <version>1.6.1</version>
-        </dependency>
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>
 	</dependencies>
+
 	<build>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/src/main/resources/</directory>
+			</testResource>
+			<testResource>
+				<directory>src/main/</directory>
+				<includes>
+					<include>config/**</include>
+				</includes>
+			</testResource>
+		</testResources>
+
 		<plugins>
 			<plugin>
 				<groupId>quickfixj</groupId>
@@ -206,38 +227,23 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-surefire-plugin</artifactId>
-     <configuration>
-       <testFailureIgnore>true</testFailureIgnore>
-     </configuration>
-    </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<testFailureIgnore>true</testFailureIgnore>
+				</configuration>
+			</plugin>
 		</plugins>
-		<testResources>
-			<testResource>
-				<directory>../quickfixj-messages/src/main/resources/</directory>
-			</testResource>
-			<testResource>
-				<directory>src/main/</directory>
-				<includes>
-					<include>config/**</include>
-				</includes>
-			</testResource>
-			<testResource>
-				<directory>src/test/resources</directory>
-			</testResource>
-
-		</testResources>
 	</build>
+
 	<reporting>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
 				<version>2.16</version>
-				<reportSets>
-				</reportSets>
+				<reportSets/>
 				<configuration>
 					<showSuccess>true</showSuccess>
 				</configuration>
@@ -254,14 +260,4 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<developers>
-		<developer>
-			<id>rockdreamer</id>
-			<name>Claudio Bantaloukas</name>
-			<email>rockdreamer@gmail.com</email>
-			<url>http://www.rdfm.org</url>
-			<organization>Private</organization>
-			<timezone>+1 GMT</timezone>
-		</developer>
-	</developers>
 </project>

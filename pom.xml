@@ -1,22 +1,20 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>quickfixj</groupId>
 	<artifactId>quickfixj-all</artifactId>
-	<packaging>pom</packaging>
 	<version>1.6.0-SNAPSHOT</version>
-	<name>QuickFIX/J Parent</name>
+	<packaging>pom</packaging>
+
+	<name>Quickfix/J Parent</name>
 	<description>
-   The Financial Information eXchange (FIX) protocol is a messaging standard developed specifically for the real-time electronic exchange of securities transactions. FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
-	QuickFIX/J is a full featured messaging engine for the FIX protocol. It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
-  </description>
-    <distributionManagement>
-    <repository>
-      <id>ssh-repository</id>
-      <url>scpexe://www.rdfm.org/var/www/vhosts/rdfm.org/httpdocs/mvn</url>
-    </repository>
-  </distributionManagement>
+		The Financial Information eXchange (FIX) protocol is a messaging standard developed
+		specifically for the real-time electronic exchange of securities transactions.
+		FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
+		QuickFIX/J is a full featured messaging engine for the FIX protocol.
+		It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
+	</description>
+	<url>http://www.quickfixj.org</url>
 	<licenses>
 		<license>
 			<name>QuickFIX Software License</name>
@@ -24,59 +22,6 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	<url>http://www.quickfixj.org</url>
-	<properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<jdkLevel>1.5</jdkLevel>
-	</properties>
-	<dependencies>
-	</dependencies>
-	<build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>2.2</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.1</version>
-                    <configuration>
-                        <source>1.5</source>
-                        <target>1.5</target>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.4</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.16</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-pmd-plugin</artifactId>
-                    <version>3.0.1</version>
-                    <configuration>
-                        <targetJdk>1.5</targetJdk>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh-external</artifactId>
-				<version>2.6</version>
-			</extension>
-		</extensions>
-	
-	</build>
 
 	<developers>
 		<developer>
@@ -88,9 +33,72 @@
 			<timezone>+1 GMT</timezone>
 		</developer>
 	</developers>
+
+	<prerequisites>
+		<maven>2.0</maven>
+	</prerequisites>
+
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 	</modules>
+
+	<distributionManagement>
+		<repository>
+			<id>ssh-repository</id>
+			<url>scpexe://www.rdfm.org/var/www/vhosts/rdfm.org/httpdocs/mvn</url>
+		</repository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jdkLevel>1.5</jdkLevel>
+	</properties>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.1</version>
+					<configuration>
+						<source>1.5</source>
+						<target>1.5</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.16</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>3.0.1</version>
+					<configuration>
+						<targetJdk>1.5</targetJdk>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh-external</artifactId>
+				<version>2.6</version>
+			</extension>
+		</extensions>
+	</build>
 </project>
