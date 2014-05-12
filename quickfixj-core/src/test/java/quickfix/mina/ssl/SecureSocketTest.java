@@ -56,10 +56,6 @@ public class SecureSocketTest extends TestCase {
     }
 
     public void testLogonWithBadCertificate() throws Exception {
-        if (Double.parseDouble(System.getProperty("java.specification.version")) < 1.5) {
-            log.warn("Test was not run because java.specification.versionn < 1.5");
-            return;
-        }
         ServerThread serverThread = new ServerThread("nonexistent", "pwd");
         try {
             serverThread.setDaemon(true);
@@ -116,10 +112,6 @@ public class SecureSocketTest extends TestCase {
      * by another test so that there are no false failures.
      */
     public void testLogonWithBadCertificateOnInitiatorSide() throws Exception {
-        if (Double.parseDouble(System.getProperty("java.specification.version")) < 1.5) {
-            log.warn("Test was not run because java.specification.version < 1.5");
-            return;
-        }
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
         SessionSettings settings = getClientSessionSettings(clientSessionID);
         // reset client side to invalid certs
@@ -139,10 +131,6 @@ public class SecureSocketTest extends TestCase {
 
 
     private void doLogonTest(String keyStoreName, String keyStorePassword) throws InterruptedException, ConfigError {
-        if (Double.parseDouble(System.getProperty("java.specification.version")) < 1.5) {
-            log.warn("Test was not run because java.specification.versionn < 1.5");
-            return;
-        }
         ServerThread serverThread = new ServerThread(keyStoreName, keyStorePassword);
         try {
             serverThread.setDaemon(true);
