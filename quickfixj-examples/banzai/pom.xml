@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>quickfixj</groupId>
+		<artifactId>quickfixj-examples</artifactId>
+		<version>1.6.0-SNAPSHOT</version>
+	</parent>
+
+	<groupId>quickfixj</groupId>
+	<artifactId>quickfixj-examples-banzai</artifactId>
+	<version>1.6.0-SNAPSHOT</version>
+
+	<name>QuickFIX/J Examples - Banzai</name>
+	<description>QuickFIX/J example application - Banzai</description>
+	<url>http://www.quickfixj.org</url>
+	<licenses>
+		<license>
+			<name>The QuickFIX Software License, Version 1.0</name>
+			<url>http://www.quickfixj.org/documentation/license.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<properties>
+		<mainClass>quickfix.examples.banzai.Banzai</mainClass>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>

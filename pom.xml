@@ -6,7 +6,7 @@
 	<version>1.6.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Quickfix/J Parent</name>
+	<name>QuickFIX/J Parent</name>
 	<description>
 		The Financial Information eXchange (FIX) protocol is a messaging standard developed
 		specifically for the real-time electronic exchange of securities transactions.
@@ -31,6 +31,7 @@
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
+		<module>quickfixj-examples</module>
 	</modules>
 
 	<properties>
