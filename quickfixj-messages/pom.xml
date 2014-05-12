@@ -13,6 +13,14 @@
 
 	<name>QuickFIX/J Message classes for FIX 4.0-5.0 and FIXT 1.1</name>
 	<description>QuickFIX/J Message classes for FIX 4.0-5.0 and FIXT 1.1</description>
+	<url>http://www.quickfixj.org</url>
+	<licenses>
+		<license>
+			<name>The QuickFIX Software License, Version 1.0</name>
+			<url>http://www.quickfixj.org/documentation/license.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<dependencies>
 		<dependency>

@@ -20,8 +20,8 @@
 	<url>http://www.quickfixj.org</url>
 	<licenses>
 		<license>
-			<name>Apache License 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<name>The QuickFIX Software License, Version 1.0</name>
+			<url>http://www.quickfixj.org/documentation/license.html</url>
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
