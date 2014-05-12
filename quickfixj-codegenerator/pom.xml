@@ -26,17 +26,6 @@
 		</license>
 	</licenses>
 
-	<developers>
-		<developer>
-			<id>rockdreamer</id>
-			<name>Claudio Bantaloukas</name>
-			<email>rockdreamer@gmail.com</email>
-			<url>http://www.rdfm.org</url>
-			<organization>Private</organization>
-			<timezone>+1 GMT</timezone>
-		</developer>
-	</developers>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.maven</groupId>

@@ -23,17 +23,6 @@
 		</license>
 	</licenses>
 
-	<developers>
-		<developer>
-			<id>rockdreamer</id>
-			<name>Claudio Bantaloukas</name>
-			<email>rockdreamer@gmail.com</email>
-			<url>http://www.rdfm.org</url>
-			<organization>Private</organization>
-			<timezone>+1 GMT</timezone>
-		</developer>
-	</developers>
-
 	<prerequisites>
 		<maven>2.0</maven>
 	</prerequisites>
@@ -43,13 +32,6 @@
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 	</modules>
-
-	<distributionManagement>
-		<repository>
-			<id>ssh-repository</id>
-			<url>scpexe://www.rdfm.org/var/www/vhosts/rdfm.org/httpdocs/mvn</url>
-		</repository>
-	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -93,12 +75,5 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh-external</artifactId>
-				<version>2.6</version>
-			</extension>
-		</extensions>
 	</build>
 </project>
