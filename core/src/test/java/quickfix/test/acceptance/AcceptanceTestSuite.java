@@ -59,13 +59,14 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
-    private static class AcceptanceTest extends TestCase {
+    private class AcceptanceTest extends TestCase {
         private final String filename;
         private final String testname;
     
         public AcceptanceTest(String filename) {
             this.filename = filename;
-            testname = filename.substring(filename.lastIndexOf(File.separatorChar + "fix") + 1);
+            testname = filename.substring(filename.lastIndexOf(File.separatorChar + "fix") + 1) +
+                (multithreaded ? "-threaded" : "");
             setName(testname);
         }
     
@@ -160,6 +161,8 @@ public class AcceptanceTestSuite extends TestSuite {
     public AcceptanceTestSuite(String testDirectory, boolean multithreaded, Map<Object, Object> overridenProperties) {
         this.multithreaded = multithreaded;
         this.overridenProperties = overridenProperties;
+        String name = testDirectory.substring(testDirectory.lastIndexOf(File.separatorChar) + 1);
+        this.setName(name + (multithreaded ? "-threaded" : ""));
         Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);
         if (timeout != null) {
             ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
@@ -253,7 +256,7 @@ public class AcceptanceTestSuite extends TestSuite {
     public static Test suite() {
         transportType = ProtocolFactory.getTransportType(System.getProperty(ATEST_TRANSPORT_KEY, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET)));
         port = AvailablePortFinder.getNextAvailable(port);
-        TestSuite acceptanceTests = new TestSuite();
+        TestSuite acceptanceTests = new TestSuite(AcceptanceTestSuite.class.getSimpleName());
         //default server
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", true)));
