@@ -78,20 +78,40 @@ public class MultiAcceptorTest extends TestCase {
 
     public void testMessageSentOnWrongAcceptor() throws Exception {
         testAcceptorApplication = new TestAcceptorApplication(2);
-        Acceptor acceptor = createAcceptor();
-        acceptor.start();
+        Acceptor acceptor = null;
+        Initiator initiator = null;
 
-        Initiator initiator = createInitiator(true);
-        initiator.start();
+        try {
+            acceptor = createAcceptor();
+            acceptor.start();
 
-        testAcceptorApplication.waitForLogon();
+            initiator = createInitiator(true);
+            initiator.start();
 
-        TestRequest message = new TestRequest();
-        message.set(new TestReqID("TEST" + 3));
-        SessionID sessionID = getSessionIDForClient(3);
-        Session.sendToTarget(message, sessionID);
+            testAcceptorApplication.waitForLogon();
 
-        testAcceptorApplication.assertNoMessages(sessionID);
+            TestRequest message = new TestRequest();
+            message.set(new TestReqID("TEST" + 3));
+            SessionID sessionID = getSessionIDForClient(3);
+            Session.sendToTarget(message, sessionID);
+
+            testAcceptorApplication.assertNoMessages(sessionID);
+        } finally {
+            if (initiator != null) {
+                try {
+                    initiator.stop();
+                } catch (RuntimeException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+            if (acceptor != null) {
+                try {
+                    acceptor.stop();
+                } catch (RuntimeException e) {
+                    log.error(e.getMessage(), e);
+                }
+            }
+        }
     }
 
     private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException,
