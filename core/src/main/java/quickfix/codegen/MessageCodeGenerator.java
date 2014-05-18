@@ -19,6 +19,7 @@
 
 package quickfix.codegen;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -263,19 +264,36 @@ public class MessageCodeGenerator {
             }
         }
 
-        File out = new File(outputFileName);
-        if (!out.getParentFile().exists()) {
-            out.getParentFile().mkdirs();
+        File outputFile = new File(outputFileName);
+        if (!outputFile.getParentFile().exists()) {
+            outputFile.getParentFile().mkdirs();
         }
 
-        File outputFile = new File(outputFileName);
-        if (!task.isOverwrite() && outputFile.exists()) {
-            return;
+        if (outputFile.exists()) {
+            if (!task.isOverwrite()) {
+                return;
+            }
+            if (outputFile.lastModified() > task.getSpecificationLastModified()) {
+                log.debug("Skipping file " + outputFile.getName());
+                return;
+            }
         }
+        log.debug("spec has mod " + task.getSpecificationLastModified() +
+                " output has mod " + outputFile.lastModified());
 
         DOMSource source = new DOMSource(document);
-        StreamResult result = new StreamResult(new FileOutputStream(outputFile));
-        transformer.transform(source, result);
+        FileOutputStream fos = new FileOutputStream(outputFile);
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        try {
+            StreamResult result = new StreamResult(bos);
+            transformer.transform(source, result);
+        } finally {
+            try {
+                bos.close();
+            } catch (IOException ioe) {
+                log.error("error closing " + outputFile, ioe);
+            }
+        }
     }
 
     /*
@@ -306,6 +324,11 @@ public class MessageCodeGenerator {
         private String transformDirectory;
         private boolean orderedFields;
         private boolean useDecimal;
+        private long specificationLastModified;
+        
+        public long getSpecificationLastModified() {
+            return specificationLastModified;
+        }
 
         public String getName() {
             return name;
