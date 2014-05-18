@@ -3,7 +3,8 @@ package quickfix.test.acceptance;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,7 +118,7 @@ public class AcceptanceTestSuite extends TestSuite {
             log.info("load test: " + filename);
             BufferedReader in = null;
             try {
-                in = new BufferedReader(new FileReader(filename));
+                in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO8859_1"));
                 String line = in.readLine();
                 while (line != null) {
                     if (line.matches("^[ \t]*#.*")) {
