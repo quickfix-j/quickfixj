@@ -141,6 +141,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
             }
         } catch (Throwable e) {
             log.error("Error in TimerTestServer server: ", e);
+            initializationLatch.countDown();
         }
     }
 
