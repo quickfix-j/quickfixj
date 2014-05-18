@@ -119,8 +119,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
             SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
             settings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
-                        settings.setString(sessionID, "DataDictionary", "../quickfixj-messages/src/main/resources/" + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "")
-                                + ".xml");
+                        settings.setString(sessionID, "DataDictionary", FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "") + ".xml");
 
             MessageStoreFactory factory = new MemoryStoreFactory();
             acceptor = new SocketAcceptor(this, factory, settings, new ScreenLogFactory(settings),

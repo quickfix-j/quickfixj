@@ -29,9 +29,8 @@ import junit.framework.TestCase;
 public class SerializationTest extends TestCase {
 
     private String[] srcDirs = new String[] { 
-            "target/generated-sources" ,
-            "generated-sources/messages", 
-            "core/target/generated-sources/messages" 
+            "quickfixj-core/target/generated-sources",
+            "target/generated-sources"
             };
     
     private String srcDir;
@@ -311,9 +310,9 @@ public class SerializationTest extends TestCase {
     }
 
 	private static final String [] classesBaseDirs = {
-		"classes",
-		"core/target/classes/main",
-		"target/classes"
+		"quickfixj-core/target/classes",
+		"target/classes",
+		"classes"
 	};
 
     private String getBaseDirectory() {

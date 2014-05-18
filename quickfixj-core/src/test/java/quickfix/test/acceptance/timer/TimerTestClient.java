@@ -109,7 +109,7 @@ public class TimerTestClient extends MessageCracker implements Application {
 
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
         settings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
-        settings.setString(sessionID, "DataDictionary", "../quickfixj-messages/src/main/resources/FIX44.xml");
+        settings.setString(sessionID, "DataDictionary", "FIX44.xml");
 
         MessageStoreFactory storeFactory = new MemoryStoreFactory();
         Initiator initiator = new SocketInitiator(this, storeFactory, settings,
