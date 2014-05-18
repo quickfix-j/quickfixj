@@ -232,7 +232,6 @@ public class DataDictionaryTest extends TestCase {
         }.run();
 
         dd.validate(newSingle, true);
-
     }
 
     public void testMessageDataDictionaryMismatch() throws Exception {
@@ -350,7 +349,7 @@ public class DataDictionaryTest extends TestCase {
     //QFJ-535
     public void testNewOrderSingleWithCorrectTag50() throws Exception {
 
-        final DataDictionary dataDictionary = getDictionary();
+        final DataDictionary dataDictionary = new DataDictionary(getDictionary());
         dataDictionary.setCheckFieldsOutOfOrder(true);
 
         String correctFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|50=trader|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
@@ -382,13 +381,11 @@ public class DataDictionaryTest extends TestCase {
         nos4.fromString(correctFixMessage, dataDictionary, false);
         dataDictionary.validate(nos4);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
-
-
-
     }
+
     public void testNewOrderSingleWithMisplacedTag50() throws Exception {
 
-        final DataDictionary dataDictionary = getDictionary();
+        final DataDictionary dataDictionary = new DataDictionary(getDictionary());
         dataDictionary.setCheckFieldsOutOfOrder(true);
 
         String incorrectFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
@@ -421,9 +418,6 @@ public class DataDictionaryTest extends TestCase {
         nos4.fromString(incorrectFixMessage, dataDictionary, false);
         dataDictionary.validate(nos4);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
-
-        
-
     }
 
 
@@ -434,14 +428,31 @@ public class DataDictionaryTest extends TestCase {
 
     private static DataDictionary testDataDictionary;
 
+    /**
+     * Returns a singleton FIX 4.4 data dictionary.
+     * NOTE: the returned dictionary must not be modified in any way
+     * (e.g. by calling any of its setter methods). If it needs to
+     * be modified, it can be cloned by using the
+     * {@link DataDictionary#DataDictionary(DataDictionary)
+     * DataDictionary copy constructor}.
+     *
+     * @return a singleton FIX 4.4 data dictionary
+     * @throws Exception if the data dictionary cannot be loaded
+     */
     public static DataDictionary getDictionary() throws Exception {
         if (testDataDictionary == null) {
-            testDataDictionary = new DataDictionary(DataDictionaryTest.class.getClassLoader()
-                    .getResourceAsStream("FIX44.xml"));
+            testDataDictionary = getDictionary("FIX44.xml");
         }
         return testDataDictionary;
     }
 
+    /**
+     * Loads and returns the named data dictionary.
+     *
+     * @param fileName the data dictionary file name (e.g. "FIX44.xml")
+     * @return a new data dictionary instance
+     * @throws Exception if the named data dictionary cannot be loaded
+     */
     public static DataDictionary getDictionary(String fileName) throws Exception {
         return new DataDictionary(DataDictionaryTest.class.getClassLoader()
                 .getResourceAsStream(fileName));
