@@ -21,6 +21,10 @@
 		</license>
 	</licenses>
 
+	<properties>
+		<acceptance.tests>**/AcceptanceTestSuite.java</acceptance.tests>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -215,6 +219,27 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<includes>
+						<include>**/*Test.java</include>
+						<include>${acceptance.tests}</include>
+					</includes>
+					<excludes>
+						<exclude>**/*ForTest.java</exclude>
+						<exclude>**/Abstract*Test.java</exclude>
+						<exclude>**/AcceptanceTestSuite$*</exclude>
+					</excludes>
+					<systemPropertyVariables>
+						<atest.heartbeat>5</atest.heartbeat>
+						<atest.timeout>60000</atest.timeout>
+						<atest.reconnectDelay>5</atest.reconnectDelay>
+						<atest.skipslow>false</atest.skipslow>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -241,4 +266,20 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<profiles>
+		<!-- profile for skipping acceptance tests, triggered via -DskipAT=true property -->
+		<profile>
+			<id>skipAT</id>
+			<activation>
+				<property>
+					<name>skipAT</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<properties>
+				<acceptance.tests/>
+			</properties>
+		</profile>
+	</profiles>
 </project>
