@@ -178,6 +178,7 @@
 			<!-- The plain formatter is breaking the Pulse CI report generator -->
 			<jvmarg value="-Xms128m" />
 			<jvmarg value="-Xmx1024m" />
+			<jvmarg value="-XX:MaxPermSize=128m" />
 			<!-- <formatter type="plain" usefile="true" /> -->
 			<formatter type="xml" usefile="true" />
 			<classpath refid="test.classpath" />
