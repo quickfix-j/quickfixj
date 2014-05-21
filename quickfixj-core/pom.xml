@@ -102,7 +102,31 @@
 				<directory>src/test/resources</directory>
 			</testResource>
 			<testResource>
-				<directory>../quickfixj-messages/src/main/resources/</directory>
+				<directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix50sp1/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix43/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix42/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix41/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
 			</testResource>
 			<testResource>
 				<directory>src/main/</directory>
@@ -124,7 +148,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIXT11.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources/FIXT11.xml</dictFile>
 							<packaging>quickfix.fixt11</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
@@ -135,7 +159,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIX50.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources/FIX50.xml</dictFile>
 							<packaging>quickfix.fix50</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
@@ -146,7 +170,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIX44.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources/FIX44.xml</dictFile>
 							<packaging>quickfix.fix44</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
@@ -157,7 +181,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIX43.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix43/src/main/resources/FIX43.xml</dictFile>
 							<packaging>quickfix.fix43</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
@@ -168,7 +192,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIX42.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix42/src/main/resources/FIX42.xml</dictFile>
 							<packaging>quickfix.fix42</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
@@ -179,7 +203,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIX41.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix41/src/main/resources/FIX41.xml</dictFile>
 							<packaging>quickfix.fix41</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
@@ -190,7 +214,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/src/main/resources/FIX40.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources/FIX40.xml</dictFile>
 							<packaging>quickfix.fix40</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 						</configuration>
