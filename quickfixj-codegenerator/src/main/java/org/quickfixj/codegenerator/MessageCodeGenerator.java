@@ -54,6 +54,7 @@ import org.xml.sax.SAXException;
  * 
  */
 public class MessageCodeGenerator {
+
     private static final String BIGDECIMAL_TYPE_OPTION = "generator.decimal";
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
@@ -68,13 +69,15 @@ public class MessageCodeGenerator {
     //  The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
 
-    protected void logInfo(String msg){
+    protected void logInfo(String msg) {
         System.out.println(msg);
     }
-    protected void logDebug(String msg){
+
+    protected void logDebug(String msg) {
         System.out.println(msg);
     }
-    protected void logError(String msg, Throwable e){
+
+    protected void logError(String msg, Throwable e) {
         System.err.println(msg);
         e.printStackTrace();
     }
@@ -452,7 +455,7 @@ public class MessageCodeGenerator {
             boolean useDecimal = getOption(BIGDECIMAL_TYPE_OPTION, false);
 
             long start = System.currentTimeMillis();
-            final String[] vers = new String[] { "FIXT 1.1", "FIX 5.0", "FIX 4.4", "FIX 4.3", "FIX 4.2",
+            final String[] vers = { "FIXT 1.1", "FIX 5.0", "FIX 4.4", "FIX 4.3", "FIX 4.2",
                     "FIX 4.1", "FIX 4.0" };
             for (int i = 0; i < vers.length; ++i) {
                 Task task = new Task();

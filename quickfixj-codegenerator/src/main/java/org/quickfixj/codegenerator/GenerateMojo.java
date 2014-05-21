@@ -22,18 +22,16 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 
-
 /**
- * A mojo that uses the quickfix code generator to generate a collection of javabeans from a QuickFIX Dictionary.
+ * A mojo that uses the quickfix code generator to generate
+ * Java source files from a QuickFIX Dictionary.
  * 
  * @goal generate
  * @phase generate-sources
  * @description QuickFIX/J code generation plugin
  * @author Claudio Bantaloukas <rockdreamer@gmail.com>
  */
-public class GenerateMojo
-    extends AbstractMojo
-{
+public class GenerateMojo extends AbstractMojo {
 
     /**
      * The dictionary file to use for mapping messages to java.
@@ -43,42 +41,42 @@ public class GenerateMojo
     private File dictFile;
 
 	/**
-     * The source directory containing *.xsd files
+     * The source directory containing *.xsd files.
      * 
      * @parameter expression="${basedir}/src/resources/quickfixj/codegenerator"
      */
     private File schemaDirectory;
 
 	/**
-     * The directory to output the generated sources to
+     * The directory to output the generated sources to.
      * 
      * @parameter expression="${project.build.directory}/generated-sources/"
      */
     private File outputDirectory;
 
     /**
-     * Enable BigDecimal representation
+     * Enable BigDecimal representation.
      * 
      * @parameter default-value="false"
      */
-    private boolean decimal = false;
+    private boolean decimal;
 
     /**
-     * Enable orderedFields
+     * Enable orderedFields.
      * 
      * @parameter default-value="false"
      */
-    private boolean orderedFields = false;
+    private boolean orderedFields;
 
     /**
-     * The package for the generated source
+     * The package for the generated source.
      * 
      * @parameter
      */
     private String packaging;
 
     /**
-     * The base field class to use
+     * The base field class to use.
      * 
      * @parameter default-value = "quickfix.field"
      */
@@ -94,45 +92,41 @@ public class GenerateMojo
     private MavenProject project;
 
     /**
-     * {@link QuickFixSourceGenerator} instance used for code generation.
+     * {@link MessageCodeGenerator} instance used for code generation.
      * 
      */
-    private MavenMessageCodeGenerator sgen;
+    private MavenMessageCodeGenerator generator;
 
     /**
      * {@inheritDoc}
      * 
      * @see org.apache.maven.plugin.AbstractMojo#execute()
      */
-    public void execute()
-        throws MojoExecutionException
-    {
-        if ( !outputDirectory.exists() )
-        {
-            FileUtils.mkdir( outputDirectory.getAbsolutePath() );
+    public void execute() throws MojoExecutionException {
+
+        if (!outputDirectory.exists()) {
+            FileUtils.mkdir(outputDirectory.getAbsolutePath());
         }
 
         try {
-            sgen = new MavenMessageCodeGenerator( );
-            if ( getLog().isInfoEnabled() )
-            {
-                getLog().info( "Successfully created an instance of the QuickFIX source generator" );
+            generator = new MavenMessageCodeGenerator();
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Successfully created an instance of the QuickFIX source generator");
             }
-            sgen.setLog( getLog() );
+            generator.setLog(getLog());
 
             MessageCodeGenerator.Task task = new MessageCodeGenerator.Task();
-            if ( getLog().isInfoEnabled() )
-            {
-                getLog().info( "Initialising code generator task" );
+            if (getLog().isInfoEnabled()) {
+                getLog().info("Initialising code generator task");
             }
 
-            if ( dictFile != null && dictFile.exists() )
-            {
-            	task.setSpecification(dictFile);
+            if (dictFile != null && dictFile.exists()) {
+                task.setSpecification(dictFile);
             } else {
-            	getLog().error( "Cannot find file " + dictFile );
+            	getLog().error("Cannot find file " + dictFile);
             }
-            log( "Processing " + dictFile );
+
+            log("Processing " + dictFile);
             task.setName(dictFile.getName());
             task.setTransformDirectory(schemaDirectory);
             task.setMessagePackage(packaging);
@@ -141,24 +135,16 @@ public class GenerateMojo
             task.setOverwrite(true);
             task.setOrderedFields(orderedFields);
             task.setDecimalGenerated(decimal);
-            sgen.generate(task);
-
-            // exec task
-        }
-        catch ( Exception e )
-        {
-            throw new MojoExecutionException( "QuickFIX code generator execution failed", e );
-        }
-        catch ( Throwable t )
-        {
-            throw new MojoExecutionException( "QuickFIX code generator execution failed", t );
+            generator.generate(task);
+        } catch (Exception e) {
+            throw new MojoExecutionException("QuickFIX code generator execution failed", e);
+        } catch (Throwable t) {
+            throw new MojoExecutionException("QuickFIX code generator execution failed", t);
         }
 
-        if ( project != null )
-        {
-            project.addCompileSourceRoot( outputDirectory.getAbsolutePath() );
+        if (project != null) {
+            project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
         }
-
     }
 
     /**
@@ -166,9 +152,8 @@ public class GenerateMojo
      * 
      * @param msg The message ot be logged.
      */
-    private void log( final String msg )
-    {
-        getLog().info( msg );
+    private void log(final String msg) {
+        getLog().info(msg);
     }
 
     /**
@@ -176,18 +161,16 @@ public class GenerateMojo
      * 
      * @return the destination directory to used during code generation.
      */
-    public File getOutputDirectory()
-    {
+    public File getOutputDirectory() {
         return outputDirectory;
     }
 
     /**
      * Sets the destination directory to used during code generation.
      * 
-     * @param dest the destination directory to used during code generation.
+     * @param outputDirectory the destination directory to used during code generation.
      */
-    public void setOutputDirectory( final File outputDirectory )
-    {
+    public void setOutputDirectory(final File outputDirectory) {
         this.outputDirectory = outputDirectory;
     }
 
@@ -197,8 +180,7 @@ public class GenerateMojo
      * 
      * @return the default package to be used during code generation.
      */
-    public String getPackaging()
-    {
+    public String getPackaging() {
         return packaging;
     }
 
@@ -207,8 +189,7 @@ public class GenerateMojo
      * 
      * @param packaging the default package to be used during code generation.
      */
-    public void setPackaging( final String packaging )
-    {
+    public void setPackaging(final String packaging) {
         this.packaging = packaging;
     }
 
@@ -217,8 +198,7 @@ public class GenerateMojo
      * 
      * @return the {@link MavenProject} instance for which code generation should be executed.
      */
-    public MavenProject getProject()
-    {
+    public MavenProject getProject() {
         return project;
     }
 
@@ -227,8 +207,7 @@ public class GenerateMojo
      * 
      * @param project the {@link MavenProject} instance for which code generation should be executed.
      */
-    public void setProject( MavenProject project )
-    {
+    public void setProject(MavenProject project) {
         this.project = project;
     }
     
@@ -251,18 +230,18 @@ public class GenerateMojo
 	}
 	
     /**
-     * Returns the directory containing schemas for code generation
+     * Returns the directory containing schemas for code generation.
      * 
-     * @return the directory containing schemas for code generation
+     * @return the directory containing schemas for code generation.
      */
    public File getSchemaDirectory() {
 		return schemaDirectory;
 	}
 
    /**
-    * Sets the dictionary file for which code generation should be executed.
+    * Sets the directory containing schemas for code generation.
     * 
-    * @param dictFile the dictionary file for which code generation should be executed.
+    * @param schemaDirectory the directory containing schemas for code generation.
     */
 	public void setSchemaDirectory(File schemaDirectory) {
 		this.schemaDirectory = schemaDirectory;

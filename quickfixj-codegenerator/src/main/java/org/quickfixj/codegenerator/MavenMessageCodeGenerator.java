@@ -18,11 +18,13 @@
  ******************************************************************************/
 
 package org.quickfixj.codegenerator;
+
 import org.apache.maven.plugin.logging.Log;
 
 public class MavenMessageCodeGenerator extends MessageCodeGenerator {
 
-    private Log log = null;
+    private Log log;
+
     public Log getLog() {
         return log;
     }
@@ -31,14 +33,15 @@ public class MavenMessageCodeGenerator extends MessageCodeGenerator {
         this.log = log;
     }
     
-    protected void logInfo(String msg){
+    protected void logInfo(String msg) {
         log.info(msg);
     }
-    protected void logDebug(String msg){
+
+    protected void logDebug(String msg) {
         log.debug(msg);
     }
-    protected void logError(String msg, Throwable e){
+
+    protected void logError(String msg, Throwable e) {
         log.error(msg, e);
     }
-
 }
