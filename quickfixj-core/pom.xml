@@ -23,6 +23,7 @@
 
 	<properties>
 		<acceptance.tests>**/AcceptanceTestSuite.java</acceptance.tests>
+		<mainClass>org.quickfixj.Version</mainClass>
 	</properties>
 
 	<dependencies>
