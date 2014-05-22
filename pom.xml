@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>quickfixj</groupId>
-	<artifactId>quickfixj-all</artifactId>
+	<artifactId>quickfixj-parent</artifactId>
 	<version>1.6.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
@@ -32,6 +32,8 @@
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
+		<module>quickfixj-all</module>
+		<module>quickfixj-distribution</module>
 	</modules>
 
 	<properties>
@@ -95,6 +97,16 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>2.3</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.4</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

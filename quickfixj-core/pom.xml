@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>quickfixj</groupId>
-		<artifactId>quickfixj-all</artifactId>
+		<artifactId>quickfixj-parent</artifactId>
 		<version>1.6.0-SNAPSHOT</version>
 	</parent>
 
