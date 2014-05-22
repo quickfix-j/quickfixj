@@ -234,19 +234,25 @@
 					</includes>
 					<excludes>
 						<exclude>quickfix/field/*</exclude>
-						<exclude>quickfix/fix40/**</exclude>
-						<exclude>quickfix/fix41/**</exclude>
-						<exclude>quickfix/fix42/**</exclude>
-						<exclude>quickfix/fix43/**</exclude>
-						<exclude>quickfix/fix44/**</exclude>
-						<exclude>quickfix/fix50/**</exclude>
-						<exclude>quickfix/fixt11/**</exclude>
+						<exclude>quickfix/fix*/**</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+				<configuration>
+					<includes>
+						<include>quickfix/**</include>
+						<include>org/**</include>
+						<include>quickfix/field/converter/*</include>
+						<include>FIX*.xml</include>
+					</includes>
+					<excludes>
+						<exclude>quickfix/field/*</exclude>
+						<exclude>quickfix/fix*/**</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
