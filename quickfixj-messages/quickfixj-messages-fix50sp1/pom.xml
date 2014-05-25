@@ -2,25 +2,16 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>quickfixj</groupId>
+		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-messages</artifactId>
 		<version>1.6.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>quickfixj</groupId>
 	<artifactId>quickfixj-messages-fix50sp1</artifactId>
-	<version>1.6.0-SNAPSHOT</version>
 
 	<name>QuickFIX/J Message classes for FIX 5.0 SP1</name>
 	<description>QuickFIX/J Message classes for FIX 5.0 SP1</description>
 	<url>http://www.quickfixj.org</url>
-	<licenses>
-		<license>
-			<name>The QuickFIX Software License, Version 1.0</name>
-			<url>http://www.quickfixj.org/documentation/license.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
 
 	<properties>
 		<fix.spec>FIX50SP1.modified.xml</fix.spec>
@@ -30,15 +21,13 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>quickfixj</groupId>
+				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
 		</plugins>

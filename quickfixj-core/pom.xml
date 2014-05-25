@@ -1,25 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>quickfixj</groupId>
+		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
 		<version>1.6.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>quickfixj</groupId>
 	<artifactId>quickfixj-core</artifactId>
-	<version>1.6.0-SNAPSHOT</version>
 
 	<name>QuickFIX/J Core engine</name>
 	<description>The core QuickFIX/J engine</description>
 	<url>http://www.quickfixj.org</url>
-	<licenses>
-		<license>
-			<name>The QuickFIX Software License, Version 1.0</name>
-			<url>http://www.quickfixj.org/documentation/license.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
 
 	<properties>
 		<acceptance.tests>**/AcceptanceTestSuite.java</acceptance.tests>
@@ -139,9 +130,9 @@
 
 		<plugins>
 			<plugin>
-				<groupId>quickfixj</groupId>
+				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>1.6.0-SNAPSHOT</version>
+				<version>${project.version}</version>
 				<executions>
 					<execution>
 						<id>fixt11</id>
@@ -223,7 +214,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<includes>
@@ -239,7 +229,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<configuration>
 					<includes>
@@ -255,7 +244,6 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>-Xmx512m -XX:MaxPermSize=128m</argLine>
@@ -282,7 +270,6 @@
 	<reporting>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
 				<version>2.16</version>
 				<reportSets/>
@@ -291,12 +278,10 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.9.1</version>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
 				<version>2.4</version>
 			</plugin>

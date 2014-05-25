@@ -8,12 +8,12 @@
 	<dependencySets>
 		<dependencySet>
 			<includes>
-				<include>quickfixj:*</include>
+				<include>org.quickfixj:*</include>
 			</includes>
 		</dependencySet>
 		<dependencySet>
 			<includes>
-				<include>quickfixj:quickfixj-messages-all</include>
+				<include>org.quickfixj:quickfixj-messages-all</include>
 			</includes>
 			<outputDirectory>/etc</outputDirectory>
 			<unpack>true</unpack>

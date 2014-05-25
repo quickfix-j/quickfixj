@@ -2,15 +2,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>quickfixj</groupId>
+		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
 		<version>1.6.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>quickfixj</groupId>
 	<artifactId>quickfixj-codegenerator</artifactId>
 	<packaging>maven-plugin</packaging>
-	<version>1.6.0-SNAPSHOT</version>
 
 	<name>QuickFIX/J Code Generator Maven Plugin</name>
 	<description>
@@ -18,13 +16,6 @@
 		for FIX Messages from a QuickFIX XML dictionary
 	</description>
 	<url>http://www.quickfixj.org</url>
-	<licenses>
-		<license>
-			<name>The QuickFIX Software License, Version 1.0</name>
-			<url>http://www.quickfixj.org/documentation/license.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
 
 	<dependencies>
 		<dependency>
@@ -58,11 +49,9 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 			</plugin>
 		</plugins>
