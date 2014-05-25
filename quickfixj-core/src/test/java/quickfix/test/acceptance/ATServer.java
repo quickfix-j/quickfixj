@@ -122,7 +122,7 @@ public class ATServer implements Runnable {
             if (resetOnDisconnect) {
                 defaults.put("ResetOnDisconnect", "Y");
             }
-            defaults.put("FileStorePath", "output/data/server");
+            defaults.put("FileStorePath", "target/data/server");
             defaults.put("ValidateUserDefinedFields", "Y");
             // New for FIXT/FIX5
             defaults.put("DefaultApplVerID", "7");

@@ -60,7 +60,7 @@ public class LoginTestCase {
         SessionSettings settings = new SessionSettings();
 
         Map<Object,Object> defaults = new HashMap<Object,Object>();
-        defaults.put("FileStorePath", "examples/target/data/banzai");
+        defaults.put("FileStorePath", "target/data/banzai");
         defaults.put("ConnectionType", "initiator");
         defaults.put("TargetCompID", "EXEC");
         defaults.put("SocketConnectHost", "localhost");

@@ -103,7 +103,7 @@ public class TimerTestClient extends MessageCracker implements Application {
         defaults.put("EndTime", "00:00:00");
         defaults.put("SenderCompID", "TW");
         defaults.put("TargetCompID", "ISLD");
-        defaults.put("FileStorePath", "core/target/data/timer_test");
+        defaults.put("FileStorePath", "target/data/timer_test");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.set(defaults);
 

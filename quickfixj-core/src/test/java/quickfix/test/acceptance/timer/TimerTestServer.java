@@ -112,7 +112,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
-            defaults.put("FileStorePath", "output/data/server");
+            defaults.put("FileStorePath", "target/data/server");
             defaults.put("ValidateUserDefinedFields", "Y");
             defaults.put("ResetOnDisconnect", "Y");
             settings.set(defaults);

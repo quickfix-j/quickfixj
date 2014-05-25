@@ -200,7 +200,7 @@ public class MultiAcceptorTest extends TestCase {
         defaults.put("EndTime", "00:00:00");
         defaults.put("HeartBtInt", "30");
         defaults.put("ReconnectInterval", "2");
-        defaults.put("FileStorePath", "output/data/client");
+        defaults.put("FileStorePath", "target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
         settings.set(defaults);

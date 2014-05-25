@@ -243,7 +243,7 @@ public class SocketInitiatorTest {
         defaults.put("HeartBtInt", "30");
         defaults.put("ReconnectInterval", "2");
         defaults.put("ResetOnLogon", "Y");
-        defaults.put("FileStorePath", "core/target/data/client");
+        defaults.put("FileStorePath", "target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.set(defaults);
         settings.setString(clientSessionID, "BeginString", FixVersions.BEGINSTRING_FIX42);

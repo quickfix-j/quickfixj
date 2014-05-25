@@ -106,7 +106,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
-            defaults.put("FileStorePath", "output/data/server");
+            defaults.put("FileStorePath", "target/data/server");
             defaults.put("ValidateUserDefinedFields", "Y");
             defaults.put("ValidateSequenceNumbers", validateSequenceNumbers ? "Y" : "N");
             settings.set(defaults);

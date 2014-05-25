@@ -107,7 +107,7 @@ public class SSLAndNonSSLTest {
         defaults.put("EndTime", "00:00:00");
         defaults.put("HeartBtInt", "30");
         defaults.put("ReconnectInterval", "2");
-        defaults.put("FileStorePath", "core/target/data/client");
+        defaults.put("FileStorePath", "target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.set(defaults);
         settings.setString(clientSessionID, "BeginString", FixVersions.BEGINSTRING_FIX42);
@@ -184,7 +184,7 @@ public class SSLAndNonSSLTest {
                 defaults.put("SocketTcpNoDelay", "Y");
                 defaults.put("StartTime", "00:00:00");
                 defaults.put("EndTime", "00:00:00");
-                defaults.put("FileStorePath", "output/data/server");
+                defaults.put("FileStorePath", "target/data/server");
                 defaults.put("ValidateUserDefinedFields", "N");
                 
                 settings.set(defaults);
