@@ -31,11 +31,35 @@
 			<artifactId>quickfixj-messages-all</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>1.6.3</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<mainClass>${mainClass}</mainClass>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								<!-- automatically add all dependencies to classpath as jars in the ./lib folder -->
+								<addClasspath>true</addClasspath>
+								<classpathPrefix>./lib/</classpathPrefix>
+							</manifest>
+							<manifestEntries>
+								<!-- manually add quickfixj-* dependencies to classpath as jars in current directory -->
+								<Class-Path>./quickfixj-core-${project.version}.jar ./quickfixj-messages-all-${project.version}.jar</Class-Path>
+							</manifestEntries>
+						</archive>
+					</configuration>
+				</plugin>
 				<!-- create a self-executing jar (including all dependencies) -->
 				<plugin>
 					<artifactId>maven-shade-plugin</artifactId>
@@ -48,6 +72,8 @@
 							</goals>
 							<configuration>
 								<createDependencyReducedPom>false</createDependencyReducedPom>
+								<shadedArtifactAttached>true</shadedArtifactAttached>
+								<shadedClassifierName>standalone</shadedClassifierName>
 							</configuration>
 						</execution>
 					</executions>
