@@ -22,19 +22,16 @@
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-core</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-all</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-codegenerator</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 

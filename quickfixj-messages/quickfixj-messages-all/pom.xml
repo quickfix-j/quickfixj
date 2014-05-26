@@ -22,43 +22,36 @@
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fixt11</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix50</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix44</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix43</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix42</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix41</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix40</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 
 		<!--
@@ -70,13 +63,11 @@
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix50sp2</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix50sp1</artifactId>
 			<version>${project.version}</version>
-			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 

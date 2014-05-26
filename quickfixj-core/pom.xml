@@ -31,6 +31,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
 			<version>1.8.0.1</version>
@@ -43,22 +49,10 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
-			<version>1.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
 			<version>1.6.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.6.3</version>
-			<scope>test</scope>
+		    <scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -67,24 +61,86 @@
 			<version>2.0.7</version>
 		</dependency>
 		<dependency>
-			<groupId>com.cloudhopper.proxool</groupId>
-			<artifactId>proxool</artifactId>
-			<version>0.9.1</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.3</version>
+		</dependency>
+
+		<dependency>
+			<!-- used by dictgenerator package -->
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<!-- should be test scope -->
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+		    <!-- required by dom4j at runtime -->
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
+			<version>1.1.1</version>
+			<scope>runtime</scope>
+			<!-- we don't need any of the transient dependencies -->
+			<exclusions>
+				<exclusion>
+					<groupId>dom4j</groupId>
+					<artifactId>dom4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jdom</groupId>
+					<artifactId>jdom</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xom</groupId>
+					<artifactId>xom</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.cloudhopper.proxool</groupId>
-			<artifactId>proxool-cglib</artifactId>
+			<artifactId>proxool</artifactId>
 			<version>0.9.1</version>
+			<optional>true</optional>
+			<exclusions>
+				<!-- bug in proxool pom - should be test scope -->
+				<exclusion>
+					<groupId>avalon-framework</groupId>
+					<artifactId>avalon-framework-api</artifactId>
+				</exclusion>
+				<!-- we use slf4j which provides this API -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+		    <!-- slf4j facade for JCL which is required by proxool -->
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.6.3</version>
+			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>berkeleydb</groupId>
 			<artifactId>je</artifactId>
 			<version>2.1.30</version>
-		</dependency>
-		<dependency>
-			<groupId>dom4j</groupId>
-			<artifactId>dom4j</artifactId>
-			<version>1.6.1</version>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 

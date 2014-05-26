@@ -14,15 +14,22 @@
 	<description>QuickFIX/J Distribution</description>
 	<url>http://www.quickfixj.org</url>
 
+	<!--
+		Note: due to limitations of the assembly plugin's moduleSets (even with
+		useAllReactorProjects), this build must be run from parent as a full
+		multi-module build and not just this module by itself. Otherwise it
+		will succeed, but will be missing dependencies in lib folder.
+	-->
+
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
+			<artifactId>quickfixj-codegenerator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-codegenerator</artifactId>
+			<artifactId>quickfixj-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -131,7 +138,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- assemble the sources archive and distribution archive -->
+			<!-- assemble the sources and bin distribution archives -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>

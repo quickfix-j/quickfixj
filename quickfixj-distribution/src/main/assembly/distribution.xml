@@ -5,17 +5,59 @@
 	<formats>
 		<format>zip</format>
 	</formats>
+	<moduleSets>
+		<!-- all modules' dependencies in lib folder -->
+		<moduleSet>
+			<useAllReactorProjects>true</useAllReactorProjects>
+			<includes/>
+			<binaries>
+				<unpack>false</unpack>
+				<dependencySets>
+					<dependencySet>
+						<outputDirectory>lib</outputDirectory>
+						<useTransitiveDependencies>false</useTransitiveDependencies>
+						<excludes>
+							<!-- quickfixj artifacts which are included in root folder separately -->
+							<exclude>org.quickfixj:*</exclude>
+							<!-- maven plugin api and dependencies used by code generator
+							     but not required for non-maven standalone runtime -->
+							<exclude>org.apache.maven*:*</exclude>
+							<exclude>org.codehaus.plexus:*</exclude>
+							<exclude>classworlds:*</exclude>
+						</excludes>
+					</dependencySet>
+					<!--
+						Due to an assembly bug, a dependency that appears both in test scope
+						and another scope (compile/runtime) in two different modules will be
+						excluded. We re-include these here manually for now.
+					-->
+					<dependencySet>
+						<outputDirectory>lib</outputDirectory>
+						<scope>test</scope>
+						<includes>
+							<include>org.slf4j:slf4j-jdk14</include>
+						</includes>
+					</dependencySet>
+				</dependencySets>
+			</binaries>
+		</moduleSet>
+	</moduleSets>
 	<dependencySets>
+		<!-- all modules in root folder -->
 		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
 			<includes>
 				<include>org.quickfixj:*</include>
 			</includes>
 		</dependencySet>
+		<!-- all FIX XML specification files in etc folder -->
 		<dependencySet>
+			<outputDirectory>/etc</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
 			<includes>
 				<include>org.quickfixj:quickfixj-messages-all</include>
 			</includes>
-			<outputDirectory>/etc</outputDirectory>
 			<unpack>true</unpack>
 			<unpackOptions>
 				<includes>
@@ -25,15 +67,16 @@
 		</dependencySet>
 	</dependencySets>
 	<fileSets>
+		<!-- metadata files in root folder -->
 		<fileSet>
 			<directory>${parent.basedir}</directory>
 			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>LICENSE*</include>
 				<include>README*</include>
-				<include>lib/**</include>
 			</includes>
 		</fileSet>
+		<!-- source archive in root folder -->
 		<fileSet>
 			<directory>${project.build.directory}</directory>
 			<outputDirectory>/</outputDirectory>
@@ -41,6 +84,7 @@
 				<include>${groupId}-${version}-src.zip</include>
 			</includes>
 		</fileSet>
+		<!-- SQL scripts in etc/sql folder -->
 		<fileSet>
 			<directory>${parent.basedir}/quickfixj-core/src/main/resources/config</directory>
 			<outputDirectory>/etc</outputDirectory>
@@ -48,6 +92,7 @@
 				<include>sql/**</include>
 			</includes>
 		</fileSet>
+		<!-- user manual in doc/usermanual folder -->
 		<fileSet>
 			<directory>${parent.basedir}/quickfixj-core/src/main/doc</directory>
 			<outputDirectory>/doc</outputDirectory>
@@ -55,6 +100,7 @@
 				<include>usermanual/**</include>
 			</includes>
 		</fileSet>
+		<!-- javadocs in doc/api folder -->
 		<fileSet>
 			<directory>${project.build.directory}/site/apidocs</directory>
 			<outputDirectory>/doc/api</outputDirectory>
