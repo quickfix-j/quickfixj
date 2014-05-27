@@ -1,4 +1,4 @@
-package quickfix.dictgenerator;
+package org.quickfixj.dictgenerator;
 
 public final class MsgType extends Message {
 

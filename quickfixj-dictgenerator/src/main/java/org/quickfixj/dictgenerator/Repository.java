@@ -1,4 +1,4 @@
-package quickfix.dictgenerator;
+package org.quickfixj.dictgenerator;
 
 import java.io.File;
 import java.util.Collections;

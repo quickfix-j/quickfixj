@@ -1,10 +1,10 @@
-package quickfix.dictgenerator;
+package org.quickfixj.dictgenerator;
 
-public final class ComponentComponent extends Component {
+public final class MsgTypeComponent extends Component {
 
    private boolean required = false;
 
-    public ComponentComponent(Component component, String reqd) {
+    public MsgTypeComponent(Component component, String reqd) {
         super(component.getMsgID(), component.getName(), component.getType(), component.getCategory(), component.getNotReqXML());
         this.required = "1".equals(reqd);
         for (Object o : component.getMsgContent()) {
@@ -19,7 +19,7 @@ public final class ComponentComponent extends Component {
 
     @Override
     public String toString() {
-        return "ComponentComponent{" +
+        return "MsgTypeComponent{" +
                 "required=" + required +
                 ", msgID='" + msgID + '\'' +
                 ", name='" + name + '\'' +
