@@ -1,0 +1,99 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.quickfixj</groupId>
+		<artifactId>quickfixj-messages</artifactId>
+		<version>1.6.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>quickfixj-messages-all</artifactId>
+
+	<name>QuickFIX/J Message classes for all FIX specifications</name>
+	<description>QuickFIX/J Message classes for all FIX specifications</description>
+	<url>http://www.quickfixj.org</url>
+
+	<dependencies>
+		<!--
+			Note: dependency order matters - if a file appears in more than
+			one dependency, the shade plugin will use the first one encountered
+		-->
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fixt11</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix50</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix44</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix43</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix42</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix41</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix40</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!--
+			We add these at the end to remain backwards-compatible with previous
+			releases of the messages-all jar, in which duplicate classes were
+			resolved by using the 5.0 version.
+		-->
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix50sp2</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix50sp1</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>merge-all-classes</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createSourcesJar>true</createSourcesJar>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<includes>
+									<include>*:quickfixj-messages-fix*</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

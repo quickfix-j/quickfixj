@@ -1,0 +1,51 @@
+<html>
+	<head>
+		<title>Simple Failover for Socket Acceptors</title>
+		<link href="../style.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+<div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+		<h2>Simple Failover for Socket-based Acceptors.</h2>
+		<p>
+		When using a MessageStore that supports shared data (FileStore, JdbcStore, 
+			SleepycatStore) and that implements the new <code>RefreshableMessageStore</code> interface, 
+			the Session can be configured to refresh the store information upon 
+			logon. You would typically run two acceptor processes using a 
+			shared message store. One process would be the active acceptor 
+			and the other would be the standby for any specific session. If 
+			one acceptor process dies, the client (assuming they have been 
+			configured with failover addresses) will attempt to logon to 
+			the other acceptor. When they do, the message store for that 
+			session will be refreshed and the session should continue 
+			normally. I've tried this with Banzai and two Order Executors 
+			and it appears to work well. 
+			</p>
+		<p><b>Example acceptor configuration with failover support:</b></p>
+		<pre class="code">
+[default]
+FileStorePath=target/data/server
+DataDictionary=etc/FIX42.xml
+BeginString=FIX.4.2
+ConnectionType=acceptor
+StartTime=00:00:00
+EndTime=00:00:00
+HeartBtInt=30
+SocketAcceptPort=9877
+<span style="color: red">RefreshMessageStoreAtLogon=Y</span>
+
+[session]
+SenderCompID=EXEC
+TargetCompID=BANZAI</pre>
+		<p>Note that this approach doesn't require that each acceptor is globally in an
+			active or standby role. Since that role is session-specific, both acceptors
+			could be be actively supporting sessions and when one node dies all the sessions
+			on that node will be automatically switched to the other node. This is
+			implemented simply by specifying the order of the failover addresses in the QF
+			settings file so that some clients initially connect to one node and others
+			connect to the other node. One weakness with this scenario is that there's no way
+			to redistribute the sessions to the two nodes once the dead node is restarted.
+			That can be added as future capability.</p>
+	</body>
+</html>

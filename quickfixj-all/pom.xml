@@ -1,0 +1,68 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.quickfixj</groupId>
+		<artifactId>quickfixj-parent</artifactId>
+		<version>1.6.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>quickfixj-all</artifactId>
+
+	<name>QuickFIX/J All runtime modules</name>
+	<description>QuickFIX/J All runtime modules</description>
+	<url>http://www.quickfixj.org</url>
+
+	<properties>
+		<mainClass>org.quickfixj.Version</mainClass>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-codegenerator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-dictgenerator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>merge-all-modules</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createSourcesJar>true</createSourcesJar>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<includes>
+									<include>org.quickfixj:*</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

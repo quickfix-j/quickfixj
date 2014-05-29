@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<title>Dynamic Acceptor Sessions</title>
+		<link href="../style.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body>
+<div class="header">
+<h1>QuickFIX/J User Manual</h1>
+</div>
+		<h2>Dynamic Acceptor Sessions</h2>
+		<p>Sometimes an application needs more flexibility than a static configuration provides.
+		For example, test programs or simulators may not want to predefine define every session.
+		</p>
+		
+		<p>Dynamic sessions are implemented using a <em>session provider</em>. A simple session
+		provider implementation, <code>DynamicAcceptorSessionProvider</code>, is available for
+		simple applications. This provider specifies a session ID for a session definition that
+		will be used for setting session options. The session template in the configuration
+		file should be marked with the <code>AcceptorTemplate=Y</code> setting so the
+		session will not be registered as an normal session.
+		</p>
+		
+		<p>
+		You programatically associate a specific acceptor socket
+		address with a session provider instance. A dynamic session will be created for any logon attempt on this socket
+		address if a session has not already been defined. This allows a mixture of
+		static session definitions and dynamic session definition on the same acceptor
+		socket.
+		</p>
+<p><b>Registration of a dynamic session provider:</b></p>
+<pre class="code">
+acceptor.setSessionProvider(socketAddress, new DynamicAcceptorSessionProvider(
+   settings, templateSessionID, application, messageStoreFactory, logFactory,
+   messageFactory));
+</pre>
+		<p><b>Example acceptor configuration for dynamic sessions:</b></p>
+		<pre class="code">
+[default]
+FileStorePath=target/data/executor
+ConnectionType=acceptor
+SocketAcceptPort=9876
+StartTime=00:00:00
+EndTime=00:00:00
+HeartBtInt=30
+ValidOrderTypes=1,2,F
+SenderCompID=*
+TargetCompID=*
+UseDataDictionary=Y
+DefaultMarketPrice=15
+
+[session]
+AcceptorTemplate=Y
+DataDictionary=FIX40.xml
+BeginString=FIX.4.0
+</pre>
+	</body>
+</html>
