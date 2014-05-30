@@ -419,9 +419,10 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testOutOfOrderGroupMembersDelimiterField() throws Exception {
         final Message m = new Message(
-                "8=FIX.4.49=035=D34=249=TW52=<TIME>56=ISLD11=ID21=140=154=1"
-                        + "38=200.0055=INTC78=280=5079=acct180=15079=acct260=<TIME>10=000",
-                defaultDataDictionary, false);
+            "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=<TIME>\00156=ISLD\00111=ID\001" +
+            "21=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00180=50\00179=acct1\001" +
+            "80=150\00179=acct2\00160=<TIME>\00110=000\001",
+            defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
             Assert.fail("No exception");
@@ -435,9 +436,10 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testIgnoreOutOfOrderGroupMembersDelimiterField() throws Exception {
         final Message m = new Message(
-                "8=FIX.4.49=035=D34=249=TW52=<TIME>56=ISLD11=ID21=140=154=1"
-                        + "38=200.0055=INTC78=280=5079=acct180=15079=acct260=<TIME>10=000",
-                defaultDataDictionaryWithIgnoreOutOfOrder, false);
+            "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=<TIME>\00156=ISLD\00111=ID\001" +
+            "21=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00180=50\00179=acct1\001" +
+            "80=150\00179=acct2\00160=<TIME>\00110=000\001",
+            defaultDataDictionaryWithIgnoreOutOfOrder, false);
         try {
             defaultDataDictionaryWithIgnoreOutOfOrder.validate(m);
             Assert.fail("No exception");
@@ -451,9 +453,10 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testOutOfOrderGroupMembers() throws Exception {
         final Message m = new Message(
-                "8=FIX.4.49=035=D34=249=TW52=20080203-00:29:51.45356=ISLD11=ID21=140=154=1"
-                        + "38=200.0055=INTC78=279=acct180=50661=X79=acct280=150661=X60=20080203-00:29:51.45310=000",
-                defaultDataDictionary, false);
+            "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=20080203-00:29:51.453\00156=ISLD\001" +
+            "11=ID\00121=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00179=acct1\00180=50\001" +
+            "661=X\00179=acct2\00180=150\001661=X\00160=20080203-00:29:51.453\00110=000\001",
+            defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
             Assert.fail("No exception");
@@ -467,9 +470,10 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testIgnoreOutOfOrderGroupMembers() throws Exception {
         final Message m = new Message(
-                "8=FIX.4.49=035=D34=249=TW52=20080203-00:29:51.45356=ISLD11=ID21=140=154=1"
-                        + "38=200.0055=INTC78=279=acct180=50661=1079=acct280=150661=1160=20080203-00:29:51.45310=000",
-                defaultDataDictionaryWithIgnoreOutOfOrder, false);
+            "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=20080203-00:29:51.453\00156=ISLD\001" +
+            "11=ID\00121=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00179=acct1\00180=50\001" +
+            "661=10\00179=acct2\00180=150\001661=11\00160=20080203-00:29:51.453\00110=000\001",
+            defaultDataDictionaryWithIgnoreOutOfOrder, false);
         try {
             defaultDataDictionaryWithIgnoreOutOfOrder.validate(m);
         } catch (final FieldException e) {
@@ -479,8 +483,9 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testRequiredGroupMembers() throws Exception {
         // Missing group tag 304
-        final Message m = new Message("8=FIX.4.49=035=i34=249=TW52=20080203-00:29:51.453"
-                + "56=ISLD117=ID296=1302=X10=000", defaultDataDictionary, false);
+        final Message m = new Message("8=FIX.4.4\0019=0\00135=i\00134=2\00149=TW\001" +
+            "52=20080203-00:29:51.453\00156=ISLD\001117=ID\001296=1\001302=X\00110=000\001",
+            defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
             Assert.fail("No exception");
@@ -494,9 +499,10 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testWrongGroupCount() throws Exception {
         // Excessive group counts in nested group
-        final Message m = new Message("8=FIX.4.49=035=i34=249=TW52=20080203-00:29:51.453"
-                + "56=ISLD117=ID296=1302=X304=5295=50299=QID10=085", defaultDataDictionary,
-                true);
+        final Message m = new Message("8=FIX.4.4\0019=0\00135=i\00134=2\00149=TW\001" +
+            "52=20080203-00:29:51.453\00156=ISLD\001117=ID\001296=1\001302=X\001" +
+            "304=5\001295=50\001299=QID\00110=085\001",
+            defaultDataDictionary, true);
         try {
             defaultDataDictionary.validate(m);
             Assert.fail("No exception");
@@ -512,8 +518,9 @@ public class RepeatingGroupTest extends TestCase {
     public void testInvalidEnumFieldInGroup() throws Exception {
         // Excessive group counts
         final Message m = new Message(
-                "8=FIX.4.49=035=A34=252=20080203-00:29:51.45356=ISLD49=TW108=10384=1372=D385=X98=010=129",
-                defaultDataDictionary, false);
+            "8=FIX.4.4\0019=0\00135=A\00134=2\00152=20080203-00:29:51.453\00156=ISLD\001" +
+            "49=TW\001108=10\001384=1\001372=D\001385=X\00198=0\00110=129\001",
+            defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
             Assert.fail("No exception");
@@ -534,8 +541,10 @@ public class RepeatingGroupTest extends TestCase {
 
     public void testSettingGettingGroupWithStandardFieldsInHeader() throws Exception {
         final Message m = new Message(
-                "8=FIX.4.49=8735=034=252=20080203-00:29:51.45356=ISLD49=TW627=2628=_TED02A629=20090717-13:25:31.896628=_GWSURV629=20090717-13:25:31.92810=012",
-                defaultDataDictionary, false);
+            "8=FIX.4.4\0019=87\00135=0\00134=2\00152=20080203-00:29:51.453\00156=ISLD\001" +
+            "49=TW\001627=2\001628=_TED02A\001629=20090717-13:25:31.896\001628=_GWSURV\001" +
+            "629=20090717-13:25:31.928\00110=012\001",
+            defaultDataDictionary, false);
         try {
             defaultDataDictionary.validate(m);
         } catch (final IncorrectTagValue e) {

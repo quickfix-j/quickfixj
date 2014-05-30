@@ -336,13 +336,17 @@ public class DataDictionaryTest extends TestCase {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
         dictionary.setCheckUnorderedGroupFields(false);
         Message messageWithGroupLevel1 = new Message(
-                "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount736=currency661=110=130",
-                dictionary);
+            "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
+            "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
+            dictionary);
         dictionary.validate(messageWithGroupLevel1);
 
         Message messageWithGroupLevel2 = new Message(
-                "8=FIX.4.49=18535=D34=2549=SENDER56=TARGET52=20110412-13:43:0060=20110412-13:43:001=testAccount11=12321=338=4240=244=42.3754=155=QFJ59=078=179=allocAccount539=1524=1538=1525=a10=145",
-                dictionary);
+            "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
+            "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
+            dictionary);
         dictionary.validate(messageWithGroupLevel2);
     }
 
@@ -352,8 +356,10 @@ public class DataDictionaryTest extends TestCase {
         final DataDictionary dataDictionary = new DataDictionary(getDictionary());
         dataDictionary.setCheckFieldsOutOfOrder(true);
 
-        String correctFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|50=trader|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
-                + "432=20110531|15=CHF|22=8|55=symbol|48=CH1234.CHF|21=1|60=20110420-11:17:39.000|63=0|207=VX|10=009|").replace('|', '\001');
+        String correctFixMessage = "8=FIX.4.4\0019=218\00135=D\00149=cust\00150=trader\001" +
+            "56=FixGateway\00134=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\001" +
+            "59=6\00140=2\00144=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\001" +
+            "48=CH1234.CHF\00121=1\00160=20110420-11:17:39.000\00163=0\001207=VX\00110=009\001";
 
         //in any case, it must be validated as the message is correct
         //doValidation and checkFieldsOutOfOrder
@@ -388,8 +394,10 @@ public class DataDictionaryTest extends TestCase {
         final DataDictionary dataDictionary = new DataDictionary(getDictionary());
         dataDictionary.setCheckFieldsOutOfOrder(true);
 
-        String incorrectFixMessage = new String("8=FIX.4.4|9=218|35=D|49=cust|56=FixGateway|34=449|52=20110420-09:17:40|11=clordid|54=1|38=50|59=6|40=2|44=77.1|"
-            + "432=20110531|15=CHF|22=8|55=symbol|48=CH1234.CHF|21=1|60=20110420-11:17:39.000|63=0|207=VX|50=trader|10=009|").replace('|', '\001');
+        String incorrectFixMessage = "8=FIX.4.4\0019=218\00135=D\00149=cust\00156=FixGateway\001" +
+            "34=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\00159=6\00140=2\001" +
+            "44=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\00148=CH1234.CHF\00121=1\001" +
+            "60=20110420-11:17:39.000\00163=0\001207=VX\00150=trader\00110=009\001";
 
         //doValidation and checkFieldsOutOfOrder -> should fail
         final NewOrderSingle nos1 = new NewOrderSingle();

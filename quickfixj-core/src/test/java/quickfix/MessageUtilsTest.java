@@ -76,7 +76,8 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testSessionIdFromRawMessage() throws Exception {
-        String messageString = "8=FIX.4.09=5635=A34=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
+            "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         SessionID sessionID = MessageUtils.getSessionID(messageString);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
         assertEquals("TW", sessionID.getSenderCompID());
@@ -84,7 +85,8 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testReverseSessionIdFromRawMessage() throws Exception {
-        String messageString = "8=FIX.4.09=5635=A34=149=TW50=TWS142=TWL52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\00150=TWS\001" +
+            "142=TWL\00152=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         SessionID sessionID = MessageUtils.getReverseSessionID(messageString);
         assertEquals(sessionID.getBeginString(), "FIX.4.0");
         assertEquals("ISLD", sessionID.getSenderCompID());
@@ -94,12 +96,14 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testMessageType() throws Exception {
-        String messageString = "8=FIX.4.09=5635=A34=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
+            "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         assertEquals("A", MessageUtils.getMessageType(messageString));
     }
 
     public void testMessageTypeError() throws Exception {
-        String messageString = "8=FIX.4.09=5634=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
+            "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         try {
             MessageUtils.getMessageType(messageString);
             fail("expected exception");
@@ -109,7 +113,7 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testMessageTypeError2() throws Exception {
-        String messageString = "8=FIX.4.09=5635=1";
+        String messageString = "8=FIX.4.0\0019=56\00135=1";
         try {
             MessageUtils.getMessageType(messageString);
             fail("expected exception");
@@ -119,12 +123,14 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testGetNonexistentStringField() throws Exception {
-        String messageString = "8=FIX.4.09=5634=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
+            "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         assertNull(MessageUtils.getStringField(messageString, 35));
     }
 
     public void testGetStringFieldWithBadValue() throws Exception {
-        String messageString = "8=FIX.4.09=5634=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
+            "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223";
         assertNull(MessageUtils.getStringField(messageString, 10));
     }
 
@@ -133,7 +139,8 @@ public class MessageUtilsTest extends TestCase {
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
         stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
-        String messageString = "8=FIX.4.09=5635=A34=149=TW52=20060118-16:34:1956=ISLD98=0108=210=223";
+        String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
+            "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         
         Message message = MessageUtils.parse(mockSession, messageString);
         
@@ -141,11 +148,12 @@ public class MessageUtilsTest extends TestCase {
     }
 
     public void testLegacyParse() throws Exception {
-        String data = "8=FIX.4.49=30935=849=ASX56=CL1_FIX4434=452=20060324-01:05:58"
-            + "17=X-B-WOW-1494E9A0:58BD3F9D-1109150=D39=011=18427138=200198=1494E9A0:58BD3F9D"
-            + "526=432437=B-WOW-1494E9A0:58BD3F9D55=WOW54=1151=20014=040=244=1559=16=0"
-            + "453=3448=AAA35791447=D452=3448=8447=D452=4448=FIX11447=D452=36"
-            + "60=20060320-03:34:2910=169";
+        String data = "8=FIX.4.4\0019=309\00135=8\00149=ASX\00156=CL1_FIX44\00134=4\001" +
+            "52=20060324-01:05:58\00117=X-B-WOW-1494E9A0:58BD3F9D-1109\001150=D\001" +
+            "39=0\00111=184271\00138=200\001198=1494E9A0:58BD3F9D\001526=4324\001" +
+            "37=B-WOW-1494E9A0:58BD3F9D\00155=WOW\00154=1\001151=200\00114=0\00140=2\001" +
+            "44=15\00159=1\0016=0\001453=3\001448=AAA35791\001447=D\001452=3\001448=8\001" +
+            "447=D\001452=4\001448=FIX11\001447=D\001452=36\00160=20060320-03:34:29\00110=169\001";
         
         Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), data);
         assertThat(message, is(notNullValue()));

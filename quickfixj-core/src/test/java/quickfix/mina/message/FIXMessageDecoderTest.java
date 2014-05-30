@@ -118,7 +118,7 @@ public class FIXMessageDecoderTest {
         IoBuffer byteBuffer = IoBuffer.allocate(1024);
         // äbcfödçé
         String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
-        byteBuffer.put(("8=FIX.4.49=1835=B148=" + headline + "10=253").getBytes("ISO-8859-1"));
+        byteBuffer.put(("8=FIX.4.4\0019=18\00135=B\001148=" + headline + "\00110=253\001").getBytes("ISO-8859-1"));
         byteBuffer.flip();
 
         ProtocolDecoderOutputForTest decoderOutput = new ProtocolDecoderOutputForTest();
@@ -354,7 +354,7 @@ public class FIXMessageDecoderTest {
     @Test 
     public void testFailedPatternMatchAtEndOfBuffer() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
-        setUpBuffer("8=FIX.4.2|9=12|35=X|108=30|1wmyadz".replace('|', '\001'));
+        setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\0011wmyadz");
         MessageDecoderResult decoderResult = decoder.decode(null, buffer, decoderOutput);
         //assertEquals("wrong decoder result", MessageDecoderResult.NOT_OK, decoderResult);
         assertEquals("wrong decoder result", MessageDecoderResult.NEED_DATA, decoderResult);
