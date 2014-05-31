@@ -110,13 +110,9 @@ public /*abstract*/ class Field<T> implements Serializable{
         return data.length()+1;
     }
     
-    /*package*/ int getTotal() {
+    /*package*/ int getChecksum() {
         calculate();
-        int sum = 0;
-        for (int i = 0; i < data.length(); i++) {
-            sum += data.charAt(i);
-        }
-        return sum+1;
+        return (MessageUtils.checksum(data, false) + 1) & 0xFF; // include trailing SOH byte
     }
     
     private void calculate() {

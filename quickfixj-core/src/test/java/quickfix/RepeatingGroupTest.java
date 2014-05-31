@@ -412,8 +412,8 @@ public class RepeatingGroupTest extends TestCase {
             validatedFIXString = validatedMessage.toString();
         }
 
-        assertEquals("Message validation failed", checkSum(sourceFIXString),
-                checkSum(validatedFIXString));
+        assertEquals("Message validation failed",
+                MessageUtils.checksum(sourceFIXString), MessageUtils.checksum(validatedFIXString));
 
     }
 
@@ -528,15 +528,6 @@ public class RepeatingGroupTest extends TestCase {
             // expected
             assertEquals(385, e.field);
         }
-    }
-
-    public int checkSum(String s) {
-        final int offset = s.lastIndexOf("\00110=");
-        int sum = 0;
-        for (int i = 0; i < offset; i++) {
-            sum += s.charAt(i);
-        }
-        return (sum + 1) % 256;
     }
 
     public void testSettingGettingGroupWithStandardFieldsInHeader() throws Exception {

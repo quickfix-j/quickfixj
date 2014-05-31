@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.FixVersions;
+import quickfix.MessageUtils;
 import quickfix.field.converter.UtcTimestampConverter;
 
 public class InitiateMessageStep implements TestStep {
@@ -91,7 +92,7 @@ public class InitiateMessageStep implements TestStep {
             message = data.substring(1);
         }
         if (message.indexOf("\00110=") == -1) {
-            message += "10=" + CHECKSUM_FORMAT.format(checksum(message)) + '\001';
+            message += "10=" + CHECKSUM_FORMAT.format(MessageUtils.checksum(message)) + '\001';
         }
         log.debug("sending to client " + clientId + ": " + message);
         try {
@@ -131,14 +132,6 @@ public class InitiateMessageStep implements TestStep {
             matcher = TIME_PATTERN.matcher(message);
         }
         return message;
-    }
-
-    private int checksum(String message) {
-        int sum = 0;
-        for (int i = 0; i < message.length(); i++) {
-            sum += message.charAt(i);
-        }
-        return sum % 256;
     }
 
     public String toString() {

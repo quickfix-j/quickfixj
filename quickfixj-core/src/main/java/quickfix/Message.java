@@ -137,7 +137,7 @@ public class Message extends FieldMap {
     public String toString() {
         final int bodyLength = bodyLength();
         header.setField(new BodyLength(bodyLength));
-        trailer.setField(new CheckSum(checkSum()));
+        trailer.setField(new CheckSum(checksum()));
 
         final StringBuilder sb = new StringBuilder(bodyLength);
         header.calculateString(sb, null, null);
@@ -153,18 +153,9 @@ public class Message extends FieldMap {
 
     private static DecimalFormat checksumFormat = new DecimalFormat("000");
 
-    private int checkSum(String s) {
-        final int offset = s.lastIndexOf("\00110=");
-        int sum = 0;
-        for (int i = 0; i < offset; i++) {
-            sum += s.charAt(i);
-        }
-        return (sum + 1) % 256;
-    }
-
-    private String checkSum() {
-        return checksumFormat.format((header.calculateTotal() + calculateTotal() + trailer
-                .calculateTotal()) % 256);
+    private String checksum() {
+        return checksumFormat.format(
+            (header.calculateChecksum() + calculateChecksum() + trailer.calculateChecksum()) & 0xFF);
     }
 
     public void headerAddGroup(Group group) {
@@ -496,11 +487,11 @@ public class Message extends FieldMap {
     private void validateCheckSum(String messageData) throws InvalidMessage {
         try {
             // Body length is checked at the protocol layer
-            final int checkSum = trailer.getInt(CheckSum.FIELD);
-            if (checkSum != checkSum(messageData)) {
+            final int checksum = trailer.getInt(CheckSum.FIELD);
+            if (checksum != MessageUtils.checksum(messageData)) {
                 // message will be ignored if checksum is wrong or missing
-                throw new InvalidMessage("Expected CheckSum=" + checkSum(messageData) + ", Received CheckSum="
-                        + checkSum + " in " + messageData);
+                throw new InvalidMessage("Expected CheckSum=" + MessageUtils.checksum(messageData)
+                        + ", Received CheckSum=" + checksum + " in " + messageData);
             }
         } catch (final FieldNotFound e) {
             throw new InvalidMessage("Field not found: " + e.field + " in " + messageData);

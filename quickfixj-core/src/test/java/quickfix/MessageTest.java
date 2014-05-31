@@ -815,7 +815,7 @@ public class MessageTest {
         assertNoZeroLengthGroupTag(message);
         assertEquals("wrong message length", 0, message.calculateLength());
 
-        assertEquals("wrong total", 0, message.calculateTotal());
+        assertEquals("wrong checksum", 0, message.calculateChecksum());
 
         // Remove one at a time
 
@@ -834,7 +834,7 @@ public class MessageTest {
         assertNoZeroLengthGroupTag(message);
         assertEquals("wrong message length", 0, message.calculateLength());
 
-        assertEquals("wrong total", 0, message.calculateTotal());
+        assertEquals("wrong checksum", 0, message.calculateChecksum());
     }
 
     @Test

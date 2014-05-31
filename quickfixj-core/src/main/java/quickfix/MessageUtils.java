@@ -290,4 +290,34 @@ public class MessageUtils {
         }
         return applVerID;
     }
+
+    /**
+     * Calculates the checksum for the given data.
+     *
+     * @param data the data to calculate the checksum on
+     * @param isEntireMessage specifies whether the data is an entire message;
+     *        if true, and it ends with a checksum field, that checksum
+     *        field is excluded from the current checksum calculation
+     * @return the calculated checksum
+     */
+    public static int checksum(String data, boolean isEntireMessage) {
+        int sum = 0;
+        int end = isEntireMessage ? data.lastIndexOf("\00110=") : -1;
+        int len = end > -1 ? end + 1 : data.length();
+        for (int i = 0; i < len; i++) {
+            sum += data.charAt(i);
+        }
+        return sum & 0xFF; // better than sum % 256 since it avoids overflow issues
+    }
+
+    /**
+     * Calculates the checksum for the given message
+     * (excluding existing checksum field, if one exists).
+     *
+     * @param message the message to calculate the checksum on
+     * @return the calculated checksum
+     */
+    public static int checksum(String message) {
+        return checksum(message, true);
+    }
 }

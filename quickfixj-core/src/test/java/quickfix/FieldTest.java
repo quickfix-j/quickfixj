@@ -52,15 +52,15 @@ public class FieldTest extends TestCase {
         Field<String> object = new Field<String>(12, "VALUE");
         object.setObject("VALUE");
         assertEquals("12=VALUE", object.toString());
-        assertEquals(542, object.getTotal());
+        assertEquals(30, object.getChecksum());
         assertEquals(9, object.getLength());
         object.setObject("VALUF");
         assertEquals("12=VALUF", object.toString());
-        assertEquals(543, object.getTotal());
+        assertEquals(31, object.getChecksum());
         assertEquals(9, object.getLength());
         object.setTag(13);
         assertEquals("13=VALUF", object.toString());
-        assertEquals(544, object.getTotal());
+        assertEquals(32, object.getChecksum());
         assertEquals(9, object.getLength());
     }
 
