@@ -576,14 +576,12 @@ public abstract class FieldMap implements Serializable {
 
     int calculateLength() {
         int result = 0;
-        int length = 0;
         for (final Field<?> field : fields.values()) {
             if (field.getField() == BeginString.FIELD || field.getField() == BodyLength.FIELD
                     || field.getField() == CheckSum.FIELD || isGroupField(field.getField())) {
                 continue;
             }
-            length = field.getLength();
-            result += length;
+            result += field.getLength();
         }
 
         final Iterator<Map.Entry<Integer, List<Group>>> iterator = groups.entrySet().iterator();
@@ -593,17 +591,14 @@ public abstract class FieldMap implements Serializable {
             if (!groupList.isEmpty()) {
                 final IntField groupField = new IntField((entry.getKey()).intValue());
                 groupField.setValue(groupList.size());
-                length = groupField.getLength();
-                result += length;
+                result += groupField.getLength();
                 for (int i = 0; i < groupList.size(); i++) {
                     final Group group = groupList.get(i);
-                    length = group.calculateLength();
-                    result += length;
+                    result += group.calculateLength();
                 }
             }
         }
         return result;
-
     }
 
     int calculateChecksum() {

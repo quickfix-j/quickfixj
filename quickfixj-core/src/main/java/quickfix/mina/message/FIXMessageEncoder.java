@@ -71,12 +71,15 @@ public class FIXMessageEncoder implements MessageEncoder<Object> {
             }
         }
 
-        IoBuffer buffer = IoBuffer.allocate(fixMessageString.length());
+        byte[] bytes;
         try {
-            buffer.put(fixMessageString.getBytes(charsetEncoding));
+            bytes = fixMessageString.getBytes(charsetEncoding);
         } catch (UnsupportedEncodingException e) {
             throw new ProtocolCodecException(e);
         }
+
+        IoBuffer buffer = IoBuffer.allocate(bytes.length);
+        buffer.put(bytes);
         buffer.flip();
         out.write(buffer);
     }

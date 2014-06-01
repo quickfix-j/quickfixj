@@ -19,10 +19,12 @@
 
 package quickfix;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Date;
 
 import junit.framework.TestCase;
+import org.quickfixj.CharsetSupport;
 import quickfix.field.RawData;
 import quickfix.field.Side;
 
@@ -48,20 +50,38 @@ public class FieldTest extends TestCase {
         assertEquals(side1, side2);
     }
 
-    public void testFieldCalculations() {
-        Field<String> object = new Field<String>(12, "VALUE");
-        object.setObject("VALUE");
-        assertEquals("12=VALUE", object.toString());
-        assertEquals(30, object.getChecksum());
-        assertEquals(9, object.getLength());
-        object.setObject("VALUF");
-        assertEquals("12=VALUF", object.toString());
-        assertEquals(31, object.getChecksum());
-        assertEquals(9, object.getLength());
-        object.setTag(13);
-        assertEquals("13=VALUF", object.toString());
-        assertEquals(32, object.getChecksum());
-        assertEquals(9, object.getLength());
+    private void testFieldCalcuations(String value, int checksum, int length) {
+        Field<String> field = new Field<String>(12, value);
+        field.setObject(value);
+        assertEquals("12=" + value, field.toString());
+        assertEquals(checksum, field.getChecksum());
+        assertEquals(length, field.getLength());
+
+        value = value.substring(0, value.length() - 1) + (char)(value.charAt(value.length() - 1) + 1);
+        checksum = (checksum + 1) & 0xFF;
+        field.setObject(value);
+        assertEquals("12=" + value, field.toString());
+        assertEquals(checksum, field.getChecksum());
+        assertEquals(length, field.getLength());
+
+        field.setTag(13);
+        checksum = (checksum + 1) & 0xFF;
+        assertEquals("13=" + value, field.toString());
+        assertEquals(checksum, field.getChecksum());
+        assertEquals(length, field.getLength());
+    }
+
+    public void testFieldCalculationsWithDefaultCharset() {
+        testFieldCalcuations("VALUE", 30, 9);
+    }
+
+    public void testFieldCalculationsWithUTF8Charset() throws UnsupportedEncodingException {
+        CharsetSupport.setCharset("UTF-8");
+        try {
+            testFieldCalcuations("\u6D4B\u9A8C\u6570\u636E", 50, 16);
+        } finally {
+            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+        }
     }
 
     public void testDateField() {

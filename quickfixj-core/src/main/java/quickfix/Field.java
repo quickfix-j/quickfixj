@@ -19,7 +19,10 @@
 
 package quickfix;
 
+import org.quickfixj.CharsetSupport;
+
 import java.io.Serializable;
+import java.nio.charset.Charset;
 
 /**
  * Base class for FIX message fields. This class should be
@@ -104,15 +107,27 @@ public /*abstract*/ class Field<T> implements Serializable{
     public int hashCode() {
         return object.hashCode();
     }
-    
+
+    /**
+     * Returns the length of this field's FIX-encoded bytes (tag=value),
+     * including the trailing SOH byte.
+     *
+     * @return the length of this field's encoded bytes
+     */
     /*package*/ int getLength() {
         calculate();
-        return data.length()+1;
+        return MessageUtils.length(CharsetSupport.getCharsetInstance(), data) + 1;
     }
-    
+
+    /**
+     * Returns the checksum of this field's FIX-encoded bytes (tag=value),
+     * including the trailing SOH byte.
+     *
+     * @return the checksum of this field's encoded bytes
+     */
     /*package*/ int getChecksum() {
         calculate();
-        return (MessageUtils.checksum(data, false) + 1) & 0xFF; // include trailing SOH byte
+        return (MessageUtils.checksum(CharsetSupport.getCharsetInstance(), data, false) + 1) & 0xFF;
     }
     
     private void calculate() {

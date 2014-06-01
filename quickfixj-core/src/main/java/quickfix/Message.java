@@ -31,6 +31,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.quickfixj.CharsetSupport;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -803,6 +804,18 @@ public class Message extends FieldMap {
             } catch (final FieldNotFound e1) {
                 throw new InvalidMessage("Tag " + e1.field + " not found in " + messageData);
             }
+
+            // a workaround for global multibyte charsets, since our data is a string -
+            // change the encoded bytes field length to the decoded chars field length
+            if (!CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance())) {
+                while (sohOffset > -1 && messageData.substring(equalsOffset + 1, sohOffset).getBytes(CharsetSupport.getCharsetInstance()).length < fieldLength) {
+                    sohOffset = messageData.indexOf('\001', sohOffset + 1);
+                }
+                if (sohOffset > -1) {
+                    fieldLength = sohOffset - equalsOffset - 1;
+                }
+            }
+
             sohOffset = equalsOffset + 1 + fieldLength;
         }
 

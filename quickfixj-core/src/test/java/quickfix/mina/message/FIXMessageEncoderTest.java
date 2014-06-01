@@ -35,6 +35,12 @@ import quickfix.fix40.Logon;
 import quickfix.fix44.News;
 
 public class FIXMessageEncoderTest extends TestCase {
+
+    public void tearDown() throws UnsupportedEncodingException {
+        // reset charset after every test
+        CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+    }
+
     public void testEncoding() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         Message message = new Logon();
@@ -46,23 +52,39 @@ public class FIXMessageEncoderTest extends TestCase {
     }
 
     public void testWesternEuropeanEncoding() throws Exception {
-            // Default encoding, should work
-            doEncodingTest();
+        String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
+
+        // Default encoding, should work
+        doEncodingTest(headline);
             
-            try {
-                // This will break because of European characters
-                CharsetSupport.setCharset("US-ASCII");
-                doEncodingTest();
-            } catch (ComparisonFailure e) {
-                // expected
-            } finally {
-                CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
-            }
+        try {
+            // This will break because of European characters
+            CharsetSupport.setCharset("US-ASCII");
+            doEncodingTest(headline);
+            fail("wrong charset should fail");
+        } catch (ComparisonFailure e) {
+            // expected
+        }
     }
 
-    private void doEncodingTest() throws ProtocolCodecException, UnsupportedEncodingException {
+    public void testChineseEncoding() throws Exception {
+        String headline = "\u6D4B\u9A8C\u6570\u636E";
+
+        try {
+            // This will break because of Chinese characters
+            doEncodingTest(headline);
+            fail("wrong charset should fail");
+        } catch (ComparisonFailure e) {
+            // expected
+        }
+
+        // This should work
+        CharsetSupport.setCharset("UTF-8");
+        doEncodingTest(headline);
+    }
+
+    private void doEncodingTest(String headline) throws ProtocolCodecException, UnsupportedEncodingException {
         // äbcfödçé
-        String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
         News news = new News();
         news.set(new Headline(headline));
         FIXMessageEncoder encoder = new FIXMessageEncoder();
@@ -84,11 +106,19 @@ public class FIXMessageEncoderTest extends TestCase {
         }
     }
 
-    public void testEncodingString() throws Exception {
+    public void testEncodingStringEnglish() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         ProtocolEncoderOutputForTest protocolEncoderOutputForTest = new ProtocolEncoderOutputForTest();
         encoder.encode(null, "abcd", protocolEncoderOutputForTest);
         assertEquals(4, protocolEncoderOutputForTest.buffer.limit());
+    }
+
+    public void testEncodingStringChinese() throws Exception {
+        CharsetSupport.setCharset("UTF-8");
+        FIXMessageEncoder encoder = new FIXMessageEncoder();
+        ProtocolEncoderOutputForTest protocolEncoderOutputForTest = new ProtocolEncoderOutputForTest();
+        encoder.encode(null, "\u6D4B\u9A8C\u6570\u636E", protocolEncoderOutputForTest);
+        assertEquals(12, protocolEncoderOutputForTest.buffer.limit());
     }
 
 }

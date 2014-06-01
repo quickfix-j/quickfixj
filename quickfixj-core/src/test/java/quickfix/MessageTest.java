@@ -33,6 +33,7 @@ import java.util.TimeZone;
 
 import org.junit.Test;
 
+import org.quickfixj.CharsetSupport;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
 import quickfix.field.ApplVerID;
@@ -212,17 +213,43 @@ public class MessageTest {
 
     @Test
     public void testEmbeddedMessage() throws Exception {
-        final NewOrderSingle order = createNewOrderSingle();
 
         final ExecutionReport report = new ExecutionReport(new OrderID("ORDER"),
                 new ExecID("EXEC"), new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.FILLED),
                 new Side(Side.BUY), new LeavesQty(100), new CumQty(100), new AvgPx(50));
 
-        report.set(new EncodedTextLen(order.toString().length()));
-        report.set(new EncodedText(order.toString()));
+        final NewOrderSingle order = createNewOrderSingle();
+        String text = order.toString();
+        report.set(new EncodedTextLen(text.length()));
+        report.set(new EncodedText(text));
 
         final Message msg = new Message(report.toString(), DataDictionaryTest.getDictionary());
-        assertEquals("embedded order", order.toString(), msg.getString(EncodedText.FIELD));
+        assertEquals("embedded order", text, msg.getString(EncodedText.FIELD));
+    }
+
+    private void doTestMessageWithEncodedField(String charset, String text) throws Exception {
+        CharsetSupport.setCharset(charset);
+        try {
+            NewOrderSingle order = createNewOrderSingle();
+            order.set(new EncodedTextLen(MessageUtils.length(CharsetSupport.getCharsetInstance(), text)));
+            order.set(new EncodedText(text));
+            final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary());
+            assertEquals(charset + " encoded field", text, msg.getString(EncodedText.FIELD));
+        } finally {
+            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+        }
+    }
+
+    @Test
+    public void testMessageWithEncodedField() throws Exception {
+        String text = "\u6D4B\u9A8C\001\u6570\u636E"; // Chinese with SOH in the middle
+
+        doTestMessageWithEncodedField("UTF-8", text);
+        doTestMessageWithEncodedField("EUC-JP", text);
+        doTestMessageWithEncodedField("ISO-2022-JP", text);
+        doTestMessageWithEncodedField("Shift_JIS", text);
+        doTestMessageWithEncodedField("GBK", text);
+        //doTestMessageWithEncodedField("UTF-16", text); // double-byte charset not supported yet
     }
 
     @Test
