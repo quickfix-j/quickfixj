@@ -8,6 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-fix42</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J Message classes for FIX 4.2</name>
 	<description>QuickFIX/J Message classes for FIX 4.2</description>

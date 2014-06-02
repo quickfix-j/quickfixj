@@ -8,6 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-all</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J All runtime modules</name>
 	<description>QuickFIX/J All runtime modules</description>
@@ -62,6 +63,26 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+					<instructions>
+						<!-- transitive dependencies are not being set as optional,
+						     see https://issues.apache.org/jira/browse/FELIX-3877 -->
+						<Import-Package>
+							com.sleepycat*;resolution:=optional,
+							org.apache.maven*;resolution:=optional,
+							org.codehaus.plexus*;resolution:=optional,
+							org.logicalcobwebs.proxool*;resolution:=optional,
+							org.dom4j*;resolution:=optional,
+							*
+						</Import-Package>
+						<Export-Package>quickfix.*,org.quickfixj.*</Export-Package>
+						<Private-Package>quickfix.*,org.quickfixj.*</Private-Package>
+					</instructions>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

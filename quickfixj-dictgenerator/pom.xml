@@ -8,6 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-dictgenerator</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J Dictionary Generator</name>
 	<description>

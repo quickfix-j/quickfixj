@@ -8,6 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-all</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J Message classes for all FIX specifications</name>
 	<description>QuickFIX/J Message classes for all FIX specifications</description>
@@ -93,6 +94,17 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+					<instructions>
+						<Import-Package>quickfix,quickfix.field,*</Import-Package>
+						<Export-Package>quickfix.field,quickfix.fix*</Export-Package>
+						<Private-Package>quickfix.field,quickfix.fix*</Private-Package>
+					</instructions>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -41,6 +41,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.6</jdkLevel>
+		<mainClass/>
 	</properties>
 
 	<build>
@@ -104,8 +105,9 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
+
 		<plugins>
-			<!-- enable bundle packaging (used by apache mina) -->
+			<!-- enable bundle packaging -->
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>

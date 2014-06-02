@@ -7,6 +7,7 @@
 	</parent>
 
 	<artifactId>quickfixj-core</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J Core engine</name>
 	<description>The core QuickFIX/J engine</description>
@@ -253,6 +254,17 @@
 						<exclude>quickfix/field/*</exclude>
 						<exclude>quickfix/fix*/**</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+					<instructions>
+						<Export-Package>quickfix,quickfix.field.*,quickfix.mina.*,org.quickfixj.*</Export-Package>
+						<Import-Package>quickfix,quickfix.field,*</Import-Package>
+						<Private-Package/>
+					</instructions>
 				</configuration>
 			</plugin>
 			<plugin>

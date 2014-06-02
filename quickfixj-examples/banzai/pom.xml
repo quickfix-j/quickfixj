@@ -8,6 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-examples-banzai</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J Examples - Banzai</name>
 	<description>QuickFIX/J example application - Banzai</description>

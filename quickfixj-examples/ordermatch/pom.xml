@@ -8,6 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-examples-ordermatch</artifactId>
+	<packaging>bundle</packaging>
 
 	<name>QuickFIX/J Examples - Order Match</name>
 	<description>QuickFIX/J example application - Order Match</description>
