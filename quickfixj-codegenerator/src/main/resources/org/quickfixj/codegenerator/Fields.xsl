@@ -19,7 +19,7 @@
 -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
- <xsl:output  method="text" encoding="UTF-8"/>
+ <xsl:output method="text" encoding="UTF-8"/>
  <xsl:param name="fieldName"/>
  <xsl:param name="fieldPackage"/>
  <xsl:param name="decimalType">double</xsl:param>
@@ -34,7 +34,7 @@
  <xsl:template match="fix/trailer">
  </xsl:template>
 
- <xsl:template match="fix">
+<xsl:template match="fix">/* Generated Java Source File */
 /*******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved. 
  * 
@@ -53,42 +53,38 @@
  * Contact ask@quickfixengine.org if any conditions of this licensing 
  * are not clear to you.
  ******************************************************************************/
-	<xsl:apply-templates/>
- </xsl:template>
+<xsl:apply-templates/>
+</xsl:template>
 
- <xsl:template match="fix/fields/field[@name=$fieldName]">
+<xsl:template match="fix/fields/field[@name=$fieldName]">
 package <xsl:value-of select="$fieldPackage"/>;
+
 import quickfix.<xsl:call-template name="get-field-type"/>Field;
 <xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY' or @type='UTCDATE' or @type='UTCDATEONLY'">
 import java.util.Date;</xsl:if>
 
-public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get-field-type"/>Field 
-{ 
-  static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get-field-type"/>Field {
 
-  public static final int FIELD = <xsl:value-of select="@number"/>; 
-  <xsl:call-template name="values"/>
-  public <xsl:value-of select="@name"/>() 
-  { 
-    super(<xsl:value-of select="@number"/>);
-  } 
-   
-  public <xsl:value-of select="@name"/>(<xsl:call-template name="get-type"/> data) 
-  { 
-     super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'">, true</xsl:if>);
-  } 
-  
-  <xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable>
-  
-  <xsl:if test="$dataType = 'java.math.BigDecimal'">
-  public <xsl:value-of select="@name"/>(double data) 
-  { 
-     super(<xsl:value-of select="@number"/>, new <xsl:value-of select="$dataType"/>(data));
-  } 
-  </xsl:if>
+	static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+
+	public static final int FIELD = <xsl:value-of select="@number"/>;
+	<xsl:call-template name="values"/>
+	public <xsl:value-of select="@name"/>() {
+		super(<xsl:value-of select="@number"/>);
+	}
+
+	public <xsl:value-of select="@name"/>(<xsl:call-template name="get-type"/> data) {
+		super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'">, true</xsl:if>);
+	}
+	<xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable>
+
+	<xsl:if test="$dataType = 'java.math.BigDecimal'">
+	public <xsl:value-of select="@name"/>(double data) {
+		super(<xsl:value-of select="@number"/>, new <xsl:value-of select="$dataType"/>(data));
+	}
+	</xsl:if>
 }
-
-  </xsl:template>
+</xsl:template>
 
 <xsl:template name="get-type">
  <xsl:variable name="name" select="@name"/>
@@ -154,32 +150,31 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 <xsl:template name="values">
 <xsl:for-each select="value">
 <xsl:choose>
-  <xsl:when test="../@type='STRING'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
-  </xsl:when>
-  <xsl:when test="../@type='MULTIPLESTRINGVALUE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
-  </xsl:when>
-  <xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="@description"/> = <xsl:call-template name="y-or-n-to-bool" />; 
-  </xsl:when>
-  <xsl:when test="../@type='INT'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>; 
-  </xsl:when>
-  <xsl:when test="../@type='NUMINGROUP'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>; 
-  </xsl:when>
-  <xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
-  </xsl:when>
-  <xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>"; 
-  </xsl:when>
-  <xsl:otherwise>public static final char <xsl:value-of select="@description"/> = '<xsl:value-of select="@enum"/>'; 
-  </xsl:otherwise>
+	<xsl:when test="../@type='STRING'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+	</xsl:when>
+	<xsl:when test="../@type='MULTIPLESTRINGVALUE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+	</xsl:when>
+	<xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="@description"/> = <xsl:call-template name="y-or-n-to-bool" />;
+	</xsl:when>
+	<xsl:when test="../@type='INT'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>;
+	</xsl:when>
+	<xsl:when test="../@type='NUMINGROUP'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>;
+	</xsl:when>
+	<xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+	</xsl:when>
+	<xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+	</xsl:when>
+	<xsl:otherwise>public static final char <xsl:value-of select="@description"/> = '<xsl:value-of select="@enum"/>';
+	</xsl:otherwise>
 </xsl:choose>
 </xsl:for-each>
 
 <xsl:if test="@name='SecurityType'">
 <xsl:if test="not(/fix/fields/field[@name='SecurityType']/value[@description='OPTION'])"> 
-public static final String OPTION = "OPT";</xsl:if>
+	public static final String OPTION = "OPT";</xsl:if>
 <xsl:if test="not(/fix/fields/field[@name='SecurityType']/value[@description='FUTURE'])">
-public static final String FUTURE = "FUT";</xsl:if>
+	public static final String FUTURE = "FUT";</xsl:if>
 </xsl:if>
-
 </xsl:template>
 
 <xsl:template name="version">fix<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/></xsl:template>
