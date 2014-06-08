@@ -57,31 +57,22 @@
 					</executions>
 				</plugin>
 				<plugin>
-					<artifactId>maven-jar-plugin</artifactId>
-					<executions>
-						<execution>
-							<id>package-${fix.name}</id>
-							<phase>package</phase>
-							<goals>
-								<goal>jar</goal>
-							</goals>
-							<configuration>
-								<includes>
-									<include>quickfix/field/**</include>
-									<include>quickfix/${fix.name}/**</include>
-									<include>${fix.spec}</include>
-								</includes>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
 					<groupId>org.apache.felix</groupId>
 					<artifactId>maven-bundle-plugin</artifactId>
 					<configuration>
 						<instructions>
 							<Import-Package>quickfix,quickfix.field,*</Import-Package>
 						</instructions>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<configuration>
+						<includes>
+							<include>quickfix/field/**</include>
+							<include>quickfix/${fix.name}/**</include>
+							<include>${fix.spec}</include>
+						</includes>
 					</configuration>
 				</plugin>
 			</plugins>
