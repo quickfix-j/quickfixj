@@ -93,14 +93,14 @@ public class CancelReplacePanel extends JPanel {
     }
 
     public void setOrder(Order order) {
-        if(order == null)
+        if (order == null)
             return;
         this.order = order;
         quantityTextField.setText
         (Integer.toString(order.getOpen()));
 
         Double limit = order.getLimit();
-        if(limit != null)
+        if (limit != null)
             limitPriceTextField.setText(order.getLimit().toString());
         setEnabled(order.getOpen() > 0);
     }

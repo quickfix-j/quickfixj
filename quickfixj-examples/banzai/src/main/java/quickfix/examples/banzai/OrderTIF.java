@@ -55,7 +55,7 @@ public class OrderTIF {
     public static OrderTIF parse(String type)
     throws IllegalArgumentException {
         OrderTIF result = known.get(type);
-        if(result == null) {
+        if (result == null) {
             throw new IllegalArgumentException
             ("OrderTIF:  " + type + " is unknown.");
         }

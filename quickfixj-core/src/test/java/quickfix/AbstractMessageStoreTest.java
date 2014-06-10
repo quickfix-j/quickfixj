@@ -135,7 +135,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
             return;
         }
 
-        if (store instanceof MemoryStore == false) {
+        if (!(store instanceof MemoryStore)) {
             final MessageStore failoverStore = getMessageStoreFactory().create(sessionID);
             try {
                 final MessageStore primaryStore = store;

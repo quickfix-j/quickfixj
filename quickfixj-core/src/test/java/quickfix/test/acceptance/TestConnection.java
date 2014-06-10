@@ -55,8 +55,8 @@ import quickfix.test.util.ReflectionUtil;
 
 public class TestConnection {
     private static HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
-    private Logger log = LoggerFactory.getLogger(getClass());
-    private HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -70,9 +70,8 @@ public class TestConnection {
     }
 
     public void tearDown() {
-        Iterator<TestIoHandler> handlerItr = ioHandlers.values().iterator();
-        while (handlerItr.hasNext()) {
-            CloseFuture closeFuture = handlerItr.next().getSession().close(true);
+        for (TestIoHandler testIoHandler : ioHandlers.values()) {
+            CloseFuture closeFuture = testIoHandler.getSession().close(true);
             closeFuture.awaitUninterruptibly();
         }
         ioHandlers.clear();
@@ -89,21 +88,19 @@ public class TestConnection {
     public void connect(int clientId, int transportType, int port)
             throws UnknownHostException, IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
-        if ( null != connector ) {
+        if (connector != null) {
             log.info("Disposing connector for clientId " + clientId );
             connector.dispose();
-            connector = null;
         }
-        if (connector == null) {
-            if (transportType == ProtocolFactory.SOCKET) {
-                connector = new NioSocketConnector();
-            } else if (transportType == ProtocolFactory.VM_PIPE) {
-                connector = new VmPipeConnector();
-            } else {
-                throw new RuntimeException("Unsupported transport type: " + transportType);
-            }
-            connectors.put(Integer.toString(clientId), connector);
+
+        if (transportType == ProtocolFactory.SOCKET) {
+            connector = new NioSocketConnector();
+        } else if (transportType == ProtocolFactory.VM_PIPE) {
+            connector = new VmPipeConnector();
+        } else {
+            throw new RuntimeException("Unsupported transport type: " + transportType);
         }
+        connectors.put(Integer.toString(clientId), connector);
 
         SocketAddress address;
         if (transportType == ProtocolFactory.SOCKET) {
@@ -116,10 +113,10 @@ public class TestConnection {
 
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {
-        	ioHandlers.put(Integer.valueOf(clientId), testIoHandler);
+        	ioHandlers.put(clientId, testIoHandler);
         	connector.setHandler(testIoHandler);
         	ConnectFuture future = connector.connect(address);
-        	future.awaitUninterruptibly( 5000L );
+        	future.awaitUninterruptibly(5000L);
         	Assert.assertTrue("connection to server failed", future.isConnected());
     	}
     }
@@ -158,9 +155,9 @@ public class TestConnection {
                 if (!await) {
                     log.error("sessionCreatedLatch timed out. Dumping threads...");
                     ReflectionUtil.dumpStackTraces();
-                    long[] threadIds = {};
+
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-                    threadIds = bean.findDeadlockedThreads();
+                    long[] threadIds = bean.findDeadlockedThreads();
 
                     final List<String> deadlockedThreads = new ArrayList<String>();
                     if (threadIds != null) {

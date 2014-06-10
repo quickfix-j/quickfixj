@@ -56,7 +56,7 @@ public class Dictionary {
 
     public String getString(String key) throws ConfigError, FieldConvertError {
         try {
-            return (String) data.get(key).toString();
+            return data.get(key).toString();
         } catch (NullPointerException e) {
             throw new ConfigError("No value for key: "+key);
         }
@@ -69,7 +69,7 @@ public class Dictionary {
 
     public long getLong(String key) throws ConfigError, FieldConvertError {
         try {
-            return ((Long) data.get(key)).longValue();
+            return (Long) data.get(key);
         } catch (ClassCastException e) {
             throw new FieldConvertError("Incorrect data type");
         } catch (NullPointerException e) {
@@ -79,7 +79,7 @@ public class Dictionary {
 
     public double getDouble(String key) throws ConfigError, FieldConvertError {
         try {
-            return ((Double) data.get(key)).doubleValue();
+            return (Double) data.get(key);
         } catch (ClassCastException e) {
             throw new FieldConvertError("Incorrect data type");
         } catch (NullPointerException e) {
@@ -89,7 +89,7 @@ public class Dictionary {
 
     public boolean getBool(String key) throws ConfigError, FieldConvertError {
         try {
-            return ((Boolean) data.get(key)).booleanValue();
+            return (Boolean) data.get(key);
         } catch (ClassCastException e) {
             throw new FieldConvertError("Incorrect data type");
         } catch (NullPointerException e) {
@@ -113,18 +113,18 @@ public class Dictionary {
     }
 
     public void setLong(String key, long value) {
-        data.put(key, Long.valueOf(value));
+        data.put(key, value);
     }
 
     public void setDouble(String key, double value) {
-        data.put(key, Double.valueOf(value));
+        data.put(key, value);
     }
 
     public void setBool(String key, boolean value) {
-        data.put(key, Boolean.valueOf(value));
+        data.put(key, value);
     }
 
-    public void setDay( String key, int value ) {
+    public void setDay(String key, int value) {
         try {
             data.put(key, DayConverter.toString(value));
         } catch (ConfigError e) {
@@ -133,7 +133,7 @@ public class Dictionary {
         }
     }
     
-    public void setDay( String key, String dayName ) {
+    public void setDay(String key, String dayName) {
         data.put(key, dayName);
     }
 

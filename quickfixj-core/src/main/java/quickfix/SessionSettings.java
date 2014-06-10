@@ -147,7 +147,7 @@ public class SessionSettings {
      * @return the string value for the setting
      *
      * @throws ConfigError
-     *             configurion error, probably a missing setting.
+     *             configuration error, probably a missing setting.
      * @throws FieldConvertError
      *             error during field type conversion.
      */
@@ -232,7 +232,7 @@ public class SessionSettings {
      * @return the long integer value for the setting
      *
      * @throws ConfigError
-     *             configurion error, probably a missing setting.
+     *             configuration error, probably a missing setting.
      * @throws FieldConvertError
      *             error during field type conversion.
      */
@@ -275,7 +275,7 @@ public class SessionSettings {
      * @return the double number value for the setting
      *
      * @throws ConfigError
-     *             configurion error, probably a missing setting.
+     *             configuration error, probably a missing setting.
      * @throws FieldConvertError
      *             error during field type conversion.
      */
@@ -309,7 +309,7 @@ public class SessionSettings {
      * @return the boolean value for the setting
      *
      * @throws ConfigError
-     *             configurion error, probably a missing setting.
+     *             configuration error, probably a missing setting.
      * @throws FieldConvertError
      *             error during field type conversion.
      */
@@ -407,7 +407,7 @@ public class SessionSettings {
                     }
                 } else if (token.getType() == Tokenizer.ID_TOKEN) {
                     final Tokenizer.Token valueToken = tokenizer.getToken(reader);
-                    if (currentSection != null && token != null) {
+                    if (currentSection != null) {
                         final String value = interpolate(valueToken.getValue());
                         currentSection.put(token.getValue(), value);
                     }
@@ -433,8 +433,6 @@ public class SessionSettings {
                     currentSection.getProperty(TARGETLOCID),
                     currentSection.getProperty(SESSION_QUALIFIER));
             sections.put(sessionId, currentSection);
-            currentSectionId = null;
-            currentSection = null;
         }
     }
 
@@ -715,9 +713,8 @@ public class SessionSettings {
 
     private void writeSection(String sectionName, PrintWriter writer, Properties properties) {
         writer.println(sectionName);
-        final Iterator<Object> p = properties.keySet().iterator();
-        while (p.hasNext()) {
-            final String key = (String) p.next();
+        for (Object o : properties.keySet()) {
+            final String key = (String) o;
             writer.print(key);
             writer.print("=");
             writer.println(properties.getProperty(key));

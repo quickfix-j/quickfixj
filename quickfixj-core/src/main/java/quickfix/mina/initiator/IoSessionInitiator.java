@@ -58,12 +58,12 @@ public class IoSessionInitiator {
     protected final static Logger log = LoggerFactory.getLogger("display."+IoSessionInitiator.class.getName());
 
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,  SocketAddress localAddress, 
-            int reconnectIntervalInSeconds[], ScheduledExecutorService executor,
+            int[] reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
             String keyStorePassword, String[] enableProtocole, String[] cipherSuites) throws ConfigError {
         this.executor = executor;
-        final long reconnectIntervalInMillis[] = new long[reconnectIntervalInSeconds.length];
+        final long[] reconnectIntervalInMillis = new long[reconnectIntervalInSeconds.length];
         for (int ii = 0; ii != reconnectIntervalInSeconds.length; ++ii) {
             reconnectIntervalInMillis[ii] = reconnectIntervalInSeconds[ii] * 1000L;
         }        
@@ -129,8 +129,10 @@ public class IoSessionInitiator {
                 throws GeneralSecurityException {
             SslFilter sslFilter = new SslFilter(SSLContextFactory.getInstance(keyStoreName,
                     keyStorePassword.toCharArray()));
-            if(enableProtocole != null)sslFilter.setEnabledProtocols(enableProtocole);
-            if(cipherSuites != null) sslFilter.setEnabledCipherSuites(cipherSuites);
+            if (enableProtocole != null)
+                sslFilter.setEnabledProtocols(enableProtocole);
+            if (cipherSuites != null)
+                sslFilter.setEnabledCipherSuites(cipherSuites);
             sslFilter.setUseClientMode(true);
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
         }

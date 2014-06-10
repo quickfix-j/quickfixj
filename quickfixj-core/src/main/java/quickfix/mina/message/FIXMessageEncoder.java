@@ -62,13 +62,11 @@ public class FIXMessageEncoder implements MessageEncoder<Object> {
         String fixMessageString;
         if (message instanceof String) {
             fixMessageString = (String) message;
+        } else if (message instanceof Message) {
+            fixMessageString = message.toString();
         } else {
-            try {
-                fixMessageString = ((Message) message).toString();
-            } catch (ClassCastException e) {
-                throw new ProtocolCodecException("Invalid FIX message object type: "
-                        + message.getClass(), e);
-            }
+            throw new ProtocolCodecException("Invalid FIX message object type: "
+                    + message.getClass());
         }
 
         byte[] bytes;

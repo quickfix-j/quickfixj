@@ -37,9 +37,9 @@ class CompositeLog implements Log {
     }
 
     public void clear() {
-        for (int i = 0; i < logs.length; i++) {
+        for (Log log : logs) {
             try {
-                logs[i].clear();
+                log.clear();
             } catch (Throwable e) {
                 handleError(e);
             }
@@ -54,9 +54,9 @@ class CompositeLog implements Log {
     }
 
     public void onIncoming(String message) {
-        for (int i = 0; i < logs.length; i++) {
+        for (Log log : logs) {
             try {
-                logs[i].onIncoming(message);
+                log.onIncoming(message);
             } catch (Throwable e) {
                 handleError(e);
             }
@@ -64,9 +64,9 @@ class CompositeLog implements Log {
     }
 
     public void onOutgoing(String message) {
-        for (int i = 0; i < logs.length; i++) {
+        for (Log log : logs) {
             try {
-                logs[i].onOutgoing(message);
+                log.onOutgoing(message);
             } catch (Throwable e) {
                 defaultLog.error(e.getMessage() + ", continuing", e);
             }
@@ -74,9 +74,9 @@ class CompositeLog implements Log {
     }
 
     public void onEvent(String text) {
-        for (int i = 0; i < logs.length; i++) {
+        for (Log log : logs) {
             try {
-                logs[i].onEvent(text);
+                log.onEvent(text);
             } catch (Throwable e) {
                 handleError(e);
             }
@@ -84,9 +84,9 @@ class CompositeLog implements Log {
     }
 
     public void onErrorEvent(String text) {
-        for (int i = 0; i < logs.length; i++) {
+        for (Log log : logs) {
             try {
-                logs[i].onErrorEvent(text);
+                log.onErrorEvent(text);
             } catch (Throwable e) {
                 handleError(e);
             }

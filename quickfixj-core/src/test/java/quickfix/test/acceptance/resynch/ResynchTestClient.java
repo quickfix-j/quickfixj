@@ -59,11 +59,6 @@ public class ResynchTestClient extends MessageCracker implements Application {
 
     private boolean unsynchMode = false;
     private boolean forceResynch = false;
-    
-    public void crack(Message message, SessionID sessionID) throws UnsupportedMessageType,
-            FieldNotFound, IncorrectTagValue {
-        super.crack(message, sessionID);
-    }
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {

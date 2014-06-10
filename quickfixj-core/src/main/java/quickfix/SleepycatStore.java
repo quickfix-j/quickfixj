@@ -211,7 +211,7 @@ public class SleepycatStore implements MessageStore {
             DatabaseEntry sequenceKey = new DatabaseEntry();
             EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
             // Must start at start-1 because db will look for next record larger
-            sequenceBinding.objectToEntry(Integer.valueOf(startSequence - 1), sequenceKey);
+            sequenceBinding.objectToEntry(startSequence - 1, sequenceKey);
 
             cursor = messageDatabase.openCursor(null, null);
             DatabaseEntry messageBytes = new DatabaseEntry();
@@ -221,10 +221,9 @@ public class SleepycatStore implements MessageStore {
             if (retVal == OperationStatus.NOTFOUND) {
                 log.debug(sequenceKey + "/" + messageBytes + " not matched in database "
                         + messageDatabase.getDatabaseName());
-                return;
             } else {
                 Integer sequenceNumber = (Integer) sequenceBinding.entryToObject(sequenceKey);
-                while (sequenceNumber.intValue() <= endSequence) {
+                while (sequenceNumber <= endSequence) {
                     messages.add(new String(messageBytes.getData(), charsetEncoding));
                     if (log.isDebugEnabled()) {
                         log.debug("Found record " + sequenceNumber + "=>"
@@ -298,7 +297,7 @@ public class SleepycatStore implements MessageStore {
         try {
             DatabaseEntry sequenceKey = new DatabaseEntry();
             EntryBinding sequenceBinding = TupleBinding.getPrimitiveBinding(Integer.class);
-            sequenceBinding.objectToEntry(Integer.valueOf(sequence), sequenceKey);
+            sequenceBinding.objectToEntry(sequence, sequenceKey);
             DatabaseEntry messageBytes = new DatabaseEntry(message.getBytes(CharsetSupport.getCharset()));
             messageDatabase.put(null, sequenceKey, messageBytes);
         } catch (Exception e) {

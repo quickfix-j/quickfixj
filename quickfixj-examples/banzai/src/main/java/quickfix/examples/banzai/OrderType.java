@@ -52,7 +52,7 @@ public class OrderType {
 
     public static OrderType parse(String type) throws IllegalArgumentException {
         OrderType result = known.get(type);
-        if(result == null) {
+        if (result == null) {
             throw new IllegalArgumentException
             ("OrderType:  " + type + " is unknown.");
         }

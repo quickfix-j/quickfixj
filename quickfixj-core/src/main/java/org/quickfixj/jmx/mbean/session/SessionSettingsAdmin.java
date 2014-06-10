@@ -62,21 +62,18 @@ public class SessionSettingsAdmin implements DynamicMBean {
 
     public AttributeList getAttributes(String[] attributeNames) {
         AttributeList attributeList = new AttributeList();
-        for (int i = 0; i < attributeNames.length; i++) {
-            attributeList.add(new Attribute(attributeNames[i], getAttribute(attributeNames[i])));
+        for (String attributeName : attributeNames) {
+            attributeList.add(new Attribute(attributeName, getAttribute(attributeName)));
         }
         return attributeList;
     }
 
     public MBeanInfo getMBeanInfo() {
         List<MBeanAttributeInfo> attributeInfos = new ArrayList<MBeanAttributeInfo>();
-        Iterator<Map.Entry<Object, Object>> entries = settings.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<Object, Object> entry = entries.next();
+        for (Map.Entry<Object, Object> entry : settings.entrySet()) {
             String name = (String) entry.getKey();
             attributeInfos.add(new MBeanAttributeInfo(name, "Setting for " + name, entry.getValue().getClass().getName(), true, false,
                     false));
-        
         }
         return new MBeanInfo(SessionSettings.class.getName(), "Session Settings", attributeInfos
                 .toArray(new MBeanAttributeInfo[attributeInfos.size()]), null, null, null);

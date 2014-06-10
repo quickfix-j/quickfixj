@@ -67,10 +67,10 @@ public class NetworkingOptions {
     public static final String IPTOC_LOWDELAY = "IPTOS_LOWDELAY";
     public static final Map<String, Integer> trafficClasses = new HashMap<String, Integer>();
     static {
-        trafficClasses.put(IPTOC_LOWCOST, Integer.valueOf(0x02));
-        trafficClasses.put(IPTOC_RELIABILITY, Integer.valueOf(0x04));
-        trafficClasses.put(IPTOC_THROUGHPUT, Integer.valueOf(0x08));
-        trafficClasses.put(IPTOC_LOWDELAY, Integer.valueOf(0x10));
+        trafficClasses.put(IPTOC_LOWCOST, 0x02);
+        trafficClasses.put(IPTOC_RELIABILITY, 0x04);
+        trafficClasses.put(IPTOC_THROUGHPUT, 0x08);
+        trafficClasses.put(IPTOC_LOWDELAY, 0x10);
     }
 
     public NetworkingOptions(Properties properties) throws FieldConvertError {
@@ -92,16 +92,14 @@ public class NetworkingOptions {
             String trafficClassEnumString = properties.getProperty(SETTING_SOCKET_TRAFFIC_CLASS);
             int trafficClassBits = 0;
             String[] trafficClassEnums = trafficClassEnumString.split("[,|]");
-            for (int i = 0; i < trafficClassEnums.length; i++) {
-                if (trafficClasses.containsKey(trafficClassEnums[i])) {
-                    trafficClassBits |= trafficClasses.get(trafficClassEnums[i])
-                            .intValue();
+            for (String trafficClassEnum : trafficClassEnums) {
+                if (trafficClasses.containsKey(trafficClassEnum)) {
+                    trafficClassBits |= trafficClasses.get(trafficClassEnum);
                 } else {
-                    throw new FieldConvertError("Can't parse traffic class: "
-                            + trafficClassEnums[i]);
+                    throw new FieldConvertError("Can't parse traffic class: " + trafficClassEnum);
                 }
             }
-            trafficClassSetting = Integer.valueOf(trafficClassBits);
+            trafficClassSetting = trafficClassBits;
             log.info("Socket option: " + SETTING_SOCKET_TRAFFIC_CLASS + "= 0x"
                     + Integer.toHexString(trafficClassBits) + " (" + trafficClassEnumString + ")");
         }
@@ -134,29 +132,29 @@ public class NetworkingOptions {
         if (sessionConfig instanceof SocketSessionConfig) {
             SocketSessionConfig socketSessionConfig = (SocketSessionConfig) sessionConfig;
             if (keepAlive != null) {
-                socketSessionConfig.setKeepAlive(keepAlive.booleanValue());
+                socketSessionConfig.setKeepAlive(keepAlive);
             }
             if (oobInline != null) {
-                socketSessionConfig.setOobInline(oobInline.booleanValue());
+                socketSessionConfig.setOobInline(oobInline);
             }
             if (receiveBufferSize != null) {
-                socketSessionConfig.setReceiveBufferSize(receiveBufferSize.intValue());
+                socketSessionConfig.setReceiveBufferSize(receiveBufferSize);
             }
             if (reuseAddress != null) {
-                socketSessionConfig.setReuseAddress(reuseAddress.booleanValue());
+                socketSessionConfig.setReuseAddress(reuseAddress);
             }
             if (sendBufferSize != null) {
-                socketSessionConfig.setSendBufferSize(sendBufferSize.intValue());
+                socketSessionConfig.setSendBufferSize(sendBufferSize);
             }
             if (soLinger != null) {
-                int linger = soLinger.intValue();
+                int linger = soLinger;
                 socketSessionConfig.setSoLinger(linger);
             }
             if (tcpNoDelay != null) {
-                socketSessionConfig.setTcpNoDelay(tcpNoDelay.booleanValue());
+                socketSessionConfig.setTcpNoDelay(tcpNoDelay);
             }
             if (trafficClass != null) {
-                socketSessionConfig.setTrafficClass(trafficClass.intValue());
+                socketSessionConfig.setTrafficClass(trafficClass);
             }
         }
     }

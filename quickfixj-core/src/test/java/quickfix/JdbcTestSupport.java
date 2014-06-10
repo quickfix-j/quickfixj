@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -47,8 +46,7 @@ public class JdbcTestSupport {
 
     public static Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName(HSQL_DRIVER);
-        Connection connection = DriverManager.getConnection(HSQL_CONNECTION_URL, HSQL_USER, "");
-        return connection;
+        return DriverManager.getConnection(HSQL_CONNECTION_URL, HSQL_USER, "");
     }
 
     public static class HypersonicPreprocessor {
@@ -60,7 +58,7 @@ public class JdbcTestSupport {
 
         public String preprocessSQL(String sql) {
             String preprocessedSql = sql;
-            preprocessedSql = sql.replaceAll("USE .*;", "");
+            preprocessedSql = preprocessedSql.replaceAll("USE .*;", "");
             preprocessedSql = preprocessedSql.replaceAll(" UNSIGNED", "");
             preprocessedSql = preprocessedSql.replaceAll("AUTO_INCREMENT", "IDENTITY");
             preprocessedSql = preprocessedSql.replaceAll("TEXT", "VARCHAR(256)");
@@ -111,17 +109,16 @@ public class JdbcTestSupport {
     }
 
     private static String getString(InputStream in) throws IOException {
-        int x = in.available();
-        byte b[] = new byte[x];
+        int n = in.available();
+        byte[] b = new byte[n];
         in.read(b);
         return new String(b);
     }
 
     static void assertNoActiveConnections() throws ProxoolException {
-        String[] aliases = ProxoolFacade.getAliases();
-        for (int i = 0; i < aliases.length; i++) {
-            SnapshotIF snapshot = ProxoolFacade.getSnapshot(aliases[i], true);
-            Assert.assertEquals("unclosed connections: " + aliases[i], 0, snapshot
+        for (String alias : ProxoolFacade.getAliases()) {
+            SnapshotIF snapshot = ProxoolFacade.getSnapshot(alias, true);
+            Assert.assertEquals("unclosed connections: " + alias, 0, snapshot
                     .getActiveConnectionCount());
         }
     }

@@ -28,19 +28,15 @@ import junit.framework.TestCase;
 
 public class SerializationTest extends TestCase {
 
-    private String[] srcDirs = new String[] { 
-            "quickfixj-core/target/generated-sources",
-            "target/generated-sources"
-            };
-    
+    private String[] srcDirs = {
+        "quickfixj-core/target/generated-sources",
+        "target/generated-sources"
+    };
+
     private String srcDir;
 
     public SerializationTest(String name) {
         super(name);
-    }
-
-    protected void setUp() throws Exception {
-        super.setUp();
     }
 
     public void testSerializationWithDataDictionary() throws Exception {
@@ -65,10 +61,9 @@ public class SerializationTest extends TestCase {
     private String findSrcDir() {
         // The srcDir might be the Eclipse and/or Ant srcDir. We'll
         // take the first one we find.
-        for (int i = 0; i < srcDirs.length; i++) {
-            String asrcDir = srcDirs[i];
-            if (new File(asrcDir).exists()) {
-                return asrcDir;
+        for (String dir : srcDirs) {
+            if (new File(dir).exists()) {
+                return dir;
             }
         }
         return null;
@@ -119,14 +114,14 @@ public class SerializationTest extends TestCase {
         } else {
             if (directory.exists()) {
                 File[] files = directory.listFiles(filter);
-                for (int i = 0; i < files.length; i++) {
-                    if (!files[i].isDirectory()) {
-                        assertion.assertSerialization(classNameFromFile(files[i]));
+                for (File file : files) {
+                    if (!file.isDirectory()) {
+                        assertion.assertSerialization(classNameFromFile(file));
                     }
                 }
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].isDirectory()) {
-                        assertAllSerializations(files[i].getPath(), assertion, filter);
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        assertAllSerializations(file.getPath(), assertion, filter);
                     }
                 }
             } else {
@@ -195,7 +190,7 @@ public class SerializationTest extends TestCase {
         private static final int MAX_GROUP_ELTS = 1;
 
         public void assertSerialization(String msgClassName) {
-            if (msgClassName.indexOf(".component.") != -1) {
+            if (msgClassName.contains(".component.")) {
                 return;
             }
             Message sourceMsg = createTestMessage(msgClassName, MAX_GROUP_ELTS);
@@ -241,11 +236,10 @@ public class SerializationTest extends TestCase {
 
         // Setting Groups
         final String ADD_GROUP = "addGroup";
-        Class<?>[] classes = cl.getDeclaredClasses();
-        for (int k = 0; k < classes.length; k++) {
-            if (classes[k].getSuperclass().getName().equals("quickfix.Group")) {
+        for (Class<?> clazz : cl.getDeclaredClasses()) {
+            if (clazz.getSuperclass().getName().equals("quickfix.Group")) {
                 for (int l = 0; l < maxGroupElts; l++) {
-                    Group g = createGroupWithDefaultValues(classes[k]);
+                    Group g = createGroupWithDefaultValues(clazz);
                     Class<?>[] signature = new Class<?>[1];
                     signature[0] = g.getClass().getSuperclass();
                     try {
@@ -272,8 +266,7 @@ public class SerializationTest extends TestCase {
 
     private static Group createGroupWithDefaultValues(Class<?> cl) throws InstantiationException,
             IllegalAccessException {
-        Group res = (Group) createFieldMapWithDefaultValues(cl);
-        return res;
+        return (Group) createFieldMapWithDefaultValues(cl);
     }
 
     private static FieldMap createFieldMapWithDefaultValues(Class<?> cl) throws InstantiationException,
@@ -282,10 +275,9 @@ public class SerializationTest extends TestCase {
 
         final String SET_METHOD = "set";
         final String GET_METHOD = "get";
-        Method[] methods = cl.getMethods();
-        for (int k = 0; k < methods.length; k++) {
-            if (methods[k].getName().equals(GET_METHOD)) {
-                Object f = objectFromClassName(methods[k].getReturnType().getName());
+        for (Method method : cl.getMethods()) {
+            if (method.getName().equals(GET_METHOD)) {
+                Object f = objectFromClassName(method.getReturnType().getName());
                 Class<?>[] signature = new Class<?>[1];
                 signature[0] = f.getClass();
                 try {
@@ -309,19 +301,19 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-	private static final String [] classesBaseDirs = {
-		"quickfixj-core/target/classes",
-		"target/classes",
-		"classes"
-	};
+    private static final String[] classesBaseDirs = {
+        "quickfixj-core/target/classes",
+        "target/classes",
+        "classes"
+    };
 
     private String getBaseDirectory() {
-	for (String p: classesBaseDirs){
-         if (new File(p).exists() ){
-		return p;
-	 }
-	}
-	return null;
+        for (String p : classesBaseDirs) {
+            if (new File(p).exists()) {
+                return p;
+            }
+        }
+        return null;
     }
 
     public void testSerialVersionUUID() throws ClassNotFoundException {

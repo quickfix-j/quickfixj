@@ -206,7 +206,7 @@ public class SSLAndNonSSLTest {
                 settings.setString(sessionID2, SSLSupport.SETTING_USE_SSL, "N");
                 
                 ATApplication application = new ATApplication();
-                MessageStoreFactory factory = (MessageStoreFactory) new MemoryStoreFactory();
+                MessageStoreFactory factory = new MemoryStoreFactory();
                 quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
                 acceptor = new SocketAcceptor(application, factory, settings, logFactory,
                         new DefaultMessageFactory());

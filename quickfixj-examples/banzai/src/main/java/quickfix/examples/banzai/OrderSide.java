@@ -61,7 +61,7 @@ public class OrderSide {
     public static OrderSide parse(String type)
     throws IllegalArgumentException {
         OrderSide result = known.get(type);
-        if(result == null) {
+        if (result == null) {
             throw new IllegalArgumentException
             ("OrderSide:  " + type + " is unknown.");
         }

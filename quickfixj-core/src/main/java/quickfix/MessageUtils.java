@@ -126,7 +126,7 @@ public class MessageUtils {
         final String beginString = getStringField(messageString, BeginString.FIELD);
         final String msgType = getMessageType(messageString);
 
-        ApplVerID applVerID = null;
+        ApplVerID applVerID;
 
         if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
             applVerID = getApplVerID(session, messageString);
@@ -182,7 +182,7 @@ public class MessageUtils {
     }
 
     public static boolean isAdminMessage(String msgType) {
-        return msgType.length() == 1 && "0A12345".indexOf(msgType) != -1;
+        return msgType.length() == 1 && "0A12345".contains(msgType);
     }
 
     public static boolean isHeartbeat(String message) {
@@ -219,9 +219,9 @@ public class MessageUtils {
                 if ((end + 1) < messageString.length() && messageString.charAt(end) == '=') {
                     // found tag, get value
                     start = end = (end + 1);
-                    for (; end < messageString.length()
-                            && messageString.charAt(end) != FIELD_SEPARATOR; end++) {
-                        ;
+                    while (end < messageString.length()
+                            && messageString.charAt(end) != FIELD_SEPARATOR) {
+                        end++;
                     }
                     if (end == messageString.length()) {
                         return null;

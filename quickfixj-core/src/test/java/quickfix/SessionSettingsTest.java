@@ -339,9 +339,8 @@ public class SessionSettingsTest extends TestCase {
     private void assertSectionEquals(Properties expectedProperties, Properties actualProperties) {
         final Set<Object> keySet = actualProperties.keySet();
         assertEquals("Key sets don't match", expectedProperties.keySet(), keySet);
-        final Iterator<Object> p = keySet.iterator();
-        while (p.hasNext()) {
-            final String key = (String) p.next();
+        for (Object obj : keySet) {
+            final String key = (String) obj;
             assertEquals("property doesn't match", expectedProperties.getProperty(key),
                     actualProperties.getProperty(key));
         }

@@ -84,7 +84,7 @@ public class FileUtil {
          * Load a resource identified by an URI
          */
         URL
-    };
+    }
 
     /**
      * Attempt to open a file/resource from a series of locations. This method is
@@ -113,40 +113,40 @@ public class FileUtil {
      */
     public static InputStream open(Class<?> clazz, String name, Location... locations) {
         InputStream in = null;
-        for (int i = 0; i < locations.length; i++) {
-            switch (locations[i]) {
-            case FILESYSTEM:
-                try {
-                    in = new FileInputStream(name);
-                } catch (FileNotFoundException e) {
-                    // ignore
-                }
-                break;
-            case CONTEXT_RESOURCE:
-                ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-                if (contextClassLoader != null) {
-                    in = contextClassLoader.getResourceAsStream(name);
-                }
-                break;
-            case CLASS_RESOURCE:
-                if (clazz != null) {
-                    in = clazz.getResourceAsStream(name);
-                }
-                break;
-            case CLASSLOADER_RESOURCE:
-                if (clazz != null) {
-                    in = clazz.getClassLoader().getResourceAsStream(name);
-                }
-                break;
-            case URL:
-                try {
-                    in = new URL(name).openStream();
-                } catch (MalformedURLException e) {
-                    // ignore
-                } catch (IOException e) {
-                    // ignore
-                }
-                break;
+        for (Location location : locations) {
+            switch (location) {
+                case FILESYSTEM:
+                    try {
+                        in = new FileInputStream(name);
+                    } catch (FileNotFoundException e) {
+                        // ignore
+                    }
+                    break;
+                case CONTEXT_RESOURCE:
+                    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+                    if (contextClassLoader != null) {
+                        in = contextClassLoader.getResourceAsStream(name);
+                    }
+                    break;
+                case CLASS_RESOURCE:
+                    if (clazz != null) {
+                        in = clazz.getResourceAsStream(name);
+                    }
+                    break;
+                case CLASSLOADER_RESOURCE:
+                    if (clazz != null) {
+                        in = clazz.getClassLoader().getResourceAsStream(name);
+                    }
+                    break;
+                case URL:
+                    try {
+                        in = new URL(name).openStream();
+                    } catch (MalformedURLException e) {
+                        // ignore
+                    } catch (IOException e) {
+                        // ignore
+                    }
+                    break;
             }
             if (in != null) {
                 break;

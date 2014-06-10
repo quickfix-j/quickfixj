@@ -43,8 +43,7 @@ public class SessionSchedule {
             FieldConvertError {
             
         if (settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION)) {
-            nonStopSession = settings
-                    .getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
+            nonStopSession = settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
         } else {
             nonStopSession = false;
         }
@@ -233,7 +232,7 @@ public class SessionSchedule {
             if (this == other) {
                 return true;
             }
-            if (other instanceof TimeInterval == false) {
+            if (!(other instanceof TimeInterval)) {
                 return false;
             }
             TimeInterval otherInterval = (TimeInterval) other;
@@ -256,7 +255,8 @@ public class SessionSchedule {
     }
 
     public boolean isSameSession(Calendar time1, Calendar time2) {
-        if (nonStopSession) return true;
+        if (nonStopSession)
+            return true;
         TimeInterval interval1 = theMostRecentIntervalBefore(time1);
         if (!interval1.isContainingTime(time1)) {
             return false;
@@ -337,7 +337,7 @@ public class SessionSchedule {
             }
             buf.append(dayName);
         } catch (ConfigError e) {
-            buf.append("[Error: unknown day " + dayOfWeek + "]");
+            buf.append("[Error: unknown day ").append(dayOfWeek).append("]");
         }
     }
 

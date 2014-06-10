@@ -71,7 +71,7 @@ public class Banzai {
         SessionSettings settings = new SessionSettings(inputStream);
         inputStream.close();
         
-        boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true")).booleanValue();
+        boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true"));
         
         OrderTableModel orderTableModel = new OrderTableModel();
         ExecutionTableModel executionTableModel = new ExecutionTableModel();
@@ -99,18 +99,14 @@ public class Banzai {
                 log.error("Logon failed", e);
             }
         } else {
-            Iterator<SessionID> sessionIds = initiator.getSessions().iterator();
-            while (sessionIds.hasNext()) {
-                SessionID sessionId = (SessionID) sessionIds.next();
+            for (SessionID sessionId : initiator.getSessions()) {
                 Session.lookupSession(sessionId).logon();
             }
         }
     }
 
     public void logout() {
-        Iterator<SessionID> sessionIds = initiator.getSessions().iterator();
-        while (sessionIds.hasNext()) {
-            SessionID sessionId = (SessionID) sessionIds.next();
+        for (SessionID sessionId : initiator.getSessions()) {
             Session.lookupSession(sessionId).logout("user requested");
         }
     }
@@ -127,7 +123,7 @@ public class Banzai {
         return banzai;
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {

@@ -81,8 +81,8 @@ public class AcceptanceTestSuite extends TestSuite {
             try {
                 connection = new TestConnection();
                 List<TestStep> testSteps = load(filename);
-                for (int i = 0; i < testSteps.size(); i++) {
-                    testSteps.get(i).run(result, connection);
+                for (TestStep testStep : testSteps) {
+                    testStep.run(result, connection);
                 }
             } catch (AssertionFailedError e) {
                 result.addFailure(this, e);
@@ -101,10 +101,9 @@ public class AcceptanceTestSuite extends TestSuite {
     
         @SuppressWarnings("unused")
         protected void printDatabasePoolingStatistics() {
-            String[] aliases = ProxoolFacade.getAliases();
             try {
-                for (int i = 0; i < aliases.length; i++) {
-                    SnapshotIF snapshot = ProxoolFacade.getSnapshot(aliases[i], true);
+                for (String alias : ProxoolFacade.getAliases()) {
+                    SnapshotIF snapshot = ProxoolFacade.getSnapshot(alias, true);
                     System.out.println("active:" + snapshot.getActiveConnectionCount() + ",max:"
                             + snapshot.getMaximumConnectionCount() + ",served:"
                             + snapshot.getServedCount());
@@ -165,7 +164,7 @@ public class AcceptanceTestSuite extends TestSuite {
         this.setName(name + (multithreaded ? "-threaded" : ""));
         Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);
         if (timeout != null) {
-            ExpectMessageStep.TIMEOUT_IN_MS = timeout.longValue();
+            ExpectMessageStep.TIMEOUT_IN_MS = timeout;
         }
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
@@ -198,14 +197,14 @@ public class AcceptanceTestSuite extends TestSuite {
         } else {
             if (directory.exists()) {
                 File[] files = directory.listFiles(new TestDefinitionFilter());
-                for (int i = 0; i < files.length; i++) {
-                    if (!files[i].isDirectory() && !isTestSkipped(files[i])) {
-                        addTest(new AcceptanceTest(files[i].getPath()));
+                for (File file : files) {
+                    if (!file.isDirectory() && !isTestSkipped(file)) {
+                        addTest(new AcceptanceTest(file.getPath()));
                     }
                 }
-                for (int i = 0; i < files.length; i++) {
-                    if (files[i].isDirectory()) {
-                        addTests(files[i]);
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        addTests(file);
                     }
                 }
             } else {
@@ -215,12 +214,9 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     private boolean isTestSkipped(File file) {
-        if (skipSlowTests) {
-            return file.getName().indexOf("NoDataSentDuringHeartBtInt") != -1
-                    || file.getName().indexOf("SendTestRequest") != -1;
-        } else {
-            return false;
-        }
+        return skipSlowTests &&
+                (file.getName().contains("NoDataSentDuringHeartBtInt")
+                        || file.getName().contains("SendTestRequest"));
     }
 
     private static final class AcceptanceTestServerSetUp extends TestSetup {

@@ -22,7 +22,7 @@ package quickfix;
 import java.util.Calendar;
 
 public class MockSystemTimeSource implements SystemTimeSource {
-    private long[] systemTimes = new long[] { System.currentTimeMillis() };
+    private long[] systemTimes = { System.currentTimeMillis() };
     private int offset;
     
     public MockSystemTimeSource() {

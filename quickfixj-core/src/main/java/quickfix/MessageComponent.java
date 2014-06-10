@@ -17,17 +17,15 @@ public abstract class MessageComponent extends FieldMap {
     
     public void copyFrom(FieldMap fields) {
         try {
-            int[] componentFields = getFields();
-            for (int i = 0; i < componentFields.length; i++) {
-                if (fields.isSetField(componentFields[i])) {
-                    setField(componentFields[i], fields.getField(componentFields[i]));
+            for (int componentField : getFields()) {
+                if (fields.isSetField(componentField)) {
+                    setField(componentField, fields.getField(componentField));
                 }
             }
-            int[] groupFields = getGroupFields();
-            for (int i = 0; i < groupFields.length; i++) {
-                if (fields.isSetField(groupFields[i])) {
-                    setField(groupFields[i], fields.getField(groupFields[i]));
-                    setGroups(groupFields[i], fields.getGroups(groupFields[i]));
+            for (int groupField : getGroupFields()) {
+                if (fields.isSetField(groupField)) {
+                    setField(groupField, fields.getField(groupField));
+                    setGroups(groupField, fields.getGroups(groupField));
                 }
             }
         } catch (FieldNotFound e) {
@@ -37,17 +35,15 @@ public abstract class MessageComponent extends FieldMap {
     
     public void copyTo(FieldMap fields) {
         try {
-            int[] componentFields = getFields();
-            for (int i = 0; i < componentFields.length; i++) {
-                if (isSetField(componentFields[i])) {
-                    fields.setField(componentFields[i], getField(componentFields[i]));
+            for (int componentField : getFields()) {
+                if (isSetField(componentField)) {
+                    fields.setField(componentField, getField(componentField));
                 }
             }
-            int[] groupFields = getGroupFields();
-            for (int i = 0; i < groupFields.length; i++) {
-                if (isSetField(groupFields[i])) {
-                    fields.setField(groupFields[i], getField(groupFields[i]));
-                    fields.setGroups(groupFields[i], getGroups(groupFields[i]));
+            for (int groupField : getGroupFields()) {
+                if (isSetField(groupField)) {
+                    fields.setField(groupField, getField(groupField));
+                    fields.setGroups(groupField, getGroups(groupField));
                 }
             }
         } catch (FieldNotFound e) {

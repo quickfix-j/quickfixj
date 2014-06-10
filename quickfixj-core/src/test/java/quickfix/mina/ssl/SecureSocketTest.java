@@ -105,7 +105,7 @@ public class SecureSocketTest extends TestCase {
 
     /** This is more of an anti-test. To verify that the client-side initiator adds the
      * specified keystore/pwd to the SSL context, reset the pwd to be invalid.
-     * During startup, the socket iniator should fail b/c ssl context is misconfigured
+     * During startup, the socket initiator should fail b/c ssl context is misconfigured
      * Thus, we verify that we use SSL keystore/pwd in client connection, since
      * we don't have any easy way to get to any of the vars inside the client-side initiator
      * Note that we have to use a unique cert here (not same as test.cert) so that it's not cached

@@ -102,7 +102,7 @@ import java.io.FileInputStream;
 public class MyClass {
 
   public static void main(String args[]) throws Exception {
-    if(args.length != 1) return;
+    if (args.length != 1) return;
     String fileName = args[0];
 
     // FooApplication is your class that implements the Application interface
@@ -115,7 +115,7 @@ public class MyClass {
     Acceptor acceptor = new SocketAcceptor
       (application, storeFactory, settings, logFactory, messageFactory);
     acceptor.start();
-    // while( condition == true ) { do something; }
+    // while(condition == true) { do something; }
     acceptor.stop();
   }
 }  

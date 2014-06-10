@@ -118,7 +118,7 @@ public class DataDictionaryTest extends TestCase {
             new DataDictionary(new ByteArrayInputStream(data.getBytes()));
         } catch (ConfigError e) {
             // Expected
-            assertTrue(e.getMessage().indexOf("does not have a 'required'") != -1);
+            assertTrue(e.getMessage().contains("does not have a 'required'"));
         }
     }
 

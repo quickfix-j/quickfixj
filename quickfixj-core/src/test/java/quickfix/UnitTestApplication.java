@@ -75,13 +75,13 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
     }
 
     public void clear() {
-        fromAppMessages.clear();;
-        toAppMessages.clear();;
-        fromAdminMessages.clear();;
-        toAdminMessages.clear();;
-        logonSessions.clear();;
-        logoutSessions.clear();;
-        createSessions.clear();;
+        fromAppMessages.clear();
+        toAppMessages.clear();
+        fromAdminMessages.clear();
+        toAdminMessages.clear();
+        logonSessions.clear();
+        logoutSessions.clear();
+        createSessions.clear();
     }
 
     public Message lastFromAppMessage() {

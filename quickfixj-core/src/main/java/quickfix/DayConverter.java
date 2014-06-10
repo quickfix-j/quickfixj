@@ -36,7 +36,7 @@ public class DayConverter {
      * @throws ConfigError raised if conversion failed.
      */
     public static int toInteger(String dayName) throws ConfigError {
-        String dayNames[] = new DateFormatSymbols(Locale.US).getWeekdays();
+        String[] dayNames = new DateFormatSymbols(Locale.US).getWeekdays();
         dayName = dayName.toLowerCase();
     	for (int i = 1; i < dayNames.length; i++) {
     	    if (dayNames[i].toLowerCase().startsWith(dayName)) {
@@ -57,7 +57,7 @@ public class DayConverter {
      * @throws ConfigError raised if offset is invalid.
      */
     public static String toString(int dayOffset) throws ConfigError {
-        String dayNames[] = new DateFormatSymbols(Locale.US).getWeekdays();
+        String[] dayNames = new DateFormatSymbols(Locale.US).getWeekdays();
         if (dayOffset > 0 && dayOffset < dayNames.length) {
             return dayNames[dayOffset].toLowerCase();
         }

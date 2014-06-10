@@ -48,8 +48,7 @@ public class CompositeDataBeanAdapter {
         CompositeTypeFactory typeFactory = new CompositeTypeFactory(beanDescriptor.getName(),
                 beanDescriptor.getDisplayName());
         PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-        for (int i = 0; i < propertyDescriptors.length; i++) {
-            PropertyDescriptor pd = propertyDescriptors[i];
+        for (PropertyDescriptor pd : propertyDescriptors) {
             if (isExposed(pd)) {
                 typeFactory.defineItem(pd.getDisplayName(), SimpleType.STRING);
             }
@@ -67,8 +66,7 @@ public class CompositeDataBeanAdapter {
         dataFactory = new CompositeDataFactory(compositeType);
         BeanInfo beanInfo = Introspector.getBeanInfo(beanClass);
         PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-        for (int i = 0; i < propertyDescriptors.length; i++) {
-            PropertyDescriptor pd = propertyDescriptors[i];
+        for (PropertyDescriptor pd : propertyDescriptors) {
             if (isExposed(pd)) {
                 Object value = pd.getReadMethod().invoke(bean, (Object[])null);
                 if (value == null && defaultPropertyValue != null) {

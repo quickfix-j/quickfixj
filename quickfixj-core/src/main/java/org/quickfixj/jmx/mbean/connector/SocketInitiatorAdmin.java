@@ -25,7 +25,7 @@ class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdmi
     protected SocketInitiatorAdmin(JmxExporter jmxExporter, AbstractSocketInitiator connector, 
             ObjectName connectorName, SessionJmxExporter sessionExporter) {
         super(jmxExporter, connector, connectorName, connector.getSettings(), sessionExporter);
-        initiator = (AbstractSocketInitiator) connector;
+        initiator = connector;
     }
 
     public TabularData getEndpoints() throws IOException {

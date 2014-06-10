@@ -44,9 +44,9 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
 
     private final ObjectName settingsName;
 
-    public SessionAdmin(Session session, ObjectName connnectorName, ObjectName settingsName) {
+    public SessionAdmin(Session session, ObjectName connectorName, ObjectName settingsName) {
         this.session = session;
-        this.connectorName = connnectorName;
+        this.connectorName = connectorName;
         this.settingsName = settingsName;
     }
 

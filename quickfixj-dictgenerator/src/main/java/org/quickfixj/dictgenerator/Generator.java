@@ -54,14 +54,14 @@ public class Generator {
         }
 
         Map<String, MsgType> msgTypes = new LinkedHashMap<String, MsgType>();
-        if ( !merged) {
+        if (!merged) {
             if (admin) {
-                msgTypes.putAll( repository.getSessionMsgTypes() );
+                msgTypes.putAll(repository.getSessionMsgTypes());
             } else {
-                msgTypes.putAll( repository.getApplicationMsgTypes() );
+                msgTypes.putAll(repository.getApplicationMsgTypes());
             }
         } else {
-            msgTypes.putAll( repository.getSessionMsgTypes() );
+            msgTypes.putAll(repository.getSessionMsgTypes());
             msgTypes.putAll(repository.getApplicationMsgTypes());
         }
         Set<Integer> fieldsUsed = getAllFieldsUsed(msgTypes);
@@ -98,13 +98,13 @@ public class Generator {
             String msgcat = admin ? "admin" : "app";
             builder.append("  <messages>\n");
             for (MsgType msgType : msgTypes.values()) {
-                if ( msgType.getMsgType().equals("n")) {
+                if (msgType.getMsgType().equals("n")) {
                     builder.append("    <!-- \n");
                 }
                 builder.append("    <message name=\"" + msgType.getName() + "\" msgtype=\"" + msgType.getMsgType() + "\" msgcat=\"" + msgcat + "\">\n");
                 addMsgContents(builder, msgType.getMsgContent(), "      ");
                 builder.append("    </message>\n");
-                if ( msgType.getMsgType().equals("n")) {
+                if (msgType.getMsgType().equals("n")) {
                     builder.append("    --> \n");
                 }
             }
@@ -113,13 +113,13 @@ public class Generator {
             builder.append("  <messages>\n");
             for (MsgType msgType : msgTypes.values()) {
                 String msgcat = msgType.getCategory().equals("Session") ? "admin" : "app";
-                if ( msgType.getMsgType().equals("n")) {
+                if (msgType.getMsgType().equals("n")) {
                     builder.append("    <!-- \n");
                 }
                 builder.append("    <message name=\"" + msgType.getName() + "\" msgtype=\"" + msgType.getMsgType() + "\" msgcat=\"" + msgcat + "\">\n");
                 addMsgContents(builder, msgType.getMsgContent(), "      ");
                 builder.append("    </message>\n");
-                if ( msgType.getMsgType().equals("n")) {
+                if (msgType.getMsgType().equals("n")) {
                     builder.append("    --> \n");
                 }
             }
@@ -171,11 +171,11 @@ public class Generator {
                     enumDesc = enumDesc.trim();                         // trim leading and trailing whitespaces
                     enumDesc = enumDesc.replaceAll("\\W+","_" );        // replace rest of non-word characters by _
                     char firstChar = enumDesc.charAt(0);
-                    if ( Character.isDigit(firstChar) ) {
+                    if (Character.isDigit(firstChar)) {
                         enumDesc = "_" + enumDesc;                      // make it a valid JAVA identifier
                     }
                     boolean add = enumDescCache.add(enumDesc);
-                    if ( add ) {
+                    if (add) {
                         builder.append("      <value enum=\"" + theEnum.getEnumName() + "\" description=\"" + enumDesc + "\"/>\n");
                     } else {
                         // FIXME ugly workaround to avoid duplicate entries

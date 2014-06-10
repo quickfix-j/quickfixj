@@ -40,7 +40,7 @@ public class OrderTable extends JTable implements MouseListener {
 
     public Component prepareRenderer(TableCellRenderer renderer,
                                      int row, int column) {
-        Order order = (Order)((OrderTableModel)dataModel).getOrder(row);
+        Order order = ((OrderTableModel)dataModel).getOrder(row);
 
         int open = order.getOpen();
         int executed = order.getExecuted();
@@ -50,28 +50,29 @@ public class OrderTable extends JTable implements MouseListener {
         DefaultTableCellRenderer r = (DefaultTableCellRenderer)renderer;
         r.setForeground(Color.black);
 
-        if(rejected)
+        if (rejected)
             r.setBackground(Color.red);
-        else if(canceled)
+        else if (canceled)
             r.setBackground(Color.white);
-        else if(open == 0 && executed == 0)
+        else if (open == 0 && executed == 0)
             r.setBackground(Color.yellow);
-        else if(open > 0)
+        else if (open > 0)
             r.setBackground(Color.green);
-        else if(open == 0)
+        else if (open == 0)
             r.setBackground(Color.white);
 
         return super.prepareRenderer(renderer, row, column);
     }
 
     public void mouseClicked(MouseEvent e) {
-        if(e.getClickCount() != 2)
+        if (e.getClickCount() != 2)
             return;
         int row = rowAtPoint(e.getPoint());
-        Order order = (Order)((OrderTableModel)dataModel).getOrder(row);
+        Order order = ((OrderTableModel)dataModel).getOrder(row);
         application.cancel(order);
     }
-public void mouseEntered(MouseEvent e) {}
+
+    public void mouseEntered(MouseEvent e) {}
     public void mouseExited(MouseEvent e) {}
     public void mousePressed(MouseEvent e) {}
     public void mouseReleased(MouseEvent e) {}

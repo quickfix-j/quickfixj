@@ -86,7 +86,7 @@ public class FIXMessageDecoder implements MessageDecoder {
         public String toString() {
             return _offset + "," + _length;
         }
-    };
+    }
 
     private void resetState() {
         state = SEEKING_HEADER;
@@ -352,7 +352,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                 return -1;
             }
         }
-        if(dataOffset != data.length){
+        if (dataOffset != data.length) {
            // when minMaskLength(data) != data.length we might run out of buffer before we run out of data
            return -1;
         }

@@ -87,7 +87,6 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 </xsl:template>
 
 <xsl:template name="get-type">
- <xsl:variable name="name" select="@name"/>
    <xsl:choose>
      <xsl:when test="@type='STRING'">String</xsl:when>
      <xsl:when test="@type='CHAR'">char</xsl:when>
@@ -114,7 +113,6 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 </xsl:template>
 
 <xsl:template name="get-field-type">
- <xsl:variable name="name" select="@name"/>
    <xsl:choose>
      <xsl:when test="@type='STRING'">String</xsl:when>
      <xsl:when test="@type='CHAR'">Char</xsl:when>

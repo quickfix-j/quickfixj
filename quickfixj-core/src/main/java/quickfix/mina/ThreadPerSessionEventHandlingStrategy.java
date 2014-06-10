@@ -62,7 +62,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
     }
 
     /**
-     * The SesionConnector is not directly required for thread-per-session handler - we don't multiplex
+     * The SessionConnector is not directly required for thread-per-session handler - we don't multiplex
      * between multiple sessions here.
      * However it is made available here for other callers (such as SessionProviders wishing to register dynamic sessions).
      */

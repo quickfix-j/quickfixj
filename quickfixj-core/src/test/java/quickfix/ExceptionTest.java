@@ -34,8 +34,8 @@ public class ExceptionTest extends TestCase {
     }
     
     public void testIncorrectTagValue() {
-        IncorrectTagValue e = new IncorrectTagValue(5);
-        e = new IncorrectTagValue("test");
+        new IncorrectTagValue(5);
+        IncorrectTagValue e = new IncorrectTagValue("test");
         e.field = 5;
     }
 

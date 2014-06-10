@@ -36,7 +36,7 @@ import java.util.Map;
 public class MessageCracker {
     private Map<Class<?>, Invoker> invokers = new HashMap<Class<?>, Invoker>();
 
-    @Target( { ElementType.METHOD })
+    @Target({ ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Handler {
 
@@ -128,7 +128,7 @@ public class MessageCracker {
                 invoker.Invoke(message, sessionID);
             } catch (InvocationTargetException ite) {
                 try {
-                    throw ((InvocationTargetException)ite).getTargetException();
+                    throw ite.getTargetException();
                 }
                 catch (UnsupportedMessageType e) {
                     throw e;

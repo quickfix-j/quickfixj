@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.spi.LocationAwareLogger;
 
 /**
- * A Log using the SLFJ wrapper that supports JDK 1.4 logging, Log4J and others. This log should be created using the
- * associated factory.
+ * A Log using the SLF4J wrapper that supports JDK 1.4 logging, Log4J and others.
+ * This log should be created using the associated factory.
  *
  * @see SLF4JLogFactory
  */

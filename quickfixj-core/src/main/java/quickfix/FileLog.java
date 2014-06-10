@@ -160,7 +160,7 @@ public class FileLog extends AbstractLog {
      */
     public void clear() {
         try {
-            closeFiles();
+            close();
             openLogStreams(false);
         } catch (IOException e) {
             System.err.println("Could not clear log: "+getClass().getName());

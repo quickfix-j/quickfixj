@@ -296,7 +296,7 @@ public class Message extends FieldMap {
         }
         final Iterator<Integer> groupKeyItr = fieldMap.groupKeyIterator();
         while (groupKeyItr.hasNext()) {
-            final int groupKey = (groupKeyItr.next()).intValue();
+            final int groupKey = groupKeyItr.next();
             final Element groupsElement = document.createElement("groups");
             fields.appendChild(groupsElement);
             if (dataDictionary != null) {
@@ -307,9 +307,7 @@ public class Message extends FieldMap {
             }
             groupsElement.setAttribute("tag", Integer.toString(groupKey));
             final List<Group> groups = fieldMap.getGroups(groupKey);
-            final Iterator<Group> groupItr = groups.iterator();
-            while (groupItr.hasNext()) {
-                final Group group = groupItr.next();
+            for (Group group : groups) {
                 toXMLFields(groupsElement, "group", group, dataDictionary);
             }
         }
@@ -534,13 +532,11 @@ public class Message extends FieldMap {
     }
 
     private String getMsgType() throws InvalidMessage {
-        String res = null;
         try {
-            res = header.getString(MsgType.FIELD);
+            return header.getString(MsgType.FIELD);
         } catch (final FieldNotFound e) {
             throw new InvalidMessage(e.getMessage() + " in " + messageData);
         }
-        return res;
     }
 
     private void parseBody(DataDictionary dd, boolean doValidation) throws InvalidMessage {
@@ -775,7 +771,7 @@ public class Message extends FieldMap {
             throw new InvalidMessage("Equal sign not found in field" + " in " + messageData);
         }
 
-        int tag = -1;
+        int tag;
         try {
             tag = Integer.parseInt(messageData.substring(position, equalsOffset));
         } catch (final NumberFormatException e) {

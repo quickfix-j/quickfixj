@@ -96,12 +96,10 @@ public /*abstract*/ class Field<T> implements Serializable{
     }
     
     public boolean equals(Object object) {
-        if (super.equals(object) == true)
-            return true;
-        if (!(object instanceof Field))
-            return false;
-        return tag == ((Field<?>) object).getField()
-                && getObject().equals(((Field<?>) object).getObject());
+        return super.equals(object)
+                || object instanceof Field
+                   && tag == ((Field<?>) object).getField()
+                   && getObject().equals(((Field<?>) object).getObject());
     }
 
     public int hashCode() {

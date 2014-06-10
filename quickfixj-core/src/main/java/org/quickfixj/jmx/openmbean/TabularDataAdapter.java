@@ -21,7 +21,6 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +35,7 @@ public class TabularDataAdapter {
 
     public TabularData fromArray(String tableTypeName, String rowTypeName, Object[] objects)
             throws OpenDataException {
-        TabularData table = null;
+        TabularData table;
         CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
         rowTypeFactory.defineItem(rowTypeName, SimpleType.STRING);
         CompositeType rowType = rowTypeFactory.createCompositeType();
@@ -44,9 +43,9 @@ public class TabularDataAdapter {
                 new String[] { rowTypeName });
         CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
         table = new TabularDataSupport(tableType);
-        for (int i = 0; i < objects.length; i++) {
+        for (Object object : objects) {
             rowDataFactory.clear();
-            rowDataFactory.setValue(rowTypeName, objects[i].toString());
+            rowDataFactory.setValue(rowTypeName, object.toString());
             table.put(rowDataFactory.createCompositeData());
         }
         return table;
@@ -55,7 +54,7 @@ public class TabularDataAdapter {
     @SuppressWarnings("rawtypes")
     public TabularData fromMap(String keyLabel, String valueLabel, Map data)
             throws OpenDataException {
-        TabularData table = null;
+        TabularData table;
         CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory("row", "row");
         rowTypeFactory.defineItem(keyLabel, SimpleType.STRING);
         rowTypeFactory.defineItem(valueLabel, SimpleType.STRING);
@@ -64,9 +63,8 @@ public class TabularDataAdapter {
                 new String[] { keyLabel, valueLabel });
         CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
         table = new TabularDataSupport(tableType);
-        Iterator entries = data.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry entry = (Map.Entry) entries.next();
+        for (Object o : data.entrySet()) {
+            Map.Entry entry = (Map.Entry) o;
             rowDataFactory.clear();
             rowDataFactory.setValue(keyLabel, entry.getKey().toString());
             rowDataFactory.setValue(valueLabel, entry.getValue().toString());
@@ -76,7 +74,7 @@ public class TabularDataAdapter {
     }
 
     public TabularData fromBean(String keyLabel, String valueLabel, Object bean) throws OpenDataException {
-        TabularData table = null;
+        TabularData table;
         CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory("row", "row");
         rowTypeFactory.defineItem(keyLabel, SimpleType.STRING);
         rowTypeFactory.defineItem(valueLabel, SimpleType.STRING);
@@ -88,8 +86,7 @@ public class TabularDataAdapter {
         try {
             BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
             PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-            for (int i = 0; i < pds.length; i++) {
-                PropertyDescriptor descriptor = pds[i];
+            for (PropertyDescriptor descriptor : pds) {
                 if (descriptor.getReadMethod() != null && !"class".equals(descriptor.getName())) {
                     rowDataFactory.clear();
                     rowDataFactory.setValue(keyLabel, descriptor.getName());
@@ -113,18 +110,16 @@ public class TabularDataAdapter {
 
     public TabularData fromBeanList(String tableTypeName, String rowTypeName, String keyProperty,
             List<?> beans) throws OpenDataException {
-        TabularData table = null;
+        TabularData table;
         try {
             CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
             List<String> indexNames = new ArrayList<String>();
             indexNames.add(keyProperty);
             rowTypeFactory.defineItem(formatHeader(keyProperty), SimpleType.STRING);
-            for (int i = 0; i < beans.size(); i++) {
-                Object bean = beans.get(i);
+            for (Object bean : beans) {
                 BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
                 PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-                for (int p = 0; p < pds.length; p++) {
-                    PropertyDescriptor descriptor = pds[p];
+                for (PropertyDescriptor descriptor : pds) {
                     String propertyName = descriptor.getName();
                     if (descriptor.getReadMethod() != null && !"class".equals(propertyName)
                             && !indexNames.contains(propertyName)) {
@@ -138,17 +133,15 @@ public class TabularDataAdapter {
                     createTableHeaders(indexNames));
             CompositeDataFactory rowDataFactory = new CompositeDataFactory(rowType);
             table = new TabularDataSupport(tableType);
-            for (int i = 0; i < beans.size(); i++) {
+            for (Object bean : beans) {
                 rowDataFactory.clear();
-                Object bean = beans.get(i);
                 BeanInfo beanInfo = Introspector.getBeanInfo(bean.getClass());
                 PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-                for (int p = 0; p < pds.length; p++) {
-                    PropertyDescriptor descriptor = pds[p];
+                for (PropertyDescriptor descriptor : pds) {
                     String propertyName = descriptor.getName();
                     String headerName = formatHeader(propertyName);
                     if (descriptor.getReadMethod() != null && !"class".equals(propertyName)) {
-                        Object value = descriptor.getReadMethod().invoke(bean, (Object[])null);
+                        Object value = descriptor.getReadMethod().invoke(bean, (Object[]) null);
                         if (value == null) {
                             value = "(null)";
                         }

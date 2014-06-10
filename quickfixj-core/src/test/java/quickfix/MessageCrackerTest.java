@@ -136,17 +136,17 @@ public class MessageCrackerTest {
     public void testDuplicateCracks() throws Exception {
         try {
             @SuppressWarnings("unused")
-        MessageCracker cracker = new MessageCracker() {
-            @SuppressWarnings("unused")
-            public void onMessage(quickfix.fixt11.Logon logon, SessionID sessionID) {
-                messageCracked++;
-            }
+            MessageCracker cracker = new MessageCracker() {
+                @SuppressWarnings("unused")
+                public void onMessage(quickfix.fixt11.Logon logon, SessionID sessionID) {
+                    messageCracked++;
+                }
 
-            @Handler
-            public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) {
-                messageCracked++;
-            }
-        };
+                @Handler
+                public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) {
+                    messageCracked++;
+                }
+            };
         } catch (Exception e) {
             // toString smoke test
             assertThat(e.toString(), notNullValue());

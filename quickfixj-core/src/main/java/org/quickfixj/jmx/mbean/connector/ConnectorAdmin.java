@@ -120,9 +120,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     public TabularData getSessions() throws IOException {
         List<ConnectorSession> sessions = new ArrayList<ConnectorSession>();
-        Iterator<SessionID> sessionItr = connector.getSessions().iterator();
-        while (sessionItr.hasNext()) {
-            SessionID sessionID = (SessionID) sessionItr.next();
+        for (SessionID sessionID : connector.getSessions()) {
             Session session = Session.lookupSession(sessionID);
             sessions.add(new ConnectorSession(session, sessionExporter.getSessionName(sessionID)));
         }
@@ -135,9 +133,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     public TabularData getLoggedOnSessions() throws OpenDataException {
         List<ObjectName> names = new ArrayList<ObjectName>();
-        Iterator<SessionID> sessionItr = connector.getSessions().iterator();
-        while (sessionItr.hasNext()) {
-            SessionID sessionID = (SessionID) sessionItr.next();
+        for (SessionID sessionID : connector.getSessions()) {
             Session session = Session.lookupSession(sessionID);
             if (session.isLoggedOn()) {
                 names.add(sessionExporter.getSessionName(sessionID));
@@ -186,9 +182,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     }
 
     private void registerSessions() {
-        final ArrayList<SessionID> sessionIDs = connector.getSessions();
-        for (int i = 0; i < sessionIDs.size(); i++) {
-            final SessionID sessionID = sessionIDs.get(i);
+        for (SessionID sessionID : connector.getSessions()) {
             if (sessionExporter.getSessionName(sessionID) == null) {
                 try {
                     final ObjectName name = sessionExporter.register(

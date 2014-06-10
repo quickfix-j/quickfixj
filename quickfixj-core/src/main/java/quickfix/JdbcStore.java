@@ -86,7 +86,7 @@ class JdbcStore implements MessageStore {
         loadCache();
     }
 
-    private final void setSqlStrings() {
+    private void setSqlStrings() {
         String idWhereClause = JdbcUtil.getIDWhereClause(extendedSessionIdSupported);
         String idColumns = JdbcUtil.getIDColumns(extendedSessionIdSupported);
         String idPlaceholders = JdbcUtil.getIDPlaceholders(extendedSessionIdSupported);
@@ -193,8 +193,6 @@ class JdbcStore implements MessageStore {
             updateTime.execute();
         } catch (SQLException e) {
             throw (IOException) new IOException(e.getMessage()).initCause(e);
-        } catch (IOException e) {
-            throw e;
         } finally {
             JdbcUtil.close(sessionID, deleteMessages);
             JdbcUtil.close(sessionID, updateTime);
@@ -247,7 +245,7 @@ class JdbcStore implements MessageStore {
                     int offset = setSessionIdParameters(update, 2);
                     update.setInt(offset, sequence);
                     boolean status = update.execute();
-                    return !status ? update.getUpdateCount() > 0 : false;
+                    return !status && update.getUpdateCount() > 0;
                 } catch (SQLException e) {
                     throw (IOException) new IOException(e.getMessage()).initCause(e);
                 } finally {

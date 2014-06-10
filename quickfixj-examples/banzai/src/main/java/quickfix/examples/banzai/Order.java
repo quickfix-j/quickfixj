@@ -116,7 +116,7 @@ public class Order implements Cloneable {
         this.limit = limit;
     }
     public void setLimit(String limit) {
-        if(limit == null || limit.equals("")) {
+        if (limit == null || limit.equals("")) {
             this.limit = null;
         } else {
             this.limit = new Double(limit);
@@ -129,7 +129,7 @@ public class Order implements Cloneable {
         this.stop = stop;
     }
     public void setStop(String stop) {
-        if(stop == null || stop.equals("")) {
+        if (stop == null || stop.equals("")) {
             this.stop = null;
         } else {
             this.stop = new Double(stop);

@@ -539,7 +539,7 @@ public class SessionTest {
         // check that the creation time is not updated inside of the session time window
         int delta = 60000;
         systemTimeSource.increment(delta);
-        assertTrue( SystemTime.getDate().getTime() - state.getCreationTime().getTime() == delta );
+        assertTrue(SystemTime.getDate().getTime() - state.getCreationTime().getTime() == delta);
         session.next();
         assertTrue("Session should be connected", session.isLoggedOn());
     }
@@ -908,7 +908,7 @@ public class SessionTest {
         assertTrue(session.isLoggedOn());
         assertEquals(2, state.getNextTargetMsgSeqNum());
         
-        for ( int i = 2; i <= 41; i++ ) {
+        for (int i = 2; i <= 41; i++) {
             processMessage(session, createAppMessage(i));
         }
         assertEquals(42, state.getNextTargetMsgSeqNum());
@@ -916,7 +916,7 @@ public class SessionTest {
         processMessage(session, createAppMessage(50));
         processMessage(session, createSequenceReset(51, 51, true));
         
-        for ( int i = 42; i <= 49; i++ ) {
+        for (int i = 42; i <= 49; i++) {
             processMessage(session, createAppMessage(i));
         }
         
@@ -1328,8 +1328,7 @@ public class SessionTest {
             IllegalAccessException {
         final Field stateField = session.getClass().getDeclaredField("state");
         stateField.setAccessible(true);
-        final SessionState state = (SessionState) stateField.get(session);
-        return state;
+        return (SessionState) stateField.get(session);
     }
 
     /** Verifies that the session has been registered before the logger tries accessing it

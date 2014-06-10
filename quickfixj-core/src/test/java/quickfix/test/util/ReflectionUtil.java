@@ -39,10 +39,9 @@ public class ReflectionUtil {
 
     private static Constructor<?> getMatchingConstructor(Class<?> targetClass, Object[] args)
             throws NoSuchMethodException {
-        Constructor<?>[] ctors = targetClass.getConstructors();
-        for (int i = 0; i < ctors.length; i++) {
-            if (isMatchingArgs(ctors[i].getParameterTypes(), args)) {
-                return ctors[i];
+        for (Constructor<?> ctor : targetClass.getConstructors()) {
+            if (isMatchingArgs(ctor.getParameterTypes(), args)) {
+                return ctor;
             }
         }
         throw new NoSuchMethodException("No constructor for " + targetClass
@@ -87,11 +86,10 @@ public class ReflectionUtil {
 
     private static Method getMatchingMethod(Class<?> targetClass, String methodName, Object[] args)
             throws NoSuchMethodException {
-        Method[] methods = targetClass.getMethods();
-        for (int i = 0; i < methods.length; i++) {
-            if (methodName.equals(methods[i].getName())
-                    && isMatchingArgs(methods[i].getParameterTypes(), args)) {
-                return methods[i];
+        for (Method method : targetClass.getMethods()) {
+            if (methodName.equals(method.getName())
+                    && isMatchingArgs(method.getParameterTypes(), args)) {
+                return method;
             }
         }
         throw new NoSuchMethodException(methodName);
@@ -158,25 +156,24 @@ public class ReflectionUtil {
             long[] threadIds = (long[]) ReflectionUtil.callMethod(threadMXBean,
                     threadMXBeanInterface, "getAllThreadIds", null);
             Object[] threadInfos = (Object[]) ReflectionUtil.callMethod(threadMXBean,
-                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds,
-                            Integer.valueOf(10) });
-            for (int i = 0; i < threadInfos.length; i++) {
-                System.out.println((String) ReflectionUtil.callMethod(threadInfos[i],
+                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, 10});
+            for (Object threadInfo : threadInfos) {
+                System.out.println((String) ReflectionUtil.callMethod(threadInfo,
                         "getThreadName", null));
-                BeanInfo info = Introspector.getBeanInfo(threadInfos[i].getClass());
+                BeanInfo info = Introspector.getBeanInfo(threadInfo.getClass());
                 PropertyDescriptor[] parameters = info.getPropertyDescriptors();
-                for (int p = 0; p < parameters.length; p++) {
-                    if (parameters[p].getReadMethod() != null) {
-                        Object value = parameters[p].getReadMethod().invoke(threadInfos[i],
+                for (PropertyDescriptor parameter : parameters) {
+                    if (parameter.getReadMethod() != null) {
+                        Object value = parameter.getReadMethod().invoke(threadInfo,
                                 (Object[]) null);
                         if (value != null && value.getClass().isArray()) {
-                            System.out.println("  " + parameters[p].getName() + ":");
+                            System.out.println("  " + parameter.getName() + ":");
                             for (int a = 0; a < Array.getLength(value); a++) {
                                 System.out.println("    " + Array.get(value, a));
                             }
                         } else {
                             if (value != null) {
-                                System.out.println("  " + parameters[p].getName() + ": " + value);
+                                System.out.println("  " + parameter.getName() + ": " + value);
                             }
                         }
                     }
@@ -185,7 +182,7 @@ public class ReflectionUtil {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // ignore, proabably wrong JVM version
+            // ignore, probably wrong JVM version
         }
     }
 

@@ -60,8 +60,8 @@ public class OrderTableModel extends AbstractTableModel {
     public void addOrder(Order order) {
         int row = rowToOrder.size();
 
-        rowToOrder.put(Integer.valueOf(row), order);
-        idToRow.put(order.getID(), Integer.valueOf(row));
+        rowToOrder.put(row, order);
+        idToRow.put(order.getID(), row);
         idToOrder.put(order.getID(), order);
 
         fireTableRowsInserted(row, row);
@@ -69,7 +69,7 @@ public class OrderTableModel extends AbstractTableModel {
 
     public void updateOrder(Order order, String id) {
 
-        if(!id.equals(order.getID())) {
+        if (!id.equals(order.getID())) {
             String originalID = order.getID();
             order.setID(id);
             replaceOrder(order, originalID);
@@ -77,22 +77,22 @@ public class OrderTableModel extends AbstractTableModel {
         }
 
         Integer row = idToRow.get(order.getID());
-        if(row == null)
+        if (row == null)
             return;
-        fireTableRowsUpdated(row.intValue(), row.intValue());
+        fireTableRowsUpdated(row, row);
     }
 
     public void replaceOrder(Order order, String originalID) {
 
         Integer row = idToRow.get(originalID);
-        if(row == null)
+        if (row == null)
             return;
 
         rowToOrder.put(row, order);
         idToRow.put(order.getID(), row);
         idToOrder.put(order.getID(), order);
 
-        fireTableRowsUpdated(row.intValue(), row.intValue());
+        fireTableRowsUpdated(row, row);
     }
 
     public void addID(Order order, String newID) {
@@ -100,8 +100,7 @@ public class OrderTableModel extends AbstractTableModel {
     }
 
     public Order getOrder(String id) {
-        Order order = idToOrder.get(id);
-        return order;
+        return idToOrder.get(id);
     }
 
     public Order getOrder(int row) {
@@ -133,11 +132,11 @@ public class OrderTableModel extends AbstractTableModel {
         case SYMBOL:
             return order.getSymbol();
         case QUANTITY:
-            return Integer.valueOf(order.getQuantity());
+            return order.getQuantity();
         case OPEN:
-            return Integer.valueOf(order.getOpen());
+            return order.getOpen();
         case EXECUTED:
-            return Integer.valueOf(order.getExecuted());
+            return order.getExecuted();
         case SIDE:
             return order.getSide();
         case TYPE:
@@ -147,7 +146,7 @@ public class OrderTableModel extends AbstractTableModel {
         case STOPPRICE:
             return order.getStop();
         case AVGPX:
-            return new Double(order.getAvgPx());
+            return order.getAvgPx();
         case TARGET:
             return order.getSessionID().getTargetCompID();
         }

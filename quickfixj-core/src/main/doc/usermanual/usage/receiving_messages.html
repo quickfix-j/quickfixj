@@ -79,7 +79,7 @@ public void fromApp(Message message, SessionID sessionID)
 }
 
 
-public void onMessage( quickfix.fix42.NewOrderSingle message, SessionID sessionID )
+public void onMessage(quickfix.fix42.NewOrderSingle message, SessionID sessionID)
       throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
   ClOrdID clOrdID = new ClOrdID();
@@ -90,7 +90,7 @@ public void onMessage( quickfix.fix42.NewOrderSingle message, SessionID sessionI
 }
 
 
-public void onMessage( quickfix.fix42.OrderCancelRequest message, SessionID sessionID )
+public void onMessage(quickfix.fix42.OrderCancelRequest message, SessionID sessionID)
       throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
   ClOrdID clOrdID = new ClOrdID();

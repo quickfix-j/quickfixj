@@ -82,7 +82,7 @@ public class MessageCracker {
 	 * @throws UnsupportedMessageType
 	 * @throws IncorrectTagValue
 	 */
-	public void onMessage(<xsl:value-of select="@name"/> message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {<xsl:text></xsl:text>
+	public void onMessage(<xsl:value-of select="@name"/> message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {<xsl:text/>
 	<xsl:choose>
 	<xsl:when test="(@msgcat='app' or @msgcat='Common') and @name='BusinessMessageReject'">
 	}

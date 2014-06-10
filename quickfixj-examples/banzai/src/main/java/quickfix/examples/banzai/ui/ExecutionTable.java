@@ -40,11 +40,7 @@ public class ExecutionTable extends JTable {
 
         DefaultTableCellRenderer r = (DefaultTableCellRenderer)renderer;
         r.setForeground(Color.black);
-
-        if((row%2) == 0)
-            r.setBackground(Color.white);
-        else
-            r.setBackground(Color.lightGray);
+        r.setBackground(row % 2 == 0 ? Color.white : Color.lightGray);
 
         return super.prepareRenderer(renderer, row, column);
     }

@@ -345,7 +345,7 @@ public class Session implements Closeable {
 
     private boolean enabled;
 
-    private final String responderSync = new String("SessionResponderSync");
+    private final String responderSync = new String("SessionResponderSync"); // unique instance
     // @GuardedBy(responderSync)
     private Responder responder;
 
@@ -536,11 +536,8 @@ public class Session implements Closeable {
 
     private boolean isCurrentSession(final long time)
             throws IOException {
-        if (sessionSchedule == null) {
-            return true;
-        }
-        return sessionSchedule.isSameSession(SystemTime.getUtcCalendar(time),
-                SystemTime.getUtcCalendar(state.getCreationTime()));
+        return sessionSchedule == null || sessionSchedule.isSameSession(
+                SystemTime.getUtcCalendar(time), SystemTime.getUtcCalendar(state.getCreationTime()));
     }
 
     /**
@@ -697,10 +694,8 @@ public class Session implements Closeable {
     }
 
     private boolean includeMillis() {
-        final boolean includeMillis = sessionID.getBeginString().compareTo(
-                FixVersions.BEGINSTRING_FIX42) >= 0
-                && millisecondsInTimeStamp;
-        return includeMillis;
+        return millisecondsInTimeStamp
+                && sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
     }
 
     /**
@@ -2410,7 +2405,7 @@ public class Session implements Closeable {
                 }
             }
 
-            String messageString = null;
+            String messageString;
 
             if (message.isAdmin()) {
                 try {
@@ -2564,10 +2559,7 @@ public class Session implements Closeable {
      * @return true if session should be active, false otherwise.
      */
     public boolean isSessionTime() {
-        if (sessionSchedule == null) {
-            return true;
-        }
-        return sessionSchedule.isSessionTime();
+        return sessionSchedule == null || sessionSchedule.isSessionTime();
     }
 
     /**
@@ -2788,10 +2780,8 @@ public class Session implements Closeable {
     }
 
     public boolean isAllowedForSession(InetAddress remoteInetAddress) {
-        if (allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()) {
-            return true;
-        }
-        return allowedRemoteAddresses.contains(remoteInetAddress);
+        return allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()
+                || allowedRemoteAddresses.contains(remoteInetAddress);
     }
 
     /**

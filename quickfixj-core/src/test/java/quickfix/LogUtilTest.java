@@ -39,7 +39,7 @@ public class LogUtilTest extends TestCase {
         createSessionAndGenerateException(mockLogFactory);
 
         String message = new String(data.toByteArray());
-        assertTrue(message.indexOf("IOException") != -1);
+        assertTrue(message.contains("IOException"));
     }
 
     private void createSessionAndGenerateException(LogFactory mockLogFactory) throws ConfigError,

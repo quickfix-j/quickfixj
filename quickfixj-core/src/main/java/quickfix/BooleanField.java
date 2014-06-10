@@ -44,7 +44,7 @@ public class BooleanField extends Field<Boolean> {
     }
 
     public boolean getValue() {
-        return ((Boolean)getObject());
+        return getObject();
     }
 
     public boolean valueEquals(Boolean value) {

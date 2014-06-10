@@ -62,25 +62,14 @@ public class Market {
 
     private void match(Order bid, Order ask) {
         double price = ask.getType() == OrdType.LIMIT ? ask.getPrice() : bid.getPrice();
-        long quantity = 0;
-
-        if (bid.getOpenQuantity() >= ask.getOpenQuantity())
-            quantity = ask.getOpenQuantity();
-        else
-            quantity = bid.getOpenQuantity();
+        long quantity = bid.getOpenQuantity() >= ask.getOpenQuantity() ? ask.getOpenQuantity() : bid.getOpenQuantity();
 
         bid.execute(price, quantity);
         ask.execute(price, quantity);
     }
 
     public boolean insert(Order order) {
-        boolean inserted = false;
-        if (order.getSide() == Side.BUY) {
-            inserted = insert(order, true, bidOrders);
-        } else {
-            inserted = insert(order, false, askOrders);
-        }
-        return inserted;
+        return order.getSide() == Side.BUY ? insert(order, true, bidOrders) : insert(order, false, askOrders);
     }
 
     private boolean insert(Order order, boolean descending, List<Order> orders) {
@@ -110,13 +99,7 @@ public class Market {
     }
 
     public Order find(String symbol, char side, String id) {
-        Order order = null;
-        if (side == Side.BUY) {
-            order = find(bidOrders, id);
-        } else {
-            order = find(askOrders, id);
-        }
-        return order;
+        return find(side == Side.BUY ? bidOrders : askOrders, id);
     }
 
     private Order find(List<Order> orders, String clientOrderId) {

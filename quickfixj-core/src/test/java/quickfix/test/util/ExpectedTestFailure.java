@@ -17,8 +17,7 @@ import junit.framework.Assert;
  * @author Toli Kuznets
  * @version $Id: ExpectedTestFailure.java 211 2006-07-20 15:08:14Z toli $
  */
-public abstract class ExpectedTestFailure
-{
+public abstract class ExpectedTestFailure {
     private String mContains;
     private Class<?> mThrowable;
 
@@ -26,8 +25,7 @@ public abstract class ExpectedTestFailure
         this(inThrowable, null);
     }
 
-    public ExpectedTestFailure(Class<?> inThrowable, String inContains)
-    {
+    public ExpectedTestFailure(Class<?> inThrowable, String inContains) {
         mThrowable = inThrowable;
         mContains = inContains;
     }
@@ -39,8 +37,7 @@ public abstract class ExpectedTestFailure
     protected abstract void execute() throws Throwable;
 
     /** Executes the code that was implemented in @link {execute()} method */
-    public Throwable run()
-    {
+    public Throwable run() {
         try {
             execute();
         } catch(Throwable error) {
@@ -61,17 +58,16 @@ public abstract class ExpectedTestFailure
      *
      * @param inError throwable to validate
      */
-    protected void validateError(Throwable inError)
-    {
-        if ((mThrowable!=null) &&
+    protected void validateError(Throwable inError) {
+        if ((mThrowable != null) &&
             (!mThrowable.isAssignableFrom(inError.getClass()))) {
             Assert.fail("Thrown throwable was of the wrong class: "+
                         inError.getClass()+": "+inError);
         }
-        if ((mContains!=null) &&
-            (((inError.getMessage()==null) ||
-             (inError.getMessage().indexOf(mContains)==-1))) &&
-            (inError.toString().indexOf(mContains) == -1)) {
+        if ((mContains != null) &&
+            (((inError.getMessage() == null) ||
+             (!inError.getMessage().contains(mContains)))) &&
+             (!inError.toString().contains(mContains))) {
             Assert.fail("Thrown throwable contained incorrect message: "+
                         "looking for '" + mContains + "' in '" + inError.getMessage() + "'");
         }

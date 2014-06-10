@@ -237,7 +237,7 @@ public class DataDictionary {
      */
     public boolean isAdminMessage(String msgType) {
         // Categories are interned
-        return messageCategory.get(msgType) == MESSAGE_CATEGORY_ADMIN;
+        return MESSAGE_CATEGORY_ADMIN.equals(messageCategory.get(msgType));
     }
 
     /**
@@ -248,7 +248,7 @@ public class DataDictionary {
      */
     public boolean isAppMessage(String msgType) {
         // Categories are interned
-        return messageCategory.get(msgType) == MESSAGE_CATEGORY_APP;
+        return MESSAGE_CATEGORY_APP.equals(messageCategory.get(msgType));
     }
 
     private void addMsgField(String msgType, int field) {
@@ -282,10 +282,8 @@ public class DataDictionary {
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
-        if (messageFields.get(HEADER_ID) == null) {
-            return false;
-        }
-        return messageFields.get(HEADER_ID).contains(field);
+        Set<Integer> fields = messageFields.get(HEADER_ID);
+        return fields != null && fields.contains(field);
     }
 
     /**
@@ -296,10 +294,8 @@ public class DataDictionary {
      * @return true if field is a trailer field, false otherwise.
      */
     public boolean isTrailerField(int field) {
-        if (messageFields.get(TRAILER_ID) == null) {
-            return false;
-        }
-        return messageFields.get(TRAILER_ID).contains(field);
+        Set<Integer> fields = messageFields.get(TRAILER_ID);
+        return fields != null && fields.contains(field);
     }
 
     private void addFieldType(int field, FieldType fieldType) {
@@ -327,7 +323,7 @@ public class DataDictionary {
      */
     public int getFieldTag(String name) {
         final Integer tag = names.get(name);
-        return tag != null ? tag.intValue() : -1;
+        return tag != null ? tag : -1;
     }
 
     private void addRequiredField(String msgType, int field) {
@@ -417,9 +413,8 @@ public class DataDictionary {
         }
 
         // MultipleValueString
-        final String[] values = value.split(" ");
-        for (int i = 0; i < values.length; i++) {
-            if (!validValues.contains(values[i])) {
+        for (String val : value.split(" ")) {
+            if (!validValues.contains(val)) {
                 return false;
             }
         }
@@ -568,9 +563,7 @@ public class DataDictionary {
     @SuppressWarnings("unchecked")
     private <K,V> void copyMap(Map<K,V> lhs, Map<K,V> rhs) {
         lhs.clear();
-        final Iterator<?> entries = rhs.entrySet().iterator();
-        while (entries.hasNext()) {
-            final Map.Entry<K,V> entry = (Map.Entry<K,V>) entries.next();
+        for (Map.Entry<K, V> entry : rhs.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof Collection) {
                 Collection<V> copy;
@@ -705,11 +698,7 @@ public class DataDictionary {
 
     // / If we need to check for the tag in the dictionary
     private boolean shouldCheckTag(Field<?> field) {
-        if (!checkUserDefinedFields && field.getField() >= USER_DEFINED_TAG_MIN) {
-            return false;
-        } else {
-            return true;
-        }
+        return checkUserDefinedFields || field.getField() < USER_DEFINED_TAG_MIN;
     }
 
     // / Check if field tag number is defined in spec.
@@ -837,9 +826,7 @@ public class DataDictionary {
             return;
         }
 
-        final Iterator<Integer> fieldItr = requiredFieldsForMessage.iterator();
-        while (fieldItr.hasNext()) {
-            final int field = (fieldItr.next()).intValue();
+        for (int field : requiredFieldsForMessage) {
             if (!fields.isSetField(field)) {
                 throw new FieldException(SessionRejectReason.REQUIRED_TAG_MISSING, field);
             }
@@ -847,17 +834,12 @@ public class DataDictionary {
 
         final Map<Integer, List<Group>> groups = fields.getGroups();
         if (groups.size() > 0) {
-            final Iterator<Map.Entry<Integer, List<Group>>> groupIter = groups.entrySet()
-                    .iterator();
-            while (groupIter.hasNext()) {
-                final Map.Entry<Integer, List<Group>> entry = groupIter.next();
-                final GroupInfo p = getGroup(msgType, (entry.getKey()).intValue());
+            for (Map.Entry<Integer, List<Group>> entry : groups.entrySet()) {
+                final GroupInfo p = getGroup(msgType, entry.getKey());
                 if (p != null) {
-                    final List<Group> groupInstances = entry.getValue();
-                    for (int i = 0; i < groupInstances.size(); i++) {
-                        final FieldMap groupFields = groupInstances.get(i);
-                        p.getDataDictionary().checkHasRequired(groupFields, groupFields,
-                                groupFields, msgType, bodyOnly);
+                    for (Group groupInstance : entry.getValue()) {
+                        p.getDataDictionary().checkHasRequired(groupInstance, groupInstance,
+                                groupInstance, msgType, bodyOnly);
                     }
                 }
             }
@@ -1122,7 +1104,7 @@ public class DataDictionary {
         if (fieldNumber == null) {
             throw new ConfigError("Field " + name + " not defined in fields section");
         }
-        return fieldNumber.intValue();
+        return fieldNumber;
     }
 
     private int addXMLComponentFields(Document document, Node node, String msgtype,
@@ -1209,8 +1191,7 @@ public class DataDictionary {
                 if (required != null && required.equalsIgnoreCase("Y") && groupRequired) {
                     groupDD.addRequiredField(msgtype, field);
                 }
-                final boolean isRequired = required == null ? false : required
-                        .equalsIgnoreCase("Y");
+                final boolean isRequired = required != null && required.equalsIgnoreCase("Y");
                 addXMLGroup(document, fieldNode, msgtype, groupDD, isRequired);
             }
             if (delim == 0) {
@@ -1270,14 +1251,10 @@ public class DataDictionary {
 
         @Override
         public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof IntStringPair)) {
-                return false;
-            }
-            return intValue == ((IntStringPair) other).intValue
-                    && stringValue.equals(((IntStringPair) other).stringValue);
+            return this == other
+                    || other instanceof IntStringPair
+                       && intValue == ((IntStringPair) other).intValue
+                       && stringValue.equals(((IntStringPair) other).stringValue);
         }
 
         @Override
@@ -1335,14 +1312,10 @@ public class DataDictionary {
 
         @Override
         public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof GroupInfo)) {
-                return false;
-            }
-            return delimiterField == ((GroupInfo) other).delimiterField
-                    && dataDictionary.equals(((GroupInfo) other).dataDictionary);
+            return this == other
+                    || other instanceof GroupInfo
+                       && delimiterField == ((GroupInfo) other).delimiterField
+                       && dataDictionary.equals(((GroupInfo) other).dataDictionary);
         }
 
         @Override

@@ -51,7 +51,7 @@ import quickfix.field.converter.IntConverter;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
- * abstraction where the code doesn't need to make the acceptor/initator distinction.
+ * abstraction where the code doesn't need to make the acceptor/initiator distinction.
  */
 public abstract class SessionConnector implements Connector {
     public static final String SESSIONS_PROPERTY = "sessions";
@@ -154,12 +154,12 @@ public abstract class SessionConnector implements Connector {
      */
     public boolean isLoggedOn() {
     	//if no session, not logged on
-        if (sessions.isEmpty()) return false;
-        Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
-        while (sessionItr.hasNext()) {
-            Session session = sessionItr.next();
+        if (sessions.isEmpty())
+            return false;
+        for (Session session : sessions.values()) {
             //at least one session not logged on
-            if (!session.isLoggedOn()) return false;
+            if (!session.isLoggedOn())
+                return false;
         }
         //all the sessions are logged on
         return true;
@@ -167,9 +167,7 @@ public abstract class SessionConnector implements Connector {
 
     private Set<quickfix.Session> getLoggedOnSessions() {
         Set<quickfix.Session> loggedOnSessions = new HashSet<quickfix.Session>(sessions.size());
-        Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
-        while (sessionItr.hasNext()) {
-            Session session = sessionItr.next();
+        for (Session session : sessions.values()) {
             if (session.isLoggedOn()) {
                 loggedOnSessions.add(session);
             }
@@ -180,12 +178,10 @@ public abstract class SessionConnector implements Connector {
     protected void logoutAllSessions(boolean forceDisconnect) {
         log.info("Logging out all sessions");
         if (sessions == null) {
-            log.error("Attempt to logout all sessions before intialization is complete.");
+            log.error("Attempt to logout all sessions before initialization is complete.");
             return;
         }
-        Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
-        while (sessionItr.hasNext()) {
-            quickfix.Session session = sessionItr.next();
+        for (Session session : sessions.values()) {
             try {
                 session.logout();
             } catch (Throwable e) {
@@ -194,9 +190,7 @@ public abstract class SessionConnector implements Connector {
         }
 
         if (forceDisconnect && isLoggedOn()) {
-            sessionItr = sessions.values().iterator();
-            while (sessionItr.hasNext()) {
-                quickfix.Session session = (quickfix.Session) sessionItr.next();
+            for (Session session : sessions.values()) {
                 try {
                     if (session.isLoggedOn()) {
                         session.disconnect("Forcibly disconnecting session", false);
@@ -276,9 +270,7 @@ public abstract class SessionConnector implements Connector {
     private class SessionTimerTask implements Runnable {
         public void run() {
             try {
-                Iterator<quickfix.Session> sessionItr = sessions.values().iterator();
-                while (sessionItr.hasNext()) {
-                    quickfix.Session session = sessionItr.next();
+                for (Session session : sessions.values()) {
                     try {
                         session.next();
                     } catch (IOException e) {

@@ -194,7 +194,7 @@ public class CachedFileStore implements MessageStore {
                     final int sequenceNumber = headerDataInputStream.readInt();
                     final long offset = headerDataInputStream.readLong();
                     final int size = headerDataInputStream.readInt();
-                    messageIndex.put(Long.valueOf(sequenceNumber), new long[] { offset, size });
+                    messageIndex.put((long) sequenceNumber, new long[] { offset, size });
                 }
             } finally {
                 headerDataInputStream.close();
@@ -319,7 +319,6 @@ public class CachedFileStore implements MessageStore {
     }
 
     private String read(long offset, long size) throws IOException {
-        String message = null;
         final byte[] data = new byte[(int) size];
 
         messageFileReader.seek(offset);
@@ -327,9 +326,8 @@ public class CachedFileStore implements MessageStore {
             throw new IOException("Truncated input while reading message: "
                     + new String(data, charsetEncoding));
         }
-        message = new String(data, charsetEncoding);
 
-        return message;
+        return new String(data, charsetEncoding);
     }
 
     private Collection<String> getMessage(long startSequence, long endSequence) throws IOException {
@@ -354,7 +352,7 @@ public class CachedFileStore implements MessageStore {
     public boolean set(int sequence, String message) throws IOException {
         final long offset = messageFileWriter.getFilePointer();
         final int size = message.length();
-        messageIndex.put(Long.valueOf(sequence), new long[] { offset, size });
+        messageIndex.put((long) sequence, new long[] { offset, size });
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
         headerDataOutputStream.writeInt(size);
@@ -521,12 +519,10 @@ public class CachedFileStore implements MessageStore {
                             new FileInputStream(headerFile)));
                     while (headerDataInputStream.available() > 0) {
                         final int sequenceNumber = headerDataInputStream.readInt();
-                        final Integer sequenceNumberInteger = Integer.valueOf(sequenceNumber);
                         final long offset = headerDataInputStream.readLong();
                         final int size = headerDataInputStream.readInt();
                         if (sequenceNumber >= startSequence && sequenceNumber <= endSequence) {
-                            indexPerSequenceNumber.put(sequenceNumberInteger, new long[] { offset,
-                                    size });
+                            indexPerSequenceNumber.put(sequenceNumber, new long[] { offset, size});
                         }
                     }
                 } catch (final IOException e) {

@@ -142,7 +142,7 @@ public class Repository {
             // Find enums
             List<?> enumNodes = enums.selectNodes("//dataroot/Enums[Tag=" + tag + "]");
             Collections.sort(enumNodes, new EnumNodeComparator());
-            if (enumNodes != null && !enumNodes.isEmpty()) {
+            if (!enumNodes.isEmpty()) {
                 for (Object enumO : enumNodes) {
                     Node enumNode = (Node) enumO;
                     String enumName = enumNode.selectSingleNode("Enum").getText();

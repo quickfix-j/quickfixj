@@ -111,7 +111,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
     public void setMessage(String message) {
         messageLabel.setText(message);
-        if(message == null || message.equals(""))
+        if (message == null || message.equals(""))
             messageLabel.setText(" ");
     }
 
@@ -189,13 +189,13 @@ public class OrderEntryPanel extends JPanel implements Observer {
         boolean activate = symbolEntered && quantityEntered
                            && sessionEntered;
 
-        if(type == OrderType.MARKET)
+        if (type == OrderType.MARKET)
             submitButton.setEnabled(activate);
-        else if(type == OrderType.LIMIT)
+        else if (type == OrderType.LIMIT)
             submitButton.setEnabled(activate && limitEntered);
-        else if(type == OrderType.STOP)
+        else if (type == OrderType.STOP)
             submitButton.setEnabled(activate && stopEntered);
-        else if(type == OrderType.STOP_LIMIT)
+        else if (type == OrderType.STOP_LIMIT)
             submitButton.setEnabled(activate && limitEntered
                                     && stopEntered);
     }
@@ -206,10 +206,10 @@ public class OrderEntryPanel extends JPanel implements Observer {
             if (item == OrderType.MARKET) {
                 enableLimitPrice(false);
                 enableStopPrice(false);
-            } else if(item == OrderType.STOP) {
+            } else if (item == OrderType.STOP) {
                 enableLimitPrice(false);
                 enableStopPrice(true);
-            } else if(item == OrderType.LIMIT) {
+            } else if (item == OrderType.LIMIT) {
                 enableLimitPrice(true);
                 enableStopPrice(false);
             } else {
@@ -238,7 +238,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
     public void update(Observable o, Object arg) {
         LogonEvent logonEvent = (LogonEvent)arg;
-        if(logonEvent.isLoggedOn())
+        if (logonEvent.isLoggedOn())
             sessionComboBox.addItem(logonEvent.getSessionID());
         else
             sessionComboBox.removeItem(logonEvent.getSessionID());
@@ -257,9 +257,9 @@ public class OrderEntryPanel extends JPanel implements Observer {
             order.setOpen(order.getQuantity());
             
             OrderType type = order.getType();
-            if(type == OrderType.LIMIT || type == OrderType.STOP_LIMIT)
+            if (type == OrderType.LIMIT || type == OrderType.STOP_LIMIT)
                 order.setLimit(limitPriceTextField.getText());
-            if(type == OrderType.STOP || type == OrderType.STOP_LIMIT)
+            if (type == OrderType.STOP || type == OrderType.STOP_LIMIT)
                 order.setStop(stopPriceTextField.getText());
             order.setSessionID((SessionID)sessionComboBox.getSelectedItem());
 
@@ -273,13 +273,13 @@ public class OrderEntryPanel extends JPanel implements Observer {
         implements KeyListener, ItemListener {
         public void keyReleased(KeyEvent e) {
             Object obj = e.getSource();
-            if(obj == symbolTextField) {
+            if (obj == symbolTextField) {
                 symbolEntered = testField(obj);
-            } else if(obj == quantityTextField) {
+            } else if (obj == quantityTextField) {
                 quantityEntered = testField(obj);
-            } else if(obj == limitPriceTextField) {
+            } else if (obj == limitPriceTextField) {
                 limitEntered = testField(obj);
-            } else if(obj == stopPriceTextField) {
+            } else if (obj == stopPriceTextField) {
                 stopEntered = testField(obj);
             }
             activateSubmit();

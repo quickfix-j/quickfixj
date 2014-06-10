@@ -161,7 +161,7 @@ public class SessionID implements Serializable {
     }
 
     public boolean equals(Object object) {
-        return object != null ? toString().equals(object.toString()) : false;
+        return object != null && toString().equals(object.toString());
     }
 
     public String toString() {

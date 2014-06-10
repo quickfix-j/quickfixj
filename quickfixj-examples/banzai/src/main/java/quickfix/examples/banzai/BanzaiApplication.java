@@ -205,7 +205,7 @@ public class BanzaiApplication implements Application {
             return;
         }
 
-        BigDecimal fillSize = BigDecimal.ZERO;
+        BigDecimal fillSize;
 
         if (message.isSetField(LastShares.FIELD)) {
             LastShares lastShares = new LastShares();
@@ -315,7 +315,6 @@ public class BanzaiApplication implements Application {
             send44(order);
         else if (beginString.equals(FixVersions.BEGINSTRING_FIXT11))
             send50(order);
-        return;
     }
 
     public void send40(Order order) {
@@ -404,7 +403,6 @@ public class BanzaiApplication implements Application {
             cancel41(order);
         else if (beginString.equals("FIX.4.2"))
             cancel42(order);
-        return;
     }
 
     public void cancel40(Order order) {
@@ -448,7 +446,6 @@ public class BanzaiApplication implements Application {
             replace41(order, newOrder);
         else if (beginString.equals("FIX.4.2"))
             replace42(order, newOrder);
-        return;
     }
 
     public void replace40(Order order, Order newOrder) {

@@ -42,10 +42,9 @@ class ATMessageCracker extends quickfix.MessageCracker {
 
         Pair pair = new Pair(clOrdID, sessionID);
 
-        if (possResend.getValue() == true) {
-            if (orderIDs.contains(pair))
-                return;
-        }
+        if (possResend.getValue() && orderIDs.contains(pair))
+            return;
+
         orderIDs.add(pair);
         try {
             Session.sendToTarget(echo, sessionID);
@@ -60,9 +59,8 @@ class ATMessageCracker extends quickfix.MessageCracker {
 
     public void onMessage(quickfix.fix50.SecurityDefinition message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        quickfix.fix50.SecurityDefinition echo = message;
         try {
-            Session.sendToTarget(echo, sessionID);
+            Session.sendToTarget(message, sessionID);
         } catch (SessionNotFound snf) {
             snf.printStackTrace();
         }
@@ -75,9 +73,8 @@ class ATMessageCracker extends quickfix.MessageCracker {
 
     public void onMessage(quickfix.fix44.SecurityDefinition message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        quickfix.fix44.SecurityDefinition echo = message;
         try {
-            Session.sendToTarget(echo, sessionID);
+            Session.sendToTarget(message, sessionID);
         } catch (SessionNotFound snf) {
             snf.printStackTrace();
         }
@@ -90,9 +87,8 @@ class ATMessageCracker extends quickfix.MessageCracker {
 
     public void onMessage(quickfix.fix43.SecurityDefinition message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        quickfix.fix43.SecurityDefinition echo = message;
         try {
-            Session.sendToTarget(echo, sessionID);
+            Session.sendToTarget(message, sessionID);
         } catch (SessionNotFound snf) {
             snf.printStackTrace();
         }
@@ -105,9 +101,8 @@ class ATMessageCracker extends quickfix.MessageCracker {
 
     public void onMessage(quickfix.fix42.SecurityDefinition message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-        quickfix.fix42.SecurityDefinition echo = message;
         try {
-            Session.sendToTarget(echo, sessionID);
+            Session.sendToTarget(message, sessionID);
         } catch (SessionNotFound snf) {
             snf.printStackTrace();
         }
@@ -139,7 +134,7 @@ class ATMessageCracker extends quickfix.MessageCracker {
             if (object == null) {
                 return false;
             }
-            if (object instanceof Pair == false) {
+            if (!(object instanceof Pair)) {
                 return false;
             }
             Pair pair = (Pair) object;

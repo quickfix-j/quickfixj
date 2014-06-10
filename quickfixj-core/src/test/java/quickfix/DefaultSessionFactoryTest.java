@@ -64,11 +64,10 @@ public class DefaultSessionFactoryTest {
         }
         assertNotNull(e);
         
-        Session sess = null;
         settings.setString(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID, "5");
         e = null;
         try {
-            sess = factory.create(sessionID, settings);
+            Session sess = factory.create(sessionID, settings);
             assertNotNull(sess);
             assertEquals(new ApplVerID("5"), sess.getSenderDefaultApplicationVersionID());
         } catch (Exception ex) {
@@ -138,7 +137,7 @@ public class DefaultSessionFactoryTest {
         } catch (DataDictionary.Exception e) {
             assertTrue("exception message not matched, expected: " + "... Could not find data ..."
                     + ", got: " + e.getMessage(),
-                    e.getMessage().indexOf("Could not find data") != -1);
+                    e.getMessage().contains("Could not find data"));
         }
     }
 

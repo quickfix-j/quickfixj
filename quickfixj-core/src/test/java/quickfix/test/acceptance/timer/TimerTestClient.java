@@ -60,11 +60,6 @@ public class TimerTestClient extends MessageCracker implements Application {
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean failed;
 
-    public void crack(Message message, SessionID sessionID) throws UnsupportedMessageType,
-            FieldNotFound, IncorrectTagValue {
-        super.crack(message, sessionID);
-    }
-
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
     }

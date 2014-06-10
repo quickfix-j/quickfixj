@@ -156,11 +156,6 @@ public class MessageTest {
                 super();
                 header = new Header(headerFieldOrder);
             }
-            
-            @Override
-            public String toString() {
-                return super.toString();
-            }
         }
 
         final MyMessage myMessage = new MyMessage();
@@ -183,11 +178,6 @@ public class MessageTest {
             public MyMessage() {
                 super();
                 trailer = new Trailer(trailerFieldOrder);
-            }
-            
-            @Override
-            public String toString() {
-                return super.toString();
             }
         }
 
@@ -431,7 +421,7 @@ public class MessageTest {
         partyGroup.setField(new PartyRole(11));
         order.addGroup(partyGroup);
         final String data = order.toString();
-        assertTrue("wrong field order", data.indexOf("453=1\001448=TraderName") != -1);
+        assertTrue("wrong field order", data.contains("453=1\001448=TraderName"));
     }
 
     @Test
@@ -657,7 +647,7 @@ public class MessageTest {
         final String actualMessageString = message.toString();
         assertTrue(
                 "wrong field ordering",
-                actualMessageString.indexOf("453=2\001448=8\001447=D\001452=4\001448=AAA35354\001447=D\001452=3") != -1);
+                actualMessageString.contains("453=2\001448=8\001447=D\001452=4\001448=AAA35354\001447=D\001452=3"));
     }
 
     @Test
@@ -1227,7 +1217,7 @@ public class MessageTest {
             // For now, this will not cause an exception if the length and checksum are correct
         } catch (final Exception e) {
             final String text = e.getMessage();
-            assertTrue("Wrong exception message: " + text, text.indexOf("Actual body length") == -1);
+            assertTrue("Wrong exception message: " + text, !text.contains("Actual body length"));
         }
     }
 
@@ -1271,7 +1261,7 @@ public class MessageTest {
             // For now, this will not cause an exception if the length and checksum are correct
         } catch (final Exception e) {
             final String text = e.getMessage();
-            assertTrue("Wrong exception message: " + text, text.indexOf("Actual body length") == -1);
+            assertTrue("Wrong exception message: " + text, !text.contains("Actual body length"));
         }
     }
 
@@ -1285,7 +1275,7 @@ public class MessageTest {
         } catch (final Exception e) {
             final String text = e.getMessage();
             assertTrue("Wrong exception message: " + text,
-                    text != null && text.indexOf("Actual body length") == -1);
+                    text != null && !text.contains("Actual body length"));
         }
     }
 
@@ -1310,7 +1300,7 @@ public class MessageTest {
         } catch (final Exception e) {
             final String text = e.getMessage();
             assertTrue("Wrong exception message: " + text,
-                    text != null && text.indexOf("Actual body length") == -1);
+                    text != null && !text.contains("Actual body length"));
         }
     }
 
@@ -1335,7 +1325,7 @@ public class MessageTest {
         } catch (final Exception e) {
             final String text = e.getMessage();
             assertTrue("Wrong exception message: " + text,
-                    text != null && text.indexOf("Actual body length") == -1);
+                    text != null && !text.contains("Actual body length"));
         }
     }
 
@@ -1397,7 +1387,7 @@ public class MessageTest {
     }
 
     private void assertGroupContent(Message message, NewOrderSingle.NoAllocs numAllocs) {
-        StringField field = null;
+        StringField field;
         final java.util.Iterator<Field<?>> i = numAllocs.iterator();
         assertTrue(i.hasNext());
         field = (StringField) i.next();

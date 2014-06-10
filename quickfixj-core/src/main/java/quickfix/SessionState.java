@@ -452,7 +452,7 @@ public final class SessionState {
     }
     
     /**
-     * @param nextExpectedMsgSeqNum
+     * @param lastExpectedLogonNextSeqNum
      * 
      * This method is thread safe (atomic set).
      */

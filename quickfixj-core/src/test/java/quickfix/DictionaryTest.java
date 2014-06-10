@@ -197,37 +197,37 @@ public class DictionaryTest extends TestCase {
     public void testGetDay() throws Exception {
         Dictionary object = new Dictionary();
         
-        object.setString( "DAY1", "SU" );
-        object.setString( "DAY2", "MO" );
-        object.setString( "DAY3", "TU" );
-        object.setString( "DAY4", "WE" );
-        object.setString( "DAY5", "TH" );
-        object.setString( "DAY6", "FR" );
-        object.setString( "DAY7", "SA" );
+        object.setString("DAY1", "SU");
+        object.setString("DAY2", "MO");
+        object.setString("DAY3", "TU");
+        object.setString("DAY4", "WE");
+        object.setString("DAY5", "TH");
+        object.setString("DAY6", "FR");
+        object.setString("DAY7", "SA");
 
-        assertEquals( 1, object.getDay( "DAY1" ));
-        assertEquals( 2, object.getDay( "DAY2" ));
-        assertEquals( 3, object.getDay( "DAY3" ));
-        assertEquals( 4, object.getDay( "DAY4" ) );
-        assertEquals( 5, object.getDay( "DAY5" ));
-        assertEquals( 6, object.getDay( "DAY6" ));
-        assertEquals( 7, object.getDay( "DAY7" ));
+        assertEquals(1, object.getDay("DAY1"));
+        assertEquals(2, object.getDay("DAY2"));
+        assertEquals(3, object.getDay("DAY3"));
+        assertEquals(4, object.getDay("DAY4"));
+        assertEquals(5, object.getDay("DAY5"));
+        assertEquals(6, object.getDay("DAY6"));
+        assertEquals(7, object.getDay("DAY7"));
 
-        object.setDay( "NEXTDAY1", 1 );
-        object.setDay( "NEXTDAY2", 2 );
-        object.setDay( "NEXTDAY3", 3 );
-        object.setDay( "NEXTDAY4", 4 );
-        object.setDay( "NEXTDAY5", 5 );
-        object.setDay( "NEXTDAY6", 6 );
-        object.setDay( "NEXTDAY7", 7 );
+        object.setDay("NEXTDAY1", 1);
+        object.setDay("NEXTDAY2", 2);
+        object.setDay("NEXTDAY3", 3);
+        object.setDay("NEXTDAY4", 4);
+        object.setDay("NEXTDAY5", 5);
+        object.setDay("NEXTDAY6", 6);
+        object.setDay("NEXTDAY7", 7);
 
-        assertEquals( 1, object.getDay( "NEXTDAY1" ));
-        assertEquals( 2, object.getDay( "NEXTDAY2" ));
-        assertEquals( 3, object.getDay( "NEXTDAY3" ));
-        assertEquals( 4, object.getDay( "NEXTDAY4" ));
-        assertEquals( 5, object.getDay( "NEXTDAY5" ));
-        assertEquals( 6, object.getDay( "NEXTDAY6" ));
-        assertEquals( 7, object.getDay( "NEXTDAY7" ));
+        assertEquals(1, object.getDay("NEXTDAY1"));
+        assertEquals(2, object.getDay("NEXTDAY2"));
+        assertEquals(3, object.getDay("NEXTDAY3"));
+        assertEquals(4, object.getDay("NEXTDAY4"));
+        assertEquals(5, object.getDay("NEXTDAY5"));
+        assertEquals(6, object.getDay("NEXTDAY6"));
+        assertEquals(7, object.getDay("NEXTDAY7"));
 
     }
 }

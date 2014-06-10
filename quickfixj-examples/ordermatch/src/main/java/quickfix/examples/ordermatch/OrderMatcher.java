@@ -21,7 +21,6 @@ package quickfix.examples.ordermatch;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 public class OrderMatcher {
     private HashMap<String, Market> markets = new HashMap<String, Market>();
@@ -52,8 +51,7 @@ public class OrderMatcher {
     }
 
     public void display() {
-        for (Iterator<String> iter = markets.keySet().iterator(); iter.hasNext();) {
-            String symbol = iter.next();
+        for (String symbol : markets.keySet()) {
             System.out.println("MARKET: " + symbol);
             display(symbol);
         }

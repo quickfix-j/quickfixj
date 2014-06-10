@@ -25,8 +25,8 @@ public class SessionAdminTest extends TestCase {
 
     private class MockSessionAdmin extends SessionAdmin {
         ArrayList<Message> sentMessages = new ArrayList<Message>();
-        public MockSessionAdmin(Session session, ObjectName connnectorName, ObjectName settingsName) {
-            super(session, connnectorName, settingsName);
+        public MockSessionAdmin(Session session, ObjectName connectorName, ObjectName settingsName) {
+            super(session, connectorName, settingsName);
         }
 
         protected void doSend(Message message, SessionID sessionID) throws SessionNotFound {

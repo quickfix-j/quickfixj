@@ -137,7 +137,7 @@ public class JdbcLogTest extends TestCase {
                 .executeQuery("select time,beginstring,sendercompid,targetcompid,session_qualifier,text from "
                         + tableName + " WHERE text = '"+text+"'");
         int n = 0;
-        boolean rowFound = false;
+        boolean rowFound;
         while ((rowFound = rs.next()) && n < rowOffset)
             n++;
         assertTrue("No row found: "+text, rowFound);

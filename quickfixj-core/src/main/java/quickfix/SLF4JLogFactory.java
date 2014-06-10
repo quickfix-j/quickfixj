@@ -90,7 +90,7 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
             if (settings.isSetting(sessionID, SETTING_PREPEND_SESSION_ID)) {
                 prependSessionID = settings.getBool(sessionID, SETTING_PREPEND_SESSION_ID);
             }
-            if ( settings.isSetting(sessionID, SETTING_LOG_HEARTBEATS)) {
+            if (settings.isSetting(sessionID, SETTING_LOG_HEARTBEATS)) {
                 logHeartbeats = settings.getBool(sessionID, SETTING_LOG_HEARTBEATS);
             }
         } catch (RuntimeException e) {

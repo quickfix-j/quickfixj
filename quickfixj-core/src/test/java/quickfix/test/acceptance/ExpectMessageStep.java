@@ -82,9 +82,8 @@ public class ExpectMessageStep implements TestStep {
         if (message == null) {
             log.info("Dumping threads due to timeout when expecting a message...");
             ReflectionUtil.dumpStackTraces();
-            long[] threadIds = {};
             final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-            threadIds = bean.findDeadlockedThreads();
+            long[] threadIds = bean.findDeadlockedThreads();
 
             final List<String> deadlockedThreads = new ArrayList<String>();
             if (threadIds != null) {
@@ -116,9 +115,7 @@ public class ExpectMessageStep implements TestStep {
 
     private void assertMessageEqual(Map<String, String> actualFields) {
         Assert.assertEquals("wrong msg type", expectedFields.get("35"), actualFields.get("35"));
-        Iterator<Map.Entry<String, String>> fieldIterator = actualFields.entrySet().iterator();
-        while (fieldIterator.hasNext()) {
-            Map.Entry<String, String> entry = fieldIterator.next();
+        for (Map.Entry<String, String> entry : actualFields.entrySet()) {
             Object key = entry.getKey();
             if (timeFields.contains(key) || key.equals("10") || key.equals("9")) {
                 continue;
@@ -128,8 +125,8 @@ public class ExpectMessageStep implements TestStep {
             }
             if (key.equals("58")) {
                 Assert.assertTrue("field " + key + " not equal: actual=" + entry.getValue()
-                        + ",expected(prefix)=" + expectedFields.get(key), entry.getValue()
-                        .toString().startsWith(expectedFields.get(key)));
+                        + ",expected(prefix)=" + expectedFields.get(key),
+                        entry.getValue().startsWith(expectedFields.get(key)));
             } else if (!expectedFields.containsKey(key)) {
                 Assert.fail("Unexpected field " + key + ",value=" + entry.getValue());
             } else {
@@ -137,9 +134,7 @@ public class ExpectMessageStep implements TestStep {
                         .getValue());
             }
         }
-        Iterator<String> expectedKey = expectedFields.keySet().iterator();
-        while (expectedKey.hasNext()) {
-            String key = expectedKey.next();
+        for (String key : expectedFields.keySet()) {
             Assert.assertTrue("missing expected field: " + key, actualFields.containsKey(key));
         }
         Iterator<String> timeFieldItr = timeFields.iterator();

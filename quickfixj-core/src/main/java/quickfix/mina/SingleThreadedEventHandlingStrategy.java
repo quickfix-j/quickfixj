@@ -83,7 +83,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     private SessionMessageEvent getMessage() throws InterruptedException {
-        return (SessionMessageEvent) eventQueue.poll(1000L, TimeUnit.MILLISECONDS);
+        return eventQueue.poll(1000L, TimeUnit.MILLISECONDS);
     }
 
     public void blockInThread() {

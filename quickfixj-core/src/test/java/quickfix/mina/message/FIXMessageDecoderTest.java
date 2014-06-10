@@ -272,9 +272,9 @@ public class FIXMessageDecoderTest {
 
     private void assertCorrectlyExtractedMessages(List<String> messages) {
         assertEquals("wrong # of messages", 4, messages.size());
-        for (int i = 0; i < messages.size(); i++) {
+        for (String message : messages) {
             assertEquals("wrong message", "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001",
-                    messages.get(i));
+                    message);
         }
     }
 
@@ -524,7 +524,7 @@ public class FIXMessageDecoderTest {
             }
         }
         // Make sure every byte from the pattern was parsed
-        if(dataOffset < data.length) {
+        if (dataOffset < data.length) {
             return -1;
         }
         return bufferOffset - initOffset;
@@ -566,6 +566,6 @@ public class FIXMessageDecoderTest {
         public String toString() {
             return _offset + "," + _length;
         }
-    };    
+    }
 
 }

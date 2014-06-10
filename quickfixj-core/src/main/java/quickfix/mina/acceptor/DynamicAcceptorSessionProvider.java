@@ -148,7 +148,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
                 optionallySetValue(dynamicSettings, TARGETSUBID, sessionID.getTargetSubID());
                 optionallySetValue(dynamicSettings, TARGETLOCID, sessionID.getTargetLocationID());
                 s = sessionFactory.create(sessionID, dynamicSettings);
-                if(sessionConnector != null) {
+                if (sessionConnector != null) {
                     sessionConnector.addDynamicSession(s);
                 }
             } catch (ConfigError e) {
@@ -186,9 +186,7 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     }
 
     protected void copySettings(SessionSettings settings, Properties properties) {
-        Iterator<Map.Entry<Object, Object>> entries = properties.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry<Object, Object> e = entries.next();
+        for (Map.Entry<Object, Object> e : properties.entrySet()) {
             settings.setString((String) e.getKey(), e.getValue().toString());
         }
     }

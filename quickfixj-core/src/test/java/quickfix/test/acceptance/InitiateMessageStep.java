@@ -91,7 +91,7 @@ public class InitiateMessageStep implements TestStep {
             clientId = 1;
             message = data.substring(1);
         }
-        if (message.indexOf("\00110=") == -1) {
+        if (!message.contains("\00110=")) {
             message += "10=" + CHECKSUM_FORMAT.format(MessageUtils.checksum(message)) + '\001';
         }
         log.debug("sending to client " + clientId + ": " + message);
@@ -105,7 +105,7 @@ public class InitiateMessageStep implements TestStep {
     }
 
     private String modifyHeartbeat(String messageTail) {
-        if (heartBeatOverride > 0 && messageTail.indexOf("35=A\001") != -1) {
+        if (heartBeatOverride > 0 && messageTail.contains("35=A\001")) {
             Matcher matcher = HEARTBEAT_PATTERN.matcher(messageTail);
             if (matcher.find()) {
                 return matcher.replaceFirst("108=" + heartBeatOverride + "\001");

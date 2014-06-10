@@ -122,8 +122,7 @@ public class Executor {
         }
         int acceptorPort = (int) settings.getLong(sessionID, SETTING_SOCKET_ACCEPT_PORT);
 
-        InetSocketAddress address = new InetSocketAddress(acceptorHost, acceptorPort);
-        return address;
+        return new InetSocketAddress(acceptorHost, acceptorPort);
     }
 
     private boolean isSessionTemplate(SessionSettings settings, SessionID sessionID)
@@ -145,7 +144,7 @@ public class Executor {
         acceptor.stop();
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         try {
             InputStream inputStream = getSettingsInputStream(args);
             SessionSettings settings = new SessionSettings(inputStream);

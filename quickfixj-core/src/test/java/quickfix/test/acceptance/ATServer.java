@@ -156,7 +156,7 @@ public class ATServer implements Runnable {
 
             ATApplication application = new ATApplication();
             MessageStoreFactory factory = usingMemoryStore
-                    ? (MessageStoreFactory) new MemoryStoreFactory()
+                    ? new MemoryStoreFactory()
                     : new FileStoreFactory(settings);
             //MessageStoreFactory factory = new JdbcStoreFactory(settings);
             //LogFactory logFactory = new CommonsLogFactory(settings);
@@ -175,7 +175,7 @@ public class ATServer implements Runnable {
             try {
                 acceptor.start();
             } catch (RuntimeError e) {
-                if ( e.getCause() instanceof BindException ) {
+                if (e.getCause() instanceof BindException) {
                     log.warn("Acceptor port " + port + " is still bound! Waiting 60 seconds and trying again...");
                     Thread.sleep(60000);
                     acceptor.start();
@@ -192,9 +192,8 @@ public class ATServer implements Runnable {
                 if (!await) {
                     log.error("ShutdownLatch timed out. Dumping threads...");
                     ReflectionUtil.dumpStackTraces();
-                    long[] threadIds = {};
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-                    threadIds = bean.findDeadlockedThreads();
+                    long[] threadIds = bean.findDeadlockedThreads();
 
                     final List<String> deadlockedThreads = new ArrayList<String>();
                     if (threadIds != null) {
@@ -221,7 +220,7 @@ public class ATServer implements Runnable {
         } finally {
             initializationLatch.countDown();
             try {
-                if ( null != acceptor ) {
+                if (null != acceptor) {
                     acceptor.stop(true);
                 }
             } catch (RuntimeException e) {
@@ -236,8 +235,8 @@ public class ATServer implements Runnable {
         // This is a strange place for this test, but it wasn't convenient
         // to put it elsewhere. Bug #153
         ArrayList<SessionID> sessionIDs = acceptor.getSessions();
-        for (int i = 0; i < sessionIDs.size(); i++) {
-            Assert.assertTrue(sessionIDs.get(i) instanceof SessionID);
+        for (SessionID sessionID : sessionIDs) {
+            Assert.assertTrue(sessionID instanceof SessionID);
         }
     }
 

@@ -129,8 +129,7 @@ public class MessageCodeGenerator {
         List<String> fieldNames = getNames(document.getDocumentElement(), "fields/field");
         try {
             Transformer transformer = createTransformer(task, "Fields.xsl");
-            for (int i = 0; i < fieldNames.size(); i++) {
-                String fieldName = fieldNames.get(i);
+            for (String fieldName : fieldNames) {
                 String outputFile = outputDirectory + fieldName + ".java";
                 if (!new File(outputFile).exists()) {
                     logDebug("field: " + fieldName);
@@ -160,8 +159,7 @@ public class MessageCodeGenerator {
         Document document = getSpecification(task);
         List<String> messageNames = getNames(document.getDocumentElement(), "messages/message");
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
-        for (int i = 0; i < messageNames.size(); i++) {
-            String messageName = messageNames.get(i);
+        for (String messageName : messageNames) {
             logDebug("generating message class: " + messageName);
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", messageName);
@@ -187,8 +185,7 @@ public class MessageCodeGenerator {
             writePackageDocumentation(outputDirectory, "Message component classes");
         }
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
-        for (int i = 0; i < componentNames.size(); i++) {
-            String componentName = componentNames.get(i);
+        for (String componentName : componentNames) {
             logDebug("generating component class: " + componentName);
             Map<String, String> parameters = new HashMap<String, String>();
             parameters.put("itemName", componentName);
@@ -207,15 +204,14 @@ public class MessageCodeGenerator {
             throws TransformerFactoryConfigurationError, TransformerConfigurationException {
     	StreamSource styleSource;
     	File xslt = new File(task.getTransformDirectory() + "/" + xsltFile);
-    	if (xslt.exists()){
+    	if (xslt.exists()) {
     		styleSource = new StreamSource(xslt);
     	} else {
     		logInfo("Loading predefined xslt file:"+xsltFile);
-    		styleSource = new StreamSource( this.getClass().getResourceAsStream(xsltFile));
+    		styleSource = new StreamSource(this.getClass().getResourceAsStream(xsltFile));
     	}
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer(styleSource);
-        return transformer;
+        return transformerFactory.newTransformer(styleSource);
     }
 
     private Map<String, Document> specificationCache = new HashMap<String, Document>();
@@ -273,10 +269,8 @@ public class MessageCodeGenerator {
             throws TransformerFactoryConfigurationError, TransformerConfigurationException,
             FileNotFoundException, TransformerException {
         if (parameters != null) {
-            Iterator<Map.Entry<String, String>> paramItr = parameters.entrySet().iterator();
-            while (paramItr.hasNext()) {
-                Map.Entry<String, String> entry = paramItr.next();
-                transformer.setParameter((String) entry.getKey(), entry.getValue());
+            for (Map.Entry<String, String> entry : parameters.entrySet()) {
+                transformer.setParameter(entry.getKey(), entry.getValue());
             }
         }
 
@@ -444,10 +438,10 @@ public class MessageCodeGenerator {
             long start = System.currentTimeMillis();
             final String[] versions = { "FIXT 1.1", "FIX 5.0", "FIX 4.4", "FIX 4.3", "FIX 4.2",
                     "FIX 4.1", "FIX 4.0" };
-            for (int i = 0; i < versions.length; ++i) {
+            for (String ver : versions) {
                 Task task = new Task();
-                task.setName(versions[i]);
-                final String version = versions[i].replaceAll("[ .]", "");
+                task.setName(ver);
+                final String version = ver.replaceAll("[ .]", "");
                 task.setSpecification(new File(args[0] + "/" + version + ".xml"));
                 task.setTransformDirectory(new File(args[1]));
                 task.setMessagePackage("quickfix." + version.toLowerCase());
