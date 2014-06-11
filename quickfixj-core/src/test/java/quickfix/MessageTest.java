@@ -34,6 +34,7 @@ import java.util.TimeZone;
 import org.junit.Test;
 
 import org.quickfixj.CharsetSupport;
+import quickfix.field.Account;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
 import quickfix.field.ApplVerID;
@@ -1354,6 +1355,15 @@ public class MessageTest {
         logon.setField(new BytesField(RawData.FIELD, data.getBytes()));
         //logon.set(new RawData(data));
         assertEquals("8=FIX.4.4\0019=21\00135=A\00195=7\00196=rawdata\00110=086\001", logon.toString());
+    }
+
+    @Test
+    //QFJ-786
+    public void testInvalidHeaderFields() throws Exception {
+        String message = "1=03100~11=140605JWI4440~15=USD~21=1~35=D~38=6~40=1~47=A~54=1~55=UNP~59=0~60=20140605-13:58:51.016~63=0~79=03100631~336=1~377=N~581=A~6020=COMPUS~86028=JWI~86029=4440~";
+        message = message.replace('~', (char) 1);
+        Message msg = new Message(message, false);
+        assertTrue(msg.isSetField(Account.FIELD));
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
