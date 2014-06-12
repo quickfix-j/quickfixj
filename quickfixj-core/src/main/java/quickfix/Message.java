@@ -500,14 +500,15 @@ public class Message extends FieldMap {
     }
 
     private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
-        final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
-                && isNextField(dd, header, BodyLength.FIELD)
-                && isNextField(dd, header, MsgType.FIELD);
-
-        if (doValidation && !validHeaderFieldOrder) {
-            // Invalid message preamble (first three fields) is a serious
-            // condition and is handled differently from other message parsing errors.
-            throw new InvalidMessage("Header fields out of order in " + messageData);
+        if (doValidation) {
+            final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
+                    && isNextField(dd, header, BodyLength.FIELD)
+                    && isNextField(dd, header, MsgType.FIELD);
+            if (!validHeaderFieldOrder) {
+                // Invalid message preamble (first three fields) is a serious
+                // condition and is handled differently from other message parsing errors.
+                throw new InvalidMessage("Header fields out of order in " + messageData);
+            }
         }
 
         StringField field = extractField(dd, header);
