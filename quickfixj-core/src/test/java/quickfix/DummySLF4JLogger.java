@@ -5,10 +5,10 @@ import org.slf4j.Marker;
 
 /**
  * Dymmy noop implementation of a {@link Logger} class that doesn't do anything
+ *
  * @author toli
  * @version $Id$
  */
-
 public class DummySLF4JLogger implements Logger {
     public String getName() {
         return null;

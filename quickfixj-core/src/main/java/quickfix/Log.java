@@ -26,39 +26,34 @@ public interface Log {
 
     /**
      * Clears the log and removes any persistent log data.
-     *
      */
     void clear();
 
     /**
      * Logs an incoming message
      *
-     * @param message
-     *            the raw FIX message string
+     * @param message the raw FIX message string
      */
     void onIncoming(String message);
 
     /**
      * Logs an outgoing message
      *
-     * @param message
-     *            the raw FIX message string
+     * @param message the raw FIX message string
      */
     void onOutgoing(String message);
 
     /**
      * Logs a session event.
      *
-     * @param text
-     *            the event description
+     * @param text the event description
      */
     void onEvent(String text);
 
     /**
      * Logs an session error event.
      *
-     * @param text
-     *            the event description
+     * @param text the event description
      */
     void onErrorEvent(String text);
 

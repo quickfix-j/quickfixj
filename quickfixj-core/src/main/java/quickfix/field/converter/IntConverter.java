@@ -28,6 +28,7 @@ public final class IntConverter {
 
     /**
      * Convert and integer to a String
+     *
      * @param i the integer to convert
      * @return the String representing the integer
      * @see java.lang.Long#toString(long)
@@ -38,10 +39,10 @@ public final class IntConverter {
 
     /**
      * Convert a String to an integer.
+     *
      * @param value the String to convert
      * @return the converted integer
-     * @throws FieldConvertError raised if the String does not represent a
-     * valid integer.
+     * @throws FieldConvertError raised if the String does not represent a valid integer
      * @see java.lang.Integer#parseInt(String)
      */
     public static int convert(String value) throws FieldConvertError {

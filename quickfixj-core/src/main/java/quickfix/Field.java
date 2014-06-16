@@ -62,6 +62,7 @@ public /*abstract*/ class Field<T> implements Serializable{
 
     /**
      * Sets the field's value to the given object.
+     *
      * @param object
      */
     protected void setObject(T object) {
@@ -71,6 +72,7 @@ public /*abstract*/ class Field<T> implements Serializable{
 
     /**
      * Get the field value
+     *
      * @return an object representing the field's value
      */
     public T getObject() {
@@ -79,6 +81,7 @@ public /*abstract*/ class Field<T> implements Serializable{
 
     /**
      * Return's the formatted field (tag=value<SOH>)
+     *
      * @return the formatted field
      */
     public String toString() {

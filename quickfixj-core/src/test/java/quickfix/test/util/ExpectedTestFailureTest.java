@@ -6,6 +6,7 @@ import junit.framework.TestSuite;
 
 /**
  * Tests the correctness of the {@link ExpectedTestFailure} utility wrapper
+ *
  * @author Toli Kuznets
  * @version $Id: ExpectedTestFailureTest.java 211 2006-07-20 15:08:14Z toli $
  */
@@ -44,7 +45,9 @@ public class ExpectedTestFailureTest extends TestCase {
             }).run());
     }
 
-    /** Check the case when the exception has a message (toString()) but getMessage() returns null */
+    /**
+     * Check the case when the exception has a message (toString()) but getMessage() returns null
+     */
     public void testExceptinoHasNoMessageButHasString() throws Exception {
         final Exception ex = new Exception() {
             public String toString() {

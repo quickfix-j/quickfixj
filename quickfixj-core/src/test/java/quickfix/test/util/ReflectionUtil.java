@@ -129,6 +129,7 @@ public class ReflectionUtil {
 
     /**
      * Invoke a static method with the specified arguments.
+     *
      * @param methodFqn fully-qualified method name (e.g. "my.package.MyClass.someMethod")
      * @param args the arguments for the method call
      * @return the value returned by the method, if any

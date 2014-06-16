@@ -24,7 +24,6 @@ import quickfix.FileUtil;
  * SSL context factory that deals with Keystores.
  * Caches the created SSL contexts for future reuse.
  */
-
 public class SSLContextFactory {
     private static final Logger log = LoggerFactory.getLogger(SSLContextFactory.class);
     private static final String PROTOCOL = "TLS";
@@ -40,7 +39,9 @@ public class SSLContextFactory {
         return value == null ? defaultValue : value;
     }
 
-    /** Creates an {@link SSLContext} with a specified keystore and password for that keystore */
+    /**
+     * Creates an {@link SSLContext} with a specified keystore and password for that keystore
+     */
     public static synchronized SSLContext getInstance(String keyStoreName, char[] keyStorePassword)
             throws GeneralSecurityException {
         synchronized (contextCache) {

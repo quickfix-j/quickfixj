@@ -20,7 +20,7 @@
 package quickfix;
 
 /**
- *  Message type not supported by application.
+ * Message type not supported by application.
  */
 public class UnsupportedMessageType extends Exception {
 

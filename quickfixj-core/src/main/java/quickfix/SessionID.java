@@ -153,6 +153,7 @@ public class SessionID implements Serializable {
      * Session qualifier can be used to identify different sessions
      * for the same target company ID. Session qualifiers can only me used
      * with initiated sessions. They cannot be used with accepted sessions.
+     *
      * @return the session qualifier
      */
     public String getSessionQualifier() {
@@ -206,6 +207,7 @@ public class SessionID implements Serializable {
 
     /**
      * Populate the sessionID from a string.
+     *
      * @param sessionIDString
      * @return the sessionIDString
      */

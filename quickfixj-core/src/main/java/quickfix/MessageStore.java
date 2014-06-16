@@ -35,13 +35,10 @@ public interface MessageStore {
      * (Most implementations just append the message data to the store so be
      * careful about assuming random access behavior.)
      *
-     * @param sequence
-     *            the sequence number
-     * @param message
-     *            the raw FIX message string
+     * @param sequence the sequence number
+     * @param message the raw FIX message string
      * @return true is successful, false otherwise
-     * @throws IOException
-     *             IO error
+     * @throws IOException IO error
      */
     boolean set(int sequence, String message) throws IOException;
 
@@ -49,14 +46,10 @@ public interface MessageStore {
      * Get messages within sequence number range (inclusive). Used for message
      * resend requests.
      *
-     * @param startSequence
-     *            the starting message sequence number.
-     * @param endSequence
-     *            the ending message sequence number.
-     * @param messages
-     *            the retrieved messages (out parameter)
-     * @throws IOException
-     *             IO error
+     * @param startSequence the starting message sequence number.
+     * @param endSequence the ending message sequence number.
+     * @param messages the retrieved messages (out parameter)
+     * @throws IOException IO error
      */
     void get(int startSequence, int endSequence, Collection<String> messages) throws IOException;
 
@@ -76,8 +69,7 @@ public interface MessageStore {
      * Get the session creation time.
      *
      * @return the session creation time.
-     * @throws IOException
-     *             IO error
+     * @throws IOException IO error
      */
     Date getCreationTime() throws IOException;
 
@@ -86,8 +78,7 @@ public interface MessageStore {
      * messages are erased. The session creation time is also set to the time of
      * the reset.
      *
-     * @throws IOException
-     *             IO error
+     * @throws IOException IO error
      */
     void reset() throws IOException;
 

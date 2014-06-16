@@ -136,9 +136,11 @@ class JdbcLog extends AbstractLog {
         insert(outgoingMessagesTableName, message);
     }
 
-    /** Protect from the situation when you have recursive calls
+    /**
+     * Protect from the situation when you have recursive calls
      * into the logger b/c the previous one failed (in case of a failed DB connection, for example).
      * In case of going into a failure mode set a flag, ignore the recursive request and reset the flag.
+     *
      * @param tableName
      * @param value
      */

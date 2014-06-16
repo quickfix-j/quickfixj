@@ -78,7 +78,8 @@ public class JdbcLogTest extends TestCase {
         assertEquals(0, getRowCount(connection, log.getOutgoingMessagesTableName()));
     }
 
-    /** Make sure the logger handles the situation where the underlying JdbcLog is misconfigured
+    /**
+     * Make sure the logger handles the situation where the underlying JdbcLog is misconfigured
      * (such as we can't connect ot the DB, or the tables are missing) and doesn't try
      * to print failing exceptions recursively until the stack overflows
      */

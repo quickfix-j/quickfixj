@@ -129,7 +129,9 @@ public class SLF4JLog extends AbstractLog {
         log(outgoingMsgLog, message);
     }
 
-    /** Made protected to enable unit testing of callerFQCN coming through correctly */
+    /**
+     * Made protected to enable unit testing of callerFQCN coming through correctly
+     */
     protected void log(org.slf4j.Logger log, String text) {
         if (log.isInfoEnabled()) {
             final String message = logPrefix != null ? (logPrefix + text) : text;

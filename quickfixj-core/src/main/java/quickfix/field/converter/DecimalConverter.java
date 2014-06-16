@@ -27,6 +27,7 @@ public class DecimalConverter {
 
     /**
      * Converts a double to a string with no padding.
+     *
      * @param d the BigDecimal to convert
      * @return the formatted String representing the incoming decimal.
      * @see #convert(BigDecimal, int)
@@ -37,6 +38,7 @@ public class DecimalConverter {
 
     /**
      * Converts a decimal to a string with padding.
+     *
      * @param d the decimal to convert
      * @param padding the number of zeros to add to end of the formatted decimal
      * @return the formatted String representing the decimal.
@@ -47,6 +49,7 @@ public class DecimalConverter {
 
     /**
      * Convert a String value to a decimal.
+     *
      * @param value the String value to convert
      * @return the parsed BigDecimal
      * @throws FieldConvertError if the String is not a valid decimal pattern.

@@ -25,6 +25,7 @@ import quickfix.field.BusinessRejectReason;
 
 /**
  * Description strings for business reject reasons.
+ *
  * @see BusinessRejectReason
  */
 public class BusinessRejectReasonText extends BusinessRejectReason {
@@ -44,6 +45,7 @@ public class BusinessRejectReasonText extends BusinessRejectReason {
 
     /**
      * Get the description string for a specified business reject reason.
+     *
      * @param rejectReason the reason
      * @return the description or null if there isn't a description for that reason
      */

@@ -95,7 +95,6 @@ public class GenerateMojo extends AbstractMojo {
 
     /**
      * {@link MessageCodeGenerator} instance used for code generation.
-     *
      */
     private MavenMessageCodeGenerator generator;
 
@@ -194,7 +193,7 @@ public class GenerateMojo extends AbstractMojo {
         this.packaging = packaging;
     }
 
-     /**
+    /**
      * Returns the {@link MavenProject} instance for which code generation should be executed.
      *
      * @return the {@link MavenProject} instance for which code generation should be executed.
@@ -239,11 +238,11 @@ public class GenerateMojo extends AbstractMojo {
         return schemaDirectory;
     }
 
-   /**
-    * Sets the directory containing schemas for code generation.
-    *
-    * @param schemaDirectory the directory containing schemas for code generation.
-    */
+    /**
+     * Sets the directory containing schemas for code generation.
+     *
+     * @param schemaDirectory the directory containing schemas for code generation.
+     */
     public void setSchemaDirectory(File schemaDirectory) {
         this.schemaDirectory = schemaDirectory;
     }

@@ -29,8 +29,7 @@ public interface MessageStoreFactory {
     /**
      * Creates a message store implementation.
      *
-     * @param sessionID
-     *            the session ID, often used to access session configurations
+     * @param sessionID the session ID, often used to access session configurations
      * @return the message store implementation
      */
     MessageStore create(SessionID sessionID);

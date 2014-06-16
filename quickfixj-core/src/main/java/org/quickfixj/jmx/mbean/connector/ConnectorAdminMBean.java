@@ -25,12 +25,14 @@ public interface ConnectorAdminMBean {
 
     /**
      * The connection role.
+     *
      * @return "ACCEPTOR" if acceptor, "INITIATOR" if initiator.
      */
     String getRole() throws IOException;
 
     /**
      * Stop the connector.
+     *
      * @param force don't wait for normal logout from counterparty
      */
     void stop(boolean force) throws IOException;
@@ -42,12 +44,14 @@ public interface ConnectorAdminMBean {
 
     /**
      * Get all session who may be connected through this connector.
+     *
      * @return an array of MBean object names for the sessions.
      */
     TabularData getSessions() throws IOException;
 
     /**
      * Get the host name of the connector.
+     *
      * @return the name of the connector host
      * @throws IOException
      */

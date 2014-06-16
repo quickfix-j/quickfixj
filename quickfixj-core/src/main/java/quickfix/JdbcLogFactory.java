@@ -52,7 +52,6 @@ public class JdbcLogFactory implements LogFactory {
      * Used to support the MySQL-specific class (JNI compatibility)
      *
      * @return the session settings
-     *
      */
     protected SessionSettings getSettings() {
         return settings;

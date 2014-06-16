@@ -80,6 +80,7 @@ public interface SessionAdminMBean {
 
     /**
      * Get the session ID.
+     *
      * @return the session ID
      */
     String getSessionID();
@@ -166,6 +167,7 @@ public interface SessionAdminMBean {
 
     /**
      * Reset the session's sequence numbers and clear it's resend log.
+     *
      * @throws IOException
      */
     void reset() throws IOException;
@@ -191,16 +193,18 @@ public interface SessionAdminMBean {
     void sendHeartBeat();
 
     /**
-     *  Send a logout message
+     * Send a logout message
      */
-
     void sendLogoutMessage();
 
-    /** Reset current sequence number */
+    /**
+     * Reset current sequence number
+     */
     void resetSequence(int nextSeqNum) throws SessionNotFound;
 
     /**
      * Tell the session to disconnect (implies logoff)
+     *
      * @throws IOException
      */
     void disconnect() throws IOException;

@@ -40,7 +40,7 @@ import quickfix.examples.banzai.Order;
 import quickfix.examples.banzai.OrderTableModel;
 
 /**
- *  Main content panel
+ * Main content panel
  */
 public class BanzaiPanel extends JPanel
     implements Observer, ActionListener {

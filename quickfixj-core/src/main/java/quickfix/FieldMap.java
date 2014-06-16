@@ -593,6 +593,7 @@ public abstract class FieldMap implements Serializable {
 
     /**
      * Returns the number of groups associated with the specified count tag.
+     *
      * @param tag the count tag number
      * @return the number of times the group repeats
      */

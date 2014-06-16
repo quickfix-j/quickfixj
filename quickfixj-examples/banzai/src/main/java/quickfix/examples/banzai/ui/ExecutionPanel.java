@@ -30,7 +30,7 @@ import javax.swing.JTable;
 import quickfix.examples.banzai.ExecutionTableModel;
 
 /**
- *  Contains the executions panel
+ * Contains the executions panel
  */
 public class ExecutionPanel extends JPanel {
 

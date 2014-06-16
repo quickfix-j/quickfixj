@@ -93,6 +93,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
     /**
      * Verifies that messages are dispatched via dispatcher threads and that the threads die when
      * the strategy is shut down. See QFJ-410.
+     *
      * @throws Exception
      */
     @Test

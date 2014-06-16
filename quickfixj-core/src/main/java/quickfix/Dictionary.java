@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * Name/value pairs used for specifying groups of settings.
+ *
  * @see SessionSettings
  */
 public class Dictionary {

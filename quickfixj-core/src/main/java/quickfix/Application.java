@@ -40,8 +40,7 @@ public interface Application {
      * the FIX logon process has completed with both parties exchanging valid
      * logon messages.
      *
-     * @param sessionId
-     *            QuickFIX session ID
+     * @param sessionId QuickFIX session ID
      */
     void onLogon(SessionID sessionId);
 
@@ -50,8 +49,7 @@ public interface Application {
      * could happen during a normal logout exchange or because of a forced
      * termination or a loss of network connection.
      *
-     * @param sessionId
-     *            QuickFIX session ID
+     * @param sessionId QuickFIX session ID
      */
     void onLogout(SessionID sessionId);
 
@@ -62,10 +60,8 @@ public interface Application {
      * logging you may wish to do. You may add fields in an adminstrative
      * message before it is sent.
      *
-     * @param message
-     *            QuickFIX message
-     * @param sessionId
-     *            QuickFIX session ID
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
      */
     void toAdmin(Message message, SessionID sessionId);
 
@@ -75,15 +71,12 @@ public interface Application {
      * validation on logon messages such as for checking passwords. Throwing a
      * RejectLogon exception will disconnect the counterparty.
      *
-     * @param message
-     *            QuickFIX message
-     * @param sessionId
-     *            QuickFIX session ID
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
      * @throws FieldNotFound
      * @throws IncorrectDataFormat
      * @throws IncorrectTagValue
-     * @throws RejectLogon
-     *             causes a logon reject
+     * @throws RejectLogon causes a logon reject
      */
     void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat,
             IncorrectTagValue, RejectLogon;
@@ -100,12 +93,9 @@ public interface Application {
      * simply not be sent. You may add fields before an application message
      * before it is sent out.
      *
-     * @param message
-     *            QuickFIX message
-     * @param sessionId
-     *            QuickFIX session ID
-     * @throws DoNotSend --
-     *             This exception aborts message transmission
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
+     * @throws DoNotSend This exception aborts message transmission
      */
     void toApp(Message message, SessionID sessionId) throws DoNotSend;
 
@@ -124,10 +114,8 @@ public interface Application {
      * those types of messages. An IncorrectTagValue can also be thrown if a
      * field contains a value that is out of range or you do not support.
      *
-     * @param message
-     *            QuickFIX message
-     * @param sessionId
-     *            QuickFIX session ID
+     * @param message QuickFIX message
+     * @param sessionId QuickFIX session ID
      * @throws FieldNotFound
      * @throws IncorrectDataFormat
      * @throws IncorrectTagValue

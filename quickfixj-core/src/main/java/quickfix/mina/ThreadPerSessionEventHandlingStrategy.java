@@ -164,7 +164,9 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
     /**
      * Get the next message from the messages {@link java.util.concurrent.BlockingQueue}.
-     * <p>We do not block indefinately as that would prevent this thread from ever stopping
+     * <p>
+     * We do not block indefinitely as that would prevent this thread from ever stopping
+     *
      * @see #THREAD_WAIT_FOR_MESSAGE_MS
      * @param messages
      * @return next message or null if nothing arrived within the timeout period

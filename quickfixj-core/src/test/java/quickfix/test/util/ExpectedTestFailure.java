@@ -30,13 +30,17 @@ public abstract class ExpectedTestFailure {
         mContains = inContains;
     }
 
-    /** Subclasses must override this method with an implementation that
+    /**
+     * Subclasses must override this method with an implementation that
      * throws their expected error
+     *
      * @throws Throwable
      */
     protected abstract void execute() throws Throwable;
 
-    /** Executes the code that was implemented in @link {execute()} method */
+    /**
+     * Executes the code that was implemented in @link {execute()} method
+     */
     public Throwable run() {
         try {
             execute();
@@ -48,7 +52,8 @@ public abstract class ExpectedTestFailure {
         return null;
     }
 
-    /** Validate the passed-in throwable against the class that we expected to find
+    /**
+     * Validate the passed-in throwable against the class that we expected to find
      * The message of the passed in trowable is validated againt the expected message
      * if there is one
      *

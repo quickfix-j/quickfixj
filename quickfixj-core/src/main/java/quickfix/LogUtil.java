@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Utilities for logging session-related events.
- *
  */
 public class LogUtil {
     private final static Logger log = LoggerFactory.getLogger(LogUtil.class);

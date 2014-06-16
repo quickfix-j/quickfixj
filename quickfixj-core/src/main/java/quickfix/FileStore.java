@@ -218,6 +218,7 @@ public class FileStore implements MessageStore, Closeable {
 
     /**
      * Close the store's files.
+     *
      * @throws IOException
      */
     public void close() throws IOException {
@@ -352,7 +353,6 @@ public class FileStore implements MessageStore, Closeable {
      * This method is here for JNI API consistency but it's not
      * implemented. Use get(int, int, Collection) with the same
      * start and end sequence.
-     *
      */
     public boolean get(int sequence, String message) throws IOException {
         throw new UnsupportedOperationException("not supported");

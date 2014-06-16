@@ -92,8 +92,8 @@ public abstract class SessionConnector implements Connector {
 
     /**
      * Get the list of session managed by this connector.
-     * @return list of quickfix.Session objects
      *
+     * @return list of quickfix.Session objects
      * @see quickfix.Session
      */
     public List<Session> getManagedSessions() {
@@ -150,6 +150,7 @@ public abstract class SessionConnector implements Connector {
 
     /**
      * Check if we have at least one session and that all the sessions are logged on
+     *
      * @return false if no session or at least one session is not logged on
      */
     public boolean isLoggedOn() {

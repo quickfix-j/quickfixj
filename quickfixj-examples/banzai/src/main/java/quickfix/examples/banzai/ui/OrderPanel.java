@@ -31,7 +31,7 @@ import quickfix.examples.banzai.BanzaiApplication;
 import quickfix.examples.banzai.OrderTableModel;
 
 /**
- *  Contains the Order table.
+ * Contains the Order table.
  */
 public class OrderPanel extends JPanel {
 

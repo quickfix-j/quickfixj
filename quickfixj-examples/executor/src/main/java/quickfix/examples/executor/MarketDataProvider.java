@@ -22,7 +22,6 @@ package quickfix.examples.executor;
 /**
  * Trivial market data provider interface to allow plugins for
  * alternative market data sources.
- *
  */
 public interface MarketDataProvider {
 

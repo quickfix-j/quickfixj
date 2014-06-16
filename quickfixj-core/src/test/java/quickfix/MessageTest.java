@@ -493,9 +493,9 @@ public class MessageTest {
     }
 
     /**
-     *  Test for data fields with SOH. This test is based on report from a user on
-     *  the QuickFIX mailing list. The problem was the user's configuration but this
-     *  seems like a good unit test to keep in the suite.
+     * Test for data fields with SOH. This test is based on report from a user on
+     * the QuickFIX mailing list. The problem was the user's configuration but this
+     * seems like a good unit test to keep in the suite.
      */
     @Test
     public void testDataFieldParsing() throws Exception {
@@ -527,9 +527,9 @@ public class MessageTest {
     }
 
     /**
-     *  Test for data fields with SOH. This test is based on report from a user on
-     *  the QuickFIX mailing list. The problem was the user's configuration but this
-     *  seems like a good unit test to keep in the suite.
+     * Test for data fields with SOH. This test is based on report from a user on
+     * the QuickFIX mailing list. The problem was the user's configuration but this
+     * seems like a good unit test to keep in the suite.
      */
     @Test
     public void testDataFieldWithManualFieldInsertion() throws Exception {
@@ -1324,7 +1324,9 @@ public class MessageTest {
         }
     }
 
-    /** Verify that an empty message can still be "printed" and doesn't result in any exceptions */
+    /**
+     * Verify that an empty message can still be "printed" and doesn't result in any exceptions
+     */
     @Test
     public void testEmptyMessageToString() throws Exception {
         final Message msg = new quickfix.Message();

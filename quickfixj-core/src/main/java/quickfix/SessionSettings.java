@@ -97,8 +97,7 @@ public class SessionSettings {
     /**
      * Loads session settings from a file.
      *
-     * @param filename
-     *            the path to the file containing the session settings
+     * @param filename the path to the file containing the session settings
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
@@ -116,8 +115,7 @@ public class SessionSettings {
     /**
      * Loads session settings from an input stream.
      *
-     * @param stream
-     *            the input stream
+     * @param stream the input stream
      * @throws ConfigError
      */
     public SessionSettings(InputStream stream) throws ConfigError {
@@ -140,16 +138,11 @@ public class SessionSettings {
     /**
      * Get a settings string.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the settings key
+     * @param sessionID the session ID
+     * @param key the settings key
      * @return the string value for the setting
-     *
-     * @throws ConfigError
-     *             configuration error, probably a missing setting.
-     * @throws FieldConvertError
-     *             error during field type conversion.
+     * @throws ConfigError configuration error, probably a missing setting.
+     * @throws FieldConvertError error during field type conversion.
      */
     public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         final String value = interpolate(getSessionProperties(sessionID).getProperty(key));
@@ -198,6 +191,7 @@ public class SessionSettings {
 
     /**
      * Returns the defaults for the session-level settings.
+     *
      * @return the default properties
      * @throws ConfigError
      */
@@ -225,16 +219,11 @@ public class SessionSettings {
     /**
      * Get a settings value as a long integer.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the settings key
+     * @param sessionID the session ID
+     * @param key the settings key
      * @return the long integer value for the setting
-     *
-     * @throws ConfigError
-     *             configuration error, probably a missing setting.
-     * @throws FieldConvertError
-     *             error during field type conversion.
+     * @throws ConfigError configuration error, probably a missing setting.
+     * @throws FieldConvertError error during field type conversion.
      */
     public long getLong(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
@@ -268,16 +257,11 @@ public class SessionSettings {
     /**
      * Get a settings value as a double number.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the settings key
+     * @param sessionID the session ID
+     * @param key the settings key
      * @return the double number value for the setting
-     *
-     * @throws ConfigError
-     *             configuration error, probably a missing setting.
-     * @throws FieldConvertError
-     *             error during field type conversion.
+     * @throws ConfigError configuration error, probably a missing setting.
+     * @throws FieldConvertError error during field type conversion.
      */
     public double getDouble(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
@@ -302,16 +286,11 @@ public class SessionSettings {
     /**
      * Get a settings value as a boolean value.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the settings key
+     * @param sessionID the session ID
+     * @param key the settings key
      * @return the boolean value for the setting
-     *
-     * @throws ConfigError
-     *             configuration error, probably a missing setting.
-     * @throws FieldConvertError
-     *             error during field type conversion.
+     * @throws ConfigError configuration error, probably a missing setting.
+     * @throws FieldConvertError error during field type conversion.
      */
     public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
         try {
@@ -324,12 +303,9 @@ public class SessionSettings {
     /**
      * Sets a string-valued session setting.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the setting key
-     * @param value
-     *            the string value
+     * @param sessionID the session ID
+     * @param key the setting key
+     * @param value the string value
      */
     public void setString(SessionID sessionID, String key, String value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, value.trim());
@@ -338,12 +314,9 @@ public class SessionSettings {
     /**
      * Sets a long integer-valued session setting.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the setting key
-     * @param value
-     *            the long integer value
+     * @param sessionID the session ID
+     * @param key the setting key
+     * @param value the long integer value
      */
     public void setLong(SessionID sessionID, String key, long value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, Long.toString(value));
@@ -352,12 +325,9 @@ public class SessionSettings {
     /**
      * Sets a double-valued session setting.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the setting key
-     * @param value
-     *            the double value
+     * @param sessionID the session ID
+     * @param key the setting key
+     * @param value the double value
      */
     public void setDouble(SessionID sessionID, String key, double value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, Double.toString(value));
@@ -366,12 +336,9 @@ public class SessionSettings {
     /**
      * Sets a boolean-valued session setting.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the setting key
-     * @param value
-     *            the boolean value
+     * @param sessionID the session ID
+     * @param key the setting key
+     * @param value the boolean value
      */
     public void setBool(SessionID sessionID, String key, boolean value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
@@ -446,10 +413,8 @@ public class SessionSettings {
     /**
      * Predicate for determining if a setting exists.
      *
-     * @param sessionID
-     *            the session ID
-     * @param key
-     *            the setting key
+     * @param sessionID the session ID
+     * @param key the setting key
      * @return true is setting exists, false otherwise.
      */
     public boolean isSetting(SessionID sessionID, String key) {
@@ -631,6 +596,7 @@ public class SessionSettings {
 
     /**
      * Set a default boolean parameter.
+     *
      * @param key the settings key
      * @param value the settings value
      */
@@ -640,6 +606,7 @@ public class SessionSettings {
 
     /**
      * Set a default double parameter.
+     *
      * @param key the settings key
      * @param value the settings value
      */
@@ -649,6 +616,7 @@ public class SessionSettings {
 
     /**
      * Set a default long parameter.
+     *
      * @param key the settings key
      * @param value the settings value
      */
@@ -658,6 +626,7 @@ public class SessionSettings {
 
     /**
      * Set a default string parameter.
+     *
      * @param key the settings key
      * @param value the settings value
      */

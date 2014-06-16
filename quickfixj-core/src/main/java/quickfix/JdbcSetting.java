@@ -22,7 +22,6 @@ package quickfix;
 /**
  * Class for storing JDBC setting constants shared by both the log and message
  * store classes.
- *
  */
 public class JdbcSetting {
 

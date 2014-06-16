@@ -36,7 +36,8 @@ public class JmxExporter {
     /**
      * Constant indicating that registration should fail when
      * attempting to register an MBean under a name that already exists.
-     * <p>This is the default registration behaviour.
+     * <p>
+     * This is the default registration behaviour.
      */
     public static final int REGISTRATION_FAIL_ON_EXISTING = 0;
 
@@ -76,7 +77,9 @@ public class JmxExporter {
     /**
      * Specify what action should be taken when attempting to register an MBean
      * under an {@link javax.management.ObjectName} that already exists.
-     * <p>Default is REGISTRATION_FAIL_ON_EXISTING.
+     * <p>
+     * Default is REGISTRATION_FAIL_ON_EXISTING.
+     *
      * @see #REGISTRATION_FAIL_ON_EXISTING
      * @see #REGISTRATION_IGNORE_EXISTING
      * @see #REGISTRATION_REPLACE_EXISTING
@@ -103,6 +106,7 @@ public class JmxExporter {
 
     /**
      * Register a connector with JMX
+     *
      * @deprecated use register instead
      * @param connector
      */
@@ -124,6 +128,7 @@ public class JmxExporter {
      * This design (and also code) was unashamedly cribbed from Spring's
      * <a href="http://static.springframework.org/spring/docs/2.0.x/api/org/springframework/jmx/support/MBeanRegistrationSupport.html">MBeanRegistrationSupport</a>
      * class. Thanks Spring team!
+     *
      * @see #REGISTRATION_FAIL_ON_EXISTING
      * @see #REGISTRATION_IGNORE_EXISTING
      * @see #REGISTRATION_REPLACE_EXISTING

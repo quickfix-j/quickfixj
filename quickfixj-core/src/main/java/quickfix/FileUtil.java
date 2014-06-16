@@ -92,6 +92,7 @@ public class FileUtil {
      * convenient but may not provide enough feedback (e.g., malformed URL) for some
      * uses. The series of locations tried is the filesystem, thread context
      * class loader, class resource, classloader (system classpath resource), and URL.
+     *
      * @param clazz
      * @param name
      * @return input stream if found, or null otherwise.

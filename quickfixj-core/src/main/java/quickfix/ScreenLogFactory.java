@@ -75,8 +75,7 @@ public class ScreenLogFactory implements LogFactory {
     /**
      * Create factory using configuration in session settings.
      *
-     * @param settings
-     *            the session settings
+     * @param settings the session settings
      */
     public ScreenLogFactory(SessionSettings settings) {
         this(true, true, true);
@@ -84,15 +83,11 @@ public class ScreenLogFactory implements LogFactory {
     }
 
     /**
-     *
      * Create factory with explicit control of message categories.
      *
-     * @param incoming
-     *            if true, log incoming messages
-     * @param outgoing
-     *            if true, log outgoing messages
-     * @param events
-     *            if true, log events
+     * @param incoming if true, log incoming messages
+     * @param outgoing if true, log outgoing messages
+     * @param events if true, log events
      */
     public ScreenLogFactory(boolean incoming, boolean outgoing, boolean events) {
         this(incoming, outgoing, events, true);
@@ -100,24 +95,18 @@ public class ScreenLogFactory implements LogFactory {
 
     /**
      * Default constructor that logs incoming, outgoing, and events without heartbeats.
-     *
      */
     public ScreenLogFactory() {
         this(true, true, true, false);
     }
 
     /**
-     *
      * Create factory with explicit control of message categories.
      *
-     * @param incoming
-     *            if true, log incoming messages
-     * @param outgoing
-     *            if true, log outgoing messages
-     * @param events
-     *            if true, log events
-     * @param logHeartBeats
-     *            if true, log heart beat messages (the default)
+     * @param incoming if true, log incoming messages
+     * @param outgoing if true, log outgoing messages
+     * @param events if true, log events
+     * @param logHeartBeats if true, log heart beat messages (the default)
      */
     public ScreenLogFactory(boolean incoming, boolean outgoing, boolean events,
             boolean logHeartBeats) {

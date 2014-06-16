@@ -29,8 +29,7 @@ public interface ApplicationExtended extends Application {
     /**
      * If returns false, the session logon is aborted, without sending any logon.
      *
-     * @param sessionID
-     *            the session
+     * @param sessionID the session
      * @return true if the session can be logged on normally
      */
     boolean canLogon(SessionID sessionID);

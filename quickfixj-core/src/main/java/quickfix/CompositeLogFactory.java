@@ -30,6 +30,7 @@ public class CompositeLogFactory implements LogFactory {
     /**
      * Defines a composite log factory based on a set of existing
      * LogFactory implementations.
+     *
      * @param logFactories the factories to be used in the composite
      * @see LogFactory
      */
@@ -39,6 +40,7 @@ public class CompositeLogFactory implements LogFactory {
 
     /**
      * Create the composite Log. This is typically used by the SessionFactory.
+     *
      * @param sessionID the session associated with the log
      * @return the composite log
      * @see SessionFactory

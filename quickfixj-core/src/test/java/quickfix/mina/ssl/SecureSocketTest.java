@@ -101,7 +101,8 @@ public class SecureSocketTest extends TestCase {
         doLogonTest("test.cert", "testpassword");
     }
 
-    /** This is more of an anti-test. To verify that the client-side initiator adds the
+    /**
+     * This is more of an anti-test. To verify that the client-side initiator adds the
      * specified keystore/pwd to the SSL context, reset the pwd to be invalid.
      * During startup, the socket initiator should fail b/c ssl context is misconfigured
      * Thus, we verify that we use SSL keystore/pwd in client connection, since

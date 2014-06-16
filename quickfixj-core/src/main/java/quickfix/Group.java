@@ -28,6 +28,7 @@ public class Group extends FieldMap {
 
     /**
      * Create a group with the specified count and delimiter fields.
+     *
      * @param field the count tag number
      * @param delim the delimiter tag number (first group field)
      */
@@ -37,6 +38,7 @@ public class Group extends FieldMap {
 
     /**
      * Copy a group.
+     *
      * @param group the group to copy
      */
     public Group(Group group) {
@@ -48,6 +50,7 @@ public class Group extends FieldMap {
     /**
      * Create a group with the specified count and delimiter fields and
      * field ordering.
+     *
      * @param field
      * @param delim
      * @param order
@@ -67,6 +70,7 @@ public class Group extends FieldMap {
 
     /**
      * Add a copy of the group to the message.
+     *
      * @param group the group to copy
      */
     public void addGroup(Group group) {
@@ -75,6 +79,7 @@ public class Group extends FieldMap {
 
     /**
      * Copy the group at the specified index into the supplied group object.
+     *
      * @param num the index of the group (1 based)
      * @param group the target group object for the group fields (it will be cleared).sss
      */

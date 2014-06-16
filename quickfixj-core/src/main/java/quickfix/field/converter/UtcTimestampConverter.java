@@ -40,6 +40,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
     /**
      * Convert a timestamp (represented as a Date) to a String.
+     *
      * @param d the date to convert
      * @param includeMilliseconds controls whether milliseconds are included in the result
      * @return the formatted timestamp
@@ -65,6 +66,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
     /**
      * Convert a timestamp string into a Date.
+     *
      * @param value the timestamp String
      * @return the parsed timestamp
      * @exception FieldConvertError raised if timestamp is an incorrect format.

@@ -147,6 +147,7 @@ public class FileLog extends AbstractLog {
 
     /**
      * Closed the messages and events files.
+     *
      * @throws IOException
      */
     @Override

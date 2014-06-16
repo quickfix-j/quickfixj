@@ -8,9 +8,9 @@ import javax.net.ssl.SSLContext;
 
 /**
  * Test for {@link SSLContextFactory}
+ *
  * @author toli
  */
-
 public class SSLContextFactoryTest extends TestCase {
     public SSLContextFactoryTest(String inName) {
         super(inName);

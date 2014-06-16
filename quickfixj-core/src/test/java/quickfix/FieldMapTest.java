@@ -12,10 +12,10 @@ import java.util.Date;
 /**
  * Tests the {@link FieldMap} class.
  * Specifically, verifies that the setters for {@link UtcTimeStampField} work correctly.
+ *
  * @author toli
  * @version $Id$
  */
-
 public class FieldMapTest extends TestCase {
     public FieldMapTest(String inName) {
         super(inName);
@@ -51,7 +51,9 @@ public class FieldMapTest extends TestCase {
                     UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
     }
 
-    /** Try a subclass of {@link UtcTimeOnlyField} and {@link UtcTimeStampField} directly */
+    /**
+     * Try a subclass of {@link UtcTimeOnlyField} and {@link UtcTimeStampField} directly
+     */
     public void testSpecificFields() throws Exception {
         FieldMap map = new Message();
         Date aDate = new Date();

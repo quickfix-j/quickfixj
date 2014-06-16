@@ -37,6 +37,7 @@ public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
 
     /**
      * Convert a time (represented as a Date) to a String (HH:MM:SS or HH:MM:SS.SSS)
+     *
      * @param d the date with the time to convert
      * @param includeMilliseconds controls whether milliseconds are included in the result
      * @return a String representing the time.
@@ -56,6 +57,7 @@ public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
 
     /**
      * Convert between a String and a time
+     *
      * @param value the string to parse
      * @return a date object representing the time
      * @throws FieldConvertError raised for invalid time string

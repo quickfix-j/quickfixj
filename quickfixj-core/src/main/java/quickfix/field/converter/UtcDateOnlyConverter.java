@@ -36,6 +36,7 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
 
     /**
      * Convert a date to a String ("YYYYMMDD")
+     *
      * @param d the date to convert
      * @return the formatted date
      */
@@ -54,6 +55,7 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
 
     /**
      * Convert between a String and a date
+     *
      * @param value the String to convert
      * @return the parsed Date
      * @throws FieldConvertError raised for an invalid date string.

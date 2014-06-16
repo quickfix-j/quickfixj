@@ -36,7 +36,6 @@ import quickfix.fix42.NewOrderSingle;
  * @author toli
  * @version $Id$
  */
-
 public class BigDecimalFieldTest extends TestCase {
     public BigDecimalFieldTest(String inName) {
         super(inName);
@@ -46,7 +45,8 @@ public class BigDecimalFieldTest extends TestCase {
         return new TestSuite(BigDecimalFieldTest.class);
     }
 
-    /** Verify that the round-tripping of BigDecimals works with messages
+    /**
+     * Verify that the round-tripping of BigDecimals works with messages
      * Run the real test inside the testcase only if we have a BigDecimal-ized fields,
      * ie if we have a constructor taking a BigDecimal.
      */

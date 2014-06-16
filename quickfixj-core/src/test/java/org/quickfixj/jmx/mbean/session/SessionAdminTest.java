@@ -9,10 +9,10 @@ import java.util.ArrayList;
 
 /**
  * Test the {@link SessionAdminMBean} class
+ *
  * @author toli
  * @version $Id$
  */
-
 public class SessionAdminTest extends TestCase {
 
     public void testResetSequence() throws Exception {

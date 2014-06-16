@@ -32,20 +32,19 @@ public interface Responder {
     /**
      * Send a raw FIX message
      *
-     * @param data
-     *            the raw FIX message data
+     * @param data the raw FIX message data
      * @return true is successful, false if send operation failed
      */
     boolean send(String data);
 
     /**
      * Disconnect the underlying connection.
-     *
      */
     void disconnect();
 
     /**
      * Provides remote address of the session connection, if any.
+     *
      * @return remote address (host:port) if connected, null if not.
      */
     String getRemoteAddress();

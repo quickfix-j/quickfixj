@@ -843,6 +843,7 @@ public class Message extends FieldMap {
 
     /**
      * Returns the msg type specified in a FIX message string.
+     *
      * @param message the FIX message string
      * @return the message type
      * @throws MessageParseError (QF JNI compatibility)

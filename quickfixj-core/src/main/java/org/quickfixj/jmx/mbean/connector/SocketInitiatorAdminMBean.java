@@ -25,6 +25,7 @@ public interface SocketInitiatorAdminMBean extends ConnectorAdminMBean {
 
     /**
      * Get initiator communication endpoints
+     *
      * @return a table of endpoint information
      * @throws IOException
      */

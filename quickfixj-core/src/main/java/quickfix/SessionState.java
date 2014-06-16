@@ -312,6 +312,7 @@ public final class SessionState {
 
     /**
      * Remove messages from messageQueue up to a given sequence number.
+     *
      * @param seqnum up to which sequence number messages should be deleted
      */
     public void dequeueMessagesUpTo(int seqnum) {

@@ -131,7 +131,9 @@ public class SessionConnectorTest extends TestCase {
         assertFalse(connector.isLoggedOn());
     }
 
-    /** Test that adding/removing dynamic sessions works correctly */
+    /**
+     * Test that adding/removing dynamic sessions works correctly
+     */
     public void testAddingRemovingDymaicSessions() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "me", "you");

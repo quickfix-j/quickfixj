@@ -52,6 +52,7 @@ public class FileStoreFactory implements MessageStoreFactory {
 
     /**
      * Create the factory with configuration in session settings.
+     *
      * @param settings
      */
     public FileStoreFactory(SessionSettings settings) {

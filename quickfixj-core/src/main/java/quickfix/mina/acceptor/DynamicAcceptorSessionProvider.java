@@ -87,9 +87,9 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     /**
      * @param settings session settings
      * @param templateID this is a session ID for a session definition in the session
-     * settings that will be used for default dynamic session values. The BeginString,
-     * SenderCompID, and TargetCompID settings will be replaced with those in the
-     * received logon message.
+     *        settings that will be used for default dynamic session values. The BeginString,
+     *        SenderCompID, and TargetCompID settings will be replaced with those in the
+     *        received logon message.
      * @param application application for the dynamic sessions
      * @param messageStoreFactory message store factory for the dynamic sessions
      * @param logFactory log factory for the dynamic sessions
@@ -106,12 +106,12 @@ public class DynamicAcceptorSessionProvider implements AcceptorSessionProvider {
     /**
      * @param settings session settings
      * @param templateMappings this is a list of session ID patterns mapped to session IDs in
-     * the settings file. The session IDs represent the template for a specified session ID
-     * pattern. The template is used to dynamically create acceptor sessions.
-     * Use "*" to represent a wildcard for a pattern element. For example,
-     * new SessionID("FIX.4.2", "*", "*") would match for any FIX 4.2 session ID.
-     * This allows separate template session configurations for FIX versions (or
-     * CompIDs) being accepted dynamically on a single TCP port.
+     *        the settings file. The session IDs represent the template for a specified session ID
+     *        pattern. The template is used to dynamically create acceptor sessions.
+     *        Use "*" to represent a wildcard for a pattern element. For example,
+     *        new SessionID("FIX.4.2", "*", "*") would match for any FIX 4.2 session ID.
+     *        This allows separate template session configurations for FIX versions (or
+     *        CompIDs) being accepted dynamically on a single TCP port.
      * @param application application for the dynamic sessions
      * @param messageStoreFactory message store factory for the dynamic sessions
      * @param logFactory log factory for the dynamic sessions

@@ -37,6 +37,7 @@ public class DoubleConverter {
 
     /**
      * Converts a double to a string with no padding.
+     *
      * @param d the double to convert
      * @return the formatted String representing the double.
      * @see #convert(double, int)
@@ -73,6 +74,7 @@ public class DoubleConverter {
 
     /**
      * Converts a double to a string with padding.
+     *
      * @param d the double to convert
      * @param padding the number of zeros to add to end of the formatted double
      * @return the formatted String representing the double.
@@ -83,6 +85,7 @@ public class DoubleConverter {
 
     /**
      * Convert a String value to a double.
+     *
      * @param value the String value to convert
      * @return the parsed double
      * @throws FieldConvertError if the String is not a valid double pattern.

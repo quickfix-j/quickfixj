@@ -30,7 +30,9 @@ public interface EventHandlingStrategy {
 
     void onMessage(Session quickfixSession, Message message);
 
-    /** Get the session connector associated with this strategy */
+    /**
+     * Get the session connector associated with this strategy
+     */
     SessionConnector getSessionConnector();
 
     int getQueueSize();

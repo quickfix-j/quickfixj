@@ -64,8 +64,7 @@ public class FileLogFactory implements LogFactory {
     /**
      * Creates a file-based logger.
      *
-     * @param sessionID
-     *            session ID for the logger
+     * @param sessionID session ID for the logger
      */
     public Log create(SessionID sessionID) {
         try {

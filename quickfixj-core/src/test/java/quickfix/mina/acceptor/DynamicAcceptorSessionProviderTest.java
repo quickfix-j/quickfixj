@@ -131,7 +131,9 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         assertNotNull(provider.getSession(new SessionID("FIX.4.2", "S", "T"), null));
     }
 
-    /** Verify that if a new session comes in it gets added to the list in session connector */
+    /**
+     * Verify that if a new session comes in it gets added to the list in session connector
+     */
     public void testDynamicSessionIsAddedToSessionConnector() throws Exception {
         MySessionConnector connector = new MySessionConnector(settings, null);
 

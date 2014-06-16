@@ -117,7 +117,7 @@ public class MessageUtils {
     /**
      * NOTE: This method is intended for internal use.
      *
-     * @param session - the Session that will process the message
+     * @param session the Session that will process the message
      * @param messageString
      * @return the parsed message
      * @throws InvalidMessage
@@ -251,6 +251,7 @@ public class MessageUtils {
 
     /**
      * Convert an ApplVerID to a "begin string"
+     *
      * @param applVerID
      * @return the begin string for the specified ApplVerID.
      * @throws QFJException if conversion fails.
@@ -280,6 +281,7 @@ public class MessageUtils {
 
     /**
      * Convert a begin string to an ApplVerID
+     *
      * @param beginString
      * @return the ApplVerID for the specified begin string.
      * @throws QFJException if conversion fails.

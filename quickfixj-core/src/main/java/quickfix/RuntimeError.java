@@ -20,7 +20,6 @@
 package quickfix;
 
 /**
- *
  * Application encountered serious error during runtime.
  * (The "error" naming is from the C++ JNI API.)
  */

@@ -299,8 +299,8 @@ public class Session implements Closeable {
     public static final String SETTING_DEFAULT_APPL_VER_ID = "DefaultApplVerID";
 
     /**
-    * Allow to disable heart beat failure detection
-    */
+     * Allow to disable heart beat failure detection
+     */
     public static final String SETTING_DISABLE_HEART_BEAT_CHECK = "DisableHeartBeatCheck";
 
     /**
@@ -525,6 +525,7 @@ public class Session implements Closeable {
 
     /**
      * Provides remote address of the session connection, if any.
+     *
      * @return remote address (host:port) if connected, null if not.
      */
     public String getRemoteAddress() {
@@ -708,6 +709,7 @@ public class Session implements Closeable {
 
     /**
      * This method can be used to manually logout of a FIX session.
+     *
      * @param reason this will be included in the logout message
      */
     public void logout(String reason) {
@@ -864,6 +866,7 @@ public class Session implements Closeable {
 
     /**
      * Get the message store. (QF Compatibility)
+     *
      * @return the message store
      */
     public MessageStore getStore() {
@@ -1163,6 +1166,7 @@ public class Session implements Closeable {
 
     /**
      * A Gap has been request to be filled by either a resend request or on a logon message
+     *
      * @param messageOutSync the message that caused the gap to be filled
      * @param beginSeqNo the seqNum of the first missing message
      * @param endSeqNo the seqNum of the last missing message
@@ -1212,7 +1216,6 @@ public class Session implements Closeable {
     }
 
     /**
-     *
      * @param receivedMessage if not null, it is the message received and upon which the resend request is generated
      * @param beginSeqNo
      * @param endSeqNo
@@ -1320,6 +1323,7 @@ public class Session implements Closeable {
 
     /**
      * To generate a logout message
+     *
      * @param otherLogout if not null, the logout message that is causing a logout to be sent
      * @param text
      */
@@ -1901,12 +1905,9 @@ public class Session implements Closeable {
     /**
      * Logs out from session and closes the network connection.
      *
-     * @param reason
-     *            the reason why the session is disconnected
-     * @param logError
-     *            set to true if this disconnection is an error
-     * @throws IOException
-     *             IO error
+     * @param reason the reason why the session is disconnected
+     * @param logError set to true if this disconnection is an error
+     * @throws IOException IO error
      */
     public void disconnect(String reason, boolean logError) throws IOException {
         try {
@@ -2335,6 +2336,7 @@ public class Session implements Closeable {
 
     /**
      * Outgoing Logon in response to Logon received
+     *
      * @param otherLogon the one we are responding to with a Logon (response)
      * @param expectedTargetNum value for 789 tag (used only if enabled in properties)
      * @throws FieldNotFound expected message field of Logon not present.
@@ -2368,6 +2370,7 @@ public class Session implements Closeable {
 
     /**
      * Send the message
+     *
      * @param message is the message to send
      * @param num is the seq num of the message to send, if 0, the next expected sender seqnum is used.
      * @return
@@ -2480,7 +2483,6 @@ public class Session implements Closeable {
      *
      * @param message the message to send
      * @return a status flag indicating whether the write to the network layer was successful.
-     *
      */
     public boolean send(Message message) {
         message.getHeader().removeField(PossDupFlag.FIELD);
@@ -2553,6 +2555,7 @@ public class Session implements Closeable {
 
     /**
      * Determine if a session exists with the given ID.
+     *
      * @param sessionID
      * @return true if session exists, false otherwise.
      */
@@ -2562,6 +2565,7 @@ public class Session implements Closeable {
 
     /**
      * Return the session count.
+     *
      * @return the number of sessions
      */
     public static int numSessions() {
@@ -2570,6 +2574,7 @@ public class Session implements Closeable {
 
     /**
      * Sets the timeout for waiting for a logon response.
+     *
      * @param seconds the timeout in seconds
      */
     public void setLogonTimeout(int seconds) {
@@ -2578,6 +2583,7 @@ public class Session implements Closeable {
 
     /**
      * Sets the timeout for waiting for a logout response.
+     *
      * @param seconds the timeout in seconds
      */
     public void setLogoutTimeout(int seconds) {
@@ -2703,6 +2709,7 @@ public class Session implements Closeable {
      * Sets the default application version ID for messages received by this session.
      * This is called by the AcceptorIoHandler upon reception of a Logon message and
      * should not be called by user code.
+     *
      * @param applVerID
      */
     public void setTargetDefaultApplicationVersionID(ApplVerID applVerID) {

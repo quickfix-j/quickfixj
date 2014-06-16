@@ -57,7 +57,6 @@ import quickfix.field.converter.UtcTimestampConverter;
 
 /**
  * Provide the message metadata for various versions of FIX.
- *
  */
 public class DataDictionary {
     private static final String FIXT_PREFIX = "FIXT";
@@ -97,8 +96,7 @@ public class DataDictionary {
     /**
      * Initialize a data dictionary from a URL or a file path.
      *
-     * @param location
-     *            a URL or file system path
+     * @param location a URL or file system path
      * @throws ConfigError
      */
     public DataDictionary(String location) throws ConfigError {
@@ -108,8 +106,7 @@ public class DataDictionary {
     /**
      * Initialize a data dictionary from an input stream.
      *
-     * @param in
-     *            the input stream
+     * @param in the input stream
      * @throws ConfigError
      */
     public DataDictionary(InputStream in) throws ConfigError {
@@ -119,8 +116,7 @@ public class DataDictionary {
     /**
      * Copy a data dictionary.
      *
-     * @param source
-     *            the source dictionary that will be copied into this dictionary
+     * @param source the source dictionary that will be copied into this dictionary
      */
     public DataDictionary(DataDictionary source) {
         copyFrom(source);
@@ -154,8 +150,7 @@ public class DataDictionary {
     /**
      * Get the field name for a specified tag.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return the field name
      */
     public String getFieldName(int field) {
@@ -169,10 +164,8 @@ public class DataDictionary {
     /**
      * Get the value name, if any, for an enumerated field value.
      *
-     * @param field
-     *            the tag
-     * @param value
-     *            the value
+     * @param field the tag
+     * @param value the value
      * @return the value's name
      */
     public String getValueName(int field, String value) {
@@ -182,8 +175,7 @@ public class DataDictionary {
     /**
      * Predicate for determining if a tag is a defined field.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return true if the field is defined, false otherwise
      */
     public boolean isField(int field) {
@@ -193,8 +185,7 @@ public class DataDictionary {
     /**
      * Return the field type for a field.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return the field type
      */
     public FieldType getFieldTypeEnum(int field) {
@@ -210,6 +201,7 @@ public class DataDictionary {
 
     /**
      * Return the message type for the specified name.
+     *
      * @param msgName The message name.
      * @return the message type
      */
@@ -221,8 +213,7 @@ public class DataDictionary {
      * Predicate for determining if message type is valid for a specified FIX
      * version.
      *
-     * @param msgType
-     *            the message type value
+     * @param msgType the message type value
      * @return true if the message type if defined, false otherwise
      */
     public boolean isMsgType(String msgType) {
@@ -231,6 +222,7 @@ public class DataDictionary {
 
     /**
      * Predicate for determining if a message is in the admin category.
+     *
      * @param msgType the messageType
      * @return true, if the msgType is a AdminMessage
      *         false, if the msgType is a ApplicationMessage
@@ -242,6 +234,7 @@ public class DataDictionary {
 
     /**
      * Predicate for determining if a message is in the app category.
+     *
      * @param msgType the messageType
      * @return true, if the msgType is a ApplicationMessage
      *         false, if the msgType is a AdminMessage
@@ -263,10 +256,8 @@ public class DataDictionary {
     /**
      * Predicate for determining if a field is valid for a given message type.
      *
-     * @param msgType
-     *            the message type
-     * @param field
-     *            the tag
+     * @param msgType the message type
+     * @param field the tag
      * @return true if field is defined for message, false otherwise.
      */
     public boolean isMsgField(String msgType, int field) {
@@ -277,8 +268,7 @@ public class DataDictionary {
     /**
      * Predicate for determining if field is a header field.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
@@ -289,8 +279,7 @@ public class DataDictionary {
     /**
      * Predicate for determining if field is a trailer field.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return true if field is a trailer field, false otherwise.
      */
     public boolean isTrailerField(int field) {
@@ -305,8 +294,7 @@ public class DataDictionary {
     /**
      * Get the field type for a field.
      *
-     * @param field
-     *            a tag
+     * @param field a tag
      * @return the field type
      * @see #getFieldTypeEnum
      */
@@ -317,8 +305,7 @@ public class DataDictionary {
     /**
      * Get the field tag given a field name.
      *
-     * @param name
-     *            the field name
+     * @param name the field name
      * @return the tag
      */
     public int getFieldTag(String name) {
@@ -338,10 +325,8 @@ public class DataDictionary {
     /**
      * Predicate for determining if a field is required for a message type
      *
-     * @param msgType
-     *            the message type
-     * @param field
-     *            the tag
+     * @param msgType the message type
+     * @param field the tag
      * @return true if field is required, false otherwise
      */
     public boolean isRequiredField(String msgType, int field) {
@@ -351,6 +336,7 @@ public class DataDictionary {
 
     /**
      * Predicate for determining if a header field is a required field
+     *
      * @param field the tag
      * @return true if field s required, false otherwise
      */
@@ -360,6 +346,7 @@ public class DataDictionary {
 
     /**
      * Predicate for determining if a trailer field is a required field
+     *
      * @param field the tag
      * @return true if field s required, false otherwise
      */
@@ -379,8 +366,7 @@ public class DataDictionary {
     /**
      * Predicate for determining if a field has enumerated values.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return true if field is enumerated, false otherwise
      */
     public boolean hasFieldValue(int field) {
@@ -391,10 +377,8 @@ public class DataDictionary {
     /**
      * Predicate for determining if a field value is valid
      *
-     * @param field
-     *            the tag
-     * @param value
-     *            a possible field value
+     * @param field the tag
+     * @param value a possible field value
      * @return true if field value is valid, false otherwise
      */
     public boolean isFieldValue(int field, String value) {
@@ -430,10 +414,8 @@ public class DataDictionary {
      * Predicate for determining if a field is a group count field for a message
      * type.
      *
-     * @param msg
-     *            the message type
-     * @param field
-     *            the tag
+     * @param msg the message type
+     * @param field the tag
      * @return true if field starts a repeating group, false otherwise
      */
     public boolean isGroup(String msg, int field) {
@@ -443,8 +425,7 @@ public class DataDictionary {
     /**
      * Predicate for determining if a field is a header group count field
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return true if field starts a repeating group, false otherwise
      */
     public boolean isHeaderGroup(int field) {
@@ -454,10 +435,8 @@ public class DataDictionary {
     /**
      * Get repeating group metadata.
      *
-     * @param msg
-     *            the message type
-     * @param field
-     *            the tag
+     * @param msg the message type
+     * @param field the tag
      * @return an object containing group-related metadata
      */
     public GroupInfo getGroup(String msg, int field) {
@@ -467,8 +446,7 @@ public class DataDictionary {
     /**
      * Predicate for determining if a field is a FIX raw data field.
      *
-     * @param field
-     *            the tag
+     * @param field the tag
      * @return true if field is a raw data field, false otherwise
      */
     public boolean isDataField(int field) {
@@ -482,8 +460,7 @@ public class DataDictionary {
     /**
      * Controls whether out of order fields are checked.
      *
-     * @param flag
-     *            true = checked, false = not checked
+     * @param flag true = checked, false = not checked
      */
     public void setCheckFieldsOutOfOrder(boolean flag) {
         checkFieldsOutOfOrder = flag;
@@ -499,6 +476,7 @@ public class DataDictionary {
 
     /**
      * Controls whether group fields are in the same order
+     *
      * @param flag true = checked, false = not checked
      */
     public void setCheckUnorderedGroupFields(boolean flag) {
@@ -511,8 +489,7 @@ public class DataDictionary {
     /**
      * Controls whether empty field values are checked.
      *
-     * @param flag
-     *            true = checked, false = not checked
+     * @param flag true = checked, false = not checked
      */
     public void setCheckFieldsHaveValues(boolean flag) {
         checkFieldsHaveValues = flag;
@@ -524,8 +501,7 @@ public class DataDictionary {
     /**
      * Controls whether user defined fields are checked.
      *
-     * @param flag
-     *            true = checked, false = not checked
+     * @param flag true = checked, false = not checked
      */
     public void setCheckUserDefinedFields(boolean flag) {
         checkUserDefinedFields = flag;
@@ -590,12 +566,9 @@ public class DataDictionary {
     /**
      * Validate a mesasge, including the header and trailer fields.
      *
-     * @param message
-     *            the message
-     * @throws IncorrectTagValue
-     *             if a field value is not valid
-     * @throws FieldNotFound
-     *             if a field cannot be found
+     * @param message the message
+     * @throws IncorrectTagValue if a field value is not valid
+     * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat
      */
     public void validate(Message message) throws IncorrectTagValue, FieldNotFound,
@@ -606,14 +579,10 @@ public class DataDictionary {
     /**
      * Validate the message body, with header and trailer fields being validated conditionally.
      *
-     * @param message
-     *            the message
-     * @param bodyOnly
-     *            whether to validate just the message body, or to validate the header and trailer sections as well.
-     * @throws IncorrectTagValue
-     *             if a field value is not valid
-     * @throws FieldNotFound
-     *             if a field cannot be found
+     * @param message the message
+     * @param bodyOnly whether to validate just the message body, or to validate the header and trailer sections as well.
+     * @throws IncorrectTagValue if a field value is not valid
+     * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat
      */
     public void validate(Message message, boolean bodyOnly) throws IncorrectTagValue,

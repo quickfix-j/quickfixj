@@ -26,6 +26,7 @@ public interface LogFactory {
 
     /**
      * Create a log using default/global settings.
+     *
      * @deprecated This method is not needed by QFJ and is generally not implemented.
      * @return the log implementation
      */
@@ -34,8 +35,7 @@ public interface LogFactory {
     /**
      * Create a log implementation.
      *
-     * @param sessionID
-     *            session ID usually used for configuration access
+     * @param sessionID session ID usually used for configuration access
      * @return the log implementation
      */
     Log create(SessionID sessionID);

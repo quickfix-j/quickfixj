@@ -13,6 +13,7 @@ import quickfix.test.util.ExpectedTestFailure;
 
 /**
  * Verifies the behaviour of the {@link DefaultMessageFactory} class
+ *
  * @author toli
  * @version $Id$
  */

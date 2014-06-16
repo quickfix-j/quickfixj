@@ -64,7 +64,6 @@ import quickfix.test.util.ReflectionUtil;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
- *
  */
 public class SessionTest {
 
@@ -109,6 +108,7 @@ public class SessionTest {
      * This is a smoke test for handling noncloseable resources. Obviously, these
      * resources should not be closed. If they are, it will generate an error (probably
      * a class cast exception).
+     *
      * @throws Exception
      */
     @Test
@@ -1322,10 +1322,10 @@ public class SessionTest {
         return (SessionState) stateField.get(session);
     }
 
-    /** Verifies that the session has been registered before the logger tries accessing it
-     * Use case:
-     *  JdbcLogger not setup correctly, barfs during Session creation, tries to log and
-     * can't find the session in global session list yet.
+    /**
+     * Verifies that the session has been registered before the logger tries accessing it
+     * Use case: JdbcLogger not setup correctly, barfs during Session creation, tries to
+     * log and can't find the session in global session list yet.
      */
     @Test
     public void testSessionRegisteredCorrectly() throws Exception {

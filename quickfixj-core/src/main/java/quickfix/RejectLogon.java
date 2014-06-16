@@ -49,7 +49,7 @@ public class RejectLogon extends Exception {
      * @param msg text to print to session event log
      * @param logoutBeforeDisconnect controls whether a logout is sent
      * @param sessionStatus can be used to supply a SessionStatus value
-     * before the disconnect, defaults to true.
+     *        before the disconnect, defaults to true.
      */
     public RejectLogon(String msg, boolean logoutBeforeDisconnect, int sessionStatus) {
         super(msg);

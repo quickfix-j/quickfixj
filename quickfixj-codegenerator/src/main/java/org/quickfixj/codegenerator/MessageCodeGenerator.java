@@ -51,7 +51,6 @@ import org.xml.sax.SAXException;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
- *
  */
 public class MessageCodeGenerator {
 

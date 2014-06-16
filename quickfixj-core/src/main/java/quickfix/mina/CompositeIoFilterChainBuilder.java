@@ -30,7 +30,6 @@ import org.apache.mina.core.filterchain.IoFilterChainBuilder;
  *
  * @see IoFilterChainBuilder
  * @see DefaultIoFilterChainBuilder
- *
  */
 public class CompositeIoFilterChainBuilder extends DefaultIoFilterChainBuilder {
     private final IoFilterChainBuilder userFilterChainBuilder;

@@ -161,7 +161,8 @@ public class SLF4JLogTest extends TestCase {
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
-    /** Check to make sure that if we use log4j underneath with SLF4J we use
+    /**
+     * Check to make sure that if we use log4j underneath with SLF4J we use
      * the right wrapper function so that the appropriate calling location shows up
      * instead of our wrapper SLF4JLog class itself
      */

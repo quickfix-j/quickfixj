@@ -37,8 +37,7 @@ public class CachedFileStoreFactory extends FileStoreFactory {
     /**
      * Creates a file-based message store.
      *
-     * @param sessionID
-     *            session ID for the message store.
+     * @param sessionID session ID for the message store.
      */
     public MessageStore create(SessionID sessionID) {
         try {
