@@ -2254,13 +2254,9 @@ public class Session implements Closeable {
         final Message.Header header = msg.getHeader();
         final String beginString = header.getString(BeginString.FIELD);
         final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
-        getLog().onErrorEvent(
+        getLog().onEvent(
                 "MsgSeqNum too high, expecting " + getExpectedTargetNum() + " but received "
                         + msgSeqNum + ": " + msg);
-        // automatically reset or disconnect the session if we have a problem when the connector is running
-        if (resetOrDisconnectIfRequired(msg)) {
-            return;
-        }
         enqueueMessage(msg, msgSeqNum);
 
         if (state.isResendRequested()) {

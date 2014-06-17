@@ -1614,6 +1614,37 @@ public class SessionTest {
         assertEquals(21, session.getStore().getNextTargetMsgSeqNum());
     }
 
+    @Test
+    // QFJ-795
+    public void testMsgSeqNumTooHighWithDisconnectOnError() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
+
+        final boolean disconnectOnError = true;
+
+        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+                sessionID, null, null, new ScreenLogFactory(true, true, true),
+                new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, true, resetOnLogon,
+                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+                new int[] { 5 }, false, disconnectOnError, false, true, false, true, false, null,
+                true, 0, false, false);
+
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.logon();
+        session.next();
+
+        // Deliver Logon response with too high sequence number 100 
+        Message logonRequest = new Message(responder.sentMessageData);
+        session.next(createLogonResponse(sessionID, logonRequest, 100));
+
+        // Deliver application message with too high sequence number 101 
+        session.next(createAppMessage(101));
+        // Check, if session is still connected.
+        assertEquals(true, session.hasResponder());
+    }   
+
     private Session setUpSession(Application application, boolean isInitiator, Responder responder)
             throws NoSuchFieldException, IllegalAccessException {
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
