@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -86,7 +86,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
     private GridBagConstraints constraints = new GridBagConstraints();
 
     public OrderEntryPanel(final OrderTableModel orderTableModel,
-                           final BanzaiApplication application) {
+                final BanzaiApplication application) {
         setName("OrderEntryPanel");
         this.orderTableModel = orderTableModel;
         this.application = application;
@@ -127,18 +127,18 @@ public class OrderEntryPanel extends JPanel implements Observer {
         int y = 0;
 
         add(new JLabel("Symbol"), x, y);
-        add(new JLabel("Quantity"), ++x, y );
-        add(new JLabel("Side"), ++x, y );
-        add(new JLabel("Type"), ++x, y );
+        add(new JLabel("Quantity"), ++x, y);
+        add(new JLabel("Side"), ++x, y);
+        add(new JLabel("Type"), ++x, y);
         constraints.ipadx = 30;
-        add(limitPriceLabel, ++x, y );
-        add(stopPriceLabel, ++x, y );
+        add(limitPriceLabel, ++x, y);
+        add(stopPriceLabel, ++x, y);
         constraints.ipadx = 0;
         add(new JLabel("TIF"), ++x, y);
         constraints.ipadx = 30;
 
         symbolTextField.setName("SymbolTextField");
-        add(symbolTextField, x=0, ++y);
+        add(symbolTextField, x = 0, ++y);
         constraints.ipadx = 0;
         quantityTextField.setName("QuantityTextField");
         add(quantityTextField, ++x, y);
@@ -167,8 +167,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
         typeComboBox.setSelectedItem(OrderType.STOP);
         typeComboBox.setSelectedItem(OrderType.MARKET);
 
-        Font font = new Font(messageLabel.getFont().getFontName(),
-                             Font.BOLD, 12);
+        Font font = new Font(messageLabel.getFont().getFontName(), Font.BOLD, 12);
         messageLabel.setFont(font);
         messageLabel.setForeground(Color.red);
         messageLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -186,8 +185,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
 
     private void activateSubmit() {
         OrderType type = (OrderType) typeComboBox.getSelectedItem();
-        boolean activate = symbolEntered && quantityEntered
-                           && sessionEntered;
+        boolean activate = symbolEntered && quantityEntered && sessionEntered;
 
         if (type == OrderType.MARKET)
             submitButton.setEnabled(activate);
@@ -196,8 +194,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
         else if (type == OrderType.STOP)
             submitButton.setEnabled(activate && stopEntered);
         else if (type == OrderType.STOP_LIMIT)
-            submitButton.setEnabled(activate && limitEntered
-                                    && stopEntered);
+            submitButton.setEnabled(activate && limitEntered && stopEntered);
     }
 
     private class PriceListener implements ItemListener {
@@ -237,7 +234,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
     }
 
     public void update(Observable o, Object arg) {
-        LogonEvent logonEvent = (LogonEvent)arg;
+        LogonEvent logonEvent = (LogonEvent) arg;
         if (logonEvent.isLoggedOn())
             sessionComboBox.addItem(logonEvent.getSessionID());
         else
@@ -252,20 +249,18 @@ public class OrderEntryPanel extends JPanel implements Observer {
             order.setTIF((OrderTIF) tifComboBox.getSelectedItem());
 
             order.setSymbol(symbolTextField.getText());
-            order.setQuantity(Integer.parseInt
-                              (quantityTextField.getText()));
+            order.setQuantity(Integer.parseInt(quantityTextField.getText()));
             order.setOpen(order.getQuantity());
-            
+
             OrderType type = order.getType();
             if (type == OrderType.LIMIT || type == OrderType.STOP_LIMIT)
                 order.setLimit(limitPriceTextField.getText());
             if (type == OrderType.STOP || type == OrderType.STOP_LIMIT)
                 order.setStop(stopPriceTextField.getText());
-            order.setSessionID((SessionID)sessionComboBox.getSelectedItem());
+            order.setSessionID((SessionID) sessionComboBox.getSelectedItem());
 
             orderTableModel.addOrder(order);
             application.send(order);
-
         }
     }
 
@@ -291,12 +286,13 @@ public class OrderEntryPanel extends JPanel implements Observer {
         }
 
         private boolean testField(Object o) {
-            String value = ((JTextField)o).getText();
+            String value = ((JTextField) o).getText();
             value = value.trim();
             return value.length() > 0;
         }
 
         public void keyTyped(KeyEvent e) {}
+
         public void keyPressed(KeyEvent e) {}
     }
 }

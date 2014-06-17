@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -46,7 +46,7 @@ import com.sleepycat.je.OperationStatus;
 /**
  * Sleepycat message and session state storage. This could be creating
  * using the Sleepycat store factory.
- * 
+ *
  * @see SleepycatStoreFactory
  */
 public class SleepycatStore implements MessageStore {
@@ -69,9 +69,10 @@ public class SleepycatStore implements MessageStore {
     private String charsetEncoding = CharsetSupport.getCharset();
 
     private static class SessionIDTupleBinding extends TupleBinding {
+
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see com.sleepycat.bind.tuple.TupleBinding#entryToObject(com.sleepycat.bind.tuple.TupleInput)
          */
         public Object entryToObject(TupleInput tupleIn) {
@@ -82,7 +83,7 @@ public class SleepycatStore implements MessageStore {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see com.sleepycat.bind.tuple.TupleBinding#objectToEntry(java.lang.Object,
          *      com.sleepycat.bind.tuple.TupleOutput)
          */
@@ -100,9 +101,10 @@ public class SleepycatStore implements MessageStore {
     }
 
     private static class SessionInfoTupleBinding extends TupleBinding {
+
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see com.sleepycat.bind.tuple.TupleBinding#entryToObject(com.sleepycat.bind.tuple.TupleInput)
          */
         public Object entryToObject(TupleInput tupleIn) {
@@ -112,7 +114,7 @@ public class SleepycatStore implements MessageStore {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see com.sleepycat.bind.tuple.TupleBinding#objectToEntry(java.lang.Object,
          *      com.sleepycat.bind.tuple.TupleOutput)
          */
@@ -328,7 +330,6 @@ public class SleepycatStore implements MessageStore {
                     info = new SessionInfo();
                     storeSessionInfo();
                 }
-
             } catch (DatabaseException e) {
                 convertToIOExceptionAndRethrow(e);
             }

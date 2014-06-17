@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -80,7 +80,7 @@ public class BanzaiApplication implements Application {
     private ObservableLogon observableLogon = new ObservableLogon();
     private boolean isAvailable = true;
     private boolean isMissingField;
-    
+
     static private TwoWayMap sideMap = new TwoWayMap();
     static private TwoWayMap typeMap = new TwoWayMap();
     static private TwoWayMap tifMap = new TwoWayMap();
@@ -136,7 +136,7 @@ public class BanzaiApplication implements Application {
                 if (isAvailable) {
                     if (isMissingField) {
                         // For OpenFIX certification testing
-                        sendBusinessReject(message, BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, "Conditionally required field missing");                        
+                        sendBusinessReject(message, BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, "Conditionally required field missing");
                     }
                     else if (message.getHeader().isSetField(DeliverToCompID.FIELD)) {
                         // This is here to support OpenFIX certification
@@ -156,7 +156,6 @@ public class BanzaiApplication implements Application {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -210,12 +209,12 @@ public class BanzaiApplication implements Application {
         if (message.isSetField(LastShares.FIELD)) {
             LastShares lastShares = new LastShares();
             message.getField(lastShares);
-            fillSize = new BigDecimal(""+lastShares.getValue());
+            fillSize = new BigDecimal("" + lastShares.getValue());
         } else {
             // > FIX 4.1
             LeavesQty leavesQty = new LeavesQty();
             message.getField(leavesQty);
-            fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal(""+leavesQty.getValue()));
+            fillSize = new BigDecimal(order.getQuantity()).subtract(new BigDecimal("" + leavesQty.getValue()));
         }
 
         if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
@@ -223,7 +222,7 @@ public class BanzaiApplication implements Application {
             order.setExecuted(new Integer(message.getString(CumQty.FIELD)));
             order.setAvgPx(new Double(message.getString(AvgPx.FIELD)));
         }
-        
+
         OrdStatus ordStatus = (OrdStatus) message.getField(new OrdStatus());
 
         if (ordStatus.valueEquals(OrdStatus.REJECTED)) {
@@ -250,7 +249,7 @@ public class BanzaiApplication implements Application {
         if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             Execution execution = new Execution();
             execution.setExchangeID(sessionID + message.getField(new ExecID()).getValue());
-            
+
             execution.setSymbol(message.getField(new Symbol()).getValue());
             execution.setQuantity(fillSize.intValue());
             if (message.isSetField(LastPx.FIELD)) {
@@ -571,13 +570,12 @@ public class BanzaiApplication implements Application {
         tifMap.put(OrderTIF.OPG, new TimeInForce(TimeInForce.AT_THE_OPENING));
         tifMap.put(OrderTIF.GTC, new TimeInForce(TimeInForce.GOOD_TILL_CANCEL));
         tifMap.put(OrderTIF.GTX, new TimeInForce(TimeInForce.GOOD_TILL_CROSSING));
-
     }
-    
+
     public boolean isMissingField() {
         return isMissingField;
     }
-    
+
     public void setMissingField(boolean isMissingField) {
         this.isMissingField = isMissingField;
     }
@@ -585,7 +583,7 @@ public class BanzaiApplication implements Application {
     public boolean isAvailable() {
         return isAvailable;
     }
-    
+
     public void setAvailable(boolean isAvailable) {
         this.isAvailable = isAvailable;
     }

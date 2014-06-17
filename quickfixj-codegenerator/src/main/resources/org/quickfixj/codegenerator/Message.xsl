@@ -118,13 +118,13 @@ public class Message extends quickfix.Message {
 
 		public <xsl:value-of select="@name"/>() {
 			super(<xsl:value-of select="/fix/fields/field[@name=$groupFieldName]/@number"/>, <xsl:apply-templates select="field|component|group" mode="group-delimeter"/>,
-				new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/> 0 });
+				new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/>0});
 		}
 		<xsl:apply-templates select="field|component|group" mode="field-accessors"/>
 	}
 </xsl:template>
 
-  <!--  Find the group delimeter (first field) -->
+  <!-- Find the group delimeter (first field) -->
 
 <xsl:template mode="group-delimeter" match="field">
     <xsl:if test="position() = 1">
@@ -145,7 +145,7 @@ public class Message extends quickfix.Message {
     </xsl:if>
 </xsl:template>
   
-      <!--  Find the component numbers and order -->
+  <!-- Find the component numbers and order -->
   
 <xsl:template mode="component-field-numbers" match="field">
     <xsl:variable name="name" select="@name"/>
@@ -156,21 +156,21 @@ public class Message extends quickfix.Message {
     <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
  
 <xsl:template mode="component-field-numbers" match="component">
-    <xsl:variable name="name" select="@name"/>  
+    <xsl:variable name="name" select="@name"/>
     <xsl:apply-templates select="/fix/components/component[@name=$name]/*"
         mode="component-field-numbers"/>
 </xsl:template>
 
   <!-- ================================================================= -->
 
-  <!--  Find the field numbers and order -->
+  <!-- Find the field numbers and order -->
   
 <xsl:template mode="group-field-numbers" match="field|group">
     <xsl:variable name="name" select="@name"/>
     <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
 
 <xsl:template mode="group-field-numbers" match="component">
-    <xsl:variable name="name" select="@name"/>  
+    <xsl:variable name="name" select="@name"/>
     <xsl:apply-templates select="/fix/components/component[@name=$name]/*"
         mode="group-field-numbers"/>
 </xsl:template>
@@ -183,14 +183,14 @@ public class Message extends quickfix.Message {
 <xsl:template mode="field-accessors" match="field">
     <xsl:call-template name="field-accessor-template"/>
 </xsl:template>
-  
+
 <xsl:template name="field-accessor-template">
 	<xsl:variable name="name" select="@name"/>
 	public void set(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value) {
 		setField(value);
 	}
 
-	public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>  value) throws FieldNotFound {
+	public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value) throws FieldNotFound {
 		getField(value);
 		return value;
 	}
@@ -216,7 +216,7 @@ public class Message extends quickfix.Message {
 		setComponent(component);
 	}
 
-	public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/>  component) throws FieldNotFound {
+	public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/> component) throws FieldNotFound {
 		getComponent(component);
 		return component;
 	}
@@ -230,7 +230,7 @@ public class Message extends quickfix.Message {
 
 <xsl:template mode="field-accessors" match="message//component">
     <xsl:call-template name="component-accessor-template"/>
-    <xsl:variable name="name" select="@name"/>  
+    <xsl:variable name="name" select="@name"/>
     <xsl:apply-templates select="/fix/components/component[@name=$name]/*[name(.)='field' or name(.)='group' or name(.)='component']"
         mode="field-accessors"/>
 </xsl:template>
@@ -249,7 +249,7 @@ import quickfix.Group;</xsl:when>
     </xsl:choose>
 </xsl:template>
     
-    <!--  TODO Remove this duplication from MessageSubclass.xsl -->
+    <!-- TODO Remove this duplication from MessageSubclass.xsl -->
 <xsl:template name="extra-imports-component">
     <xsl:param name="components"/>
     <xsl:param name="position"/>

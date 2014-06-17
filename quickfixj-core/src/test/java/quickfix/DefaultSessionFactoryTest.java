@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -51,7 +51,7 @@ public class DefaultSessionFactoryTest {
     }
 
     @Test
-    public void testFixTMinimalSettings() throws Exception { 
+    public void testFixTMinimalSettings() throws Exception {
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
         setUpDefaultSettings(sessionID);
         factory = new DefaultSessionFactory(new ATApplication(), new MemoryStoreFactory(),
@@ -63,7 +63,7 @@ public class DefaultSessionFactoryTest {
             e = ex;
         }
         assertNotNull(e);
-        
+
         settings.setString(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID, "5");
         e = null;
         try {
@@ -75,7 +75,7 @@ public class DefaultSessionFactoryTest {
         }
         assertNull(e);
     }
-    
+
     @Test
     public void testFixtDataDictionaryConfiguration() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
@@ -148,7 +148,6 @@ public class DefaultSessionFactoryTest {
         createSessionAndAssertDictionaryNotFound();
     }
 
-
     @Test
     public void testInitiatorWithoutHeartbeat() throws Exception {
         settings.removeSetting(sessionID, Session.SETTING_HEARTBTINT);
@@ -210,9 +209,8 @@ public class DefaultSessionFactoryTest {
         settings.setString(sessionID, Session.SETTING_HEARTBTINT, "10");
         settings.setString(sessionID, "BeginString", "FIX.4.2");
     }
-    
 
-    //QFJ-629
+    // QFJ-629
     @Test
     public void testReconnectIntervalInDefaultSession() throws Exception {
         settings.setString(sessionID, "ReconnectInterval", "2x5;3x15");

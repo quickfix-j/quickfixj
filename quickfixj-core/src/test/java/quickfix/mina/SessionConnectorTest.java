@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -45,30 +45,30 @@ import quickfix.UnitTestApplication;
 
 public class SessionConnectorTest extends TestCase {
     private List<PropertyChangeEvent> propertyChangeEvents = new ArrayList<PropertyChangeEvent>();
-    
+
     public void testConnector() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionSettings settings = setUpSessionSettings(sessionID);
         DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
                 new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
-        
+
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
-        
+
         connector.addPropertyChangeListener(new SessionConnectorListener());
-        
+
         Session session = connector.createSession(sessionID);
         assertNotNull(session);
-        
+
         Map<SessionID, Session> sessions = Collections.singletonMap(session.getSessionID(), session);
         connector.setSessions(sessions);
-        
+
         assertEquals(1, propertyChangeEvents.size());
-        
+
         assertEquals(1, connector.getManagedSessions().size());
         assertEquals(session, connector.getManagedSessions().get(0));
-        
+
         assertFalse(connector.isLoggedOn());
-        
+
         Field stateField = session.getClass().getDeclaredField("state");
         stateField.setAccessible(true);
         SessionState state = (SessionState) stateField.get(session);
@@ -76,29 +76,28 @@ public class SessionConnectorTest extends TestCase {
         state.setLogonSent(true);
         state.setLogonReceived(true);
         assertTrue(connector.isLoggedOn());
-        
+
         assertTrue(session.isEnabled());
         connector.logoutAllSessions(true);
         assertFalse(session.isEnabled());
-        
+
         assertEquals(9999, connector.getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT));
-        
+
         assertNotNull(connector.getScheduledExecutorService());
         assertEquals(settings, connector.getSettings());
     }
 
-    
     public void testOneSessionLoggedOnOneSessionNotLoggedOne() throws Exception {
         SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionSettings settings = setUpSessionSettings(sessionID1);
         DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
                 new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
-        
+
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
-        
+
         Session session1 = connector.createSession(sessionID1);
         assertNotNull(session1);
- 
+
         // test add/remove
         SessionConnectorListener connectorListener = new SessionConnectorListener();
         connector.addPropertyChangeListener(connectorListener);
@@ -107,14 +106,14 @@ public class SessionConnectorTest extends TestCase {
         Map<SessionID, Session> sessions = new HashMap<SessionID, Session>();
         sessions.put(session1.getSessionID(), session1);
         connector.setSessions(sessions);
-        
+
         assertEquals(0, propertyChangeEvents.size());
 
         assertEquals(1, connector.getManagedSessions().size());
         assertEquals(session1, connector.getManagedSessions().get(0));
-        
+
         assertFalse(connector.isLoggedOn());
-        
+
         Field stateField = session1.getClass().getDeclaredField("state");
         stateField.setAccessible(true);
         SessionState state = (SessionState) stateField.get(session1);
@@ -122,7 +121,7 @@ public class SessionConnectorTest extends TestCase {
         state.setLogonSent(true);
         state.setLogonReceived(true);
         assertTrue(connector.isLoggedOn());
-        
+
         SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD1");
         settings.setString(sessionID2, SessionFactory.SETTING_CONNECTION_TYPE,
                 SessionFactory.ACCEPTOR_CONNECTION_TYPE);
@@ -130,7 +129,6 @@ public class SessionConnectorTest extends TestCase {
         assertNotNull(session2);
         sessions.put(session2.getSessionID(), session2);
         assertFalse(connector.isLoggedOn());
-        
     }
 
     /** Test that adding/removing dynamic sessions works correctly */
@@ -183,7 +181,7 @@ public class SessionConnectorTest extends TestCase {
                 SessionFactory.ACCEPTOR_CONNECTION_TYPE);
         return settings;
     }
-    
+
     private final class SessionConnectorListener implements PropertyChangeListener {
         public void propertyChange(PropertyChangeEvent event) {
             if (SessionConnector.SESSIONS_PROPERTY.equals(event.getPropertyName())) {

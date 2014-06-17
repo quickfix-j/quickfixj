@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -48,7 +48,6 @@ import quickfix.mina.ProtocolFactory;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.test.acceptance.ATApplication;
 
-
 public class SSLAndNonSSLTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -60,7 +59,7 @@ public class SSLAndNonSSLTest {
     public void testSSLClient() throws Exception {
         doLogonTest("TW1", "9887", "Y");
     }
-    
+
     @Test
     public void testNonSSLClient() throws Exception {
         doLogonTest("TW2", "9888", "N");
@@ -76,7 +75,7 @@ public class SSLAndNonSSLTest {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, clientCompId, "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID, port, useSSL);
             ClientApplication clientApplication = new ClientApplication();
-            
+
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
@@ -127,10 +126,6 @@ public class SSLAndNonSSLTest {
         private Initiator initiator;
         private boolean stopAfterLogon;
 
-        public ClientApplication() {
-
-        }
-
         public void setUpLogonExpectation() {
             logonLatch = new CountDownLatch(1);
         }
@@ -145,7 +140,6 @@ public class SSLAndNonSSLTest {
                 initiator.stop();
             }
         }
-
     }
 
     private class ServerThread extends Thread {
@@ -164,14 +158,14 @@ public class SSLAndNonSSLTest {
             server.waitForInitialization();
         }
     }
-    
+
     private class ATServer implements Runnable {
         private final Logger log = LoggerFactory.getLogger(ATServer.class);
         private final CountDownLatch initializationLatch = new CountDownLatch(1);
         private final CountDownLatch tearDownLatch = new CountDownLatch(1);
         private final SessionSettings settings = new SessionSettings();
         private AbstractSocketAcceptor acceptor;
-        
+
         public ATServer() {
             // defaults
         }
@@ -186,25 +180,25 @@ public class SSLAndNonSSLTest {
                 defaults.put("EndTime", "00:00:00");
                 defaults.put("FileStorePath", "target/data/server");
                 defaults.put("ValidateUserDefinedFields", "N");
-                
+
                 settings.set(defaults);
-                
-                //TW1 is a SSL client at 9887
+
+                // TW1 is a SSL client at 9887
                 SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW1");
                 settings.setString(sessionID1, "SenderCompID", "ISLD");
                 settings.setString(sessionID1, "TargetCompID", "TW1");
                 settings.setString(sessionID1, "BeginString", FixVersions.BEGINSTRING_FIX42);
                 settings.setString(sessionID1, "SocketAcceptPort", "9887");
                 settings.setString(sessionID1, SSLSupport.SETTING_USE_SSL, "Y");
-                
-                //TW2 is a non SSL client at 9888
+
+                // TW2 is a non SSL client at 9888
                 SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW2");
                 settings.setString(sessionID2, "SenderCompID", "ISLD");
                 settings.setString(sessionID2, "TargetCompID", "TW2");
                 settings.setString(sessionID2, "BeginString", FixVersions.BEGINSTRING_FIX42);
                 settings.setString(sessionID2, "SocketAcceptPort", "9888");
                 settings.setString(sessionID2, SSLSupport.SETTING_USE_SSL, "N");
-                
+
                 ATApplication application = new ATApplication();
                 MessageStoreFactory factory = new MemoryStoreFactory();
                 quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
@@ -235,8 +229,6 @@ public class SSLAndNonSSLTest {
         public void waitForInitialization() throws InterruptedException {
             initializationLatch.await();
         }
-
-
     }
 
 }

@@ -25,6 +25,7 @@ public class SessionAdminTest extends TestCase {
 
     private class MockSessionAdmin extends SessionAdmin {
         ArrayList<Message> sentMessages = new ArrayList<Message>();
+
         public MockSessionAdmin(Session session, ObjectName connectorName, ObjectName settingsName) {
             super(session, connectorName, settingsName);
         }
@@ -33,6 +34,5 @@ public class SessionAdminTest extends TestCase {
             sentMessages.add(message);
         }
     }
-
 
 }

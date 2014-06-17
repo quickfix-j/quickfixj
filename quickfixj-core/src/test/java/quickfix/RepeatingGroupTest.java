@@ -318,7 +318,6 @@ public class RepeatingGroupTest extends TestCase {
         }
 
         assertEquals("Message validation failed", sourceFIXString, validateFIXString);
-
     }
 
     public void testValidationWithNestedGroupAndStandardFieldsFIX50SP2() throws InvalidMessage, ConfigError {
@@ -370,7 +369,6 @@ public class RepeatingGroupTest extends TestCase {
         } catch (final InvalidMessage e) {
             // We expect that Exception did happen, so we don't do anything.
         }
-
     }
 
     public void testGroupFieldsOrderWithCustomDataDictionary() throws InvalidMessage {
@@ -414,7 +412,6 @@ public class RepeatingGroupTest extends TestCase {
 
         assertEquals("Message validation failed",
                 MessageUtils.checksum(sourceFIXString), MessageUtils.checksum(validatedFIXString));
-
     }
 
     public void testOutOfOrderGroupMembersDelimiterField() throws Exception {

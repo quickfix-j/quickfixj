@@ -1,18 +1,18 @@
 /*******************************************************************************
- * Copyright (c) quickfixj.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX/J FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixj.org 
- * license as defined by quickfixj.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixj.org/LICENSE for licensing information. 
- * 
+ * Copyright (c) quickfixj.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX/J FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixj.org
+ * license as defined by quickfixj.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixj.org/LICENSE for licensing information.
+ *
  ******************************************************************************/
 
 package org.quickfixj.jmx.mbean.session;
@@ -181,14 +181,14 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     }
 
     public void resetSequence(int nextSeqNum) throws SessionNotFound {
-        logInvocation("resetSequence to: "+nextSeqNum);
+        logInvocation("resetSequence to: " + nextSeqNum);
         Message sequenceReset = new Message();
         sequenceReset.getHeader().setField(new MsgType(MsgType.SEQUENCE_RESET));
         sequenceReset.setField(new NewSeqNo(nextSeqNum));
         doSend(sequenceReset, session.getSessionID());
     }
 
-    /** Helper method to be overridden by tests  that handles sending out the message */
+    /** Helper method to be overridden by tests that handles sending out the message */
     protected void doSend(Message message, SessionID sessionID) throws SessionNotFound {
         Session.sendToTarget(message, sessionID);
     }
@@ -234,7 +234,6 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     public String getProcessID() {
         return System.getProperty("java.pid");
     }
-
 
     public ObjectName getConnectorName() {
         return connectorName;
@@ -355,7 +354,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     }
 
     private void logInvocation(String operation) {
-        session.getLog().onEvent("JMX: "+operation+" invoked");
+        session.getLog().onEvent("JMX: " + operation + " invoked");
     }
 
     public void postDeregister() {
@@ -382,7 +381,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     //
     // Session State Notifications
     //
-    
+
     public void onConnect() {
         sendNotification("connect");
     }
@@ -422,17 +421,14 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     }
 
     public void sendTestRequest() {
-        session.generateTestRequest(System.currentTimeMillis()+"");
-        
+        session.generateTestRequest(System.currentTimeMillis() + "");
     }
 
     public void sendHeartBeat() {
         session.generateHeartbeat();
-        
     }
 
     public void sendLogoutMessage() {
         session.generateLogout();
-        
     }
 }

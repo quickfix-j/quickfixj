@@ -146,7 +146,7 @@ import quickfix.Group;</xsl:if>
   <!-- Modified this template to recurse across components in search of groups -->
 <xsl:template name="extra-imports-component">
     <xsl:choose>
-      <xsl:when  test="count(group)">Group</xsl:when>
+      <xsl:when test="count(group)">Group</xsl:when>
       <xsl:otherwise>
         <xsl:for-each select="component">
           <xsl:variable name="myname" select="@name"/>
@@ -181,7 +181,7 @@ import quickfix.Group;</xsl:if>
 	}
 </xsl:template>
 
-  <!--  Find the group delimeter (first field) -->
+  <!-- Find the group delimeter (first field) -->
 
 <xsl:template mode="group-delimeter" match="field">
 	<xsl:if test="position() = 1">
@@ -202,7 +202,7 @@ import quickfix.Group;</xsl:if>
 	</xsl:if>
 </xsl:template>
 
-  <!--  Find the component numbers and order -->
+  <!-- Find the component numbers and order -->
 
 <xsl:template mode="component-field-numbers" match="field">
 	<xsl:variable name="name" select="@name"/>
@@ -220,7 +220,7 @@ import quickfix.Group;</xsl:if>
 
   <!-- ================================================================= -->
 
-  <!--  Find the field numbers and order -->
+  <!-- Find the field numbers and order -->
 
 <xsl:template mode="group-field-numbers" match="field|group">
     <xsl:variable name="name" select="@name"/>
@@ -248,7 +248,7 @@ import quickfix.Group;</xsl:if>
 		setField(value);
 	}
 
-	public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>  value) throws FieldNotFound {
+	public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value) throws FieldNotFound {
 		getField(value);
 		return value;
 	}
@@ -274,7 +274,7 @@ import quickfix.Group;</xsl:if>
 		setComponent(component);
 	}
 
-	public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/>  component) throws FieldNotFound {
+	public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/> component) throws FieldNotFound {
 		getComponent(component);
 		return component;
 	}

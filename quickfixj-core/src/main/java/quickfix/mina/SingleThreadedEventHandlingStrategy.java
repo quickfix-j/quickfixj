@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -65,8 +65,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                     }
                     if (!sessionConnector.isLoggedOn() || SystemTime.currentTimeMillis() - stopTime > 5000L) {
                         sessionConnector.stopSessionTimer();
-                        //reset the stoptime
-                        stopTime=0;
+                        // reset the stoptime
+                        stopTime = 0;
                         return;
                     }
                 }
@@ -89,11 +89,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public void blockInThread() {
         startHandlingMessages();
         Thread messageProcessingThread = new Thread(new Runnable() {
-
             public void run() {
                 block();
             }
-
         }, MESSAGE_PROCESSOR_THREAD_NAME);
         messageProcessingThread.setDaemon(true);
         messageProcessingThread.start();
@@ -115,7 +113,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 } else {
                     try {
                         final String msgType = message.getHeader().getString(MsgType.FIELD);
-                        if (msgType.equals(MsgType.LOGOUT)) quickfixSession.next(message);
+                        if (msgType.equals(MsgType.LOGOUT))
+                            quickfixSession.next(message);
                     } catch (FieldNotFound ex) {
                         // ignore
                     }
@@ -129,7 +128,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     private synchronized void startHandlingMessages() {
         isStopped = false;
     }
-    
+
     public synchronized void stopHandlingMessages() {
         isStopped = true;
     }

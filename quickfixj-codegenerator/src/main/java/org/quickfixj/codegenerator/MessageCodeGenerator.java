@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -51,7 +51,7 @@ import org.xml.sax.SAXException;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
- * 
+ *
  */
 public class MessageCodeGenerator {
 
@@ -59,14 +59,14 @@ public class MessageCodeGenerator {
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
 
-    //  An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
+    // An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
     private static final long SERIAL_UID = 20050617;
 
-    //  The String representation of the UID
+    // The String representation of the UID
     private static final String SERIAL_UID_STR = String.valueOf(SERIAL_UID);
 
-    //  The name of the param in the .xsl files to pass the serialVersionUID
+    // The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
 
     protected void logInfo(String msg) {
@@ -123,7 +123,7 @@ public class MessageCodeGenerator {
             IOException {
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getFieldDirectory()
                 + "/";
-        logInfo(task.getName() + ": generating field classes in "+outputDirectory);
+        logInfo(task.getName() + ": generating field classes in " + outputDirectory);
         writePackageDocumentation(outputDirectory, "FIX field definitions for " + task.getName());
         Document document = getSpecification(task);
         List<String> fieldNames = getNames(document.getDocumentElement(), "fields/field");
@@ -202,14 +202,14 @@ public class MessageCodeGenerator {
 
     private Transformer createTransformer(Task task, String xsltFile)
             throws TransformerFactoryConfigurationError, TransformerConfigurationException {
-    	StreamSource styleSource;
-    	File xslt = new File(task.getTransformDirectory() + "/" + xsltFile);
-    	if (xslt.exists()) {
-    		styleSource = new StreamSource(xslt);
-    	} else {
-    		logInfo("Loading predefined xslt file:"+xsltFile);
-    		styleSource = new StreamSource(this.getClass().getResourceAsStream(xsltFile));
-    	}
+        StreamSource styleSource;
+        File xslt = new File(task.getTransformDirectory() + "/" + xsltFile);
+        if (xslt.exists()) {
+            styleSource = new StreamSource(xslt);
+        } else {
+            logInfo("Loading predefined xslt file:" + xsltFile);
+            styleSource = new StreamSource(this.getClass().getResourceAsStream(xsltFile));
+        }
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         return transformerFactory.newTransformer(styleSource);
     }
@@ -335,7 +335,7 @@ public class MessageCodeGenerator {
         private boolean orderedFields;
         private boolean useDecimal;
         private long specificationLastModified;
-        
+
         public long getSpecificationLastModified() {
             return specificationLastModified;
         }

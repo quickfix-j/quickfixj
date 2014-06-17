@@ -68,12 +68,12 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     private final List<ObjectName> sessionNames = new ArrayList<ObjectName>();
 
     private final SessionSettings settings;
-    
+
     private String role = "N/A";
 
     private MBeanServer mbeanServer;
 
-    public ConnectorAdmin(JmxExporter jmxExporter, Connector connector, ObjectName connectorName, 
+    public ConnectorAdmin(JmxExporter jmxExporter, Connector connector, ObjectName connectorName,
             SessionSettings settings, SessionJmxExporter sessionExporter) {
         this.jmxExporter = jmxExporter;
         this.connectorName = connectorName;
@@ -170,10 +170,10 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     public void postRegister(Boolean registrationDone) {
         if (connector instanceof SessionConnector) {
-            ((SessionConnector)connector).addPropertyChangeListener(new PropertyChangeListener() {               
+            ((SessionConnector) connector).addPropertyChangeListener(new PropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent evt) {
-                    if (SessionConnector.SESSIONS_PROPERTY.equals(evt.getPropertyName())) {                    
-                        registerSessions(); 
+                    if (SessionConnector.SESSIONS_PROPERTY.equals(evt.getPropertyName())) {
+                        registerSessions();
                     }
                 }
             });

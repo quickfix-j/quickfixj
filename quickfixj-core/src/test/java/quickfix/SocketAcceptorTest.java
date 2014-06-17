@@ -66,7 +66,6 @@ public class SocketAcceptorTest extends TestCase {
 
             testAcceptorApplication.waitForLogon();
             assertTrue("initiator should have logged on by now", acceptor.isLoggedOn());
-
         } finally {
             if (initiator != null) {
                 try {
@@ -109,7 +108,6 @@ public class SocketAcceptorTest extends TestCase {
                 fail(e.getMessage());
             }
         }
-
     }
 
     private Acceptor createAcceptor(TestAcceptorApplication testAcceptorApplication)
@@ -121,7 +119,7 @@ public class SocketAcceptorTest extends TestCase {
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("BeginString", "FIX.4.2");
-        settings.setString(acceptorSessionID, "SocketAcceptProtocol",ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        settings.setString(acceptorSessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(acceptorSessionID, "SocketAcceptPort", "10000");
         settings.set(defaults);
 
@@ -142,7 +140,7 @@ public class SocketAcceptorTest extends TestCase {
         defaults.put("FileStorePath", "target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
-        settings.setString(initiatorSessionID, "SocketConnectProtocol",ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        settings.setString(initiatorSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(initiatorSessionID, "SocketConnectHost", "127.0.0.1");
         settings.setString(initiatorSessionID, "SocketConnectPort", "10000");
         settings.set(defaults);

@@ -36,6 +36,7 @@ import quickfix.SessionID;
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
+
     /**
      * Constant indicating how long we wait for an incoming message. After this thread has been asked
      * to stop, it can take up to this long to terminate.

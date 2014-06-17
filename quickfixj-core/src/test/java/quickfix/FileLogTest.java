@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -61,7 +61,7 @@ public class FileLogTest {
         log.clear();
 
         // Also, tests encoding
-        
+
         // äbcfödçé
         String outgoingText = "OUTTEST \u00E4bcf\u00F6d\u00E7\u00E9";
         log.onOutgoing(outgoingText);
@@ -131,7 +131,6 @@ public class FileLogTest {
 
         log = (FileLog) factory.create(sessionID);
         log.setSyncAfterWrite(true);
-
     }
 
     @Test
@@ -191,27 +190,26 @@ public class FileLogTest {
         in.read(data);
         in.close();
         return new String(data, CharsetSupport.getCharset());
-
     }
-    
+
     @Test
     public void testLogErrorWhenFilesystemRemoved() throws IOException{
-        //QFJ-459
+        // QFJ-459
         long systemTime = System.currentTimeMillis();
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);
         SessionSettings settings = new SessionSettings();
         settings.setString(sessionID, FileLogFactory.SETTING_FILE_LOG_PATH, getTempDirectory());
         settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, false);
         FileLogFactory factory = new FileLogFactory(settings);
-        
+
         Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
                 sessionID, new DefaultDataDictionaryProvider(), null, factory,
                 new DefaultMessageFactory(), 0);
         Session.registerSession(session);
-        
+
         FileLog log = (FileLog) session.getLog();
         log.close();
         log.logIncoming("test");
-        //no stack overflow exception thrown
+        // no stack overflow exception thrown
     }
 }

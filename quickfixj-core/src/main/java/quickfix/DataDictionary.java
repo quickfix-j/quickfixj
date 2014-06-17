@@ -399,7 +399,7 @@ public class DataDictionary {
      */
     public boolean isFieldValue(int field, String value) {
         final Set<String> validValues = fieldValues.get(field);
-        
+
         if (validValues == null || validValues.size() == 0) {
             return false;
         }
@@ -499,7 +499,7 @@ public class DataDictionary {
 
     /**
      * Controls whether group fields are in the same order
-     * @param flag   true = checked, false = not checked
+     * @param flag true = checked, false = not checked
      */
     public void setCheckUnorderedGroupFields(boolean flag) {
         checkUnorderedGroupFields = flag;
@@ -507,6 +507,7 @@ public class DataDictionary {
             gi.getDataDictionary().setCheckUnorderedGroupFields(flag);
         }
     }
+
     /**
      * Controls whether empty field values are checked.
      *
@@ -539,7 +540,7 @@ public class DataDictionary {
             gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
         }
     }
-    
+
     private void copyFrom(DataDictionary rhs) {
         hasVersion = rhs.hasVersion;
         beginString = rhs.beginString;
@@ -561,7 +562,7 @@ public class DataDictionary {
     }
 
     @SuppressWarnings("unchecked")
-    private <K,V> void copyMap(Map<K,V> lhs, Map<K,V> rhs) {
+    private <K, V> void copyMap(Map<K, V> lhs, Map<K, V> rhs) {
         lhs.clear();
         for (Map.Entry<K, V> entry : rhs.entrySet()) {
             Object value = entry.getValue();
@@ -970,7 +971,6 @@ public class DataDictionary {
                         addFieldValue(num, ANY_VALUE);
                     }
                 }
-
             }
         }
 
@@ -1055,7 +1055,6 @@ public class DataDictionary {
                 if (required.equalsIgnoreCase("Y")) {
                     addRequiredField(msgtype, num);
                 }
-
             } else if (fieldNode.getNodeName().equals("component")) {
 
                 final String required = getAttribute(fieldNode, "required");
@@ -1158,7 +1157,6 @@ public class DataDictionary {
             }
         }
         return firstField;
-
     }
 
     private void addXMLGroup(Document document, Node node, String msgtype, DataDictionary dd,

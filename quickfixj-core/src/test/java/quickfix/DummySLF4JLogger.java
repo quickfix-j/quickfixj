@@ -19,23 +19,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void trace(String s) {
-
     }
 
     public void trace(String s, Object o) {
-
     }
 
     public void trace(String s, Object o, Object o1) {
-
     }
 
     public void trace(String s, Object[] objects) {
-
     }
 
     public void trace(String s, Throwable throwable) {
-
     }
 
     public boolean isTraceEnabled(Marker marker) {
@@ -43,23 +38,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void trace(Marker marker, String s) {
-
     }
 
     public void trace(Marker marker, String s, Object o) {
-
     }
 
     public void trace(Marker marker, String s, Object o, Object o1) {
-
     }
 
     public void trace(Marker marker, String s, Object[] objects) {
-
     }
 
     public void trace(Marker marker, String s, Throwable throwable) {
-
     }
 
     public boolean isDebugEnabled() {
@@ -67,23 +57,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void debug(String msg) {
-
     }
 
     public void debug(String format, Object arg) {
-
     }
 
     public void debug(String format, Object arg1, Object arg2) {
-
     }
 
     public void debug(String format, Object[] argArray) {
-
     }
 
     public void debug(String msg, Throwable t) {
-
     }
 
     public boolean isDebugEnabled(Marker marker) {
@@ -91,23 +76,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void debug(Marker marker, String msg) {
-
     }
 
     public void debug(Marker marker, String format, Object arg) {
-
     }
 
     public void debug(Marker marker, String format, Object arg1, Object arg2) {
-
     }
 
     public void debug(Marker marker, String format, Object[] argArray) {
-
     }
 
     public void debug(Marker marker, String msg, Throwable t) {
-
     }
 
     public boolean isInfoEnabled() {
@@ -115,23 +95,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void info(String msg) {
-
     }
 
     public void info(String format, Object arg) {
-
     }
 
     public void info(String format, Object arg1, Object arg2) {
-
     }
 
     public void info(String format, Object[] argArray) {
-
     }
 
     public void info(String msg, Throwable t) {
-
     }
 
     public boolean isInfoEnabled(Marker marker) {
@@ -139,23 +114,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void info(Marker marker, String msg) {
-
     }
 
     public void info(Marker marker, String format, Object arg) {
-
     }
 
     public void info(Marker marker, String format, Object arg1, Object arg2) {
-
     }
 
     public void info(Marker marker, String format, Object[] argArray) {
-
     }
 
     public void info(Marker marker, String msg, Throwable t) {
-
     }
 
     public boolean isWarnEnabled() {
@@ -163,23 +133,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void warn(String msg) {
-
     }
 
     public void warn(String format, Object arg) {
-
     }
 
     public void warn(String format, Object[] argArray) {
-
     }
 
     public void warn(String format, Object arg1, Object arg2) {
-
     }
 
     public void warn(String msg, Throwable t) {
-
     }
 
     public boolean isWarnEnabled(Marker marker) {
@@ -187,23 +152,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void warn(Marker marker, String msg) {
-
     }
 
     public void warn(Marker marker, String format, Object arg) {
-
     }
 
     public void warn(Marker marker, String format, Object arg1, Object arg2) {
-
     }
 
     public void warn(Marker marker, String format, Object[] argArray) {
-
     }
 
     public void warn(Marker marker, String msg, Throwable t) {
-
     }
 
     public boolean isErrorEnabled() {
@@ -211,23 +171,18 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void error(String msg) {
-
     }
 
     public void error(String format, Object arg) {
-
     }
 
     public void error(String format, Object arg1, Object arg2) {
-
     }
 
     public void error(String format, Object[] argArray) {
-
     }
 
     public void error(String msg, Throwable t) {
-
     }
 
     public boolean isErrorEnabled(Marker marker) {
@@ -235,22 +190,17 @@ public class DummySLF4JLogger implements Logger {
     }
 
     public void error(Marker marker, String msg) {
-
     }
 
     public void error(Marker marker, String format, Object arg) {
-
     }
 
     public void error(Marker marker, String format, Object arg1, Object arg2) {
-
     }
 
     public void error(Marker marker, String format, Object[] argArray) {
-
     }
 
     public void error(Marker marker, String msg, Throwable t) {
-
     }
 }

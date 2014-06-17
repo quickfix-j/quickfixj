@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -65,8 +65,8 @@ public class TestConnection {
 
     private TestIoHandler getIoHandler(int clientId) {
         synchronized (ioHandlers) {
-        	return ioHandlers.get(Integer.valueOf(clientId));
-    	}
+            return ioHandlers.get(Integer.valueOf(clientId));
+        }
     }
 
     public void tearDown() {
@@ -89,7 +89,7 @@ public class TestConnection {
             throws UnknownHostException, IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
         if (connector != null) {
-            log.info("Disposing connector for clientId " + clientId );
+            log.info("Disposing connector for clientId " + clientId);
             connector.dispose();
         }
 
@@ -113,12 +113,12 @@ public class TestConnection {
 
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {
-        	ioHandlers.put(clientId, testIoHandler);
-        	connector.setHandler(testIoHandler);
-        	ConnectFuture future = connector.connect(address);
-        	future.awaitUninterruptibly(5000L);
-        	Assert.assertTrue("connection to server failed", future.isConnected());
-    	}
+            ioHandlers.put(clientId, testIoHandler);
+            connector.setHandler(testIoHandler);
+            ConnectFuture future = connector.connect(address);
+            future.awaitUninterruptibly(5000L);
+            Assert.assertTrue("connection to server failed", future.isConnected());
+        }
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
@@ -151,7 +151,7 @@ public class TestConnection {
 
         public IoSession getSession() {
             try {
-                boolean await = sessionCreatedLatch.await(70, TimeUnit.SECONDS);    // 10 seconds more than retry time in ATServer.run()
+                boolean await = sessionCreatedLatch.await(70, TimeUnit.SECONDS); // 10 seconds more than retry time in ATServer.run()
                 if (!await) {
                     log.error("sessionCreatedLatch timed out. Dumping threads...");
                     ReflectionUtil.dumpStackTraces();

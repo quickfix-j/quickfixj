@@ -34,7 +34,7 @@ import quickfix.field.DefaultApplVerID;
  * initiators) for creating sessions.
  */
 public class DefaultSessionFactory implements SessionFactory {
-    private static final Map<String,DataDictionary> dictionaryCache = new Hashtable<String,DataDictionary>();
+    private static final Map<String, DataDictionary> dictionaryCache = new Hashtable<String, DataDictionary>();
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
     private final LogFactory logFactory;
@@ -62,13 +62,13 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final boolean rejectInvalidMessage = getSetting(settings, sessionID,
                     Session.SETTING_REJECT_INVALID_MESSAGE, true);
-         
+
             final boolean rejectMessageOnUnhandledException = getSetting(settings, sessionID,
                     Session.SETTING_REJECT_MESSAGE_ON_UNHANDLED_EXCEPTION, false);
 
             final boolean requiresOrigSendingTime = getSetting(settings, sessionID,
                     Session.SETTING_REQUIRES_ORIG_SENDING_TIME, true);
-            
+
             if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
                 connectionType = settings.getString(sessionID,
                         SessionFactory.SETTING_CONNECTION_TYPE);
@@ -103,7 +103,6 @@ public class DefaultSessionFactory implements SessionFactory {
                 senderDefaultApplVerID = new DefaultApplVerID(toApplVerID(
                         settings.getString(sessionID, Session.SETTING_DEFAULT_APPL_VER_ID))
                         .getValue());
-
             }
 
             boolean useDataDictionary = true;
@@ -121,7 +120,6 @@ public class DefaultSessionFactory implements SessionFactory {
                     processPreFixtDataDictionary(sessionID, settings, dataDictionaryProvider);
                 }
             }
-
 
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
@@ -170,7 +168,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
             final boolean validateSequenceNumbers = getSetting(settings, sessionID, Session.SETTING_VALIDATE_SEQUENCE_NUMBERS, true);
-            final boolean validateIncomingMessage  = getSetting(settings, sessionID, Session.SETTING_VALIDATE_INCOMING_MESSAGE, true);
+            final boolean validateIncomingMessage = getSetting(settings, sessionID, Session.SETTING_VALIDATE_INCOMING_MESSAGE, true);
             final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
             final boolean disconnectOnError = getSetting(settings, sessionID, Session.SETTING_DISCONNECT_ON_ERROR, false);
             final boolean disableHeartBeatCheck = getSetting(settings, sessionID, Session.SETTING_DISABLE_HEART_BEAT_CHECK, false);
@@ -260,8 +258,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
             DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
-            FieldConvertError
-    {
+            FieldConvertError {
         dataDictionaryProvider.addTransportDictionary(
                 sessionID.getBeginString(),
                 createDataDictionary(sessionID, settings, Session.SETTING_TRANSPORT_DATA_DICTIONARY,
@@ -291,7 +288,6 @@ public class DefaultSessionFactory implements SessionFactory {
                             beginStringQualifier);
                     dataDictionaryProvider.addApplicationDictionary(
                             MessageUtils.toApplVerID(beginStringQualifier), dd);
-
                 }
             }
         }
@@ -341,14 +337,14 @@ public class DefaultSessionFactory implements SessionFactory {
             try {
                 final String raw = settings.getString(sessionID, Initiator.SETTING_RECONNECT_INTERVAL);
                 final int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
-                if (ret != null) return ret;
+                if (ret != null)
+                    return ret;
             } catch (final Throwable e) {
                 throw new ConfigError(e);
             }
         }
         return new int[] { 5 }; // default value
     }
-
 
     private Set<InetAddress> getInetAddresses(SessionSettings settings, SessionID sessionID)
             throws ConfigError {

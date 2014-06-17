@@ -29,15 +29,15 @@ public class DefaultMessageFactoryTest {
         assertMessage(quickfix.fix50.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(FIX50, MsgType.ADVERTISEMENT));
         assertMessage(quickfix.Message.class, MsgType.ADVERTISEMENT, factory.create("unknown", MsgType.ADVERTISEMENT));
     }
-    
+
     @Test
     public void testFixtCreate() throws Exception {
         assertMessage(quickfix.fixt11.Logon.class, MsgType.LOGON, factory.create(BEGINSTRING_FIXT11, MsgType.LOGON));
     }
-    
+
     @Test
     public void testGroupCreate() throws Exception {
-        
+
         new ExpectedTestFailure(IllegalArgumentException.class, "unknown") {
             protected void execute() throws Throwable {
                 factory.create("unknown", MsgType.NEWS, LinesOfText.FIELD);
@@ -53,7 +53,7 @@ public class DefaultMessageFactoryTest {
         assertNull("if group can't be created return null",
                 factory.create(BEGINSTRING_FIX40, MsgType.MARKET_DATA_SNAPSHOT_FULL_REFRESH, NoMDEntries.FIELD));
     }
-    
+
     private static void assertMessage(Class<?> expectedMessageClass, String expectedMessageType, Message message) throws Exception {
         assertEquals(expectedMessageClass, message.getClass());
         assertEquals(expectedMessageType, message.getHeader().getString(MsgType.FIELD));

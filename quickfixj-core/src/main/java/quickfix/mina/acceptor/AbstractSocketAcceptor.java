@@ -138,9 +138,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         AcceptorSessionProvider sessionProvider = sessionProviders.get(socketDescriptor.getAddress());
         if (sessionProvider == null) {
             sessionProvider = new DefaultAcceptorSessionProvider(socketDescriptor.getAcceptedSessions());
-            sessionProviders.put(socketDescriptor.getAddress(),sessionProvider);
+            sessionProviders.put(socketDescriptor.getAddress(), sessionProvider);
         }
-        
+
         IoAcceptor ioAcceptor = ioAcceptors.get(socketDescriptor);
         if (ioAcceptor == null && init) {
             ioAcceptor = ProtocolFactory.createIoAcceptor(transportType);
@@ -152,18 +152,17 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 throw new ConfigError(e);
             }
             ioAcceptors.put(socketDescriptor, ioAcceptor);
-
         }
         return ioAcceptor;
     }
 
     private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor) throws ConfigError {
-        return getIoAcceptor(socketDescriptor,true);
-    } 
-    
+        return getIoAcceptor(socketDescriptor, true);
+    }
+
     private AcceptorSocketDescriptor getAcceptorSocketDescriptor(SessionSettings settings,
             SessionID sessionID) throws ConfigError, FieldConvertError {
-        int acceptTransportType = ProtocolFactory.SOCKET; 
+        int acceptTransportType = ProtocolFactory.SOCKET;
         if (settings.isSetting(sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL)) {
             try {
                 acceptTransportType = ProtocolFactory.getTransportType(settings.getString(
@@ -300,7 +299,6 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         public boolean isUseSSL() {
             return useSSL;
         }
-
     }
 
     public Collection<IoAcceptor> getEndpoints() {
@@ -322,9 +320,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     static class StaticAcceptorSessionProvider implements AcceptorSessionProvider {
-        private final Map<SessionID,Session> acceptorSessions;
+        private final Map<SessionID, Session> acceptorSessions;
 
-        public StaticAcceptorSessionProvider(final Map<SessionID,Session> acceptorSessions) {
+        public StaticAcceptorSessionProvider(final Map<SessionID, Session> acceptorSessions) {
             this.acceptorSessions = acceptorSessions;
         }
 
@@ -367,5 +365,5 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                     sessionID.getTargetCompID());
         }
     }
-    
+
 }

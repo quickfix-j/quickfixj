@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -62,7 +62,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     // The time is converted to millis and then added to the millis specified by
     // the base calendar.
     //
-    
+
     /**
      * Convert a timestamp string into a Date.
      * @param value the timestamp String
@@ -82,7 +82,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
     private static Long getMillisForDay(String value) {
         String dateString = value.substring(0, 8);
-    	Long millis = dateCache.get(dateString);
+        Long millis = dateCache.get(dateString);
         if (millis == null) {
             Calendar c = new GregorianCalendar(1970, 0, 1, 0, 0, 0);
             c.setTimeZone(SystemTime.UTC_TIMEZONE);

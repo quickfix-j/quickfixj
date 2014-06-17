@@ -17,7 +17,6 @@
  * are not clear to you.
  ******************************************************************************/
 
-
 package quickfix;
 
 import quickfix.mina.EventHandlingStrategy;
@@ -79,7 +78,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
             try {
                 stopAcceptingConnections();
             } catch (ConfigError e) {
-                log.error("Error when stopping acceptor.", e );
+                log.error("Error when stopping acceptor.", e);
             }
             logoutAllSessions(forceDisconnect);
             stopSessionTimer();

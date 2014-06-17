@@ -20,7 +20,6 @@ public class Repository {
     private final Map<String, MsgType> sessionMsgTypes = new TreeMap<String, MsgType>(), applicationMsgTypes = new TreeMap<String, MsgType>();
     private final Map<String, Field> allFields = new TreeMap<String, Field>();
     private final Map<String, Component> allComponents = new TreeMap<String, Component>();
-    
 
     public Repository(File repositoryFile) throws Exception {
         this.repository = repositoryFile;
@@ -58,7 +57,7 @@ public class Repository {
 
     public final Component getStandardHeader(MsgType msgType) {
         for (Object o : msgType.getMsgContent()) {
-            if (o instanceof Component && ((Component)o).isStandardHeader()) {
+            if (o instanceof Component && ((Component) o).isStandardHeader()) {
                 return (Component) o;
             }
         }
@@ -67,7 +66,7 @@ public class Repository {
 
     public final Component getStandardTrailer(MsgType msgType) {
         for (Object o : msgType.getMsgContent()) {
-            if (o instanceof Component && ((Component)o).isStandardTrailer()) {
+            if (o instanceof Component && ((Component) o).isStandardTrailer()) {
                 return (Component) o;
             }
         }
@@ -153,7 +152,6 @@ public class Repository {
             }
         }
         System.out.println(getClass().getSimpleName() + ": " + allFields.size() + " Fields found");
-        
     }
 
     private void initComponents() {
@@ -213,8 +211,8 @@ public class Repository {
     class MsgContentNodeComparator implements Comparator<Object> {
         public int compare(Object o1, Object o2) {
             try {
-                Double pos1 = Double.parseDouble(((Node)o1).selectSingleNode("Position").getText());
-                Double pos2 = Double.parseDouble(((Node)o2).selectSingleNode("Position").getText());
+                Double pos1 = Double.parseDouble(((Node) o1).selectSingleNode("Position").getText());
+                Double pos2 = Double.parseDouble(((Node) o2).selectSingleNode("Position").getText());
                 return pos1.compareTo(pos2);
             } catch (Exception e) {
                 return 0;
@@ -225,8 +223,8 @@ public class Repository {
     class EnumNodeComparator implements Comparator<Object> {
         public int compare(Object o1, Object o2) {
             try {
-                Double pos1 = Double.parseDouble(((Node)o1).selectSingleNode("Sort").getText());
-                Double pos2 = Double.parseDouble(((Node)o2).selectSingleNode("Sort").getText());
+                Double pos1 = Double.parseDouble(((Node) o1).selectSingleNode("Sort").getText());
+                Double pos2 = Double.parseDouble(((Node) o2).selectSingleNode("Sort").getText());
                 return pos1.compareTo(pos2);
             } catch (Exception e) {
                 return 0;

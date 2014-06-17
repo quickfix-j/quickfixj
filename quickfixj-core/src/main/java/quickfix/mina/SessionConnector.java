@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -56,11 +56,11 @@ import quickfix.field.converter.IntConverter;
 public abstract class SessionConnector implements Connector {
     public static final String SESSIONS_PROPERTY = "sessions";
     public final static String QF_SESSION = "QF_SESSION";
-    
+
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
-    
+
     private Map<SessionID, Session> sessions = Collections.emptyMap();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
@@ -68,7 +68,7 @@ public abstract class SessionConnector implements Connector {
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
-    
+
     public SessionConnector(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
         this.settings = settings;
         this.sessionFactory = sessionFactory;
@@ -80,11 +80,11 @@ public abstract class SessionConnector implements Connector {
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.addPropertyChangeListener(listener);
     }
-    
+
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
-    
+
     protected void setSessions(Map<SessionID, Session> sessions) {
         this.sessions = sessions;
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
@@ -93,7 +93,7 @@ public abstract class SessionConnector implements Connector {
     /**
      * Get the list of session managed by this connector.
      * @return list of quickfix.Session objects
-     * 
+     *
      * @see quickfix.Session
      */
     public List<Session> getManagedSessions() {
@@ -102,7 +102,7 @@ public abstract class SessionConnector implements Connector {
 
     /**
      * This is for subclasses to directly access the session map.
-     * 
+     *
      * @return a map of sessions keys by session ID
      */
     protected Map<SessionID, Session> getSessionMap() {
@@ -113,7 +113,7 @@ public abstract class SessionConnector implements Connector {
      * Return the list of session identifiers of sessions managed
      * by this connector. Should be called getSessionIDs but the
      * current name is retained for QF/JNI compatibility.
-     * 
+     *
      * @return list of session identifiers
      */
     public ArrayList<SessionID> getSessions() {
@@ -122,13 +122,13 @@ public abstract class SessionConnector implements Connector {
 
     public void addDynamicSession(Session inSession) {
         sessions.put(inSession.getSessionID(), inSession);
-        log.debug("adding session for "+inSession.getSessionID());
+        log.debug("adding session for " + inSession.getSessionID());
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
     public void removeDynamicSession(SessionID inSessionID) {
         sessions.remove(inSessionID);
-        log.debug("removing session for "+inSessionID);
+        log.debug("removing session for " + inSessionID);
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
@@ -153,15 +153,15 @@ public abstract class SessionConnector implements Connector {
      * @return false if no session or at least one session is not logged on
      */
     public boolean isLoggedOn() {
-    	//if no session, not logged on
+        // if no session, not logged on
         if (sessions.isEmpty())
             return false;
         for (Session session : sessions.values()) {
-            //at least one session not logged on
+            // at least one session not logged on
             if (!session.isLoggedOn())
                 return false;
         }
-        //all the sessions are logged on
+        // all the sessions are logged on
         return true;
     }
 
@@ -200,7 +200,7 @@ public abstract class SessionConnector implements Connector {
                 }
             }
         }
-        
+
         if (!forceDisconnect) {
             waitForLogout();
         }
@@ -259,7 +259,8 @@ public abstract class SessionConnector implements Connector {
 
     protected void stopSessionTimer() {
         if (sessionTimerFuture != null) {
-            if (sessionTimerFuture.cancel(false)) log.info("SessionTimer canceled");
+            if (sessionTimerFuture.cancel(false))
+                log.info("SessionTimer canceled");
         }
     }
 
@@ -290,21 +291,20 @@ public abstract class SessionConnector implements Connector {
             thread.setDaemon(true);
             return thread;
         }
-
     }
-    
+
     /**
      * Allows a custom IOFilterChainBuilder to be added to the session connector. This will allow modification of the
      * MINA filter chain. Modifying the filter chain can be useful for logging, encryption/SSL and other purposes. The
      * FIX codec filter name can be used to for inserting custom filters before or after the FIX message codec.
-     * 
+     *
      * @param ioFilterChainBuilder
      * @see IoFilterChainBuilder
      */
     public void setIoFilterChainBuilder(IoFilterChainBuilder ioFilterChainBuilder) {
         this.ioFilterChainBuilder = ioFilterChainBuilder;
     }
-    
+
     protected IoFilterChainBuilder getIoFilterChainBuilder() {
         return ioFilterChainBuilder;
     }

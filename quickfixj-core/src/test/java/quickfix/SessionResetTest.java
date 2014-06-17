@@ -31,7 +31,6 @@ public class SessionResetTest {
 
     private static final int NUMBER_OF_ADMIN_MESSAGES = 50;
 
-    
     @Test
     // QFJ-645, QFJ-716
     public void testSessionResetDeadlock() throws Exception {
@@ -47,7 +46,7 @@ public class SessionResetTest {
         session.next();
 
         assertFalse(responder.onResetCalled);
-        
+
         final Message logonRequest = new Message(responder.sentMessageData);
         final Message logonResponse = new DefaultMessageFactory().create(
                 sessionID.getBeginString(), MsgType.LOGON);
@@ -60,7 +59,7 @@ public class SessionResetTest {
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
         header.setInt(MsgSeqNum.FIELD, 1);
         header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
-        
+
         Thread resetThread = new Thread(new Runnable() {
             public void run() {
                 try {
@@ -93,7 +92,6 @@ public class SessionResetTest {
         assertTrue("session should have been reset", responder.onResetCalled);
     }
 
-
     private Message createAdminMessage(int sequence) {
         final TestRequest msg = new TestRequest(new TestReqID("SessionResetTest"));
         msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
@@ -102,7 +100,6 @@ public class SessionResetTest {
         msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
         return msg;
     }
-
 
     private class UnitTestResponder implements Responder, SessionStateListener {
         public String sentMessageData;
@@ -146,7 +143,6 @@ public class SessionResetTest {
         }
     }
 
-    
     private class PausableThreadPoolExecutor extends ThreadPoolExecutor {
         private boolean isPaused;
         private ReentrantLock pauseLock = new ReentrantLock();
@@ -155,36 +151,37 @@ public class SessionResetTest {
         public PausableThreadPoolExecutor() {
             super(2, 2, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10000));
         }
-      
+
         protected void beforeExecute(Thread t, Runnable r) {
-          super.beforeExecute(t, r);
-          pauseLock.lock();
-          try {
-            while (isPaused) unpaused.await();
-          } catch(InterruptedException ie) {
-            t.interrupt();
-          } finally {
-            pauseLock.unlock();
-          }
+            super.beforeExecute(t, r);
+            pauseLock.lock();
+            try {
+                while (isPaused)
+                    unpaused.await();
+            } catch (InterruptedException ie) {
+                t.interrupt();
+            } finally {
+                pauseLock.unlock();
+            }
         }
-      
+
         public void pause() {
-          pauseLock.lock();
-          try {
-            isPaused = true;
-          } finally {
-            pauseLock.unlock();
-          }
+            pauseLock.lock();
+            try {
+                isPaused = true;
+            } finally {
+                pauseLock.unlock();
+            }
         }
-      
+
         public void resume() {
-          pauseLock.lock();
-          try {
-            isPaused = false;
-            unpaused.signalAll();
-          } finally {
-            pauseLock.unlock();
-          }
+            pauseLock.lock();
+            try {
+                isPaused = false;
+                unpaused.signalAll();
+            } finally {
+                pauseLock.unlock();
+            }
         }
-      }
+    }
 }

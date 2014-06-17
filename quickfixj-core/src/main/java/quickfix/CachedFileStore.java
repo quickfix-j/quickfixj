@@ -522,7 +522,7 @@ public class CachedFileStore implements MessageStore {
                         final long offset = headerDataInputStream.readLong();
                         final int size = headerDataInputStream.readInt();
                         if (sequenceNumber >= startSequence && sequenceNumber <= endSequence) {
-                            indexPerSequenceNumber.put(sequenceNumber, new long[] { offset, size});
+                            indexPerSequenceNumber.put(sequenceNumber, new long[] { offset, size });
                         }
                     }
                 } catch (final IOException e) {
@@ -544,6 +544,6 @@ public class CachedFileStore implements MessageStore {
         public List<long[]> get(final long startSequence, final long endSequence) {
             return seekMessageIndex(startSequence, endSequence);
         }
-
     }
+
 }

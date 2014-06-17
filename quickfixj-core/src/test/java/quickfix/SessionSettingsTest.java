@@ -265,7 +265,6 @@ public class SessionSettingsTest extends TestCase {
         final SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         assertEquals("wrong value", "SENDER", settings.getString(sessionID, "SenderCompID"));
         assertEquals("wrong value", "TARGET", settings.getString(sessionID, "TargetCompID"));
-
     }
 
     public void testVariableInterpolationWithNoSysProps() throws Exception {

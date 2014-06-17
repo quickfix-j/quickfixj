@@ -39,11 +39,13 @@ public class JmxExporter {
      * <p>This is the default registration behaviour.
      */
     public static final int REGISTRATION_FAIL_ON_EXISTING = 0;
+
     /**
      * Constant indicating that registration should ignore the affected MBean
      * when attempting to register an MBean under a name that already exists.
      */
     public static final int REGISTRATION_IGNORE_EXISTING = 1;
+
     /**
      * Constant indicating that registration should replace the affected MBean
      * when attempting to register an MBean under a name that already exists.
@@ -72,7 +74,7 @@ public class JmxExporter {
     }
 
     /**
-     * Specify  what action should be taken when attempting to register an MBean
+     * Specify what action should be taken when attempting to register an MBean
      * under an {@link javax.management.ObjectName} that already exists.
      * <p>Default is REGISTRATION_FAIL_ON_EXISTING.
      * @see #REGISTRATION_FAIL_ON_EXISTING
@@ -111,7 +113,7 @@ public class JmxExporter {
     public ObjectName register(Connector connector) {
         return connectorExporter.register(this, (SessionConnector) connector);
     }
-    
+
     public MBeanServer getMBeanServer() {
         return mbeanServer;
     }

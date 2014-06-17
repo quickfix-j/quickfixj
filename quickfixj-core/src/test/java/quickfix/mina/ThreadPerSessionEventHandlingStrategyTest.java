@@ -164,11 +164,11 @@ public class ThreadPerSessionEventHandlingStrategyTest {
     }
 
     /**
-     * See QFJ-686. Verify that thread is stopped if Session has no responder. 
+     * See QFJ-686. Verify that thread is stopped if Session has no responder.
      */
     @Test
     public void testEventHandlingOnDisconnect() throws Exception {
-        
+
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         final CountDownLatch latch = new CountDownLatch(1);
 
@@ -240,7 +240,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
                 break;
             }
         }
-        
+
         // the session dispatcher should be dead and hence not listed in the threads array
         assertNull(dispatcherThread);
     }

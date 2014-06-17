@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -169,7 +169,7 @@ public class MessageCrackerTest {
         };
 
         cracker.crack(logon, new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET"));
-        
+
         assertTrue(messageCracked > 0);
     }
 
@@ -182,7 +182,7 @@ public class MessageCrackerTest {
         MessageCracker cracker = new MessageCracker();
 
         cracker.crack(logon, new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET"));
-     }
+    }
 
     @Test()
     public void testExternalDelegation() throws Exception {
@@ -193,14 +193,14 @@ public class MessageCrackerTest {
         MessageCracker cracker = new MessageCracker(new MessageHandler());
 
         cracker.crack(logon, new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET"));
-        
+
         assertTrue(messageCracked > 0);
     }
 
     //
     // Legacy Tests
     //
-    
+
     @Test
     public void testFixT11AppMessageCracking() throws Exception {
         quickfix.fix50.Email message = new quickfix.fix50.Email();
@@ -278,7 +278,7 @@ public class MessageCrackerTest {
         @MessageCracker.Handler
         public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) {
             messageCracked++;
-        }       
+        }
     }
 
     private quickfix.fix44.Email createFix44Email() {

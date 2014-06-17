@@ -52,7 +52,6 @@ public class Field {
         return false;
     }
 
-
     @Override
     public String toString() {
         return "Field{" +

@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -73,7 +73,7 @@ public class ATServer implements Runnable {
     private String keyStoreName;
     private String keyStorePassword;
     private Map<Object, Object> overridenProperties = null;
-    
+
     public ATServer() {
         // defaults
     }
@@ -81,7 +81,7 @@ public class ATServer implements Runnable {
     public ATServer(TestSuite suite, boolean threaded, int transportType, int port) {
         this(suite, threaded, transportType, port, null);
     }
-    
+
     public ATServer(TestSuite suite, boolean threaded, int transportType, int port, Map<Object, Object> overridenProperties) {
         this.threaded = threaded;
         this.overridenProperties = overridenProperties;
@@ -94,7 +94,7 @@ public class ATServer implements Runnable {
         resetOnDisconnect = true;
         log.info("creating sessions for " + fixVersions);
     }
-    
+
     public void run() {
         try {
             HashMap<Object, Object> defaults = new HashMap<Object, Object>();
@@ -126,8 +126,9 @@ public class ATServer implements Runnable {
             defaults.put("ValidateUserDefinedFields", "Y");
             // New for FIXT/FIX5
             defaults.put("DefaultApplVerID", "7");
-            if (overridenProperties != null) defaults.putAll(overridenProperties);
-            
+            if (overridenProperties != null)
+                defaults.putAll(overridenProperties);
+
             settings.set(defaults);
 
             if (fixVersions.contains("fix40")) {
@@ -149,7 +150,7 @@ public class ATServer implements Runnable {
             if (fixVersions.contains("fix44")) {
                 acceptFixVersion(FixVersions.BEGINSTRING_FIX44);
             }
-            
+
             if (fixVersions.contains("fix50")) {
                 acceptFixVersion(FixVersions.BEGINSTRING_FIXT11);
             }
@@ -243,8 +244,8 @@ public class ATServer implements Runnable {
     public void acceptFixVersion(String beginString) {
         SessionID sessionID = new SessionID(beginString, "ISLD", "TW");
         settings.setString(sessionID, "BeginString", beginString);
-        //        settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replaceAll("\\.", "")
-        //                + ".xml");
+        // settings.setString(sessionID, "DataDictionary", "etc/" + beginString.replaceAll("\\.", "")
+        //         + ".xml");
     }
 
     public void waitForInitialization() throws InterruptedException {
@@ -254,7 +255,7 @@ public class ATServer implements Runnable {
     public void waitForTearDown() throws InterruptedException {
         tearDownLatch.await();
     }
-    
+
     public void stop() {
         acceptor.stop();
     }
@@ -287,7 +288,6 @@ public class ATServer implements Runnable {
 
     public void setKeyStoreName(String keyStoreName) {
         this.keyStoreName = keyStoreName;
-        
     }
 
     public void setKeyStorePassword(String keyStorePassword) {

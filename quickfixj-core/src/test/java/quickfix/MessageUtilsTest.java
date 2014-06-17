@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -38,7 +38,7 @@ import quickfix.fix40.Logon;
 import quickfix.fix50.Email;
 
 public class MessageUtilsTest extends TestCase {
-    
+
     public void testGetStringField() throws Exception {
         String messageString = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001";
         assertEquals("wrong value", "FIX.4.2", MessageUtils.getStringField(messageString,
@@ -66,7 +66,7 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("ISLD", sessionID.getSenderCompID());
         assertEquals("TW", sessionID.getTargetCompID());
     }
-    
+
     public void testReverseSessionIdFromMessageWithMissingFields() throws Exception {
         Message message = new Logon();
         SessionID sessionID = MessageUtils.getReverseSessionID(message);
@@ -141,9 +141,9 @@ public class MessageUtilsTest extends TestCase {
         stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
-        
+
         Message message = MessageUtils.parse(mockSession, messageString);
-        
+
         assertThat(message, is(notNullValue()));
     }
 
@@ -154,7 +154,7 @@ public class MessageUtilsTest extends TestCase {
             "37=B-WOW-1494E9A0:58BD3F9D\00155=WOW\00154=1\001151=200\00114=0\00140=2\001" +
             "44=15\00159=1\0016=0\001453=3\001448=AAA35791\001447=D\001452=3\001448=8\001" +
             "447=D\001452=4\001448=FIX11\001447=D\001452=36\00160=20060320-03:34:29\00110=169\001";
-        
+
         Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), data);
         assertThat(message, is(notNullValue()));
     }
@@ -164,14 +164,14 @@ public class MessageUtilsTest extends TestCase {
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
         stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
-        
+
         Email email = new Email(new EmailThreadID("THREAD_ID"), new EmailType(EmailType.NEW), new Subject("SUBJECT"));
         email.getHeader().setField(new ApplVerID(ApplVerID.FIX42));
         email.getHeader().setField(new SenderCompID("SENDER"));
         email.getHeader().setField(new TargetCompID("TARGET"));
-        
+
         Message message = MessageUtils.parse(mockSession, email.toString());
-        
+
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fix40.Email.class));
     }
@@ -181,29 +181,29 @@ public class MessageUtilsTest extends TestCase {
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
         stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
-        
+
         quickfix.fixt11.Logon logon = new quickfix.fixt11.Logon(new EncryptMethod(EncryptMethod.NONE_OTHER), new HeartBtInt(30),
                 new DefaultApplVerID(ApplVerID.FIX42));
-        
+
         Message message = MessageUtils.parse(mockSession, logon.toString());
-        
+
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fixt11.Logon.class));
     }
-    
+
     public void testParseFix50() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
         stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
-        
+
         Email email = new Email(new EmailThreadID("THREAD_ID"), new EmailType(EmailType.NEW), new Subject("SUBJECT"));
         email.getHeader().setField(new ApplVerID(ApplVerID.FIX50));
         email.getHeader().setField(new SenderCompID("SENDER"));
         email.getHeader().setField(new TargetCompID("TARGET"));
-        
+
         Message message = MessageUtils.parse(mockSession, email.toString());
-        
+
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fix50.Email.class));
     }

@@ -55,9 +55,9 @@ public class IoSessionInitiator {
     private final ConnectTask reconnectTask;
 
     private Future<?> reconnectFuture;
-    protected final static Logger log = LoggerFactory.getLogger("display."+IoSessionInitiator.class.getName());
+    protected final static Logger log = LoggerFactory.getLogger("display." + IoSessionInitiator.class.getName());
 
-    public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,  SocketAddress localAddress, 
+    public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses, SocketAddress localAddress,
             int[] reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
@@ -66,7 +66,7 @@ public class IoSessionInitiator {
         final long[] reconnectIntervalInMillis = new long[reconnectIntervalInSeconds.length];
         for (int ii = 0; ii != reconnectIntervalInSeconds.length; ++ii) {
             reconnectIntervalInMillis[ii] = reconnectIntervalInSeconds[ii] * 1000L;
-        }        
+        }
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress, userIoFilterChainBuilder,
                     fixSession, reconnectIntervalInMillis, networkingOptions,
@@ -74,7 +74,7 @@ public class IoSessionInitiator {
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
         }
-        log.info("[" + fixSession.getSessionID() + "] " + Arrays.asList(socketAddresses));        
+        log.info("[" + fixSession.getSessionID() + "] " + Arrays.asList(socketAddresses));
     }
 
     private static class ConnectTask implements Runnable {
@@ -152,10 +152,10 @@ public class IoSessionInitiator {
             SocketAddress nextSocketAddress = getNextSocketAddress();
             ioConnector.setHandler(ioHandler);
             try {
-            	if (localAddress == null) {
+                if (localAddress == null) {
                     connectFuture = ioConnector.connect(nextSocketAddress);
                 } else {
-                	//QFJ-482
+                    // QFJ-482
                     connectFuture = ioConnector.connect(nextSocketAddress, localAddress);
                 }
                 pollConnectFuture();
@@ -184,7 +184,7 @@ public class IoSessionInitiator {
         }
 
         private void handleConnectException(Throwable e) {
-        	++connectionFailureCount;        
+            ++connectionFailureCount;
             while (e.getCause() != null) {
                 e = e.getCause();
             }
@@ -192,7 +192,7 @@ public class IoSessionInitiator {
             if (e instanceof IOException) {
                 fixSession.getLog().onErrorEvent(e.getClass().getName() + ": " + e + nextRetryMsg);
             } else {
-            	LogUtil.logThrowable(fixSession.getLog(), "Exception during connection" + nextRetryMsg, e);
+                LogUtil.logThrowable(fixSession.getLog(), "Exception during connection" + nextRetryMsg, e);
             }
             connectFuture = null;
         }
@@ -217,10 +217,11 @@ public class IoSessionInitiator {
             return (ioSession == null || !ioSession.isConnected()) && isTimeForReconnect()
                     && (fixSession.isEnabled() && fixSession.isSessionTime());
         }
-        
+
         private long computeNextRetryConnectDelay() {
             int index = connectionFailureCount - 1;
-            if (index < 0) index = 0;
+            if (index < 0)
+                index = 0;
             long millis;
             if (index >= reconnectIntervalInMillis.length) {
                 millis = reconnectIntervalInMillis[reconnectIntervalInMillis.length - 1];
@@ -229,7 +230,6 @@ public class IoSessionInitiator {
             }
             return millis;
         }
-        
 
         private boolean isTimeForReconnect() {
             return SystemTime.currentTimeMillis() - lastReconnectAttemptTime >= computeNextRetryConnectDelay();
@@ -251,7 +251,7 @@ public class IoSessionInitiator {
         public synchronized long getLastConnectTime() {
             return lastConnectTime;
         }
-        
+
         public Session getFixSession() {
             return fixSession;
         }
@@ -259,8 +259,8 @@ public class IoSessionInitiator {
 
     synchronized void start() {
         if (reconnectFuture == null) {
-        	// The following logon reenabled the session. The actual logon will take
-        	// place as a side-effect of the session timer task (not the reconnect task).
+            // The following logon reenabled the session. The actual logon will take
+            // place as a side-effect of the session timer task (not the reconnect task).
             reconnectTask.getFixSession().logon(); // only enables the session
             reconnectFuture = executor
                     .scheduleWithFixedDelay(reconnectTask, 0, 1, TimeUnit.SECONDS);

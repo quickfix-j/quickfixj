@@ -347,7 +347,6 @@ public class SessionSettings {
      */
     public void setLong(SessionID sessionID, String key, long value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, Long.toString(value));
-
     }
 
     /**
@@ -362,7 +361,6 @@ public class SessionSettings {
      */
     public void setDouble(SessionID sessionID, String key, double value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, Double.toString(value));
-
     }
 
     /**
@@ -377,7 +375,6 @@ public class SessionSettings {
      */
     public void setBool(SessionID sessionID, String key, boolean value) {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
-
     }
 
     private final HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();

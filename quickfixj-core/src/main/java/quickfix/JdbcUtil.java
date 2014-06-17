@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -39,7 +39,7 @@ class JdbcUtil {
 
     private static Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<String, ProxoolDataSource>();
     private static int dataSourceCounter = 1;
-    
+
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
             throws ConfigError, FieldConvertError {
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME)) {
@@ -67,10 +67,10 @@ class JdbcUtil {
     static synchronized DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
         ProxoolDataSource ds = cache ? dataSources.get(key) : null;
-        
+
         if (ds == null) {
             ds = new ProxoolDataSource(JdbcUtil.CONNECTION_POOL_ALIAS + "-" + dataSourceCounter++);
-            
+
             ds.setDriver(jdbcDriver);
             ds.setDriverUrl(connectionURL);
 
@@ -79,7 +79,7 @@ class JdbcUtil {
                     + (password != null && !"".equals(password) ? "password=" + password : ""));
             ds.setUser(user);
             ds.setPassword(password);
-            
+
             // TODO JDBC Make these configurable
             ds.setMaximumActiveTime(5000);
             ds.setMaximumConnectionLifetime(28800000);
@@ -122,7 +122,6 @@ class JdbcUtil {
             }
         }
     }
-    
 
     static boolean determineSessionIdSupport(DataSource dataSource, String tableName) throws SQLException {
         Connection connection = dataSource.getConnection();
@@ -136,7 +135,6 @@ class JdbcUtil {
         }
     }
 
-    
     private static boolean isColumn(DatabaseMetaData metaData, String tableName, String columnName)
             throws SQLException {
         ResultSet columns = metaData.getColumns(null, null, tableName, columnName);
@@ -152,19 +150,16 @@ class JdbcUtil {
                 ? ("beginstring=? and sendercompid=? and sendersubid=? and senderlocid=? and "
                         + "targetcompid=? and targetsubid=? and targetlocid=? and session_qualifier=? ")
                 : "beginstring=? and sendercompid=? and targetcompid=? and session_qualifier=? ";
-
     }
-    
+
     static String getIDColumns(boolean isExtendedSessionID) {
         return isExtendedSessionID
                 ? "beginstring,sendercompid,sendersubid,senderlocid,targetcompid,targetsubid,targetlocid,session_qualifier"
                 : "beginstring,sendercompid,targetcompid,session_qualifier";
-
     }
 
     static String getIDPlaceholders(boolean isExtendedSessionID) {
         return isExtendedSessionID ? "?,?,?,?,?,?,?,?" : "?,?,?,?";
-
     }
 
     static int setSessionIdParameters(SessionID sessionID, PreparedStatement query, int offset, boolean isExtendedSessionID, String defaultSqlValue) throws SQLException {

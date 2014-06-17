@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Message {
 
-    String msgID = null, name = null, type = null, category= null, notReqXML = null;
+    String msgID = null, name = null, type = null, category = null, notReqXML = null;
 
     List<Object> msgContents = new ArrayList<Object>();
 
@@ -36,7 +36,7 @@ public class Message {
     public final String getNotReqXML() {
         return notReqXML;
     }
-    
+
     public final void addMsgContent(Object o) {
         msgContents.add(o);
     }

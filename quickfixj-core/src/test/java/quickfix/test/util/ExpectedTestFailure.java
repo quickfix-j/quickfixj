@@ -40,7 +40,7 @@ public abstract class ExpectedTestFailure {
     public Throwable run() {
         try {
             execute();
-        } catch(Throwable error) {
+        } catch (Throwable error) {
             validateError(error);
             return error;
         }
@@ -52,7 +52,7 @@ public abstract class ExpectedTestFailure {
      * The message of the passed in trowable is validated againt the expected message
      * if there is one
      *
-     * If we are expecting a message but the incoming exception.getMessage() doesn't contain it, 
+     * If we are expecting a message but the incoming exception.getMessage() doesn't contain it,
      * also check exception.toString() as well - for the case of exceptions that aren't
      * constructed correctly
      *
@@ -61,14 +61,14 @@ public abstract class ExpectedTestFailure {
     protected void validateError(Throwable inError) {
         if ((mThrowable != null) &&
             (!mThrowable.isAssignableFrom(inError.getClass()))) {
-            Assert.fail("Thrown throwable was of the wrong class: "+
-                        inError.getClass()+": "+inError);
+            Assert.fail("Thrown throwable was of the wrong class: " +
+                        inError.getClass() + ": " + inError);
         }
         if ((mContains != null) &&
             (((inError.getMessage() == null) ||
              (!inError.getMessage().contains(mContains)))) &&
              (!inError.toString().contains(mContains))) {
-            Assert.fail("Thrown throwable contained incorrect message: "+
+            Assert.fail("Thrown throwable contained incorrect message: " +
                         "looking for '" + mContains + "' in '" + inError.getMessage() + "'");
         }
     }

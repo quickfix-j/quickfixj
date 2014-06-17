@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -35,7 +35,7 @@ import quickfix.field.TargetSubID;
  * Identifier for a session. Only supports a company ID (target, sender)
  * and a session qualifier. Sessions are also identified by FIX version so
  * that it's possible to have multiple sessions to the same counterparty
- * but using different FIX versions (and/or session qualifiers). 
+ * but using different FIX versions (and/or session qualifiers).
  */
 public class SessionID implements Serializable {
     private static Pattern pattern = Pattern.compile("(.*?):(.*?)(?:/(.*?)|)(?:/(.*?)|)->(.*?)(?:/(.*?)|)(?:/(.*?)|)(?::(.*)|)");
@@ -108,7 +108,7 @@ public class SessionID implements Serializable {
     public SessionID(String id) {
         Matcher matcher = pattern.matcher(id);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("Invalid session ID string: "+id);
+            throw new IllegalArgumentException("Invalid session ID string: " + id);
         }
         beginString = matcher.group(1);
         senderCompID = matcher.group(2);
@@ -148,7 +148,6 @@ public class SessionID implements Serializable {
     public String getTargetLocationID() {
         return targetLocationID;
     }
-
 
     /**
      * Session qualifier can be used to identify different sessions

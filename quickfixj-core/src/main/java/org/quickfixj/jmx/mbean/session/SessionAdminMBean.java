@@ -1,18 +1,18 @@
 /*******************************************************************************
- * Copyright (c) quickfixj.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX/J FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixj.org 
- * license as defined by quickfixj.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixj.org/LICENSE for licensing information. 
- * 
+ * Copyright (c) quickfixj.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX/J FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixj.org
+ * license as defined by quickfixj.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixj.org/LICENSE for licensing information.
+ *
  ******************************************************************************/
 
 package org.quickfixj.jmx.mbean.session;
@@ -31,49 +31,49 @@ public interface SessionAdminMBean {
 
     /**
      * Get the begin string (FIX version) for the session
-     * 
+     *
      * @return the begin string for the session
      */
     String getBeginString();
 
     /**
      * Get the target company ID for the session.
-     * 
+     *
      * @return the target company ID
      */
     String getTargetCompID();
 
     /**
      * Get the target subID for the session.
-     * 
+     *
      * @return the target subID
      */
     String getTargetSubID();
 
     /**
      * Get the target location ID for the session.
-     * 
+     *
      * @return the target location ID
      */
     String getTargetLocationID();
 
     /**
      * Get the sender company ID for the session.
-     * 
+     *
      * @return the sender company ID
      */
     String getSenderCompID();
 
     /**
      * Get the sender company subID for the session.
-     * 
+     *
      * @return the sender subID
      */
     String getSenderSubID();
 
     /**
      * Get the sender company location ID for the session.
-     * 
+     *
      * @return the sender location ID
      */
     String getSenderLocationID();
@@ -83,27 +83,27 @@ public interface SessionAdminMBean {
      * @return the session ID
      */
     String getSessionID();
-    
+
     /**
-     * Get the next sender message sequence number. 
-     * 
+     * Get the next sender message sequence number.
+     *
      * @return the next sender message sequence number
-     * @throws IOException 
+     * @throws IOException
      */
     int getNextSenderMsgSeqNum() throws IOException;
 
     /**
      * Set the next sender message sequence number. It's dangerous
      * to use this operation on an active session.
-     * 
+     *
      * @param next next sender message sequence number
-     * @throws IOException 
+     * @throws IOException
      */
     void setNextSenderMsgSeqNum(int next) throws IOException;
 
     /**
-     * Get the next target message sequence number. 
-     * 
+     * Get the next target message sequence number.
+     *
      * @return next target message sequence number
      */
     int getNextTargetMsgSeqNum() throws IOException;
@@ -111,9 +111,9 @@ public interface SessionAdminMBean {
     /**
      * Set the next target message sequence number. It's dangerous
      * to use this operation on an active session.
-     * 
+     *
      * @param next the next target message sequence number
-     * @throws IOException 
+     * @throws IOException
      */
     void setNextTargetMsgSeqNum(int next) throws IOException;
 
@@ -144,18 +144,18 @@ public interface SessionAdminMBean {
     boolean isLoggedOn();
 
     boolean getRedundantResendRequestsAllowed();
-    
+
     String getLogClassName();
-    
+
     String getMessageFactoryClassName();
-    
+
     String getMessageStoreClassName();
-    
+
     // TODO JMX Add schedule support
     //String getSchedule();
 
     boolean isUsingDataDictionary();
-    
+
     boolean getCheckCompID();
 
     boolean getRefreshOnLogon();
@@ -166,7 +166,7 @@ public interface SessionAdminMBean {
 
     /**
      * Reset the session's sequence numbers and clear it's resend log.
-     * @throws IOException 
+     * @throws IOException
      */
     void reset() throws IOException;
 
@@ -179,20 +179,21 @@ public interface SessionAdminMBean {
      * Tell the session to logon.
      */
     void logon();
-    
+
     /**
      * Send a test Request message
      */
     void sendTestRequest();
+
     /**
-     * Send a heartBeat message 
+     * Send a heartBeat message
      */
     void sendHeartBeat();
-    
+
     /**
      *  Send a logout message
      */
-    
+
     void sendLogoutMessage();
 
     /** Reset current sequence number */
@@ -203,12 +204,12 @@ public interface SessionAdminMBean {
      * @throws IOException
      */
     void disconnect() throws IOException;
-    
+
     boolean getEnabled();
-    
+
     String getStartTime();
-    
+
     String getConnectionRole();
-    
+
     ObjectName getConnectorName();
 }

@@ -1,18 +1,18 @@
 /*******************************************************************************
- * Copyright (c) quickfixj.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX/J FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixj.org 
- * license as defined by quickfixj.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixj.org/LICENSE for licensing information. 
- * 
+ * Copyright (c) quickfixj.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX/J FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixj.org
+ * license as defined by quickfixj.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixj.org/LICENSE for licensing information.
+ *
  ******************************************************************************/
 
 package org.quickfixj.jmx.openmbean;
@@ -31,7 +31,7 @@ public class CompositeTypeFactory {
     private String description;
     private ArrayList<String> itemNames = new ArrayList<String>();
     private ArrayList<String> itemDescriptions = new ArrayList<String>();
-    
+
     @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
     private ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
 

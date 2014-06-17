@@ -2,7 +2,7 @@ package org.quickfixj.dictgenerator;
 
 public final class MsgTypeComponent extends Component {
 
-   private boolean required = false;
+    private boolean required = false;
 
     public MsgTypeComponent(Component component, String reqd) {
         super(component.getMsgID(), component.getName(), component.getType(), component.getCategory(), component.getNotReqXML());

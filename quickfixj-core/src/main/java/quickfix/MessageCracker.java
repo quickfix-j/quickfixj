@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -39,7 +39,6 @@ public class MessageCracker {
     @Target({ ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Handler {
-
     }
 
     public class RedundantHandlerException extends RuntimeException {
@@ -129,21 +128,16 @@ public class MessageCracker {
             } catch (InvocationTargetException ite) {
                 try {
                     throw ite.getTargetException();
-                }
-                catch (UnsupportedMessageType e) {
+                } catch (UnsupportedMessageType e) {
                     throw e;
-                }
-                catch (FieldNotFound e) {
+                } catch (FieldNotFound e) {
                     throw e;
-                }
-                catch (IncorrectTagValue e) {
+                } catch (IncorrectTagValue e) {
                     throw e;
-                }
-                catch (Throwable t) {
+                } catch (Throwable t) {
                     propagate(t);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 propagate(e);
             }
         } else {
@@ -155,7 +149,7 @@ public class MessageCracker {
         if (e instanceof RuntimeException) {
             throw (RuntimeException) e;
         } else if (e instanceof Error) {
-            throw (Error)e;
+            throw (Error) e;
         } else {
             throw new RuntimeException(e);
         }

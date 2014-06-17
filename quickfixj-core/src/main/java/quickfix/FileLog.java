@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -33,11 +33,12 @@ import quickfix.field.converter.UtcTimestampConverter;
 /**
  * File log implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY
  * WITH THE QUICKFIX JNI. IT SHOULD ONLY BE CREATED USING A FACTORY.
- * 
+ *
  * @see quickfix.FileLogFactory
  */
 public class FileLog extends AbstractLog {
     private static final byte[] TIME_STAMP_DELIMITER;
+
     static {
         try {
             TIME_STAMP_DELIMITER = ": ".getBytes(CharsetSupport.getCharset());
@@ -45,22 +46,22 @@ public class FileLog extends AbstractLog {
             throw new RuntimeException(e);
         }
     }
-    
+
     private String messagesFileName;
     private String eventFileName;
     private boolean syncAfterWrite;
 
     private FileOutputStream messages;
     private FileOutputStream events;
-    
+
     private boolean includeMillis;
     private boolean includeTimestampForMessages;
-    
+
     FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages, boolean logHeartbeats) throws FileNotFoundException {
         String sessionName = FileUtil.sessionIdFileName(sessionID);
-        
+
         setLogHeartbeats(logHeartbeats);
-        
+
         String prefix = FileUtil.fileAppendPath(path, sessionName + ".");
         messagesFileName = prefix + "messages.log";
         eventFileName = prefix + "event.log";
@@ -72,7 +73,7 @@ public class FileLog extends AbstractLog {
 
         this.includeMillis = includeMillis;
         this.includeTimestampForMessages = includeTimestampForMessages;
-        
+
         openLogStreams(true);
     }
 
@@ -101,9 +102,9 @@ public class FileLog extends AbstractLog {
                 stream.getFD().sync();
             }
         } catch (IOException e) {
-        	//QFJ-459: no point trying to log the error in the file if we had an IOException
-        	//we will end up with a java.lang.StackOverflowError
-            System.err.println("error writing message to log : "+message);
+            // QFJ-459: no point trying to log the error in the file if we had an IOException
+            // we will end up with a java.lang.StackOverflowError
+            System.err.println("error writing message to log : " + message);
             e.printStackTrace(System.err);
         }
     }
@@ -115,7 +116,7 @@ public class FileLog extends AbstractLog {
     public void onErrorEvent(String message) {
         writeMessage(events, message, true);
     }
-    
+
     private void writeTimeStamp(OutputStream out) throws IOException {
         String formattedTime = UtcTimestampConverter.convert(SystemTime.getDate(), includeMillis);
         out.write(formattedTime.getBytes(CharsetSupport.getCharset()));
@@ -133,17 +134,17 @@ public class FileLog extends AbstractLog {
     public void setSyncAfterWrite(boolean syncAfterWrite) {
         this.syncAfterWrite = syncAfterWrite;
     }
-    
+
     /**
      * Closes the messages and events files.
-     * 
+     *
      * @deprecated Use close instead.
      * @throws IOException
      */
     public void closeFiles() throws IOException {
         close();
     }
-    
+
     /**
      * Closed the messages and events files.
      * @throws IOException
@@ -163,7 +164,7 @@ public class FileLog extends AbstractLog {
             close();
             openLogStreams(false);
         } catch (IOException e) {
-            System.err.println("Could not clear log: "+getClass().getName());
+            System.err.println("Could not clear log: " + getClass().getName());
         }
     }
 }

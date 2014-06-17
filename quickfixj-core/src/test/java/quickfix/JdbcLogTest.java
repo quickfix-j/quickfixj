@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -62,7 +62,7 @@ public class JdbcLogTest extends TestCase {
 
     public void testLogWithHeartbeatFiltering() throws Exception {
         setUpJdbcLog(false, null);
-        
+
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING\00135=0\001");
         assertEquals(1, getRowCount(connection, "messages_log"));
@@ -70,7 +70,7 @@ public class JdbcLogTest extends TestCase {
         assertEquals(2, getRowCount(connection, log.getOutgoingMessagesTableName()));
 
         setUpJdbcLog(true, null);
-        
+
         assertEquals(0, getRowCount(connection, "messages_log"));
         log.onIncoming("INCOMING\00135=0\001");
         assertEquals(0, getRowCount(connection, "messages_log"));
@@ -104,7 +104,6 @@ public class JdbcLogTest extends TestCase {
             // put the tables back so they can be cleaned up in tearDown()
             initializeTableDefinitions(connection);
         }
-
     }
 
     private void dropTable(String tableName) throws SQLException {
@@ -135,12 +134,12 @@ public class JdbcLogTest extends TestCase {
         Statement s = connection.createStatement();
         ResultSet rs = s
                 .executeQuery("select time,beginstring,sendercompid,targetcompid,session_qualifier,text from "
-                        + tableName + " WHERE text = '"+text+"'");
+                        + tableName + " WHERE text = '" + text + "'");
         int n = 0;
         boolean rowFound;
         while ((rowFound = rs.next()) && n < rowOffset)
             n++;
-        assertTrue("No row found: "+text, rowFound);
+        assertTrue("No row found: " + text, rowFound);
         assertNotNull(sessionID.getBeginString(), rs.getDate("time"));
         assertEquals(sessionID.getBeginString(), rs.getString("beginstring"));
         assertEquals(sessionID.getSenderCompID(), rs.getString("sendercompid"));

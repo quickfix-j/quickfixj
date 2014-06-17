@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -56,7 +56,7 @@ public class Banzai {
     private boolean initiatorStarted = false;
     private Initiator initiator = null;
     private JFrame frame = null;
-    
+
     public Banzai(String[] args) throws Exception {
         InputStream inputStream = null;
         if (args.length == 0) {
@@ -70,9 +70,9 @@ public class Banzai {
         }
         SessionSettings settings = new SessionSettings(inputStream);
         inputStream.close();
-        
+
         boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true"));
-        
+
         OrderTableModel orderTableModel = new OrderTableModel();
         ExecutionTableModel executionTableModel = new ExecutionTableModel();
         BanzaiApplication application = new BanzaiApplication(orderTableModel, executionTableModel);
@@ -82,10 +82,10 @@ public class Banzai {
 
         initiator = new SocketInitiator(application, messageStoreFactory, settings, logFactory,
                 messageFactory);
-       
+
         JmxExporter exporter = new JmxExporter();
         exporter.register(initiator);
-        
+
         frame = new BanzaiFrame(orderTableModel, executionTableModel, application);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }

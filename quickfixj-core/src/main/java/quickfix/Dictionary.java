@@ -28,24 +28,24 @@ import java.util.Map;
  */
 public class Dictionary {
     private String name;
-    private HashMap<Object,Object> data = new HashMap<Object,Object>();
+    private HashMap<Object, Object> data = new HashMap<Object, Object>();
 
     public Dictionary() {
     }
 
     public Dictionary(String name) {
-        this(name, new HashMap<Object,Object>());
+        this(name, new HashMap<Object, Object>());
     }
 
     public Dictionary(Dictionary dictionary) {
         this(dictionary.name, dictionary.data);
     }
 
-    public Dictionary(String name, Map<Object,Object> data) {
+    public Dictionary(String name, Map<Object, Object> data) {
         this.name = name;
         this.data.putAll(data);
     }
-    
+
     public String getName() {
         return name;
     }
@@ -58,7 +58,7 @@ public class Dictionary {
         try {
             return data.get(key).toString();
         } catch (NullPointerException e) {
-            throw new ConfigError("No value for key: "+key);
+            throw new ConfigError("No value for key: " + key);
         }
     }
 
@@ -73,7 +73,7 @@ public class Dictionary {
         } catch (ClassCastException e) {
             throw new FieldConvertError("Incorrect data type");
         } catch (NullPointerException e) {
-            throw new ConfigError("No value for key: "+key);
+            throw new ConfigError("No value for key: " + key);
         }
     }
 
@@ -83,7 +83,7 @@ public class Dictionary {
         } catch (ClassCastException e) {
             throw new FieldConvertError("Incorrect data type");
         } catch (NullPointerException e) {
-            throw new ConfigError("No value for key: "+key);
+            throw new ConfigError("No value for key: " + key);
         }
     }
 
@@ -93,8 +93,8 @@ public class Dictionary {
         } catch (ClassCastException e) {
             throw new FieldConvertError("Incorrect data type");
         } catch (NullPointerException e) {
-            throw new ConfigError("No value for key: "+key);
-        }        
+            throw new ConfigError("No value for key: " + key);
+        }
     }
 
     public int getDay(String key) throws ConfigError, FieldConvertError {
@@ -103,9 +103,9 @@ public class Dictionary {
             throw new ConfigError("No value for key.");
         }
         if (datum instanceof String) {
-            return DayConverter.toInteger((String)datum);
+            return DayConverter.toInteger((String) datum);
         }
-        throw new ConfigError("Invalid data type for day value: "+datum.getClass().getName());
+        throw new ConfigError("Invalid data type for day value: " + datum.getClass().getName());
     }
 
     public void setString(String key, String value) {
@@ -132,7 +132,7 @@ public class Dictionary {
             throw new RuntimeError(e);
         }
     }
-    
+
     public void setDay(String key, String dayName) {
         data.put(key, dayName);
     }
@@ -145,7 +145,7 @@ public class Dictionary {
         data.putAll(toMerge.data);
     }
 
-    public Map<Object,Object> toMap() {
+    public Map<Object, Object> toMap() {
         return data;
     }
 }

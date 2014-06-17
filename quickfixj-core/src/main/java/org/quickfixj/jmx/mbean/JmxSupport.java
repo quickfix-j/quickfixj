@@ -21,9 +21,8 @@ import java.io.IOException;
 
 public final class JmxSupport {
     private JmxSupport() {
-        
     }
-    
+
     public static IOException toIOException(Exception e) throws IOException {
         IOException ioe = new IOException(e.getMessage());
         ioe.setStackTrace(e.getStackTrace());

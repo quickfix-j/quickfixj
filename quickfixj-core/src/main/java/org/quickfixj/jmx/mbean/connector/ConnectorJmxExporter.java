@@ -57,12 +57,12 @@ public class ConnectorJmxExporter {
             }
 
             jmxExporter.registerMBean(connectorAdmin, connectorName);
-            
+
             return connectorName;
         } catch (final RuntimeException e) {
             throw e;
         } catch (final Exception e) {
-            throw new QFJException("Failed to export connector MBean", e);           
+            throw new QFJException("Failed to export connector MBean", e);
         }
     }
 

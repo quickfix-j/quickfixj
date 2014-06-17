@@ -30,24 +30,25 @@ public class FieldMapTest extends TestCase {
         Date aDate = new Date();
         map.setField(new UtcTimeStampField(EffectiveTime.FIELD, aDate, false));
         assertEquals("milliseconds should not be preserved", aDate.getTime() - (aDate.getTime() % 1000),
-                     map.getField(new EffectiveTime()).getValue().getTime());
+                    map.getField(new EffectiveTime()).getValue().getTime());
 
         // now set it with preserving millis
         map.setField(new UtcTimeStampField(EffectiveTime.FIELD, aDate, true));
         assertEquals("milliseconds should be preserved", aDate.getTime(),
-                     map.getField(new EffectiveTime()).getValue().getTime());
+                    map.getField(new EffectiveTime()).getValue().getTime());
     }
+
     public void testSetUtcTimeOnlyField() throws Exception {
         FieldMap map = new Message();
         Date aDate = new Date();
         map.setField(new UtcTimeOnlyField(MDEntryTime.FIELD, aDate, false));
         assertEquals("milliseconds should not be preserved", UtcTimeOnlyConverter.convert(aDate, false),
-                     UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), false));
+                    UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), false));
 
         // now set it with preserving millis
         map.setField(new UtcTimeOnlyField(MDEntryTime.FIELD, aDate, true));
         assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aDate, true),
-                     UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
+                    UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
     }
 
     /** Try a subclass of {@link UtcTimeOnlyField} and {@link UtcTimeStampField} directly */
@@ -56,9 +57,9 @@ public class FieldMapTest extends TestCase {
         Date aDate = new Date();
         map.setField(new EffectiveTime(aDate));
         assertEquals("milliseconds should be preserved", aDate.getTime(),
-                     map.getField(new EffectiveTime()).getValue().getTime());
+                    map.getField(new EffectiveTime()).getValue().getTime());
         map.setField(new MDEntryTime(aDate));
-        assertEquals("milliseconds should be preserved",  UtcTimeOnlyConverter.convert(aDate, true),
-                     UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
+        assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aDate, true),
+                    UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), true));
     }
 }

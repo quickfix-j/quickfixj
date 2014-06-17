@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -29,8 +29,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * The default factory for creating FIX message instances.
  */
 public class DefaultMessageFactory implements MessageFactory {
-    private final Map<String,MessageFactory> messageFactories
-        = new ConcurrentHashMap<String,MessageFactory>();
+    private final Map<String, MessageFactory> messageFactories
+        = new ConcurrentHashMap<String, MessageFactory>();
 
     public DefaultMessageFactory() {
         // To loosen the coupling between this factory and generated code, the
@@ -56,7 +56,7 @@ public class DefaultMessageFactory implements MessageFactory {
             // ignored
         }
     }
-    
+
     public Message create(String beginString, String msgType) {
         MessageFactory messageFactory = messageFactories.get(beginString);
         if (beginString.equals(BEGINSTRING_FIXT11)) {
@@ -73,14 +73,14 @@ public class DefaultMessageFactory implements MessageFactory {
                 messageFactory = messageFactories.get(FIX50);
             }
         }
-        
+
         if (messageFactory != null) {
             return messageFactory.create(beginString, msgType);
         }
 
         Message message = new Message();
         message.getHeader().setString(MsgType.FIELD, msgType);
-        
+
         return message;
     }
 
@@ -89,6 +89,6 @@ public class DefaultMessageFactory implements MessageFactory {
         if (messageFactory != null) {
             return messageFactory.create(beginString, msgType, correspondingFieldID);
         }
-        throw new IllegalArgumentException("Unsupported FIX version: "+beginString);
+        throw new IllegalArgumentException("Unsupported FIX version: " + beginString);
     }
 }

@@ -22,7 +22,7 @@ class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdmi
 
     private final AbstractSocketInitiator initiator;
 
-    protected SocketInitiatorAdmin(JmxExporter jmxExporter, AbstractSocketInitiator connector, 
+    protected SocketInitiatorAdmin(JmxExporter jmxExporter, AbstractSocketInitiator connector,
             ObjectName connectorName, SessionJmxExporter sessionExporter) {
         super(jmxExporter, connector, connectorName, connector.getSettings(), sessionExporter);
         initiator = connector;

@@ -79,6 +79,7 @@ import quickfix.field.Text;
  * connections (it cannot operate on multiple connection simultaneously).
  */
 public class Session implements Closeable {
+
     /**
      * Session setting for heartbeat interval (in seconds).
      */
@@ -392,7 +393,7 @@ public class Session implements Closeable {
     private final Set<InetAddress> allowedRemoteAddresses;
 
     public static final int DEFAULT_MAX_LATENCY = 120;
-    public static final int DEFAULT_RESEND_RANGE_CHUNK_SIZE = 0; //no resend range
+    public static final int DEFAULT_RESEND_RANGE_CHUNK_SIZE = 0; // no resend range
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
 
     protected final static Logger log = LoggerFactory.getLogger(Session.class);
@@ -476,11 +477,11 @@ public class Session implements Closeable {
             LogUtil.logThrowable(getLog(), "error during session construction", e);
         }
 
-        //QFJ-721: for non-FIXT sessions we do not need to set targetDefaultApplVerID from Logon
+        // QFJ-721: for non-FIXT sessions we do not need to set targetDefaultApplVerID from Logon
         if (!sessionID.isFIXT()) {
             targetDefaultApplVerID.set(MessageUtils.toApplVerID(sessionID.getBeginString()));
         }
-        
+
         setEnabled(true);
 
         getLog().onEvent("Created session: " + sessionID);
@@ -557,7 +558,7 @@ public class Session implements Closeable {
      * identifiers. The session qualifier is used to distinguish sessions with
      * the same target identifiers.
      *
-     * @param message   a FIX message
+     * @param message a FIX message
      * @param qualifier a session qualifier
      * @return true is send was successful, false otherwise
      * @throws SessionNotFound if session could not be located
@@ -577,7 +578,7 @@ public class Session implements Closeable {
      * ID. The sender company ID is provided as an argument rather than from the
      * message.
      *
-     * @param message      a FIX message
+     * @param message a FIX message
      * @param senderCompID the sender's company ID
      * @param targetCompID the target's company ID
      * @return true is send was successful, false otherwise
@@ -594,10 +595,10 @@ public class Session implements Closeable {
      * message. The session qualifier is used to distinguish sessions with the
      * same target identifiers.
      *
-     * @param message      a FIX message
+     * @param message a FIX message
      * @param senderCompID the sender's company ID
      * @param targetCompID the target's company ID
-     * @param qualifier    a session qualifier
+     * @param qualifier a session qualifier
      * @return true is send was successful, false otherwise
      * @throws SessionNotFound if session could not be located
      */
@@ -617,7 +618,7 @@ public class Session implements Closeable {
     /**
      * Send a message to the session specified by the provided session ID.
      *
-     * @param message   a FIX message
+     * @param message a FIX message
      * @param sessionID the target SessionID
      * @return true is send was successful, false otherwise
      * @throws SessionNotFound if session could not be located
@@ -954,7 +955,6 @@ public class Session implements Closeable {
                         getLog().onErrorEvent("Warn: incoming " + e + ": " + message);
                     }
                 }
-
             }
 
             if (msgType.equals(MsgType.LOGON)) {
@@ -1236,7 +1236,7 @@ public class Session implements Closeable {
                 sequenceReset.getHeader().setInt(LastMsgSeqNumProcessed.FIELD,
                         receivedMessage.getHeader().getInt(MsgSeqNum.FIELD));
             } catch (final FieldNotFound e) {
-                //should not happen as MsgSeqNum must be present
+                // should not happen as MsgSeqNum must be present
                 getLog().onErrorEvent("Received message without MsgSeqNum " + receivedMessage);
             }
         }
@@ -1337,7 +1337,7 @@ public class Session implements Closeable {
                 logout.getHeader().setInt(LastMsgSeqNumProcessed.FIELD,
                         otherLogout.getHeader().getInt(MsgSeqNum.FIELD));
             } catch (final FieldNotFound e) {
-                //should not happen as MsgSeqNum must be present
+                // should not happen as MsgSeqNum must be present
                 getLog().onErrorEvent("Received logout without MsgSeqNum");
             }
         }
@@ -1382,7 +1382,6 @@ public class Session implements Closeable {
                 // QFJ-728: newSequence will be the seqnum of the next message so we
                 // delete all older messages from the queue since they are effectively skipped.
                 state.dequeueMessagesUpTo(newSequence);
-
             } else if (newSequence < getExpectedTargetNum()) {
 
                 getLog().onErrorEvent(
@@ -1421,7 +1420,6 @@ public class Session implements Closeable {
         reject.setString(Text.FIELD, str);
         sendRaw(reject, 0);
         getLog().onErrorEvent("Reject sent for Message " + msgSeqNum + ": " + str);
-
     }
 
     private boolean isPossibleDuplicate(Message message) throws FieldNotFound {
@@ -2003,7 +2001,7 @@ public class Session implements Closeable {
             return;
         }
 
-        //reset logout messages
+        // reset logout messages
         state.setLogoutReceived(false);
         state.setLogoutSent(false);
         state.setLogonReceived(true);
@@ -2013,7 +2011,7 @@ public class Session implements Closeable {
         final int sequence = logon.getHeader().getInt(MsgSeqNum.FIELD);
 
         /*
-         * We test here that it's not too high (which would result in a resend) and that we are not 
+         * We test here that it's not too high (which would result in a resend) and that we are not
          * resetting on logon 34=1
          */
         final boolean isLogonInNormalSequence = !(isTargetTooHigh(sequence) && !resetOnLogon);
@@ -2075,7 +2073,7 @@ public class Session implements Closeable {
             nextQueued();
         }
 
-        // Do we have a 789 
+        // Do we have a 789
         if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
             final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
             final int actualNextNum = nextSenderMsgNumAtLogonReceived;
@@ -2119,7 +2117,6 @@ public class Session implements Closeable {
         }
     }
 
-    
     private void resendMessages(Message receivedMessage, int beginSeqNo, int endSeqNo)
             throws IOException, InvalidMessage, FieldNotFound {
 
@@ -2206,7 +2203,6 @@ public class Session implements Closeable {
         }
     }
 
-    
     private void nextQueued() throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
         while (nextQueued(getExpectedTargetNum())) {
@@ -2274,11 +2270,9 @@ public class Session implements Closeable {
     }
 
     private void generateResendRequest(String beginString, int msgSeqNum) {
-
         final int beginSeqNo = getExpectedTargetNum();
         final int endSeqNo = msgSeqNum - 1;
         sendResendRequest(beginString, msgSeqNum, beginSeqNo, endSeqNo);
-
     }
 
     private void sendResendRequest(String beginString, int msgSeqNum, int beginSeqNo, int endSeqNo) {
@@ -2307,7 +2301,6 @@ public class Session implements Closeable {
         state.setResendRange(beginSeqNo, msgSeqNum - 1, resendRequestChunkSize == 0
                 ? 0
                 : lastEndSeqNoSent);
-
     }
 
     private boolean validatePossDup(Message msg) throws FieldNotFound, IOException {
@@ -2715,7 +2708,7 @@ public class Session implements Closeable {
     public void setTargetDefaultApplicationVersionID(ApplVerID applVerID) {
         targetDefaultApplVerID.set(applVerID);
     }
-    
+
     private static String extractNumber(String txt, int from) {
         String ret = "";
         for (int i = from; i != txt.length(); ++i) {
@@ -2763,7 +2756,7 @@ public class Session implements Closeable {
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {
         this.rejectInvalidMessage = rejectInvalidMessage;
     }
-    
+
     public void setRejectMessageOnUnhandledException(boolean rejectMessageOnUnhandledException) {
         this.rejectMessageOnUnhandledException = rejectMessageOnUnhandledException;
     }
@@ -2771,6 +2764,7 @@ public class Session implements Closeable {
     public void setRequiresOrigSendingTime(boolean requiresOrigSendingTime) {
         this.requiresOrigSendingTime = requiresOrigSendingTime;
     }
+
     public void setForceResendWhenCorruptedStore(boolean forceResendWhenCorruptedStore) {
         this.forceResendWhenCorruptedStore = forceResendWhenCorruptedStore;
     }
@@ -2794,7 +2788,7 @@ public class Session implements Closeable {
             ((Closeable) resource).close();
         }
     }
-    
+
     private void resetIfSessionNotCurrent(SessionID sessionID, long time) throws IOException {
         if (!isCurrentSession(time)) {
             getLog().onEvent("Session state is not current; resetting " + sessionID);

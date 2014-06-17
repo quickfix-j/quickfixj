@@ -1,18 +1,18 @@
 /*******************************************************************************
- * Copyright (c) quickfixj.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX/J FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixj.org 
- * license as defined by quickfixj.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixj.org/LICENSE for licensing information. 
- * 
+ * Copyright (c) quickfixj.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX/J FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixj.org
+ * license as defined by quickfixj.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixj.org/LICENSE for licensing information.
+ *
  ******************************************************************************/
 
 package org.quickfixj.jmx.mbean.connector;
@@ -48,7 +48,7 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
     private final SessionJmxExporter sessionExporter;
 
-    public SocketAcceptorAdmin(JmxExporter jmxExporter, AbstractSocketAcceptor connector, 
+    public SocketAcceptorAdmin(JmxExporter jmxExporter, AbstractSocketAcceptor connector,
             ObjectName connectorName, SessionJmxExporter sessionExporter) {
         super(jmxExporter, connector, connectorName, connector.getSettings(), sessionExporter);
         this.sessionExporter = sessionExporter;

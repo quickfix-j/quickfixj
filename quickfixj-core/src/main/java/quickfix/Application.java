@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -39,7 +39,7 @@ public interface Application {
      * counter party. This is called when a connection has been established and
      * the FIX logon process has completed with both parties exchanging valid
      * logon messages.
-     * 
+     *
      * @param sessionId
      *            QuickFIX session ID
      */
@@ -49,7 +49,7 @@ public interface Application {
      * This callback notifies you when an FIX session is no longer online. This
      * could happen during a normal logout exchange or because of a forced
      * termination or a loss of network connection.
-     * 
+     *
      * @param sessionId
      *            QuickFIX session ID
      */
@@ -61,7 +61,7 @@ public interface Application {
      * normally not useful for an application however it is provided for any
      * logging you may wish to do. You may add fields in an adminstrative
      * message before it is sent.
-     * 
+     *
      * @param message
      *            QuickFIX message
      * @param sessionId
@@ -74,7 +74,7 @@ public interface Application {
      * counterparty to your FIX engine. This can be usefull for doing extra
      * validation on logon messages such as for checking passwords. Throwing a
      * RejectLogon exception will disconnect the counterparty.
-     * 
+     *
      * @param message
      *            QuickFIX message
      * @param sessionId
@@ -99,7 +99,7 @@ public interface Application {
      * sent in place of the message. If it is set to false, the message will
      * simply not be sent. You may add fields before an application message
      * before it is sent out.
-     * 
+     *
      * @param message
      *            QuickFIX message
      * @param sessionId
@@ -123,7 +123,7 @@ public interface Application {
      * getting a business reject informing them your application cannot process
      * those types of messages. An IncorrectTagValue can also be thrown if a
      * field contains a value that is out of range or you do not support.
-     * 
+     *
      * @param message
      *            QuickFIX message
      * @param sessionId

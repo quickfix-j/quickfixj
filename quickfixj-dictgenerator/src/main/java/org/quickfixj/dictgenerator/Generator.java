@@ -15,9 +15,9 @@ import java.util.TreeSet;
  * Credit for the initial version goes to Morten Kristiansen.
  * There were some changes made regarding ordering of tags etc, in order to make the
  * dictionaries look more similar to the existing QFJ dictionaries.
- * 
+ *
  * NB: Do not forget to correct the major/minor number in the session data dictionary afterwards.
- * 
+ *
  * This generator only works with the FPL 2008/09 repository files (http://fixprotocol.org/repository-2008).
  */
 public class Generator {
@@ -26,7 +26,7 @@ public class Generator {
     private final int major;
     private final int minor;
 
-    public Generator(File repositoryDir, int major, int minor ) throws Exception {
+    public Generator(File repositoryDir, int major, int minor) throws Exception {
         System.out.println("Building Repository: " + repositoryDir.getAbsolutePath() + "...");
         this.repository = new Repository(repositoryDir);
         this.major = major;
@@ -36,10 +36,10 @@ public class Generator {
     public void generate() throws Exception {
         generateDictionary("session.xml", true, false);
         generateDictionary("application.xml", false, false);
-        generateDictionary("merged.xml", false, true);      // for versions below FIX5.0
+        generateDictionary("merged.xml", false, true); // for versions below FIX5.0
     }
 
-    private void generateDictionary(String file, boolean admin, boolean merged ) {
+    private void generateDictionary(String file, boolean admin, boolean merged) {
         File dictionaryFile = new File(file);
         System.out.println("Creating file: " + dictionaryFile.getAbsolutePath());
         StringBuilder builder = new StringBuilder();
@@ -94,7 +94,7 @@ public class Generator {
         }
 
         // Message
-        if (!merged ) {
+        if (!merged) {
             String msgcat = admin ? "admin" : "app";
             builder.append("  <messages>\n");
             for (MsgType msgType : msgTypes.values()) {
@@ -134,7 +134,7 @@ public class Generator {
             builder.append("    <component name=\"" + name + "\">\n");
             Field numInGroup = null;
             for (Object o : component.getMsgContent()) {
-                if (o instanceof Field && ((Field)o).isNumInGroup()) {
+                if (o instanceof Field && ((Field) o).isNumInGroup()) {
                     numInGroup = (Field) o;
                     break;
                 }
@@ -165,14 +165,14 @@ public class Generator {
                 Set<String> enumDescCache = new HashSet<String>();
                 for (Enum theEnum : field.getEnums()) {
                     String enumDesc = theEnum.getDesc().toUpperCase();
-                    enumDesc = enumDesc.replaceAll("\\(.*\\)", "" );    // remove stuff in parentheses
-                    enumDesc = enumDesc.replaceAll("'","" );            // replace ticks (as in DON'T_KNOW_TRADE)
-                    enumDesc = enumDesc.replaceAll("\"","" );
-                    enumDesc = enumDesc.trim();                         // trim leading and trailing whitespaces
-                    enumDesc = enumDesc.replaceAll("\\W+","_" );        // replace rest of non-word characters by _
+                    enumDesc = enumDesc.replaceAll("\\(.*\\)", ""); // remove stuff in parentheses
+                    enumDesc = enumDesc.replaceAll("'", ""); // replace ticks (as in DON'T_KNOW_TRADE)
+                    enumDesc = enumDesc.replaceAll("\"", "");
+                    enumDesc = enumDesc.trim(); // trim leading and trailing whitespaces
+                    enumDesc = enumDesc.replaceAll("\\W+", "_"); // replace rest of non-word characters by _
                     char firstChar = enumDesc.charAt(0);
                     if (Character.isDigit(firstChar)) {
-                        enumDesc = "_" + enumDesc;                      // make it a valid JAVA identifier
+                        enumDesc = "_" + enumDesc; // make it a valid JAVA identifier
                     }
                     boolean add = enumDescCache.add(enumDesc);
                     if (add) {
@@ -201,7 +201,6 @@ public class Generator {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private void addMsgContents(StringBuilder builder, List<Object> msgContents, String prefix) {
@@ -234,9 +233,9 @@ public class Generator {
     private Set<Integer> addFields(Set<Integer> result, List<Object> msgContents) {
         for (Object o : msgContents) {
             if (o instanceof Field) {
-                result.add(Integer.valueOf(((Field)o).getTag()));
+                result.add(Integer.valueOf(((Field) o).getTag()));
             } if (o instanceof Component) {
-                result = addFields(result, ((Component)o).getMsgContent());
+                result = addFields(result, ((Component) o).getMsgContent());
             }
         }
         return result;
@@ -256,9 +255,9 @@ public class Generator {
             if (o instanceof Component) {
                 Component component = (Component) o;
                 if (!component.isStandardHeader() && !component.isStandardTrailer()) {
-                    result.add(((Component)o).getName());
+                    result.add(((Component) o).getName());
                 }
-                result = addComponents(result, ((Component)o).getMsgContent());
+                result = addComponents(result, ((Component) o).getMsgContent());
             }
         }
         return result;
@@ -278,7 +277,7 @@ public class Generator {
         }
         int major = Integer.valueOf(args[1]);
         int minor = Integer.valueOf(args[2]);
-        
+
         new Generator(repository, major, minor).generate();
     }
 }

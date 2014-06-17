@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -172,7 +172,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         if (order.getChar(OrdType.FIELD) == OrdType.LIMIT) {
             BigDecimal limitPrice = new BigDecimal(order.getString(Price.FIELD));
             char side = order.getChar(Side.FIELD);
-            BigDecimal thePrice = new BigDecimal(""+ price.getValue());
+            BigDecimal thePrice = new BigDecimal("" + price.getValue());
 
             return (side == Side.BUY && thePrice.compareTo(limitPrice) <= 0)
                     || ((side == Side.SELL || side == Side.SELL_SHORT) && thePrice.compareTo(limitPrice) >= 0);
@@ -206,7 +206,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             if (session == null) {
                 throw new SessionNotFound(sessionID.toString());
             }
-            
+
             DataDictionaryProvider dataDictionaryProvider = session.getDataDictionaryProvider();
             if (dataDictionaryProvider != null) {
                 try {
@@ -218,7 +218,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
                     return;
                 }
             }
-            
+
             session.send(message);
         } catch (SessionNotFound e) {
             log.error(e.getMessage(), e);
@@ -410,14 +410,14 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
                 executionReport.set(new LastQty(orderQty.getValue()));
                 executionReport.set(new LastPx(price.getValue()));
                 executionReport.set(new AvgPx(price.getValue()));
-                
+
                 sendMessage(sessionID, executionReport);
             }
         } catch (RuntimeException e) {
             LogUtil.logThrowable(sessionID, e.getMessage(), e);
         }
     }
-    
+
     public OrderID genOrderID() {
         return new OrderID(Integer.valueOf(++m_orderID).toString());
     }
@@ -428,7 +428,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
     /**
      * Allows a custom market data provider to be specified.
-     * 
+     *
      * @param marketDataProvider
      */
     public void setMarketDataProvider(MarketDataProvider marketDataProvider) {

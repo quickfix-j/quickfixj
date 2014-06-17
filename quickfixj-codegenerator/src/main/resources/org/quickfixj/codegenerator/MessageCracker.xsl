@@ -104,7 +104,7 @@ public class MessageCracker {
 <xsl:template name="switch-statement">
 	public void crack(quickfix.Message message, SessionID sessionID)
 			throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
-		crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>((Message)message, sessionID);
+		crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>((Message) message, sessionID);
 	}
 
 	/**

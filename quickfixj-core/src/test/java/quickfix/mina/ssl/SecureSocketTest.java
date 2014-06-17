@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -69,19 +69,17 @@ public class SecureSocketTest extends TestCase {
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
             final CountDownLatch exceptionCaught = new CountDownLatch(1);
             initiator.setIoFilterChainBuilder(new IoFilterChainBuilder() {
-            
+
                 public void buildFilterChain(IoFilterChain chain) throws Exception {
                     chain.addLast("ExceptionCatcher", new IoFilterAdapter() {
-
                         public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
-                            log.info("MINA exception: "+cause.getMessage());
+                            log.info("MINA exception: " + cause.getMessage());
                             exceptionCaught.countDown();
                         }
-                        
                     });
                 }
             });
-            
+
             try {
                 log.info("Do login");
                 initiator.start();
@@ -128,7 +126,6 @@ public class SecureSocketTest extends TestCase {
             }
         }.run();
     }
-
 
     private void doLogonTest(String keyStoreName, String keyStorePassword) throws InterruptedException, ConfigError {
         ServerThread serverThread = new ServerThread(keyStoreName, keyStorePassword);
@@ -190,10 +187,6 @@ public class SecureSocketTest extends TestCase {
         private Initiator initiator;
         private boolean stopAfterLogon;
 
-        public ClientApplication() {
-
-        }
-
         //public void stopAfterLogon(Initiator initiator) {
         //    this.initiator = initiator;
         //    this.stopAfterLogon = true;
@@ -213,7 +206,6 @@ public class SecureSocketTest extends TestCase {
                 initiator.stop();
             }
         }
-
     }
 
     private class ServerThread extends Thread {

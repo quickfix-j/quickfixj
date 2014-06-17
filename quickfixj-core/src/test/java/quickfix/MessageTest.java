@@ -138,9 +138,9 @@ public class MessageTest {
 
     @Test
     public void testHeaderCustomFieldOrdering() throws Exception {
-        
+
         class MyMessage extends Message {
-        
+
             final int[] headerFieldOrder = {
                 BeginString.FIELD,
                 BodyLength.FIELD,
@@ -159,20 +159,20 @@ public class MessageTest {
         }
 
         final MyMessage myMessage = new MyMessage();
-        
+
         myMessage.getHeader().setField(new SenderCompID("foo"));
         myMessage.getHeader().setField(new MsgSeqNum(22));
         myMessage.getHeader().setString(SendingTime.FIELD, "20120922-11:00:00");
         myMessage.getHeader().setField(new TargetCompID("bar"));
-        
+
         assertTrue(myMessage.toString().contains("52=20120922-11:00:00\00134=22\00149=foo\00156=bar"));
     }
 
     @Test
     public void testTrailerCustomFieldOrdering() throws Exception {
-        
+
         class MyMessage extends Message {
-        
+
             final int[] trailerFieldOrder = { Signature.FIELD, SignatureLength.FIELD, CheckSum.FIELD };
 
             public MyMessage() {
@@ -182,7 +182,7 @@ public class MessageTest {
         }
 
         final MyMessage myMessage = new MyMessage();
-        
+
         myMessage.getTrailer().setField(new Signature("FOO"));
         myMessage.getTrailer().setField(new SignatureLength(3));
         assertTrue(myMessage.toString().contains("89=FOO\00193=3\001"));
@@ -317,7 +317,6 @@ public class MessageTest {
             e.printStackTrace();
             fail("InvalidMessage expected, got " + e.getClass().getName());
         }
-
     }
 
     @Test
@@ -357,14 +356,14 @@ public class MessageTest {
         assertNotNull(dictionary);
         executionReport.fromString(data1, dictionary, true);
         dictionary.validate(executionReport);
-        
+
         executionReport.clear();
         executionReport.fromString(data2, dictionary, true);
         dictionary.validate(executionReport);
     }
 
     @Test
-    // QFJ-426     Message header will not validate when containing 'Hop' group
+    // QFJ-426 Message header will not validate when containing 'Hop' group
     public void testValidationWithHops() throws Exception {
         final String data = "8=FIX.4.4\0019=309\00135=8\00149=ASX\00156=CL1_FIX44\00134=4\001" +
             "52=20060324-01:05:58\00117=X-B-WOW-1494E9A0:58BD3F9D-1109\001150=D\00139=0\00111=184271\001" +
@@ -632,7 +631,6 @@ public class MessageTest {
             + "550=0\001552=2\00154=1\001453=2\001448=8\001447=D\001452=4\001448=AAA35777\001447=D\001452=3\00138=9\00154=2\001"
             + "453=2\001448=8\001447=D\001452=4\001448=aaa\001447=D\001452=3\00138=9\00110=056\001";
         assertEquals("wrong message", expectedMessage, noc.toString());
-
     }
 
     @Test
@@ -733,7 +731,6 @@ public class MessageTest {
             assertNotNull("No exception message", emsg);
             assertTrue(emsg.startsWith("Incorrect NumInGroup"));
         }
-
     }
 
     /**
@@ -758,7 +755,7 @@ public class MessageTest {
             assertTrue(emsg.startsWith("Field not found"));
         }
     }
-    
+
     @Test
     public void testMessageCloneWithGroups() {
         final Message message = new Message();
@@ -1088,7 +1085,6 @@ public class MessageTest {
                 fail("exception not thrown");
             } catch (final java.util.NoSuchElementException e) {
             }
-
         } catch (final InvalidMessage e) {
             fail("exception thrown");
         }
@@ -1153,7 +1149,6 @@ public class MessageTest {
         } catch (final FieldNotFound e) {
             // expected
         }
-
     }
 
     @Test
@@ -1348,7 +1343,7 @@ public class MessageTest {
     }
 
     @Test
-    //QFJ-786
+    // QFJ-786
     public void testInvalidHeaderFields() throws Exception {
         String message = "1=03100~11=140605JWI4440~15=USD~21=1~35=D~38=6~40=1~47=A~54=1~55=UNP~59=0~60=20140605-13:58:51.016~63=0~79=03100631~336=1~377=N~581=A~6020=COMPUS~86028=JWI~86029=4440~";
         message = message.replace('~', (char) 1);

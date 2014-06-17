@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -23,7 +23,7 @@ package quickfix;
  * Creates a logger that logs messages to to System.out. TThe logged message
  * categories (incoming, outgoing, events) can be controlled using
  * SessionSettings.
- * 
+ *
  * @see quickfix.SessionSettings
  */
 public class ScreenLogFactory implements LogFactory {
@@ -36,7 +36,7 @@ public class ScreenLogFactory implements LogFactory {
 
     /**
      * Enables incoming message logging.
-     * 
+     *
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
      */
@@ -44,7 +44,7 @@ public class ScreenLogFactory implements LogFactory {
 
     /**
      * Enables outgoing message logging.
-     * 
+     *
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
      */
@@ -52,7 +52,7 @@ public class ScreenLogFactory implements LogFactory {
 
     /**
      * Enables session event logging.
-     * 
+     *
      * Valid values: "Y" or "N"<br/>
      * Default Value: "N"
      */
@@ -60,7 +60,7 @@ public class ScreenLogFactory implements LogFactory {
 
     /**
      * Flag for controlling output of heartbeat messages.
-     * 
+     *
      * Valid values: "Y" or "N"<br/>
      * Default Value: "Y"
      */
@@ -74,7 +74,7 @@ public class ScreenLogFactory implements LogFactory {
 
     /**
      * Create factory using configuration in session settings.
-     * 
+     *
      * @param settings
      *            the session settings
      */
@@ -84,9 +84,9 @@ public class ScreenLogFactory implements LogFactory {
     }
 
     /**
-     * 
+     *
      * Create factory with explicit control of message categories.
-     * 
+     *
      * @param incoming
      *            if true, log incoming messages
      * @param outgoing
@@ -107,9 +107,9 @@ public class ScreenLogFactory implements LogFactory {
     }
 
     /**
-     * 
+     *
      * Create factory with explicit control of message categories.
-     * 
+     *
      * @param incoming
      *            if true, log incoming messages
      * @param outgoing

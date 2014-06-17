@@ -58,7 +58,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         try {
             stopAcceptingConnections();
         } catch (ConfigError e) {
-	        log.error("Error when stopping acceptor.", e );
+            log.error("Error when stopping acceptor.", e);
         }
         logoutAllSessions(forceDisconnect);
         stopSessionTimer();

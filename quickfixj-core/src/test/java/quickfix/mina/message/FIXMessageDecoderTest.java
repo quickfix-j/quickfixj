@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -68,7 +68,7 @@ public class FIXMessageDecoderTest {
         buffer.clear();
     }
 
-    @Test 
+    @Test
     public void testInvalidStringCharset() throws Exception {
         try {
             decoder = new FIXMessageDecoder("BOGUS");
@@ -76,10 +76,9 @@ public class FIXMessageDecoderTest {
         } catch (UnsupportedEncodingException e) {
             // expected
         }
-
     }
 
-    @Test 
+    @Test
     public void testStringDecoding() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001");
@@ -88,7 +87,7 @@ public class FIXMessageDecoderTest {
         assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
     }
 
-    @Test 
+    @Test
     public void testFixtStringDecoding() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIXT.1.1\0019=12\00135=X\001108=30\00110=049\001");
@@ -97,11 +96,11 @@ public class FIXMessageDecoderTest {
         assertEquals("Wrong encoding", 14397, (int) decoderOutput.getMessage().charAt(0));
     }
 
-    @Test 
+    @Test
     public void testWesternEuropeanDecoding() throws Exception {
         // Should work with default encoding
         doWesternEuropeanDecodingTest();
-        
+
         try {
             // Should break
             CharsetSupport.setCharset("US-ASCII");
@@ -130,58 +129,57 @@ public class FIXMessageDecoderTest {
         assertEquals("wrong text", headline, decodedMessage.getString(Headline.FIELD));
     }
 
-    @Test 
+    @Test
     public void testPartialHeader() throws Exception {
         setUpBuffer("8=FIX.4.2");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
                 .decodable(null, buffer));
     }
 
-    @Test 
+    @Test
     public void testPartialHeader2() throws Exception {
         setUpBuffer("8=FIX.4.2\0019");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
                 .decodable(null, buffer));
     }
-    
-    @Test 
+
+    @Test
     public void testPartialHeaderFixt() throws Exception {
         setUpBuffer("8=FIXT.1.1\0019");
         assertEquals("wrong result", MessageDecoderResult.NEED_DATA, decoder
                 .decodable(null, buffer));
     }
-    
+
     // QFJ-376
     @Test
     public void testGarbageData() throws Exception {
         setUpBuffer(new byte[8192]);
         MessageDecoderResult result = decoder.decodable(null, buffer);
         assertEquals(result, MessageDecoderResult.NOT_OK);
-        
     }
-    
-    @Test 
+
+    @Test
     public void testSimpleMessage() throws Exception {
         String data = setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001");
         assertMessageFound(data);
     }
 
-    @Test 
+    @Test
     public void testSplitMessage() throws Exception {
         String data = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001";
         for (int i = 1; i < data.length(); i++) {
             doSplitMessageTest(i, data, 12);
         }
     }
-    
-    @Test 
+
+    @Test
     public void testSplitMessageFixt() throws Exception {
         String data = "8=FIXT.1.1\0019=12\00135=X\001108=30\00110=049\001";
         for (int i = 1; i < data.length(); i++) {
             doSplitMessageTest(i, data, 13);
         }
     }
-    
+
     private void doSplitMessageTest(int splitOffset, String data, int headerSize) throws ProtocolCodecException {
         String firstChunk = data.substring(0, splitOffset);
         String remaining = data.substring(splitOffset);
@@ -212,27 +210,25 @@ public class FIXMessageDecoderTest {
                 buffer.reset();
 
                 assertMessageFound(data);
-
             } else {
                 assertEquals("should parse message; offset=" + splitOffset,
                         MessageDecoderResult.OK, decoder.decode(null, buffer, decoderOutput));
                 assertNotNull("should write message; offset=" + splitOffset, decoderOutput
                         .getMessage());
             }
-
         }
 
         buffer.clear();
     }
 
-    @Test 
+    @Test
     public void testGarbageAtStart() throws Exception {
         String data = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
         setUpBuffer("8=!@#$%" + data);
         assertMessageFound(data);
     }
 
-    @Test 
+    @Test
     public void testBadLengthTooLong() throws Exception {
         String badMessage = "8=FIX.4.2\0019=25\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=Y\001108=30\00110=037\001";
@@ -240,7 +236,7 @@ public class FIXMessageDecoderTest {
         assertMessageFound(goodMessage);
     }
 
-    @Test 
+    @Test
     public void testMultipleMessagesInBuffer() throws Exception {
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
         setUpBuffer(goodMessage + goodMessage + goodMessage);
@@ -261,7 +257,7 @@ public class FIXMessageDecoderTest {
                 decoder.decode(null, buffer, decoderOutput));
     }
 
-    @Test 
+    @Test
     public void testMessageExtraction() throws Exception {
         File testFile = setUpTestFile();
 
@@ -278,18 +274,16 @@ public class FIXMessageDecoderTest {
         }
     }
 
-    @Test 
+    @Test
     public void testMessageStreamingExtraction() throws Exception {
         File testFile = setUpTestFile();
 
         FIXMessageDecoder decoder = new FIXMessageDecoder();
         final List<String> messages = new ArrayList<String>();
         decoder.extractMessages(testFile, new FIXMessageDecoder.MessageListener() {
-
             public void onMessage(String message) {
                 messages.add(message);
             }
-
         });
         assertCorrectlyExtractedMessages(messages);
     }
@@ -311,7 +305,7 @@ public class FIXMessageDecoderTest {
         return f;
     }
 
-    @Test 
+    @Test
     public void testBadLengthTooShort() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
@@ -319,7 +313,7 @@ public class FIXMessageDecoderTest {
         assertMessageFound(goodMessage);
     }
 
-    @Test 
+    @Test
     public void testBadLengthOnLogon() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10\00135=A\001108=30\00110=036\001";
         setUpBuffer(badMessage);
@@ -332,7 +326,7 @@ public class FIXMessageDecoderTest {
         }
     }
 
-    @Test 
+    @Test
     public void testBogusMessageLength() throws Exception {
         String badMessage = "8=FIX.4.2\0019=10xyz\00135=X\001108=30\00110=036\001";
         String goodMessage = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
@@ -340,7 +334,7 @@ public class FIXMessageDecoderTest {
         assertMessageFound(goodMessage);
     }
 
-    @Test 
+    @Test
     public void testNPE() throws Exception {
         try {
             decoder.decode(null, null, null);
@@ -351,7 +345,7 @@ public class FIXMessageDecoderTest {
         }
     }
 
-    @Test 
+    @Test
     public void testFailedPatternMatchAtEndOfBuffer() throws Exception {
         decoder = new FIXMessageDecoder("UTF-16");
         setUpBuffer("8=FIX.4.2\0019=12\00135=X\001108=30\0011wmyadz");
@@ -360,13 +354,13 @@ public class FIXMessageDecoderTest {
         assertEquals("wrong decoder result", MessageDecoderResult.NEED_DATA, decoderResult);
     }
 
-    @Test 
+    @Test
     public void testMinaDemux() throws Exception {
         String message = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001";
         doTestMinaDemux(message);
     }
 
-    @Test 
+    @Test
     public void testMinaDemuxFixt() throws Exception {
         String message = "8=FIXT.1.1\0019=12\00135=X\001108=30\00110=036\001";
         doTestMinaDemux(message);
@@ -376,11 +370,11 @@ public class FIXMessageDecoderTest {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
         codecFactory.addMessageDecoder(FIXMessageDecoder.class);
 
-		ProtocolDecoder decoder = codecFactory.getDecoder(null);
+        ProtocolDecoder decoder = codecFactory.getDecoder(null);
         ProtocolDecoderOutputForTest output = new ProtocolDecoderOutputForTest();
-        
+
         final IoSessionStub mockSession = new IoSessionStub();
-        
+
         int count = 5;
         String data = "";
         for (int i = 0; i < count; i++) {
@@ -399,11 +393,11 @@ public class FIXMessageDecoderTest {
             decoder.decode(mockSession, buffer, output);
 
             assertEquals("wrong message count", count, output.getMessageCount());
-            
+
             output.reset();
             buffer.clear();
         }
-   }
+    }
 
     private void assertMessageFound(String data) throws ProtocolCodecException {
         assertMessageFound(data, 1);
@@ -429,34 +423,34 @@ public class FIXMessageDecoderTest {
         buffer.put(bytes);
         buffer.flip();
     }
-    
+
     // =========================================================================================
     // QFJ-505
-    
+
     private static final String FIELD_DELIMITER = "\001";
     private static final byte[] HEADER_PATTERN = getBytes("8=FIXt.?.?" + FIELD_DELIMITER + "9=");
-    
+
     @Test
     public void testCompleteHeader() {
-        //8=FIXT.1.1_9=
+        // 8=FIXT.1.1_9=
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39, 0x3D};
         IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
-    
+
     @Test
     public void testLongCompleteHeader() {
-        //8=FIXT.1.1_9======
+        // 8=FIXT.1.1_9======
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
         IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
-    
+
     @Test
     public void testIncompleteHeader() {
-        //8=FIXT.1.1_9
+        // 8=FIXT.1.1_9
         byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39};
         IoBuffer in = IoBuffer.wrap(incompleteHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
@@ -465,33 +459,31 @@ public class FIXMessageDecoderTest {
 
     @Test
     public void testCompleteHeader4() {
-        //8=FIX.4.4_9=
+        // 8=FIX.4.4_9=
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39, 0x3D};
         IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
-    
+
     @Test
     public void testLongCompleteHeader4() {
-        //8=FIX.4.4_9======
+        // 8=FIX.4.4_9======
         byte[] completeHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D, 0x3D};
         IoBuffer in = IoBuffer.wrap(completeHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("We should have a complete header", bufPos._offset != -1);
     }
 
-    
     @Test
     public void testIncompleteHeader4() {
-        //8=FIX.4.4_9
+        // 8=FIX.4.4_9
         byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39};
         IoBuffer in = IoBuffer.wrap(incompleteHeader);
         BufPos bufPos = indexOf(in, 0, HEADER_PATTERN);
         Assert.assertTrue("There should be no header detected", bufPos._offset == -1);
     }
-    
-    
+
     private static byte[] getBytes(String s) {
         try {
             return s.getBytes(CharsetSupport.getDefaultCharset());
@@ -499,8 +491,7 @@ public class FIXMessageDecoderTest {
             throw new RuntimeException(e);
         }
     }
-    
-        
+
     private static int startsWith(IoBuffer buffer, int bufferOffset, byte[] data) {
         if (bufferOffset + minMaskLength(data) > buffer.limit()) {
             return -1;
@@ -529,7 +520,7 @@ public class FIXMessageDecoderTest {
         }
         return bufferOffset - initOffset;
     }
-    
+
     private static BufPos indexOf(IoBuffer buffer, int position, byte[] data) {
         for (int offset = position, limit = buffer.limit() - minMaskLength(data) + 1; offset < limit; offset++) {
             int length;
@@ -539,7 +530,7 @@ public class FIXMessageDecoderTest {
         }
         return new BufPos(-1, 0);
     }
-    
+
     private static int minMaskLength(byte[] data) {
         int len = 0;
         for (int i = 0; i < data.length; ++i) {
@@ -549,7 +540,7 @@ public class FIXMessageDecoderTest {
         }
         return len;
     }
-    
+
     static class BufPos {
         int _offset;
         int _length;

@@ -96,7 +96,6 @@ public class SLF4JLogTest extends TestCase {
         setUpLoggerForTest("out");
         log.onOutgoing(loggedText);
         assertMessageLogged(sessionID, "out", loggedText);
-
     }
 
     public void testLogHeartbeatFiltering() throws Exception {
@@ -128,7 +127,6 @@ public class SLF4JLogTest extends TestCase {
         setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
-
     }
 
     public void testLogFilteredByLevel() throws Exception {
@@ -161,7 +159,6 @@ public class SLF4JLogTest extends TestCase {
         getTestHandler(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY).setLevel(Level.WARNING);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
-
     }
 
     /** Check to make sure that if we use log4j underneath with SLF4J we use
@@ -243,7 +240,6 @@ public class SLF4JLogTest extends TestCase {
                 records.add(record);
             }
         }
-
     }
 
     public class MySLF4JLog extends SLF4JLog {
@@ -275,6 +271,5 @@ public class SLF4JLogTest extends TestCase {
         public boolean isInfoEnabled() {
             return true;
         }
-
     }
 }

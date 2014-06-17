@@ -70,8 +70,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
         super(settings, sessionFactory);
-            IoBuffer.setAllocator(new SimpleBufferAllocator());
-            IoBuffer.setUseDirectBuffer(false);
+        IoBuffer.setAllocator(new SimpleBufferAllocator());
+        IoBuffer.setUseDirectBuffer(false);
     }
 
     protected void createSessionInitiators()
@@ -79,7 +79,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         try {
             // QFJ698: clear() is needed on restart, otherwise the set gets filled up with
             // more and more initiators which are not equal because the local port differs
-            initiators.clear(); 
+            initiators.clear();
             createSessions();
             SessionSettings settings = getSettings();
             for (final Session session : getSessionMap().values()) {
@@ -90,7 +90,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 if (socketAddresses.length == 0) {
                     throw new ConfigError("Must specify at least one socket address");
                 }
-                
+
                 SocketAddress localAddress = getLocalAddress(settings, sessionID);
 
                 final NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
@@ -125,7 +125,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         }
     }
 
-    //QFJ-482
+    // QFJ-482
     private SocketAddress getLocalAddress(SessionSettings settings, final SessionID sessionID)
             throws ConfigError, FieldConvertError {
         // Check if use of socket local/bind address

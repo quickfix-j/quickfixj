@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -52,15 +52,15 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         FileStore store = (FileStore) getStore();
         store.set(1, "MESSAGE");
         store.reset();
-        
+
         store.set(2, "MESSAGE");
 
         List<String> messages = new ArrayList<String>();
         store.get(1, 1, messages);
-        
+
         assertEquals(0, messages.size());
     }
-    
+
     public void testCloseAndOpen() throws Exception {
         FileStore store = (FileStore) getStore();
         store.setNextSenderMsgSeqNum(123);
@@ -71,13 +71,13 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         assertEquals(123, store.getNextSenderMsgSeqNum());
         assertEquals(321, store.getNextTargetMsgSeqNum());
     }
-    
+
     protected void closeMessageStore(MessageStore store) throws IOException {
-        ((FileStore)store).close();
+        ((FileStore) store).close();
     }
 
     public void testInitialSessionCreationTime() throws Exception {
-        FileStore store = (FileStore)getStore();
+        FileStore store = (FileStore) getStore();
         Date creationTime1 = store.getCreationTime();
         store.close();
         Thread.sleep(100);

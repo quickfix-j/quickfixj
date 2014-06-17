@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -52,7 +52,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
 public class AcceptorIoHandlerTest {
-    
+
     /**
      * QFJ-592
      * We need to make sure that the targetDefaultApplVerID gets set as early as possible,
@@ -97,7 +97,7 @@ public class AcceptorIoHandlerTest {
         EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
 
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
- 
+
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
@@ -107,7 +107,7 @@ public class AcceptorIoHandlerTest {
         verifyNoMoreInteractions(mockEventHandlingStrategy);
     }
 
-    private StaticAcceptorSessionProvider createSessionProvider(HashMap<SessionID,Session> acceptorSessions) {
+    private StaticAcceptorSessionProvider createSessionProvider(HashMap<SessionID, Session> acceptorSessions) {
         return new AbstractSocketAcceptor.StaticAcceptorSessionProvider(acceptorSessions);
     }
 
@@ -127,9 +127,9 @@ public class AcceptorIoHandlerTest {
                 .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
 
         HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
-  
+
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
-                                                          new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
         handler.processMessage(mockIoSession, logout);
 

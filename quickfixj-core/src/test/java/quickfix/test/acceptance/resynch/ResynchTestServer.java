@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -45,9 +45,8 @@ import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.UnsupportedMessageType;
 
-
 public class ResynchTestServer extends MessageCracker implements Application, Runnable {
-    
+
     SocketAcceptor acceptor;
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Logger log = LoggerFactory.getLogger(ResynchTestServer.class);
@@ -56,6 +55,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
     private boolean unsynchMode = false;
     private boolean validateSequenceNumbers = true;
+
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
     }
@@ -66,7 +66,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     }
 
     public void onCreate(SessionID sessionId) {
-        if (isUnsynchMode()) {            
+        if (isUnsynchMode()) {
             // NB: there is a chance that lookupSession will fail since
             // the sessions are kept in a ConcurrentHashMap which does not block.
             // From JavaDoc: Retrievals reflect the results of the most recently
@@ -90,7 +90,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
         }
     }
 
-    public void onLogon(SessionID sessionId) {        
+    public void onLogon(SessionID sessionId) {
     }
 
     public void onLogout(SessionID sessionId) {
@@ -113,22 +113,20 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
             SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
             settings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
-            //            settings.setString(sessionID, "DataDictionary", "etc/" + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "")
-            //                    + ".xml");
+            // settings.setString(sessionID, "DataDictionary", "etc/" + FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "")
+            //         + ".xml");
 
             MessageStoreFactory factory = new MemoryStoreFactory();
-            
+
             acceptor = new SocketAcceptor(this, factory, settings, new ScreenLogFactory(settings),
                     new DefaultMessageFactory());
             acceptor.start();
-            
-            
-            
+
             try {
                 //acceptor.waitForInitialization();
                 initializationLatch.countDown();
 
-                    try {
+                try {
                     shutdownLatch.await();
                 } catch (InterruptedException e) {
                 }
@@ -160,11 +158,11 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     public void setUnsynchMode(boolean unsynchMode) {
         this.unsynchMode = unsynchMode;
     }
-    
+
     public void setValidateSequenceNumbers(boolean validateSequenceNumbers) {
         this.validateSequenceNumbers = validateSequenceNumbers;
     }
-    
+
     public boolean isValidateSequenceNumbers() {
         return validateSequenceNumbers;
     }

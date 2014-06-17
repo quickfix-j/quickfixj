@@ -331,7 +331,7 @@ public class DataDictionaryTest extends TestCase {
         dictionary.validate(newSingle);
     }
 
-    //QFJ-535
+    // QFJ-535
     public void testValidateFieldsOutOfOrderForGroups() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
         dictionary.setCheckUnorderedGroupFields(false);
@@ -350,7 +350,7 @@ public class DataDictionaryTest extends TestCase {
         dictionary.validate(messageWithGroupLevel2);
     }
 
-    //QFJ-535
+    // QFJ-535
     public void testNewOrderSingleWithCorrectTag50() throws Exception {
 
         final DataDictionary dataDictionary = new DataDictionary(getDictionary());
@@ -361,7 +361,7 @@ public class DataDictionaryTest extends TestCase {
             "59=6\00140=2\00144=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\001" +
             "48=CH1234.CHF\00121=1\00160=20110420-11:17:39.000\00163=0\001207=VX\00110=009\001";
 
-        //in any case, it must be validated as the message is correct
+        // in any case, it must be validated as the message is correct
         //doValidation and checkFieldsOutOfOrder
         final NewOrderSingle nos1 = new NewOrderSingle();
         nos1.fromString(correctFixMessage, dataDictionary, true);
@@ -401,10 +401,10 @@ public class DataDictionaryTest extends TestCase {
 
         //doValidation and checkFieldsOutOfOrder -> should fail
         final NewOrderSingle nos1 = new NewOrderSingle();
-        try  {
+        try {
             nos1.fromString(incorrectFixMessage, dataDictionary, true);
         } catch (FieldException fe) {
-            //expected exception
+            // expected exception
         }
 
         //doNotValidation and checkFieldsOutOfOrder -> should NOT fail
@@ -421,14 +421,12 @@ public class DataDictionaryTest extends TestCase {
         dataDictionary.validate(nos3);
         assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
 
-      //doNotValidation and no checkFieldsOutOfOrder -> should NOT fail
+        //doNotValidation and no checkFieldsOutOfOrder -> should NOT fail
         final NewOrderSingle nos4 = new NewOrderSingle();
         nos4.fromString(incorrectFixMessage, dataDictionary, false);
         dataDictionary.validate(nos4);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
     }
-
-
 
     //
     // Group Validation Tests in RepeatingGroupTest

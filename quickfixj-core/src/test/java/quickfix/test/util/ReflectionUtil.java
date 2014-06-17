@@ -15,9 +15,10 @@ import java.util.Arrays;
  * invoking methods, but other tools may be added in the future.
  */
 public class ReflectionUtil {
+
     /**
      * Invoke an object's constructor with the specified arguments.
-     * 
+     *
      * @param className the class of the instance to create
      * @param args the constructor arguments
      * @return the created instance
@@ -61,7 +62,7 @@ public class ReflectionUtil {
 
     /**
      * Invoke a public method using reflection.
-     * 
+     *
      * @param target target object
      * @param method the method name
      * @param args the method arguments
@@ -156,7 +157,7 @@ public class ReflectionUtil {
             long[] threadIds = (long[]) ReflectionUtil.callMethod(threadMXBean,
                     threadMXBeanInterface, "getAllThreadIds", null);
             Object[] threadInfos = (Object[]) ReflectionUtil.callMethod(threadMXBean,
-                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, 10});
+                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, 10 });
             for (Object threadInfo : threadInfos) {
                 System.out.println((String) ReflectionUtil.callMethod(threadInfo,
                         "getThreadName", null));

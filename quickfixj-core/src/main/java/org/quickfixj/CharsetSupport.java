@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -29,7 +29,7 @@ public class CharsetSupport {
 
     private static String charset = getDefaultCharset();
     private static Charset charsetInstance = Charset.forName(charset);
-    
+
     public static String getDefaultCharset() {
         return "ISO-8859-1";
     }
@@ -46,12 +46,12 @@ public class CharsetSupport {
         // is equivalent to their respective Java String (UTF-16BE) chars
         return charset.equals(CHARSET_ISO_8859_1) || charset.equals(CHARSET_ASCII);
     }
-    
+
     public static void setCharset(String charset) throws UnsupportedEncodingException {
         CharsetSupport.charset = validate(charset);
         CharsetSupport.charsetInstance = Charset.forName(charset);
     }
-    
+
     public static String getCharset() {
         return charset;
     }
@@ -59,7 +59,7 @@ public class CharsetSupport {
     public static Charset getCharsetInstance() {
         return charsetInstance;
     }
-    
+
     public static String validate(String charset) throws UnsupportedEncodingException {
         if (!Charset.isSupported(charset)) {
             throw new UnsupportedEncodingException(charset);

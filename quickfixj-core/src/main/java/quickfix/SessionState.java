@@ -439,7 +439,7 @@ public final class SessionState {
      * No actual resend request has occurred but at logon we populated tag 789 so that the other side knows we
      * are missing messages without an explicit resend request and should immediately reply with the missing
      * messages.
-     * 
+     *
      * This is expected to be called only in the scenario where target is too high on logon and tag 789 is supported.
      */
     public void setResetRangeFromLastExpectedLogonNextSeqNumLogon() {
@@ -450,10 +450,10 @@ public final class SessionState {
             setLastExpectedLogonNextSeqNum(0);
         }
     }
-    
+
     /**
      * @param lastExpectedLogonNextSeqNum
-     * 
+     *
      * This method is thread safe (atomic set).
      */
     public void setLastExpectedLogonNextSeqNum(int lastExpectedLogonNextSeqNum) {
@@ -462,7 +462,7 @@ public final class SessionState {
 
     /**
      * @return nextExpectedMsgSeqNum
-     * 
+     *
      * This method is thread safe (atomic get).
      */
     public int getLastExpectedLogonNextSeqNum() {
@@ -470,9 +470,9 @@ public final class SessionState {
     }
 
     /**
-     * @return true if we populated tag 789 at logon and our sequence 
+     * @return true if we populated tag 789 at logon and our sequence
      * numbers don't line up we are in an implicit resend mode.
-     * 
+     *
      * This method is thread safe (atomic get).
      */
     public boolean isExpectedLogonNextSeqNumSent() {
@@ -549,11 +549,11 @@ public final class SessionState {
         public int getEndSeqNo() {
             return endSeqNo;
         }
-        
+
         public void setEndSeqNo(int endSeqNo) {
             this.endSeqNo = endSeqNo;
         }
-        
+
         public int getCurrentEndSeqNo() {
             return currentEndSeqNo;
         }

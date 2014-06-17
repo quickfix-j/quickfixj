@@ -37,20 +37,20 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
     private static final String acceptanceTestBaseDir;
-    
+
     private static int transportType = ProtocolFactory.SOCKET;
     private static int port = 9887;
 
     private boolean skipSlowTests;
     private final boolean multithreaded;
 
-    private  final Map<Object, Object> overridenProperties;
-    
+    private final Map<Object, Object> overridenProperties;
+
     static {
         acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().
             getResource(acceptanceTestResourcePath).getPath();
     }
-    
+
     private static class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
             return (file.getName().endsWith(".def") && !file.getParentFile().getName().equals(
@@ -62,18 +62,18 @@ public class AcceptanceTestSuite extends TestSuite {
     private class AcceptanceTest extends TestCase {
         private final String filename;
         private final String testname;
-    
+
         public AcceptanceTest(String filename) {
             this.filename = filename;
             testname = filename.substring(filename.lastIndexOf(File.separatorChar + "fix") + 1) +
                 (multithreaded ? "-threaded" : "");
             setName(testname);
         }
-    
+
         public int countTestCases() {
             return 1;
         }
-    
+
         public void run(TestResult result) {
             result.startTest(this);
             TestConnection connection = null;
@@ -98,7 +98,7 @@ public class AcceptanceTestSuite extends TestSuite {
             result.endTest(this);
             //printDatabasePoolingStatistics();
         }
-    
+
         @SuppressWarnings("unused")
         protected void printDatabasePoolingStatistics() {
             try {
@@ -112,7 +112,7 @@ public class AcceptanceTestSuite extends TestSuite {
                 e.printStackTrace();
             }
         }
-    
+
         private List<TestStep> load(String filename) throws IOException {
             ArrayList<TestStep> steps = new ArrayList<TestStep>();
             log.info("load test: " + filename);
@@ -128,7 +128,7 @@ public class AcceptanceTestSuite extends TestSuite {
                     } else if (line.startsWith("E")) {
                         steps.add(new ExpectMessageStep(line));
                     } else if (line.matches("^i\\d*,?CONNECT")) {
-                        steps.add(new ConnectToServerStep(line,transportType, port));
+                        steps.add(new ConnectToServerStep(line, transportType, port));
                     } else if (line.matches("^iSET_SESSION.*")) {
                         steps.add(new ConfigureSessionStep(line));
                     } else if (line.matches("^e\\d*,?DISCONNECT")) {
@@ -147,7 +147,7 @@ public class AcceptanceTestSuite extends TestSuite {
             }
             return steps;
         }
-    
+
         public String toString() {
             return testname;
         }
@@ -156,7 +156,7 @@ public class AcceptanceTestSuite extends TestSuite {
     public AcceptanceTestSuite(String testDirectory, boolean multithreaded) {
         this(testDirectory, multithreaded, null);
     }
-    
+
     public AcceptanceTestSuite(String testDirectory, boolean multithreaded, Map<Object, Object> overridenProperties) {
         this.multithreaded = multithreaded;
         this.overridenProperties = overridenProperties;
@@ -169,29 +169,29 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
 
-        addTests(new File(acceptanceTestBaseDir + testDirectory+ "/fix40"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory+ "/fix41"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory+ "/fix42"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory+ "/fix43"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory+ "/fix44"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory+ "/fix50"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix40"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix41"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix42"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix43"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix44"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix50"));
     }
 
     public String toString() {
         return "FIX Integration Tests: " + (multithreaded ? "multithreaded" : "single threaded");
     }
-    
-    public boolean isMultithreaded()
-    {
+
+    public boolean isMultithreaded() {
         return multithreaded;
     }
-    
+
     protected void addTest(String name) {
         addTests(new File(acceptanceTestBaseDir + "server/" + name));
     }
 
     protected void addTests(File directory) {
-        if (!directory.exists()) return;
+        if (!directory.exists())
+            return;
         if (!directory.isDirectory()) {
             addTest(new AcceptanceTest(directory.getPath()));
         } else {
@@ -235,7 +235,7 @@ public class AcceptanceTestSuite extends TestSuite {
 
         protected void setUp() throws Exception {
             super.setUp();
-            server = new ATServer((TestSuite) getTest(), threaded, transportType, port,  overridenProperties);
+            server = new ATServer((TestSuite) getTest(), threaded, transportType, port, overridenProperties);
             server.setUsingMemoryStore(true);
             executor.execute(server);
             server.waitForInitialization();
@@ -253,25 +253,25 @@ public class AcceptanceTestSuite extends TestSuite {
         transportType = ProtocolFactory.getTransportType(System.getProperty(ATEST_TRANSPORT_KEY, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET)));
         port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite(AcceptanceTestSuite.class.getSimpleName());
-        //default server
+        // default server
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", true)));
-        
+
         Map<Object, Object> resendRequestChunkSizeProperties = new HashMap<Object, Object>();
         resendRequestChunkSizeProperties.put(Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, "5");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", true,  resendRequestChunkSizeProperties )));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", false,resendRequestChunkSizeProperties )));
-    
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", true, resendRequestChunkSizeProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", false, resendRequestChunkSizeProperties)));
+
         Map<Object, Object> lastMsgSeqNumProcessedProperties = new HashMap<Object, Object>();
         lastMsgSeqNumProcessedProperties.put(Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, "Y");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", true,  lastMsgSeqNumProcessedProperties )));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", false,lastMsgSeqNumProcessedProperties )));
-        
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", true, lastMsgSeqNumProcessedProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", false, lastMsgSeqNumProcessedProperties)));
+
         Map<Object, Object> nextExpectedMsgSeqNumProperties = new HashMap<Object, Object>();
         nextExpectedMsgSeqNumProperties.put(Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, "Y");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true,  nextExpectedMsgSeqNumProperties )));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties )));
-        
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true, nextExpectedMsgSeqNumProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties)));
+
         return acceptanceTests;
     }
 

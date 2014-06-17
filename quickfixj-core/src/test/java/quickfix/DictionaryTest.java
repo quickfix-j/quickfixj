@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -26,14 +26,14 @@ import junit.framework.TestCase;
 public class DictionaryTest extends TestCase {
     private Dictionary dictionary;
     private Locale defaultLocale;
-    
+
     protected void setUp() throws Exception {
         super.setUp();
         dictionary = new Dictionary();
         defaultLocale = Locale.getDefault();
         Locale.setDefault(Locale.US);
     }
-    
+
     protected void tearDown() throws Exception {
         super.tearDown();
         Locale.setDefault(defaultLocale);
@@ -107,7 +107,7 @@ public class DictionaryTest extends TestCase {
             // expected
         }
     }
-    
+
     public void testDouble() throws Exception {
         dictionary.setDouble("B", 1.1);
         assertEquals(1.1, dictionary.getDouble("B"), 0);
@@ -151,24 +151,24 @@ public class DictionaryTest extends TestCase {
             // expected
         }
     }
-    
+
     public void testMerge() throws Exception {
         Dictionary d2 = new Dictionary("ABC");
         d2.setString("XYZ", "123");
-        
+
         dictionary.setString("ABC", "DEF");
         assertFalse(dictionary.has("XYZ"));
         dictionary.merge(d2);
         assertTrue(dictionary.has("XYZ"));
         assertEquals("123", dictionary.getString("XYZ"));
         assertEquals(2, dictionary.toMap().size());
-        
+
         assertEquals(1, d2.toMap().size());
     }
-    
+
     public void testName() throws Exception {
         assertNull(dictionary.getName());
-        
+
         Dictionary d = new Dictionary("NAME");
         assertEquals("NAME", d.getName());
     }
@@ -177,26 +177,26 @@ public class DictionaryTest extends TestCase {
         Dictionary dw = new Dictionary();
         assertNull(dw.getName());
         assertTrue(dw.toMap().isEmpty());
-        
+
         // Tested dictionary("name") already
         Dictionary dx = new Dictionary("NAME");
         dx.setString("FOO", "BAR");
-        
+
         Dictionary dy = new Dictionary(dx);
         assertEquals("NAME", dy.getName());
         assertEquals(1, dy.toMap().size());
         assertEquals("BAR", dy.getString("FOO"));
-        
+
         Dictionary dz = new Dictionary("XYZ", dx.toMap());
         assertEquals("XYZ", dz.getName());
         assertEquals(1, dz.toMap().size());
         assertEquals("BAR", dz.getString("FOO"));
     }
-    
+
     // From C++ tests
     public void testGetDay() throws Exception {
         Dictionary object = new Dictionary();
-        
+
         object.setString("DAY1", "SU");
         object.setString("DAY2", "MO");
         object.setString("DAY3", "TU");
@@ -228,6 +228,5 @@ public class DictionaryTest extends TestCase {
         assertEquals(5, object.getDay("NEXTDAY5"));
         assertEquals(6, object.getDay("NEXTDAY6"));
         assertEquals(7, object.getDay("NEXTDAY7"));
-
     }
 }

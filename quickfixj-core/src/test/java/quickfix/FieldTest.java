@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -116,7 +116,7 @@ public class FieldTest extends TestCase {
         assertEquals(11, field.getTag());
         assertEquals(date, field.getValue());
     }
- 
+
     public void testUtcTimeStampField() {
         UtcTimeStampField field = new UtcTimeStampField(11);
         Date date = new Date();
@@ -191,7 +191,7 @@ public class FieldTest extends TestCase {
         assertEquals(33, field.getTag());
         assertEquals(44, field.getValue());
     }
-    
+
     public void testBytesField() {
         byte[] data = "rawdata".getBytes();
 
@@ -199,12 +199,12 @@ public class FieldTest extends TestCase {
         field.setValue(data);
         assertEquals(RawData.FIELD, field.getTag());
         assertTrue(Arrays.equals(data, field.getObject()));
-        
+
         StringBuilder sb = new StringBuilder();
         field.toString(sb);
         assertEquals("96=rawdata", sb.toString());
     }
-    
+
     public void testFieldhashCode() throws Exception {
         assertEqualsAndHash(new IntField(11, 100), new IntField(11, 100));
         assertEqualsAndHash(new DoubleField(11, 100.0), new DoubleField(11, 100.0));

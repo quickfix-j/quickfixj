@@ -9,7 +9,6 @@ public final class Enum {
         this.desc = desc;
     }
 
-
     @Override
     public String toString() {
         return "Enum{" +

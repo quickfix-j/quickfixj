@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -48,7 +48,7 @@ public class MultiAcceptorTest extends TestCase {
         try {
             acceptor = createAcceptor();
             acceptor.start();
-            
+
             initiator = createInitiator(false);
             initiator.start();
 
@@ -57,7 +57,6 @@ public class MultiAcceptorTest extends TestCase {
             doSessionDispatchingTest(1);
             doSessionDispatchingTest(2);
             doSessionDispatchingTest(3);
-
         } finally {
             if (initiator != null) {
                 try {
@@ -116,15 +115,15 @@ public class MultiAcceptorTest extends TestCase {
 
     private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException,
             FieldNotFound {
-        	TestRequest message = new TestRequest();
-        	message.set(new TestReqID("TEST" + i));
-        	SessionID sessionID = getSessionIDForClient(i);
-        
-        	testAcceptorApplication.setMessageLatch(new CountDownLatch(1));
-        	Session.sendToTarget(message, sessionID);
+        TestRequest message = new TestRequest();
+        message.set(new TestReqID("TEST" + i));
+        SessionID sessionID = getSessionIDForClient(i);
 
-       	 	testAcceptorApplication.waitForMessages();
-       		testAcceptorApplication.assertTestRequestOnSession("TEST" + i, sessionID);
+        testAcceptorApplication.setMessageLatch(new CountDownLatch(1));
+        Session.sendToTarget(message, sessionID);
+
+        testAcceptorApplication.waitForMessages();
+        testAcceptorApplication.assertTestRequestOnSession("TEST" + i, sessionID);
     }
 
     private SessionID getSessionIDForClient(int i) {
@@ -136,7 +135,6 @@ public class MultiAcceptorTest extends TestCase {
         private final CountDownLatch logonLatch;
         private CountDownLatch messageLatch;
 
-        
         public TestAcceptorApplication(int countDown) {
             logonLatch = new CountDownLatch(countDown);
         }
@@ -217,7 +215,7 @@ public class MultiAcceptorTest extends TestCase {
 
     private void configureInitiatorForSession(SessionSettings settings, int i, int port) {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "INITIATOR", "ACCEPTOR-" + i);
-        settings.setString(sessionID, "SocketConnectProtocol",ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        settings.setString(sessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(sessionID, "SocketConnectHost", "127.0.0.1");
         settings.setString(sessionID, "SocketConnectPort", Integer.toString(port));
     }

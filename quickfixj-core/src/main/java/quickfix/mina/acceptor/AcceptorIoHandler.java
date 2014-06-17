@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -65,7 +65,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
         if (qfSession == null) {
             if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
                 final SessionID sessionID = MessageUtils.getReverseSessionID(message);
-                qfSession = sessionProvider.getSession(sessionID,eventHandlingStrategy.getSessionConnector());
+                qfSession = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
                 if (qfSession != null) {
                     final Log sessionLog = qfSession.getLog();
                     if (qfSession.hasResponder()) {
@@ -109,7 +109,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
             }
         }
 
-        eventHandlingStrategy.onMessage(qfSession, message);      
+        eventHandlingStrategy.onMessage(qfSession, message);
     }
 
     @Override
@@ -118,7 +118,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
         if (s == null) {
             s = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
         }
-        if (s != null && protocolSession.getAttribute(SessionConnector.QF_SESSION) == null) {          
+        if (s != null && protocolSession.getAttribute(SessionConnector.QF_SESSION) == null) {
             SocketAddress remoteAddress = protocolSession.getRemoteAddress();
             if (remoteAddress instanceof InetSocketAddress) {
                 final InetAddress remoteInetAddress = ((InetSocketAddress) remoteAddress).getAddress();

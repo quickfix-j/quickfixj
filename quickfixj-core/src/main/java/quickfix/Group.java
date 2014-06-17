@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -44,7 +44,7 @@ public class Group extends FieldMap {
         setFields(group);
         setGroups(group);
     }
-    
+
     /**
      * Create a group with the specified count and delimiter fields and
      * field ordering.
@@ -57,14 +57,14 @@ public class Group extends FieldMap {
         this.field = new IntField(field);
         this.delim = delim;
     }
-    
+
     /**
      * @return the group delimiter tag number.
      */
     public int delim() {
         return delim;
     }
-    
+
     /**
      * Add a copy of the group to the message.
      * @param group the group to copy
@@ -72,7 +72,7 @@ public class Group extends FieldMap {
     public void addGroup(Group group) {
         super.addGroup(group);
     }
-    
+
     /**
      * Copy the group at the specified index into the supplied group object.
      * @param num the index of the group (1 based)
@@ -90,7 +90,7 @@ public class Group extends FieldMap {
     }
 
     /**
-     * @deprecated Use getFieldTag 
+     * @deprecated Use getFieldTag
      * @return the field's tag number
      */
     public int field() {

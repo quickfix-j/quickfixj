@@ -358,7 +358,7 @@ public class Message extends FieldMap {
         public Header() {
             super();
         }
-        
+
         public Header(int[] fieldOrder) {
             super(fieldOrder);
         }
@@ -367,7 +367,6 @@ public class Message extends FieldMap {
         protected void calculateString(StringBuilder buffer, int[] excludedFields, int[] postFields) {
             super.calculateString(buffer, EXCLUDED_HEADER_FIELDS, postFields);
         }
-
     }
 
     public static class Trailer extends FieldMap {
@@ -564,7 +563,6 @@ public class Message extends FieldMap {
                     parseGroup(getMsgType(), field, dd, this);
                 }
             }
-
 
             field = extractField(dd, this);
         }

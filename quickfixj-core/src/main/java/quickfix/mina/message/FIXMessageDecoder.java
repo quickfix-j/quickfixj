@@ -1,19 +1,19 @@
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 
@@ -113,7 +113,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
         BufPos bufPos = indexOf(in, in.position(), HEADER_PATTERN);
         int headerOffset = bufPos._offset;
-        return headerOffset != -1 ? MessageDecoderResult.OK : 
+        return headerOffset != -1 ? MessageDecoderResult.OK :
             (in.remaining() > MAX_UNDECODED_DATA_LENGTH ? MessageDecoderResult.NOT_OK : MessageDecoderResult.NEED_DATA);
     }
 
@@ -180,14 +180,13 @@ public class FIXMessageDecoder implements MessageDecoder {
                     } else {
                         if (hasRemaining(in)) {
                             String messageString = getMessageStringForError(in);
-                            handleError(in, in.position() + 1, "Length format error in message (last character:"+ch+"): "+ messageString,
+                            handleError(in, in.position() + 1, "Length format error in message (last character:" + ch + "): " + messageString,
                                     false);
                             continue;
                         } else {
                             break;
                         }
                     }
-
                 }
 
                 if (state == READING_BODY) {
@@ -284,7 +283,7 @@ public class FIXMessageDecoder implements MessageDecoder {
         buffer.get(data);
         return new String(data, charsetEncoding);
     }
-    
+
     private String getMessageStringForError(IoBuffer buffer) throws UnsupportedEncodingException {
         int initialPosition = buffer.position();
         byte[] data = new byte[buffer.limit() - initialPosition];
@@ -324,7 +323,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     /**
      * Checks to see if the byte_buffer[buffer_offset] starts with data[]. The
      * character ? is a one byte wildcard, lowercase letters are optional.
-     * 
+     *
      * @param buffer
      * @param bufferOffset
      * @param data
@@ -353,8 +352,8 @@ public class FIXMessageDecoder implements MessageDecoder {
             }
         }
         if (dataOffset != data.length) {
-           // when minMaskLength(data) != data.length we might run out of buffer before we run out of data
-           return -1;
+            // when minMaskLength(data) != data.length we might run out of buffer before we run out of data
+            return -1;
         }
         return bufferOffset - initOffset;
     }
@@ -375,7 +374,7 @@ public class FIXMessageDecoder implements MessageDecoder {
      * extracted messages into memory so if the expected number of extracted
      * messages is large, do not use this method or your application may run out
      * of memory. Use the streaming version of the method instead.
-     * 
+     *
      * @param file
      * @return a list of extracted messages
      * @throws IOException
@@ -386,11 +385,9 @@ public class FIXMessageDecoder implements MessageDecoder {
     public List<String> extractMessages(File file) throws IOException, ProtocolCodecException {
         final List<String> messages = new ArrayList<String>();
         extractMessages(file, new MessageListener() {
-
             public void onMessage(String message) {
                 messages.add(message);
             }
-
         });
         return messages;
     }
@@ -400,7 +397,7 @@ public class FIXMessageDecoder implements MessageDecoder {
      * message found to a provided listener. The message file will also be memory
      * mapped rather than fully loaded into physical memory. Therefore, a large
      * message file can be processed without using excessive memory.
-     * 
+     *
      * @param file
      * @param listener
      * @throws IOException
@@ -409,7 +406,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     public void extractMessages(File file, final MessageListener listener) throws IOException,
             ProtocolCodecException {
         // Set up a read-only memory-mapped file
-    	RandomAccessFile fileIn = new RandomAccessFile(file, "r");
+        RandomAccessFile fileIn = new RandomAccessFile(file, "r");
         FileChannel readOnlyChannel = fileIn.getChannel();
         MappedByteBuffer memoryMappedBuffer = readOnlyChannel.map(FileChannel.MapMode.READ_ONLY, 0,
                 (int) readOnlyChannel.size());
@@ -423,7 +420,6 @@ public class FIXMessageDecoder implements MessageDecoder {
             public void flush(IoFilter.NextFilter nextFilter, IoSession ioSession) {
                 // ignored
             }
-
         });
         readOnlyChannel.close();
         fileIn.close();
