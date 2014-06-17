@@ -1,12 +1,3 @@
-package quickfix;
-
-import static junit.framework.Assert.*;
-import static quickfix.FixVersions.*;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
 /*******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
@@ -25,6 +16,15 @@ import java.util.concurrent.CountDownLatch;
  * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
+
+package quickfix;
+
+import static junit.framework.Assert.*;
+import static quickfix.FixVersions.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 public class LoginTestCase {
 
