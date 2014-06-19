@@ -53,8 +53,7 @@ public class OrderTIF {
         return array;
     }
 
-    public static OrderTIF parse(String type)
-    throws IllegalArgumentException {
+    public static OrderTIF parse(String type) throws IllegalArgumentException {
         OrderTIF result = known.get(type);
         if (result == null) {
             throw new IllegalArgumentException

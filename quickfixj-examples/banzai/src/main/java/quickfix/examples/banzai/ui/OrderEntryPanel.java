@@ -264,8 +264,7 @@ public class OrderEntryPanel extends JPanel implements Observer {
         }
     }
 
-    private class SubmitActivator
-        implements KeyListener, ItemListener {
+    private class SubmitActivator implements KeyListener, ItemListener {
         public void keyReleased(KeyEvent e) {
             Object obj = e.getSource();
             if (obj == symbolTextField) {

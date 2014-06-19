@@ -338,8 +338,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     protected abstract EventHandlingStrategy getEventHandlingStrategy() ;
 
-    private class DefaultAcceptorSessionProvider
-        implements AcceptorSessionProvider {
+    private class DefaultAcceptorSessionProvider implements AcceptorSessionProvider {
 
         private final Map<SessionID, Session> acceptorSessions;
 

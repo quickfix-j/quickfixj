@@ -193,7 +193,7 @@ public class FileLogTest {
     }
 
     @Test
-    public void testLogErrorWhenFilesystemRemoved() throws IOException{
+    public void testLogErrorWhenFilesystemRemoved() throws IOException {
         // QFJ-459
         long systemTime = System.currentTimeMillis();
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + systemTime, "TARGET" + systemTime);

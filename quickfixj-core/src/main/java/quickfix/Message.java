@@ -554,7 +554,8 @@ public class Message extends FieldMap {
                 if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
                     parseGroup(DataDictionary.HEADER_ID, field, dd, header);
                 }
-                if (doValidation && dd != null && dd.isCheckFieldsOutOfOrder()) throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
+                if (doValidation && dd != null && dd.isCheckFieldsOutOfOrder())
+                    throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
                         field.getTag());
             } else {
                 setField(this, field);

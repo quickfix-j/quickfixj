@@ -59,8 +59,7 @@ public class OrderSide {
         return array;
     }
 
-    public static OrderSide parse(String type)
-    throws IllegalArgumentException {
+    public static OrderSide parse(String type) throws IllegalArgumentException {
         OrderSide result = known.get(type);
         if (result == null) {
             throw new IllegalArgumentException
