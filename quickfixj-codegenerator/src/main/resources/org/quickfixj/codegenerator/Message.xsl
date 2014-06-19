@@ -196,9 +196,7 @@ public class Message extends quickfix.Message {
 	}
 
 	public <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
-		<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> value = new <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>();
-		getField(value);
-		return value;
+		return get(new <xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/>());
 	}
 
 	public boolean isSet(<xsl:value-of select="$fieldPackage"/>.<xsl:value-of select="@name"/> field) {
@@ -222,9 +220,7 @@ public class Message extends quickfix.Message {
 	}
 
 	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
-		<xsl:value-of select="$type"/> component = new <xsl:value-of select="$type"/>();
-		getComponent(component);
-		return component;
+		return get(new <xsl:value-of select="$type"/>());
 	}
 </xsl:template>
 

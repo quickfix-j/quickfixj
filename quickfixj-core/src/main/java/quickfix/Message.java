@@ -137,8 +137,8 @@ public class Message extends FieldMap {
     @Override
     public String toString() {
         final int bodyLength = bodyLength();
-        header.setField(new BodyLength(bodyLength));
-        trailer.setField(new CheckSum(checksum()));
+        header.setInt(BodyLength.FIELD, bodyLength);
+        trailer.setString(CheckSum.FIELD, checksum());
 
         final StringBuilder sb = new StringBuilder(bodyLength);
         header.calculateString(sb, null, null);
@@ -627,7 +627,7 @@ public class Message extends FieldMap {
                         }
 
                         if (fieldOrder != null && dd.isCheckUnorderedGroupFields()) {
-                            final int offset = index(fieldOrder, field.getTag());
+                            final int offset = indexOf(field.getTag(), fieldOrder);
                             if (offset >= 0) {
                                 if (offset > previousOffset) {
                                     previousOffset = offset;
@@ -653,15 +653,6 @@ public class Message extends FieldMap {
         }
         // For later validation that the group size matches the parsed group count
         parent.setGroupCount(groupCountTag, declaredGroupCount);
-    }
-
-    private int index(int[] fieldOrder, int tag) {
-        for (int i = 0; i < fieldOrder.length; i++) {
-            if (fieldOrder[i] == tag) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {

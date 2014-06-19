@@ -116,13 +116,12 @@ public class MessageCracker {
 	 */
 	public void crack<xsl:value-of select="//fix/@major"/><xsl:value-of select="//fix/@minor"/>(Message message, SessionID sessionID)
 			throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
-		MsgType msgType = new MsgType();
-		message.getHeader().getField(msgType);
-		String msgTypeValue = msgType.getValue();
+
+		String type = message.getHeader().getString(MsgType.FIELD);
 
 		<xsl:for-each select="//fix/messages/message">
 		<xsl:if test="position()!=1">
-		else </xsl:if>if (msgTypeValue.equals(<xsl:value-of select="@name"/>.MSGTYPE))
+		else </xsl:if>if (type.equals(<xsl:value-of select="@name"/>.MSGTYPE))
 			onMessage((<xsl:value-of select="@name"/>)message, sessionID);</xsl:for-each>
 		else
 			onMessage(message, sessionID);
