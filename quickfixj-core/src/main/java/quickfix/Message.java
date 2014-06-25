@@ -589,16 +589,13 @@ public class Message extends FieldMap {
         Group group = null;
         boolean inGroupParse = true;
         while (inGroupParse) {
-            field = extractField(group, dd, parent);
+            field = extractField(dd, group != null ? group : parent);
             if (field == null) {
                 // QFJ-760: stop parsing since current position is greater than message length
-                if (group != null) {
-                    // add what we've already got and leave the rest to the validation (if enabled)
-                    parent.addGroup(group);
-                }
                 break;
             }
-            if (field.getTag() == firstField) {
+            int tag = field.getTag();
+            if (tag == firstField) {
                 if (group != null) {
                     parent.addGroupRef(group);
                 }
@@ -607,49 +604,40 @@ public class Message extends FieldMap {
                 firstFieldFound = true;
                 previousOffset = -1;
                 // QFJ-742
-                if (groupDataDictionary.isGroup(msgType, field.getField())) {
+                if (groupDataDictionary.isGroup(msgType, tag)) {
                     parseGroup(msgType, field, groupDataDictionary, group);
                 }
-            } else {
-                if (groupDataDictionary.isGroup(msgType, field.getField())) {
-                    if (firstFieldFound) {
-                        parseGroup(msgType, field, groupDataDictionary, group);
-                    } else {
-                        throw new InvalidMessage("The group " + groupCountTag
-                                + " must set the delimiter field " + firstField + " in " + messageData);
-                    }
-                } else {
-                    if (groupDataDictionary.isField(field.getTag())) {
-                        if (!firstFieldFound) {
-                            throw new FieldException(
-                                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field
-                                            .getTag());
-                        }
+            } else if (groupDataDictionary.isGroup(msgType, tag)) {
+                if (!firstFieldFound) {
+                    throw new InvalidMessage("The group " + groupCountTag
+                            + " must set the delimiter field " + firstField + " in " + messageData);
+                }
+                parseGroup(msgType, field, groupDataDictionary, group);
+            } else if (groupDataDictionary.isField(tag)) {
+                if (!firstFieldFound) {
+                    throw new FieldException(
+                            SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
+                }
 
-                        if (fieldOrder != null && dd.isCheckUnorderedGroupFields()) {
-                            final int offset = indexOf(field.getTag(), fieldOrder);
-                            if (offset >= 0) {
-                                if (offset > previousOffset) {
-                                    previousOffset = offset;
-                                } else {
-                                    throw new FieldException(
-                                            SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER,
-                                            field.getTag());
-                                }
-                            }
+                if (fieldOrder != null && dd.isCheckUnorderedGroupFields()) {
+                    final int offset = indexOf(tag, fieldOrder);
+                    if (offset > -1) {
+                        if (offset <= previousOffset) {
+                            throw new FieldException(
+                                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
                         }
-                        if (group != null) {
-                            group.setField(field);
-                        }
-                    } else {
-                        if (group != null) {
-                            parent.addGroupRef(group);
-                        }
-                        pushBack(field);
-                        inGroupParse = false;
+                        previousOffset = offset;
                     }
                 }
+                group.setField(field);
+            } else {
+                pushBack(field);
+                inGroupParse = false;
             }
+        }
+        // add what we've already got and leave the rest to the validation (if enabled)
+        if (group != null) {
+            parent.addGroupRef(group);
         }
         // For later validation that the group size matches the parsed group count
         parent.setGroupCount(groupCountTag, declaredGroupCount);
@@ -740,11 +728,6 @@ public class Message extends FieldMap {
 
     private StringField extractField(DataDictionary dataDictionary, FieldMap fields)
             throws InvalidMessage {
-        return extractField(null, dataDictionary, fields);
-    }
-
-    private StringField extractField(Group group, DataDictionary dataDictionary, FieldMap fields)
-            throws InvalidMessage {
         if (pushedBackField != null) {
             final StringField f = pushedBackField;
             pushedBackField = null;
@@ -782,27 +765,22 @@ public class Message extends FieldMap {
             }
             int fieldLength;
             try {
-                if (group == null) {
-                    fieldLength = fields.getInt(lengthField);
-                } else {
-                    fieldLength = group.getInt(lengthField);
-                }
-            } catch (final FieldNotFound e1) {
-                throw new InvalidMessage("Tag " + e1.field + " not found in " + messageData);
+                fieldLength = fields.getInt(lengthField);
+            } catch (final FieldNotFound e) {
+                throw new InvalidMessage("Tag " + e.field + " not found in " + messageData);
             }
 
-            // a workaround for global multibyte charsets, since our data is a string -
-            // change the encoded bytes field length to the decoded chars field length
-            if (!CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance())) {
-                while (sohOffset > -1 && messageData.substring(equalsOffset + 1, sohOffset).getBytes(CharsetSupport.getCharsetInstance()).length < fieldLength) {
-                    sohOffset = messageData.indexOf('\001', sohOffset + 1);
-                }
-                if (sohOffset > -1) {
-                    fieldLength = sohOffset - equalsOffset - 1;
+            // since length is in bytes but data is a string, and it may also contain an SOH,
+            // we find the real field-ending SOH by checking the encoded bytes length
+            // (we avoid re-encoding when the chars length equals the bytes length, e.g. ASCII text,
+            // by assuming the chars length is always smaller than the encoded bytes length)
+            while (sohOffset - equalsOffset - 1 < fieldLength
+                    && messageData.substring(equalsOffset + 1, sohOffset).getBytes(CharsetSupport.getCharsetInstance()).length < fieldLength) {
+                sohOffset = messageData.indexOf('\001', sohOffset + 1);
+                if (sohOffset == -1) {
+                    throw new InvalidMessage("SOH not found at end of field: " + tag + " in " + messageData);
                 }
             }
-
-            sohOffset = equalsOffset + 1 + fieldLength;
         }
 
         position = sohOffset + 1;
