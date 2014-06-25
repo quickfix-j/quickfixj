@@ -262,7 +262,20 @@
 				<configuration>
 					<instructions>
 						<Export-Package>quickfix,quickfix.field.*,quickfix.mina.*,org.quickfixj.*</Export-Package>
-						<Import-Package>quickfix,quickfix.field,*</Import-Package>
+						<Import-Package>
+							<!-- add dynamically-loaded version-specific message factories (optional)-->
+							quickfix.fix40;resolution:=optional,
+							quickfix.fix41;resolution:=optional,
+							quickfix.fix42;resolution:=optional,
+							quickfix.fix43;resolution:=optional,
+							quickfix.fix44;resolution:=optional,
+							quickfix.fix50;resolution:=optional,
+							quickfix.fix50sp1;resolution:=optional,
+							quickfix.fix50sp2;resolution:=optional,
+							quickfix.fixt11;resolution:=optional,
+							<!-- add the required imports -->
+							quickfix,quickfix.field,*
+						</Import-Package>
 						<Private-Package/>
 					</instructions>
 				</configuration>
