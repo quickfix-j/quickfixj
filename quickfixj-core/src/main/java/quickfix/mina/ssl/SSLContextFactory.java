@@ -42,7 +42,7 @@ public class SSLContextFactory {
     /**
      * Creates an {@link SSLContext} with a specified keystore and password for that keystore
      */
-    public static synchronized SSLContext getInstance(String keyStoreName, char[] keyStorePassword)
+    public static SSLContext getInstance(String keyStoreName, char[] keyStorePassword)
             throws GeneralSecurityException {
         synchronized (contextCache) {
             SSLContext context = contextCache.get(keyStoreName);
