@@ -141,12 +141,12 @@ public class SessionTest {
         // Simulate socket disconnect
         session.setResponder(null);
 
-        session.close();
-
         verifyNoMoreInteractions(mockMessageStore);
 
         verify(mockLog, atLeastOnce()).onEvent(anyString());
         verifyNoMoreInteractions(mockLog);
+
+        session.close();
     }
 
     private interface CloseableMessageStore extends MessageStore, Closeable {
