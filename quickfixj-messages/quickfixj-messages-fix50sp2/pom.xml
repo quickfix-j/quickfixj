@@ -18,6 +18,14 @@
 		<fix.spec>FIX50SP2.modified.xml</fix.spec>
 		<fix.name>fix50sp2</fix.name>
 	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fix</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

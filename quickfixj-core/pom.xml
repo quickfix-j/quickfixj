@@ -19,6 +19,12 @@
 	</properties>
 
 	<dependencies>
+	    <dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -124,90 +130,6 @@
 		</testResources>
 
 		<plugins>
-			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
-				<executions>
-					<execution>
-						<id>fixt11</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIXT11.xml</dictFile>
-							<packaging>quickfix.fixt11</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix50</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIX50.xml</dictFile>
-							<packaging>quickfix.fix50</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix44</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIX44.xml</dictFile>
-							<packaging>quickfix.fix44</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix43</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIX43.xml</dictFile>
-							<packaging>quickfix.fix43</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix42</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIX42.xml</dictFile>
-							<packaging>quickfix.fix42</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix41</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIX41.xml</dictFile>
-							<packaging>quickfix.fix41</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix40</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix/src/main/resources/FIX40.xml</dictFile>
-							<packaging>quickfix.fix40</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>

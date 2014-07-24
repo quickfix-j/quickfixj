@@ -19,8 +19,6 @@
 
 package quickfix.mina;
 
-import static quickfix.MessageUtils.parse;
-
 import java.io.IOException;
 
 import org.apache.mina.core.service.IoHandlerAdapter;
@@ -32,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.InvalidMessage;
 import quickfix.Message;
+import quickfix.MessageParser;
 import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
@@ -110,7 +109,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         if (quickFixSession != null) {
             quickFixSession.getLog().onIncoming(messageString);
             try {
-                Message fixMessage = parse(quickFixSession, messageString);
+                Message fixMessage = MessageParser.parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {

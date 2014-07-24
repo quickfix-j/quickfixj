@@ -21,14 +21,6 @@
 		<module>quickfixj-messages-all</module>
 	</modules>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
-
 	<build>
 		<pluginManagement>
 			<plugins>
