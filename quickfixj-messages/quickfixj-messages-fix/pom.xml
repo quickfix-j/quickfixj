@@ -1,0 +1,119 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.quickfixj</groupId>
+		<artifactId>quickfixj-messages</artifactId>
+		<version>1.6.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>quickfixj-messages-fix</artifactId>
+	<packaging>bundle</packaging>
+
+	<name>QuickFIX/J Message classes for all FIX but 5.0-SP1 and 5.0-SP2</name>
+	<description>QuickFIX/J Message classes for FIX 4.0 / 4.1 / 4.2 / 4.3 / 4.4 / 5.0 / FIXT11</description>
+	<url>http://www.quickfixj.org</url>
+
+	<build>
+		<plugins>
+		    <plugin>
+				<groupId>org.quickfixj</groupId>
+				<artifactId>quickfixj-codegenerator</artifactId>
+				<version>${project.version}</version>
+				<executions>
+					<execution>
+						<id>fixt11</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIXT11.xml</dictFile>
+							<packaging>quickfix.fixt11</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>fix50</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIX50.xml</dictFile>
+							<packaging>quickfix.fix50</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>fix44</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIX44.modified.xml</dictFile>
+							<packaging>quickfix.fix44</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>fix43</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIX43.xml</dictFile>
+							<packaging>quickfix.fix43</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>fix42</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIX42.xml</dictFile>
+							<packaging>quickfix.fix42</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>fix41</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIX41.xml</dictFile>
+							<packaging>quickfix.fix41</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>fix40</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>src/main/resources/FIX40.xml</dictFile>
+							<packaging>quickfix.fix40</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+						</configuration>
+					</execution>
+					
+				</executions>
+			</plugin>
+				
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>
