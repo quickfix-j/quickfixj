@@ -29,7 +29,7 @@ import junit.framework.TestCase;
 public class SerializationTest extends TestCase {
 
     private String[] srcDirs = {
-        "quickfixj-core/target/generated-sources",
+        "quickfixj-messages-fix/target/generated-sources",
         "target/generated-sources"
     };
 

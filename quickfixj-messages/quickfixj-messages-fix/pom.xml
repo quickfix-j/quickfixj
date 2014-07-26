@@ -14,6 +14,33 @@
 	<description>QuickFIX/J Message classes for FIX 4.0 / 4.1 / 4.2 / 4.3 / 4.4 / 5.0 / FIXT11</description>
 	<url>http://www.quickfixj.org</url>
 
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>1.6.3</version>
+		    <scope>test</scope>
+		</dependency>
+	</dependencies>
+	
 	<build>
 		<plugins>
 		    <plugin>

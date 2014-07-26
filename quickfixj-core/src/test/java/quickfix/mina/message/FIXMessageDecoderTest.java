@@ -44,7 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 
-import quickfix.DataDictionaryTest;
+import quickfix.DataDictionary;
 import quickfix.FieldNotFound;
 import quickfix.InvalidMessage;
 import quickfix.Message;
@@ -123,10 +123,14 @@ public class FIXMessageDecoderTest {
         ProtocolDecoderOutputForTest decoderOutput = new ProtocolDecoderOutputForTest();
         decoder.decode(null, byteBuffer, decoderOutput);
 
-        Message decodedMessage = new Message(decoderOutput.getMessage(), DataDictionaryTest
-                .getDictionary(), true);
+        Message decodedMessage = new Message(decoderOutput.getMessage(), getDictionary(), true);
 
         assertEquals("wrong text", headline, decodedMessage.getString(Headline.FIELD));
+    }
+    
+    private static DataDictionary getDictionary() throws Exception {
+        return new DataDictionary(FIXMessageDecoderTest.class.getClassLoader()
+                .getResourceAsStream("FIX44.xml"));
     }
 
     @Test

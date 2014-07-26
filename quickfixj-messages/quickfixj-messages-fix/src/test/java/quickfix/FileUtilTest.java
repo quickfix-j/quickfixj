@@ -43,14 +43,14 @@ public class FileUtilTest {
 
     @Test
     public void testClassResourceLocation() throws Exception {
-        InputStream in = FileUtil.open(Message.class, "Session.class");
+        InputStream in = FileUtil.open(Message.class, "SessionID.class");
         in.close();
         assertNotNull("Resource not found", in);
     }
 
     @Test
     public void testClassLoaderResourceLocation() throws Exception {
-        InputStream in = FileUtil.open(Message.class, "quickfix/test/acceptance/definitions/client/Normal.def");
+        InputStream in = FileUtil.open(Message.class, "FIX40.xml");
         in.close();
         assertNotNull("Resource not found", in);
     }
