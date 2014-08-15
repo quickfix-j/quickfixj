@@ -2773,7 +2773,7 @@
       <field name="PositionLimit" required="N"/>
       <field name="NTPositionLimit" required="N"/>
       <component name="InstrumentParties" required="N"/>
-      <field name="UnitofMeasure" required="N"/>
+      <field name="UnitOfMeasure" required="N"/>
       <field name="TimeUnit" required="N"/>
       <field name="MaturityTime" required="N"/>
     </component>
@@ -2825,7 +2825,7 @@
       <field name="LegDatedDate" required="N"/>
       <field name="LegContractSettlMonth" required="N"/>
       <field name="LegInterestAccrualDate" required="N"/>
-      <field name="LegUnitofMeasure" required="N"/>
+      <field name="LegUnitOfMeasure" required="N"/>
       <field name="LegTimeUnit" required="N"/>
     </component>
     <component name="LegBenchmarkCurveData">
@@ -2986,7 +2986,7 @@
       <field name="UnderlyingSettlementType" required="N"/>
       <field name="UnderlyingCashAmount" required="N"/>
       <field name="UnderlyingCashType" required="N"/>
-      <field name="UnderlyingUnitofMeasure" required="N"/>
+      <field name="UnderlyingUnitOfMeasure" required="N"/>
       <field name="UnderlyingTimeUnit" required="N"/>
       <field name="UnderlyingCapValue" required="N"/>
       <component name="UndlyInstrumentParties" required="N"/>
@@ -5114,7 +5114,7 @@
       <value enum="MBS" description="MORTGAGE_BACKED_SECURITIES"/>
       <value enum="MF" description="MUTUAL_FUND"/>
       <value enum="MIO" description="MORTGAGE_INTEREST_ONLY"/>
-      <value enum="MLEG" description="MULTI_LEG_INSTRUMENT"/>
+      <value enum="MLEG" description="MULTILEG_INSTRUMENT"/>
       <value enum="MPO" description="MORTGAGE_PRINCIPAL_ONLY"/>
       <value enum="MPP" description="MORTGAGE_PRIVATE_PLACEMENT"/>
       <value enum="MPT" description="MISCELLANEOUS_PASS_THROUGH"/>
@@ -5409,18 +5409,18 @@
     <field number="236" name="Yield" type="PERCENTAGE"/>
     <field number="237" name="TotalTakedown" type="AMT"/>
     <field number="238" name="Concession" type="AMT"/>
-    <field number="239" name="RepoCollateralSecurityType" type="INT"/>
+    <field number="239" name="RepoCollateralSecurityType" type="STRING"/>
     <field number="240" name="RedemptionDate" type="LOCALMKTDATE"/>
     <field number="241" name="UnderlyingCouponPaymentDate" type="LOCALMKTDATE"/>
     <field number="242" name="UnderlyingIssueDate" type="LOCALMKTDATE"/>
-    <field number="243" name="UnderlyingRepoCollateralSecurityType" type="INT"/>
+    <field number="243" name="UnderlyingRepoCollateralSecurityType" type="STRING"/>
     <field number="244" name="UnderlyingRepurchaseTerm" type="INT"/>
     <field number="245" name="UnderlyingRepurchaseRate" type="PERCENTAGE"/>
     <field number="246" name="UnderlyingFactor" type="FLOAT"/>
     <field number="247" name="UnderlyingRedemptionDate" type="LOCALMKTDATE"/>
     <field number="248" name="LegCouponPaymentDate" type="LOCALMKTDATE"/>
     <field number="249" name="LegIssueDate" type="LOCALMKTDATE"/>
-    <field number="250" name="LegRepoCollateralSecurityType" type="INT"/>
+    <field number="250" name="LegRepoCollateralSecurityType" type="STRING"/>
     <field number="251" name="LegRepurchaseTerm" type="INT"/>
     <field number="252" name="LegRepurchaseRate" type="PERCENTAGE"/>
     <field number="253" name="LegFactor" type="FLOAT"/>
@@ -7823,7 +7823,7 @@
     </field>
     <field number="993" name="AllocCustomerCapacity" type="STRING"/>
     <field number="994" name="TierCode" type="STRING"/>
-    <field number="996" name="UnitofMeasure" type="STRING">
+    <field number="996" name="UnitOfMeasure" type="STRING">
       <value enum="MWh" description="MEGAWATT_HOURS"/>
       <value enum="MMBtu" description="ONE_MILLION_BTU"/>
       <value enum="Bbl" description="BARRELS"/>
@@ -7846,8 +7846,8 @@
       <value enum="Mo" description="MONTH"/>
       <value enum="Yr" description="YEAR"/>
     </field>
-    <field number="998" name="UnderlyingUnitofMeasure" type="STRING"/>
-    <field number="999" name="LegUnitofMeasure" type="STRING"/>
+    <field number="998" name="UnderlyingUnitOfMeasure" type="STRING"/>
+    <field number="999" name="LegUnitOfMeasure" type="STRING"/>
     <field number="1000" name="UnderlyingTimeUnit" type="STRING"/>
     <field number="1001" name="LegTimeUnit" type="STRING"/>
     <field number="1002" name="AllocMethod" type="INT">
