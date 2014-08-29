@@ -2874,7 +2874,7 @@
       <value enum="VRDN" description="VARIABLE_RATE_DEMAND_NOTE" />
       <value enum="WAR" description="WARRANT" />
       <value enum="MF" description="MUTUAL_FUND" />
-      <value enum="MLEG" description="MULTILEG_INSTRUMENT" />
+      <value enum="MLEG" description="MULTI_LEG_INSTRUMENT" />
       <value enum="NONE" description="NO_SECURITY_TYPE" />
       <value description="WILDCARD" enum="?" />
     </field>

@@ -4616,7 +4616,7 @@
       <value enum="MBS" description="MORTGAGE_BACKED_SECURITIES"/>
       <value enum="MF" description="MUTUAL_FUND"/>
       <value enum="MIO" description="MORTGAGE_INTEREST_ONLY"/>
-      <value enum="MLEG" description="MULTILEG_INSTRUMENT"/>
+      <value enum="MLEG" description="MULTI_LEG_INSTRUMENT"/>
       <value enum="MPO" description="MORTGAGE_PRINCIPAL_ONLY"/>
       <value enum="MPP" description="MORTGAGE_PRIVATE_PLACEMENT"/>
       <value enum="MPT" description="MISCELLANEOUS_PASS_THROUGH"/>
