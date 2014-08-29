@@ -6068,7 +6068,7 @@
       <value enum="BDN" description="BANK_DEPOSITORY_NOTE"/>
       <value enum="CMB" description="CANADIAN_MORTGAGE_BONDS"/>
       <value enum="COFO" description="CERTIFICATE_OF_OBLIGATION"/>
-      <value enum="MLEG" description="MULTILEG_INSTRUMENT"/>
+      <value enum="MLEG" description="MULTI_LEG_INSTRUMENT"/>
       <value enum="FXNDF" description="NON_DELIVERABLE_FORWARD"/>
       <value enum="FADN" description="FEDERAL_AGENCY_DISCOUNT_NOTE"/>
       <value enum="CB" description="CONVERTIBLE_BOND"/>
