@@ -4876,18 +4876,18 @@
     <field number="236" name="Yield" type="PERCENTAGE"/>
     <field number="237" name="TotalTakedown" type="AMT"/>
     <field number="238" name="Concession" type="AMT"/>
-    <field number="239" name="RepoCollateralSecurityType" type="INT"/>
+    <field number="239" name="RepoCollateralSecurityType" type="STRING"/>
     <field number="240" name="RedemptionDate" type="LOCALMKTDATE"/>
     <field number="241" name="UnderlyingCouponPaymentDate" type="LOCALMKTDATE"/>
     <field number="242" name="UnderlyingIssueDate" type="LOCALMKTDATE"/>
-    <field number="243" name="UnderlyingRepoCollateralSecurityType" type="INT"/>
+    <field number="243" name="UnderlyingRepoCollateralSecurityType" type="STRING"/>
     <field number="244" name="UnderlyingRepurchaseTerm" type="INT"/>
     <field number="245" name="UnderlyingRepurchaseRate" type="PERCENTAGE"/>
     <field number="246" name="UnderlyingFactor" type="FLOAT"/>
     <field number="247" name="UnderlyingRedemptionDate" type="LOCALMKTDATE"/>
     <field number="248" name="LegCouponPaymentDate" type="LOCALMKTDATE"/>
     <field number="249" name="LegIssueDate" type="LOCALMKTDATE"/>
-    <field number="250" name="LegRepoCollateralSecurityType" type="INT"/>
+    <field number="250" name="LegRepoCollateralSecurityType" type="STRING"/>
     <field number="251" name="LegRepurchaseTerm" type="INT"/>
     <field number="252" name="LegRepurchaseRate" type="PERCENTAGE"/>
     <field number="253" name="LegFactor" type="FLOAT"/>
