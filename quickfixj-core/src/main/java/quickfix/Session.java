@@ -1760,18 +1760,20 @@ public class Session implements Closeable {
             }
         }
 
-        // Only check the session time once per second at most. It isn't
-        // necessary to do for every message received.
-        final long now = SystemTime.currentTimeMillis();
-        if ((now - lastSessionTimeCheck) >= 1000L) {
-            lastSessionTimeCheck = now;
-            if (!isSessionTime()) {
-                if (state.isResetNeeded()) {
-                    reset(); // only reset if seq nums are != 1
+        if (sessionSchedule != null && !sessionSchedule.isNonStopSession()) {
+            // Only check the session time once per second at most. It isn't
+            // necessary to do for every message received.
+            final long now = SystemTime.currentTimeMillis();
+            if ((now - lastSessionTimeCheck) >= 1000L) {
+                lastSessionTimeCheck = now;
+                if (!isSessionTime()) {
+                    if (state.isResetNeeded()) {
+                        reset(); // only reset if seq nums are != 1
+                    }
+                    return; // since we are outside of session time window
+                } else {
+                    resetIfSessionNotCurrent(sessionID, now);
                 }
-                return; // since we are outside of session time window
-            } else {
-                resetIfSessionNotCurrent(sessionID, now);
             }
         }
 

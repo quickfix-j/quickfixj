@@ -266,11 +266,18 @@ public class SessionSchedule {
         return interval1.equals(interval2);
     }
 
+    public boolean isNonStopSession() {
+        return nonStopSession;
+    }
+
     private boolean isDailySession() {
         return !isSet(startTime.getDay()) && !isSet(endTime.getDay());
     }
 
     public boolean isSessionTime() {
+        if(nonStopSession) {
+            return true;
+        }
         Calendar now = SystemTime.getUtcCalendar();
         TimeInterval interval = theMostRecentIntervalBefore(now);
         return interval.isContainingTime(now);
