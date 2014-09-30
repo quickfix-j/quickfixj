@@ -19,8 +19,6 @@
 
 package quickfix;
 
-import java.lang.Double;
-
 /**
  * A double-values message field.
  */
@@ -34,22 +32,27 @@ public class DoubleField extends Field<Double> {
 
     public DoubleField(int field, Double data) {
         super(field, data);
+        checkForValidDouble(data);
     }
 
     public DoubleField(int field, double data) {
         super(field, data);
+        checkForValidDouble(data);
     }
 
     public DoubleField(int field, double data, int padding) {
         super(field, data);
+        checkForValidDouble(data);
         this.padding = padding;
     }
 
     public void setValue(Double value) {
+        checkForValidDouble(value);
         setObject(value);
     }
 
     public void setValue(double value) {
+        checkForValidDouble(value);
         setObject(value);
     }
 
@@ -67,5 +70,12 @@ public class DoubleField extends Field<Double> {
 
     public boolean valueEquals(double value) {
         return getObject().equals(value);
+    }
+
+    // QFJ-808: NaN or infinity values cannot be transmitted via FIX in a DoubleField
+    private void checkForValidDouble(Double value) throws NumberFormatException {
+        if (Double.isInfinite(value) || Double.isNaN(value)) {
+            throw new NumberFormatException("Tried to set NaN or infinite value.");
+        }
     }
 }

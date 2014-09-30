@@ -20,19 +20,18 @@
 package quickfix;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
 
-import junit.framework.TestCase;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.assertEquals;
+import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 import quickfix.field.RawData;
 import quickfix.field.Side;
 
-public class FieldTest extends TestCase {
-
-    public FieldTest(String name) {
-        super(name);
-    }
+public class FieldTest {
 
     public void setUp() throws Exception {
     }
@@ -40,6 +39,7 @@ public class FieldTest extends TestCase {
     public void tearDown() throws Exception {
     }
 
+    @Test
     public void testMessageSetGetString() {
         Side side1 = new Side(Side.BUY);
         Side side2 = new Side(Side.BUY);
@@ -71,10 +71,12 @@ public class FieldTest extends TestCase {
         assertEquals(length, field.getLength());
     }
 
+    @Test
     public void testFieldCalculationsWithDefaultCharset() {
         testFieldCalcuations("VALUE", 30, 9);
     }
 
+    @Test
     public void testFieldCalculationsWithUTF8Charset() throws UnsupportedEncodingException {
         CharsetSupport.setCharset("UTF-8");
         try {
@@ -84,6 +86,7 @@ public class FieldTest extends TestCase {
         }
     }
 
+    @Test
     public void testDateField() {
         DateField field = new DateField(11);
         Date date = new Date();
@@ -95,6 +98,7 @@ public class FieldTest extends TestCase {
         assertEquals(date, field.getValue());
     }
 
+    @Test
     public void testUtcDateOnlyField() {
         UtcDateOnlyField field = new UtcDateOnlyField(11);
         Date date = new Date();
@@ -106,6 +110,7 @@ public class FieldTest extends TestCase {
         assertEquals(date, field.getValue());
     }
 
+    @Test
     public void testUtcTimeOnlyField() {
         UtcTimeOnlyField field = new UtcTimeOnlyField(11);
         Date date = new Date();
@@ -117,6 +122,7 @@ public class FieldTest extends TestCase {
         assertEquals(date, field.getValue());
     }
 
+    @Test
     public void testUtcTimeStampField() {
         UtcTimeStampField field = new UtcTimeStampField(11);
         Date date = new Date();
@@ -128,6 +134,7 @@ public class FieldTest extends TestCase {
         assertEquals(date, field.getValue());
     }
 
+    @Test
     public void testBooleanField() {
         BooleanField field = new BooleanField(11);
         field.setValue(true);
@@ -144,6 +151,7 @@ public class FieldTest extends TestCase {
         assertEquals(true, field.getValue());
     }
 
+    @Test
     public void testDoubleField() {
         DoubleField field = new DoubleField(11);
         field.setValue(12.3);
@@ -159,7 +167,35 @@ public class FieldTest extends TestCase {
         assertEquals(33, field.getTag());
         assertEquals(45.6, field.getValue(), 0);
     }
+    
+    @Test(expected = NumberFormatException.class)
+    public void testDoubleFieldException() {
+        DoubleField field = new DoubleField(11, Double.NaN);
+    }
 
+    @Test
+    public void testDecimalField() {
+        DecimalField field = new DecimalField(11);
+        field.setValue(12.3);
+        assertEquals(11, field.getTag());
+        assertEquals(BigDecimal.valueOf(12.3), field.getValue());
+        field.setValue(23.4);
+        assertEquals(11, field.getTag());
+        assertEquals(BigDecimal.valueOf(23.4), field.getValue());
+        field = new DecimalField(22, 34.5);
+        assertEquals(22, field.getTag());
+        assertEquals(BigDecimal.valueOf(34.5), field.getValue());
+        field = new DecimalField(33, new Double(45.6));
+        assertEquals(33, field.getTag());
+        assertEquals(BigDecimal.valueOf(45.6), field.getValue());
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void testDecimalFieldException() {
+        DecimalField field = new DecimalField(11, Double.POSITIVE_INFINITY);
+    }
+
+    @Test
     public void testCharField() {
         CharField field = new CharField(11);
         field.setValue('x');
@@ -176,6 +212,7 @@ public class FieldTest extends TestCase {
         assertEquals('A', field.getValue());
     }
 
+    @Test
     public void testIntField() {
         IntField field = new IntField(11);
         field.setValue(12);
@@ -192,6 +229,7 @@ public class FieldTest extends TestCase {
         assertEquals(44, field.getValue());
     }
 
+    @Test
     public void testBytesField() {
         byte[] data = "rawdata".getBytes();
 
@@ -205,6 +243,7 @@ public class FieldTest extends TestCase {
         assertEquals("96=rawdata", sb.toString());
     }
 
+    @Test
     public void testFieldhashCode() throws Exception {
         assertEqualsAndHash(new IntField(11, 100), new IntField(11, 100));
         assertEqualsAndHash(new DoubleField(11, 100.0), new DoubleField(11, 100.0));
