@@ -70,7 +70,7 @@ public class FileStoreFactory implements MessageStoreFactory {
             if (settings.isSetting(sessionID, SETTING_FILE_STORE_SYNC)) {
                 syncWrites = settings.getBool(sessionID, SETTING_FILE_STORE_SYNC);
             }
-            int maxCachedMsgs = Integer.MAX_VALUE;
+            int maxCachedMsgs = 10000;
             if (settings.isSetting(sessionID, SETTING_FILE_STORE_MAX_CACHED_MSGS)) {
                 long maxCachedMsgsSetting = settings.getLong(sessionID, SETTING_FILE_STORE_MAX_CACHED_MSGS);
                 if (maxCachedMsgsSetting >= 0 && maxCachedMsgsSetting <= (long) Integer.MAX_VALUE) {
