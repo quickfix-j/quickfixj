@@ -3,7 +3,7 @@ package quickfix;
 import quickfix.field.DefaultApplVerID;
 
 public class SessionFactoryTestSupport implements SessionFactory {
-    private static SessionFactoryTestSupport instance = new SessionFactoryTestSupport();
+    private static final SessionFactoryTestSupport instance = new SessionFactoryTestSupport();
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
         if (sessionID == null) {

@@ -1051,6 +1051,53 @@ public class SessionTest {
 
         session.close();
     }
+  
+    // QFJ-626
+    @Test
+    public void testResendMessagesWithIncorrectChecksum() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        final SessionState state = getSessionState(session);
+
+        assertTrue(session.isUsingDataDictionary());
+
+        final Logon logonToSend = new Logon();
+        setUpHeader(session.getSessionID(), logonToSend, true, 1);
+        logonToSend.setInt(HeartBtInt.FIELD, 30);
+        logonToSend.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logonToSend.toString(); // calculate length/checksum
+        session.next(logonToSend);
+
+        session.send(createAppMessage(2));
+        final News createAppMessage = createAppMessage(3);
+        createAppMessage.setString(11, "ÄÖÜäöü?ß");
+        session.send(createAppMessage);
+        session.send(createAppMessage(4));
+        session.send(createAppMessage(5));
+
+        // ugly hack: alter the store to get an invalid checksum
+        String toString = createAppMessage.toString();
+        final String replace = toString.replace("10=", "10=1");
+        state.set(3, replace);
+
+        Message createResendRequest = createResendRequest(2, 1);
+        createResendRequest.toString(); // calculate length/checksum
+        processMessage(session, createResendRequest);
+
+        Message createAdminMessage = createAdminMessage(3);
+        createAdminMessage.toString();  // calculate length/checksum
+        session.next(createAdminMessage);
+
+        // all messages should have been resent
+        assertEquals(5, application.lastToAppMessage().header.getInt(MsgSeqNum.FIELD));
+        assertFalse(state.isResendRequested());
+
+        session.close();
+    }
 
     // QFJ-493
     @Test

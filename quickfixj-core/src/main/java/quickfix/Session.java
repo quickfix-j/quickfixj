@@ -2146,8 +2146,18 @@ public class Session implements Closeable {
         int current = beginSeqNo;
 
         for (final String message : messages) {
-            final Message msg = parseMessage(message);
-            msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
+            final Message msg;
+            try {
+                // QFJ-626
+                msg = parseMessage(message);
+                msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
+            } catch (final Exception e) {
+                getLog().onErrorEvent(
+                        "Error handling ResendRequest: failed to parse message (" + e.getMessage()
+                        + "): " + message);
+                // Note: a SequenceReset message will be generated to fill the gap
+                continue;
+            }
 
             if ((current != msgSeqNum) && begin == 0) {
                 begin = current;
