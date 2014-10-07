@@ -1538,9 +1538,12 @@ public class Session implements Closeable {
             IOException {
         final Message reject = messageFactory.create(sessionID.getBeginString(),
                 MsgType.BUSINESS_MESSAGE_REJECT);
+        final Header header = message.getHeader();
+        reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
-        final String msgType = message.getHeader().getString(MsgType.FIELD);
-        final String msgSeqNum = message.getHeader().getString(MsgSeqNum.FIELD);
+
+        final String msgType = header.getString(MsgType.FIELD);
+        final String msgSeqNum = header.getString(MsgSeqNum.FIELD);
         reject.setString(RefMsgType.FIELD, msgType);
         reject.setString(RefSeqNum.FIELD, msgSeqNum);
         reject.setInt(BusinessRejectReason.FIELD, err);
