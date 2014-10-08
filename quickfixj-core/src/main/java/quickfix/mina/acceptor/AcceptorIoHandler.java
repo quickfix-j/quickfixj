@@ -105,6 +105,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                 }
             } else {
                 log.warn("Ignoring non-logon message before session establishment: " + message);
+                protocolSession.close(true);
                 return;
             }
         }
