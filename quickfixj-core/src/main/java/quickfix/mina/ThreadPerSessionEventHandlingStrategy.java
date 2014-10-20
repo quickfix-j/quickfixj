@@ -44,15 +44,17 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
     private static final long THREAD_WAIT_FOR_MESSAGE_MS = 250;
     private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
     private final SessionConnector sessionConnector;
+    private final int queueCapacity;
 
-    public ThreadPerSessionEventHandlingStrategy(SessionConnector connector) {
+    public ThreadPerSessionEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
+        this.queueCapacity = queueCapacity;
     }
 
     public void onMessage(Session quickfixSession, Message message) {
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
-            final MessageDispatchingThread temp = new MessageDispatchingThread(quickfixSession);
+            final MessageDispatchingThread temp = new MessageDispatchingThread(quickfixSession, queueCapacity);
             dispatcher = dispatchers.putIfAbsent(quickfixSession.getSessionID(), temp);
             if (dispatcher == null) {
                 dispatcher = temp;
@@ -102,13 +104,14 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 
     protected class MessageDispatchingThread extends Thread {
         private final Session quickfixSession;
-        private final BlockingQueue<Message> messages = new LinkedBlockingQueue<Message>();
+        private final BlockingQueue<Message> messages;
         private volatile boolean stopped;
         private volatile boolean stopping;
 
-        private MessageDispatchingThread(Session session) {
+        private MessageDispatchingThread(Session session, int queueCapacity) {
             super("QF/J Session dispatcher: " + session.getSessionID());
             quickfixSession = session;
+            messages = new LinkedBlockingQueue<Message>(queueCapacity);
         }
 
         public void enqueue(Message message) {

@@ -64,7 +64,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
             ThreadPerSessionEventHandlingStrategy {
 
         public ThreadPerSessionEventHandlingStrategyUnderTest() {
-            super(null);
+            super(null, SessionConnector.DEFAULT_QUEUE_CAPACITY);
         }
 
         public Exception getNextMessageException;
@@ -122,7 +122,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         message.setInt(HeartBtInt.FIELD, 30);
 
         final ThreadPerSessionEventHandlingStrategy strategy = new ThreadPerSessionEventHandlingStrategy(
-                null);
+                null, SessionConnector.DEFAULT_QUEUE_CAPACITY);
 
         strategy.onMessage(session, message);
 
@@ -193,7 +193,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         message.setInt(HeartBtInt.FIELD, 30);
 
         final ThreadPerSessionEventHandlingStrategy strategy = new ThreadPerSessionEventHandlingStrategy(
-                null);
+                null, SessionConnector.DEFAULT_QUEUE_CAPACITY);
 
         strategy.onMessage(session, message);
 

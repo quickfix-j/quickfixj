@@ -27,23 +27,46 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
  * Accepts connections and uses a separate thread per session to process messages.
  */
 public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
-    private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(
-            this);
+    private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy;
+
+    public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
+                                  SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory,
+                                  int queueCapacity )
+                                  throws ConfigError {
+        super(application, messageStoreFactory, settings, logFactory, messageFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, queueCapacity);
+    }
 
     public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
             throws ConfigError {
         super(application, messageStoreFactory, settings, logFactory, messageFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
+    }
+
+    public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
+                                  SessionSettings settings, MessageFactory messageFactory,
+                                  int queueCapacity ) throws ConfigError {
+        super(application, messageStoreFactory, settings, messageFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, queueCapacity);
     }
 
     public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, messageFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
+    }
+
+    public ThreadedSocketAcceptor(SessionFactory sessionFactory, SessionSettings settings, int queueCapacity)
+            throws ConfigError {
+        super(settings, sessionFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, queueCapacity);
     }
 
     public ThreadedSocketAcceptor(SessionFactory sessionFactory, SessionSettings settings)
             throws ConfigError {
         super(settings, sessionFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
     public void start() throws ConfigError, RuntimeError {
