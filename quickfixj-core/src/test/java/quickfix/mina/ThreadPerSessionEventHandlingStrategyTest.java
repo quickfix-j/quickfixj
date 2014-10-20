@@ -217,6 +217,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
             }
         }
 
+//        strategy.onMessage(session, EventHandlingStrategy.END_OF_STREAM);
         session.disconnect("test", true);
         assertFalse(session.hasResponder());
 
