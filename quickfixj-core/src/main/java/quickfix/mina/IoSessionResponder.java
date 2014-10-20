@@ -20,7 +20,6 @@
 package quickfix.mina;
 
 import java.net.SocketAddress;
-import org.apache.mina.core.future.CloseFuture;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.future.WriteFuture;

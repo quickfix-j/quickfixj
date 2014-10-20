@@ -32,6 +32,9 @@ import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import static junit.framework.Assert.assertTrue;
+import org.junit.After;
+import org.junit.Before;
 
 import org.junit.Test;
 
@@ -90,6 +93,20 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         }
     }
 
+    private ThreadPerSessionEventHandlingStrategy strategy;
+
+    @Before
+    public void init() {
+        strategy = new ThreadPerSessionEventHandlingStrategy(
+                null, SessionConnector.DEFAULT_QUEUE_CAPACITY);
+    }
+
+    @After
+    public void cleanup() {
+        strategy.stopDispatcherThreads();
+        strategy = null;
+    }
+
     /**
      * Verifies that messages are dispatched via dispatcher threads and that the threads die when
      * the strategy is shut down. See QFJ-410.
@@ -120,9 +137,6 @@ public class ThreadPerSessionEventHandlingStrategyTest {
                 UtcTimestampConverter.convert(new Date(), false));
         message.getHeader().setInt(MsgSeqNum.FIELD, 1);
         message.setInt(HeartBtInt.FIELD, 30);
-
-        final ThreadPerSessionEventHandlingStrategy strategy = new ThreadPerSessionEventHandlingStrategy(
-                null, SessionConnector.DEFAULT_QUEUE_CAPACITY);
 
         strategy.onMessage(session, message);
 
@@ -192,9 +206,6 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         message.getHeader().setInt(MsgSeqNum.FIELD, 1);
         message.setInt(HeartBtInt.FIELD, 30);
 
-        final ThreadPerSessionEventHandlingStrategy strategy = new ThreadPerSessionEventHandlingStrategy(
-                null, SessionConnector.DEFAULT_QUEUE_CAPACITY);
-
         strategy.onMessage(session, message);
 
         // Wait for a received message
@@ -217,9 +228,10 @@ public class ThreadPerSessionEventHandlingStrategyTest {
             }
         }
 
-//        strategy.onMessage(session, EventHandlingStrategy.END_OF_STREAM);
-        session.disconnect("test", true);
-        assertFalse(session.hasResponder());
+        assertTrue(session.hasResponder());
+        // QFJ-790: we do not check the state of the responder anymore
+        // but wait for the END_OF_STREAM message to stop the threads.
+        strategy.onMessage(session, EventHandlingStrategy.END_OF_STREAM);
 
         // sleep some time to let the thread stop
         for (int i = 0; i < 20; i++) {
@@ -245,6 +257,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
 
         // the session dispatcher should be dead and hence not listed in the threads array
         assertNull(dispatcherThread);
+        assertFalse(session.hasResponder());
     }
 
     @Test

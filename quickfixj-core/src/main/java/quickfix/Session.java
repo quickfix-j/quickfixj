@@ -69,6 +69,7 @@ import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
 import quickfix.field.TestReqID;
 import quickfix.field.Text;
+import quickfix.mina.EventHandlingStrategy;
 
 /**
  * The Session is the primary FIX abstraction for message communication. It
@@ -395,6 +396,7 @@ public class Session implements Closeable {
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final int DEFAULT_RESEND_RANGE_CHUNK_SIZE = 0; // no resend range
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
+    private static final String ENCOUNTERED_END_OF_STREAM = "Encountered END_OF_STREAM";
 
     protected final static Logger log = LoggerFactory.getLogger(Session.class);
 
@@ -878,6 +880,11 @@ public class Session implements Closeable {
      */
     public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
+
+        if (message == EventHandlingStrategy.END_OF_STREAM) {
+            disconnect(ENCOUNTERED_END_OF_STREAM, false);
+            return;
+        }
 
         final Header header = message.getHeader();
         final String msgType = header.getString(MsgType.FIELD);
@@ -1417,7 +1424,7 @@ public class Session implements Closeable {
 
         // QFJ-557: Only advance the sequence number if we are at the expected number.
         if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
-                && Integer.valueOf(msgSeqNum) == getExpectedTargetNum()) {
+                && Integer.parseInt(msgSeqNum) == getExpectedTargetNum()) {
             state.incrNextTargetMsgSeqNum();
         }
 
@@ -1736,15 +1743,6 @@ public class Session implements Closeable {
         if (msgType.equals(MsgType.REJECT)) {
             return true;
         }
-        if (msgType.equals(MsgType.LOGOUT) && !isLoggedOn() ) {
-            // QFJ-790: propagate Logout message even if we are logged out
-            return true;
-        }
-        if (!MessageUtils.isAdminMessage(msgType)) {
-            // try to process app messages even if we are logged out
-            return true;
-        }
-        
         return false;
     }
 
@@ -1927,7 +1925,9 @@ public class Session implements Closeable {
         try {
             synchronized (responderSync) {
                 if (!hasResponder()) {
-                    getLog().onEvent("Already disconnected: " + reason);
+                    if (!ENCOUNTERED_END_OF_STREAM.equals(reason)) {
+                        getLog().onEvent("Already disconnected: " + reason);
+                    }
                     return;
                 }
                 final String msg = "Disconnecting: " + reason;
@@ -2809,6 +2809,7 @@ public class Session implements Closeable {
      * Closes session resources. This is for internal use and should typically
      * not be called by an user application.
      */
+    @Override
     public void close() throws IOException {
         closeIfCloseable(getLog());
         closeIfCloseable(getStore());

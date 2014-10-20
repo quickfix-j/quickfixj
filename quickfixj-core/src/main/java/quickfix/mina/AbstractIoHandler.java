@@ -98,19 +98,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             Session quickFixSession = findQFSession(ioSession);
             if (quickFixSession != null) {
                 eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM );
-//                for (int i = 0; i < 100; i++) {
-//                    if (eventHandlingStrategy.getQueueSize(quickFixSession.getSessionID()) > 0) {
-//                        if (i == 0) {
-//                            log.info(quickFixSession.getSessionID() + ": Processing queued messages for a maximum of 5000 milliseconds before closing the session...");
-//                        }
-//                        Thread.sleep(50);
-//                    } else {
-//                        break;
-//                    }
-//                }
                 ioSession.removeAttribute(SessionConnector.QF_SESSION);
-                // check for Responder is done in disconnect() method
-                quickFixSession.disconnect("IO Session closed", false);
             }
             ioSession.close(true);
         } catch (Exception e) {

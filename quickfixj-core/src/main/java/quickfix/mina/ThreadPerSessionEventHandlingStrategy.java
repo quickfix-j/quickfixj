@@ -31,6 +31,7 @@ import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.SessionID;
+import static quickfix.mina.EventHandlingStrategy.END_OF_STREAM;
 
 /**
  * Processes messages in a session-specific thread.
@@ -71,6 +72,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      * The SessionConnector is not directly required for thread-per-session handler - we don't multiplex
      * between multiple sessions here.
      * However it is made available here for other callers (such as SessionProviders wishing to register dynamic sessions).
+     * @return the SessionConnector
      */
     @Override
     public SessionConnector getSessionConnector() {
@@ -119,6 +121,9 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
 
         public void enqueue(Message message) {
+            if (message == END_OF_STREAM && stopping) {
+                return;
+            }
             try {
                 messages.put(message);
             } catch (final InterruptedException e) {
@@ -139,9 +144,8 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                         // no message available in polling interval
                         continue;
                     }
-                    if (message != EventHandlingStrategy.END_OF_STREAM) {
-                        quickfixSession.next(message);
-                    } else {
+                    quickfixSession.next(message);
+                    if (message == END_OF_STREAM) {
                         stopping = true;
                     }
                 } catch (final InterruptedException e) {
@@ -153,11 +157,25 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                             "Error during message processing", e);
                 }
             }
+            if (messages.size() > 0) {
+                final LinkedBlockingQueue<Message> tempQueue = new LinkedBlockingQueue<Message>();
+                messages.drainTo(tempQueue);
+                for (Message message : tempQueue) {
+                    try {
+                        quickfixSession.next(message);
+                    } catch (final Throwable e) {
+                        LogUtil.logThrowable(quickfixSession.getSessionID(),
+                                "Error during message processing", e);
+                    }
+                }
+            }
+
             dispatchers.remove(quickfixSession.getSessionID());
             stopped = true;
         }
 
         public void stopDispatcher() {
+            enqueue(END_OF_STREAM);
             stopping = true;
             stopped = true;
         }

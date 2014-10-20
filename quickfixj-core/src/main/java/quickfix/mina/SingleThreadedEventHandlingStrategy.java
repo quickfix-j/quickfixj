@@ -36,7 +36,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     private static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
     private final BlockingQueue<SessionMessageEvent> eventQueue;
     private final SessionConnector sessionConnector;
-    private boolean isStopped;
+    private volatile boolean isStopped;
     private long stopTime = 0L;
 
     public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
@@ -46,6 +46,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     @Override
     public void onMessage(Session quickfixSession, Message message) {
+        if (message == END_OF_STREAM && isStopped) {
+            return;
+        }
         try {
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
@@ -62,6 +65,13 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         while (true) {
             synchronized (this) {
                 if (isStopped) {
+                    if (eventQueue.size() > 0) {
+                        final LinkedBlockingQueue<SessionMessageEvent> tempQueue = new LinkedBlockingQueue<SessionMessageEvent>();
+                        eventQueue.drainTo(tempQueue);
+                        for (SessionMessageEvent event : tempQueue) {
+                            event.processMessage();
+                        }
+                    }
                     if (stopTime == 0) {
                         stopTime = SystemTime.currentTimeMillis();
                     }
@@ -111,20 +121,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
         public void processMessage() {
             try {
-                if ( message != EventHandlingStrategy.END_OF_STREAM ) {
-                    quickfixSession.next(message);
-                }
-//                if (quickfixSession.hasResponder()) {
-//                    quickfixSession.next(message);
-//                } else {
-//                    try {
-//                        final String msgType = message.getHeader().getString(MsgType.FIELD);
-//                        if (msgType.equals(MsgType.LOGOUT))
-//                            quickfixSession.next(message);
-//                    } catch (FieldNotFound ex) {
-//                        // ignore
-//                    }
-//                }
+                quickfixSession.next(message);
             } catch (Throwable e) {
                 LogUtil.logThrowable(quickfixSession.getSessionID(), e.getMessage(), e);
             }
@@ -136,6 +133,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     public synchronized void stopHandlingMessages() {
+        for (Session session : sessionConnector.getSessionMap().values()) {
+            onMessage(session, END_OF_STREAM);
+        }
         isStopped = true;
     }
 
