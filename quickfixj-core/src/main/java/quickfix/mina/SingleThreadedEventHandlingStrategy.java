@@ -23,12 +23,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import quickfix.FieldNotFound;
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
+import quickfix.SessionID;
 import quickfix.SystemTime;
-import quickfix.field.MsgType;
 
 /**
  * Processes messages for all sessions in a single thread.
@@ -44,6 +43,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         sessionConnector = connector;
     }
 
+    @Override
     public void onMessage(Session quickfixSession, Message message) {
         try {
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
@@ -52,6 +52,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
+    @Override
     public SessionConnector getSessionConnector() {
         return sessionConnector;
     }
@@ -89,6 +90,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public void blockInThread() {
         startHandlingMessages();
         Thread messageProcessingThread = new Thread(new Runnable() {
+            @Override
             public void run() {
                 block();
             }
@@ -108,17 +110,20 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
         public void processMessage() {
             try {
-                if (quickfixSession.hasResponder()) {
+                if ( message != EventHandlingStrategy.END_OF_STREAM ) {
                     quickfixSession.next(message);
-                } else {
-                    try {
-                        final String msgType = message.getHeader().getString(MsgType.FIELD);
-                        if (msgType.equals(MsgType.LOGOUT))
-                            quickfixSession.next(message);
-                    } catch (FieldNotFound ex) {
-                        // ignore
-                    }
                 }
+//                if (quickfixSession.hasResponder()) {
+//                    quickfixSession.next(message);
+//                } else {
+//                    try {
+//                        final String msgType = message.getHeader().getString(MsgType.FIELD);
+//                        if (msgType.equals(MsgType.LOGOUT))
+//                            quickfixSession.next(message);
+//                    } catch (FieldNotFound ex) {
+//                        // ignore
+//                    }
+//                }
             } catch (Throwable e) {
                 LogUtil.logThrowable(quickfixSession.getSessionID(), e.getMessage(), e);
             }
@@ -133,8 +138,15 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = true;
     }
 
+    @Override
     public int getQueueSize() {
         return eventQueue.size();
     }
 
+    @Override
+    public int getQueueSize(SessionID sessionID) {
+        // we only have one queue for all sessions
+        return getQueueSize();
+    }
+    
 }

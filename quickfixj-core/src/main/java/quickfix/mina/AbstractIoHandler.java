@@ -43,11 +43,14 @@ import quickfix.field.MsgType;
 public abstract class AbstractIoHandler extends IoHandlerAdapter {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
+    private final EventHandlingStrategy eventHandlingStrategy;
 
-    public AbstractIoHandler(NetworkingOptions options) {
+    public AbstractIoHandler(NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
         networkingOptions = options;
+        this.eventHandlingStrategy = eventHandlingStrategy;
     }
 
+    @Override
     public void exceptionCaught(IoSession ioSession, Throwable cause) throws Exception {
         boolean disconnectNeeded = false;
         Session quickFixSession = findQFSession(ioSession);
@@ -83,15 +86,28 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         }
     }
 
+    @Override
     public void sessionCreated(IoSession ioSession) throws Exception {
         super.sessionCreated(ioSession);
         networkingOptions.apply(ioSession);
     }
 
+    @Override
     public void sessionClosed(IoSession ioSession) throws Exception {
         try {
             Session quickFixSession = findQFSession(ioSession);
             if (quickFixSession != null) {
+                eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM );
+//                for (int i = 0; i < 100; i++) {
+//                    if (eventHandlingStrategy.getQueueSize(quickFixSession.getSessionID()) > 0) {
+//                        if (i == 0) {
+//                            log.info(quickFixSession.getSessionID() + ": Processing queued messages for a maximum of 5000 milliseconds before closing the session...");
+//                        }
+//                        Thread.sleep(50);
+//                    } else {
+//                        break;
+//                    }
+//                }
                 ioSession.removeAttribute(SessionConnector.QF_SESSION);
                 // check for Responder is done in disconnect() method
                 quickFixSession.disconnect("IO Session closed", false);
@@ -103,6 +119,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         }
     }
 
+    @Override
     public void messageReceived(IoSession ioSession, Object message) throws Exception {
         String messageString = (String) message;
         SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);

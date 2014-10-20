@@ -21,12 +21,16 @@ package quickfix.mina;
 
 import quickfix.Message;
 import quickfix.Session;
+import quickfix.SessionID;
 
 /**
  * An interface implemented by various FIX event handling strategies. Currently,
  * it only handles message reception events.
  */
 public interface EventHandlingStrategy {
+
+    // will be put to the eventQueue to signal a disconnection
+    public static final Message END_OF_STREAM = new Message();
 
     void onMessage(Session quickfixSession, Message message);
 
@@ -36,4 +40,6 @@ public interface EventHandlingStrategy {
     SessionConnector getSessionConnector();
 
     int getQueueSize();
+    
+    int getQueueSize(SessionID sessionID);
 }

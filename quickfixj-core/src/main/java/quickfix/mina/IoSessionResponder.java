@@ -20,6 +20,7 @@
 package quickfix.mina;
 
 import java.net.SocketAddress;
+import org.apache.mina.core.future.CloseFuture;
 
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.future.WriteFuture;
@@ -44,6 +45,7 @@ public class IoSessionResponder implements Responder {
         this.synchronousWriteTimeout = synchronousWriteTimeout;
     }
 
+    @Override
     public boolean send(String data) {
         // The data is written asynchronously in a MINA thread
         WriteFuture future = ioSession.write(data);
@@ -61,6 +63,7 @@ public class IoSessionResponder implements Responder {
         return true;
     }
 
+    @Override
     public void disconnect() {
         waitForScheduleMessagesToBeWritten();
         // We cannot call join() on the CloseFuture returned
@@ -88,6 +91,7 @@ public class IoSessionResponder implements Responder {
         }
     }
 
+    @Override
     public String getRemoteAddress() {
         final SocketAddress remoteAddress = ioSession.getRemoteAddress();
         if (remoteAddress != null) {

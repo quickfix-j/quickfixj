@@ -1736,6 +1736,15 @@ public class Session implements Closeable {
         if (msgType.equals(MsgType.REJECT)) {
             return true;
         }
+        if (msgType.equals(MsgType.LOGOUT) && !isLoggedOn() ) {
+            // QFJ-790: propagate Logout message even if we are logged out
+            return true;
+        }
+        if (!MessageUtils.isAdminMessage(msgType)) {
+            // try to process app messages even if we are logged out
+            return true;
+        }
+        
         return false;
     }
 

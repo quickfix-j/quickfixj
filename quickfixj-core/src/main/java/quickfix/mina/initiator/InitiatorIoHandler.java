@@ -35,11 +35,12 @@ class InitiatorIoHandler extends AbstractIoHandler {
 
     public InitiatorIoHandler(Session quickfixSession, NetworkingOptions networkingOptions,
             EventHandlingStrategy eventHandlingStrategy) {
-        super(networkingOptions);
+        super(networkingOptions, eventHandlingStrategy);
         this.quickfixSession = quickfixSession;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }
 
+    @Override
     public void sessionCreated(IoSession session) throws Exception {
         super.sessionCreated(session);
         session.setAttribute(SessionConnector.QF_SESSION, quickfixSession);
@@ -52,6 +53,7 @@ class InitiatorIoHandler extends AbstractIoHandler {
                 + session.getRemoteAddress());
     }
 
+    @Override
     protected void processMessage(IoSession protocolSession, Message message) throws Exception {
         eventHandlingStrategy.onMessage(quickfixSession, message);
     }

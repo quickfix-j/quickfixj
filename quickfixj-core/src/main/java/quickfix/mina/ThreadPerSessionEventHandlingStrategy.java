@@ -49,6 +49,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         sessionConnector = connector;
     }
 
+    @Override
     public void onMessage(Session quickfixSession, Message message) {
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
@@ -59,7 +60,9 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             }
             startDispatcherThread(dispatcher);
         }
-        dispatcher.enqueue(message);
+        if (message != null) {
+            dispatcher.enqueue(message);
+        }
     }
 
     /**
@@ -67,6 +70,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      * between multiple sessions here.
      * However it is made available here for other callers (such as SessionProviders wishing to register dynamic sessions).
      */
+    @Override
     public SessionConnector getSessionConnector() {
         return sessionConnector;
     }
@@ -127,11 +131,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         public void run() {
             while (!stopping) {
                 try {
-                    if (quickfixSession.hasResponder()) {
-                        final Message message = getNextMessage(messages);
-                        if (message != null && quickfixSession.hasResponder()) {
-                            quickfixSession.next(message);
-                        }
+                    final Message message = getNextMessage(messages);
+                    if (message == null) {
+                        // no message available in polling interval
+                        continue;
+                    }
+                    if (message != EventHandlingStrategy.END_OF_STREAM) {
+                        quickfixSession.next(message);
                     } else {
                         stopping = true;
                     }
@@ -176,12 +182,22 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         return messages.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public int getQueueSize() {
         int ret = 0;
         for (final MessageDispatchingThread mdt : dispatchers.values()) {
             ret += mdt.getQueueSize();
         }
         return ret;
+    }
+
+    @Override
+    public int getQueueSize(SessionID sessionID) {
+        MessageDispatchingThread dispatchingThread = dispatchers.get(sessionID);
+        if (dispatchingThread != null) {
+            return dispatchingThread.getQueueSize();
+        }
+        return 0;
     }
 
 }
