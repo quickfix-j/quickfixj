@@ -30,8 +30,17 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
 public class SocketInitiator extends AbstractSocketInitiator {
     private Boolean isStarted = Boolean.FALSE;
     private final Object lock = new Object();
-    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
-        new SingleThreadedEventHandlingStrategy(this);
+    private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
+
+    public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
+            SessionSettings settings, MessageFactory messageFactory, int queueCapacity) throws ConfigError {
+        super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
+                messageFactory);
+        if (settings == null) {
+            throw new ConfigError("no settings");
+        }
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
+    }
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
@@ -40,6 +49,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
         if (settings == null) {
             throw new ConfigError("no settings");
         }
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
@@ -49,10 +59,24 @@ public class SocketInitiator extends AbstractSocketInitiator {
         if (settings == null) {
             throw new ConfigError("no settings");
         }
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
-    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
+    public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
+            SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory,
+            int queueCapacity)
+            throws ConfigError {
+        super(application, messageStoreFactory, settings, logFactory, messageFactory);
+        if (settings == null) {
+            throw new ConfigError("no settings");
+        }
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
+    }
+
+    public SocketInitiator(SessionFactory sessionFactory, SessionSettings settings,
+           int queueCapacity) throws ConfigError {
         super(settings, sessionFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
     }
 
     public void block() throws ConfigError, RuntimeError {

@@ -54,6 +54,7 @@ import quickfix.field.converter.IntConverter;
  * abstraction where the code doesn't need to make the acceptor/initiator distinction.
  */
 public abstract class SessionConnector implements Connector {
+    protected static final int DEFAULT_QUEUE_CAPACITY = 10000;
     public static final String SESSIONS_PROPERTY = "sessions";
     public final static String QF_SESSION = "QF_SESSION";
 

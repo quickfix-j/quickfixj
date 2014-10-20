@@ -30,24 +30,46 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
 public class SocketAcceptor extends AbstractSocketAcceptor {
     private Boolean isStarted = Boolean.FALSE;
     private final Object lock = new Object();
+    private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
+
+    public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
+            SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory,
+            int queueCapacity)
+            throws ConfigError {
+        super(application, messageStoreFactory, settings, logFactory, messageFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
+    }
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
             throws ConfigError {
         super(application, messageStoreFactory, settings, logFactory, messageFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
+    }
+
+    public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
+            SessionSettings settings, MessageFactory messageFactory, int queueCapacity) throws ConfigError {
+        super(application, messageStoreFactory, settings, messageFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
     }
 
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, MessageFactory messageFactory) throws ConfigError {
         super(application, messageStoreFactory, settings, messageFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
+    }
+
+    public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings,
+            int queueCapacity) throws ConfigError {
+        super(settings, sessionFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
     }
 
     public SocketAcceptor(SessionFactory sessionFactory, SessionSettings settings) throws ConfigError {
         super(settings, sessionFactory);
+        eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
-    private SingleThreadedEventHandlingStrategy eventHandlingStrategy =
-        new SingleThreadedEventHandlingStrategy(this);
 
     public void block() throws ConfigError, RuntimeError {
         initialize();

@@ -34,13 +34,14 @@ import quickfix.SystemTime;
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
     private static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
-    private final BlockingQueue<SessionMessageEvent> eventQueue = new LinkedBlockingQueue<SessionMessageEvent>();
+    private final BlockingQueue<SessionMessageEvent> eventQueue;
     private final SessionConnector sessionConnector;
     private boolean isStopped;
     private long stopTime = 0L;
 
-    public SingleThreadedEventHandlingStrategy(SessionConnector connector) {
+    public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
+        eventQueue = new LinkedBlockingQueue<SessionMessageEvent>(queueCapacity);
     }
 
     @Override
