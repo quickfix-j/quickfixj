@@ -185,6 +185,7 @@ public class IoSessionInitiator {
 
         private void handleConnectException(Throwable e) {
             ++connectionFailureCount;
+            unresolveCurrentSocketAddress();
             while (e.getCause() != null) {
                 e = e.getCause();
             }
@@ -211,6 +212,17 @@ public class IoSessionInitiator {
             }
             nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
             return socketAddress;
+        }
+
+        // QFJ-822 Reset cached DNS resolution information on connection failure.
+        private void unresolveCurrentSocketAddress() {
+            int currentSocketAddress = (nextSocketAddressIndex + socketAddresses.length - 1) % socketAddresses.length;
+            SocketAddress socketAddress = socketAddresses[currentSocketAddress];
+            if (socketAddress instanceof InetSocketAddress) {
+                InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
+                socketAddresses[currentSocketAddress] = InetSocketAddress.createUnresolved(
+                        inetAddr.getHostString(), inetAddr.getPort());
+            }
         }
 
         private boolean shouldReconnect() {
