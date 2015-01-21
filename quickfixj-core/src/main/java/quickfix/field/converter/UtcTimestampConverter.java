@@ -37,7 +37,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     private static ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
-    private static ConcurrentHashMap<String, Long> dateCache = new ConcurrentHashMap<String, Long>();
+    private final static ConcurrentHashMap<String, Long> dateCache = new ConcurrentHashMap<String, Long>();
 
     /**
      * Convert a timestamp (represented as a Date) to a String.
