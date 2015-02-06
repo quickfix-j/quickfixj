@@ -1156,7 +1156,6 @@ public class SessionTest {
         session.close();
     }
 
-    // QFJ-658
     @Test
     public void testResendRequestMsgSeqNum() throws Exception {
 
@@ -1898,6 +1897,145 @@ public class SessionTest {
         assertEquals(true, session.hasResponder());
 
         session.close();
+    }
+
+    @Test
+    public void testLargeQueue10() throws Exception {
+        testLargeQueue(10);
+    }
+
+    @Test
+    public void testLargeQueue100() throws Exception {
+        testLargeQueue(100);
+    }
+
+    @Test
+    public void testLargeQueue1000() throws Exception {
+        testLargeQueue(1000);
+    }
+
+    @Test
+    public void testLargeQueue10000() throws Exception {
+        testLargeQueue(10000);
+    }
+
+    @Test
+    public void testLargeQueue20000() throws Exception {
+        testLargeQueue(20000);
+    }
+
+    // QFJ-788
+    private void testLargeQueue(int N) throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
+        final UnitTestApplication unitTestApplication = new UnitTestApplication();
+
+        Session session = new Session(unitTestApplication, new MemoryStoreFactory(),
+                sessionID, null, null, null,
+                new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, true, resetOnLogon,
+                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+                new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+                false, false);
+
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        final SessionState state = getSessionState(session);
+
+        /*
+         * Logon to the session with a clean store and sequence numbers [1,1].
+         */
+        assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(1, session.getStore().getNextSenderMsgSeqNum());
+
+        session.logon();
+        session.next();
+
+        /*
+         * Logon request was sent to the counterparty.
+         * 
+         * Now we'll receive Logon response with too high sequence number 101
+         * instead of 1, which should initiate the resend process. During the
+         * resend process the counterparty should send us the missing messages
+         * from 1 to 100.
+         */
+        // Deliver Logon response with sequnce number 101.
+        Message logonRequest = new Message(responder.sentMessageData);
+        session.next(createLogonResponse(sessionID, logonRequest, 101));
+
+        /*
+         * Logon response was received. The resend process should have been
+         * initiated.
+         */
+        assertTrue(state.isResendRequested());
+        // The expected target sequence should still be 1.
+        assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+
+        /*
+         * We sent a resend request from 1 to 100.
+         * 
+         * The counterpatry quickly responds with a sequence reset from
+         * 1 to 100, so we can adjust our expected sequence number value
+         * and skip a number of administrative messages that should
+         * never be resent.
+         */
+        // Deliver SequenceReset-GapFill from 1 to 100
+        session.next(createSequenceReset(1, 100, true));
+        assertEquals(100, session.getStore().getNextTargetMsgSeqNum());
+
+        /*
+         * So, we're still missing the message at sequence 100, which is an
+         * application message.
+         * 
+         * Unfortunately the counterparty is very slow in resending
+         * application messages, but they will eventually send the
+         * message to us.
+         * 
+         * In the meantime they have a temporary burst of real-time data and
+         * they send us N (possibly thousands) application messages within a
+         * short period of time. All the messages get stored in a temporary
+         * queue managed by QuickFIX/J.
+         */
+        for (int i = 0; i < N; i++) {
+            session.next(createAppMessage(102 + i));
+            // Each message gets queued in a temporary queue.
+        }
+
+        /*
+         * Eventually the counterparty sends us the missing application
+         * message with sequence number 100.
+         * 
+         * However, depending on the number of messages stored in the
+         * temporary queue the queue will be either processed correctly,
+         * or the recursive nature of the next()/nextQueued() call will
+         * blow up with a StackOverflowError. 
+         */
+        // Deliver the last missing application message #100.
+        session.next(createPossDupAppMessage(100));
+         // Check the expected target sequence number after the queue has been
+        // fully processed.
+        assertEquals(N + 102, session.getStore().getNextTargetMsgSeqNum());
+
+        /*
+         * The best solution to this issue (StackOverflowError) is to refactor
+         * the code such that the recursion between next()/nextQueued() is
+         * replaced with a regular loop.
+         */
+    }
+
+    private News createPossDupAppMessage(int sequence) {
+         // create a regular app message and and add the PossDup
+        // and OrigSendingTime tags to it
+        final News news = createAppMessage(sequence);
+        news.getHeader().setBoolean(PossDupFlag.FIELD, true);
+        try {
+            Date d = news.getHeader().getUtcTimeStamp(SendingTime.FIELD);
+            news.getHeader().setUtcTimeStamp(OrigSendingTime.FIELD,
+                    new Date(d.getTime() - 3600 * 1000)); // 1 hour back
+        } catch (FieldNotFound e) {
+            throw new RuntimeException();
+        }
+        return news;
     }
 
     private Session setUpSession(Application application, boolean isInitiator,

@@ -875,10 +875,7 @@ public class Session implements Closeable {
         return state.getMessageStore();
     }
 
-    /**
-     * (Internal use only)
-     */
-    public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
+    private void next(Message message, boolean isProcessingQueuedMessages) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
         if (message == EventHandlingStrategy.END_OF_STREAM) {
@@ -1094,10 +1091,22 @@ public class Session implements Closeable {
             }
         }
 
-        nextQueued();
-        if (isLoggedOn()) {
-            next();
+        // QFJ-788: prevent StackOverflow on large queue
+        if (!isProcessingQueuedMessages) {
+            nextQueued();
+            if (isLoggedOn()) {
+                next();
+            }
         }
+    }
+
+    /**
+     * (Internal use only)
+     */
+    public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
+            IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
+
+        next(message, false);
     }
 
     private boolean resetOrDisconnectIfRequired(Message msg) {
@@ -2256,7 +2265,7 @@ public class Session implements Closeable {
     private void nextQueued(Message msg, String msgType) throws InvalidMessage, FieldNotFound, RejectLogon,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType, IOException {
         try {
-            next(msg);
+            next(msg, true);
         } catch (final InvalidMessage e) {
             final String message = "Invalid message: " + e;
             if (MsgType.LOGON.equals(msgType)) {
