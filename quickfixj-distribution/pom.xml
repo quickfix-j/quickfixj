@@ -111,6 +111,18 @@
 		</dependency>
 	</dependencies>
 
+    <profiles>
+        <profile>
+          <id>doclint-java8-disable</id>
+          <activation>
+            <jdk>[1.8,)</jdk>
+          </activation>
+          <properties>
+            <javadoc.opts>-Xdoclint:none</javadoc.opts>
+          </properties>
+        </profile>
+    </profiles>
+
 	<build>
 		<plugins>
 			<!-- generate javadocs into apidocs folder -->
@@ -125,6 +137,7 @@
 							<goal>javadoc</goal>
 						</goals>
 						<configuration>
+                            <additionalparam>${javadoc.opts}</additionalparam>
 							<includeDependencySources>true</includeDependencySources>
 							<dependencySourceIncludes>
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
