@@ -9,3 +9,5 @@ target/
 *.iml
 *.ipr
 *.iws
+# ignore NetBeans configuration
+nb-configuration.xml
