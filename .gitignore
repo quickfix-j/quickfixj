@@ -4,5 +4,8 @@ target/
 .project
 .classpath
 .settings
-
-
+# ignore IntelliJ configuration files
+.idea/
+*.iml
+*.ipr
+*.iws
