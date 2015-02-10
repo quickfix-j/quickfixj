@@ -40,7 +40,7 @@
 		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>1.8.0.1</version>
+			<version>1.8.0.10</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
-			<version>1.6.3</version>
+			<version>${slf4j.version}</version>
 		    <scope>test</scope>
 		</dependency>
 
@@ -64,7 +64,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.6.3</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 
 		<dependency>
@@ -89,7 +89,7 @@
 		    <!-- slf4j facade for JCL which is required by proxool -->
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.6.3</version>
+			<version>${slf4j.version}</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
