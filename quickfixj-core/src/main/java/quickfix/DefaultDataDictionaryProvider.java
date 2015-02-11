@@ -29,8 +29,8 @@ import org.quickfixj.QFJException;
 import quickfix.field.ApplVerID;
 
 public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
-    private Map<String, DataDictionary> transportDictionaries = new ConcurrentHashMap<String, DataDictionary>();
-    private Map<AppVersionKey, DataDictionary> applicationDictionaries = new ConcurrentHashMap<AppVersionKey, DataDictionary>();
+    private final Map<String, DataDictionary> transportDictionaries = new ConcurrentHashMap<String, DataDictionary>();
+    private final Map<AppVersionKey, DataDictionary> applicationDictionaries = new ConcurrentHashMap<AppVersionKey, DataDictionary>();
     private final boolean findDataDictionaries;
 
     public DefaultDataDictionaryProvider() {

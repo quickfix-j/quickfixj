@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class Dictionary {
     private String name;
-    private HashMap<Object, Object> data = new HashMap<Object, Object>();
+    private final HashMap<Object, Object> data = new HashMap<Object, Object>();
 
     public Dictionary() {
     }

@@ -33,12 +33,6 @@ import quickfix.field.Side;
 
 public class FieldTest {
 
-    public void setUp() throws Exception {
-    }
-
-    public void tearDown() throws Exception {
-    }
-
     @Test
     public void testMessageSetGetString() {
         Side side1 = new Side(Side.BUY);
@@ -185,7 +179,7 @@ public class FieldTest {
         field = new DecimalField(22, 34.5);
         assertEquals(22, field.getTag());
         assertEquals(BigDecimal.valueOf(34.5), field.getValue());
-        field = new DecimalField(33, new Double(45.6));
+        field = new DecimalField(33, 45.6);
         assertEquals(33, field.getTag());
         assertEquals(BigDecimal.valueOf(45.6), field.getValue());
     }

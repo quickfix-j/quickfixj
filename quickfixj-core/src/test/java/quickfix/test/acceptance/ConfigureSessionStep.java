@@ -30,7 +30,7 @@ import quickfix.SessionID;
 public class ConfigureSessionStep implements TestStep {
     public static final Pattern SET_SETTING_PATTERN = Pattern
             .compile("iSET_SESSION (.*) (.*)=(.*)");
-    private String command;
+    private final String command;
 
     public ConfigureSessionStep(String command) {
         this.command = command;

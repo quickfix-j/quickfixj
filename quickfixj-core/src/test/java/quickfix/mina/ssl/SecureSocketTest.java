@@ -210,7 +210,7 @@ public class SecureSocketTest extends TestCase {
     }
 
     private class ServerThread extends Thread {
-        private ATServer server;
+        private final ATServer server;
 
         public ServerThread(String keyStoreName, String keyStorePassword) {
             super("test server");

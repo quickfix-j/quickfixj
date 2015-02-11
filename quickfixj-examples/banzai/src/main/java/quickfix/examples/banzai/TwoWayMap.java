@@ -22,8 +22,8 @@ package quickfix.examples.banzai;
 import java.util.HashMap;
 
 public class TwoWayMap {
-    private HashMap<Object, Object> firstToSecond = new HashMap<Object, Object>();
-    private HashMap<Object, Object> secondToFirst = new HashMap<Object, Object>();
+    private final HashMap<Object, Object> firstToSecond = new HashMap<Object, Object>();
+    private final HashMap<Object, Object> secondToFirst = new HashMap<Object, Object>();
 
     public void put(Object first, Object second) {
         firstToSecond.put(first, second);

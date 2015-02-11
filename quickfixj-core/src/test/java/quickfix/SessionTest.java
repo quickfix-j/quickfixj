@@ -18,7 +18,6 @@ import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -796,7 +795,7 @@ public class SessionTest {
     // QFJ-357
     private void setupFileStoreForQFJ357(final SessionID sessionID,
             final SessionSettings settings) throws ConfigError,
-            FieldConvertError, FileNotFoundException, IOException {
+            FieldConvertError, IOException {
 
         // construct the path to the filestore (mostly c&p from FileStore class)
         settings.setString(FileStoreFactory.SETTING_FILE_STORE_PATH,

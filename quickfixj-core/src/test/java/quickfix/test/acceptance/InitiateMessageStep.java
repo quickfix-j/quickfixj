@@ -37,7 +37,7 @@ import quickfix.field.converter.UtcTimestampConverter;
 
 public class InitiateMessageStep implements TestStep {
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final String data;
 
@@ -53,13 +53,11 @@ public class InitiateMessageStep implements TestStep {
 
     private static final DecimalFormat CHECKSUM_FORMAT = new DecimalFormat("000");
 
-    private static int heartBeatOverride = -1;
+    private static final int heartBeatOverride;
 
     static {
-        String hbi = System.getProperty("atest.heartbeat");
-        if (hbi != null) {
-            heartBeatOverride = Integer.parseInt(hbi);
-        }
+        final String hbi = System.getProperty("atest.heartbeat");
+        heartBeatOverride = hbi != null ? Integer.parseInt(hbi) : -1;
     }
 
     public InitiateMessageStep(String data) {

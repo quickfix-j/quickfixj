@@ -30,12 +30,12 @@ public class ExecutionTableModel extends AbstractTableModel {
     private final static int SIDE = 2;
     private final static int PRICE = 3;
 
-    private HashMap<Integer, Execution> rowToExecution;
-    private HashMap<String, Integer> idToRow;
-    private HashMap<String, Execution> idToExecution;
-    private HashMap<String, Execution> exchangeIdToExecution;
+    private final HashMap<Integer, Execution> rowToExecution;
+    private final HashMap<String, Integer> idToRow;
+    private final HashMap<String, Execution> idToExecution;
+    private final HashMap<String, Execution> exchangeIdToExecution;
 
-    private String[] headers;
+    private final String[] headers;
 
     public ExecutionTableModel() {
         rowToExecution = new HashMap<Integer, Execution>();

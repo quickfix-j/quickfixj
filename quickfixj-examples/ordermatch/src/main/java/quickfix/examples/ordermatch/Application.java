@@ -61,8 +61,8 @@ import quickfix.fix42.NewOrderSingle;
 import quickfix.fix42.OrderCancelRequest;
 
 public class Application extends MessageCracker implements quickfix.Application {
-    private OrderMatcher orderMatcher = new OrderMatcher();
-    private IdGenerator generator = new IdGenerator();
+    private final OrderMatcher orderMatcher = new OrderMatcher();
+    private final IdGenerator generator = new IdGenerator();
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {

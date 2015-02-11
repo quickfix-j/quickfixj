@@ -49,7 +49,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     private static final char SOH = '\001';
     private static final String FIELD_DELIMITER = String.valueOf(SOH);
 
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final byte[] HEADER_PATTERN;
     private final byte[] CHECKSUM_PATTERN;
@@ -71,8 +71,8 @@ public class FIXMessageDecoder implements MessageDecoder {
     private final String charsetEncoding;
 
     static class BufPos {
-        int _offset;
-        int _length;
+        final int _offset;
+        final int _length;
 
         /**
          * @param offset
@@ -270,8 +270,8 @@ public class FIXMessageDecoder implements MessageDecoder {
 
     private static int minMaskLength(byte[] data) {
         int len = 0;
-        for (int i = 0; i < data.length; ++i) {
-            if (Character.isLetter(data[i]) && Character.isLowerCase(data[i]))
+        for (byte aChar : data) {
+            if (Character.isLetter(aChar) && Character.isLowerCase(aChar))
                 continue;
             ++len;
         }

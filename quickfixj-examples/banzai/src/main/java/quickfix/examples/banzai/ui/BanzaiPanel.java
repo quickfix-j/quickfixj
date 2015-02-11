@@ -44,10 +44,10 @@ import quickfix.examples.banzai.OrderTableModel;
  */
 public class BanzaiPanel extends JPanel implements Observer, ActionListener {
 
-    private OrderEntryPanel orderEntryPanel;
-    private OrderPanel orderPanel;
-    private CancelReplacePanel cancelReplacePanel;
-    private OrderTableModel orderTableModel;
+    private final OrderEntryPanel orderEntryPanel;
+    private final OrderPanel orderPanel;
+    private final CancelReplacePanel cancelReplacePanel;
+    private final OrderTableModel orderTableModel;
 
     public BanzaiPanel(OrderTableModel orderTableModel,
                 ExecutionTableModel executionTableModel,

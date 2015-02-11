@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -45,7 +44,6 @@ import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 
 import quickfix.DataDictionaryTest;
-import quickfix.FieldNotFound;
 import quickfix.InvalidMessage;
 import quickfix.Message;
 import quickfix.field.Headline;
@@ -112,7 +110,7 @@ public class FIXMessageDecoderTest {
         }
     }
 
-    private void doWesternEuropeanDecodingTest() throws UnsupportedEncodingException, ProtocolCodecException, InvalidMessage, Exception, FieldNotFound {
+    private void doWesternEuropeanDecodingTest() throws Exception {
         FIXMessageDecoder decoder = new FIXMessageDecoder();
         IoBuffer byteBuffer = IoBuffer.allocate(1024);
         // äbcfödçé
@@ -288,7 +286,7 @@ public class FIXMessageDecoderTest {
         assertCorrectlyExtractedMessages(messages);
     }
 
-    private File setUpTestFile() throws IOException, FileNotFoundException {
+    private File setUpTestFile() throws IOException {
         String text = "This is a test case for FixMessageDecoder message";
         text += "extraction. There are four messages to extract...\n";
         text += "8=FIX.4.2\0019=12\00135=X\001108=30\00110=036\001\n";
@@ -366,7 +364,7 @@ public class FIXMessageDecoderTest {
         doTestMinaDemux(message);
     }
 
-    private void doTestMinaDemux(String message) throws Exception, UnsupportedEncodingException {
+    private void doTestMinaDemux(String message) throws Exception {
         DemuxingProtocolCodecFactory codecFactory = new DemuxingProtocolCodecFactory();
         codecFactory.addMessageDecoder(FIXMessageDecoder.class);
 
@@ -533,8 +531,8 @@ public class FIXMessageDecoderTest {
 
     private static int minMaskLength(byte[] data) {
         int len = 0;
-        for (int i = 0; i < data.length; ++i) {
-            if (Character.isLetter(data[i]) && Character.isLowerCase(data[i]))
+        for (byte aChar : data) {
+            if (Character.isLetter(aChar) && Character.isLowerCase(aChar))
                 continue;
             ++len;
         }
@@ -542,8 +540,8 @@ public class FIXMessageDecoderTest {
     }
 
     static class BufPos {
-        int _offset;
-        int _length;
+        final int _offset;
+        final int _length;
 
         /**
          * @param offset

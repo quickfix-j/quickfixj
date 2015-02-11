@@ -50,7 +50,7 @@ import com.sleepycat.je.OperationStatus;
  * @see SleepycatStoreFactory
  */
 public class SleepycatStore implements MessageStore {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final SessionID sessionID; // session key
     private SessionInfo info;
 
@@ -60,13 +60,13 @@ public class SleepycatStore implements MessageStore {
 
     private Database messageDatabase;
     private Database sequenceDatabase;
-    private SessionIDTupleBinding sessionIDBinding = new SessionIDTupleBinding();
-    private SessionInfoTupleBinding sessionInfoBinding = new SessionInfoTupleBinding();
+    private final SessionIDTupleBinding sessionIDBinding = new SessionIDTupleBinding();
+    private final SessionInfoTupleBinding sessionInfoBinding = new SessionInfoTupleBinding();
     private Environment environment;
 
     private final DatabaseEntry sessionIDKey = new DatabaseEntry();
     private final DatabaseEntry sessionInfoBytes = new DatabaseEntry();
-    private String charsetEncoding = CharsetSupport.getCharset();
+    private final String charsetEncoding = CharsetSupport.getCharset();
 
     private static class SessionIDTupleBinding extends TupleBinding {
 
@@ -129,7 +129,7 @@ public class SleepycatStore implements MessageStore {
     private static class SessionInfo {
         private int nextSenderMsgSeqNum;
         private int nextTargetMsgSeqNum;
-        private Calendar creationTime;
+        private final Calendar creationTime;
 
         public SessionInfo() {
             this(SystemTime.getUtcCalendar(), 1, 1);

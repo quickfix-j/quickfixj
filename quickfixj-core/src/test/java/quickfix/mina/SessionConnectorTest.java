@@ -44,7 +44,7 @@ import quickfix.SessionState;
 import quickfix.UnitTestApplication;
 
 public class SessionConnectorTest extends TestCase {
-    private List<PropertyChangeEvent> propertyChangeEvents = new ArrayList<PropertyChangeEvent>();
+    private final List<PropertyChangeEvent> propertyChangeEvents = new ArrayList<PropertyChangeEvent>();
 
     public void testConnector() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");

@@ -25,7 +25,7 @@ import java.util.List;
 public class Field {
 
     String tag = null, fieldName = null, type = null, desc = null, notReqXML = null;
-    List<Enum> enums = new ArrayList<Enum>();
+    final List<Enum> enums = new ArrayList<Enum>();
 
     public Field(String tag, String fieldName, String type, String desc, String notReqXML) {
         this.tag = tag;

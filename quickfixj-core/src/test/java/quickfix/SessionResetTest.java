@@ -145,8 +145,8 @@ public class SessionResetTest {
 
     private class PausableThreadPoolExecutor extends ThreadPoolExecutor {
         private boolean isPaused;
-        private ReentrantLock pauseLock = new ReentrantLock();
-        private Condition unpaused = pauseLock.newCondition();
+        private final ReentrantLock pauseLock = new ReentrantLock();
+        private final Condition unpaused = pauseLock.newCondition();
 
         public PausableThreadPoolExecutor() {
             super(2, 2, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10000));

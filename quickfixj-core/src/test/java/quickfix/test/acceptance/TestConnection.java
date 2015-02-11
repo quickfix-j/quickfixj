@@ -25,10 +25,8 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -54,7 +52,7 @@ import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.test.util.ReflectionUtil;
 
 public class TestConnection {
-    private static HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
+    private static final HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
 
@@ -86,7 +84,7 @@ public class TestConnection {
     }
 
     public void connect(int clientId, int transportType, int port)
-            throws UnknownHostException, IOException {
+            throws IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
         if (connector != null) {
             log.info("Disposing connector for clientId " + clientId);

@@ -347,8 +347,8 @@ public class Session implements Closeable {
 
     private boolean enabled;
 
-    private final String responderSync = new String("SessionResponderSync"); // unique instance
-    // @GuardedBy(responderSync)
+    private final Object responderLock = new Object(); // unique instance
+    // @GuardedBy(responderLock)
     private Responder responder;
 
     // The session time checks were causing performance problems
@@ -500,7 +500,7 @@ public class Session implements Closeable {
      * @param responder a responder implementation
      */
     public void setResponder(Responder responder) {
-        synchronized (responderSync) {
+        synchronized (responderLock) {
             this.responder = responder;
             if (responder != null) {
                 stateListener.onConnect();
@@ -511,7 +511,7 @@ public class Session implements Closeable {
     }
 
     public Responder getResponder() {
-        synchronized (responderSync) {
+        synchronized (responderLock) {
             return responder;
         }
     }
@@ -1733,26 +1733,12 @@ public class Session implements Closeable {
     }
 
     private synchronized boolean validLogonState(String msgType) {
-        if (msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived()) {
-            return true;
-        }
-        if (msgType.equals(MsgType.LOGON) && !state.isLogonReceived()
-                || !msgType.equals(MsgType.LOGON) && state.isLogonReceived()) {
-            return true;
-        }
-        if (msgType.equals(MsgType.LOGOUT) && state.isLogonSent()) {
-            return true;
-        }
-        if (!msgType.equals(MsgType.LOGOUT) && state.isLogoutSent()) {
-            return true;
-        }
-        if (msgType.equals(MsgType.SEQUENCE_RESET)) {
-            return true;
-        }
-        if (msgType.equals(MsgType.REJECT)) {
-            return true;
-        }
-        return false;
+        return msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived() ||
+                msgType.equals(MsgType.LOGON) && !state.isLogonReceived() ||
+                !msgType.equals(MsgType.LOGON) && state.isLogonReceived() ||
+                msgType.equals(MsgType.LOGOUT) && state.isLogonSent() ||
+                !msgType.equals(MsgType.LOGOUT) && state.isLogoutSent() ||
+                msgType.equals(MsgType.SEQUENCE_RESET) || msgType.equals(MsgType.REJECT);
     }
 
     private boolean verify(Message message) throws RejectLogon, FieldNotFound, IncorrectDataFormat,
@@ -1932,7 +1918,7 @@ public class Session implements Closeable {
      */
     public void disconnect(String reason, boolean logError) throws IOException {
         try {
-            synchronized (responderSync) {
+            synchronized (responderLock) {
                 if (!hasResponder()) {
                     if (!ENCOUNTERED_END_OF_STREAM.equals(reason)) {
                         getLog().onEvent("Already disconnected: " + reason);
@@ -2526,7 +2512,7 @@ public class Session implements Closeable {
     private boolean send(String messageString) {
         getLog().onOutgoing(messageString);
         Responder responder;
-        synchronized (responderSync) {
+        synchronized (responderLock) {
             responder = this.responder;
         }
         if (responder == null) {

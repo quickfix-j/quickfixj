@@ -25,7 +25,7 @@ import javax.sql.DataSource;
  * Creates a generic JDBC logger.
  */
 public class JdbcLogFactory implements LogFactory {
-    private SessionSettings settings;
+    private final SessionSettings settings;
     private DataSource dataSource;
 
     /**

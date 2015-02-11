@@ -18,8 +18,8 @@ import junit.framework.Assert;
  * @version $Id: ExpectedTestFailure.java 211 2006-07-20 15:08:14Z toli $
  */
 public abstract class ExpectedTestFailure {
-    private String mContains;
-    private Class<?> mThrowable;
+    private final String mContains;
+    private final Class<?> mThrowable;
 
     public ExpectedTestFailure(Class<?> inThrowable) {
         this(inThrowable, null);

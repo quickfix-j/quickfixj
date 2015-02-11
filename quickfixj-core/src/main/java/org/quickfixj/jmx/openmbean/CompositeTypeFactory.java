@@ -27,13 +27,13 @@ import javax.management.openmbean.OpenType;
 // be incompatible with Java 5
 
 public class CompositeTypeFactory {
-    private String name;
-    private String description;
-    private ArrayList<String> itemNames = new ArrayList<String>();
-    private ArrayList<String> itemDescriptions = new ArrayList<String>();
+    private final String name;
+    private final String description;
+    private final ArrayList<String> itemNames = new ArrayList<String>();
+    private final ArrayList<String> itemDescriptions = new ArrayList<String>();
 
     @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
-    private ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
+    private final ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
 
     public CompositeTypeFactory(String name, String description) {
         this.name = name;

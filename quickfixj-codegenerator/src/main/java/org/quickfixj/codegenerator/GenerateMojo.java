@@ -83,7 +83,7 @@ public class GenerateMojo extends AbstractMojo {
      *
      * @parameter default-value = "quickfix.field"
      */
-    private String fieldPackage = "quickfix.field";
+    private final String fieldPackage = "quickfix.field";
 
     /**
      * The Maven project to act upon.

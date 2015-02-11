@@ -152,7 +152,7 @@ public class Message extends FieldMap {
         return header.calculateLength() + calculateLength() + trailer.calculateLength();
     }
 
-    private static DecimalFormat checksumFormat = new DecimalFormat("000");
+    private static final DecimalFormat checksumFormat = new DecimalFormat("000");
 
     private String checksum() {
         return checksumFormat.format(

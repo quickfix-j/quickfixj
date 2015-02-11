@@ -83,10 +83,10 @@ public class IoSessionInitiator {
         private final IoConnector ioConnector;
         private final Session fixSession;
         private final long[] reconnectIntervalInMillis;
-        private String keyStoreName;
-        private String keyStorePassword;
-        private String[] enableProtocole;
-        private String[] cipherSuites;
+        private final String keyStoreName;
+        private final String keyStorePassword;
+        private final String[] enableProtocole;
+        private final String[] cipherSuites;
         private final InitiatorIoHandler ioHandler;
 
         private IoSession ioSession;

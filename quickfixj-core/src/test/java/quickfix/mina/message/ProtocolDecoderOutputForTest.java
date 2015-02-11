@@ -25,7 +25,7 @@ import java.util.List;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
 public class ProtocolDecoderOutputForTest implements ProtocolDecoderOutput {
-    public List<Object> messages = new ArrayList<Object>();
+    public final List<Object> messages = new ArrayList<Object>();
 
     public void write(Object message) {
         messages.add(message);

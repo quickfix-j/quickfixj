@@ -36,8 +36,8 @@ import quickfix.SessionID;
 import quickfix.UnsupportedMessageType;
 
 public class ATApplication implements Application {
-    private ATMessageCracker inboundCracker = new ATMessageCracker();
-    private MessageCracker outboundCracker = new MessageCracker(new Object());
+    private final ATMessageCracker inboundCracker = new ATMessageCracker();
+    private final MessageCracker outboundCracker = new MessageCracker(new Object());
     private boolean isLoggedOn;
 
     public void onCreate(SessionID sessionID) {

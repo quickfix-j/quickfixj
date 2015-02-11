@@ -59,31 +59,28 @@ public class OrderEntryPanel extends JPanel implements Observer {
     private boolean stopEntered = false;
     private boolean sessionEntered = false;
 
-    private JTextField symbolTextField = new JTextField();
-    private IntegerNumberTextField quantityTextField =
-        new IntegerNumberTextField();
+    private final JTextField symbolTextField = new JTextField();
+    private final IntegerNumberTextField quantityTextField = new IntegerNumberTextField();
 
-    private JComboBox sideComboBox = new JComboBox(OrderSide.toArray());
-    private JComboBox typeComboBox = new JComboBox(OrderType.toArray());
-    private JComboBox tifComboBox = new JComboBox(OrderTIF.toArray());
+    private final JComboBox sideComboBox = new JComboBox(OrderSide.toArray());
+    private final JComboBox typeComboBox = new JComboBox(OrderType.toArray());
+    private final JComboBox tifComboBox = new JComboBox(OrderTIF.toArray());
 
-    private DoubleNumberTextField limitPriceTextField =
-        new DoubleNumberTextField();
-    private DoubleNumberTextField stopPriceTextField =
-        new DoubleNumberTextField();
+    private final DoubleNumberTextField limitPriceTextField = new DoubleNumberTextField();
+    private final DoubleNumberTextField stopPriceTextField = new DoubleNumberTextField();
 
-    private JComboBox sessionComboBox = new JComboBox();
+    private final JComboBox sessionComboBox = new JComboBox();
 
-    private JLabel limitPriceLabel = new JLabel("Limit");
-    private JLabel stopPriceLabel = new JLabel("Stop");
+    private final JLabel limitPriceLabel = new JLabel("Limit");
+    private final JLabel stopPriceLabel = new JLabel("Stop");
 
-    private JLabel messageLabel = new JLabel(" ");
-    private JButton submitButton = new JButton("Submit");
+    private final JLabel messageLabel = new JLabel(" ");
+    private final JButton submitButton = new JButton("Submit");
 
     private OrderTableModel orderTableModel = null;
     private transient BanzaiApplication application = null;
 
-    private GridBagConstraints constraints = new GridBagConstraints();
+    private final GridBagConstraints constraints = new GridBagConstraints();
 
     public OrderEntryPanel(final OrderTableModel orderTableModel,
                 final BanzaiApplication application) {

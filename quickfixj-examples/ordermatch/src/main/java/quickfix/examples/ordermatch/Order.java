@@ -22,15 +22,15 @@ package quickfix.examples.ordermatch;
 import quickfix.field.Side;
 
 public class Order {
-    private long entryTime;
-    private String clientOrderId;
-    private String symbol;
-    private String owner;
-    private String target;
-    private char side;
-    private char type;
-    private double price;
-    private long quantity;
+    private final long entryTime;
+    private final String clientOrderId;
+    private final String symbol;
+    private final String owner;
+    private final String target;
+    private final char side;
+    private final char type;
+    private final double price;
+    private final long quantity;
     private long openQuantity;
     private long executedQuantity;
     private double avgExecutedPrice;

@@ -47,15 +47,15 @@ public class FileLog extends AbstractLog {
         }
     }
 
-    private String messagesFileName;
-    private String eventFileName;
+    private final String messagesFileName;
+    private final String eventFileName;
     private boolean syncAfterWrite;
 
     private FileOutputStream messages;
     private FileOutputStream events;
 
-    private boolean includeMillis;
-    private boolean includeTimestampForMessages;
+    private final boolean includeMillis;
+    private final boolean includeTimestampForMessages;
 
     FileLog(String path, SessionID sessionID, boolean includeMillis, boolean includeTimestampForMessages, boolean logHeartbeats) throws FileNotFoundException {
         String sessionName = FileUtil.sessionIdFileName(sessionID);
