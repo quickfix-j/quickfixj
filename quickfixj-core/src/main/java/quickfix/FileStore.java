@@ -204,9 +204,7 @@ public class FileStore implements MessageStore, Closeable {
         // Remove the lowest indexed sequence number if this addition
         // would result the index growing to larger than maxCachedMsgs.
         if (messageIndex.size() >= maxCachedMsgs && messageIndex.get(sequenceNum) == null) {
-            // Line below requires Java 6, using Java 5 approximation
-            //messageIndex.pollFirstEntry();
-            messageIndex.remove(messageIndex.firstKey());
+            messageIndex.pollFirstEntry();
         }
 
         messageIndex.put(sequenceNum, offsetAndSize);
@@ -333,9 +331,7 @@ public class FileStore implements MessageStore, Closeable {
                     if (uncachedOffsetMsgIds.remove(sequenceNumber)) {
                         final String message = getMessage(new long[] { offset, size },
                                 sequenceNumber);
-                        if (message != null) {
-                            messagesFound.put(sequenceNumber, message);
-                        }
+                        messagesFound.put(sequenceNumber, message);
                     }
                     if (uncachedOffsetMsgIds.isEmpty()) {
                         break;
