@@ -38,11 +38,6 @@ import static quickfix.mina.EventHandlingStrategy.END_OF_STREAM;
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
 
-    /**
-     * Constant indicating how long we wait for an incoming message. After this thread has been asked
-     * to stop, it can take up to this long to terminate.
-     */
-    private static final long THREAD_WAIT_FOR_MESSAGE_MS = 250;
     private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
     private final SessionConnector sessionConnector;
     private final int queueCapacity;

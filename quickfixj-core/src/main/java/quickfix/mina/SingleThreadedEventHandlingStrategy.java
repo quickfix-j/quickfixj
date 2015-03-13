@@ -33,9 +33,10 @@ import quickfix.SystemTime;
  * Processes messages for all sessions in a single thread.
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
-    private static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
+    public static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
     private final BlockingQueue<SessionMessageEvent> eventQueue;
     private final SessionConnector sessionConnector;
+    private volatile Thread messageProcessingThread;
     private volatile boolean isStopped;
     private long stopTime = 0L;
 
@@ -95,15 +96,26 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     private SessionMessageEvent getMessage() throws InterruptedException {
-        return eventQueue.poll(1000L, TimeUnit.MILLISECONDS);
+        return eventQueue.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Start handling of messages by message processor thread.
+     * If thread is still alive, IllegalStateException is thrown to
+     * prevent multiple active message processor threads.
+     */
     public void blockInThread() {
+        if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
+            throw new IllegalStateException(MESSAGE_PROCESSOR_THREAD_NAME + " already running!");
+        }
+
         startHandlingMessages();
-        Thread messageProcessingThread = new Thread(new Runnable() {
+        messageProcessingThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                sessionConnector.log.info("Started " + MESSAGE_PROCESSOR_THREAD_NAME);
                 block();
+                sessionConnector.log.info("Stopped " + MESSAGE_PROCESSOR_THREAD_NAME);
             }
         }, MESSAGE_PROCESSOR_THREAD_NAME);
         messageProcessingThread.setDaemon(true);

@@ -29,13 +29,19 @@ import quickfix.SessionID;
  */
 public interface EventHandlingStrategy {
 
+    /**
+     * Constant indicating how long we wait for an incoming message. After
+     * thread has been asked to stop, it can take up to this long to terminate.
+     */
+    static final long THREAD_WAIT_FOR_MESSAGE_MS = 250;
+
     // will be put to the eventQueue to signal a disconnection
     public static final Message END_OF_STREAM = new Message();
 
     void onMessage(Session quickfixSession, Message message);
 
     /**
-     * Get the session connector associated with this strategy
+     * @return the SessionConnector associated with this strategy
      */
     SessionConnector getSessionConnector();
 
