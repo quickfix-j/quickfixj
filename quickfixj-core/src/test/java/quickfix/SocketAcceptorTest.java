@@ -19,17 +19,24 @@
 
 package quickfix;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import junit.framework.TestCase;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.mina.ProtocolFactory;
+import quickfix.mina.SingleThreadedEventHandlingStrategy;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -38,7 +45,7 @@ import quickfix.mina.ProtocolFactory;
  *
  * MultiAcceptorTest served as a template for this test.
  */
-public class SocketAcceptorTest extends TestCase {
+public class SocketAcceptorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final SessionID acceptorSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42,
             "ACCEPTOR", "INITIATOR");
@@ -82,6 +89,56 @@ public class SocketAcceptorTest extends TestCase {
                 }
             }
         }
+    }
+    
+    // QFJ-825
+    @Test
+    public void testQuickRestartOfAcceptor() throws Exception {
+        Acceptor acceptor = null;
+        try {
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+            TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+            acceptor = createAcceptor(testAcceptorApplication);
+            acceptor.start();
+            Thread.sleep(2500L);
+            acceptor.stop();
+            acceptor.start();
+            checkThreads(bean);
+        } finally {
+            if (acceptor != null) {
+                acceptor.stop(true);
+            }
+        }
+    }
+
+    // QFJ-825
+    @Test
+    public void testDoubleStartOfAcceptor() throws Exception {
+        Acceptor acceptor = null;
+        try {
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+            TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+            acceptor = createAcceptor(testAcceptorApplication);
+            acceptor.start();
+            acceptor.start();
+            checkThreads(bean);
+        } finally {
+            if (acceptor != null) {
+                acceptor.stop(true);
+            }
+        }
+    }
+
+    private void checkThreads(ThreadMXBean bean) {
+        ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
+        int qfjMPThreads = 0;
+        for (ThreadInfo threadInfo : dumpAllThreads) {
+            if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
+                    .getThreadName())) {
+                qfjMPThreads++;
+            }
+        }
+        assertEquals("Exactly one 'QFJ Message Processor' thread expected", 1, qfjMPThreads);
     }
 
     private Session lookupSession(SessionID sessionID) {

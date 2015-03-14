@@ -70,43 +70,51 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
-
+    @Override
     public void block() throws ConfigError, RuntimeError {
-        initialize();
-        eventHandlingStrategy.block();
+        initialize(false);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
-        initialize();
-        eventHandlingStrategy.blockInThread();
+        initialize(true);
     }
 
-    private void initialize() throws ConfigError {
+    private void initialize(boolean blockInThread) throws ConfigError {
         synchronized (lock) {
             if (isStarted.equals(Boolean.FALSE)) {
                 startAcceptingConnections();
+                if (blockInThread) {
+                    eventHandlingStrategy.blockInThread();
+                } else {
+                    eventHandlingStrategy.block();
+                }
+                isStarted = Boolean.TRUE;
+            } else {
+                log.warn("Ignored attempt to start already running SocketAcceptor.");
             }
-            isStarted = Boolean.TRUE;
         }
     }
 
+    @Override
     public void stop() {
         stop(false);
     }
 
+    @Override
     public void stop(boolean forceDisconnect) {
-        try {
-            eventHandlingStrategy.stopHandlingMessages();
+        synchronized (lock) {
             try {
-                stopAcceptingConnections();
-            } catch (ConfigError e) {
-                log.error("Error when stopping acceptor.", e);
-            }
-            logoutAllSessions(forceDisconnect);
-            stopSessionTimer();
-        } finally {
-            Session.unregisterSessions(getSessions());
-            synchronized (lock) {
+                eventHandlingStrategy.stopHandlingMessages();
+                try {
+                    stopAcceptingConnections();
+                } catch (ConfigError e) {
+                    log.error("Error when stopping acceptor.", e);
+                }
+                logoutAllSessions(forceDisconnect);
+                stopSessionTimer();
+            } finally {
+                Session.unregisterSessions(getSessions());
                 isStarted = Boolean.FALSE;
             }
         }

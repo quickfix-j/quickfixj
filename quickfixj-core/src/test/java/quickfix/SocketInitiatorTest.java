@@ -26,6 +26,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quickfix.mina.ProtocolFactory;
+import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.test.acceptance.ATServer;
 
 public class SocketInitiatorTest {
@@ -179,6 +183,35 @@ public class SocketInitiatorTest {
                 new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
         doTestOfRestart(clientSessionID, clientApplication, initiator, null);
+    }
+
+    // QFJ-825
+    @Test
+    public void testDoubleStartOfInitiator() throws Exception {
+        Initiator initiator = null;
+        try {
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID);
+            ClientApplication clientApplication = new ClientApplication();
+            initiator = new SocketInitiator(clientApplication,
+                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+            initiator.start();
+            initiator.start();
+            ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
+            int qfjMPThreads = 0;
+            for (ThreadInfo threadInfo : dumpAllThreads) {
+                if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
+                        .getThreadName())) {
+                    qfjMPThreads++;
+                }
+            }
+            assertEquals("Exactly one 'QFJ Message Processor' thread expected", 1, qfjMPThreads);
+        } finally {
+            if (initiator != null) {
+                initiator.stop(true);
+            }
+        }
     }
 
     private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,

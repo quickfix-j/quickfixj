@@ -79,32 +79,36 @@ public class SocketInitiator extends AbstractSocketInitiator {
         eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(this, queueCapacity);
     }
 
+    @Override
     public void block() throws ConfigError, RuntimeError {
-        initialize();
-        eventHandlingStrategy.block();
+        initialize(false);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
-        initialize();
-        eventHandlingStrategy.blockInThread();
+        initialize(true);
     }
 
+    @Override
     public void stop() {
         stop(false);
     }
 
+    @Override
     public void stop(boolean forceDisconnect) {
-        try {
-            eventHandlingStrategy.stopHandlingMessages();
-            logoutAllSessions(forceDisconnect);
-            stopInitiators();
-        } finally {
-            Session.unregisterSessions(getSessions());
-            isStarted = Boolean.FALSE;
+        synchronized (lock) {
+            try {
+                eventHandlingStrategy.stopHandlingMessages();
+                logoutAllSessions(forceDisconnect);
+                stopInitiators();
+            } finally {
+                Session.unregisterSessions(getSessions());
+                isStarted = Boolean.FALSE;
+            }
         }
     }
 
-    private void initialize() throws ConfigError {
+    private void initialize(boolean blockInThread) throws ConfigError {
         synchronized (lock) {
             if (isStarted.equals(Boolean.FALSE)) {
                 createSessionInitiators();
@@ -112,7 +116,14 @@ public class SocketInitiator extends AbstractSocketInitiator {
                     Session.registerSession(session);
                 }
                 startInitiators();
+                if (blockInThread) {
+                    eventHandlingStrategy.blockInThread();
+                } else {
+                    eventHandlingStrategy.block();
+                }
                 isStarted = Boolean.TRUE;
+            } else {
+                log.warn("Ignored attempt to start already running SocketInitiator.");
             }
         }
     }
