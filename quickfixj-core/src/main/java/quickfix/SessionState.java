@@ -322,7 +322,7 @@ public final class SessionState {
     }
 
     public Message getNextQueuedMessage() {
-        return messageQueue.size() > 0 ? messageQueue.values().iterator().next() : null;
+        return !messageQueue.isEmpty() ? messageQueue.values().iterator().next() : null;
     }
 
     public Collection<Integer> getQueuedSeqNums() {

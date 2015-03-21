@@ -85,25 +85,25 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
     }
 
     public Message lastFromAppMessage() {
-        if (fromAppMessages.size() == 0)
+        if (fromAppMessages.isEmpty())
             return null;
         return fromAppMessages.get(fromAppMessages.size() - 1);
     }
 
     public Message lastFromAdminMessage() {
-        if (fromAdminMessages.size() == 0)
+        if (fromAdminMessages.isEmpty())
             return null;
         return fromAdminMessages.get(fromAdminMessages.size() - 1);
     }
 
     public Message lastToAppMessage() {
-        if (toAppMessages.size() == 0)
+        if (toAppMessages.isEmpty())
             return null;
         return toAppMessages.get(toAppMessages.size() - 1);
     }
 
     public Message lastToAdminMessage() {
-        if (toAdminMessages.size() == 0)
+        if (toAdminMessages.isEmpty())
             return null;
         return toAdminMessages.get(toAdminMessages.size() - 1);
     }

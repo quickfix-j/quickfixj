@@ -152,7 +152,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                             "Error during message processing", e);
                 }
             }
-            if (messages.size() > 0) {
+            if (!messages.isEmpty()) {
                 final LinkedBlockingQueue<Message> tempQueue = new LinkedBlockingQueue<Message>();
                 messages.drainTo(tempQueue);
                 for (Message message : tempQueue) {

@@ -244,7 +244,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         }
         setSessions(allSessions);
 
-        if (socketDescriptorForAddress.size() == 0) {
+        if (socketDescriptorForAddress.isEmpty()) {
             throw new ConfigError("No acceptor sessions found in settings.");
         }
     }

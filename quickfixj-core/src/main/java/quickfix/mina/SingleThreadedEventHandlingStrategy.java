@@ -66,7 +66,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         while (true) {
             synchronized (this) {
                 if (isStopped) {
-                    if (eventQueue.size() > 0) {
+                    if (!eventQueue.isEmpty()) {
                         final LinkedBlockingQueue<SessionMessageEvent> tempQueue = new LinkedBlockingQueue<SessionMessageEvent>();
                         eventQueue.drainTo(tempQueue);
                         for (SessionMessageEvent event : tempQueue) {

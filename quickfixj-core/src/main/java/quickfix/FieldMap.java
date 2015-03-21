@@ -604,7 +604,7 @@ public abstract class FieldMap implements Serializable {
         if (num <= groupList.size()) {
             groupList.remove(num - 1);
         }
-        if (groupList.size() > 0) {
+        if (!groupList.isEmpty()) {
             setGroupCount(field, groupList.size());
         }
     }

@@ -371,7 +371,7 @@ public class DataDictionary {
      */
     public boolean hasFieldValue(int field) {
         final Set<String> values = fieldValues.get(field);
-        return values != null && values.size() > 0;
+        return values != null && !values.isEmpty();
     }
 
     /**
@@ -384,7 +384,7 @@ public class DataDictionary {
     public boolean isFieldValue(int field, String value) {
         final Set<String> validValues = fieldValues.get(field);
 
-        if (validValues == null || validValues.size() == 0) {
+        if (validValues == null || validValues.isEmpty()) {
             return false;
         }
 
@@ -792,7 +792,7 @@ public class DataDictionary {
 
     private void checkHasRequired(String msgType, FieldMap fields, boolean bodyOnly) {
         final Set<Integer> requiredFieldsForMessage = requiredFields.get(msgType);
-        if (requiredFieldsForMessage == null || requiredFieldsForMessage.size() == 0) {
+        if (requiredFieldsForMessage == null || requiredFieldsForMessage.isEmpty()) {
             return;
         }
 
@@ -803,7 +803,7 @@ public class DataDictionary {
         }
 
         final Map<Integer, List<Group>> groups = fields.getGroups();
-        if (groups.size() > 0) {
+        if (!groups.isEmpty()) {
             for (Map.Entry<Integer, List<Group>> entry : groups.entrySet()) {
                 final GroupInfo p = getGroup(msgType, entry.getKey());
                 if (p != null) {
