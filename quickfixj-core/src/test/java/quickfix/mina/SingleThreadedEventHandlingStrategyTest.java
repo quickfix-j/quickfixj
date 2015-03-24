@@ -19,6 +19,10 @@
  */
 package quickfix.mina;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import static junit.framework.Assert.assertEquals;
 import org.junit.Test;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
@@ -38,15 +42,17 @@ public class SingleThreadedEventHandlingStrategyTest {
     DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
             new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testDoubleStart() throws Exception {
         SingleThreadedEventHandlingStrategy ehs = null;
         try {
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             SessionSettings settings = new SessionSettings();
             SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
             ehs = new SingleThreadedEventHandlingStrategy(connector, 1000);
             ehs.blockInThread();
             ehs.blockInThread();
+            checkThreads(bean);
         } finally {
             if ( ehs != null ) {
                 ehs.stopHandlingMessages();
@@ -59,6 +65,7 @@ public class SingleThreadedEventHandlingStrategyTest {
     public void testStartStop() throws Exception {
         SingleThreadedEventHandlingStrategy ehs = null;
         try {
+            ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             SessionSettings settings = new SessionSettings();
             SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
             ehs = new SingleThreadedEventHandlingStrategy(connector, 1000);
@@ -66,12 +73,25 @@ public class SingleThreadedEventHandlingStrategyTest {
             ehs.stopHandlingMessages();
             Thread.sleep(500);
             ehs.blockInThread();
+            checkThreads(bean);
         } finally {
             if ( ehs != null ) {
                 ehs.stopHandlingMessages();
             }
         }
 
+    }
+
+    private void checkThreads(ThreadMXBean bean) {
+        ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
+        int qfjMPThreads = 0;
+        for (ThreadInfo threadInfo : dumpAllThreads) {
+            if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
+                    .getThreadName())) {
+                qfjMPThreads++;
+            }
+        }
+        assertEquals("Exactly one 'QFJ Message Processor' thread expected", 1, qfjMPThreads);
     }
 
     private static class SessionConnectorUnderTest extends SessionConnector {

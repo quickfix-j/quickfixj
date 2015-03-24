@@ -101,12 +101,24 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     /**
      * Start handling of messages by message processor thread.
-     * If thread is still alive, IllegalStateException is thrown to
-     * prevent multiple active message processor threads.
+     * If thread is still alive, an attempt is made to stop it.
+     * An IllegalStateException is thrown if stopping the old thread
+     * was not successful.
+     * 
+     * This method must not be called by several threads concurrently.
      */
     public void blockInThread() {
         if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
-            throw new IllegalStateException(MESSAGE_PROCESSOR_THREAD_NAME + " already running!");
+            sessionConnector.log.warn("Trying to stop still running " + MESSAGE_PROCESSOR_THREAD_NAME);
+            stopHandlingMessages();
+            try {
+                messageProcessingThread.join(1000);
+            } catch (InterruptedException ex) {
+                sessionConnector.log.error(MESSAGE_PROCESSOR_THREAD_NAME + " interrupted.");
+            }
+            if (messageProcessingThread.isAlive()) {
+                throw new IllegalStateException("Still running " + MESSAGE_PROCESSOR_THREAD_NAME + " could not be stopped!");
+            }
         }
 
         startHandlingMessages();

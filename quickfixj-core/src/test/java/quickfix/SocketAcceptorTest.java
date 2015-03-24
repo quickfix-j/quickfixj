@@ -55,6 +55,7 @@ public class SocketAcceptorTest {
     @Test
     public void testRestartOfAcceptor() throws Exception {
         TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         Acceptor acceptor = null;
         Initiator initiator = null;
         try {
@@ -71,23 +72,27 @@ public class SocketAcceptorTest {
             assertNotNull("Session should be registered", lookupSession(acceptorSessionID));
             initiator.start();
 
+            // we expect one thread for acceptor, one for initiator
+            checkThreads(bean, 2);
+
             testAcceptorApplication.waitForLogon();
             assertTrue("initiator should have logged on by now", acceptor.isLoggedOn());
         } finally {
             if (initiator != null) {
                 try {
-                    initiator.stop();
+                    initiator.stop(true);
                 } catch (RuntimeException e) {
                     log.error(e.getMessage(), e);
                 }
             }
             if (acceptor != null) {
                 try {
-                    acceptor.stop();
+                    acceptor.stop(true);
                 } catch (RuntimeException e) {
                     log.error(e.getMessage(), e);
                 }
             }
+            Thread.sleep(500);
         }
     }
     
@@ -103,11 +108,12 @@ public class SocketAcceptorTest {
             Thread.sleep(2500L);
             acceptor.stop();
             acceptor.start();
-            checkThreads(bean);
+            checkThreads(bean, 1);
         } finally {
             if (acceptor != null) {
                 acceptor.stop(true);
             }
+            Thread.sleep(500);
         }
     }
 
@@ -120,16 +126,18 @@ public class SocketAcceptorTest {
             TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
             acceptor = createAcceptor(testAcceptorApplication);
             acceptor.start();
+            // second start should be ignored
             acceptor.start();
-            checkThreads(bean);
+            checkThreads(bean, 1);
         } finally {
             if (acceptor != null) {
                 acceptor.stop(true);
             }
+            Thread.sleep(500);
         }
     }
 
-    private void checkThreads(ThreadMXBean bean) {
+    private void checkThreads(ThreadMXBean bean, int expectedNum) {
         ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
         int qfjMPThreads = 0;
         for (ThreadInfo threadInfo : dumpAllThreads) {
@@ -138,7 +146,7 @@ public class SocketAcceptorTest {
                 qfjMPThreads++;
             }
         }
-        assertEquals("Exactly one 'QFJ Message Processor' thread expected", 1, qfjMPThreads);
+        assertEquals("Exactly " + expectedNum + " 'QFJ Message Processor' thread(s) expected", expectedNum, qfjMPThreads);
     }
 
     private Session lookupSession(SessionID sessionID) {
