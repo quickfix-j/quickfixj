@@ -156,6 +156,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources/FIXT11.xml</dictFile>
 							<packaging>quickfix.fixt11</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 					<execution>
@@ -167,6 +168,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources/FIX50.xml</dictFile>
 							<packaging>quickfix.fix50</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 					<execution>
@@ -178,6 +180,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources/FIX44.xml</dictFile>
 							<packaging>quickfix.fix44</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 					<execution>
@@ -189,6 +192,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fix43/src/main/resources/FIX43.xml</dictFile>
 							<packaging>quickfix.fix43</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 					<execution>
@@ -200,6 +204,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fix42/src/main/resources/FIX42.xml</dictFile>
 							<packaging>quickfix.fix42</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 					<execution>
@@ -211,6 +216,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fix41/src/main/resources/FIX41.xml</dictFile>
 							<packaging>quickfix.fix41</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 					<execution>
@@ -222,6 +228,7 @@
 							<dictFile>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources/FIX40.xml</dictFile>
 							<packaging>quickfix.fix40</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
 				</executions>
