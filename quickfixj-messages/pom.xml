@@ -52,6 +52,7 @@
 								<dictFile>src/main/resources/${fix.spec}</dictFile>
 								<packaging>quickfix.${fix.name}</packaging>
 								<fieldPackage>quickfix.field</fieldPackage>
+								<decimal>${generator.decimal}</decimal>
 							</configuration>
 						</execution>
 					</executions>
