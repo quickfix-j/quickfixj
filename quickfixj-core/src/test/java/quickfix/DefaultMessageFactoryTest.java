@@ -18,7 +18,7 @@ import quickfix.test.util.ExpectedTestFailure;
  * @version $Id$
  */
 public class DefaultMessageFactoryTest {
-    private DefaultMessageFactory factory = new DefaultMessageFactory();
+    private final DefaultMessageFactory factory = new DefaultMessageFactory();
 
     @Test
     public void testMessageCreate() throws Exception {

@@ -29,10 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ExpectDisconnectStep implements TestStep {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private static final Pattern DISCONNECT_PATTERN = Pattern.compile("e(\\d+)*,?DISCONNECT");
     private int clientId = 0;
-    private String command;
+    private final String command;
 
     public ExpectDisconnectStep(String data) {
         this.command = data;

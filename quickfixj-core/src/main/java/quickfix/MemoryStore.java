@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @see quickfix.MemoryStoreFactory
  */
 public class MemoryStore implements MessageStore {
-    private HashMap<Integer, String> messages = new HashMap<Integer, String>();
+    private final HashMap<Integer, String> messages = new HashMap<Integer, String>();
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
     private SessionID sessionID;

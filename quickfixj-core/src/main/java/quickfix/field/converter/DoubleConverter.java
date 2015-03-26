@@ -33,7 +33,7 @@ import quickfix.RuntimeError;
  */
 public class DoubleConverter {
     private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
-    private static ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>();
+    private static final ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>();
 
     /**
      * Converts a double to a string with no padding.

@@ -34,7 +34,7 @@ import java.util.Map;
  * type-safe onMessage methods.
  */
 public class MessageCracker {
-    private Map<Class<?>, Invoker> invokers = new HashMap<Class<?>, Invoker>();
+    private final Map<Class<?>, Invoker> invokers = new HashMap<Class<?>, Invoker>();
 
     @Target({ ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)

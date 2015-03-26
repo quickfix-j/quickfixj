@@ -73,18 +73,18 @@ import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 
 public class BanzaiApplication implements Application {
-    private DefaultMessageFactory messageFactory = new DefaultMessageFactory();
+    private final DefaultMessageFactory messageFactory = new DefaultMessageFactory();
     private OrderTableModel orderTableModel = null;
     private ExecutionTableModel executionTableModel = null;
-    private ObservableOrder observableOrder = new ObservableOrder();
-    private ObservableLogon observableLogon = new ObservableLogon();
+    private final ObservableOrder observableOrder = new ObservableOrder();
+    private final ObservableLogon observableLogon = new ObservableLogon();
     private boolean isAvailable = true;
     private boolean isMissingField;
 
-    static private TwoWayMap sideMap = new TwoWayMap();
-    static private TwoWayMap typeMap = new TwoWayMap();
-    static private TwoWayMap tifMap = new TwoWayMap();
-    static private HashMap<SessionID, HashSet<ExecID>> execIDs = new HashMap<SessionID, HashSet<ExecID>>();
+    static private final TwoWayMap sideMap = new TwoWayMap();
+    static private final TwoWayMap typeMap = new TwoWayMap();
+    static private final TwoWayMap tifMap = new TwoWayMap();
+    static private final HashMap<SessionID, HashSet<ExecID>> execIDs = new HashMap<SessionID, HashSet<ExecID>>();
 
     public BanzaiApplication(OrderTableModel orderTableModel,
             ExecutionTableModel executionTableModel) {
@@ -122,8 +122,8 @@ public class BanzaiApplication implements Application {
     }
 
     public class MessageProcessor implements Runnable {
-        private quickfix.Message message;
-        private SessionID sessionID;
+        private final quickfix.Message message;
+        private final SessionID sessionID;
 
         public MessageProcessor(quickfix.Message message, SessionID sessionID) {
             this.message = message;
@@ -377,12 +377,12 @@ public class BanzaiApplication implements Application {
         OrderType type = order.getType();
 
         if (type == OrderType.LIMIT)
-            newOrderSingle.setField(new Price(order.getLimit().doubleValue()));
+            newOrderSingle.setField(new Price(order.getLimit()));
         else if (type == OrderType.STOP) {
-            newOrderSingle.setField(new StopPx(order.getStop().doubleValue()));
+            newOrderSingle.setField(new StopPx(order.getStop()));
         } else if (type == OrderType.STOP_LIMIT) {
-            newOrderSingle.setField(new Price(order.getLimit().doubleValue()));
-            newOrderSingle.setField(new StopPx(order.getStop().doubleValue()));
+            newOrderSingle.setField(new Price(order.getLimit()));
+            newOrderSingle.setField(new StopPx(order.getStop()));
         }
 
         if (order.getSide() == OrderSide.SHORT_SELL
@@ -482,7 +482,7 @@ public class BanzaiApplication implements Application {
         if (order.getQuantity() != newOrder.getQuantity())
             message.setField(new OrderQty(newOrder.getQuantity()));
         if (!order.getLimit().equals(newOrder.getLimit()))
-            message.setField(new Price(newOrder.getLimit().doubleValue()));
+            message.setField(new Price(newOrder.getLimit()));
         return message;
     }
 
@@ -535,7 +535,7 @@ public class BanzaiApplication implements Application {
     }
 
     private static class ObservableLogon extends Observable {
-        private HashSet<SessionID> set = new HashSet<SessionID>();
+        private final HashSet<SessionID> set = new HashSet<SessionID>();
 
         public void logon(SessionID sessionID) {
             set.add(sessionID);

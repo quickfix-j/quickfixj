@@ -60,7 +60,7 @@ public abstract class SessionConnector implements Connector {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    protected final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
     private Map<SessionID, Session> sessions = Collections.emptyMap();
     private final SessionSettings settings;

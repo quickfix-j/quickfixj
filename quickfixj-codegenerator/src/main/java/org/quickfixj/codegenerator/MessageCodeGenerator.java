@@ -28,7 +28,6 @@ import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -81,8 +80,8 @@ public class MessageCodeGenerator {
         e.printStackTrace();
     }
 
-    private void generateMessageBaseClass(Task task) throws TransformerConfigurationException,
-            FileNotFoundException, ParserConfigurationException, SAXException, IOException,
+    private void generateMessageBaseClass(Task task) throws
+            ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
         logInfo(task.getName() + ": generating message base class");
         Map<String, String> parameters = new HashMap<String, String>();
@@ -90,22 +89,22 @@ public class MessageCodeGenerator {
         generateClassCode(task, "Message", parameters);
     }
 
-    private void generateMessageFactoryClass(Task task) throws TransformerConfigurationException,
-            FileNotFoundException, ParserConfigurationException, SAXException, IOException,
+    private void generateMessageFactoryClass(Task task) throws
+            ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
         generateClassCode(task, "MessageFactory", null);
     }
 
-    private void generateMessageCrackerClass(Task task) throws TransformerConfigurationException,
-            FileNotFoundException, ParserConfigurationException, SAXException, IOException,
+    private void generateMessageCrackerClass(Task task) throws
+            ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
         generateClassCode(task, "MessageCracker", null);
     }
 
     private void generateClassCode(Task task, String className, Map<String, String> parameters)
             throws ParserConfigurationException, SAXException, IOException,
-            TransformerFactoryConfigurationError, TransformerConfigurationException,
-            FileNotFoundException, TransformerException {
+            TransformerFactoryConfigurationError,
+            TransformerException {
         logDebug("generating " + className + " for " + task.getName());
         if (parameters == null) {
             parameters = new HashMap<String, String>();
@@ -149,7 +148,7 @@ public class MessageCodeGenerator {
     }
 
     private void generateMessageSubclasses(Task task) throws ParserConfigurationException,
-            SAXException, IOException, TransformerConfigurationException, FileNotFoundException,
+            SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
         logInfo(task.getName() + ": generating message subclasses");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
@@ -172,7 +171,7 @@ public class MessageCodeGenerator {
     }
 
     private void generateComponentClasses(Task task) throws ParserConfigurationException,
-            SAXException, IOException, TransformerConfigurationException, FileNotFoundException,
+            SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
         logInfo(task.getName() + ": generating component classes");
         String outputDirectory = task.getOutputBaseDirectory() + "/" + task.getMessageDirectory()
@@ -213,7 +212,7 @@ public class MessageCodeGenerator {
         return transformerFactory.newTransformer(styleSource);
     }
 
-    private Map<String, Document> specificationCache = new HashMap<String, Document>();
+    private final Map<String, Document> specificationCache = new HashMap<String, Document>();
 
     private Document getSpecification(Task task) throws ParserConfigurationException, SAXException,
             IOException {
@@ -265,7 +264,7 @@ public class MessageCodeGenerator {
 
     private void generateCodeFile(Task task, Document document, Map<String, String> parameters,
             String outputFileName, Transformer transformer)
-            throws TransformerFactoryConfigurationError, TransformerConfigurationException,
+            throws TransformerFactoryConfigurationError,
             FileNotFoundException, TransformerException {
         if (parameters != null) {
             for (Map.Entry<String, String> entry : parameters.entrySet()) {

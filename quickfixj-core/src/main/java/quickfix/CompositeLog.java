@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * or database.
  */
 class CompositeLog implements Log {
-    private Logger defaultLog = LoggerFactory.getLogger(getClass());
+    private final Logger defaultLog = LoggerFactory.getLogger(getClass());
     private final Log[] logs;
     private boolean rethrowException;
 

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -57,9 +56,9 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
     public static class SessionAcceptorAddressRow {
 
-        private SessionID sessionID;
+        private final SessionID sessionID;
 
-        private SocketAddress acceptorAddress;
+        private final SocketAddress acceptorAddress;
 
         private final ObjectName sessionName;
 

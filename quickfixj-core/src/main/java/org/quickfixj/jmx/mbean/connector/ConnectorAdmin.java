@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.management.MBeanRegistration;
@@ -49,7 +48,7 @@ import quickfix.SessionSettings;
 import quickfix.mina.SessionConnector;
 
 abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public final static String ACCEPTOR_ROLE = "ACCEPTOR";
 
@@ -92,8 +91,8 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     }
 
     public static class ConnectorSession {
-        private Session session;
-        private ObjectName sessionName;
+        private final Session session;
+        private final ObjectName sessionName;
 
         public ConnectorSession(Session session, ObjectName sessionName) {
             this.session = session;

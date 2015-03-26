@@ -22,8 +22,8 @@ package quickfix.examples.banzai;
 import quickfix.SessionID;
 
 public class LogonEvent {
-    private SessionID sessionID;
-    private boolean loggedOn;
+    private final SessionID sessionID;
+    private final boolean loggedOn;
 
     public LogonEvent(SessionID sessionID, boolean loggedOn) {
         this.sessionID = sessionID;

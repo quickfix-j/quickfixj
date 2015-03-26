@@ -31,8 +31,8 @@ import quickfix.FieldConvertError;
 public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static ThreadLocal<UtcDateOnlyConverter> utcDateConverter = new ThreadLocal<UtcDateOnlyConverter>();
-    private DateFormat dateFormat = createDateFormat("yyyyMMdd");
+    private static final ThreadLocal<UtcDateOnlyConverter> utcDateConverter = new ThreadLocal<UtcDateOnlyConverter>();
+    private final DateFormat dateFormat = createDateFormat("yyyyMMdd");
 
     /**
      * Convert a date to a String ("YYYYMMDD")

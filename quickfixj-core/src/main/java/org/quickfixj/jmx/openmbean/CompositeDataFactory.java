@@ -25,9 +25,9 @@ import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 
 public class CompositeDataFactory {
-    private CompositeType compositeType;
-    private ArrayList<String> itemNames = new ArrayList<String>();
-    private ArrayList<Object> itemValues = new ArrayList<Object>();
+    private final CompositeType compositeType;
+    private final ArrayList<String> itemNames = new ArrayList<String>();
+    private final ArrayList<Object> itemValues = new ArrayList<Object>();
 
     public CompositeDataFactory(CompositeType compositeType) {
         this.compositeType = compositeType;

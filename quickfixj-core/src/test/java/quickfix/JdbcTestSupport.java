@@ -50,7 +50,7 @@ public class JdbcTestSupport {
     }
 
     public static class HypersonicPreprocessor {
-        private String tableName;
+        private final String tableName;
 
         public HypersonicPreprocessor(String tableName) {
             this.tableName = tableName;

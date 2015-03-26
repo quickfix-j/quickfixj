@@ -76,11 +76,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         initializeValidOrderTypes(settings);
         initializeMarketDataProvider(settings);
 
-        if (settings.isSetting(ALWAYS_FILL_LIMIT_KEY)) {
-            alwaysFillLimitOrders = settings.getBool(ALWAYS_FILL_LIMIT_KEY);
-        } else {
-            alwaysFillLimitOrders = false;
-        }
+        alwaysFillLimitOrders = settings.isSetting(ALWAYS_FILL_LIMIT_KEY) && settings.getBool(ALWAYS_FILL_LIMIT_KEY);
     }
 
     private void initializeMarketDataProvider(SessionSettings settings) throws ConfigError, FieldConvertError {

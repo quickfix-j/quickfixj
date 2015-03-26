@@ -55,11 +55,7 @@ class JdbcLog extends AbstractLog {
                 ? JdbcUtil.getDataSource(settings, sessionID)
                 : ds;
 
-        if (settings.isSetting(SETTING_JDBC_LOG_HEARTBEATS)) {
-            logHeartbeats = settings.getBool(SETTING_JDBC_LOG_HEARTBEATS);
-        } else {
-            logHeartbeats = true;
-        }
+        logHeartbeats = !settings.isSetting(SETTING_JDBC_LOG_HEARTBEATS) || settings.getBool(SETTING_JDBC_LOG_HEARTBEATS);
         setLogHeartbeats(logHeartbeats);
 
         if (settings.isSetting(SETTING_LOG_OUTGOING_TABLE)) {

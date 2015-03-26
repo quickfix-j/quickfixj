@@ -315,7 +315,7 @@ public class SocketInitiatorTest {
     }
 
     private class WriteCounter extends IoFilterAdapter {
-        private String name;
+        private final String name;
         private int count;
         private boolean sessionCreated;
 
@@ -348,8 +348,8 @@ public class SocketInitiatorTest {
     }
 
     private class ServerThread extends Thread {
-        private ATServer server;
-        private WriteCounter writeCounter = new WriteCounter("acceptor");
+        private final ATServer server;
+        private final WriteCounter writeCounter = new WriteCounter("acceptor");
 
         public ServerThread() {
             super("test server");

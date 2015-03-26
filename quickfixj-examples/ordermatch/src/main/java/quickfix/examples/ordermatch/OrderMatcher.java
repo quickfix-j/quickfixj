@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class OrderMatcher {
-    private HashMap<String, Market> markets = new HashMap<String, Market>();
+    private final HashMap<String, Market> markets = new HashMap<String, Market>();
 
     private Market getMarket(String symbol) {
         Market m = markets.get(symbol);

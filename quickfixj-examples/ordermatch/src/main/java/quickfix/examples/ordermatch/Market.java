@@ -29,8 +29,8 @@ import quickfix.field.Side;
 
 public class Market {
 
-    private List<Order> bidOrders = new ArrayList<Order>();
-    private List<Order> askOrders = new ArrayList<Order>();
+    private final List<Order> bidOrders = new ArrayList<Order>();
+    private final List<Order> askOrders = new ArrayList<Order>();
 
     public boolean match(String symbol, List<Order> orders) {
         while (true) {
@@ -103,10 +103,9 @@ public class Market {
     }
 
     private Order find(List<Order> orders, String clientOrderId) {
-        for (int i = 0; i < orders.size(); i++) {
-            Order o = orders.get(i);
-            if (o.getClientOrderId().equals(clientOrderId)) {
-                return o;
+        for (Order order : orders) {
+            if (order.getClientOrderId().equals(clientOrderId)) {
+                return order;
             }
         }
         return null;
@@ -121,8 +120,7 @@ public class Market {
         DecimalFormat priceFormat = new DecimalFormat("#.00");
         DecimalFormat qtyFormat = new DecimalFormat("######");
         System.out.println(title + ":\n----");
-        for (int i = 0; i < orders.size(); i++) {
-            Order order = orders.get(i);
+        for (Order order : orders) {
             System.out.println("  $" + priceFormat.format(order.getPrice()) + " "
                     + qtyFormat.format(order.getOpenQuantity()) + " " + order.getOwner() + " "
                     + new Date(order.getEntryTime()));

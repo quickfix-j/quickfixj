@@ -42,11 +42,7 @@ public class SessionSchedule {
     public SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
 
-        if (settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION)) {
-            nonStopSession = settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
-        } else {
-            nonStopSession = false;
-        }
+        nonStopSession = settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION) && settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
         TimeZone defaultTimeZone = getDefaultTimeZone(settings, sessionID);
         if (nonStopSession) {
             startTime = endTime = new TimeEndPoint(NOT_SET, 0, 0, 0, defaultTimeZone);
@@ -66,8 +62,7 @@ public class SessionSchedule {
 
         startTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_START_TIME, Session.SETTING_START_DAY);
         endTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_END_TIME, Session.SETTING_END_DAY);
-        if (!nonStopSession)
-            log.info("[" + sessionID + "] " + toString());
+        log.info("[" + sessionID + "] " + toString());
     }
 
     private TimeEndPoint getTimeEndPoint(SessionSettings settings, SessionID sessionID,
@@ -216,8 +211,8 @@ public class SessionSchedule {
     }
 
     private static class TimeInterval {
-        private Calendar start = SystemTime.getUtcCalendar();
-        private Calendar end = SystemTime.getUtcCalendar();
+        private final Calendar start = SystemTime.getUtcCalendar();
+        private final Calendar end = SystemTime.getUtcCalendar();
 
         public boolean isContainingTime(Calendar t) {
             return t.compareTo(start) >= 0 && t.compareTo(end) <= 0;
@@ -260,10 +255,7 @@ public class SessionSchedule {
             return false;
         }
         TimeInterval interval2 = theMostRecentIntervalBefore(time2);
-        if (!interval2.isContainingTime(time2)) {
-            return false;
-        }
-        return interval1.equals(interval2);
+        return interval2.isContainingTime(time2) && interval1.equals(interval2);
     }
 
     public boolean isNonStopSession() {

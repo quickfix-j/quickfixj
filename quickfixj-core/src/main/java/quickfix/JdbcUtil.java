@@ -37,7 +37,7 @@ class JdbcUtil {
 
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
 
-    private static Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<String, ProxoolDataSource>();
+    private static final Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<String, ProxoolDataSource>();
     private static int dataSourceCounter = 1;
 
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)

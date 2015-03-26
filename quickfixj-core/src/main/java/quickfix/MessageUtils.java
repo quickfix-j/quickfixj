@@ -235,7 +235,7 @@ public class MessageUtils {
         return value;
     }
 
-    private static Map<String, String> applVerIDtoBeginString = new HashMap<String, String>() {
+    private static final Map<String, String> applVerIDtoBeginString = new HashMap<String, String>() {
         {
             // No support for earlier versions of FIX
             put(ApplVerID.FIX40, FixVersions.BEGINSTRING_FIX40);
@@ -265,7 +265,7 @@ public class MessageUtils {
         return beginString;
     }
 
-    private static Map<String, ApplVerID> beginStringToApplVerID = new HashMap<String, ApplVerID>() {
+    private static final Map<String, ApplVerID> beginStringToApplVerID = new HashMap<String, ApplVerID>() {
         {
             // No support for earlier versions of FIX
             put(FixVersions.BEGINSTRING_FIX40, new ApplVerID(ApplVerID.FIX40));

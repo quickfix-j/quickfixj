@@ -36,20 +36,15 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_SKIPSLOW_KEY = "atest.skipslow";
     private static final Logger log = LoggerFactory.getLogger(AcceptanceTestSuite.class);
     private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
-    private static final String acceptanceTestBaseDir;
+    private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
 
     private static int transportType = ProtocolFactory.SOCKET;
     private static int port = 9887;
 
-    private boolean skipSlowTests;
+    private final boolean skipSlowTests;
     private final boolean multithreaded;
 
     private final Map<Object, Object> overridenProperties;
-
-    static {
-        acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().
-            getResource(acceptanceTestResourcePath).getPath();
-    }
 
     private static class TestDefinitionFilter implements FileFilter {
         public boolean accept(File file) {
@@ -220,8 +215,8 @@ public class AcceptanceTestSuite extends TestSuite {
     }
 
     private static final class AcceptanceTestServerSetUp extends TestSetup {
-        private boolean threaded;
-        private Map<Object, Object> overridenProperties;
+        private final boolean threaded;
+        private final Map<Object, Object> overridenProperties;
 //        private Thread serverThread;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
 

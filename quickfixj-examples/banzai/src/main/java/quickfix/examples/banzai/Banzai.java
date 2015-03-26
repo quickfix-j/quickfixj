@@ -21,7 +21,6 @@ package quickfix.examples.banzai;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.JFrame;
@@ -50,7 +49,7 @@ import quickfix.examples.banzai.ui.BanzaiFrame;
 public class Banzai {
     private static final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
-    private static Logger log = LoggerFactory.getLogger(Banzai.class);
+    private static final Logger log = LoggerFactory.getLogger(Banzai.class);
     private static Banzai banzai;
     private boolean initiatorStarted = false;
     private Initiator initiator = null;

@@ -41,19 +41,17 @@ import quickfix.test.util.ReflectionUtil;
 
 public class ExpectMessageStep implements TestStep {
     public static long TIMEOUT_IN_MS = 10000;
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final String data;
     private final Map<String, String> expectedFields;
     private static final Pattern headerPattern = Pattern.compile("^E(\\d+),.*");
     private static final Pattern fieldPattern = Pattern.compile("(\\d+)=([^\\001]+)\\001");
     private int clientId = 0;
-    private static int heartBeatOverride = -1;
+    private static final int heartBeatOverride;
 
     static {
-        String hbi = System.getProperty("atest.heartbeat");
-        if (hbi != null) {
-            heartBeatOverride = Integer.parseInt(hbi);
-        }
+        final String hbi = System.getProperty("atest.heartbeat");
+        heartBeatOverride = hbi != null ? Integer.parseInt(hbi) : -1;
     }
 
     public ExpectMessageStep(String data) {
@@ -106,7 +104,7 @@ public class ExpectMessageStep implements TestStep {
         assertMessageEqual(actualFields);
     }
 
-    private static HashSet<String> timeFields = new HashSet<String>();
+    private static final HashSet<String> timeFields = new HashSet<String>();
 
     static {
         timeFields.add("52");

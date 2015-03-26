@@ -36,11 +36,11 @@ public class OrderTableModel extends AbstractTableModel {
     private final static int AVGPX = 8;
     private final static int TARGET = 9;
 
-    private HashMap<Integer, Order> rowToOrder;
-    private HashMap<String, Integer> idToRow;
-    private HashMap<String, Order> idToOrder;
+    private final HashMap<Integer, Order> rowToOrder;
+    private final HashMap<String, Integer> idToRow;
+    private final HashMap<String, Order> idToOrder;
 
-    private String[] headers;
+    private final String[] headers;
 
     public OrderTableModel() {
         rowToOrder = new HashMap<Integer, Order>();

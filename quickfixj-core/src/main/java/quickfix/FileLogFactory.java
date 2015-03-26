@@ -50,7 +50,7 @@ public class FileLogFactory implements LogFactory {
      */
     public static final String SETTING_LOG_HEARTBEATS = "FileLogHeartbeats";
 
-    private SessionSettings settings;
+    private final SessionSettings settings;
 
     /**
      * Create the factory with configuration in session settings.

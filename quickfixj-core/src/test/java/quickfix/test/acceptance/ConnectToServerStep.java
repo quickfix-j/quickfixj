@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 import quickfix.mina.ProtocolFactory;
 
 public class ConnectToServerStep implements TestStep {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private static final Pattern CONNECT_PATTERN = Pattern.compile("i(\\d+)*,?CONNECT");
-    private String command;
+    private final String command;
     private int clientId = 0;
     private int transportType = ProtocolFactory.SOCKET;
     private final int port;

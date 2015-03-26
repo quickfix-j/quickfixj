@@ -36,7 +36,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 
 public class SessionJmxExporter {
-    private Map<SessionID, ObjectName> sessionObjectNames = new HashMap<SessionID, ObjectName>();
+    private final Map<SessionID, ObjectName> sessionObjectNames = new HashMap<SessionID, ObjectName>();
 
     public ObjectName register(JmxExporter jmxExporter, Session session, ObjectName connectorName,
             SessionSettings settings) throws JMException, ConfigError {

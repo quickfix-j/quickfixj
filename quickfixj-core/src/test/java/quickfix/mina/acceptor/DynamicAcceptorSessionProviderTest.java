@@ -152,7 +152,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
     }
 
     private static class MySessionConnector extends SessionConnector {
-        private HashMap<SessionID, Session> sessions = new HashMap<SessionID, Session>();
+        private final HashMap<SessionID, Session> sessions = new HashMap<SessionID, Session>();
 
         public MySessionConnector(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
             super(settings, sessionFactory);

@@ -27,11 +27,11 @@ import java.util.HashMap;
  * A field type enum class.
  */
 public class FieldType {
-    private int ordinal;
-    private String name;
-    private Class<?> javaType;
-    private static HashMap<String, FieldType> values = new HashMap<String, FieldType>();
-    private static ArrayList<FieldType> ordinalToValue = new ArrayList<FieldType>();
+    private final int ordinal;
+    private final String name;
+    private final Class<?> javaType;
+    private static final HashMap<String, FieldType> values = new HashMap<String, FieldType>();
+    private static final ArrayList<FieldType> ordinalToValue = new ArrayList<FieldType>();
 
     private FieldType(String name) {
         this(name, String.class);

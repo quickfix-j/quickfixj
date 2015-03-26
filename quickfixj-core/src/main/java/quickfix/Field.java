@@ -22,7 +22,6 @@ package quickfix;
 import org.quickfixj.CharsetSupport;
 
 import java.io.Serializable;
-import java.nio.charset.Charset;
 
 /**
  * Base class for FIX message fields. This class should be

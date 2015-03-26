@@ -1234,9 +1234,7 @@ public class DataDictionary {
          */
         @Override
         public String toString() {
-            final StringBuilder b = new StringBuilder();
-            b.append('(').append(intValue).append(',').append(stringValue).append(')');
-            return b.toString();
+            return new StringBuilder('(').append(intValue).append(',').append(stringValue).append(')').toString();
         }
     }
 

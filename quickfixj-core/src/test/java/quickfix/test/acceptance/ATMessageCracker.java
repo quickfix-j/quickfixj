@@ -120,8 +120,8 @@ class ATMessageCracker extends quickfix.MessageCracker {
 
     private static class Pair {
 
-        private ClOrdID clOrdID;
-        private SessionID sessionID;
+        private final ClOrdID clOrdID;
+        private final SessionID sessionID;
         private int hashCode = 0;
 
         public Pair(ClOrdID clOrdID, SessionID sessionID) {

@@ -29,7 +29,7 @@ import quickfix.field.BusinessRejectReason;
  * @see BusinessRejectReason
  */
 public class BusinessRejectReasonText extends BusinessRejectReason {
-    private static HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
+    private static final HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
 
     static {
         rejectReasonText.put(FIELD, "Field");

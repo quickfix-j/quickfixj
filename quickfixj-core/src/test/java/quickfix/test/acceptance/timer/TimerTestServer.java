@@ -62,7 +62,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private class DelayedTestRequest extends TimerTask {
-        SessionID session;
+        final SessionID session;
 
         DelayedTestRequest(SessionID sessionID) {
             this.session = sessionID;

@@ -66,10 +66,10 @@ public class Generator {
             if (admin) {
                 builder.append("<fix type=\"FIXT\" major=\"TODO\" minor=\"TODO\">\n");
             } else {
-                builder.append("<fix major=\"" + major + "\" minor=\"" + minor + "\">\n");
+                builder.append("<fix major=\"").append(major).append("\" minor=\"").append(minor).append("\">\n");
             }
         } else {
-            builder.append("<fix major=\"" + major + "\" minor=\"" + minor + "\">\n");
+            builder.append("<fix major=\"").append(major).append("\" minor=\"").append(minor).append("\">\n");
         }
 
         Map<String, MsgType> msgTypes = new LinkedHashMap<String, MsgType>();
@@ -120,7 +120,7 @@ public class Generator {
                 if (msgType.getMsgType().equals("n")) {
                     builder.append("    <!-- \n");
                 }
-                builder.append("    <message name=\"" + msgType.getName() + "\" msgtype=\"" + msgType.getMsgType() + "\" msgcat=\"" + msgcat + "\">\n");
+                builder.append("    <message name=\"").append(msgType.getName()).append("\" msgtype=\"").append(msgType.getMsgType()).append("\" msgcat=\"").append(msgcat).append("\">\n");
                 addMsgContents(builder, msgType.getMsgContent(), "      ");
                 builder.append("    </message>\n");
                 if (msgType.getMsgType().equals("n")) {
@@ -135,7 +135,7 @@ public class Generator {
                 if (msgType.getMsgType().equals("n")) {
                     builder.append("    <!-- \n");
                 }
-                builder.append("    <message name=\"" + msgType.getName() + "\" msgtype=\"" + msgType.getMsgType() + "\" msgcat=\"" + msgcat + "\">\n");
+                builder.append("    <message name=\"").append(msgType.getName()).append("\" msgtype=\"").append(msgType.getMsgType()).append("\" msgcat=\"").append(msgcat).append("\">\n");
                 addMsgContents(builder, msgType.getMsgContent(), "      ");
                 builder.append("    </message>\n");
                 if (msgType.getMsgType().equals("n")) {
@@ -150,7 +150,7 @@ public class Generator {
         Map<String, Component> components = repository.getComponents();
         for (String name : componentsUsed) {
             Component component = components.get(name);
-            builder.append("    <component name=\"" + name + "\">\n");
+            builder.append("    <component name=\"").append(name).append("\">\n");
             Field numInGroup = null;
             for (Object o : component.getMsgContent()) {
                 if (o instanceof Field && ((Field) o).isNumInGroup()) {
@@ -160,7 +160,7 @@ public class Generator {
             }
 
             if (numInGroup != null) {
-                builder.append("      <group name=\"" + numInGroup.getFieldName() + "\" required=\"" + (numInGroup.isRequired() ? "Y" : "N") + "\">\n");
+                builder.append("      <group name=\"").append(numInGroup.getFieldName()).append("\" required=\"").append(numInGroup.isRequired() ? "Y" : "N").append("\">\n");
                 addMsgContents(builder, component.getMsgContent(), "        ");
                 builder.append("      </group>\n");
             } else {
@@ -178,7 +178,7 @@ public class Generator {
             String tag = String.valueOf(tagInt);
             Field field = fields.get(tag);
             String fieldType = field.getType();
-            builder.append("    <field number=\"" + tag + "\" name=\"" + field.getFieldName() + "\" type=\"" + fieldType.toUpperCase() + "\"");
+            builder.append("    <field number=\"").append(tag).append("\" name=\"").append(field.getFieldName()).append("\" type=\"").append(fieldType.toUpperCase()).append("\"");
             if (!field.getEnums().isEmpty()) {
                 builder.append(">\n");
                 Set<String> enumDescCache = new HashSet<String>();
@@ -195,12 +195,12 @@ public class Generator {
                     }
                     boolean add = enumDescCache.add(enumDesc);
                     if (add) {
-                        builder.append("      <value enum=\"" + theEnum.getEnumName() + "\" description=\"" + enumDesc + "\"/>\n");
+                        builder.append("      <value enum=\"").append(theEnum.getEnumName()).append("\" description=\"").append(enumDesc).append("\"/>\n");
                     } else {
                         // FIXME ugly workaround to avoid duplicate entries
                         enumDesc = enumDesc + "_1";
                         enumDescCache.add(enumDesc);
-                        builder.append("      <value enum=\"" + theEnum.getEnumName() + "\" description=\"" + enumDesc + "\"/>\n");
+                        builder.append("      <value enum=\"").append(theEnum.getEnumName()).append("\" description=\"").append(enumDesc).append("\"/>\n");
                     }
                 }
                 builder.append("    </field>\n");
@@ -229,13 +229,13 @@ public class Generator {
                 if (field.isNumInGroup()) {
                     continue;
                 }
-                builder.append(prefix + "<field name=\"" + field.getFieldName() + "\" required=\"" + (field.isRequired() ? "Y" : "N") + "\"/>\n");
+                builder.append(prefix).append("<field name=\"").append(field.getFieldName()).append("\" required=\"").append(field.isRequired() ? "Y" : "N").append("\"/>\n");
             } else if (o instanceof Component) {
                 Component component = (Component) o;
                 if (component.isStandardHeader() || component.isStandardTrailer()) {
                     continue;
                 }
-                builder.append(prefix + "<component name=\"" + component.getName() + "\" required=\"" + (component.isRequired() ? "Y" : "N") + "\"/>\n");
+                builder.append(prefix).append("<component name=\"").append(component.getName()).append("\" required=\"").append(component.isRequired() ? "Y" : "N").append("\"/>\n");
             }
         }
     }

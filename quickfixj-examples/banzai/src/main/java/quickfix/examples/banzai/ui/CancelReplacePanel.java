@@ -26,19 +26,17 @@ import java.awt.event.*;
 import quickfix.examples.banzai.*;
 
 public class CancelReplacePanel extends JPanel {
-    private JLabel quantityLabel = new JLabel("Quantity");
-    private JLabel limitPriceLabel = new JLabel("Limit");
-    private IntegerNumberTextField quantityTextField =
-        new IntegerNumberTextField();
-    private DoubleNumberTextField limitPriceTextField =
-        new DoubleNumberTextField();
-    private JButton cancelButton = new JButton("Cancel");
-    private JButton replaceButton = new JButton("Replace");
+    private final JLabel quantityLabel = new JLabel("Quantity");
+    private final JLabel limitPriceLabel = new JLabel("Limit");
+    private final IntegerNumberTextField quantityTextField = new IntegerNumberTextField();
+    private final DoubleNumberTextField limitPriceTextField = new DoubleNumberTextField();
+    private final JButton cancelButton = new JButton("Cancel");
+    private final JButton replaceButton = new JButton("Replace");
     private Order order = null;
 
-    private GridBagConstraints constraints = new GridBagConstraints();
+    private final GridBagConstraints constraints = new GridBagConstraints();
 
-    private BanzaiApplication application;
+    private final BanzaiApplication application;
 
     public CancelReplacePanel(final BanzaiApplication application) {
         this.application = application;

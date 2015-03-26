@@ -23,7 +23,6 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 import quickfix.FieldConvertError;
@@ -34,7 +33,7 @@ import quickfix.SystemTime;
  * and a time.
  */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
-    private static ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
+    private static final ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
     private final static ConcurrentHashMap<String, Long> dateCache = new ConcurrentHashMap<String, Long>();

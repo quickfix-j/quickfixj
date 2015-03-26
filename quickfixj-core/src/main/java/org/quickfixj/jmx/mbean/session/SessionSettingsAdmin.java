@@ -18,7 +18,6 @@
 package org.quickfixj.jmx.mbean.session;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,7 +45,7 @@ public class SessionSettingsAdmin implements DynamicMBean {
 
     private Properties settings;
 
-    private SessionID sessionID;
+    private final SessionID sessionID;
 
     public SessionSettingsAdmin(SessionID sessionID, SessionSettings settings) throws ConfigError {
         this.sessionID = sessionID;

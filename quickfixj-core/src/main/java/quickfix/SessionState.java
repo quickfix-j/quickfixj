@@ -54,7 +54,7 @@ public final class SessionState {
     private int testRequestCounter;
     private long lastSentTime;
     private long lastReceivedTime;
-    private double testRequestDelayMultiplier;
+    private final double testRequestDelayMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
 

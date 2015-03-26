@@ -904,7 +904,7 @@ public class SessionScheduleTest {
         }
     }
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d HH:mm:ss");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("E M/d HH:mm:ss");
 
     {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

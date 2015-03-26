@@ -143,7 +143,7 @@ public class SSLAndNonSSLTest {
     }
 
     private class ServerThread extends Thread {
-        private ATServer server;
+        private final ATServer server;
 
         public ServerThread() {
             super("test server");

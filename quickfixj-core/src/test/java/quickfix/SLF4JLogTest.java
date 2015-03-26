@@ -225,7 +225,7 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class TestHandler extends java.util.logging.Handler {
-        public ArrayList<LogRecord> records = new ArrayList<LogRecord>();
+        public final ArrayList<LogRecord> records = new ArrayList<LogRecord>();
 
         @Override
         public void close() throws SecurityException {
@@ -259,8 +259,8 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class MyLog4JLog extends DummySLF4JLogger implements LocationAwareLogger {
-        Vector<String> messages = new Vector<String>();
-        Vector<String> fqcns = new Vector<String>();
+        final Vector<String> messages = new Vector<String>();
+        final Vector<String> fqcns = new Vector<String>();
 
         public void log(Marker marker, String fqcn, int level, String message, Object[] params,
                 Throwable t) {
