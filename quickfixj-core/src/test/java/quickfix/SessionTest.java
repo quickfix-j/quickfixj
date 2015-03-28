@@ -517,7 +517,7 @@ public class SessionTest {
     public void testLogonLogoutOnAcceptor() throws Exception {
 
         final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        final Date now = new Date();
+        final Date now = new Date(1348264800000L);
         final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
                 now.getTime());
         SystemTime.setTimeSource(systemTimeSource);
