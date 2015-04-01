@@ -22,7 +22,12 @@ package quickfix.mina.initiator;
 import org.apache.mina.core.session.IoSession;
 
 import quickfix.Message;
+import quickfix.MessageUtils;
 import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.field.ApplVerID;
+import quickfix.field.DefaultApplVerID;
+import quickfix.field.MsgType;
 import quickfix.mina.AbstractIoHandler;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.IoSessionResponder;
@@ -55,6 +60,17 @@ class InitiatorIoHandler extends AbstractIoHandler {
 
     @Override
     protected void processMessage(IoSession protocolSession, Message message) throws Exception {
+        if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
+            final SessionID sessionID = MessageUtils.getReverseSessionID(message);
+            if (sessionID.isFIXT()) {
+                if (message.isSetField(DefaultApplVerID.FIELD)) {
+                    final ApplVerID applVerID = new ApplVerID(message.getString(DefaultApplVerID.FIELD));
+                    quickfixSession.setTargetDefaultApplicationVersionID(applVerID);
+                    log.info("Setting DefaultApplVerID (" + DefaultApplVerID.FIELD + "="
+                            + applVerID.getValue() + ") from Logon");
+                }
+            }
+        }
         eventHandlingStrategy.onMessage(quickfixSession, message);
     }
 
