@@ -13,7 +13,7 @@
 <h2>Installation and Building the Code.</h2>
 <h3><a name="dependencies"></a>Runtime Dependencies</h3>
 <h4>Java Virtual Machine:</h4>
-<p>JVM compatible with Sun JRE Java 1.4.x or higher.</p>
+<p>JVM compatible with Oracle JRE Java 1.6.x or higher.</p>
 
 <h4>Required run-time libraries:</h4>
 
@@ -35,6 +35,9 @@
     <li> quickfixj-msg-fix42.jar
     <li> quickfixj-msg-fix43.jar
     <li> quickfixj-msg-fix44.jar
+    <li> quickfixj-msg-fix50.jar
+    <li> quickfixj-msg-fix50sp1.jar
+    <li> quickfixj-msg-fix50sp2.jar
     </ul>
     or
     <ul>
@@ -45,8 +48,7 @@
   </tr>
 </table>
 
-<p>QuickFIXJ is released in a Java 1.4-compatible version (using Retrotranslator)
-and a Java 5+ version. The following libraries are needed for the Java 1.4 version.</p>
+<p></p>
 
 <table cellspacing="0" width="100%">
   <tr>
@@ -54,32 +56,7 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
     <th>Description</th>
   </tr>
   <tr>
-    <td nowrap="nowrap">mina-core-1.0.3.jar</td>
-    <td>Socket handling (Java NIO)</td>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">slf4j-api.jar</td>
-    <td>SLF4J library for JDK 1.4+ logging.</td>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">slf4j-jdk14.jar</td>
-    <td>SLF4J library for JDK 1.4+ logging.</td>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">backport-util-concurrent.jar</td>
-    <td>Backport of Java 5 concurrency classes.</td>
-  </tr>
-</table>
-
-<p>The following libraries are needed for the Java 5+ version.</p>
-
-<table cellspacing="0" width="100%">
-  <tr>
-    <th>Library</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">mina-core-1.1.0.jar</td>
+    <td nowrap="nowrap">mina-core-2.0.9.jar</td>
     <td>Socket handling (Java NIO)</td>
   </tr>
   <tr>
@@ -104,7 +81,7 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
   </tr>
   <tr>
     <td nowrap="nowrap">slf4j-log4j12.jar</td>
-    <td>Use this JAR file instead of slf4j-jdk14-1.0-rc5.jar if you want to
+    <td>Use this JAR file instead of slf4j-jdk14-*.jar if you want to
 	use Log4J logging.</td>
   </tr>
   <tr>
@@ -113,28 +90,19 @@ and a Java 5+ version. The following libraries are needed for the Java 1.4 versi
 		if you are using the JDBC store or log.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">jdcl104-over-slf4j.jar</td>
+    <td nowrap="nowrap">jcl104-over-slf4j.jar</td>
     <td>Adapts Jakarta Commons Logging to SLF4J. Required if you are using an optional
-		library that depends on Jakarta Commons Logging. Currently, this include Proxool
+		library that depends on Jakarta Commons Logging. Currently, this includes Proxool
 		(needed by JDBC store and log for connection pooling).</td>
   </tr>
   <tr>
     <td nowrap="nowrap">sleepycat-je.jar</td>
     <td>Needed if the SleepyCat JE message store is used.</td>
   </tr>
-  <tr>
-    <td>mina-filter-ssl-1.1.0.jar (Java 5+) or
-    mina-filter-ssl-1.0.3.jar (Java 1.4)</td>
-    <td>Needed if SSL is used.</td>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">mx4j.jar</td>
-    <td>Needed if JMX is used in Java 1.4. Not needed for Java 5+ versions.</td>
-  </tr>
 </table>
 
 <p>	
-By default, the XML processing is QuickFIX/J uses the XML parser included
+By default, the XML processing in QuickFIX/J uses the XML parser included
 	with the JDK. In general other parsers can be used but it's possible you
 	will have problems. We've had users report that Xerces 2.6 does not work,
 	but that version 2.8 does. If you try other parsers, please let us know if it
@@ -146,25 +114,24 @@ By default, the XML processing is QuickFIX/J uses the XML parser included
 <p><em>These instructions are for developers who don't want
     to use the prebuilt binaries or are intending to modify and rebuild the QuickFIX/J
     code. </em>If you are building the code from the command line you'll need
-    to download and install Ant (version 1.6.3 or newer). If you are building from
-    Eclipse, Ant is included.
+    to download and install Maven (version 3.2.5 or newer). If you are building from
+    an IDE, Maven is usually included.
 
-<em>Building from source requires Java 5+. There are no Java 1.4 sources.</em>
+<em>Building from source requires Java 6+.</em>
     
 </p>
 <ol>
-  <li>Check out the code from Subversion.
-      See the <a href="http://sourceforge.net/svn/?group_id=163099">Subversion guide</a> at 
-      Source Forge for more details on access. You will usually
-      want to checkout the <code>trunk</code> directory from the Subversion repository.</li>
+  <li>Check out the code from GitHub.
+      See the <a href="https://help.github.com/articles/which-remote-url-should-i-use/">instructions</a> at 
+      GitHub for more details on cloning the repository.</li>
   <li>Change directory to the top-level directory of the checked out code. You
-    should see a build.xml file.</li>
-  <li>Run <code>ant jar</code> to build the QuickFIX/J and examples jar files.
+    should see a pom.xml file.</li>
+  <li>Run <code>mvn package</code> to build the QuickFIX/J and examples jar files.
     This will also generate all the FIX message-related code for the various
     FIX versions.</li>
   <li>There is an option for the code generator to use BigDecimal instead of double for fields like price and quantity.
       To enable this feature pass a <code>-Dgenerator.decimal</code> option on the command line when
-      running the <code>generate.code</code> Ant target.</li>
+      running the <code>generate.code</code> target.</li>
 </ol>
 <h3>Command-line Switches</h3>
 There are various command-line switches you can pass to ant to modify the produced behavior:
@@ -180,28 +147,26 @@ There are various command-line switches you can pass to ant to modify the produc
     <td>false</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">-Dskip.jalopy</td>
-    <td>Skip Java class reformatting during code generation. This makes the build much faster.</td>
+    <td nowrap="nowrap">-DskipAT=true</td>
+    <td>Skip running of acceptance test suite.</td>
     <td>false</td>
   </tr>
 </table>
 <p>
-  For example, in order to generate fields with BigDecimals and skip Jalopy message reformatting:<br>
-<code>ant -Dgenerator.decimal=true -Dskip.jalopy=true clean test</code>
+  For example, in order to generate fields with BigDecimals and skip acceptance tests:<br>
+<code>mvn test -Dgenerator.decimal=true -DskipAT=true</code>
 </p>
-<h3>Eclipse IDE support:</h3>
-<p>There is
-  a Eclipse project definition in the top-level directory of the checked out directory (typically the SVN trunk).
-  If you are an experienced Eclipse developer you may want to check
-   out the project directly from Eclipse and it will set up the project automatically. 
+<h3>IDE support:</h3>
+<p>There are
+  Eclipse and Netbeans project definition files in the top-level directory of the checked out directory.
    
    <em style="color:red">When the project is first created, it will not have the generated message classes
-   and compile errors will occur!</em> Open the External Tools Dialog and run the "Generate
-   FIX Messages" item in the Ant Builds section. After the files have been generated, refresh
-   the project and Eclipse should build the code successfully.
+   and compile errors will occur!</em> Best is to compile once on the command line before importing
+   the project into the IDE.
+
 <h3>Maven Integration:</h3>
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
-    the pre-built Quickfix/J libraries hosted at the <a href="http://www.marketcetera.org">Marketcetera</a>
+    the pre-built QuickFIX/J libraries hosted at the <a href="http://www.marketcetera.org">Marketcetera</a>
     repository.</p>
 <ol>
     <li>Add the following to your <em>dependencies</em> section, with appropriate modifications based on
@@ -211,47 +176,47 @@ There are various command-line switches you can pass to ant to modify the produc
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-core&lt;/artifactId&gt;
-    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;version&gt;1.6.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix40&lt;/artifactId&gt;
-    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;version&gt;1.6.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix41&lt;/artifactId&gt;
-    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;version&gt;1.6.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix42&lt;/artifactId&gt;
-    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;version&gt;1.6.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix43&lt;/artifactId&gt;
-    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;version&gt;1.6.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-msg-fix44&lt;/artifactId&gt;
-    &lt;version&gt;1.3.1&lt;/version&gt;
+    &lt;version&gt;1.6.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.apache.mina&lt;/groupId&gt;
     &lt;artifactId&gt;mina-core&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0&lt;/version&gt;
+    &lt;version&gt;2.0.9&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
     &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
-    &lt;version&gt;1.3.0&lt;/version&gt;
+    &lt;version&gt;1.7.12&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
     &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
-    &lt;version&gt;1.3.0&lt;/version&gt;
+    &lt;version&gt;1.7.12&lt;/version&gt;
 &lt;/dependency&gt;</pre>           
     </li>
     <li>And add the Marketcetera Repository to your repository list:<br>
@@ -306,8 +271,8 @@ we're reasonably confident that the engine works as intended.</p>
   pumped
   into a running FIX server. Most of these tests are based off of the FIX Session-level
   Test Cases and Expected Behaviors document.</p>
-<p>The unit tests can be run by running the <code>test.unit</code> target
-  in the Ant build.xml file. If you are using Eclipse, you can right-click on
+<p>The unit tests can be run by running the <code>test</code> target
+  in the pom.xml file. If you are using Eclipse, you can right-click on
   the quickfix package in the test subdirectory and select the &quot;Run as... -&gt;
   JUnit Test&quot; option. This should locate all the unit tests in the package hierarchy
   and run them in the integrated JUnit test runner.</p>
@@ -324,8 +289,8 @@ releases of QuickFIX will not break any current functionality. </p>
   one of these tests is written. This test first approach sets up a goal for
   developers who will have objective verification that they correctly implemented
   the standard. </p>
-<p>To run the acceptance tests, use the <code>test.acceptance</code> Ant
-  target. If you are using Eclipse, right-click on the <code>quickfix.test.acceptance.AcceptanceTestSuite</code>  class
+<p>To run the acceptance tests:
+  If you are using Eclipse, right-click on the <code>quickfix.test.acceptance.AcceptanceTestSuite</code>  class
   and select the &quot;Run as... -&gt; JUnit Test&quot; option. This will start an acceptance
   test program with an embedded QuickFIX/J server, load the AT definition files
   and convert them to JUnit tests, and run those tests in the embedded JUnit
