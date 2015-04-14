@@ -1294,6 +1294,8 @@ public class Session implements Closeable {
             return;
         }
 
+        state.setLogoutReceived(true);
+
         String msg;
         if (!state.isLogoutSent()) {
             msg = "Received logout request";
@@ -1307,8 +1309,6 @@ public class Session implements Closeable {
             msg = "Received logout response";
             getLog().onEvent(msg);
         }
-
-        state.setLogoutReceived(true);
 
         // QFJ-750
         if (getExpectedTargetNum() == logout.getHeader().getInt(MsgSeqNum.FIELD)) {
