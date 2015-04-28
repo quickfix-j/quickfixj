@@ -1395,7 +1395,9 @@ public class Session implements Closeable {
                         // which would trigger another resend.
                         final String beginString = sequenceReset.getHeader().getString(
                                 BeginString.FIELD);
-                        sendResendRequest(beginString, range.getEndSeqNo() + 1, newSequence + 1,
+                        // New sequence is the sequence number of the next message that
+                        // should be received, so it must be included in requested range
+                        sendResendRequest(beginString, range.getEndSeqNo() + 1, newSequence,
                                 range.getEndSeqNo());
                     }
                 }

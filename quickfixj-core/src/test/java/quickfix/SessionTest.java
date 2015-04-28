@@ -1,17 +1,8 @@
 package quickfix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
 
 import java.io.BufferedOutputStream;
@@ -1050,7 +1041,7 @@ public class SessionTest {
 
         session.close();
     }
-  
+
     // QFJ-626
     @Test
     public void testResendMessagesWithIncorrectChecksum() throws Exception {
@@ -1805,7 +1796,8 @@ public class SessionTest {
 
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
-        Session session = new Session(new UnitTestApplication(),
+        UnitTestApplication application = new UnitTestApplication();
+        Session session = new Session(application,
                 new MemoryStoreFactory(), sessionID, null, null,
                 new ScreenLogFactory(true, true, true),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
@@ -1831,6 +1823,8 @@ public class SessionTest {
         assertTrue(state.isResendRequested());
         // The expected target sequence should still be 1.
         assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+        // check that resend request does ask for the correct seq no
+        checkResendReq(application, 1, chunkSize);
 
         // Deliver the missing message #1.
         session.next(createAppMessage(1));
@@ -1851,6 +1845,7 @@ public class SessionTest {
         assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
         assertTrue(session.isLoggedOn());
         assertTrue(state.isResendRequested());
+        checkResendReq(application, 5, chunkSize);
         for (int i = 6; i <= 19; i++) {
             session.next(createAppMessage(i));
         }
@@ -1861,6 +1856,14 @@ public class SessionTest {
 
         session.close();
     }
+
+  private void checkResendReq(UnitTestApplication application,
+                              int begin,
+                              int end) throws FieldNotFound {
+    Message msg = application.lastToAdminMessage();
+    assertEquals(begin, msg.getString(BeginSeqNo.FIELD));
+    assertEquals(end, msg.getString(NewSeqNo.FIELD));
+  }
 
     @Test
     // QFJ-795
@@ -1952,7 +1955,7 @@ public class SessionTest {
 
         /*
          * Logon request was sent to the counterparty.
-         * 
+         *
          * Now we'll receive Logon response with too high sequence number 101
          * instead of 1, which should initiate the resend process. During the
          * resend process the counterparty should send us the missing messages
@@ -1972,7 +1975,7 @@ public class SessionTest {
 
         /*
          * We sent a resend request from 1 to 100.
-         * 
+         *
          * The counterpatry quickly responds with a sequence reset from
          * 1 to 100, so we can adjust our expected sequence number value
          * and skip a number of administrative messages that should
@@ -1985,11 +1988,11 @@ public class SessionTest {
         /*
          * So, we're still missing the message at sequence 100, which is an
          * application message.
-         * 
+         *
          * Unfortunately the counterparty is very slow in resending
          * application messages, but they will eventually send the
          * message to us.
-         * 
+         *
          * In the meantime they have a temporary burst of real-time data and
          * they send us N (possibly thousands) application messages within a
          * short period of time. All the messages get stored in a temporary
@@ -2003,11 +2006,11 @@ public class SessionTest {
         /*
          * Eventually the counterparty sends us the missing application
          * message with sequence number 100.
-         * 
+         *
          * However, depending on the number of messages stored in the
          * temporary queue the queue will be either processed correctly,
          * or the recursive nature of the next()/nextQueued() call will
-         * blow up with a StackOverflowError. 
+         * blow up with a StackOverflowError.
          */
         // Deliver the last missing application message #100.
         session.next(createPossDupAppMessage(100));
@@ -2141,15 +2144,18 @@ public class SessionTest {
         public String sentMessageData;
         public boolean disconnectCalled;
 
+        @Override
         public boolean send(String data) {
             sentMessageData = data;
             return true;
         }
 
+        @Override
         public String getRemoteAddress() {
             return null;
         }
 
+        @Override
         public void disconnect() {
             disconnectCalled = true;
         }
