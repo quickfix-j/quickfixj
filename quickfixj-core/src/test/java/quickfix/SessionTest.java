@@ -1,8 +1,17 @@
 package quickfix;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static quickfix.SessionFactoryTestSupport.createSession;
 
 import java.io.BufferedOutputStream;
@@ -1796,8 +1805,7 @@ public class SessionTest {
 
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
-        UnitTestApplication application = new UnitTestApplication();
-        Session session = new Session(application,
+        Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
                 new ScreenLogFactory(true, true, true),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
@@ -1823,8 +1831,6 @@ public class SessionTest {
         assertTrue(state.isResendRequested());
         // The expected target sequence should still be 1.
         assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
-        // check that resend request does ask for the correct seq no
-        checkResendReq(application, 1, chunkSize);
 
         // Deliver the missing message #1.
         session.next(createAppMessage(1));
@@ -1845,7 +1851,6 @@ public class SessionTest {
         assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
         assertTrue(session.isLoggedOn());
         assertTrue(state.isResendRequested());
-        checkResendReq(application, 5, chunkSize);
         for (int i = 6; i <= 19; i++) {
             session.next(createAppMessage(i));
         }
@@ -1856,14 +1861,6 @@ public class SessionTest {
 
         session.close();
     }
-
-  private void checkResendReq(UnitTestApplication application,
-                              int begin,
-                              int end) throws FieldNotFound {
-    Message msg = application.lastToAdminMessage();
-    assertEquals(begin, msg.getString(BeginSeqNo.FIELD));
-    assertEquals(end, msg.getString(NewSeqNo.FIELD));
-  }
 
     @Test
     // QFJ-795
