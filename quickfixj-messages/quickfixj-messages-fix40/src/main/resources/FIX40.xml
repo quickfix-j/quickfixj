@@ -70,7 +70,7 @@
       <field name="Text" required="N"/>
     </message>
     <message name="IndicationofInterest" msgtype="6" msgcat="app">
-      <field name="IOIid" required="Y"/>
+      <field name="IOIID" required="Y"/>
       <field name="IOITransType" required="Y"/>
       <field name="IOIRefID" required="N"/>
       <field name="Symbol" required="Y"/>
@@ -166,7 +166,7 @@
       <field name="Price" required="N"/>
       <field name="StopPx" required="N"/>
       <field name="Currency" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="ExpireTime" required="N"/>
@@ -524,7 +524,7 @@
       <value enum="4" description="ISIN_NUMBER"/>
       <value enum="5" description="RIC_CODE"/>
     </field>
-    <field number="23" name="IOIid" type="INT"/>
+    <field number="23" name="IOIID" type="INT"/>
     <field number="24" name="IOIOthSvc" type="STRING"/>
     <field number="25" name="IOIQltyInd" type="STRING">
       <value enum="L" description="LOW"/>
