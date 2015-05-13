@@ -39,25 +39,6 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
-					<groupId>org.quickfixj</groupId>
-					<artifactId>quickfixj-codegenerator</artifactId>
-					<version>${project.version}</version>
-					<executions>
-						<execution>
-							<id>${fix.name}</id>
-							<goals>
-								<goal>generate</goal>
-							</goals>
-							<configuration>
-								<dictFile>src/main/resources/${fix.spec}</dictFile>
-								<packaging>quickfix.${fix.name}</packaging>
-								<fieldPackage>quickfix.field</fieldPackage>
-								<decimal>${generator.decimal}</decimal>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
 					<groupId>org.apache.felix</groupId>
 					<artifactId>maven-bundle-plugin</artifactId>
 					<configuration>
