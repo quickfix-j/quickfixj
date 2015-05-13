@@ -1050,7 +1050,7 @@ public class SessionTest {
 
         session.close();
     }
-  
+
     // QFJ-626
     @Test
     public void testResendMessagesWithIncorrectChecksum() throws Exception {
@@ -1952,7 +1952,7 @@ public class SessionTest {
 
         /*
          * Logon request was sent to the counterparty.
-         * 
+         *
          * Now we'll receive Logon response with too high sequence number 101
          * instead of 1, which should initiate the resend process. During the
          * resend process the counterparty should send us the missing messages
@@ -1972,7 +1972,7 @@ public class SessionTest {
 
         /*
          * We sent a resend request from 1 to 100.
-         * 
+         *
          * The counterpatry quickly responds with a sequence reset from
          * 1 to 100, so we can adjust our expected sequence number value
          * and skip a number of administrative messages that should
@@ -1985,11 +1985,11 @@ public class SessionTest {
         /*
          * So, we're still missing the message at sequence 100, which is an
          * application message.
-         * 
+         *
          * Unfortunately the counterparty is very slow in resending
          * application messages, but they will eventually send the
          * message to us.
-         * 
+         *
          * In the meantime they have a temporary burst of real-time data and
          * they send us N (possibly thousands) application messages within a
          * short period of time. All the messages get stored in a temporary
@@ -2003,11 +2003,11 @@ public class SessionTest {
         /*
          * Eventually the counterparty sends us the missing application
          * message with sequence number 100.
-         * 
+         *
          * However, depending on the number of messages stored in the
          * temporary queue the queue will be either processed correctly,
          * or the recursive nature of the next()/nextQueued() call will
-         * blow up with a StackOverflowError. 
+         * blow up with a StackOverflowError.
          */
         // Deliver the last missing application message #100.
         session.next(createPossDupAppMessage(100));
@@ -2141,15 +2141,18 @@ public class SessionTest {
         public String sentMessageData;
         public boolean disconnectCalled;
 
+        @Override
         public boolean send(String data) {
             sentMessageData = data;
             return true;
         }
 
+        @Override
         public String getRemoteAddress() {
             return null;
         }
 
+        @Override
         public void disconnect() {
             disconnectCalled = true;
         }
