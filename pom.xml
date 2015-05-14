@@ -58,7 +58,7 @@
 					<configuration>
 					    <fork>true</fork>
 						<meminitial>128m</meminitial>
-						<maxmem>512m</maxmem>
+						<maxmem>756m</maxmem>
 						<source>${jdkLevel}</source>
 						<target>${jdkLevel}</target>
 					</configuration>
