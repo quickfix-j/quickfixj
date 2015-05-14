@@ -58,7 +58,7 @@ import quickfix.field.ExecType;
 import quickfix.field.HandlInst;
 import quickfix.field.Headline;
 import quickfix.field.HopCompID;
-import quickfix.field.IOIid;
+import quickfix.field.IOIID;
 import quickfix.field.LeavesQty;
 import quickfix.field.ListID;
 import quickfix.field.ListSeqNo;
@@ -285,7 +285,7 @@ public class MessageTest {
         assertHeaderField(message, "FIX.4.2", BeginString.FIELD);
         assertHeaderField(message, "76", BodyLength.FIELD);
         assertHeaderField(message, MsgType.INDICATION_OF_INTEREST, MsgType.FIELD);
-        assertBodyField(message, "IDENTIFIER", IOIid.FIELD);
+        assertBodyField(message, "IDENTIFIER", IOIID.FIELD);
         assertTrailerField(message, "037", CheckSum.FIELD);
         final IndicationOfInterest.NoUnderlyings valueMessageType = new IndicationOfInterest.NoUnderlyings();
         message.getGroup(1, valueMessageType);
