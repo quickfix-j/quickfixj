@@ -28,7 +28,7 @@
 						</goals>						
 						<configuration>
 							<dictFile>./src/main/resources/FIX42.xml</dictFile>
-							<packaging>quickfix.fixt42</packaging>
+							<packaging>quickfix.fix42</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
