@@ -4505,9 +4505,12 @@
       <value enum="7" description="OTHER"/>
       <value enum="8" description="MARKUP"/>
       <value enum="9" description="CONSUMPTION_TAX"/>
+      <!--
+      MODIFIED: removed double-digit values due to incompatibility with CHAR type
       <value enum="10" description="PER_TRANSACTION"/>
       <value enum="11" description="CONVERSION"/>
       <value enum="12" description="AGENT"/>
+      -->
     </field>
     <field number="140" name="PrevClosePx" type="PRICE"/>
     <field number="141" name="ResetSeqNumFlag" type="BOOLEAN"/>
@@ -5778,7 +5781,10 @@
       <value enum="4" description="INVALID_OR_UNKNOWN_CFICODE"/>
       <value enum="5" description="INVALID_OR_UNKNOWN_SECURITY_TYPE"/>
       <value enum="6" description="INVALID_OR_UNKNOWN_TRADING_SESSION"/>
+      <!--
+      MODIFIED: removed double-digit values due to incompatibility with CHAR type
       <value enum="99" description="OTHER"/>
+      -->
     </field>
     <field number="533" name="TotalAffectedOrders" type="INT"/>
     <field number="534" name="NoAffectedOrders" type="INT"/>
