@@ -17,7 +17,7 @@
     be used to set and get user defined fields? Well one answer would be to use the non-type safe
     set and get fields like so:
   </p>
-  <pre class="code">message.setField(new StringField(6123), "value");
+  <pre class="code">message.setField(new StringField(6123, "value"));
 StringField field = message.getField(new StringField(6123));
   </pre>
 
