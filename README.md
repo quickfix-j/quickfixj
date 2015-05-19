@@ -1,6 +1,8 @@
 QuickFIX/J
 ==========
 
+Master: [![Build Status](https://travis-ci.org/quickfix-j/quickfixj.png?branch=master)](https://travis-ci.org/quickfix-j/quickfixj)
+
 This is the official QuickFIX/J project repository.
 
 The Financial Information eXchange (FIX) protocol is a messaging standard developed
