@@ -196,6 +196,9 @@ public class DataDictionaryTest extends TestCase {
         data += "</fix>";
 
         DataDictionary dd = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertEquals(1, dd.getNumMessageCategories());
+        assertEquals("0", dd.getMsgType("Heartbeat"));
+
         assertTrue("BeginString should be required", dd.isRequiredHeaderField(8));
         assertFalse("OnBehalfOfCompID should not be required", dd.isRequiredHeaderField(115));
         assertTrue("Checksum should be required", dd.isRequiredTrailerField(10));
@@ -426,6 +429,25 @@ public class DataDictionaryTest extends TestCase {
         nos4.fromString(incorrectFixMessage, dataDictionary, false);
         dataDictionary.validate(nos4);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
+    }
+
+    public void testCopy() throws Exception {
+        final DataDictionary dataDictionary = new DataDictionary(getDictionary());
+
+        dataDictionary.setAllowUnknownMessageFields(true);
+        dataDictionary.setCheckFieldsHaveValues(false);
+        dataDictionary.setCheckFieldsOutOfOrder(false);
+        dataDictionary.setCheckUnorderedGroupFields(false);
+        dataDictionary.setCheckUserDefinedFields(false);
+
+        DataDictionary ddCopy = new DataDictionary(dataDictionary);
+
+        assertEquals(ddCopy.isAllowUnknownMessageFields(),dataDictionary.isAllowUnknownMessageFields());
+        assertEquals(ddCopy.isCheckFieldsHaveValues(),dataDictionary.isCheckFieldsHaveValues());
+        assertEquals(ddCopy.isCheckFieldsOutOfOrder(),dataDictionary.isCheckFieldsOutOfOrder());
+        assertEquals(ddCopy.isCheckUnorderedGroupFields(),dataDictionary.isCheckUnorderedGroupFields());
+        assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
+
     }
 
     //
