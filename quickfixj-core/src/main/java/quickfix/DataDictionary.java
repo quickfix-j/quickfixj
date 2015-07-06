@@ -474,6 +474,18 @@ public class DataDictionary {
         return checkUnorderedGroupFields;
     }
 
+    public boolean isCheckFieldsHaveValues() {
+        return checkFieldsHaveValues;
+    }
+
+    public boolean isCheckUserDefinedFields() {
+        return checkUserDefinedFields;
+    }
+
+    public boolean isAllowUnknownMessageFields() {
+        return allowUnknownMessageFields;
+    }
+
     /**
      * Controls whether group fields are in the same order
      *
@@ -523,6 +535,8 @@ public class DataDictionary {
         checkFieldsOutOfOrder = rhs.checkFieldsOutOfOrder;
         checkFieldsHaveValues = rhs.checkFieldsHaveValues;
         checkUserDefinedFields = rhs.checkUserDefinedFields;
+        checkUnorderedGroupFields = rhs.checkUnorderedGroupFields;
+        allowUnknownMessageFields = rhs.allowUnknownMessageFields;
 
         copyMap(messageFields, rhs.messageFields);
         copyMap(requiredFields, rhs.requiredFields);
@@ -995,6 +1009,10 @@ public class DataDictionary {
                 load(document, msgtype, messageNode);
             }
         }
+    }
+
+    public int getNumMessageCategories() {
+        return messageCategory.size();
     }
 
     private void load(Document document, String msgtype, Node node) throws ConfigError {

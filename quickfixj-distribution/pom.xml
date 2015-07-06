@@ -128,7 +128,7 @@
 			<!-- generate javadocs into apidocs folder -->
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.1</version>
+				<version>2.10.3</version>
 				<executions>
 					<execution>
 						<id>javadoc-jar</id>
