@@ -101,4 +101,42 @@ public class JdbcSetting {
      * is primarily for Oracle which treats empty strings as SQL NULLs.
      */
     public static final String SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE = "JdbcSessionIdDefaultPropertyValue";
+
+    /**
+     * Specifies the maximum number of connections to the database
+     *
+     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     */
+    public static final String SETTING_JDBC_MAX_ACTIVE_CONNECTION = "JdbcMaxActiveConnection";
+
+    /**
+     * Specifies if the housekeeper comes across a thread that has been active for longer than
+     * this then it will kill it. So make sure you set this to a number bigger than your
+     * slowest expected response!
+     *
+     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     */
+    public static final String SETTING_JDBC_MAX_ACTIVE_TIME = "JdbcMaxActiveTime";
+
+    /**
+     * Specifies the maximum amount of time that a connection exists for before
+     * it is killed (milliseconds).
+     *
+     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     */
+    public static final String SETTING_JDBC_MAX_CONNECTION_LIFETIME = "JdbcMaxConnectionLifeTime";
+
+    /**
+     * Specifies the maximum number of connections we can be building at any one time.
+     * That is, the number of new connections that have been requested but aren't yet
+     * available for use. Because connections can be built using more than one thread
+     * (for instance, when they are built on demand) and it takes a finite time between
+     * deciding to build the connection and it becoming available we need some way of
+     * ensuring that a lot of threads don't all decide to build a connection at once.
+     * (We could solve this in a smarter way - and indeed we will one day)
+     *
+     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     */
+    public static final String SETTING_JDBC_SIMULTANEOUS_BUILD_THROTTLE = "JdbcSimultaneousBuildThrottle";
+
 }

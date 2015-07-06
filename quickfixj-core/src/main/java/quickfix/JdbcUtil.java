@@ -55,16 +55,39 @@ class JdbcUtil {
                     JdbcSetting.SETTING_JDBC_CONNECTION_URL);
             String user = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_USER);
             String password = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_PASSWORD);
+            int maxConnCount = settings
+                    .isSetting(JdbcSetting.SETTING_JDBC_MAX_ACTIVE_CONNECTION) ?
+                    settings.getInt(sessionID, JdbcSetting.SETTING_JDBC_MAX_ACTIVE_CONNECTION) :
+                    32;
+            int simultaneousBuildThrottle = settings
+                    .isSetting(JdbcSetting.SETTING_JDBC_SIMULTANEOUS_BUILD_THROTTLE) ?
+                    settings.getInt(sessionID, JdbcSetting.SETTING_JDBC_SIMULTANEOUS_BUILD_THROTTLE) :
+                    maxConnCount;
+            long maxActiveTime = settings
+                    .isSetting(JdbcSetting.SETTING_JDBC_MAX_ACTIVE_TIME) ?
+                    settings.getLong(sessionID, JdbcSetting.SETTING_JDBC_MAX_ACTIVE_TIME) :
+                    5000;
+            long maxConnLifetime = settings
+                    .isSetting(JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) ?
+                    settings.getLong(sessionID, JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) :
+                    28800000;
 
-            return getDataSource(jdbcDriver, connectionURL, user, password, true);
+            return getDataSource(jdbcDriver, connectionURL, user, password, true, maxConnCount,
+                    simultaneousBuildThrottle, maxActiveTime, maxConnLifetime);
         }
+    }
+
+    static DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
+        return getDataSource(jdbcDriver, connectionURL, user, password, cache, 10, 10, 5000, 28800000);
     }
 
     /**
      * This is typically called from a single thread, but just in case we are synchronizing modification
      * of the cache. The cache itself is thread safe.
      */
-    static synchronized DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
+    static synchronized DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password,
+                                                 boolean cache, int maxConnCount, int simultaneousBuildThrottle,
+                                                 long maxActiveTime, long maxConnLifetime) {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
         ProxoolDataSource ds = cache ? dataSources.get(key) : null;
 
@@ -80,11 +103,10 @@ class JdbcUtil {
             ds.setUser(user);
             ds.setPassword(password);
 
-            // TODO JDBC Make these configurable
-            ds.setMaximumActiveTime(5000);
-            ds.setMaximumConnectionLifetime(28800000);
-            ds.setMaximumConnectionCount(10);
-            ds.setSimultaneousBuildThrottle(10);
+            ds.setMaximumActiveTime(maxActiveTime);
+            ds.setMaximumConnectionLifetime(maxConnCount);
+            ds.setMaximumConnectionCount(maxConnCount);
+            ds.setSimultaneousBuildThrottle(simultaneousBuildThrottle);
 
             if (cache) {
                 dataSources.put(key, ds);
