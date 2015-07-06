@@ -55,12 +55,11 @@
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.3</version>
-					<configuration>
-						<meminitial>128m</meminitial>
-						<maxmem>756m</maxmem>
-						<source>${jdkLevel}</source>
-						<target>${jdkLevel}</target>
-					</configuration>
+					<configuration> 
+						<source>${jdkLevel}</source> 
+						<target>${jdkLevel}</target> 
+					</configuration> 
+
 				</plugin>
 				<plugin>
 					<artifactId>maven-jar-plugin</artifactId>
