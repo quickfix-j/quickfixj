@@ -24,6 +24,36 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>../quickfixj-messages-fixt11/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix50/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix44/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix43/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix42/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix41/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix40/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix50sp1/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
+			</resource>
+		</resources>
+   
 		<plugins>
 		    <plugin>
 				<groupId>org.quickfixj</groupId>
