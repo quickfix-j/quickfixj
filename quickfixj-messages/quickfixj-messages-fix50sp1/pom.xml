@@ -14,16 +14,26 @@
 	<description>QuickFIX/J Message classes for FIX 5.0 SP1</description>
 	<url>http://www.quickfixj.org</url>
 
-	<properties>
-		<fix.spec>FIX50SP1.modified.xml</fix.spec>
-		<fix.name>fix50sp1</fix.name>
-	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
+				<version>${project.version}</version>
+				<executions>
+					<execution>
+						<id>fix50sp1</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>						
+						<configuration>
+							<dictFile>./src/main/resources/FIX50SP1.modified.xml</dictFile>
+							<packaging>quickfix.fix50sp1</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
