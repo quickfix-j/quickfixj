@@ -111,7 +111,7 @@
       <field name="TradingSessionID" required="N"/>
     </message>
     <message name="IndicationofInterest" msgtype="6" msgcat="app">
-      <field name="IOIid" required="Y"/>
+      <field name="IOIID" required="Y"/>
       <field name="IOITransType" required="Y"/>
       <field name="IOIRefID" required="N"/>
       <field name="Symbol" required="Y"/>
@@ -891,7 +891,7 @@
       <field name="Currency" required="N"/>
       <field name="ComplianceID" required="N"/>
       <field name="SolicitedFlag" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="EffectiveTime" required="N"/>
@@ -1482,7 +1482,7 @@
         <field name="Currency" required="N"/>
         <field name="ComplianceID" required="N"/>
         <field name="SolicitedFlag" required="N"/>
-        <field name="IOIid" required="N"/>
+        <field name="IOIID" required="N"/>
         <field name="QuoteID" required="N"/>
         <field name="TimeInForce" required="N"/>
         <field name="EffectiveTime" required="N"/>
@@ -1684,7 +1684,7 @@
       <value enum="8" description="EXCHANGE_SYMBOL"/>
       <value enum="9" description="CONSOLIDATED_TAPE_ASSOCIATION"/>
     </field>
-    <field number="23" name="IOIid" type="STRING"/>
+    <field number="23" name="IOIID" type="STRING"/>
     <field number="24" name="IOIOthSvc" type="CHAR"/>
     <field number="25" name="IOIQltyInd" type="CHAR">
       <value enum="L" description="LOW"/>

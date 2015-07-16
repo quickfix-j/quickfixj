@@ -97,7 +97,7 @@
       <field name="QuoteRespType" required="Y"/>
       <field name="ClOrdID" required="N"/>
       <field name="OrderCapacity" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteType" required="N"/>
       <component name="QuotQualGrp" required="N"/>
       <component name="Parties" required="N"/>
@@ -628,7 +628,7 @@
       <field name="Currency" required="N"/>
       <field name="ComplianceID" required="N"/>
       <field name="SolicitedFlag" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="EffectiveTime" required="N"/>
@@ -1082,7 +1082,7 @@
       <component name="YieldData" required="N"/>
       <field name="Currency" required="N"/>
       <field name="ComplianceID" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="EffectiveTime" required="N"/>
@@ -1140,7 +1140,7 @@
       <component name="YieldData" required="N"/>
       <field name="Currency" required="N"/>
       <field name="ComplianceID" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="EffectiveTime" required="N"/>
@@ -1224,7 +1224,7 @@
       <field name="Currency" required="N"/>
       <field name="ComplianceID" required="N"/>
       <field name="SolicitedFlag" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="EffectiveTime" required="N"/>
@@ -1311,7 +1311,7 @@
       <field name="Currency" required="N"/>
       <field name="ComplianceID" required="N"/>
       <field name="SolicitedFlag" required="N"/>
-      <field name="IOIid" required="N"/>
+      <field name="IOIID" required="N"/>
       <field name="QuoteID" required="N"/>
       <field name="TimeInForce" required="N"/>
       <field name="EffectiveTime" required="N"/>
@@ -2663,7 +2663,7 @@
       <field name="SubscriptionRequestType" required="Y"/>
     </message>
     <message name="IOI" msgtype="6" msgcat="app">
-      <field name="IOIid" required="Y"/>
+      <field name="IOIID" required="Y"/>
       <field name="IOITransType" required="Y"/>
       <field name="IOIRefID" required="N"/>
       <component name="Instrument" required="Y"/>
@@ -3387,7 +3387,7 @@
         <field name="Currency" required="N"/>
         <field name="ComplianceID" required="N"/>
         <field name="SolicitedFlag" required="N"/>
-        <field name="IOIid" required="N"/>
+        <field name="IOIID" required="N"/>
         <field name="QuoteID" required="N"/>
         <field name="TimeInForce" required="N"/>
         <field name="EffectiveTime" required="N"/>
@@ -4537,7 +4537,7 @@
       <value enum="K" description="ISDA_FPML_PRODUCT_URL"/>
       <value enum="L" description="LETTER_OF_CREDIT"/>
     </field>
-    <field number="23" name="IOIid" type="STRING"/>
+    <field number="23" name="IOIID" type="STRING"/>
     <field number="25" name="IOIQltyInd" type="CHAR">
       <value enum="L" description="LOW"/>
       <value enum="M" description="MEDIUM"/>
