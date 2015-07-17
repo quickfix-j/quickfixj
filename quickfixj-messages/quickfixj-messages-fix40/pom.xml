@@ -8,39 +8,63 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-fix40</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 
 	<name>QuickFIX/J Message classes for FIX 4.0</name>
 	<description>QuickFIX/J Message classes for FIX 4.0</description>
 	<url>http://www.quickfixj.org</url>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
-	<build>
+	<build>		
 		<plugins>
 			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>fix40</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>						
+						<phase>prepare-package</phase>
+						<goals><goal>add-source</goal></goals>
 						<configuration>
-							<dictFile>./src/main/resources/FIX40.xml</dictFile>
-							<packaging>quickfix.fixt40</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
+							<sources>
+								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>2.6</version>
+				<configuration>
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
+					<includes>
+						<include>FIX40.xml</include>
+						<include>quickfix/field/**</include>
+						<include>quickfix/fix40/**</include>						
+					</includes>
+				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
+				<artifactId>maven-source-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>2.4</version>
+				<configuration>
+					<includes>
+						<include>FIX40.xml</include>	
+						<include>quickfix/field/**</include>	
+						<include>quickfix/fix40/**</include>							
+					</includes>
+				</configuration>
 			</plugin>
+			
 		</plugins>
 	</build>
 </project>
