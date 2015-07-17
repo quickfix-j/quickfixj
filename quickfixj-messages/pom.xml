@@ -27,37 +27,4 @@
 		<module>quickfixj-messages-all</module>
 	</modules>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
-
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.felix</groupId>
-					<artifactId>maven-bundle-plugin</artifactId>
-					<configuration>
-						<instructions>
-							<Import-Package>quickfix,quickfix.field,*</Import-Package>
-						</instructions>
-					</configuration>
-				</plugin>
-				<plugin>
-					<artifactId>maven-jar-plugin</artifactId>
-					<configuration>
-						<includes>
-							<include>quickfix/field/**</include>
-							<include>quickfix/${fix.name}/**</include>
-							<include>${fix.spec}</include>
-						</includes>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
 </project>

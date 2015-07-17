@@ -8,38 +8,63 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-fixt11</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 
 	<name>QuickFIX/J Message classes for FIXT 1.1</name>
 	<description>QuickFIX/J Message classes for FIXT 1.1</description>
 	<url>http://www.quickfixj.org</url>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>fixt11</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>						
+						<phase>prepare-package</phase>
+						<goals><goal>add-source</goal></goals>
 						<configuration>
-							<dictFile>./src/main/resources/FIXT11.xml</dictFile>
-							<packaging>quickfix.fixt11</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
+							<sources>
+								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
-			</plugin>
+			
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>2.6</version>
+				<configuration>
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
+					<includes>
+						<include>FIXT11.xml</include>
+						<include>quickfix/fixt11/**</include>
+						<include>quickfix/field/**</include>
+					</includes>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>2.4</version>
+				<configuration>
+					<includes>
+						<include>FIXT11.xml</include>
+						<include>quickfix/fixt11/**</include>
+						<include>quickfix/field/**</include>
+					</includes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
