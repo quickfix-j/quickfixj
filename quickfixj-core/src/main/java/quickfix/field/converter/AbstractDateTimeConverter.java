@@ -21,6 +21,7 @@ package quickfix.field.converter;
 
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
+import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -56,18 +57,30 @@ abstract class AbstractDateTimeConverter {
     }
 
     protected static long parseLong(String s) {
+        return parseLong(s, 0, s.length());
+    }
+
+    protected static long parseLong(String s, int begin, int end) {
         long n = 0;
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = begin; i < end; i++) {
             n = (n * 10) + (s.charAt(i) - '0');
         }
         return n;
     }
 
-    protected DateFormat createDateFormat(String format) {
+    protected static DateFormat createDateFormat(String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         sdf.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
         return sdf;
     }
 
+    static final class DontCareFieldPosition extends FieldPosition {
+        // The singleton of DontCareFieldPosition.
+        static final FieldPosition INSTANCE = new DontCareFieldPosition();
+
+        private DontCareFieldPosition() {
+            super(0);
+        }
+    }
 }
