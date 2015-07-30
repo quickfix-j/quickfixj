@@ -48,6 +48,11 @@ public final class IntConverter {
      */
     public static int convert(String value) throws FieldConvertError {
         try {
+            for (int i = 0; i < value.length(); i++) {
+                if (!Character.isDigit(value.charAt(i)) && !(i == 0 && value.charAt(i) == '-')) {
+                    throw new FieldConvertError("invalid integral value: " + value);
+                }
+            }
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid integral value: " + value + ": " + e);
