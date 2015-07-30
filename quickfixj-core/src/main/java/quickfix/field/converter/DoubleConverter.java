@@ -22,18 +22,23 @@ package quickfix.field.converter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import quickfix.CharSequenceReader;
 import quickfix.FieldConvertError;
+import quickfix.NumbersCache;
 import quickfix.RuntimeError;
 
 /**
  * Converts between a double and a String.
  */
 public class DoubleConverter {
-    private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
-    private static final ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>();
+
+    private static final ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>() {
+        @Override
+        protected DecimalFormat[] initialValue() {
+            return new DecimalFormat[14];
+        }
+    };
 
     /**
      * Converts a double to a string with no padding.
@@ -47,15 +52,11 @@ public class DoubleConverter {
     }
 
     static DecimalFormat getDecimalFormat(int padding) {
-        if (padding > 14) {
+        if(padding > 14) {
             // FieldConvertError not supported in setDouble methods on Message
             throw new RuntimeError("maximum padding of 14 zeroes is supported: " + padding);
         }
         DecimalFormat[] decimalFormats = threadDecimalFormats.get();
-        if (decimalFormats == null) {
-            decimalFormats = new DecimalFormat[14];
-            threadDecimalFormats.set(decimalFormats);
-        }
         DecimalFormat f = decimalFormats[padding];
         if (f == null) {
             StringBuilder buffer = new StringBuilder("0.");
@@ -80,7 +81,8 @@ public class DoubleConverter {
      * @return the formatted String representing the double.
      */
     public static String convert(double d, int padding) {
-        return getDecimalFormat(padding).format(d);
+        String value = NumbersCache.get(d);
+        return null != value ? value : getDecimalFormat(padding).format(d);
     }
 
     /**
@@ -92,11 +94,7 @@ public class DoubleConverter {
      */
     public static double convert(String value) throws FieldConvertError {
         try {
-            Matcher matcher = decimalPattern.matcher(value);
-            if (!matcher.matches()) {
-                throw new NumberFormatException();
-            }
-            return Double.parseDouble(value);
+            return CharSequenceReader.valueOf(value);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid double value: " + value);
         }
