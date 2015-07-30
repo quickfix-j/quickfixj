@@ -20,6 +20,7 @@
 package quickfix.field.converter;
 
 import quickfix.FieldConvertError;
+import quickfix.NumbersCache;
 
 /**
  * Convert between an integer and a String
@@ -34,7 +35,7 @@ public final class IntConverter {
      * @see java.lang.Long#toString(long)
      */
     public static String convert(int i) {
-        return Long.toString(i);
+        return NumbersCache.get(i);
     }
 
     /**
@@ -47,11 +48,6 @@ public final class IntConverter {
      */
     public static int convert(String value) throws FieldConvertError {
         try {
-            for (int i = 0; i < value.length(); i++) {
-                if (!Character.isDigit(value.charAt(i)) && !(i == 0 && value.charAt(i) == '-')) {
-                    throw new FieldConvertError("invalid integral value: " + value);
-                }
-            }
             return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid integral value: " + value + ": " + e);
