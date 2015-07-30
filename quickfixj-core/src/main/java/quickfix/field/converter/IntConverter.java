@@ -20,6 +20,7 @@
 package quickfix.field.converter;
 
 import quickfix.FieldConvertError;
+import quickfix.NumbersCache;
 
 /**
  * Convert between an integer and a String
@@ -34,7 +35,7 @@ public final class IntConverter {
      * @see java.lang.Long#toString(long)
      */
     public static String convert(int i) {
-        return Long.toString(i);
+        return NumbersCache.get(i);
     }
 
     /**
