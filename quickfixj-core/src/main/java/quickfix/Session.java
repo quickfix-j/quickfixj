@@ -2512,16 +2512,17 @@ public class Session implements Closeable {
     }
 
     private boolean send(String messageString) {
-        getLog().onOutgoing(messageString);
-        Responder responder;
-        synchronized (responderLock) {
-            responder = this.responder;
-        }
-        if (responder == null) {
-            getLog().onEvent("No responder, not sending message: " + messageString);
+        Responder responder = this.responder;
+        if(null == responder) {
+            this.getLog().onEvent("No responder, not sending message: " + messageString);
             return false;
+        } else {
+            try {
+                return responder.send(messageString);
+            } finally {
+                getLog().onOutgoing(messageString);
+            }
         }
-        return responder.send(messageString);
     }
 
     private boolean isCorrectCompID(Message message) throws FieldNotFound {
