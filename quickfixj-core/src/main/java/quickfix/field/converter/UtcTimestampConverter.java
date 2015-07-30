@@ -33,9 +33,20 @@ import quickfix.SystemTime;
  * and a time.
  */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
-    private static final ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
-    private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
-    private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+
+    protected static final class Context {
+        private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
+        private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+        private final StringBuffer buffer = new StringBuffer(128);
+    }
+
+    private static final ThreadLocal<Context> utcTimestampConverter = new ThreadLocal<Context>() {
+        @Override
+        protected Context initialValue() {
+            return new Context();
+        }
+    };
+
     private final static ConcurrentHashMap<String, Long> dateCache = new ConcurrentHashMap<String, Long>();
 
     /**
@@ -46,16 +57,32 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
      * @return the formatted timestamp
      */
     public static String convert(Date d, boolean includeMilliseconds) {
-        return getFormatter(includeMilliseconds).format(d);
+        Context context = utcTimestampConverter.get();
+        try {
+            (includeMilliseconds ? context.utcTimestampFormatMillis : context.utcTimestampFormat)
+                    .format(d, context.buffer, DontCareFieldPosition.INSTANCE);
+            return context.buffer.toString();
+        } finally {
+            context.buffer.setLength(0);
+        }
     }
 
-    private static DateFormat getFormatter(boolean includeMillis) {
-        UtcTimestampConverter converter = utcTimestampConverter.get();
-        if (converter == null) {
-            converter = new UtcTimestampConverter();
-            utcTimestampConverter.set(converter);
+    /**
+     * Convert a timestamp (represented as a Date) to a String.
+     *
+     * @param d the date to convert
+     * @param includeMilliseconds controls whether milliseconds are included in the result
+     * @param stringBuilder the out buffer to hold the formatted timestamp
+     */
+    public static void convert(Date d, StringBuilder stringBuilder, boolean includeMilliseconds) {
+        Context context = utcTimestampConverter.get();
+        try {
+            (includeMilliseconds ? context.utcTimestampFormatMillis : context.utcTimestampFormat)
+                    .format(d, context.buffer, DontCareFieldPosition.INSTANCE);
+            stringBuilder.append(context.buffer);
+        } finally {
+            context.buffer.setLength(0);
         }
-        return includeMillis ? converter.utcTimestampFormatMillis : converter.utcTimestampFormat;
     }
 
     //
@@ -73,11 +100,11 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
      */
     public static Date convert(String value) throws FieldConvertError {
         verifyFormat(value);
-        long timeOffset = (parseLong(value.substring(9, 11)) * 3600000L)
-                + (parseLong(value.substring(12, 14)) * 60000L)
-                + (parseLong(value.substring(15, 17)) * 1000L);
+        long timeOffset = (parseLong(value, 9, 11) * 3600000L)
+                + (parseLong(value, 12, 14) * 60000L)
+                + (parseLong(value, 15, 17) * 1000L);
         if (value.length() == 21) {
-            timeOffset += parseLong(value.substring(18, 21));
+            timeOffset += parseLong(value, 18, 21);
         }
         return new Date(getMillisForDay(value) + timeOffset);
     }
