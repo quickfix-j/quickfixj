@@ -21,6 +21,8 @@ package quickfix;
 
 import java.util.Date;
 
+import quickfix.field.converter.UtcDateOnlyConverter;
+
 /**
  * A date-valued message field.
  */
@@ -32,4 +34,15 @@ public class UtcDateOnlyField extends DateField {
     protected UtcDateOnlyField(int field, Date data) {
         super(field, data);
     }
+
+    @Override
+    protected String objectAsString() {
+        return UtcDateOnlyConverter.convert(getValue());
+    }
+
+    @Override
+    protected void objectAsString(StringBuilder stringBuilder) {
+        UtcDateOnlyConverter.convert(getValue(), stringBuilder);
+    }
+
 }
