@@ -29,11 +29,21 @@ import quickfix.FieldConvertError;
  * Convert between a time and a String.
  */
 public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
+
+    protected static final class Context {
+        private final DateFormat utcTimeFormat = createDateFormat("HH:mm:ss");
+        private final DateFormat utcTimeFormatMillis = createDateFormat("HH:mm:ss.SSS");
+        private final StringBuffer buffer = new StringBuffer(128);
+    }
+
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static final ThreadLocal<UtcTimeOnlyConverter> utcTimeConverter = new ThreadLocal<UtcTimeOnlyConverter>();
-    private final DateFormat utcTimeFormat = createDateFormat("HH:mm:ss");
-    private final DateFormat utcTimeFormatMillis = createDateFormat("HH:mm:ss.SSS");
+    private static final ThreadLocal<Context> utcTimeConverter = new ThreadLocal<Context>() {
+        @Override
+        protected Context initialValue() {
+            return new Context();
+        }
+    };
 
     /**
      * Convert a time (represented as a Date) to a String (HH:MM:SS or HH:MM:SS.SSS)
@@ -43,15 +53,36 @@ public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
      * @return a String representing the time.
      */
     public static String convert(Date d, boolean includeMilliseconds) {
-        return getFormatter(includeMilliseconds).format(d);
+        Context context = utcTimeConverter.get();
+        try {
+            (includeMilliseconds ? context.utcTimeFormatMillis : context.utcTimeFormat)
+                    .format(d, context.buffer, DontCareFieldPosition.INSTANCE);
+            return context.buffer.toString();
+        } finally {
+            context.buffer.setLength(0);
+        }
+    }
+
+    /**
+     * Convert a time (represented as a Date) to a String (HH:MM:SS or HH:MM:SS.SSS)
+     *
+     * @param d the date with the time to convert
+     * @param includeMilliseconds controls whether milliseconds are included in the result
+     * @param stringBuilder the out buffer to hold a String representing the time.
+     */
+    public static void convert(Date d, StringBuilder stringBuilder, boolean includeMilliseconds) {
+        Context context = utcTimeConverter.get();
+        try {
+            (includeMilliseconds ? context.utcTimeFormatMillis : context.utcTimeFormat)
+                    .format(d, context.buffer, DontCareFieldPosition.INSTANCE);
+            stringBuilder.append(context.buffer);
+        } finally {
+            context.buffer.setLength(0);
+        }
     }
 
     private static DateFormat getFormatter(boolean includeMillis) {
-        UtcTimeOnlyConverter converter = utcTimeConverter.get();
-        if (converter == null) {
-            converter = new UtcTimeOnlyConverter();
-            utcTimeConverter.set(converter);
-        }
+        Context converter = utcTimeConverter.get();
         return includeMillis ? converter.utcTimeFormatMillis : converter.utcTimeFormat;
     }
 
