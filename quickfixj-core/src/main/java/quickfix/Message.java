@@ -142,6 +142,8 @@ public class Message extends FieldMap {
         }
     };
 
+    private static final boolean isStringEquivalent = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+
     /**
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
@@ -150,15 +152,22 @@ public class Message extends FieldMap {
     @Override
     public String toString() {
         Context context = stringContexts.get();
-        header.setField(context.bodyLength);
-        trailer.setField(context.checkSum);
+        if(isStringEquivalent) { // length & checksum can easily be calculated after message is built
+            header.setField(context.bodyLength);
+            trailer.setField(context.checkSum);
+        } else {
+            header.setInt(BodyLength.FIELD, bodyLength());
+            trailer.setString(CheckSum.FIELD, checksum());
+        }
         StringBuilder stringBuilder = context.stringBuilder;
         try {
             header.calculateString(stringBuilder, null, null);
             calculateString(stringBuilder, null, null);
             trailer.calculateString(stringBuilder, null, null);
-            setBodyLength(stringBuilder);
-            setChecksum(stringBuilder);
+            if(!isStringEquivalent) {
+                setBodyLength(stringBuilder);
+                setChecksum(stringBuilder);
+            }
             return stringBuilder.toString();
         } finally {
             stringBuilder.setLength(0);
