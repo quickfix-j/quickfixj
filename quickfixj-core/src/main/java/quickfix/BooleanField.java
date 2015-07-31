@@ -19,7 +19,7 @@
 
 package quickfix;
 
-import java.lang.Boolean;
+import quickfix.field.converter.BooleanConverter;
 
 public class BooleanField extends Field<Boolean> {
 
@@ -28,11 +28,11 @@ public class BooleanField extends Field<Boolean> {
     }
 
     public BooleanField(int field, Boolean data) {
-        super(field, data);
+        super(field, null != data ? data : Boolean.FALSE);
     }
 
     public BooleanField(int field, boolean data) {
-        super(field, data);
+        super(field, Boolean.valueOf(data));
     }
 
     public void setValue(Boolean value) {
@@ -53,5 +53,15 @@ public class BooleanField extends Field<Boolean> {
 
     public boolean valueEquals(boolean value) {
         return getObject().equals(value);
+    }
+
+    @Override
+    protected String objectAsString() {
+        return BooleanConverter.convert(getValue());
+    }
+
+    @Override
+    protected void objectAsString(StringBuilder stringBuilder) {
+        stringBuilder.append(objectAsString());
     }
 }
