@@ -21,6 +21,8 @@ package quickfix;
 
 import java.util.Date;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
 /**
  * A timestamp-valued message field (a timestamp has both a date and a time).
  */
@@ -47,5 +49,15 @@ public class UtcTimeStampField extends DateField {
 
     boolean showMilliseconds() {
         return includeMilliseconds;
+    }
+
+    @Override
+    protected String objectAsString() {
+        return UtcTimestampConverter.convert(getValue(), showMilliseconds());
+    }
+
+    @Override
+    protected void objectAsString(StringBuilder stringBuilder) {
+        UtcTimestampConverter.convert(getValue(), stringBuilder, showMilliseconds());
     }
 }
