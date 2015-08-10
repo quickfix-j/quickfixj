@@ -69,7 +69,7 @@ import quickfix.field.converter.BooleanConverter;
 public class SessionSettings {
     private static final Logger log = LoggerFactory.getLogger(SessionSettings.class);
 
-    private static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
+    public static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
     private static final String SESSION_SECTION_NAME = "session";
     private static final String DEFAULT_SECTION_NAME = "default";
     public static final String BEGINSTRING = "BeginString";
@@ -643,10 +643,22 @@ public class SessionSettings {
         return new Dictionary(null, getSessionProperties(sessionID));
     }
 
-    public void set(SessionID sessionID, Dictionary dictionary) throws ConfigError {
+    public void set(SessionID sessionID, Dictionary dictionary) {
         final Properties p = getOrCreateSessionProperties(sessionID);
         p.clear();
         p.putAll(dictionary.toMap());
+    }
+
+    public void set(SessionID sessionID, Properties dictionary) {
+        final Properties p = getOrCreateSessionProperties(sessionID);
+        p.clear();
+        p.putAll(dictionary);
+    }
+
+    public void set(SessionID sessionID, Map<Object, Object> dictionary) {
+        final Properties p = getOrCreateSessionProperties(sessionID);
+        p.clear();
+        p.putAll(dictionary);
     }
 
     public Dictionary get() {

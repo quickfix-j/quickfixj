@@ -48,8 +48,10 @@ public class SessionSettingsTest extends TestCase {
         settingsString += "TargetSubID=HedgeFund\n";
         settingsString += "TargetLocationID=NYC\n";
 
-        final SessionSettings settings = new SessionSettings(new ByteArrayInputStream(
-                settingsString.getBytes()));
+        final SessionSettings settings = SessionSettingsLoader.loadDefault(
+                new ByteArrayInputStream(
+                    settingsString.getBytes()));
+
         final SessionID id = settings.sectionIterator().next();
         assertEquals("Company", id.getSenderCompID());
         assertEquals("FixedIncome", id.getSenderSubID());
