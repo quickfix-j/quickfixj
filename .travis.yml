@@ -1,13 +1,13 @@
 sudo: false
 language:
-- java
+    - java
 script:
-- "travis_wait mvn -pl quickfixj-codegenerator install"
-- "travis_wait mvn -pl quickfixj-dictgenerator install"
+    - "travis_wait mvn -pl quickfixj-codegenerator install"
+    - "travis_wait mvn -pl quickfixj-dictgenerator install"
 jdk:
-- oraclejdk8
+    - oraclejdk8
 env:
-- MAVEN_OPTS="-Xms2048m -Xmx=2048m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+    - MAVEN_OPTS="-Xms2048m -Xmx=2048m -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 branches:
   only:
     - travis-ci-build
