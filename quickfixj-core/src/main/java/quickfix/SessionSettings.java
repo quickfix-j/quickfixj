@@ -145,7 +145,10 @@ public class SessionSettings {
      * @throws FieldConvertError error during field type conversion.
      */
     public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
-        final String value = interpolate(getSessionProperties(sessionID).getProperty(key));
+        final Properties p = getSessionProperties(sessionID);
+        String value = p.getProperty(key);
+
+        value = interpolate(value);
         if (value == null) {
             throw new ConfigError(key + " not defined");
         }
@@ -233,10 +236,14 @@ public class SessionSettings {
         }
     }
 
-    private Properties getOrCreateSessionProperties(SessionID sessionID) {
+    Properties getOrCreateSessionProperties(SessionID sessionID) {
+        return getOrCreateSessionProperties(sessionID, true);
+    }
+
+    Properties getOrCreateSessionProperties(SessionID sessionID, boolean includeDefaults) {
         Properties p = sections.get(sessionID);
         if (p == null) {
-            p = new Properties(sections.get(DEFAULT_SESSION_ID));
+            p = includeDefaults ? new Properties(sections.get(DEFAULT_SESSION_ID)) : new Properties();
             sections.put(sessionID, p);
         }
         return p;
