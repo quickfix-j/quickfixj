@@ -4,7 +4,6 @@ language:
 script:
 - "travis_wait mvn -pl quickfixj-codegenerator install"
 - "travis_wait mvn -pl quickfixj-dictgenerator install"
-- "travis_wait mvn -pl quickfixj-core install"
 jdk:
 - oraclejdk8
 env:
