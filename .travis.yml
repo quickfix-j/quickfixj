@@ -1,0 +1,10 @@
+sudo: false
+language:
+- java
+script:
+- "mvn install"
+jdk:
+- oraclejdk8
+env:
+- MAVEN_OPTS="-Xms2048m -Xmx=2048m"
+- M2_OPTS="-Xms2048m -Xmx=2048m"
