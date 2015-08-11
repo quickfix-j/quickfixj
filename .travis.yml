@@ -1,9 +1,7 @@
 sudo: false
 language:
     - java
-script:
-    - "travis_wait mvn -pl quickfixj-codegenerator install"
-    - "travis_wait mvn -pl quickfixj-dictgenerator install"
+script: "travis_wait mvn -T4 -pl quickfixj-codegenerator install"
 jdk:
     - oraclejdk8
 env:
