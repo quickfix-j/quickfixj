@@ -2,7 +2,7 @@ sudo: false
 language:
 - java
 script:
-- "mvn install"
+- "travis_wait mvn install"
 jdk:
 - oraclejdk8
 env:
