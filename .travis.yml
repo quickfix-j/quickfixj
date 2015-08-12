@@ -2,7 +2,7 @@ sudo: false
 language:
     - java
 install:
-  - mvn clean
+  - mvn validate
 script: 
   - travis_wait mvn -T4 -pl quickfixj-codegenerator install
 jdk:
