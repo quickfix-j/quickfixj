@@ -68,10 +68,8 @@ import quickfix.field.converter.BooleanConverter;
  */
 public class SessionSettings {
     private static final Logger log = LoggerFactory.getLogger(SessionSettings.class);
-
     public static final SessionID DEFAULT_SESSION_ID = new SessionID("DEFAULT", "", "");
-    private static final String SESSION_SECTION_NAME = "session";
-    private static final String DEFAULT_SECTION_NAME = "default";
+
     public static final String BEGINSTRING = "BeginString";
     public static final String SENDERCOMPID = "SenderCompID";
     public static final String SENDERSUBID = "SenderSubID";
@@ -84,43 +82,16 @@ public class SessionSettings {
     // This was using the line.separator system property but that caused
     // problems with moving configuration files between *nix and Windows.
     private static final String NEWLINE = "\r\n";
-
     private Properties variableValues = System.getProperties();
+
+    private final Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
+    private final HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();
 
     /**
      * Creates an empty session settings object.
      */
     public SessionSettings() {
         sections.put(DEFAULT_SESSION_ID, new Properties());
-    }
-
-    /**
-     * Loads session settings from a file.
-     *
-     * @param filename the path to the file containing the session settings
-     */
-    public SessionSettings(String filename) throws ConfigError {
-        this();
-        InputStream in = getClass().getClassLoader().getResourceAsStream(filename);
-        if (in == null) {
-            try {
-                in = new FileInputStream(filename);
-            } catch (final IOException e) {
-                throw new ConfigError(e.getMessage());
-            }
-        }
-        load(in);
-    }
-
-    /**
-     * Loads session settings from an input stream.
-     *
-     * @param stream the input stream
-     * @throws ConfigError
-     */
-    public SessionSettings(InputStream stream) throws ConfigError {
-        this();
-        load(stream);
     }
 
     /**
@@ -351,60 +322,13 @@ public class SessionSettings {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
     }
 
-    private final HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();
+
 
     public Iterator<SessionID> sectionIterator() {
-        final HashSet<SessionID> nondefaultSessions = new HashSet<SessionID>(sections.keySet());
-        nondefaultSessions.remove(DEFAULT_SESSION_ID);
-        return nondefaultSessions.iterator();
-    }
+        final HashSet<SessionID> nonDefaultSessions = new HashSet<SessionID>(sections.keySet());
+        nonDefaultSessions.remove(DEFAULT_SESSION_ID);
 
-    private void load(InputStream inputStream) throws ConfigError {
-        try {
-            Properties currentSection = null;
-            String currentSectionId = null;
-            final Tokenizer tokenizer = new Tokenizer();
-            final Reader reader = new InputStreamReader(inputStream);
-            Tokenizer.Token token = tokenizer.getToken(reader);
-            while (token != null) {
-                if (token.getType() == Tokenizer.SECTION_TOKEN) {
-                    storeSection(currentSectionId, currentSection);
-                    if (token.getValue().equalsIgnoreCase(DEFAULT_SECTION_NAME)) {
-                        currentSectionId = DEFAULT_SECTION_NAME;
-                        currentSection = getSessionProperties(DEFAULT_SESSION_ID);
-                    } else if (token.getValue().equalsIgnoreCase(SESSION_SECTION_NAME)) {
-                        currentSectionId = SESSION_SECTION_NAME;
-                        currentSection = new Properties(getSessionProperties(DEFAULT_SESSION_ID));
-                    }
-                } else if (token.getType() == Tokenizer.ID_TOKEN) {
-                    final Tokenizer.Token valueToken = tokenizer.getToken(reader);
-                    if (currentSection != null) {
-                        final String value = interpolate(valueToken.getValue());
-                        currentSection.put(token.getValue(), value);
-                    }
-                }
-                token = tokenizer.getToken(reader);
-            }
-            storeSection(currentSectionId, currentSection);
-        } catch (final IOException e) {
-            final ConfigError configError = new ConfigError(e.getMessage());
-            configError.fillInStackTrace();
-            throw configError;
-        }
-    }
-
-    private void storeSection(String currentSectionId, Properties currentSection) {
-        if (currentSectionId != null && currentSectionId.equals(SESSION_SECTION_NAME)) {
-            final SessionID sessionId = new SessionID(currentSection.getProperty(BEGINSTRING),
-                    currentSection.getProperty(SENDERCOMPID),
-                    currentSection.getProperty(SENDERSUBID),
-                    currentSection.getProperty(SENDERLOCID),
-                    currentSection.getProperty(TARGETCOMPID),
-                    currentSection.getProperty(TARGETSUBID),
-                    currentSection.getProperty(TARGETLOCID),
-                    currentSection.getProperty(SESSION_QUALIFIER));
-            sections.put(sessionId, currentSection);
-        }
+        return nonDefaultSessions.iterator();
     }
 
     /**
@@ -431,112 +355,6 @@ public class SessionSettings {
     public void removeSetting(SessionID sessionID, String key) {
         getOrCreateSessionProperties(sessionID).remove(key);
     }
-
-    private static class Tokenizer {
-        //public static final int NONE_TOKEN = 1;
-
-        public static final int ID_TOKEN = 2;
-
-        public static final int VALUE_TOKEN = 3;
-
-        public static final int SECTION_TOKEN = 4;
-
-        private static class Token {
-            private final int type;
-
-            private final String value;
-
-            public Token(int type, String value) {
-                super();
-                this.type = type;
-                this.value = value;
-            }
-
-            public int getType() {
-                return type;
-            }
-
-            public String getValue() {
-                return value;
-            }
-
-            @Override
-            public String toString() {
-                return type + ": " + value;
-            }
-        }
-
-        private char ch = '\0';
-
-        private final StringBuilder sb = new StringBuilder();
-
-        private Token getToken(Reader reader) throws IOException {
-            if (ch == '\0') {
-                ch = nextCharacter(reader);
-            }
-            skipWhitespace(reader);
-            if (isLabelCharacter(ch)) {
-                sb.setLength(0);
-                do {
-                    sb.append(ch);
-                    ch = nextCharacter(reader);
-                } while (isLabelCharacter(ch));
-                return new Token(ID_TOKEN, sb.toString());
-            } else if (ch == '=') {
-                ch = nextCharacter(reader);
-                sb.setLength(0);
-                if (isValueCharacter(ch)) {
-                    do {
-                        sb.append(ch);
-                        ch = nextCharacter(reader);
-                    } while (isValueCharacter(ch));
-                }
-                return new Token(VALUE_TOKEN, sb.toString().trim());
-            } else if (ch == '[') {
-                ch = nextCharacter(reader);
-                final Token id = getToken(reader);
-                // check ]
-                ch = nextCharacter(reader); // skip ]
-                return new Token(SECTION_TOKEN, id.getValue());
-            } else if (ch == '#') {
-                do {
-                    ch = nextCharacter(reader);
-                } while (isValueCharacter(ch));
-                return getToken(reader);
-            }
-            return null;
-        }
-
-        private boolean isNewLineCharacter(char ch) {
-            return NEWLINE.indexOf(ch) != -1;
-        }
-
-        private boolean isLabelCharacter(char ch) {
-            return !isEndOfStream(ch) && "[]=#".indexOf(ch) == -1;
-        }
-
-        private boolean isValueCharacter(char ch) {
-            return !isEndOfStream(ch) && !isNewLineCharacter(ch);
-        }
-
-        private boolean isEndOfStream(char ch) {
-            return (byte) ch == -1;
-        }
-
-        private char nextCharacter(Reader reader) throws IOException {
-            return (char) reader.read();
-        }
-
-        private void skipWhitespace(Reader reader) throws IOException {
-            if (Character.isWhitespace(ch)) {
-                do {
-                    ch = nextCharacter(reader);
-                } while (Character.isWhitespace(ch));
-            }
-        }
-    }
-
-    private final Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
 
     private String interpolate(String value) {
         if (value == null || value.indexOf('$') == -1) {

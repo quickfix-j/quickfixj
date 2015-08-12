@@ -82,12 +82,12 @@ public class SessionSettingsTest {
     }
 
     private static SessionSettings createDefaultSettingsFromString(String settingsString) throws ConfigError {
-        return SessionSettingsLoader.loadDefault(new ByteArrayInputStream(settingsString.getBytes()));
+        return SessionSettingsLoaders.load(new ByteArrayInputStream(settingsString.getBytes()));
     }
 
     private void assertSettingsEqual(SessionSettings expectedSettings, String actualSettingsString)
             throws ConfigError {
-        final SessionSettings actualSettings = new SessionSettings(new ByteArrayInputStream(
+        final SessionSettings actualSettings =  SessionSettingsLoaders.load(new ByteArrayInputStream(
                 actualSettingsString.getBytes()));
         assertSectionEquals(expectedSettings.getDefaultProperties(),
                 actualSettings.getDefaultProperties());
@@ -122,9 +122,9 @@ public class SessionSettingsTest {
         settingsString += "TargetSubID=HedgeFund\n";
         settingsString += "TargetLocationID=NYC\n";
 
-        final SessionSettings settings = SessionSettingsLoader.loadDefault(
+        final SessionSettings settings = SessionSettingsLoaders.load(
                 new ByteArrayInputStream(
-                    settingsString.getBytes()));
+                        settingsString.getBytes()));
 
         final SessionID id = settings.sectionIterator().next();
         assertEquals("Company", id.getSenderCompID());
@@ -353,7 +353,7 @@ public class SessionSettingsTest {
         };
 
         try {
-            new SessionSettings(cfg);
+            SessionSettingsLoaders.load(cfg);
             fail("expected exception");
         } catch (final ConfigError e) {
             // expected
@@ -447,7 +447,7 @@ public class SessionSettingsTest {
     }
 
     private static SessionSettings createYamlSettingsFromString(String settingsString) throws ConfigError {
-        return SessionSettingsLoader.loadYAML(new ByteArrayInputStream(settingsString.getBytes()));
+        return SessionSettingsLoaders.loadFromYaml(new ByteArrayInputStream(settingsString.getBytes()));
     }
 
     @Test
@@ -462,8 +462,8 @@ public class SessionSettingsTest {
         settingsString += "      TargetSubID: HedgeFund\n";
         settingsString += "      TargetLocationID: NYC\n";
 
-        final SessionSettings settings = SessionSettingsLoader.loadYAML(
-            new ByteArrayInputStream(settingsString.getBytes()));
+        final SessionSettings settings = SessionSettingsLoaders.loadFromYaml(
+                new ByteArrayInputStream(settingsString.getBytes()));
 
         final SessionID id = settings.sectionIterator().next();
         assertEquals("Company", id.getSenderCompID());
