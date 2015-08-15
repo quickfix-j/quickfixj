@@ -2,9 +2,9 @@ sudo: false
 language:
     - java
 install:
-  - mvn --version
+  - ./mvnw --version
 script: 
-  - mvn -T4 install -Dskip.jalopy -DskipTests=true -Dmaven.javadoc.skip=true
+  - ./mvnw -T4 install -Dskip.jalopy -DskipTests=true -Dmaven.javadoc.skip=true
 jdk:
   - oraclejdk8
 env:
