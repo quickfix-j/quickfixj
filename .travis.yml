@@ -4,12 +4,15 @@ language:
 install:
   - ./mvnw --version
 script: 
-  - ./mvnw -T4 install -Dskip.jalopy -DskipTests=true -Dmaven.javadoc.skip=true
+  - cat /etc/mavenrc
+  - export MAVEN_OPTS="-Xms2048m -Xmx2048m"
+  - export MAVEN_SKIP_RC="true"
+  - ./mvnw -T4 install -pl quickfixj-core -am -Dskip.jalopy -DskipTests=true -Dmaven.javadoc.skip=true
 jdk:
   - oraclejdk8
 env:
-  - MAVEN_OPTS="-Xms2048m -Xmx2048m"
-  - MAVEN_SKIP_RC="true"
+  global:
+    - MAVEN_OPTS="-Xms2048m -Xmx2048m"
 branches:
   only:
     - travis-ci-build
