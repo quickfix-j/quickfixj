@@ -9,6 +9,7 @@ jdk:
   - oraclejdk8
 env:
   - MAVEN_OPTS="-Xms2048m -Xmx2048m"
+  - MAVEN_SKIP_RC="true"
 branches:
   only:
     - travis-ci-build
