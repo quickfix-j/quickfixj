@@ -2,7 +2,7 @@ sudo: false
 install:
   - ./mvnw --version
 script: 
-  - .travis-build.sh
+  - ./.travis-build.sh
 jdk:
   - oraclejdk8
 branches:
