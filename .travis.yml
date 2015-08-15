@@ -1,18 +1,10 @@
 sudo: false
-language:
-    - java
 install:
   - ./mvnw --version
 script: 
-  - cat /etc/mavenrc
-  - export MAVEN_OPTS="-Xms2048m -Xmx2048m"
-  - export MAVEN_SKIP_RC="true"
-  - ./mvnw -T4 install -pl quickfixj-core -am -Dskip.jalopy -DskipTests=true -Dmaven.javadoc.skip=true
+  - .travis-build.sh
 jdk:
   - oraclejdk8
-env:
-  global:
-    - MAVEN_OPTS="-Xms2048m -Xmx2048m"
 branches:
   only:
     - travis-ci-build
