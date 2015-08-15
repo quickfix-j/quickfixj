@@ -8,7 +8,7 @@ script:
 jdk:
   - oraclejdk8
 env:
-  - MAVEN_OPTS="-Xms2048m -Xmx=2048m"
+  - MAVEN_OPTS="-Xms2048m -Xmx2048m"
 branches:
   only:
     - travis-ci-build
