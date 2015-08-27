@@ -18,79 +18,61 @@
  ******************************************************************************/
 package quickfix;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class SessionSettingsLoader {
+    public enum Type {
+        LEGACY,
+        YAML
+    }
+
+    public interface PropertyNameTranslator {
+        public String translate(String propertyName);
+    }
 
     public static final String SESSION_SECTION_NAME = "session";
     public static final String DEFAULT_SECTION_NAME = "default";
 
-    protected final Pattern variablePattern;
-    protected final Properties variableValues;
+    public static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{(.+?)}");
 
-    protected SessionSettingsLoader(Properties variableValues) {
-        this.variablePattern = Pattern.compile("\\$\\{(.+?)}");
-        this.variableValues = new Properties(System.getProperties());
-        if(variableValues != null) {
-            this.variableValues.putAll(variableValues);
-        }
+    private SessionSettingsLoader() {
     }
 
-    public SessionSettings load(File file) throws ConfigError {
-        try {
-            return load(new FileInputStream(file));
-        } catch(final FileNotFoundException e) {
-            final ConfigError configError = new ConfigError(e.getMessage());
-            configError.fillInStackTrace();
-            throw configError;
-        }
-    }
+    public SessionSettings load(Properties properties, InputStream stream) throws ConfigError {
+        Properties variableValues = new Properties(System.getProperties());
+        variableValues.putAll(properties);
 
-    public SessionSettings load(String file) throws ConfigError {
-        InputStream in = getClass().getClassLoader().getResourceAsStream(file);
-        if (in == null) {
-            try {
-                in = new FileInputStream(file);
-            } catch (final IOException e) {
-                throw new ConfigError(e.getMessage());
-            }
-        } else {
-            in = new BufferedInputStream(in);
-        }
-
-        return load(in);
-    }
-
-    public SessionSettings load(InputStream stream) throws ConfigError {
         SessionSettings settings = new SessionSettings();
-        settings.setVariableValues(this.variableValues);
+        settings.setVariableValues(variableValues);
 
-        loadSessionSettings(settings, stream);
+        loadSessionSettings(variableValues, settings, stream);
         return settings;
     }
 
 
-    protected String interpolate(String value) {
+    protected String interpolate(Properties properties, String value) {
         if (value == null || value.indexOf('$') == -1) {
             return value;
         }
 
         final StringBuffer buffer = new StringBuffer();
-        final Matcher m = this.variablePattern.matcher(value);
+        final Matcher m = VARIABLE_PATTERN.matcher(value);
         while (m.find()) {
             if (m.start() > 0 && value.charAt(m.start() - 1) == '\\') {
                 continue;
             }
             final String variable = m.group(1);
-            final String variableValue = variableValues.getProperty(variable);
+            final String variableValue = properties.getProperty(variable);
             if (variableValue != null) {
                 m.appendReplacement(buffer, variableValue);
             }
@@ -119,7 +101,106 @@ public abstract class SessionSettingsLoader {
         }
     }
 
-    protected abstract void loadSessionSettings(SessionSettings sessionSettings, InputStream inputStream) throws ConfigError;
+    protected abstract void loadSessionSettings(
+        Properties properties, SessionSettings sessionSettings, InputStream inputStream) throws ConfigError;
 
 
+    // *************************************************************************
+    //
+    // *************************************************************************
+
+    static class LegacyLoader extends SessionSettingsLoader{
+
+        private final Pattern sectionPattern;
+        private final Pattern keyvalPatter;
+        private final Pattern commentPatter;
+
+        public LegacyLoader() {
+            this.sectionPattern = Pattern.compile( "\\s*\\[([^]]*)\\]\\s*" );
+            this.keyvalPatter = Pattern.compile( "\\s*([^=]*)=(.*)" );
+            this.commentPatter = Pattern.compile("^#.*$");
+        }
+
+        @Override
+        protected void loadSessionSettings(Properties properties, SessionSettings sessionSettings, InputStream inputStream) throws ConfigError {
+            final BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+            try {
+                String line = null;
+                String section = null;
+                Properties settings = null;
+                while ((line = br.readLine()) != null) {
+                    line = line.trim();
+                    Matcher m = commentPatter.matcher(line);
+                    if(!m.matches()) {
+                        m = sectionPattern.matcher(line);
+                        if (m.matches()) {
+                            storeSection(section, sessionSettings, settings);
+
+                            section = m.group(1).trim();
+                            if(section.equalsIgnoreCase(DEFAULT_SECTION_NAME)) {
+                                settings = new Properties();
+                            } if(section.equalsIgnoreCase(SESSION_SECTION_NAME)) {
+                                settings = new Properties(sessionSettings.getDefaultProperties());
+                            }
+                        } else if (section != null && settings != null) {
+                            m = keyvalPatter.matcher(line);
+                            if (m.matches()) {
+                                settings.put(
+                                    m.group(1).trim(),
+                                    interpolate(properties, m.group(2).trim())
+                                );
+                            }
+                        }
+                    }
+                }
+
+                storeSection(section, sessionSettings, settings);
+
+                br.close();
+            } catch (final IOException e) {
+                final ConfigError configError = new ConfigError(e.getMessage());
+                configError.fillInStackTrace();
+                throw configError;
+            }
+        }
+    }
+
+    // *************************************************************************
+    //
+    // *************************************************************************
+
+    static class YamlLoader extends SessionSettingsLoader {
+        private final String YAML_DEFAULTS = "defaults";
+        private final String YAML_SESSIONS = "sessions";
+
+        public YamlLoader() {
+        }
+
+        @Override
+        protected void loadSessionSettings(Properties properties, SessionSettings sessionSettings, InputStream inputStream) throws ConfigError {
+            final Yaml yaml = new Yaml();
+            final Map<?,?> data = yaml.loadAs(inputStream,Map.class);
+
+            if(data.containsKey(YAML_DEFAULTS)) {
+                loadSessionSettings(DEFAULT_SECTION_NAME, sessionSettings, (Map<String, Object>) data.get(YAML_DEFAULTS));
+            }
+
+            if(data.containsKey(YAML_SESSIONS)) {
+                for (Map<String, Object> settingsMap : (List<Map<String, Object>>) data.get(YAML_SESSIONS)) {
+                    loadSessionSettings(SESSION_SECTION_NAME, sessionSettings, settingsMap);
+                }
+            }
+        }
+
+        protected void loadSessionSettings(String sectionId, SessionSettings sessionSettings, Map<String, Object> sectionData) {
+            final Properties settings = new Properties(sessionSettings.getDefaultProperties());
+            for(Map.Entry<String, Object> entry : sectionData.entrySet()) {
+                if(entry.getValue() != null) {
+                    settings.setProperty(entry.getKey(), entry.getValue().toString());
+                }
+            }
+
+            storeSection(sectionId, sessionSettings, settings);
+        }
+    }
 }

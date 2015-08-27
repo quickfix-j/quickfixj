@@ -82,13 +82,19 @@ public class SessionSettingsTest {
     }
 
     private static SessionSettings createDefaultSettingsFromString(String settingsString) throws ConfigError {
-        return SessionSettingsLoaders.load(new ByteArrayInputStream(settingsString.getBytes()));
+        return new SessionSettingsBuilder()
+            .legacy()
+            .build(new ByteArrayInputStream(settingsString.getBytes()));
     }
 
     private void assertSettingsEqual(SessionSettings expectedSettings, String actualSettingsString)
             throws ConfigError {
-        final SessionSettings actualSettings =  SessionSettingsLoaders.load(new ByteArrayInputStream(
-                actualSettingsString.getBytes()));
+
+        final SessionSettings actualSettings =
+            new SessionSettingsBuilder()
+                .legacy()
+                .build(new ByteArrayInputStream(actualSettingsString.getBytes()));
+
         assertSectionEquals(expectedSettings.getDefaultProperties(),
                 actualSettings.getDefaultProperties());
         final Iterator<SessionID> sessionIDs = expectedSettings.sectionIterator();
@@ -122,9 +128,9 @@ public class SessionSettingsTest {
         settingsString += "TargetSubID=HedgeFund\n";
         settingsString += "TargetLocationID=NYC\n";
 
-        final SessionSettings settings = SessionSettingsLoaders.load(
-                new ByteArrayInputStream(
-                        settingsString.getBytes()));
+        final SessionSettings settings = new SessionSettingsBuilder()
+            .legacy()
+            .build(new ByteArrayInputStream(settingsString.getBytes()));
 
         final SessionID id = settings.sectionIterator().next();
         assertEquals("Company", id.getSenderCompID());
@@ -353,7 +359,7 @@ public class SessionSettingsTest {
         };
 
         try {
-            SessionSettingsLoaders.load(cfg);
+            new SessionSettingsBuilder().legacy().build(cfg);
             fail("expected exception");
         } catch (final ConfigError e) {
             // expected
@@ -447,7 +453,7 @@ public class SessionSettingsTest {
     }
 
     private static SessionSettings createYamlSettingsFromString(String settingsString) throws ConfigError {
-        return SessionSettingsLoaders.loadFromYaml(new ByteArrayInputStream(settingsString.getBytes()));
+        return new SessionSettingsBuilder().yaml().build(new ByteArrayInputStream(settingsString.getBytes()));
     }
 
     @Test
@@ -462,8 +468,9 @@ public class SessionSettingsTest {
         settingsString += "      TargetSubID: HedgeFund\n";
         settingsString += "      TargetLocationID: NYC\n";
 
-        final SessionSettings settings = SessionSettingsLoaders.loadFromYaml(
-                new ByteArrayInputStream(settingsString.getBytes()));
+        final SessionSettings settings = new SessionSettingsBuilder()
+            .yaml()
+            .build(new ByteArrayInputStream(settingsString.getBytes()));
 
         final SessionID id = settings.sectionIterator().next();
         assertEquals("Company", id.getSenderCompID());
