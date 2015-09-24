@@ -349,7 +349,7 @@ public class Session implements Closeable {
 
     private final Object responderLock = new Object(); // unique instance
     // @GuardedBy(responderLock)
-    private Responder responder;
+    private volatile Responder responder;
 
     // The session time checks were causing performance problems
     // so we are checking only once per second.
@@ -2514,7 +2514,7 @@ public class Session implements Closeable {
     private boolean send(String messageString) {
         Responder responder = this.responder;
         if(null == responder) {
-            this.getLog().onEvent("No responder, not sending message: " + messageString);
+            getLog().onEvent("No responder, not sending message: " + messageString);
             return false;
         } else {
             try {
