@@ -538,10 +538,28 @@ public class Session implements Closeable {
         return null;
     }
 
-    private boolean isCurrentSession(final long time)
-            throws IOException {
-        return sessionSchedule == null || sessionSchedule.isSameSession(
-                SystemTime.getUtcCalendar(time), SystemTime.getUtcCalendar(state.getCreationTime()));
+    private static final class Calendars {
+        Calendar time1 = SystemTime.getUtcCalendar();
+        Calendar time2 = SystemTime.getUtcCalendar();
+        SessionSchedule.TimeInterval timeInterval = new SessionSchedule.TimeInterval();
+    }
+
+    private static final ThreadLocal<Calendars> localCalendars = new ThreadLocal<Calendars>() {
+        @Override
+        protected Calendars initialValue() {
+            return new Calendars();
+        }
+    };
+
+    private boolean isCurrentSession(final long time) throws IOException {
+        if (sessionSchedule == null) {
+            return true;
+        }
+        Calendars calendars = localCalendars.get();
+        calendars.time1.setTimeInMillis(time);
+        calendars.time2.setTime(state.getCreationTime());
+        return sessionSchedule.isSameSession(calendars.time1,
+                calendars.time2, calendars.timeInterval);
     }
 
     /**
