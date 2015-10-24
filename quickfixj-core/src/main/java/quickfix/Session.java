@@ -539,10 +539,10 @@ public class Session implements Closeable {
     }
 
     private static final class Calendars {
-        Calendar time1 = SystemTime.getUtcCalendar();
-        Calendar time2 = SystemTime.getUtcCalendar();
-        SessionSchedule.TimeInterval interval1 = new SessionSchedule.TimeInterval();
-        SessionSchedule.TimeInterval interval2 = new SessionSchedule.TimeInterval();
+        final Calendar time1 = SystemTime.getUtcCalendar();
+        final Calendar time2 = SystemTime.getUtcCalendar();
+        final SessionSchedule.TimeInterval interval1 = new SessionSchedule.TimeInterval();
+        final SessionSchedule.TimeInterval interval2 = new SessionSchedule.TimeInterval();
     }
 
     private static final ThreadLocal<Calendars> localCalendars = new ThreadLocal<Calendars>() {
