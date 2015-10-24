@@ -809,7 +809,7 @@ public class SessionScheduleTest {
         settings.setString(Session.SETTING_NON_STOP_SESSION, "Y");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-        assertTrue(schedule.isSameSession(null, null));
+        assertTrue(schedule.isSameSession(null, null, new SessionSchedule.TimeInterval()));
     }
 
     private void doWeeklyIsSameSessionTest(String startDay, String startTimeString, String endDay,
@@ -875,7 +875,7 @@ public class SessionScheduleTest {
 
         while (beforeSession(scheduleStartTime)) {
             assertFalse(formatErrorMessage("before session", sessionCreateTime), schedule
-                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar(), new SessionSchedule.TimeInterval()));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
@@ -884,13 +884,13 @@ public class SessionScheduleTest {
             // This should be an impossible situation. "Now" should always be
             // after the session create time.
             assertFalse(formatErrorMessage("before create", sessionCreateTime), schedule
-                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar()));
+                    .isSameSession(sessionCreateTime, SystemTime.getUtcCalendar(), new SessionSchedule.TimeInterval()));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
         while (withinSession(scheduleStartTime, scheduleEndTime)) {
             assertTrue(formatErrorMessage("within", sessionCreateTime), schedule.isSameSession(
-                    sessionCreateTime, SystemTime.getUtcCalendar()));
+                    sessionCreateTime, SystemTime.getUtcCalendar(), new SessionSchedule.TimeInterval()));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
 
@@ -899,7 +899,7 @@ public class SessionScheduleTest {
 
         while (beforeSession(scheduleStartTime)) {
             assertFalse(formatErrorMessage("after", sessionCreateTime), schedule.isSameSession(
-                    sessionCreateTime, SystemTime.getUtcCalendar()));
+                    sessionCreateTime, SystemTime.getUtcCalendar(), new SessionSchedule.TimeInterval()));
             mockSystemTimeSource.increment(timeIncrement * 1000L);
         }
     }
@@ -930,8 +930,8 @@ public class SessionScheduleTest {
 
     private void doIsSameSessionTest(SessionSchedule schedule, Calendar time1, Calendar time2,
             boolean isSameSession) {
-        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time1, time2));
-        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time2, time1));
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time1, time2, new SessionSchedule.TimeInterval()));
+        assertEquals("isSameSession is wrong", isSameSession, schedule.isSameSession(time2, time1, new SessionSchedule.TimeInterval()));
     }
 
     private Calendar getTimeStamp(int year, int month, int day, int hour, int minute, int second,
