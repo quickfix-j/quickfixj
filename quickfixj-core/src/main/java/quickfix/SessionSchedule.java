@@ -169,8 +169,7 @@ public class SessionSchedule {
         }
     }
 
-    private TimeInterval theMostRecentIntervalBefore(Calendar t) {
-        TimeInterval timeInterval = new TimeInterval();
+    private TimeInterval theMostRecentIntervalBefore(Calendar t, TimeInterval timeInterval) {
         Calendar intervalStart = timeInterval.getStart();
         intervalStart.setTimeZone(startTime.getTimeZone());
         intervalStart.setTimeInMillis(t.getTimeInMillis());
@@ -210,7 +209,7 @@ public class SessionSchedule {
         return timeInterval;
     }
 
-    private static class TimeInterval {
+    static class TimeInterval {
         private final Calendar start = SystemTime.getUtcCalendar();
         private final Calendar end = SystemTime.getUtcCalendar();
 
@@ -247,14 +246,14 @@ public class SessionSchedule {
         }
     }
 
-    public boolean isSameSession(Calendar time1, Calendar time2) {
+    public boolean isSameSession(Calendar time1, Calendar time2, TimeInterval interval1, TimeInterval interval2) {
         if (nonStopSession)
             return true;
-        TimeInterval interval1 = theMostRecentIntervalBefore(time1);
+        interval1 = theMostRecentIntervalBefore(time1, interval1);
         if (!interval1.isContainingTime(time1)) {
             return false;
         }
-        TimeInterval interval2 = theMostRecentIntervalBefore(time2);
+        interval2 = theMostRecentIntervalBefore(time2, interval2);
         return interval2.isContainingTime(time2) && interval1.equals(interval2);
     }
 
@@ -266,12 +265,26 @@ public class SessionSchedule {
         return !isSet(startTime.getDay()) && !isSet(endTime.getDay());
     }
 
+    private static final class SessionTimeLocal {
+        private final Calendar calendar = SystemTime.getUtcCalendar();
+        private final TimeInterval timeInterval = new TimeInterval();
+    }
+
+    private static final ThreadLocal<SessionTimeLocal> localCalendar = new ThreadLocal<SessionTimeLocal>() {
+        @Override
+        protected SessionTimeLocal initialValue() {
+            return new SessionTimeLocal();
+        }
+    };
+
     public boolean isSessionTime() {
         if(nonStopSession) {
             return true;
         }
-        Calendar now = SystemTime.getUtcCalendar();
-        TimeInterval interval = theMostRecentIntervalBefore(now);
+        SessionTimeLocal sessionTimeLocal = localCalendar.get();
+        Calendar now = sessionTimeLocal.calendar;
+        now.setTimeInMillis(SystemTime.currentTimeMillis());
+        TimeInterval interval = theMostRecentIntervalBefore(now, sessionTimeLocal.timeInterval);
         return interval.isContainingTime(now);
     }
 
@@ -284,7 +297,7 @@ public class SessionSchedule {
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss-z");
         timeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        TimeInterval ti = theMostRecentIntervalBefore(SystemTime.getUtcCalendar());
+        TimeInterval ti = theMostRecentIntervalBefore(SystemTime.getUtcCalendar(), new TimeInterval());
 
         formatTimeInterval(buf, ti, timeFormat, false);
 
