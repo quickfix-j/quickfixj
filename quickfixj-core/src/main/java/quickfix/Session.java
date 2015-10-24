@@ -541,7 +541,8 @@ public class Session implements Closeable {
     private static final class Calendars {
         Calendar time1 = SystemTime.getUtcCalendar();
         Calendar time2 = SystemTime.getUtcCalendar();
-        SessionSchedule.TimeInterval timeInterval = new SessionSchedule.TimeInterval();
+        SessionSchedule.TimeInterval interval1 = new SessionSchedule.TimeInterval();
+        SessionSchedule.TimeInterval interval2 = new SessionSchedule.TimeInterval();
     }
 
     private static final ThreadLocal<Calendars> localCalendars = new ThreadLocal<Calendars>() {
@@ -559,7 +560,7 @@ public class Session implements Closeable {
         calendars.time1.setTimeInMillis(time);
         calendars.time2.setTime(state.getCreationTime());
         return sessionSchedule.isSameSession(calendars.time1,
-                calendars.time2, calendars.timeInterval);
+                calendars.time2, calendars.interval1, calendars.interval2);
     }
 
     /**
