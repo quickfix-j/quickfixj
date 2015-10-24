@@ -403,12 +403,12 @@ public class FileStore implements MessageStore, Closeable {
 
     private void storeSenderSequenceNumber() throws IOException {
         senderSequenceNumberFile.seek(0);
-        senderSequenceNumberFile.writeUTF("" + cache.getNextSenderMsgSeqNum());
+        senderSequenceNumberFile.writeUTF(NumbersCache.get(cache.getNextSenderMsgSeqNum()));
     }
 
     private void storeTargetSequenceNumber() throws IOException {
         targetSequenceNumberFile.seek(0);
-        targetSequenceNumberFile.writeUTF("" + cache.getNextTargetMsgSeqNum());
+        targetSequenceNumberFile.writeUTF(NumbersCache.get(cache.getNextTargetMsgSeqNum()));
     }
 
     String getHeaderFileName() {
