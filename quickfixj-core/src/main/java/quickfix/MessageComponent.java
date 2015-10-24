@@ -18,38 +18,30 @@ public abstract class MessageComponent extends FieldMap {
     }
 
     public void copyFrom(FieldMap fields) {
-        try {
-            for (int componentField : getFields()) {
-                if (fields.isSetField(componentField)) {
-                    setField(componentField, fields.getField(componentField, null));
-                }
+        for (int componentField : getFields()) {
+            if (fields.isSetField(componentField)) {
+                setField(componentField, fields.getField(componentField, null));
             }
-            for (int groupField : getGroupFields()) {
-                if (fields.isSetField(groupField)) {
-                    setField(groupField, fields.getField(groupField, null));
-                    setGroups(groupField, fields.getGroups(groupField));
-                }
+        }
+        for (int groupField : getGroupFields()) {
+            if (fields.isSetField(groupField)) {
+                setField(groupField, fields.getField(groupField, null));
+                setGroups(groupField, fields.getGroups(groupField));
             }
-        } catch (FieldNotFound e) {
-            // should not happen
         }
     }
 
     public void copyTo(FieldMap fields) {
-        try {
-            for (int componentField : getFields()) {
-                if (isSetField(componentField)) {
-                    fields.setField(componentField, getField(componentField, null));
-                }
+        for (int componentField : getFields()) {
+            if (isSetField(componentField)) {
+                fields.setField(componentField, getField(componentField, null));
             }
-            for (int groupField : getGroupFields()) {
-                if (isSetField(groupField)) {
-                    fields.setField(groupField, getField(groupField, null));
-                    fields.setGroups(groupField, getGroups(groupField));
-                }
+        }
+        for (int groupField : getGroupFields()) {
+            if (isSetField(groupField)) {
+                fields.setField(groupField, getField(groupField, null));
+                fields.setGroups(groupField, getGroups(groupField));
             }
-        } catch (FieldNotFound e) {
-            // should not happen
         }
     }
 
