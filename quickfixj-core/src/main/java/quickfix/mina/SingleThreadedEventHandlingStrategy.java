@@ -110,12 +110,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public void blockInThread() {
         if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
             sessionConnector.log.warn("Trying to stop still running " + MESSAGE_PROCESSOR_THREAD_NAME);
-            stopHandlingMessages();
-            try {
-                messageProcessingThread.join(1000);
-            } catch (InterruptedException ex) {
-                sessionConnector.log.error(MESSAGE_PROCESSOR_THREAD_NAME + " interrupted.");
-            }
+            stopHandlingMessages(true);
             if (messageProcessingThread.isAlive()) {
                 throw new IllegalStateException("Still running " + MESSAGE_PROCESSOR_THREAD_NAME + " could not be stopped!");
             }
@@ -161,6 +156,18 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             onMessage(session, END_OF_STREAM);
         }
         isStopped = true;
+    }
+    
+    public void stopHandlingMessages(boolean join) {
+        stopHandlingMessages();
+        
+        if (join) {
+            try {
+                messageProcessingThread.join();
+            } catch (InterruptedException e) {
+                sessionConnector.log.error(MESSAGE_PROCESSOR_THREAD_NAME + " interrupted.");
+            }
+        }
     }
 
     @Override
