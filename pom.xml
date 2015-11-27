@@ -24,7 +24,7 @@
 	</licenses>
 
 	<prerequisites>
-		<maven>3.2.5</maven>
+		<maven>3.3.3</maven>
 	</prerequisites>
 
 	<modules>
@@ -54,11 +54,12 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.2</version>
-					<configuration>
-						<source>${jdkLevel}</source>
-						<target>${jdkLevel}</target>
-					</configuration>
+					<version>3.3</version>
+					<configuration> 
+						<source>${jdkLevel}</source> 
+						<target>${jdkLevel}</target> 
+					</configuration> 
+
 				</plugin>
 				<plugin>
 					<artifactId>maven-jar-plugin</artifactId>
@@ -102,7 +103,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.5.2</version>
+					<version>2.5.4</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

@@ -14,16 +14,26 @@
 	<description>QuickFIX/J Message classes for FIXT 1.1</description>
 	<url>http://www.quickfixj.org</url>
 
-	<properties>
-		<fix.spec>FIXT11.xml</fix.spec>
-		<fix.name>fixt11</fix.name>
-	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
+				<version>${project.version}</version>
+				<executions>
+					<execution>
+						<id>fixt11</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>						
+						<configuration>
+							<dictFile>./src/main/resources/FIXT11.xml</dictFile>
+							<packaging>quickfix.fixt11</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>

@@ -177,7 +177,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<dictFile>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources/FIX44.xml</dictFile>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml</dictFile>
 							<packaging>quickfix.fix44</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
@@ -323,7 +323,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.1</version>
+				<version>2.10.3</version>
 			</plugin>
 			<plugin>
 				<artifactId>maven-jxr-plugin</artifactId>
