@@ -30,9 +30,8 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.core.buffer.SimpleBufferAllocator;
-import org.apache.mina.filter.ssl.SslFilter;
+import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 
 import quickfix.Acceptor;
@@ -55,7 +54,9 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
+import quickfix.mina.ssl.SSLFilter;
 import quickfix.mina.ssl.SSLSupport;
 
 /**
@@ -126,10 +127,15 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private void installSSL(AcceptorSocketDescriptor descriptor,
             CompositeIoFilterChainBuilder ioFilterChainBuilder) throws GeneralSecurityException {
         log.info("Installing SSL filter for " + descriptor.getAddress());
-        SSLContext sslContext = SSLContextFactory.getInstance(descriptor.getKeyStoreName(),
-                descriptor.getKeyStorePassword().toCharArray());
-        SslFilter sslFilter = new SslFilter(sslContext);
+        SSLConfig sslConfig = descriptor.getSslConfig();
+        SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
+        SSLFilter sslFilter = new SSLFilter(sslContext);
         sslFilter.setUseClientMode(false);
+        sslFilter.setNeedClientAuth(sslConfig.isNeedClientAuth());
+        sslFilter.setCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
+                : SSLSupport.getDefaultCipherSuites(sslContext));
+        sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
+                : SSLSupport.getSupportedProtocols(sslContext));
         ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
     }
 
@@ -174,14 +180,12 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         }
 
         boolean useSSL = false;
-        String keyStoreName = null;
-        String keyStorePassword = null;
+        SSLConfig sslConfig = null;
         if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)
                 && getSettings().getBool(sessionID, SSLSupport.SETTING_USE_SSL)) {
             if (acceptTransportType == ProtocolFactory.SOCKET) {
                 useSSL = true;
-                keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
-                keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(), sessionID);
+                sslConfig = SSLSupport.getSslConfig(getSettings(), sessionID);
             } else {
                 log.warn("SSL will not be enabled for transport type=" + acceptTransportType
                         + ", session=" + sessionID);
@@ -199,18 +203,13 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 acceptHost, acceptPort);
 
         // Check for cached descriptor
-        AcceptorSocketDescriptor descriptor = socketDescriptorForAddress
-                .get(acceptorAddress);
+        AcceptorSocketDescriptor descriptor = socketDescriptorForAddress.get(acceptorAddress);
         if (descriptor != null) {
-            if (descriptor.isUseSSL() && !useSSL
-                    || !equals(descriptor.getKeyStoreName(), keyStoreName)
-                    || !equals(descriptor.getKeyStorePassword(), keyStorePassword)) {
-                throw new ConfigError("Conflicting configurations of acceptor socket: "
-                        + acceptorAddress);
+            if (descriptor.isUseSSL() != useSSL || !equals(sslConfig, descriptor.getSslConfig())) {
+                throw new ConfigError("Conflicting configurations of acceptor socket: " + acceptorAddress);
             }
         } else {
-            descriptor = new AcceptorSocketDescriptor(acceptorAddress, useSSL, keyStoreName,
-                    keyStorePassword);
+            descriptor = new AcceptorSocketDescriptor(acceptorAddress, useSSL, sslConfig);
             socketDescriptorForAddress.put(acceptorAddress, descriptor);
         }
 
@@ -264,16 +263,13 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private static class AcceptorSocketDescriptor {
         private final SocketAddress address;
         private final boolean useSSL;
-        private final String keyStoreName;
-        private final String keyStorePassword;
+        private final SSLConfig sslConfig;
         private final Map<SessionID, Session> acceptedSessions = new HashMap<SessionID, Session>();
 
-        public AcceptorSocketDescriptor(SocketAddress address, boolean useSSL, String keyStoreName,
-                String keyStorePassword) {
+        public AcceptorSocketDescriptor(SocketAddress address, boolean useSSL, SSLConfig sslConfig) {
             this.address = address;
             this.useSSL = useSSL;
-            this.keyStoreName = keyStoreName;
-            this.keyStorePassword = keyStorePassword;
+            this.sslConfig = sslConfig;
         }
 
         public void acceptSession(Session session) {
@@ -288,16 +284,12 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             return address;
         }
 
-        public String getKeyStoreName() {
-            return keyStoreName;
-        }
-
-        public String getKeyStorePassword() {
-            return keyStorePassword;
-        }
-
         public boolean isUseSSL() {
             return useSSL;
+        }
+
+        public SSLConfig getSslConfig() {
+            return sslConfig;
         }
     }
 

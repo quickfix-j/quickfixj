@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,8 @@ import quickfix.test.acceptance.ATApplication;
 public class SSLAndNonSSLTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() {
         SystemTime.setTimeSource(null);
     }
 
