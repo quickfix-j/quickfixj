@@ -28,11 +28,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLContext;
+
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
-import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,9 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
+import quickfix.mina.ssl.SSLFilter;
 import quickfix.mina.ssl.SSLSupport;
 
 public class IoSessionInitiator {
@@ -60,8 +63,7 @@ public class IoSessionInitiator {
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses, SocketAddress localAddress,
             int[] reconnectIntervalInSeconds, ScheduledExecutorService executor,
             NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy,
-            IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, String keyStoreName,
-            String keyStorePassword, String[] enableProtocole, String[] cipherSuites) throws ConfigError {
+            IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, SSLConfig sslConfig) throws ConfigError {
         this.executor = executor;
         final long[] reconnectIntervalInMillis = new long[reconnectIntervalInSeconds.length];
         for (int ii = 0; ii != reconnectIntervalInSeconds.length; ++ii) {
@@ -70,7 +72,7 @@ public class IoSessionInitiator {
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress, userIoFilterChainBuilder,
                     fixSession, reconnectIntervalInMillis, networkingOptions,
-                    eventHandlingStrategy, keyStoreName, keyStorePassword, enableProtocole, cipherSuites);
+                    eventHandlingStrategy, sslConfig);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
         }
@@ -83,10 +85,7 @@ public class IoSessionInitiator {
         private final IoConnector ioConnector;
         private final Session fixSession;
         private final long[] reconnectIntervalInMillis;
-        private final String keyStoreName;
-        private final String keyStorePassword;
-        private final String[] enableProtocole;
-        private final String[] cipherSuites;
+        private final SSLConfig sslConfig;
         private final InitiatorIoHandler ioHandler;
 
         private IoSession ioSession;
@@ -99,16 +98,12 @@ public class IoSessionInitiator {
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
                 SocketAddress localAddress, IoFilterChainBuilder userIoFilterChainBuilder, Session fixSession,
                 long[] reconnectIntervalInMillis, NetworkingOptions networkingOptions,
-                EventHandlingStrategy eventHandlingStrategy, String keyStoreName,
-                String keyStorePassword, String[] enableProtocole, String[] cipherSuites) throws ConfigError, GeneralSecurityException {
+                EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig) throws ConfigError, GeneralSecurityException {
             this.socketAddresses = socketAddresses;
             this.localAddress = localAddress;
             this.fixSession = fixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
-            this.keyStoreName = keyStoreName;
-            this.keyStorePassword = keyStorePassword;
-            this.enableProtocole = enableProtocole;
-            this.cipherSuites = cipherSuites;
+            this.sslConfig = sslConfig;
             ioConnector = ProtocolFactory.createIoConnector(socketAddresses[0]);
             CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(
                     userIoFilterChainBuilder);
@@ -127,13 +122,13 @@ public class IoSessionInitiator {
 
         private void installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
-            SslFilter sslFilter = new SslFilter(SSLContextFactory.getInstance(keyStoreName,
-                    keyStorePassword.toCharArray()));
-            if (enableProtocole != null)
-                sslFilter.setEnabledProtocols(enableProtocole);
-            if (cipherSuites != null)
-                sslFilter.setEnabledCipherSuites(cipherSuites);
+            SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
+            SSLFilter sslFilter = new SSLFilter(sslContext);
             sslFilter.setUseClientMode(true);
+            sslFilter.setCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
+                    : SSLSupport.getDefaultCipherSuites(sslContext));
+            sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
+                    : SSLSupport.getSupportedProtocols(sslContext));
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
         }
 
