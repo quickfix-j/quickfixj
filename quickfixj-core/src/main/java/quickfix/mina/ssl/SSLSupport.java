@@ -21,10 +21,8 @@ package quickfix.mina.ssl;
 
 import java.io.IOException;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManagerFactory;
 
 import quickfix.ConfigError;
 import quickfix.FieldConvertError;
@@ -46,6 +44,8 @@ public class SSLSupport {
     public static final String SETTING_ENABLED_PROTOCOLS = "EnabledProtocols";
     public static final String SETTING_CIPHER_SUITES = "CipherSuites";
     static final String DEFAULT_STORE_TYPE = "JKS";
+    static final String DEFAULT_KEY_STORE_MANAGER_ALGORITHM = "SunX509";
+    static final String DEFAULT_TRUST_STORE_MANAGER_ALGORITHM = "PKIX";
     static final String QUICKFIXJ_CERT = "quickfixj.cert";
     static final String QUICKFIXJ_PW = "quickfixjpw";
 
@@ -71,7 +71,7 @@ public class SSLSupport {
 
     public static String getKeyManagerFactoryAlgorithm(SessionSettings sessionSettings, SessionID sessionID) {
         return getString(sessionSettings, sessionID, SETTING_KEY_MANAGER_FACTORY_ALGORITHM,
-                KeyManagerFactory.getDefaultAlgorithm());
+                DEFAULT_KEY_STORE_MANAGER_ALGORITHM);
     }
 
     public static String getKeyStoreName(SessionSettings sessionSettings, SessionID sessionID) {
@@ -131,7 +131,7 @@ public class SSLSupport {
 
     public static String getTrustManagerFactoryAlgorithm(SessionSettings sessionSettings, SessionID sessionID) {
         return getString(sessionSettings, sessionID, SETTING_TRUST_MANAGER_FACTORY_ALGORITHM,
-                TrustManagerFactory.getDefaultAlgorithm());
+                DEFAULT_TRUST_STORE_MANAGER_ALGORITHM);
     }
 
     public static String getTrustStoreName(SessionSettings sessionSettings, SessionID sessionID) {
