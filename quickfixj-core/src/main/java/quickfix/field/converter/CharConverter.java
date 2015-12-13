@@ -26,10 +26,10 @@ import quickfix.FieldConvertError;
  */
 public class CharConverter {
 
-    private static final String characters[] = new String[Character.MAX_VALUE];
+    private static final String characters[] = new String[Character.MAX_VALUE+1];
 
     static {
-        for(char c = Character.MAX_VALUE; c-- != 0;)
+        for(int c = Character.MAX_VALUE+1; c-- != 0;)
             characters[c] = String.valueOf(c);
     }
 
