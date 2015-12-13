@@ -52,7 +52,7 @@ public class DoubleConverter {
     }
 
     static DecimalFormat getDecimalFormat(int padding) {
-        if(padding > 14) {
+        if (padding > 14) {
             // FieldConvertError not supported in setDouble methods on Message
             throw new RuntimeError("maximum padding of 14 zeroes is supported: " + padding);
         }
