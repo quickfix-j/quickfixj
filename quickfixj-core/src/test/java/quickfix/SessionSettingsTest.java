@@ -482,6 +482,31 @@ public class SessionSettingsTest {
     }
 
     @Test
+    public void testYamlMixedCaseSettings() throws ConfigError {
+        String settingsString = "---\n";
+        settingsString += "sessions:\n";
+        settingsString += "    - begin-string: FIX.4.2\n";
+        settingsString += "      sender-comp-ID: Company\n";
+        settingsString += "      sender_sub_id: FixedIncome\n";
+        settingsString += "      sender_location_Id: HongKong\n";
+        settingsString += "      TargetCompID: CLIENT1\n";
+        settingsString += "      TargetSubID: HedgeFund\n";
+        settingsString += "      TargetLocationID: NYC\n";
+
+        final SessionSettings settings = new SessionSettingsBuilder()
+            .yaml()
+            .build(new ByteArrayInputStream(settingsString.getBytes()));
+
+        final SessionID id = settings.sectionIterator().next();
+        assertEquals("Company", id.getSenderCompID());
+        assertEquals("FixedIncome", id.getSenderSubID());
+        assertEquals("HongKong", id.getSenderLocationID());
+        assertEquals("CLIENT1", id.getTargetCompID());
+        assertEquals("HedgeFund", id.getTargetSubID());
+        assertEquals("NYC", id.getTargetLocationID());
+    }
+
+    @Test
     public void testYamlSettings() throws Exception {
         final SessionSettings settings = setUpYamlSession();
 

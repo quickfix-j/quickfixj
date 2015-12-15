@@ -196,11 +196,36 @@ public abstract class SessionSettingsLoader {
             final Properties settings = new Properties(sessionSettings.getDefaultProperties());
             for(Map.Entry<String, Object> entry : sectionData.entrySet()) {
                 if(entry.getValue() != null) {
-                    settings.setProperty(entry.getKey(), entry.getValue().toString());
+                    settings.setProperty(normalize(entry.getKey()), entry.getValue().toString());
                 }
             }
 
             storeSection(sectionId, sessionSettings, settings);
+        }
+
+        protected String normalize(String propertyKey) {
+            final StringBuilder key = new StringBuilder(propertyKey);
+            for(int i = key.length() - 1; i >= 0; --i) {
+                if(key.charAt(i) == '-' || key.charAt(i) == '_' || key.charAt(i) == '.') {
+                    key.deleteCharAt(i);
+                    if(i < key.length()) {
+                        key.setCharAt(i, Character.toUpperCase(key.charAt(i)));
+                    }
+                }
+            }
+
+            key.setCharAt(0, Character.toUpperCase(key.charAt(0)));
+            //Check for id
+            if( key.charAt(key.length() - 2) == 'i' ||
+                key.charAt(key.length() - 2) == 'I' ||
+                key.charAt(key.length() - 1) == 'd' ||
+                key.charAt(key.length() - 1) == 'D') {
+                key.setCharAt(key.length() - 2, 'I');
+                key.setCharAt(key.length() - 1, 'D');
+            }
+
+
+            return key.toString();
         }
     }
 }
