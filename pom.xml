@@ -43,18 +43,35 @@
 		<jdkLevel>1.6</jdkLevel>
 		<slf4j.version>1.7.12</slf4j.version>
 		<mainClass/>
+
+        <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
+        <maven-compiler-plugin-version>2.2</maven-compiler-plugin-version>
+        <maven-jar-plugin-version>2.6</maven-jar-plugin-version>
+        <maven-surefire-plugin-version>2.19</maven-surefire-plugin-version>
+        <maven-pmd-plugin-version>3.5</maven-pmd-plugin-version>
+        <maven-source-plugin-version>2.4</maven-source-plugin-version>
+        <maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
+        <maven-shade-plugin-version>2.4.2</maven-shade-plugin-version>
+        <maven-assembly-plugin-version>2.6</maven-assembly-plugin-version>
+        <maven-bundle-plugin-version>3.0.1</maven-bundle-plugin-version>
+        <maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
+
+        <nexus-staging-maven-plugin-version>1.6.6</nexus-staging-maven-plugin-version>
+
 	</properties>
 
 	<build>
 		<pluginManagement>
 			<plugins>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-resources-plugin</artifactId>
-					<version>2.7</version>
+					<version>${maven-resources-plugin-version}</version>
 				</plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.3</version>
+					<version>${maven-compiler-plugin-version}</version>
 					<configuration> 
 						<source>${jdkLevel}</source> 
 						<target>${jdkLevel}</target> 
@@ -62,8 +79,9 @@
 
 				</plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-jar-plugin</artifactId>
-					<version>2.6</version>
+					<version>${maven-jar-plugin-version}</version>
 					<configuration>
 						<archive>
 							<manifest>
@@ -74,19 +92,22 @@
 					</configuration>
 				</plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.18.1</version>
+					<version>${maven-surefire-plugin-version}</version>
 				</plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-pmd-plugin</artifactId>
-					<version>3.4</version>
+					<version>${maven-pmd-plugin-version}</version>
 					<configuration>
 						<targetJdk>${jdkLevel}</targetJdk>
 					</configuration>
 				</plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-source-plugin</artifactId>
-					<version>2.4</version>
+					<version>${maven-source-plugin-version}</version>
 					<executions>
 						<execution>
 							<id>attach-sources</id>
@@ -97,14 +118,57 @@
 						</execution>
 					</executions>
 				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <additionalparam>-Xdoclint:none</additionalparam>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
-					<version>2.3</version>
+					<version>${maven-shade-plugin-version}</version>
 				</plugin>
 				<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.5.4</version>
+					<version>${maven-assembly-plugin-version}</version>
 				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven-gpg-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>${nexus-staging-maven-plugin-version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
 			</plugins>
 		</pluginManagement>
 
@@ -113,9 +177,65 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.5.3</version>
+				<version>${maven-bundle-plugin-version}</version>
 				<extensions>true</extensions>
+                <executions>
+                    <!--
+                      This execution makes sure that the manifest is available
+                      when the tests are executed
+                    -->
+                    <execution>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
 			</plugin>
 		</plugins>
 	</build>
+
+    <profiles>
+        <profile> 
+        <id>release</id>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>                
+                </plugin>
+                <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-javadoc-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>                
+                </plugin>
+                <plugin>
+                  <groupId>org.sonatype.plugins</groupId>
+                  <artifactId>nexus-staging-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
+
+    <scm>
+        <url>scm:git:https://github.com/quickfix-j/quickfixj.git</url>
+        <connection>scm:git:https://github.com/quickfix-j/quickfixj.git</connection>
+        <developerConnection>scm:git:https://github.com/quickfix-j/quickfixj.git</developerConnection>
+        <tag>master</tag>
+    </scm>
+
 </project>
