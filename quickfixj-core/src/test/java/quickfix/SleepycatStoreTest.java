@@ -24,7 +24,7 @@ import java.io.IOException;
 
 public class SleepycatStoreTest extends AbstractMessageStoreTest {
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
-        SessionSettings settings =  SessionSettingsLoaders.load(getConfigurationFileName());
+        SessionSettings settings =  new SessionSettingsBuilder().legacy().build(getConfigurationFileName());
         File tmpfile;
         try {
             tmpfile = File.createTempFile("test", "txt");

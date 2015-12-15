@@ -19,29 +19,16 @@
 
 package quickfix.examples.banzai;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.concurrent.CountDownLatch;
-
-import javax.swing.JFrame;
-import javax.swing.UIManager;
-
 import org.quickfixj.jmx.JmxExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import quickfix.DefaultMessageFactory;
-import quickfix.FileStoreFactory;
-import quickfix.Initiator;
-import quickfix.LogFactory;
-import quickfix.MessageFactory;
-import quickfix.MessageStoreFactory;
-import quickfix.ScreenLogFactory;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.SocketInitiator;
+import quickfix.*;
 import quickfix.examples.banzai.ui.BanzaiFrame;
+
+import javax.swing.*;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Entry point for the Banzai application.
@@ -66,7 +53,7 @@ public class Banzai {
             System.out.println("usage: " + Banzai.class.getName() + " [configFile].");
             return;
         }
-        SessionSettings settings = new SessionSettings(inputStream);
+        SessionSettings settings = new SessionSettingsBuilder().legacy().build(inputStream);
         inputStream.close();
 
         boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true"));

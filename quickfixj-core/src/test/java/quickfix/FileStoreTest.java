@@ -37,7 +37,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
     }
 
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
-        SessionSettings settings = SessionSettingsLoaders.load(getConfigurationFileName());
+        SessionSettings settings = new SessionSettingsBuilder().legacy().build(getConfigurationFileName());
         // Initialize the session settings from the defaults
         settings.setString(getSessionID(), FileStoreFactory.SETTING_FILE_STORE_PATH, settings
                 .getString(FileStoreFactory.SETTING_FILE_STORE_PATH));

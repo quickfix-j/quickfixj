@@ -19,41 +19,22 @@
 
 package quickfix.examples.executor;
 
-import static quickfix.Acceptor.SETTING_ACCEPTOR_TEMPLATE;
-import static quickfix.Acceptor.SETTING_SOCKET_ACCEPT_ADDRESS;
-import static quickfix.Acceptor.SETTING_SOCKET_ACCEPT_PORT;
+import org.quickfixj.jmx.JmxExporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.*;
+import quickfix.mina.acceptor.DynamicAcceptorSessionProvider;
+import quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
 
+import javax.management.JMException;
+import javax.management.ObjectName;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import javax.management.JMException;
-import javax.management.ObjectName;
-
-import org.quickfixj.jmx.JmxExporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.ConfigError;
-import quickfix.DefaultMessageFactory;
-import quickfix.FieldConvertError;
-import quickfix.FileStoreFactory;
-import quickfix.LogFactory;
-import quickfix.MessageFactory;
-import quickfix.MessageStoreFactory;
-import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.SocketAcceptor;
-import quickfix.mina.acceptor.DynamicAcceptorSessionProvider;
-import quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
+import static quickfix.Acceptor.*;
 
 public class Executor {
     private final static Logger log = LoggerFactory.getLogger(Executor.class);
@@ -146,9 +127,7 @@ public class Executor {
 
     public static void main(String[] args) throws Exception {
         try {
-            InputStream inputStream = getSettingsInputStream(args);
-            SessionSettings settings = new SessionSettings(inputStream);
-            inputStream.close();
+            SessionSettings settings = new SessionSettingsBuilder().legacy().build(getSettingsInputStream(args));
 
             Executor executor = new Executor(settings);
             executor.start();
