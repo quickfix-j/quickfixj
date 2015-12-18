@@ -1,48 +1,48 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.quickfixj</groupId>
-	<artifactId>quickfixj-parent</artifactId>
-	<version>1.7.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+    <groupId>org.quickfixj</groupId>
+    <artifactId>quickfixj-parent</artifactId>
+    <version>1.7.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-	<name>QuickFIX/J Parent</name>
-	<description>
-		The Financial Information eXchange (FIX) protocol is a messaging standard developed
-		specifically for the real-time electronic exchange of securities transactions.
-		FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
-		QuickFIX/J is a full featured messaging engine for the FIX protocol.
-		It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
-	</description>
-	<url>http://www.quickfixj.org</url>
-	<licenses>
-		<license>
-			<name>The QuickFIX Software License, Version 1.0</name>
-			<url>http://www.quickfixj.org/documentation/license.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    <name>QuickFIX/J Parent</name>
+    <description>
+        The Financial Information eXchange (FIX) protocol is a messaging standard developed
+        specifically for the real-time electronic exchange of securities transactions.
+        FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
+        QuickFIX/J is a full featured messaging engine for the FIX protocol.
+        It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
+    </description>
+    <url>http://www.quickfixj.org</url>
+    <licenses>
+        <license>
+            <name>The QuickFIX Software License, Version 1.0</name>
+            <url>http://www.quickfixj.org/documentation/license.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-	<prerequisites>
-		<maven>3.3.3</maven>
-	</prerequisites>
+    <prerequisites>
+        <maven>3.3.3</maven>
+    </prerequisites>
 
-	<modules>
-		<module>quickfixj-codegenerator</module>
-		<module>quickfixj-dictgenerator</module>
-		<module>quickfixj-core</module>
-		<module>quickfixj-messages</module>
-		<module>quickfixj-examples</module>
-		<module>quickfixj-all</module>
-		<module>quickfixj-distribution</module>
-	</modules>
+    <modules>
+        <module>quickfixj-codegenerator</module>
+        <module>quickfixj-dictgenerator</module>
+        <module>quickfixj-core</module>
+        <module>quickfixj-messages</module>
+        <module>quickfixj-examples</module>
+        <module>quickfixj-all</module>
+        <module>quickfixj-distribution</module>
+    </modules>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<jdkLevel>1.6</jdkLevel>
-		<slf4j.version>1.7.12</slf4j.version>
-		<mainClass/>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jdkLevel>1.6</jdkLevel>
+        <slf4j.version>1.7.12</slf4j.version>
+        <mainClass/>
 
         <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
         <maven-compiler-plugin-version>2.2</maven-compiler-plugin-version>
@@ -55,69 +55,72 @@
         <maven-assembly-plugin-version>2.6</maven-assembly-plugin-version>
         <maven-bundle-plugin-version>3.0.1</maven-bundle-plugin-version>
         <maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
-
+        <maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
         <nexus-staging-maven-plugin-version>1.6.6</nexus-staging-maven-plugin-version>
-
-	</properties>
-
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
+    </properties>
+    
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-resources-plugin</artifactId>
-					<version>${maven-resources-plugin-version}</version>
-				</plugin>
-				<plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin-version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>${maven-compiler-plugin-version}</version>
-					<configuration> 
-						<source>${jdkLevel}</source> 
-						<target>${jdkLevel}</target> 
-					</configuration> 
-
-				</plugin>
-				<plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin-version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>${maven-jar-plugin-version}</version>
-					<configuration>
-						<archive>
-							<manifest>
-								<mainClass>${mainClass}</mainClass>
-								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							</manifest>
-						</archive>
-					</configuration>
-				</plugin>
-				<plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin-version}</version>
+                    <configuration> 
+                        <source>${jdkLevel}</source> 
+                        <target>${jdkLevel}</target> 
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>${maven-surefire-plugin-version}</version>
-				</plugin>
-				<plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin-version}</version>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <mainClass>${mainClass}</mainClass>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-pmd-plugin</artifactId>
-					<version>${maven-pmd-plugin-version}</version>
-					<configuration>
-						<targetJdk>${jdkLevel}</targetJdk>
-					</configuration>
-				</plugin>
-				<plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin-version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-source-plugin</artifactId>
-					<version>${maven-source-plugin-version}</version>
-					<executions>
-						<execution>
-							<id>attach-sources</id>
-							<phase>package</phase>
-							<goals>
-								<goal>jar-no-fork</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
+                    <artifactId>maven-pmd-plugin</artifactId>
+                    <version>${maven-pmd-plugin-version}</version>
+                    <configuration>
+                        <targetJdk>${jdkLevel}</targetJdk>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
@@ -134,16 +137,16 @@
                         </execution>
                     </executions>
                 </plugin>
-				<plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-shade-plugin</artifactId>
-					<version>${maven-shade-plugin-version}</version>
-				</plugin>
-				<plugin>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin-version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>${maven-assembly-plugin-version}</version>
-				</plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin-version}</version>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
@@ -169,16 +172,16 @@
                         <autoReleaseAfterClose>true</autoReleaseAfterClose>
                     </configuration>
                 </plugin>
-			</plugins>
-		</pluginManagement>
+            </plugins>
+        </pluginManagement>
 
-		<plugins>
-			<!-- enable bundle packaging -->
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>${maven-bundle-plugin-version}</version>
-				<extensions>true</extensions>
+        <plugins>
+            <!-- enable bundle packaging -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${maven-bundle-plugin-version}</version>
+                <extensions>true</extensions>
                 <executions>
                     <!--
                       This execution makes sure that the manifest is available
@@ -190,9 +193,9 @@
                         </goals>
                     </execution>
                 </executions>
-			</plugin>
-		</plugins>
-	</build>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile> 
