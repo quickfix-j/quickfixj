@@ -24,7 +24,7 @@
 	</licenses>
 
 	<prerequisites>
-		<maven>3.3.3</maven>
+		<maven>3.3.9</maven>
 	</prerequisites>
 
 	<modules>
@@ -41,7 +41,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.6</jdkLevel>
-		<slf4j.version>1.7.12</slf4j.version>
+		<slf4j.version>1.7.13</slf4j.version>
 		<mainClass/>
 	</properties>
 
@@ -75,11 +75,11 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.18.1</version>
+					<version>2.19</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-pmd-plugin</artifactId>
-					<version>3.4</version>
+					<version>3.6</version>
 					<configuration>
 						<targetJdk>${jdkLevel}</targetJdk>
 					</configuration>
@@ -99,11 +99,11 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-shade-plugin</artifactId>
-					<version>2.3</version>
+					<version>2.4.2</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.5.4</version>
+					<version>2.6</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -113,7 +113,7 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.5.3</version>
+				<version>3.0.1</version>
 				<extensions>true</extensions>
 			</plugin>
 		</plugins>
