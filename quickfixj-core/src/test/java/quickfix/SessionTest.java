@@ -26,7 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import quickfix.field.ApplVerID;
@@ -66,8 +66,8 @@ import quickfix.test.util.ReflectionUtil;
  */
 public class SessionTest {
 
-    @AfterClass
-    public static void cleanup() {
+    @Before
+    public void setUp() {
         SystemTime.setTimeSource(null);
     }
 
