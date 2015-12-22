@@ -180,15 +180,16 @@ public class IoSessionInitiator {
 
         private void handleConnectException(Throwable e) {
             ++connectionFailureCount;
-            unresolveCurrentSocketAddress();
+            SocketAddress socketAddress = socketAddresses[getCurrentSocketAddressIndex()];
+            unresolveCurrentSocketAddress(socketAddress);
             while (e.getCause() != null) {
                 e = e.getCause();
             }
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
             if (e instanceof IOException) {
-                fixSession.getLog().onErrorEvent(e.getClass().getName() + ": " + e + nextRetryMsg);
+                fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
             } else {
-                LogUtil.logThrowable(fixSession.getLog(), "Exception during connection" + nextRetryMsg, e);
+                LogUtil.logThrowable(fixSession.getLog(), "Exception during connection to " + socketAddress + nextRetryMsg, e);
             }
             connectFuture = null;
         }
@@ -210,14 +211,17 @@ public class IoSessionInitiator {
         }
 
         // QFJ-822 Reset cached DNS resolution information on connection failure.
-        private void unresolveCurrentSocketAddress() {
-            int currentSocketAddress = (nextSocketAddressIndex + socketAddresses.length - 1) % socketAddresses.length;
-            SocketAddress socketAddress = socketAddresses[currentSocketAddress];
+        private void unresolveCurrentSocketAddress(SocketAddress socketAddress) {
             if (socketAddress instanceof InetSocketAddress) {
                 InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
-                socketAddresses[currentSocketAddress] = InetSocketAddress.createUnresolved(
+                socketAddresses[getCurrentSocketAddressIndex()] = InetSocketAddress.createUnresolved(
                         inetAddr.getHostString(), inetAddr.getPort());
             }
+        }
+
+        private int getCurrentSocketAddressIndex() {
+            int currentSocketAddressIndex = (nextSocketAddressIndex + socketAddresses.length - 1) % socketAddresses.length;
+            return currentSocketAddressIndex;
         }
 
         private boolean shouldReconnect() {
