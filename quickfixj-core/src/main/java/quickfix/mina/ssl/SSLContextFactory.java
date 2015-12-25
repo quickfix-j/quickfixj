@@ -1,3 +1,22 @@
+/*******************************************************************************
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
+ * are not clear to you.
+ ******************************************************************************/
+
 package quickfix.mina.ssl;
 
 import java.io.IOException;
@@ -13,6 +32,7 @@ import java.util.Map;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.mina.filter.ssl.BogusTrustManagerFactory;
@@ -61,9 +81,15 @@ public class SSLContextFactory {
         if (tmf == null) {
             tmf = new BogusTrustManagerFactory();
         }
+        
+        TrustManager[] trustManagers = tmf.getTrustManagers();
+
+        if (trustManagers != null) {
+            trustManagers = X509TrustManagerWrapper.wrap(trustManagers);
+        }
 
         SSLContext sslContext = SSLContext.getInstance(PROTOCOL);
-        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+        sslContext.init(kmf.getKeyManagers(), trustManagers, null);
 
         return sslContext;
     }
