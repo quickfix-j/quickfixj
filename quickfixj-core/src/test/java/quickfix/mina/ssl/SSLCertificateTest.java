@@ -508,7 +508,7 @@ public class SSLCertificateTest {
 
     static abstract class TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestConnector.class);
-        private static final int TIMEOUT_SECONDS = 20;
+        private static final int TIMEOUT_SECONDS = 5;
 
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
