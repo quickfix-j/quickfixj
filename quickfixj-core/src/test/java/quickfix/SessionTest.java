@@ -482,7 +482,7 @@ public class SessionTest {
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final SessionSettings settings = SessionSettingsTest.setUpDefaultSession(null);
 
         setupFileStoreForQFJ357(sessionID, settings);
 
@@ -524,7 +524,7 @@ public class SessionTest {
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final SessionSettings settings = SessionSettingsTest.setUpDefaultSession(null);
         settings.setString("StartTime",
                 dateFormat.format(now.getTime() - 100000));
         settings.setString("EndTime",
@@ -619,7 +619,7 @@ public class SessionTest {
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final SessionSettings settings = SessionSettingsTest.setUpDefaultSession(null);
         // we want to start the initiator before the StartTime
         settings.setString("StartTime",
                 dateFormat.format(now.getTime() + 1800000)); // add 30 minutes
@@ -694,7 +694,7 @@ public class SessionTest {
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final SessionSettings settings = SessionSettingsTest.setUpDefaultSession(null);
         // we want to start the initiator before the StartTime
         settings.setString("StartTime", dateFormat.format(now.getTime() - 2000)); // make
                                                                                   // sure
@@ -754,7 +754,7 @@ public class SessionTest {
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final SessionSettings settings = SessionSettingsTest.setUpDefaultSession(null);
         // construct a session schedule which is not active at the moment
         settings.setString("StartTime",
                 dateFormat.format(now.getTime() + 1800000)); // add 30 minutes
@@ -1559,7 +1559,7 @@ public class SessionTest {
      */
     @Test
     public void testSessionRegisteredCorrectly() throws Exception {
-        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        final SessionSettings settings = SessionSettingsTest.setUpDefaultSession(null);
         settings.setString(Session.SETTING_USE_DATA_DICTIONARY, "N");
         JdbcTestSupport.setHypersonicSettings(settings);
         // do not initialize the SQL tables so that the JdbcLog will fail
@@ -1734,7 +1734,7 @@ public class SessionTest {
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         UnitTestApplication application = new UnitTestApplication();
         SessionSettings sessionSettings = SessionSettingsTest
-                .setUpSession(null);
+                .setUpDefaultSession(null);
         SessionFactoryTestSupport factoryTestSupport = new SessionFactoryTestSupport();
         Session session = factoryTestSupport.create(sessionID, sessionSettings);
         UnitTestResponder responder = new UnitTestResponder();

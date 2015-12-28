@@ -19,17 +19,12 @@
 
 package quickfix.examples.ordermatch;
 
+import quickfix.*;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import quickfix.DefaultMessageFactory;
-import quickfix.FileStoreFactory;
-import quickfix.LogFactory;
-import quickfix.ScreenLogFactory;
-import quickfix.SessionSettings;
-import quickfix.SocketAcceptor;
 
 public class Main {
     public static void main(String[] args) {
@@ -44,7 +39,8 @@ public class Main {
                 System.out.println("usage: " + OrderMatcher.class.getName() + " [configFile].");
                 return;
             }
-            SessionSettings settings = new SessionSettings(inputStream);
+            SessionSettings settings = new SessionSettingsBuilder().legacy().build(inputStream);
+            inputStream.close();
 
             Application application = new Application();
             FileStoreFactory storeFactory = new FileStoreFactory(settings);
