@@ -85,7 +85,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     final NetworkingOptions networkingOptions = getNetworkingOptions();
                     qfSession.setResponder(new IoSessionResponder(protocolSession,
                             networkingOptions.getSynchronousWrites(), networkingOptions
-                                    .getSynchronousWriteTimeout()));
+                                    .getSynchronousWriteTimeout(), qfSession.getMaxScheduledWriteRequests()));
                     if (sessionID.isFIXT()) { // QFJ-592
                         if (message.isSetField(DefaultApplVerID.FIELD)) {
                             final ApplVerID applVerID = new ApplVerID(
