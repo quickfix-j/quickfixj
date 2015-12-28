@@ -283,5 +283,7 @@ public class IoSessionInitiator {
             reconnectFuture.cancel(true);
             reconnectFuture = null;
         }
+        // QFJ-849: clean up resources of MINA connector
+        reconnectTask.ioConnector.dispose();
     }
 }
