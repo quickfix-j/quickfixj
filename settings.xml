@@ -1,0 +1,11 @@
+<settings>
+
+  <servers>
+    <server>
+      <id>ossrh</id>
+      <username>qfjdeployment</username>
+      <password>${env.NEXUSPASS}</password>
+    </server>
+  </servers>
+
+</settings>
