@@ -73,7 +73,7 @@
 		<mainClass/>
 
         <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
-        <maven-compiler-plugin-version>2.2</maven-compiler-plugin-version>
+        <maven-compiler-plugin-version>3.3</maven-compiler-plugin-version>
         <maven-jar-plugin-version>2.6</maven-jar-plugin-version>
         <maven-surefire-plugin-version>2.19</maven-surefire-plugin-version>
         <maven-pmd-plugin-version>3.5</maven-pmd-plugin-version>
