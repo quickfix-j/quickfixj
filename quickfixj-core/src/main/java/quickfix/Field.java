@@ -20,6 +20,7 @@
 package quickfix;
 
 import org.quickfixj.CharsetSupport;
+import quickfix.field.converter.DoubleConverter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -126,7 +127,7 @@ public /*abstract*/ class Field<T> implements Serializable {
         if(null != str)
             buffer.append(str);
         else
-            buffer.append(value);
+            buffer.append(DoubleConverter.convert(value));
     }
 
     protected String objectAsString() {
