@@ -117,7 +117,7 @@ public class DoubleField extends Field<Double> {
         if(null != str)
             buffer.append(str);
         else
-            buffer.append(objectAsString());
+            buffer.append(DoubleConverter.convert(val));
     }
 
     @Override
