@@ -117,7 +117,7 @@ public class DoubleField extends Field<Double> {
         if(null != str)
             buffer.append(str);
         else
-            buffer.append(val);
+            buffer.append(objectAsString());
     }
 
     @Override
@@ -127,7 +127,7 @@ public class DoubleField extends Field<Double> {
 
     @Override
     protected void objectAsString(StringBuilder stringBuilder) {
-        stringBuilder.append(value);
+        stringBuilder.append(objectAsString());
     }
 
     @Override
