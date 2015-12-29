@@ -10,8 +10,8 @@
 	<artifactId>quickfixj-messages</artifactId>
 	<packaging>pom</packaging>
 
-	<name>QuickFIX/J Message classes for various FIX specifications</name>
-	<description>QuickFIX/J Message classes for various FIX specifications</description>
+	<name>QuickFIX/J Message classes for various FIX specs</name>
+	<description>QuickFIX/J Message classes for various FIX specs</description>
 	<url>http://www.quickfixj.org</url>
 
 	<modules>
