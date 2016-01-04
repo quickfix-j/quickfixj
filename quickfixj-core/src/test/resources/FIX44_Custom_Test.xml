@@ -6648,5 +6648,7 @@
     <field number="954" name="Nested3PartySubIDType" type="INT" />
     <field number="955" name="LegContractSettlMonth" type="MONTHYEAR" />
     <field number="956" name="LegInterestAccrualDate" type="LOCALMKTDATE" />
+    
+    <field number="5000" name="CustomTestField" type="INT" />
   </fields>
 </fix>
