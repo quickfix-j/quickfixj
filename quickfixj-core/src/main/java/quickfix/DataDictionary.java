@@ -654,11 +654,8 @@ public class DataDictionary {
                 checkValue(field);
             }
 
-            if (beginString != null && shouldCheckTag(field)) {
-                dd.checkValidTagNumber(field);
-                if (map instanceof Message) {
-                    checkIsInMessage(field, msgType);
-                }
+            if (beginString != null) {
+                dd.checkField(field, msgType, map instanceof Message);
                 dd.checkGroupCount(field, map, msgType);
             }
         }
@@ -680,15 +677,30 @@ public class DataDictionary {
         }
     }
 
-    // / If we need to check for the tag in the dictionary
-    private boolean shouldCheckTag(Field<?> field) {
-        return checkUserDefinedFields || field.getField() < USER_DEFINED_TAG_MIN;
-    }
-
     // / Check if field tag number is defined in spec.
     void checkValidTagNumber(Field<?> field) {
         if (!fields.contains(Integer.valueOf(field.getTag()))) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
+        }
+    }
+    
+    void checkField(Field<?> field, String msgType, boolean message) {
+        // check depending if we are validating a message or a group
+        boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
+        boolean fail;
+        
+        if (field.getField() < USER_DEFINED_TAG_MIN) {
+            fail = !messageField && !allowUnknownMessageFields; 
+        } else {
+            fail = !messageField && checkUserDefinedFields; 
+        }
+        
+        if (fail) {
+            if (fields.contains(Integer.valueOf(field.getTag()))) {
+                throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getField());
+            } else {
+                throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
+            }
         }
     }
 
@@ -769,14 +781,6 @@ public class DataDictionary {
     private void checkHasValue(StringField field) {
         if (checkFieldsHaveValues && field.getValue().length() == 0) {
             throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
-                    field.getField());
-        }
-    }
-
-    // / Check if a field is in this message type.
-    private void checkIsInMessage(Field<?> field, String msgType) {
-        if (!isMsgField(msgType, field.getField()) && !allowUnknownMessageFields) {
-            throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE,
                     field.getField());
         }
     }
