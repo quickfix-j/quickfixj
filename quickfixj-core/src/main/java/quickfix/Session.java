@@ -2157,8 +2157,10 @@ public class Session implements Closeable {
         int msgSeqNum = 0;
         int begin = 0;
         int current = beginSeqNo;
+        boolean appMessageJustSent = false;
 
         for (final String message : messages) {
+            appMessageJustSent = false;
             final Message msg;
             try {
                 // QFJ-626
@@ -2191,6 +2193,7 @@ public class Session implements Closeable {
                     getLog().onEvent("Resending Message: " + msgSeqNum);
                     send(msg.toString());
                     begin = 0;
+                    appMessageJustSent = true;
                 } else {
                     if (begin == 0) {
                         begin = msgSeqNum;
@@ -2199,21 +2202,26 @@ public class Session implements Closeable {
             }
             current = msgSeqNum + 1;
         }
+
+	    int newBegin = beginSeqNo;
+	    if (appMessageJustSent)
+		    newBegin = msgSeqNum + 1;
         if (enableNextExpectedMsgSeqNum) {
             if (begin != 0) {
                 generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
-            } else
+            } else {
                 /*
                  * I've added an else here as I managed to fail this without it in a unit test, however the unit test data
                  * may not have been realistic to production on the other hand.
                  * Apart from the else
                  */
-                generateSequenceResetIfNeeded(receivedMessage, beginSeqNo, endSeqNo, msgSeqNum);
+	            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+            }
         } else {
             if (begin != 0) {
                 generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
             }
-            generateSequenceResetIfNeeded(receivedMessage, beginSeqNo, endSeqNo, msgSeqNum);
+            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
         }
     }
 
