@@ -684,8 +684,9 @@ public class DataDictionary {
         }
     }
     
+    // / Check if field tag is defined for message or group
     void checkField(Field<?> field, String msgType, boolean message) {
-        // check depending if we are validating a message or a group
+        // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
         boolean fail;
         
