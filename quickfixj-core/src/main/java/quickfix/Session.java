@@ -2203,9 +2203,10 @@ public class Session implements Closeable {
             current = msgSeqNum + 1;
         }
 
-	    int newBegin = beginSeqNo;
-	    if (appMessageJustSent)
-		    newBegin = msgSeqNum + 1;
+        int newBegin = beginSeqNo;
+        if (appMessageJustSent) {
+            newBegin = msgSeqNum + 1;
+        }
         if (enableNextExpectedMsgSeqNum) {
             if (begin != 0) {
                 generateSequenceReset(receivedMessage, begin, msgSeqNum + 1);
@@ -2215,7 +2216,7 @@ public class Session implements Closeable {
                  * may not have been realistic to production on the other hand.
                  * Apart from the else
                  */
-	            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+	        generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
             }
         } else {
             if (begin != 0) {
