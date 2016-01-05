@@ -330,7 +330,7 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>ValidateUserDefinedFields</I></TD>
-    <TD>If set to N, user defined fields will not be rejected if they are not
+    <TD>If set to N, user defined fields (field with tag >= 5000) will not be rejected if they are not
       defined in the data dictionary, or are present in messages they do not
       belong to.</TD>
     <TD>Y<br>
@@ -369,8 +369,9 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>AllowUnknownMsgFields</I></TD>
-    <TD>Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
-     (not user defined fields). Use ValidateUserDefinedFields for controlling validation of tags >= 5000.</TD>
+    <TD>If set to Y, non user defined fields (field with tag < 5000) will not be rejected if they are not
+      defined in the data dictionary, or are present in messages they do not
+      belong to.
     <TD>Y<br>
       N</TD>
     <TD>N</TD>
