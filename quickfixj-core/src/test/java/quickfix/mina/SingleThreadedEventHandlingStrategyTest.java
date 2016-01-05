@@ -131,6 +131,15 @@ public class SingleThreadedEventHandlingStrategyTest {
                 qfjMPThreads++;
             }
         }
+        if (qfjMPThreads > 1) {
+            for (ThreadInfo threadInfo : dumpAllThreads) {
+                System.out.println( threadInfo.getThreadName() );
+                StackTraceElement[] stackTrace = threadInfo.getStackTrace();
+                for (StackTraceElement stackTrace1 : stackTrace) {
+                    System.out.println( "     " + stackTrace1 );
+                }
+            }
+        }
         assertEquals("Exactly one 'QFJ Message Processor' thread expected", 1, qfjMPThreads);
     }
 
