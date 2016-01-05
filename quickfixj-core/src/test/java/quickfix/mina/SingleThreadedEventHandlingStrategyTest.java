@@ -135,7 +135,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             for (ThreadInfo threadInfo : dumpAllThreads) {
                 if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
                     .getThreadName())) {
-                    System.out.println( threadInfo.getThreadName() );
+                    System.out.println( threadInfo.getThreadName() + " " + threadInfo.getThreadState());
                     StackTraceElement[] stackTrace = threadInfo.getStackTrace();
                     for (StackTraceElement stackTrace1 : stackTrace) {
                         System.out.println( "     " + stackTrace1 );
