@@ -133,10 +133,13 @@ public class SingleThreadedEventHandlingStrategyTest {
         }
         if (qfjMPThreads > 1) {
             for (ThreadInfo threadInfo : dumpAllThreads) {
-                System.out.println( threadInfo.getThreadName() );
-                StackTraceElement[] stackTrace = threadInfo.getStackTrace();
-                for (StackTraceElement stackTrace1 : stackTrace) {
-                    System.out.println( "     " + stackTrace1 );
+                if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
+                    .getThreadName())) {
+                    System.out.println( threadInfo.getThreadName() );
+                    StackTraceElement[] stackTrace = threadInfo.getStackTrace();
+                    for (StackTraceElement stackTrace1 : stackTrace) {
+                        System.out.println( "     " + stackTrace1 );
+                    }
                 }
             }
         }
