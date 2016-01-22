@@ -241,11 +241,6 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
         }
 
-        if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS)) {
-            dataDictionary.setCheckUnorderedGroupFields(settings.getBool(sessionID,
-                    Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
-        }
-
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {
             dataDictionary.setCheckUserDefinedFields(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
