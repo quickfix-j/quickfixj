@@ -101,7 +101,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
         try {
             HashMap<Object, Object> defaults = new HashMap<Object, Object>();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", "9888");
+            defaults.put("SocketAcceptPort", "19889");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
