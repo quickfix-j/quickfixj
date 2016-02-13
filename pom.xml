@@ -69,17 +69,17 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.7</jdkLevel>
-		<slf4j.version>1.7.14</slf4j.version>
+		<slf4j.version>1.7.16</slf4j.version>
 		<mainClass/>
 
         <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
-        <maven-compiler-plugin-version>3.5</maven-compiler-plugin-version>
+        <maven-compiler-plugin-version>3.5.1</maven-compiler-plugin-version>
         <maven-jar-plugin-version>2.6</maven-jar-plugin-version>
-        <maven-surefire-plugin-version>2.19</maven-surefire-plugin-version>
-        <maven-pmd-plugin-version>3.5</maven-pmd-plugin-version>
+        <maven-surefire-plugin-version>2.19.1</maven-surefire-plugin-version>
+        <maven-pmd-plugin-version>3.6</maven-pmd-plugin-version>
         <maven-source-plugin-version>2.4</maven-source-plugin-version>
         <maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
-        <maven-shade-plugin-version>2.4.2</maven-shade-plugin-version>
+        <maven-shade-plugin-version>2.4.3</maven-shade-plugin-version>
         <maven-assembly-plugin-version>2.6</maven-assembly-plugin-version>
         <maven-bundle-plugin-version>3.0.1</maven-bundle-plugin-version>
         <maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
