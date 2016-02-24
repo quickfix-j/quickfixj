@@ -26,6 +26,13 @@ import quickfix.FieldConvertError;
  */
 public class CharConverter {
 
+    private static final String characters[] = new String[Character.MAX_VALUE+1];
+
+    static {
+        for(int c = Character.MAX_VALUE+1; c-- != 0;)
+            characters[c] = String.valueOf(c);
+    }
+
     /**
      * Converts a character to a String
      *
@@ -34,7 +41,7 @@ public class CharConverter {
      * @see java.lang.Character#toString(char)
      */
     public static String convert(char c) {
-        return Character.toString(c);
+        return characters[c];
     }
 
     /**
