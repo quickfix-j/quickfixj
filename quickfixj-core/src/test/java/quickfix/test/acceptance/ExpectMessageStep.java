@@ -44,8 +44,8 @@ public class ExpectMessageStep implements TestStep {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final String data;
     private final Map<String, String> expectedFields;
-    private static final Pattern headerPattern = Pattern.compile("^E(\\d+),.*");
-    private static final Pattern fieldPattern = Pattern.compile("(\\d+)=([^\\001]+)\\001");
+    private static final Pattern HEADER_PATTERN = Pattern.compile("^E(\\d+),.*");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("(\\d+)=([^\\001]+)\\001");
     private int clientId = 0;
     private static final int heartBeatOverride;
 
@@ -56,7 +56,7 @@ public class ExpectMessageStep implements TestStep {
 
     public ExpectMessageStep(String data) {
         this.data = data;
-        Matcher headerMatcher = headerPattern.matcher(data);
+        Matcher headerMatcher = HEADER_PATTERN.matcher(data);
         if (headerMatcher.matches()) {
             clientId = Integer.parseInt(headerMatcher.group(1));
         } else {
@@ -67,7 +67,7 @@ public class ExpectMessageStep implements TestStep {
 
     private Map<String, String> simpleParse(String data) {
         HashMap<String, String> fields = new HashMap<String, String>();
-        Matcher fieldMatcher = fieldPattern.matcher(data);
+        Matcher fieldMatcher = FIELD_PATTERN.matcher(data);
         while (fieldMatcher.find()) {
             fields.put(fieldMatcher.group(1), fieldMatcher.group(2));
         }

@@ -69,7 +69,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.7</jdkLevel>
-		<slf4j.version>1.7.16</slf4j.version>
+		<slf4j.version>1.7.18</slf4j.version>
 		<mainClass/>
 
         <maven-resources-plugin-version>2.7</maven-resources-plugin-version>

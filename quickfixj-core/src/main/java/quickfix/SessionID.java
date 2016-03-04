@@ -38,7 +38,7 @@ import quickfix.field.TargetSubID;
  * but using different FIX versions (and/or session qualifiers).
  */
 public class SessionID implements Serializable {
-    private static final Pattern pattern = Pattern.compile("(.*?):(.*?)(?:/(.*?)|)(?:/(.*?)|)->(.*?)(?:/(.*?)|)(?:/(.*?)|)(?::(.*)|)");
+    private static final Pattern PATTERN = Pattern.compile("(.*?):(.*?)(?:/(.*?)|)(?:/(.*?)|)->(.*?)(?:/(.*?)|)(?:/(.*?)|)(?::(.*)|)");
     public static final String NOT_SET = "";
 
     private final String id;
@@ -106,7 +106,7 @@ public class SessionID implements Serializable {
     }
 
     public SessionID(String id) {
-        Matcher matcher = pattern.matcher(id);
+        Matcher matcher = PATTERN.matcher(id);
         if (!matcher.matches()) {
             throw new IllegalArgumentException("Invalid session ID string: " + id);
         }
