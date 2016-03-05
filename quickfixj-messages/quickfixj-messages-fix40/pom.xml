@@ -31,11 +31,32 @@
 				<executions>
 					<execution>
 						<phase>prepare-package</phase>
+						<id>add-source</id>
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
 								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
 							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>   
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>    
+							<goal>manifest</goal>
+						</goals>   
+						<configuration>
+							<instructions>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixt40;version="${project.version}";uses:="quickfix,quickfix.field;version="${project.version}""</Export-Package>
+							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=1.6))"</Require-Capability>
+							</instructions>
 						</configuration>
 					</execution>
 				</executions>
@@ -49,10 +70,14 @@
 					<includes>
 						<include>FIX40.xml</include>
 						<include>quickfix/field/**</include>
-						<include>quickfix/fix40/**</include>						
+						<include>quickfix/fixt40/**</include>						
 					</includes>
+					<archive>  
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive> 
 				</configuration>
 			</plugin>
+			
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -61,7 +86,7 @@
 					<includes>
 						<include>FIX40.xml</include>	
 						<include>quickfix/field/**</include>	
-						<include>quickfix/fix40/**</include>							
+						<include>quickfix/fixt40/**</include>							
 					</includes>
 				</configuration>
 			</plugin>

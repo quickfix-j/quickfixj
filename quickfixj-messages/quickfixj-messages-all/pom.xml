@@ -145,7 +145,7 @@
 						</goals>
 						<configuration>
 							<dictFile>../quickfixj-messages-fix40/src/main/resources/FIX40.xml</dictFile>
-							<packaging>quickfix.fix40</packaging>
+							<packaging>quickfix.fixt40</packaging>
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>

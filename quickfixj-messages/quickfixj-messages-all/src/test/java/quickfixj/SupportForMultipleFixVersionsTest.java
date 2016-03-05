@@ -11,7 +11,7 @@ import junit.framework.TestCase;
 public class SupportForMultipleFixVersionsTest extends TestCase {
 	
 	public void testFIX40() {
-		quickfix.fix40.MessageFactory fact = new quickfix.fix40.MessageFactory();
+		quickfix.fixt40.MessageFactory fact = new quickfix.fixt40.MessageFactory();
 		Object newMessage = fact.create("FIX.4.0", "D");
 		assertNotNull(newMessage);
 	}

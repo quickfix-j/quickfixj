@@ -41,6 +41,27 @@
 				</executions>
 			</plugin>
 			
+			<plugin>   
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>    
+							<goal>manifest</goal>
+						</goals>   
+						<configuration>
+							<instructions>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix50sp2;version="${project.version}";uses:="quickfix,quickfix.field;version="${project.version}""</Export-Package>
+							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=1.6))"</Require-Capability>
+							</instructions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -53,6 +74,9 @@
 						<include>quickfix/fix50sp2/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
+					<archive>  
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive> 
 				</configuration>
 			</plugin>
 			
@@ -67,6 +91,9 @@
 						<include>quickfix/fix50sp2/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
+					<archive>  
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive> 
 				</configuration>
 			</plugin>
 		</plugins>
