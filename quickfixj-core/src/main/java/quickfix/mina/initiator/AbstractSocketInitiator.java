@@ -50,6 +50,7 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
+import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLSupport;
 
 /**
@@ -97,26 +98,17 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                         .getSessionProperties(sessionID, true));
 
                 boolean sslEnabled = false;
-                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)) {
-                    sslEnabled = BooleanConverter.convert(getSettings().getString(sessionID,
-                            SSLSupport.SETTING_USE_SSL));
+                SSLConfig sslConfig = null;
+                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)
+                        && BooleanConverter.convert(getSettings().getString(sessionID, SSLSupport.SETTING_USE_SSL))) {
+                    sslEnabled = true;
+                    sslConfig = SSLSupport.getSslConfig(getSettings(), sessionID);
                 }
-                final String keyStoreName = SSLSupport.getKeystoreName(getSettings(), sessionID);
-                final String keyStorePassword = SSLSupport.getKeystorePasswd(getSettings(),
-                        sessionID);
-                final String strEnableProtocole = SSLSupport.getEnableProtocole(getSettings(),
-                        sessionID);
-                final String[] enableProtocole = strEnableProtocole != null ? strEnableProtocole
-                        .split(",") : null;
-                final String strCipherSuites = SSLSupport.getCipherSuite(getSettings(), sessionID);
-                final String[] cipherSuites = strCipherSuites != null
-                        ? strCipherSuites.split(",")
-                        : null;
 
                 final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                         socketAddresses, localAddress, reconnectingIntervals, getScheduledExecutorService(),
                         networkingOptions, getEventHandlingStrategy(), getIoFilterChainBuilder(),
-                        sslEnabled, keyStoreName, keyStorePassword, enableProtocole, cipherSuites);
+                        sslEnabled, sslConfig);
 
                 initiators.add(ioSessionInitiator);
             }

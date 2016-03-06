@@ -34,7 +34,7 @@ public class IoSessionResponderTest extends TestCase {
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         stub(mockWriteFuture.isWritten()).toReturn(true);
         stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
-        IoSessionResponder responder = new IoSessionResponder(mockIoSession, false, 0);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, false, 0, 0);
 
         boolean result = responder.send("abcd");
 
@@ -50,7 +50,7 @@ public class IoSessionResponderTest extends TestCase {
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
         stub(mockWriteFuture.awaitUninterruptibly(timeout)).toReturn(true);
-        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");
 
@@ -68,7 +68,7 @@ public class IoSessionResponderTest extends TestCase {
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
         stubVoid(mockWriteFuture).toThrow(new RuntimeException("TEST")).on().awaitUninterruptibly(timeout);
-        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");
 
@@ -86,7 +86,7 @@ public class IoSessionResponderTest extends TestCase {
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
         stub(mockWriteFuture.awaitUninterruptibly(timeout)).toReturn(false);
-        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout);
+        IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");
 
@@ -102,7 +102,7 @@ public class IoSessionResponderTest extends TestCase {
         stub(mockProtocolSession.getScheduledWriteMessages()).toReturn(0);
         stub(mockProtocolSession.close(true)).toReturn(null);
 
-        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0);
+        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0, 0);
         responder.disconnect();
 
         verify(mockProtocolSession).getScheduledWriteMessages();
@@ -116,7 +116,7 @@ public class IoSessionResponderTest extends TestCase {
         stub(mockProtocolSession.getRemoteAddress()).toReturn(
                 new InetSocketAddress("1.2.3.4", 5432));
 
-        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0);
+        IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0, 0);
 
         assertEquals("/1.2.3.4:5432", responder.getRemoteAddress());
         verify(mockProtocolSession).getRemoteAddress();

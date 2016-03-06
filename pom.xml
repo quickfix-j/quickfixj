@@ -1,121 +1,282 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.quickfixj</groupId>
-	<artifactId>quickfixj-parent</artifactId>
-	<version>1.7.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+    <groupId>org.quickfixj</groupId>
+    <artifactId>quickfixj-parent</artifactId>
+    <version>1.7.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-	<name>QuickFIX/J Parent</name>
-	<description>
-		The Financial Information eXchange (FIX) protocol is a messaging standard developed
-		specifically for the real-time electronic exchange of securities transactions.
-		FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
-		QuickFIX/J is a full featured messaging engine for the FIX protocol.
-		It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
-	</description>
-	<url>http://www.quickfixj.org</url>
-	<licenses>
-		<license>
-			<name>The QuickFIX Software License, Version 1.0</name>
-			<url>http://www.quickfixj.org/documentation/license.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    <name>QuickFIX/J Parent</name>
+    <description>
+        The Financial Information eXchange (FIX) protocol is a messaging standard developed
+        specifically for the real-time electronic exchange of securities transactions.
+        FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (FPL).
+        QuickFIX/J is a full featured messaging engine for the FIX protocol.
+        It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
+    </description>
+    <url>http://www.quickfixj.org</url>
+
+    <licenses>
+        <license>
+            <name>The QuickFIX Software License, Version 1.0</name>
+            <url>http://www.quickfixj.org/documentation/license.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+
+    <scm>
+        <connection>scm:git:git://github.com/quickfix-j/quickfixj.git</connection>
+        <developerConnection>scm:git:git@github.com:quickfix-j/quickfixj.git</developerConnection>
+        <url>https://github.com/quickfix-j/quickfixj/</url>
+        <tag>master</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>chrjohn</id>
+            <name>Christoph John</name>
+        </developer>
+    </developers>
+
+    <contributors>
+        <contributor>
+            <name>Luca Burgazzoli</name>
+            <url>https://github.com/lburgazzoli</url>
+        </contributor>
+    </contributors>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>http://www.quickfixj.org/jira/</url>
+    </issueManagement>
 
 	<prerequisites>
-		<maven>3.3.3</maven>
+		<maven>3.3.9</maven>
 	</prerequisites>
 
-	<modules>
-		<module>quickfixj-codegenerator</module>
-		<module>quickfixj-dictgenerator</module>
-		<module>quickfixj-core</module>
-		<module>quickfixj-messages</module>
-		<module>quickfixj-examples</module>
-		<module>quickfixj-all</module>
-		<module>quickfixj-distribution</module>
-	</modules>
+    <modules>
+        <module>quickfixj-codegenerator</module>
+        <module>quickfixj-dictgenerator</module>
+        <module>quickfixj-core</module>
+        <module>quickfixj-messages</module>
+        <module>quickfixj-examples</module>
+        <module>quickfixj-all</module>
+        <module>quickfixj-distribution</module>
+    </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<jdkLevel>1.6</jdkLevel>
-		<slf4j.version>1.7.12</slf4j.version>
+		<jdkLevel>1.7</jdkLevel>
+		<slf4j.version>1.7.18</slf4j.version>
 		<mainClass/>
-	</properties>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<artifactId>maven-resources-plugin</artifactId>
-					<version>2.7</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.3</version>
-					<configuration> 
-						<source>${jdkLevel}</source> 
-						<target>${jdkLevel}</target> 
-					</configuration> 
+        <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
+        <maven-compiler-plugin-version>3.5.1</maven-compiler-plugin-version>
+        <maven-jar-plugin-version>2.6</maven-jar-plugin-version>
+        <maven-surefire-plugin-version>2.19.1</maven-surefire-plugin-version>
+        <maven-pmd-plugin-version>3.6</maven-pmd-plugin-version>
+        <maven-source-plugin-version>2.4</maven-source-plugin-version>
+        <maven-javadoc-plugin-version>2.10.3</maven-javadoc-plugin-version>
+        <maven-shade-plugin-version>2.4.3</maven-shade-plugin-version>
+        <maven-assembly-plugin-version>2.6</maven-assembly-plugin-version>
+        <maven-bundle-plugin-version>3.0.1</maven-bundle-plugin-version>
+        <maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
+        <maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
+        <nexus-staging-maven-plugin-version>1.6.6</nexus-staging-maven-plugin-version>
+    </properties>
 
-				</plugin>
-				<plugin>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>2.6</version>
-					<configuration>
-						<archive>
-							<manifest>
-								<mainClass>${mainClass}</mainClass>
-								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							</manifest>
-						</archive>
-					</configuration>
-				</plugin>
-				<plugin>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.18.1</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-pmd-plugin</artifactId>
-					<version>3.4</version>
-					<configuration>
-						<targetJdk>${jdkLevel}</targetJdk>
-					</configuration>
-				</plugin>
-				<plugin>
-					<artifactId>maven-source-plugin</artifactId>
-					<version>2.4</version>
-					<executions>
-						<execution>
-							<id>attach-sources</id>
-							<phase>package</phase>
-							<goals>
-								<goal>jar-no-fork</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<artifactId>maven-shade-plugin</artifactId>
-					<version>2.3</version>
-				</plugin>
-				<plugin>
-					<artifactId>maven-assembly-plugin</artifactId>
-					<version>2.5.4</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>${maven-resources-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin-version}</version>
+                    <configuration>
+                        <source>${jdkLevel}</source>
+                        <target>${jdkLevel}</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin-version}</version>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <mainClass>${mainClass}</mainClass>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-pmd-plugin</artifactId>
+                    <version>${maven-pmd-plugin-version}</version>
+                    <configuration>
+                        <targetJdk>${jdkLevel}</targetJdk>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <additionalparam>-Xdoclint:none</additionalparam>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>${maven-gpg-plugin-version}</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>${nexus-staging-maven-plugin-version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>${maven-bundle-plugin-version}</version>
+                    <extensions>true</extensions>
+                    <executions>
+                        <!--
+                          This execution makes sure that the manifest is available
+                          when the tests are executed
+                        -->
+                        <execution>
+                            <goals>
+                                <goal>manifest</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
-		<plugins>
-			<!-- enable bundle packaging -->
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.5.3</version>
-				<extensions>true</extensions>
-			</plugin>
-		</plugins>
-	</build>
+        <plugins>
+            <!-- enable bundle packaging -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                      <groupId>org.sonatype.plugins</groupId>
+                      <artifactId>nexus-staging-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>sign</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+      <snapshotRepository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      </snapshotRepository>
+      <repository>
+        <id>ossrh</id>
+        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+    </distributionManagement>
+
 </project>

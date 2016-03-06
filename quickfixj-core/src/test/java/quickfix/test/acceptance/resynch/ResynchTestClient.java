@@ -103,7 +103,7 @@ public class ResynchTestClient extends MessageCracker implements Application {
         defaults.put("ConnectionType", "initiator");
         defaults.put("HeartBtInt", "2");
         defaults.put("SocketConnectHost", "localhost");
-        defaults.put("SocketConnectPort", "9888");
+        defaults.put("SocketConnectPort", "19889");
         defaults.put("SocketTcpNoDelay", "Y");
         defaults.put("ReconnectInterval", "3");
         defaults.put("StartTime", "00:00:00");

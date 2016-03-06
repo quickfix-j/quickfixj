@@ -27,10 +27,91 @@ use a specific SSL certificate, configure your session like below.
 <pre class="code">
 SocketUseSSL=Y
 SocketKeyStore=[your key store path]
-SocketKeyStorePassword=[your password]
+SocketKeyStorePassword=[your key store password]
 </pre>
 
-Also see the tests in <code>quickfix.mina.ssl.SecureSocketTest</code>.
+If certificates require authentication additional settings must be provided.
+
+<pre class="code">
+SocketTrustStore=[your trust store path]
+SocketTrustStorePassword=[your trust store password]
+</pre>
+
+Acceptor certificates are always authenticated by the initiator. Authenticating client certificates require the following setting.
+
+<pre class="code">
+NeedClientAuth=Y
+</pre>
+
+<b>Example acceptor configuration with client certificate authentication.</b>
+
+<pre class="code">
+[DEFAULT]
+StartTime=00:00:00
+EndTime=00:00:00
+ReconnectInterval=2
+ConnectionType=acceptor
+HeartBtInt=30
+SocketConnectProtocol=SOCKET
+SocketAcceptHost=localhost
+# SSL properties
+SocketUseSSL=Y
+CipherSuites=TLS_RSA_WITH_AES_128_CBC_SHA
+EnabledProtocols=TLSv1.2
+SocketKeyStore=acceptor.keystore
+SocketKeyStorePassword=password
+NeedClientAuth=Y
+
+[SESSION]
+BeginString=FIX.4.4
+DataDictionary=FIX44.xml
+SocketAcceptPort=12341
+TargetCompID=ZULU1
+SenderCompID=ALFA1
+# SSL properties
+SocketTrustStore=acceptor1.truststore
+SocketTrustStorePassword=password
+
+[SESSION]
+BeginString=FIX.4.4
+DataDictionary=FIX44.xml
+SocketAcceptPort=12342
+TargetCompID=ZULU2
+SenderCompID=ALFA2
+# SSL properties
+SocketTrustStore=acceptor2.truststore
+SocketTrustStorePassword=password
+</pre>
+
+<b>Example initiator configuration.</b>
+
+<pre class="code">
+[DEFAULT]
+StartTime=00:00:00
+EndTime=00:00:00
+ReconnectInterval=2
+ConnectionType=initiator
+HeartBtInt=30
+SocketConnectProtocol=SOCKET
+SocketConnectHost=localhost
+SocketConnectPort=12341
+# SSL properties
+SocketUseSSL=Y
+CipherSuites=TLS_RSA_WITH_AES_128_CBC_SHA
+EnabledProtocols=TLSv1.2
+SocketKeyStore=initiator1.keystore
+SocketKeyStorePassword=password
+SocketTrustStore=initiator1.truststore
+SocketTrustStorePassword=password
+
+[SESSION]
+BeginString=FIX.4.4
+DataDictionary=FIX44.xml
+TargetCompID=ALFA1
+SenderCompID=ZULU1
+</pre>
+
+Also see the tests in <code>quickfix.mina.ssl.SecureSocketTest</code> and <code>quickfix.mina.ssl.SSLCertificateTest</code>.
 
 </body>
 </html>

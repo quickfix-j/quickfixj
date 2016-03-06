@@ -10,8 +10,8 @@
 	<artifactId>quickfixj-messages-all</artifactId>
 	<packaging>jar</packaging>
 
-	<name>QuickFIX/J Message classes for all FIX specifications</name>
-	<description>QuickFIX/J Message classes for all FIX specifications</description>
+	<name>QuickFIX/J Message classes for all FIX specs</name>
+	<description>QuickFIX/J Message classes for all FIX specs</description>
 	<url>http://www.quickfixj.org</url>
 
 	<dependencies>

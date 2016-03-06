@@ -43,6 +43,10 @@ public class LogUtil {
         final PrintWriter printWriter = new PrintWriter(stringWriter);
         printWriter.println(message);
         t.printStackTrace(printWriter);
+        if (t.getCause() != null) {
+            printWriter.println("Cause: " + t.getCause().getMessage());
+            t.getCause().printStackTrace(printWriter);
+        }
         log.onErrorEvent(stringWriter.toString());
     }
 

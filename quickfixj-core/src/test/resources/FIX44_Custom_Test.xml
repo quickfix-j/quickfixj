@@ -5846,7 +5846,7 @@
     <field number="601" name="LegSymbolSfx" type="STRING" />
     <field number="602" name="LegSecurityID" type="STRING" />
     <field number="603" name="LegSecurityIDSource" type="STRING" />
-    <field number="604" name="NoLegSecurityAltID" type="STRING" />
+    <field number="604" name="NoLegSecurityAltID" type="NUMINGROUP" />
     <field number="605" name="LegSecurityAltID" type="STRING" />
     <field number="606" name="LegSecurityAltIDSource" type="STRING" />
     <field number="607" name="LegProduct" type="INT" />
@@ -6648,5 +6648,7 @@
     <field number="954" name="Nested3PartySubIDType" type="INT" />
     <field number="955" name="LegContractSettlMonth" type="MONTHYEAR" />
     <field number="956" name="LegInterestAccrualDate" type="LOCALMKTDATE" />
+    
+    <field number="5000" name="CustomTestField" type="INT" />
   </fields>
 </fix>

@@ -19,10 +19,12 @@
 
 package quickfix.mina;
 
+import java.io.IOException;
 import java.net.SocketAddress;
+import quickfix.Session;
 
-import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.future.WriteFuture;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +39,27 @@ public class IoSessionResponder implements Responder {
     private final IoSession ioSession;
     private final boolean synchronousWrites;
     private final long synchronousWriteTimeout;
+    private final int maxScheduledWriteRequests;
 
-    public IoSessionResponder(IoSession session, boolean synchronousWrites, long synchronousWriteTimeout) {
+    public IoSessionResponder(IoSession session, boolean synchronousWrites, long synchronousWriteTimeout, int maxScheduledWriteRequests) {
         ioSession = session;
         this.synchronousWrites = synchronousWrites;
         this.synchronousWriteTimeout = synchronousWriteTimeout;
+        this.maxScheduledWriteRequests = maxScheduledWriteRequests;
     }
 
     @Override
     public boolean send(String data) {
+        // Check for and disconnect slow consumers.
+        if (maxScheduledWriteRequests > 0 && ioSession.getScheduledWriteMessages() >= maxScheduledWriteRequests) {
+            Session qfjSession = (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
+            try {
+                qfjSession.disconnect("Slow consumer", true);
+            } catch (IOException e) {
+            }
+            return false;
+        }
+
         // The data is written asynchronously in a MINA thread
         WriteFuture future = ioSession.write(data);
         if (synchronousWrites) {

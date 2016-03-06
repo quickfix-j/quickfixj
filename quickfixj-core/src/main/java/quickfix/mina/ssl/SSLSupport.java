@@ -19,69 +19,135 @@
 
 package quickfix.mina.ssl;
 
-import quickfix.SessionID;
-import quickfix.SessionSettings;
+import java.io.IOException;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+
 import quickfix.ConfigError;
 import quickfix.FieldConvertError;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
 
 public class SSLSupport {
-    // This will be moved else when settings mechanism is refactored.
-
     public static final String FILTER_NAME = "SslFilter";
+    public static final String SETTING_USE_SSL = "SocketUseSSL";
     public static final String SETTING_KEY_STORE_PWD = "SocketKeyStorePassword";
     public static final String SETTING_KEY_STORE_NAME = "SocketKeyStore";
-    public static final String SETTING_USE_SSL = "SocketUseSSL";
-    public static final String SETTING_ENABLE_PROTOCOLE = "EnabledProtocols";
+    public static final String SETTING_KEY_MANAGER_FACTORY_ALGORITHM = "KeyManagerFactoryAlgorithm";
+    public static final String SETTING_KEY_STORE_TYPE = "KeyStoreType";
+    public static final String SETTING_TRUST_STORE_PWD = "SocketTrustStorePassword";
+    public static final String SETTING_TRUST_STORE_NAME = "SocketTrustStore";
+    public static final String SETTING_TRUST_MANAGER_FACTORY_ALGORITHM = "TrustManagerFactoryAlgorithm";
+    public static final String SETTING_TRUST_STORE_TYPE = "TrustStoreType";
+    public static final String SETTING_NEED_CLIENT_AUTH = "NeedClientAuth";
+    public static final String SETTING_ENABLED_PROTOCOLS = "EnabledProtocols";
     public static final String SETTING_CIPHER_SUITES = "CipherSuites";
-    /* package */ static final String QUICKFIXJ_CERT = "quickfixj.cert";
-    /* package */ static final String QUICKFIXJ_PW = "quickfixjpw";
+    static final String DEFAULT_STORE_TYPE = "JKS";
+    static final String DEFAULT_KEY_STORE_MANAGER_ALGORITHM = "SunX509";
+    static final String DEFAULT_TRUST_STORE_MANAGER_ALGORITHM = "PKIX";
+    static final String QUICKFIXJ_CERT = "quickfixj.cert";
+    static final String QUICKFIXJ_PW = "quickfixjpw";
 
-    public static String getKeystoreName(SessionSettings settings, SessionID sessionID) {
-        String keyStoreName = QUICKFIXJ_CERT;
-        if (settings.isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_NAME)) {
+    public static String[] getDefaultCipherSuites(SSLContext sslContext) {
+        return sslContext.getSocketFactory().getDefaultCipherSuites();
+    }
+
+    public static String[] getEnabledCipherSuites(SessionSettings sessionSettings, SessionID sessionID) {
+        String enabledCipherSuites = getString(sessionSettings, sessionID, SETTING_CIPHER_SUITES, null);
+        if (enabledCipherSuites != null) {
+            return enabledCipherSuites.split(",");
+        }
+        return null;
+    }
+
+    public static String[] getEnabledProtocols(SessionSettings sessionSettings, SessionID sessionID) {
+        String enabledProtocols = getString(sessionSettings, sessionID, SETTING_ENABLED_PROTOCOLS, null);
+        if (enabledProtocols != null) {
+            return enabledProtocols.split(",");
+        }
+        return null;
+    }
+
+    public static String getKeyManagerFactoryAlgorithm(SessionSettings sessionSettings, SessionID sessionID) {
+        return getString(sessionSettings, sessionID, SETTING_KEY_MANAGER_FACTORY_ALGORITHM,
+                DEFAULT_KEY_STORE_MANAGER_ALGORITHM);
+    }
+
+    public static String getKeyStoreName(SessionSettings sessionSettings, SessionID sessionID) {
+        return getString(sessionSettings, sessionID, SETTING_KEY_STORE_NAME, QUICKFIXJ_CERT);
+    }
+
+    public static char[] getKeyStorePassword(SessionSettings sessionSettings, SessionID sessionID) {
+        String keyStorePassword = getString(sessionSettings, sessionID, SETTING_KEY_STORE_PWD, QUICKFIXJ_PW);
+        return keyStorePassword != null ? keyStorePassword.toCharArray() : null;
+    }
+
+    public static String getKeyStoreType(SessionSettings sessionSettings, SessionID sessionID) {
+        return getString(sessionSettings, sessionID, SETTING_KEY_STORE_TYPE, DEFAULT_STORE_TYPE);
+    }
+
+    public static String[] getSupportedProtocols(SSLContext sslContext) {
+        try {
+            return ((SSLSocket) sslContext.getSocketFactory().createSocket()).getSupportedProtocols();
+        } catch (IOException e) {
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieve all related SSL configuration for a specific {@link SessionID}.
+     */
+    public static SSLConfig getSslConfig(SessionSettings sessionSettings, SessionID sessionID) {
+        SSLConfig sslConfig = new SSLConfig();
+        sslConfig.setKeyStoreName(getKeyStoreName(sessionSettings, sessionID));
+        sslConfig.setKeyStorePassword(getKeyStorePassword(sessionSettings, sessionID));
+        sslConfig.setKeyManagerFactoryAlgorithm(getKeyManagerFactoryAlgorithm(sessionSettings, sessionID));
+        sslConfig.setKeyStoreType(getKeyStoreType(sessionSettings, sessionID));
+        sslConfig.setTrustStoreName(getTrustStoreName(sessionSettings, sessionID));
+        sslConfig.setTrustStorePassword(getTrustStorePassword(sessionSettings, sessionID));
+        sslConfig.setTrustManagerFactoryAlgorithm(getTrustManagerFactoryAlgorithm(sessionSettings, sessionID));
+        sslConfig.setTrustStoreType(getTrustStoreType(sessionSettings, sessionID));
+        sslConfig.setEnabledCipherSuites(getEnabledCipherSuites(sessionSettings, sessionID));
+        sslConfig.setEnabledProtocols(getEnabledProtocols(sessionSettings, sessionID));
+        sslConfig.setNeedClientAuth(isNeedClientAuth(sessionSettings, sessionID));
+
+        return sslConfig;
+    }
+
+    private static String getString(SessionSettings sessionSettings, SessionID sessionID, String key,
+            String defaultValue) {
+        String propertyValue = defaultValue;
+        if (sessionSettings.isSetting(sessionID, key)) {
             try {
-                keyStoreName = settings.getString(sessionID, SSLSupport.SETTING_KEY_STORE_NAME);
+                propertyValue = sessionSettings.getString(sessionID, key);
             } catch (ConfigError ignored) {
             } catch (FieldConvertError ignored) {
             }
         }
-        return keyStoreName;
+        return propertyValue;
     }
 
-    public static String getKeystorePasswd(SessionSettings settings, SessionID sessionID) {
-        String keyStorePassword = QUICKFIXJ_PW;
-        if (settings.isSetting(sessionID, SSLSupport.SETTING_KEY_STORE_PWD)) {
-            try {
-                keyStorePassword = settings.getString(sessionID, SSLSupport.SETTING_KEY_STORE_PWD);
-            } catch (ConfigError ignored) {
-            } catch (FieldConvertError ignored) {
-            }
-        }
-        return keyStorePassword;
+    public static String getTrustManagerFactoryAlgorithm(SessionSettings sessionSettings, SessionID sessionID) {
+        return getString(sessionSettings, sessionID, SETTING_TRUST_MANAGER_FACTORY_ALGORITHM,
+                DEFAULT_TRUST_STORE_MANAGER_ALGORITHM);
     }
 
-    public static String getEnableProtocole(SessionSettings settings, SessionID sessionID) {
-        String strEnableProtocole = null;
-        if (settings.isSetting(sessionID, SSLSupport.SETTING_ENABLE_PROTOCOLE)) {
-            try {
-                strEnableProtocole = settings.getString(sessionID, SSLSupport.SETTING_ENABLE_PROTOCOLE);
-            } catch (ConfigError ignored) {
-            } catch (FieldConvertError ignored) {
-            }
-        }
-        return strEnableProtocole;
+    public static String getTrustStoreName(SessionSettings sessionSettings, SessionID sessionID) {
+        return getString(sessionSettings, sessionID, SETTING_TRUST_STORE_NAME, null);
     }
 
-    public static String getCipherSuite(SessionSettings settings, SessionID sessionID) {
-        String strCipherSuite = null;
-        if (settings.isSetting(sessionID, SSLSupport.SETTING_CIPHER_SUITES)) {
-            try {
-                strCipherSuite = settings.getString(sessionID, SSLSupport.SETTING_CIPHER_SUITES);
-            } catch (ConfigError ignored) {
-            } catch (FieldConvertError ignored) {
-            }
-        }
-        return strCipherSuite;
+    public static char[] getTrustStorePassword(SessionSettings sessionSettings, SessionID sessionID) {
+        String trustStorePassword = getString(sessionSettings, sessionID, SETTING_TRUST_STORE_PWD, null);
+        return trustStorePassword != null ? trustStorePassword.toCharArray() : null;
     }
 
+    public static String getTrustStoreType(SessionSettings sessionSettings, SessionID sessionID) {
+        return getString(sessionSettings, sessionID, SETTING_TRUST_STORE_TYPE, DEFAULT_STORE_TYPE);
+    }
+
+    public static boolean isNeedClientAuth(SessionSettings sessionSettings, SessionID sessionID) {
+        return "Y".equals(getString(sessionSettings, sessionID, SETTING_NEED_CLIENT_AUTH, "N"));
+    }
 }
