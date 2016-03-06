@@ -53,7 +53,7 @@
 						</goals>   
 						<configuration>
 							<instructions>
-								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixt40;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix40;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
 								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>								
 							</instructions>
@@ -70,7 +70,7 @@
 					<includes>
 						<include>FIX40.xml</include>
 						<include>quickfix/field/**</include>
-						<include>quickfix/fixt40/**</include>						
+						<include>quickfix/fix40/**</include>						
 					</includes>
 					<archive>  
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -86,7 +86,7 @@
 					<includes>
 						<include>FIX40.xml</include>	
 						<include>quickfix/field/**</include>	
-						<include>quickfix/fixt40/**</include>							
+						<include>quickfix/fix40/**</include>							
 					</includes>
 				</configuration>
 			</plugin>
