@@ -8,13 +8,19 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-all</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 
 	<name>QuickFIX/J Message classes for all FIX specs</name>
 	<description>QuickFIX/J Message classes for all FIX specs</description>
 	<url>http://www.quickfixj.org</url>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -181,38 +187,6 @@
 				</configuration>
 			</plugin>
 			
-			<plugin>
-				<artifactId>maven-shade-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>merge-all-classes</id>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<createSourcesJar>true</createSourcesJar>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-							<artifactSet>
-								<includes>
-									<include>*:quickfixj-messages-fix*</include>
-								</includes>
-							</artifactSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<configuration>
-					<instructions>
-						<Import-Package>quickfix,quickfix.field,*</Import-Package>
-						<Export-Package>quickfix.field,quickfix.fix*</Export-Package>
-						<Private-Package>quickfix.field,quickfix.fix*</Private-Package>
-					</instructions>
-				</configuration>
-			</plugin>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
