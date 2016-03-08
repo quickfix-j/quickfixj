@@ -8,38 +8,88 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-fix42</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 
 	<name>QuickFIX/J Message classes for FIX 4.2</name>
 	<description>QuickFIX/J Message classes for FIX 4.2</description>
 	<url>http://www.quickfixj.org</url>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.9.1</version>
 				<executions>
 					<execution>
-						<id>fix42</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>						
+						<phase>prepare-package</phase>
+						<goals><goal>add-source</goal></goals>
 						<configuration>
-							<dictFile>./src/main/resources/FIX42.xml</dictFile>
-							<packaging>quickfix.fix42</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
+							<sources>
+								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
+			
+			<plugin>   
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>    
+							<goal>manifest</goal>
+						</goals>   
+						<configuration>
+							<instructions>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix42;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+							</instructions>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
+			
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>2.6</version>
+				<configuration>
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
+					<includes>
+						<include>FIX42.xml</include>
+						<include>quickfix/fix42/**</include>
+						<include>quickfix/field/**</include>
+					</includes>
+					<archive>  
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive> 
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>2.4</version>
+				<configuration>
+					<includes>
+						<include>FIX42.xml</include>
+						<include>quickfix/fix42/**</include>
+						<include>quickfix/field/**</include>						
+					</includes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
