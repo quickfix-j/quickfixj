@@ -53,6 +53,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         try {
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
+            isStopped = true;
             throw new RuntimeException(e);
         }
     }

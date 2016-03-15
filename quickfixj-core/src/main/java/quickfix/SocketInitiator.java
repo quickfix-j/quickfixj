@@ -96,9 +96,9 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void stop(boolean forceDisconnect) {
+        eventHandlingStrategy.stopHandlingMessages();
         synchronized (lock) {
             try {
-                eventHandlingStrategy.stopHandlingMessages();
                 logoutAllSessions(forceDisconnect);
                 stopInitiators();
             } finally {
@@ -118,10 +118,11 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 startInitiators();
                 if (blockInThread) {
                     eventHandlingStrategy.blockInThread();
+                    isStarted = Boolean.TRUE;
                 } else {
+                    isStarted = Boolean.TRUE;
                     eventHandlingStrategy.block();
                 }
-                isStarted = Boolean.TRUE;
             } else {
                 log.warn("Ignored attempt to start already running SocketInitiator.");
             }
