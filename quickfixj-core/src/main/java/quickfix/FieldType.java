@@ -83,6 +83,7 @@ public class FieldType {
     public final static FieldType Qty = new FieldType("QTY", Double.class);
     public final static FieldType Currency = new FieldType("CURRENCY");
     public final static FieldType MultipleValueString = new FieldType("MULTIPLEVALUESTRING");
+    public final static FieldType MultipleStringValue = new FieldType("MULTIPLESTRINGVALUE"); // QFJ-881
     public final static FieldType Exchange = new FieldType("EXCHANGE");
     public final static FieldType UtcTimeStamp = new FieldType("UTCTIMESTAMP", Date.class);
     public final static FieldType Boolean = new FieldType("BOOLEAN", Boolean.class);
