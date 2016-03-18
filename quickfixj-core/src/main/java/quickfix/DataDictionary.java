@@ -454,8 +454,8 @@ public class DataDictionary {
     }
 
     private boolean isMultipleValueStringField(int field) {
-        return (fieldTypes.get(field) == FieldType.MultipleValueString)
-                || (fieldTypes.get(field) == FieldType.MultipleStringValue);
+        final FieldType fieldType = fieldTypes.get(field);
+        return fieldType == FieldType.MultipleValueString || fieldType == FieldType.MultipleStringValue;
     }
 
     /**
