@@ -86,7 +86,7 @@
         <maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
         <maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
         <nexus-staging-maven-plugin-version>1.6.7</nexus-staging-maven-plugin-version>
-        <build-helper-maven-plugin-version>1.10</build-helper-maven-plugin-version>
+        <build-helper-maven-plugin-version>1.9.1</build-helper-maven-plugin-version>
     </properties>
 
     <build>
