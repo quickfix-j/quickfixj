@@ -27,7 +27,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.9.1</version>
+				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>prepare-package</phase>
@@ -82,7 +82,7 @@
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-                <version>2.4</version>
+                <version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>FIX50.xml</include>
