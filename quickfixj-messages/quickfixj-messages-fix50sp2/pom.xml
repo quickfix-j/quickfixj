@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-messages-all</artifactId>
+			<artifactId>quickfixj-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -63,9 +63,9 @@
 			</plugin>
 			
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-                <version>2.6</version>
+				<artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin-version}</version>
 				<configuration>
 					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
