@@ -34,7 +34,7 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -67,12 +67,12 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX50SP1.xml</include>
 						<include>FIX50SP1.modified.xml</include>
+						<include>quickfix/field/*.class</include>
 						<include>quickfix/fix50sp1/**</include>
-						<include>quickfix/field/**</include>
 					</includes>
 					<archive>  
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>

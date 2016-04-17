@@ -20,13 +20,6 @@
 			<artifactId>quickfixj-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -59,140 +52,76 @@
 				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
 			</resource>
 		</resources>
-   
+		
 		<plugins>
-		    <plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
-						<id>fixt11</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>						
+						<phase>prepare-package</phase>
+						<goals><goal>add-source</goal></goals>
 						<configuration>
-							<dictFile>../quickfixj-messages-fixt11/src/main/resources/FIXT11.xml</dictFile>
-							<packaging>quickfix.fixt11</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
+							<sources>
+								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
+							</sources>
 						</configuration>
 					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>   
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<executions>
 					<execution>
-						<id>fix50</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>    
+							<goal>manifest</goal>
+						</goals>   
 						<configuration>
-							<dictFile>../quickfixj-messages-fix50/src/main/resources/FIX50.xml</dictFile>
-							<packaging>quickfix.fix50</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix44</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml</dictFile>
-							<packaging>quickfix.fix44</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix43</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix43/src/main/resources/FIX43.xml</dictFile>
-							<packaging>quickfix.fix43</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix42</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix42/src/main/resources/FIX42.xml</dictFile>
-							<packaging>quickfix.fix42</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix41</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix41/src/main/resources/FIX41.xml</dictFile>
-							<packaging>quickfix.fix41</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix40</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix40/src/main/resources/FIX40.xml</dictFile>
-							<packaging>quickfix.fix40</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix50sp2</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml</dictFile>
-							<packaging>quickfix.fix50sp2</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix50sp1</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml</dictFile>
-							<packaging>quickfix.fix50sp1</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
+							<instructions>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix41;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>								
+							</instructions>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			
 			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<argLine>-Xmx512m -XX:MaxPermSize=128m</argLine>
+					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
-						<include>**/*Test.java</include>
+						<include>*.xml</include>
+						<include>quickfix/field/*.class</include>
+						<include>quickfix/fix*/**</include>
 					</includes>
+					<archive>  
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive> 
 				</configuration>
 			</plugin>
 			
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
-			</plugin>
-			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+                <version>${maven-source-plugin-version}</version>
+				<configuration>
+					<includes>
+						<include>*.xml</include>
+						<include>quickfix/fix*/**</include>
+						<include>quickfix/field/**</include>						
+					</includes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
