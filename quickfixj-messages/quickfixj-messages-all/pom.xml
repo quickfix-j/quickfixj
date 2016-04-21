@@ -97,7 +97,6 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-                    <argLine>-Xmx512m -XX:MaxPermSize=128m</argLine>
 					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
 						<include>*.xml</include>
