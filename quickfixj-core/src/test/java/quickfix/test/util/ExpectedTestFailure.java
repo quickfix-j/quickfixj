@@ -1,6 +1,6 @@
 package quickfix.test.util;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 /**
  * A wrapper around a piece of code that we expect to fail and throw an exception.

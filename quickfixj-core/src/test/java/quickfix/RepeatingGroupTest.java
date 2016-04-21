@@ -19,8 +19,8 @@
 
 package quickfix;
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
+import org.junit.Assert;
 import quickfix.field.BeginString;
 import quickfix.field.LegSymbol;
 import quickfix.field.OrderID;
