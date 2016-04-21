@@ -21,7 +21,7 @@ package quickfix.test.acceptance;
 
 import java.io.IOException;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import quickfix.Application;
 import quickfix.DoNotSend;

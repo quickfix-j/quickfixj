@@ -79,7 +79,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 quickFixSession.disconnect(reason, true);
             } else {
                 log.error(reason, cause);
-                ioSession.close(true);
+                ioSession.closeNow();
             }
         } else {
             log.error(reason, cause);
@@ -100,9 +100,9 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM );
                 ioSession.removeAttribute(SessionConnector.QF_SESSION);
             }
-            ioSession.close(true);
+            ioSession.closeNow();
         } catch (Exception e) {
-            ioSession.close(true);
+            ioSession.closeNow();
             throw e;
         }
     }
@@ -120,14 +120,14 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             } catch (InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
                     log.error("Invalid LOGON message, disconnecting: " + e.getMessage());
-                    ioSession.close(true);
+                    ioSession.closeNow();
                 } else {
                     log.error("Invalid message: " + e.getMessage());
                 }
             }
         } else {
             log.error("Disconnecting; received message for unknown session: " + messageString);
-            ioSession.close(true);
+            ioSession.closeNow();
         }
     }
 

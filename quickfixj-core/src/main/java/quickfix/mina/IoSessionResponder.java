@@ -84,7 +84,7 @@ public class IoSessionResponder implements Responder {
         // threading model and calling join will prevent the
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
-        ioSession.close(true);
+        ioSession.closeNow();
     }
 
     private void waitForScheduleMessagesToBeWritten() {
