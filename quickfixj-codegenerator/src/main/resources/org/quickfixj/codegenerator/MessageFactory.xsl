@@ -53,38 +53,41 @@ import quickfix.Group;
 public class MessageFactory implements quickfix.MessageFactory {
 
 	public Message create(String beginString, String msgType) {
-		<xsl:call-template name="if-statement"/>
+		<xsl:call-template name="switch-statement"/>
 		return new <xsl:value-of select="$messagePackage"/>.Message();
 	}
 
 	public Group create(String beginString, String msgType, int correspondingFieldID) {
-		<xsl:call-template name="group-if-statement"/>
+		<xsl:call-template name="group-switch-statement"/>
 		return null;
 	}
 }
 </xsl:template>
 
-<xsl:template name="if-statement">
+<xsl:template name="switch-statement">
+		switch (msgType) {
 	<xsl:for-each select="//fix/messages/message">
-		if (<xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>.MSGTYPE.equals(msgType)) {
-			return new <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>();
-		}
+			case <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>.MSGTYPE:
+		    	return new <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>();
 	</xsl:for-each>
+		}
 </xsl:template>
 
-<xsl:template name="group-if-statement">
+<xsl:template name="group-switch-statement">
+		switch (msgType) {
 	<xsl:for-each select="//fix/messages/message[group or component]">
-		if (<xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>.MSGTYPE.equals(msgType)) {
-			switch (correspondingFieldID) {
+			case <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>.MSGTYPE:
+				switch (correspondingFieldID) {
 			<xsl:apply-templates mode="group-factories" select="group">
 				<xsl:with-param name="fullPath" select="@name"/>
 			</xsl:apply-templates>
 			<xsl:apply-templates mode="group-factories" select="component">
 				<xsl:with-param name="fullPath" select="@name"/>
 			</xsl:apply-templates>
-			}
-		}
+				}
+				break;
 	</xsl:for-each>
+		}
 </xsl:template>
 
 <xsl:template mode="group-factories" match="group">

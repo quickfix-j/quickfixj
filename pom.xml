@@ -69,7 +69,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.7</jdkLevel>
-		<slf4j.version>1.7.19</slf4j.version>
+		<slf4j.version>1.7.21</slf4j.version>
+		<junit.version>4.12</junit.version>
 		<mainClass/>
 
         <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
@@ -154,6 +155,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin-version}</version>
+                    <configuration>
+                        <excludePackageNames>quickfix.fix*</excludePackageNames>
+                    </configuration>
                     <executions>
                         <execution>
                             <id>attach-javadocs</id>

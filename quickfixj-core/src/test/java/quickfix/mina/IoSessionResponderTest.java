@@ -100,13 +100,13 @@ public class IoSessionResponderTest extends TestCase {
     public void testDisconnect() throws Exception {
         IoSession mockProtocolSession = mock(IoSession.class);
         stub(mockProtocolSession.getScheduledWriteMessages()).toReturn(0);
-        stub(mockProtocolSession.close(true)).toReturn(null);
+        stub(mockProtocolSession.closeNow()).toReturn(null);
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0, 0);
         responder.disconnect();
 
         verify(mockProtocolSession).getScheduledWriteMessages();
-        verify(mockProtocolSession).close(true);
+        verify(mockProtocolSession).closeNow();
 
         verifyNoMoreInteractions(mockProtocolSession);
 }

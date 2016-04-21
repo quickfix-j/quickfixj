@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-messages-all</artifactId>
+			<artifactId>quickfixj-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -34,7 +34,7 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -63,16 +63,16 @@
 			</plugin>
 			
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-                <version>2.6</version>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX44.xml</include>
 						<include>FIX44.modified.xml</include>
+						<include>quickfix/field/*.class</include>
 						<include>quickfix/fix44/**</include>
-						<include>quickfix/field/**</include>
 					</includes>
 					<archive>  
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
