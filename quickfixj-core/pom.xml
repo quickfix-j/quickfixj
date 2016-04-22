@@ -131,7 +131,7 @@
 				<directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
 			</resource>
 		</resources>
-		
+
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
@@ -164,10 +164,7 @@
 				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
 			</testResource>
 			<testResource>
-				<directory>src/main/</directory>
-				<includes>
-					<include>config/**</include>
-				</includes>
+				<directory>src/main/resources</directory>
 			</testResource>
 		</testResources>
 
