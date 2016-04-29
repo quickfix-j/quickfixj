@@ -4546,7 +4546,7 @@
       <value enum="H" description="HIGH"/>
     </field>
     <field number="26" name="IOIRefID" type="STRING"/>
-    <field number="27" name="IOIQty" type="STRING">
+    <field number="27" name="IOIQty" type="STRING" allowOtherValues="true">
       <value enum="0" description="_1000000000"/>
       <value enum="S" description="SMALL"/>
       <value enum="M" description="MEDIUM"/>
