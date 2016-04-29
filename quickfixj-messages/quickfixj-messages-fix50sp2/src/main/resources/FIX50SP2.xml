@@ -5508,7 +5508,7 @@
       <value enum="M" description="MEDIUM"/>
     </field>
     <field number="26" name="IOIRefID" type="STRING"/>
-    <field number="27" name="IOIQty" type="STRING">
+    <field number="27" name="IOIQty" type="STRING" allowOtherValues="true">
       <value enum="S" description="SMALL"/>
       <value enum="M" description="MEDIUM"/>
       <value enum="L" description="LARGE"/>
