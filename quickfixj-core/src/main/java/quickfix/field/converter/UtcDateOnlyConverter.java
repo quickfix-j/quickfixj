@@ -29,10 +29,20 @@ import quickfix.FieldConvertError;
  * Convert between a date and a String
  */
 public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
+
+    protected static final class Context {
+        private final DateFormat dateFormat = createDateFormat("yyyyMMdd");
+        private final StringBuffer buffer = new StringBuffer(128);
+    }
+
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static final ThreadLocal<UtcDateOnlyConverter> utcDateConverter = new ThreadLocal<UtcDateOnlyConverter>();
-    private final DateFormat dateFormat = createDateFormat("yyyyMMdd");
+    private static final ThreadLocal<Context> utcDateConverter = new ThreadLocal<Context>() {
+        @Override
+        protected Context initialValue() {
+            return new Context();
+        }
+    };
 
     /**
      * Convert a date to a String ("YYYYMMDD")
@@ -41,16 +51,29 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
      * @return the formatted date
      */
     public static String convert(Date d) {
-        return getFormatter().format(d);
+        Context context = utcDateConverter.get();
+        try {
+            context.dateFormat.format(d, context.buffer, DontCareFieldPosition.INSTANCE);
+            return context.buffer.toString();
+        } finally {
+            context.buffer.setLength(0);
+        }
     }
 
-    private static DateFormat getFormatter() {
-        UtcDateOnlyConverter converter = utcDateConverter.get();
-        if (converter == null) {
-            converter = new UtcDateOnlyConverter();
-            utcDateConverter.set(converter);
+    /**
+     * Convert a date to a String ("YYYYMMDD")
+     *
+     * @param d the date to convert
+     * @param stringBuilder the out buffer to hold formatted date
+     */
+    public static void convert(Date d, StringBuilder stringBuilder) {
+        Context context = utcDateConverter.get();
+        try {
+            context.dateFormat.format(d, context.buffer, DontCareFieldPosition.INSTANCE);
+            stringBuilder.append(context.buffer);
+        } finally {
+            context.buffer.setLength(0);
         }
-        return converter.dateFormat;
     }
 
     /**
@@ -66,7 +89,7 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
         assertLength(value, 8, type);
         assertDigitSequence(value, 0, 8, type);
         try {
-            d = getFormatter().parse(value);
+            d = utcDateConverter.get().dateFormat.parse(value);
         } catch (ParseException e) {
             throwFieldConvertError(value, type);
         }

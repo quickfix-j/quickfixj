@@ -21,6 +21,8 @@ package quickfix;
 
 import java.util.Date;
 
+import quickfix.field.converter.UtcTimeOnlyConverter;
+
 /*
  * A time-valued message field.
  */
@@ -47,6 +49,16 @@ public class UtcTimeOnlyField extends DateField {
 
     boolean showMilliseconds() {
         return includeMilliseconds;
+    }
+
+    @Override
+    protected String objectAsString() {
+        return UtcTimeOnlyConverter.convert(getValue(), showMilliseconds());
+    }
+
+    @Override
+    protected void objectAsString(StringBuilder stringBuilder) {
+        UtcTimeOnlyConverter.convert(getValue(), stringBuilder, showMilliseconds());
     }
 
 }

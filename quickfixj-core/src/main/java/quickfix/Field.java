@@ -20,8 +20,10 @@
 package quickfix;
 
 import org.quickfixj.CharsetSupport;
+import quickfix.field.converter.DoubleConverter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * Base class for FIX message fields. This class should be
@@ -32,8 +34,7 @@ public /*abstract*/ class Field<T> implements Serializable {
     static final long serialVersionUID = 7098326013456432197L;
     private int tag;
     private T object;
-    private boolean isCalculated = false;
-    private String data;
+    protected String data;
 
     public Field(int field, T object) {
         this.tag = field;
@@ -66,7 +67,7 @@ public /*abstract*/ class Field<T> implements Serializable {
      */
     protected void setObject(T object) {
         this.object = object;
-        isCalculated = false;
+        data = null;
     }
 
     /**
@@ -89,22 +90,70 @@ public /*abstract*/ class Field<T> implements Serializable {
     }
 
     /*package*/ void toString(StringBuilder buffer) {
-        buffer.append(tag).append('=').append(objectAsString());
+        if(null != data) {
+            buffer.append(data);
+            return;
+        }
+        buffer.append(quickfix.NumbersCache.get(tag)).append('=');
+        if(object instanceof Number) {
+            if(object instanceof Integer)
+                appendNumber(buffer, ((Integer)object).longValue());
+            else if(object instanceof Double)
+                appendDouble(buffer, (Double) object);
+            else if(object instanceof Float)
+                buffer.append(((Float)object).floatValue());
+            else if(object instanceof BigDecimal)
+                buffer.append(((BigDecimal)object).toPlainString());
+            else
+                appendNumber(buffer, ((Number)object).longValue());
+        } else
+            objectAsString(buffer);
+    }
+
+    private static void appendNumber(StringBuilder buffer, long value) {
+        if(value < 0) {
+            buffer.append('-');
+            value = Math.abs(value);
+        }
+        buffer.append(quickfix.NumbersCache.get(value));
+    }
+
+    private static void appendDouble(StringBuilder buffer, double value) {
+        if(value < 0d) {
+            buffer.append('-');
+            value = Math.abs(value);
+        }
+        String str = quickfix.NumbersCache.get(value);
+        if(null != str)
+            buffer.append(str);
+        else
+            buffer.append(DoubleConverter.convert(value));
     }
 
     protected String objectAsString() {
         return object.toString();
     }
 
+    protected void objectAsString(StringBuilder stringBuilder) {
+        stringBuilder.append(objectAsString());
+    }
+
     public boolean equals(Object object) {
-        return super.equals(object)
-                || object instanceof Field
-                   && tag == ((Field<?>) object).getField()
-                   && getObject().equals(((Field<?>) object).getObject());
+        return super.equals(object) || (object instanceof Field &&
+                ((Field<?>) object).equals(tag, getObject()));
+    }
+
+    private boolean equals(int tag, Object object) {
+        if(this.tag != tag)
+            return false;
+        Object thisObject = getObject();
+        if(thisObject == null)
+            return object == null;
+        return thisObject.equals(object);
     }
 
     public int hashCode() {
-        return object.hashCode();
+        return getObject().hashCode();
     }
 
     /**
@@ -129,21 +178,27 @@ public /*abstract*/ class Field<T> implements Serializable {
         return (MessageUtils.checksum(CharsetSupport.getCharsetInstance(), data, false) + 1) & 0xFF;
     }
 
-    private void calculate() {
-        if (isCalculated) {
-            return;
+    private static final ThreadLocal<StringBuilder> buffers = new ThreadLocal<StringBuilder>() {
+        @Override
+        protected StringBuilder initialValue() {
+            return new StringBuilder(256);
         }
+    };
 
-        StringBuilder buffer = new StringBuilder();
-        toString(buffer);
-        data = buffer.toString();
-
-        isCalculated = true;
+    private void calculate() {
+        if(null == data) {
+            StringBuilder buffer = buffers.get();
+            try {
+                toString(buffer);
+                data = buffer.toString();
+            } finally {
+                buffer.setLength(0);
+            }
+        }
     }
 
     public void setTag(int tag) {
         this.tag = tag;
-        isCalculated = false;
-        calculate();
+        data = null;
     }
 }
