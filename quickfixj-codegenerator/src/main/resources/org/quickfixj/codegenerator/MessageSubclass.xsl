@@ -172,10 +172,10 @@ import quickfix.Group;</xsl:if>
 	public static class <xsl:value-of select="@name"/> extends Group {
 
 		static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
+		private static final int[] ORDER = {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/>0};
 
 		public <xsl:value-of select="@name"/>() {
-			super(<xsl:value-of select="/fix/fields/field[@name=$groupFieldName]/@number"/>, <xsl:apply-templates select="field|component|group" mode="group-delimeter"/>,
-				new int[] {<xsl:apply-templates select="field|component|group" mode="group-field-numbers"/> 0 });
+			super(<xsl:value-of select="/fix/fields/field[@name=$groupFieldName]/@number"/>, <xsl:apply-templates select="field|component|group" mode="group-delimeter"/>, ORDER);
 		}
 		<xsl:apply-templates select="field|component|group" mode="field-accessors"/>
 	}
