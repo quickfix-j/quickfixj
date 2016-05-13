@@ -10,8 +10,10 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static quickfix.SessionFactoryTestSupport.createSession;
 
 import java.io.BufferedOutputStream;
@@ -26,8 +28,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginSeqNo;
@@ -66,8 +69,8 @@ import quickfix.test.util.ReflectionUtil;
  */
 public class SessionTest {
 
-    @AfterClass
-    public static void cleanup() {
+    @Before
+    public void setUp() {
         SystemTime.setTimeSource(null);
     }
 
@@ -1861,6 +1864,100 @@ public class SessionTest {
 
         session.close();
     }
+
+	@Test
+	public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_the_last_message_resent()
+			throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
+			IncorrectTagValue, IncorrectDataFormat, NoSuchFieldException, IllegalAccessException {
+		final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+		final boolean resetOnLogon = false;
+		final boolean validateSequenceNumbers = true;
+
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+				sessionID, null, null, null,
+				new DefaultMessageFactory(), 30, false, 30, true, resetOnLogon,
+				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+				new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+				false, false);
+
+		Responder mockResponder = mock(Responder.class);
+		when(mockResponder.send(anyString())).thenReturn(true);
+		session.setResponder(mockResponder);
+
+		session.logon();
+		session.next();
+
+		ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+		verify(mockResponder).send(messageCaptor.capture());
+		session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
+		MessageStore messageStore = session.getStore();
+
+		for (int i=messageStore.getNextSenderMsgSeqNum(); i<=5; i++) {
+			String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
+			messageStore.set(i, executionReportString);
+			messageStore.incrNextSenderMsgSeqNum();
+		}
+
+		//simulate a bunch of admin messages that were not persisted
+		for (int i=0; i<5; i++)
+			messageStore.incrNextSenderMsgSeqNum();
+
+		final Message resendRequest = createResendRequest(1, 1);
+		session.next(resendRequest);
+
+		verify(mockResponder, times(7)).send(messageCaptor.capture());
+		Message lastGapFill = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size()-1));
+		assertEquals("4", lastGapFill.getHeader().getString(MsgType.FIELD));
+		assertEquals(lastGapFill.getHeader().getString(MsgSeqNum.FIELD), "6");
+	}
+
+	@Test
+	public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_last_message_resent_when_enableNextExpectedMsgSeqNum_is_true()
+			throws FieldNotFound, InvalidMessage, IOException, RejectLogon, IncorrectDataFormat, IncorrectTagValue,
+			UnsupportedMessageType {
+		boolean enableNextExpectedMsgSeqNum = true;
+
+		final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+		final boolean resetOnLogon = false;
+		final boolean validateSequenceNumbers = true;
+
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+				sessionID, null, null, null,
+				new DefaultMessageFactory(), 30, false, 30, true, resetOnLogon,
+				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+				new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+				enableNextExpectedMsgSeqNum, false);
+
+		Responder mockResponder = mock(Responder.class);
+		when(mockResponder.send(anyString())).thenReturn(true);
+		session.setResponder(mockResponder);
+
+		session.logon();
+		session.next();
+
+		ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+		verify(mockResponder).send(messageCaptor.capture());
+		session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
+		MessageStore messageStore = session.getStore();
+
+		for (int i=messageStore.getNextSenderMsgSeqNum(); i<=5; i++) {
+			String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
+			messageStore.set(i, executionReportString);
+			messageStore.incrNextSenderMsgSeqNum();
+		}
+
+		//simulate a bunch of admin messages that were not persisted
+		for (int i=0; i<5; i++)
+			messageStore.incrNextSenderMsgSeqNum();
+
+		final Message resendRequest = createResendRequest(1, 1);
+		session.next(resendRequest);
+
+		verify(mockResponder, times(7)).send(messageCaptor.capture());
+		Message lastGapFill = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size()-1));
+		assertEquals("4", lastGapFill.getHeader().getString(MsgType.FIELD));
+		assertEquals(lastGapFill.getHeader().getString(MsgSeqNum.FIELD), "6");
+	}
 
     @Test
     // QFJ-795

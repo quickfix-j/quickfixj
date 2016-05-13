@@ -32,8 +32,8 @@ import quickfix.RuntimeError;
  * Converts between a double and a String.
  */
 public class DoubleConverter {
-    private static final Pattern decimalPattern = Pattern.compile("-?\\d*(\\.\\d*)?");
-    private static final ThreadLocal<DecimalFormat[]> threadDecimalFormats = new ThreadLocal<DecimalFormat[]>();
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("-?\\d*(\\.\\d*)?");
+    private static final ThreadLocal<DecimalFormat[]> THREAD_DECIMAL_FORMATS = new ThreadLocal<DecimalFormat[]>();
 
     /**
      * Converts a double to a string with no padding.
@@ -51,10 +51,10 @@ public class DoubleConverter {
             // FieldConvertError not supported in setDouble methods on Message
             throw new RuntimeError("maximum padding of 14 zeroes is supported: " + padding);
         }
-        DecimalFormat[] decimalFormats = threadDecimalFormats.get();
+        DecimalFormat[] decimalFormats = THREAD_DECIMAL_FORMATS.get();
         if (decimalFormats == null) {
             decimalFormats = new DecimalFormat[14];
-            threadDecimalFormats.set(decimalFormats);
+            THREAD_DECIMAL_FORMATS.set(decimalFormats);
         }
         DecimalFormat f = decimalFormats[padding];
         if (f == null) {
@@ -92,7 +92,7 @@ public class DoubleConverter {
      */
     public static double convert(String value) throws FieldConvertError {
         try {
-            Matcher matcher = decimalPattern.matcher(value);
+            Matcher matcher = DECIMAL_PATTERN.matcher(value);
             if (!matcher.matches()) {
                 throw new NumberFormatException();
             }

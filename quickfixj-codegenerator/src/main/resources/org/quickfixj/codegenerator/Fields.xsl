@@ -108,6 +108,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='LENGTH'">int</xsl:when>
      <xsl:when test="@type='COUNTRY'">String</xsl:when>
      <xsl:when test="@type='MULTIPLESTRINGVALUE'">String</xsl:when>
+     <xsl:when test="@type='MULTIPLEVALUESTRING'">String</xsl:when>
      <xsl:otherwise>String</xsl:otherwise>
    </xsl:choose>
 </xsl:template>
@@ -134,6 +135,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='LENGTH'">Int</xsl:when>
      <xsl:when test="@type='COUNTRY'">String</xsl:when>
      <xsl:when test="@type='MULTIPLESTRINGVALUE'">String</xsl:when>
+     <xsl:when test="@type='MULTIPLEVALUESTRING'">String</xsl:when>
      <xsl:otherwise>String</xsl:otherwise>
    </xsl:choose>
 </xsl:template>
@@ -152,7 +154,9 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 	</xsl:when>
 	<xsl:when test="../@type='MULTIPLESTRINGVALUE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
 	</xsl:when>
-	<xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="@description"/> = <xsl:call-template name="y-or-n-to-bool" />;
+	<xsl:when test="../@type='MULTIPLEVALUESTRING'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
+	</xsl:when>
+        <xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="@description"/> = <xsl:call-template name="y-or-n-to-bool" />;
 	</xsl:when>
 	<xsl:when test="../@type='INT'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>;
 	</xsl:when>

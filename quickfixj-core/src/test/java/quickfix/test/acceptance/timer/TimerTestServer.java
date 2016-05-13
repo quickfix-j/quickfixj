@@ -106,8 +106,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         try {
             HashMap<Object, Object> defaults = new HashMap<Object, Object>();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", Integer.toString(AvailablePortFinder
-                    .getNextAvailable(10000)));
+            defaults.put("SocketAcceptPort", "19888" );
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");

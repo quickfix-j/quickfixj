@@ -33,8 +33,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
-
 import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
@@ -44,6 +42,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.apache.mina.transport.vmpipe.VmPipeAddress;
 import org.apache.mina.transport.vmpipe.VmPipeConnector;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +68,7 @@ public class TestConnection {
 
     public void tearDown() {
         for (TestIoHandler testIoHandler : ioHandlers.values()) {
-            CloseFuture closeFuture = testIoHandler.getSession().close(true);
+            CloseFuture closeFuture = testIoHandler.getSession().closeNow();
             closeFuture.awaitUninterruptibly();
         }
         ioHandlers.clear();

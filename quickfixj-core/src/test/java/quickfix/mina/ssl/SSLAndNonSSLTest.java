@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,18 +52,19 @@ import quickfix.test.acceptance.ATApplication;
 public class SSLAndNonSSLTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() {
         SystemTime.setTimeSource(null);
     }
 
     @Test
     public void testSSLClient() throws Exception {
-        doLogonTest("TW1", "9887", "Y");
+        doLogonTest("TW1", "9897", "Y");
     }
 
     @Test
     public void testNonSSLClient() throws Exception {
-        doLogonTest("TW2", "9888", "N");
+        doLogonTest("TW2", "9898", "N");
     }
 
     private void doLogonTest(String clientCompId, String port, String useSSL) throws InterruptedException, ConfigError {
@@ -183,20 +185,20 @@ public class SSLAndNonSSLTest {
 
                 settings.set(defaults);
 
-                // TW1 is a SSL client at 9887
+                // TW1 is a SSL client at 9897
                 SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW1");
                 settings.setString(sessionID1, "SenderCompID", "ISLD");
                 settings.setString(sessionID1, "TargetCompID", "TW1");
                 settings.setString(sessionID1, "BeginString", FixVersions.BEGINSTRING_FIX42);
-                settings.setString(sessionID1, "SocketAcceptPort", "9887");
+                settings.setString(sessionID1, "SocketAcceptPort", "9897");
                 settings.setString(sessionID1, SSLSupport.SETTING_USE_SSL, "Y");
 
-                // TW2 is a non SSL client at 9888
+                // TW2 is a non SSL client at 9898
                 SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ISLD", "TW2");
                 settings.setString(sessionID2, "SenderCompID", "ISLD");
                 settings.setString(sessionID2, "TargetCompID", "TW2");
                 settings.setString(sessionID2, "BeginString", FixVersions.BEGINSTRING_FIX42);
-                settings.setString(sessionID2, "SocketAcceptPort", "9888");
+                settings.setString(sessionID2, "SocketAcceptPort", "9898");
                 settings.setString(sessionID2, SSLSupport.SETTING_USE_SSL, "N");
 
                 ATApplication application = new ATApplication();

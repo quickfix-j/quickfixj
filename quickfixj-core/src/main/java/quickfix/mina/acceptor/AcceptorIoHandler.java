@@ -72,7 +72,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                         // Session is already bound to another connection
                         sessionLog
                                 .onErrorEvent("Multiple logons/connections for this session are not allowed");
-                        protocolSession.close(true);
+                        protocolSession.closeNow();
                         return;
                     }
                     sessionLog.onEvent("Accepting session " + qfSession.getSessionID() + " from "
@@ -85,7 +85,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     final NetworkingOptions networkingOptions = getNetworkingOptions();
                     qfSession.setResponder(new IoSessionResponder(protocolSession,
                             networkingOptions.getSynchronousWrites(), networkingOptions
-                                    .getSynchronousWriteTimeout()));
+                                    .getSynchronousWriteTimeout(), qfSession.getMaxScheduledWriteRequests()));
                     if (sessionID.isFIXT()) { // QFJ-592
                         if (message.isSetField(DefaultApplVerID.FIELD)) {
                             final ApplVerID applVerID = new ApplVerID(
@@ -105,7 +105,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                 }
             } else {
                 log.warn("Ignoring non-logon message before session establishment: " + message);
-                protocolSession.close(true);
+                protocolSession.closeNow();
                 return;
             }
         }

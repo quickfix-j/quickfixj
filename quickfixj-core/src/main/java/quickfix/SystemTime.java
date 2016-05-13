@@ -35,9 +35,9 @@ public class SystemTime {
         }
     };
 
-    private static SystemTimeSource systemTimeSource = DEFAULT_TIME_SOURCE;
+    private static volatile SystemTimeSource systemTimeSource = DEFAULT_TIME_SOURCE;
 
-    public static synchronized long currentTimeMillis() {
+    public static long currentTimeMillis() {
         return systemTimeSource.getTime();
     }
 
@@ -45,7 +45,7 @@ public class SystemTime {
         return new Date(currentTimeMillis());
     }
 
-    public static synchronized void setTimeSource(SystemTimeSource systemTimeSource) {
+    public static void setTimeSource(SystemTimeSource systemTimeSource) {
         SystemTime.systemTimeSource = systemTimeSource != null ? systemTimeSource
                 : DEFAULT_TIME_SOURCE;
     }

@@ -28,8 +28,11 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
+import quickfix.field.MDUpdateAction;
 import quickfix.field.RawData;
 import quickfix.field.Side;
+import quickfix.field.TradeCondition;
+import quickfix.fix50.MarketDataIncrementalRefresh;
 
 public class FieldTest {
 
@@ -250,6 +253,23 @@ public class FieldTest {
         assertEqualsAndHash(new UtcTimeStampField(11, date), new UtcTimeStampField(11, date));
     }
 
+    // QFJ-881
+    @Test
+    public void testMultipleStringValue() throws Exception {
+
+        assertEquals(FieldType.MultipleStringValue, FieldType.fromName("notused", "MULTIPLESTRINGVALUE"));
+        assertEquals(FieldType.MultipleValueString, FieldType.fromName("notused", "MULTIPLEVALUESTRING"));
+
+        MarketDataIncrementalRefresh md = new MarketDataIncrementalRefresh();
+        MarketDataIncrementalRefresh.NoMDEntries value = new MarketDataIncrementalRefresh.NoMDEntries();
+        value.set(new MDUpdateAction(MDUpdateAction.NEW));
+        value.set(new TradeCondition("A B"));
+        md.addGroup(value);
+
+        DataDictionary dd = new DataDictionary("FIX50.xml");
+        dd.validate(md);
+    }
+    
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {
         assertEquals("fields not equal", field1, field2);
         assertEquals("fields hashcode not equal", field1.hashCode(), field2.hashCode());

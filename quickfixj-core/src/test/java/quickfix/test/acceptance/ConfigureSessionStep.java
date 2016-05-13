@@ -22,8 +22,8 @@ package quickfix.test.acceptance;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import junit.framework.Assert;
 import junit.framework.TestResult;
+import org.junit.Assert;
 import quickfix.Session;
 import quickfix.SessionID;
 

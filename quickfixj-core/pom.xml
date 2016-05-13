@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
-		<version>1.7.0-SNAPSHOT</version>
+		<version>1.7.0-SNAPSHOT</version>		
 	</parent>
 
 	<artifactId>quickfixj-core</artifactId>
@@ -22,7 +22,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.10</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
-			<version>2.0.9</version>
+			<version>2.0.13</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -102,6 +102,36 @@
 	</dependencies>
 
 	<build>
+	    <resources>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix43/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix42/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix41/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix50sp1/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
+			</resource>
+		</resources>
+
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
@@ -134,10 +164,7 @@
 				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
 			</testResource>
 			<testResource>
-				<directory>src/main/</directory>
-				<includes>
-					<include>config/**</include>
-				</includes>
+				<directory>src/main/resources</directory>
 			</testResource>
 		</testResources>
 
@@ -230,11 +257,37 @@
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
+					</execution>				
+					<execution>
+						<id>fix50sp2</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml</dictFile>
+							<packaging>quickfix.fix50sp2</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
+						</configuration>
+					</execution>
+					<execution>
+						<id>fix50sp1</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<dictFile>../quickfixj-messages/quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml</dictFile>
+							<packaging>quickfix.fix50sp1</packaging>
+							<fieldPackage>quickfix.field</fieldPackage>
+							<decimal>${generator.decimal}</decimal>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>quickfix/**</include>
@@ -249,6 +302,7 @@
 				</configuration>
 			</plugin>
 			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<configuration>
 					<includes>
@@ -287,10 +341,11 @@
 					</instructions>
 				</configuration>
 			</plugin>
-			<plugin>
+			<plugin>				
+                <groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>-Xmx512m -XX:MaxPermSize=128m</argLine>
+					<argLine>-Xmx512m -XX:MaxPermSize=256m</argLine>
 					<includes>
 						<include>**/*Test.java</include>
 						<include>${acceptance.tests}</include>
@@ -315,7 +370,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>2.18.1</version>
+				<version>${maven-surefire-plugin-version}</version>
 				<reportSets/>
 				<configuration>
 					<showSuccess>true</showSuccess>
@@ -323,7 +378,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.3</version>
+				<version>${maven-javadoc-plugin-version}</version>
 			</plugin>
 			<plugin>
 				<artifactId>maven-jxr-plugin</artifactId>

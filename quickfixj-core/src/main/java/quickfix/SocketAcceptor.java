@@ -86,10 +86,11 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 startAcceptingConnections();
                 if (blockInThread) {
                     eventHandlingStrategy.blockInThread();
+                    isStarted = Boolean.TRUE;
                 } else {
+                    isStarted = Boolean.TRUE;
                     eventHandlingStrategy.block();
                 }
-                isStarted = Boolean.TRUE;
             } else {
                 log.warn("Ignored attempt to start already running SocketAcceptor.");
             }
@@ -103,9 +104,9 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     @Override
     public void stop(boolean forceDisconnect) {
+        eventHandlingStrategy.stopHandlingMessages();
         synchronized (lock) {
             try {
-                eventHandlingStrategy.stopHandlingMessages();
                 try {
                     stopAcceptingConnections();
                 } catch (ConfigError e) {

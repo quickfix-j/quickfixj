@@ -558,14 +558,14 @@ public class SessionSettings {
         }
     }
 
-    private final Pattern variablePattern = Pattern.compile("\\$\\{(.+?)}");
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{(.+?)}");
 
     private String interpolate(String value) {
         if (value == null || value.indexOf('$') == -1) {
             return value;
         }
         final StringBuffer buffer = new StringBuffer();
-        final Matcher m = variablePattern.matcher(value);
+        final Matcher m = VARIABLE_PATTERN.matcher(value);
         while (m.find()) {
             if (m.start() > 0 && value.charAt(m.start() - 1) == '\\') {
                 continue;
