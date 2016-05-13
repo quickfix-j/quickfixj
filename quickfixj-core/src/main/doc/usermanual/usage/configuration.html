@@ -904,6 +904,40 @@
     <TD>"" (empty string)</TD>
   </TR>
 
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcMaxActiveConnection</I></TD>
+    <TD>Specifies the maximum number of connections to the database.</TD>
+    <TD>Any number</TD>
+    <TD>32</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcMaxActiveTime</I></TD>
+    <TD>Specifies if the housekeeper comes across a thread that has been active for longer than
+      this then it will kill it. So make sure you set this to a number bigger than your
+      slowest expected response!</TD>
+    <TD>Any number</TD>
+    <TD>32</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcMaxConnectionLifeTime</I></TD>
+    <TD>Specifies the maximum amount of time that a connection exists for before
+      it is killed (milliseconds).</TD>
+    <TD>Any number</TD>
+    <TD>5000</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcSimultaneousBuildThrottle</I></TD>
+    <TD>Specifies the maximum number of connections we can be building at any one time.
+        That is, the number of new connections that have been requested but aren't yet
+        available for use. Because connections can be built using more than one thread
+        (for instance, when they are built on demand) and it takes a finite time between
+        deciding to build the connection and it becoming available we need some way of
+        ensuring that a lot of threads don't all decide to build a connection at once.
+        (We could solve this in a smarter way - and indeed we will one day)</TD>
+    <TD>Any number</TD>
+    <TD>28800000</TD>
+  </TR>
+
   <TR ALIGN="center" VALIGN="middle">
 
     <TD COLSPAN="4" class="subsection"><A NAME="Logging">Logging</A></TD>

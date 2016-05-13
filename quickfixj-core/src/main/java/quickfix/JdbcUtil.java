@@ -67,9 +67,9 @@ class JdbcUtil {
                     .isSetting(JdbcSetting.SETTING_JDBC_MAX_ACTIVE_TIME) ?
                     settings.getLong(sessionID, JdbcSetting.SETTING_JDBC_MAX_ACTIVE_TIME) :
                     5000;
-            long maxConnLifetime = settings
+            int maxConnLifetime = settings
                     .isSetting(JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) ?
-                    settings.getLong(sessionID, JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) :
+                    settings.getInt(sessionID, JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) :
                     28800000;
 
             return getDataSource(jdbcDriver, connectionURL, user, password, true, maxConnCount,
@@ -87,7 +87,7 @@ class JdbcUtil {
      */
     static synchronized DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password,
                                                  boolean cache, int maxConnCount, int simultaneousBuildThrottle,
-                                                 long maxActiveTime, long maxConnLifetime) {
+                                                 long maxActiveTime, int maxConnLifetime) {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
         ProxoolDataSource ds = cache ? dataSources.get(key) : null;
 
@@ -104,7 +104,7 @@ class JdbcUtil {
             ds.setPassword(password);
 
             ds.setMaximumActiveTime(maxActiveTime);
-            ds.setMaximumConnectionLifetime(maxConnCount);
+            ds.setMaximumConnectionLifetime(maxConnLifetime);
             ds.setMaximumConnectionCount(maxConnCount);
             ds.setSimultaneousBuildThrottle(simultaneousBuildThrottle);
 
