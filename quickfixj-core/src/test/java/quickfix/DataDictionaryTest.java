@@ -70,7 +70,7 @@ public class DataDictionaryTest {
 
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
         assertEquals("wrong value description", "BUY", dd.getValueName(4, "B"));
-        assertEquals("wrong value type", FieldType.String, dd.getFieldTypeEnum(1));
+        assertEquals("wrong value type", FieldType.STRING, dd.getFieldType(1));
         assertEquals("wrong version", FixVersions.BEGINSTRING_FIX44, dd.getVersion());
         assertFalse("unexpected field values existence", dd.hasFieldValue(1));
         assertTrue("unexpected field values nonexistence", dd.hasFieldValue(4));

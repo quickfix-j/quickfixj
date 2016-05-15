@@ -257,8 +257,8 @@ public class FieldTest {
     @Test
     public void testMultipleStringValue() throws Exception {
 
-        assertEquals(FieldType.MultipleStringValue, FieldType.fromName("notused", "MULTIPLESTRINGVALUE"));
-        assertEquals(FieldType.MultipleValueString, FieldType.fromName("notused", "MULTIPLEVALUESTRING"));
+        assertEquals(FieldType.MULTIPLESTRINGVALUE, FieldType.fromName("notused", "MULTIPLESTRINGVALUE"));
+        assertEquals(FieldType.MULTIPLEVALUESTRING, FieldType.fromName("notused", "MULTIPLEVALUESTRING"));
 
         MarketDataIncrementalRefresh md = new MarketDataIncrementalRefresh();
         MarketDataIncrementalRefresh.NoMDEntries value = new MarketDataIncrementalRefresh.NoMDEntries();

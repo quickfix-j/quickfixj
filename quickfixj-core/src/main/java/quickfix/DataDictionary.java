@@ -188,7 +188,7 @@ public class DataDictionary {
      * @param field the tag
      * @return the field type
      */
-    public FieldType getFieldTypeEnum(int field) {
+    public FieldType getFieldType(int field) {
         return fieldTypes.get(field);
     }
 
@@ -289,17 +289,6 @@ public class DataDictionary {
 
     private void addFieldType(int field, FieldType fieldType) {
         fieldTypes.put(field, fieldType);
-    }
-
-    /**
-     * Get the field type for a field.
-     *
-     * @param field a tag
-     * @return the field type
-     * @see #getFieldTypeEnum
-     */
-    public int getFieldType(int field) {
-        return getFieldTypeEnum(field).getOrdinal();
     }
 
     /**
@@ -450,12 +439,12 @@ public class DataDictionary {
      * @return true if field is a raw data field, false otherwise
      */
     public boolean isDataField(int field) {
-        return fieldTypes.get(field) == FieldType.Data;
+        return fieldTypes.get(field) == FieldType.DATA;
     }
 
     private boolean isMultipleValueStringField(int field) {
         final FieldType fieldType = fieldTypes.get(field);
-        return fieldType == FieldType.MultipleValueString || fieldType == FieldType.MultipleStringValue;
+        return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE;
     }
 
     /**
@@ -707,62 +696,55 @@ public class DataDictionary {
     }
 
     private void checkValidFormat(StringField field) throws IncorrectDataFormat {
+        FieldType fieldType = getFieldType(field.getTag());
+        if (fieldType == null) {
+            return;
+        }
         try {
-            final FieldType fieldType = getFieldTypeEnum(field.getTag());
-            if (fieldType == FieldType.String) {
-                // String
-            } else if (fieldType == FieldType.Char) {
-                if (beginString.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
-                    CharConverter.convert(field.getValue());
-                } else {
-                    // String, for older FIX versions
-                }
-            } else if (fieldType == FieldType.Price) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Int) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Amt) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Qty) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Qty) {
-                // String
-            } else if (fieldType == FieldType.MultipleValueString) {
-                // String
-            } else if (fieldType == FieldType.MultipleStringValue) {
-                // String
-            } else if (fieldType == FieldType.Exchange) {
-                // String
-            } else if (fieldType == FieldType.Boolean) {
-                BooleanConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.LocalMktDate) {
-                // String
-            } else if (fieldType == FieldType.Data) {
-                // String
-            } else if (fieldType == FieldType.Float) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.PriceOffset) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.MonthYear) {
-                // String
-            } else if (fieldType == FieldType.DayOfMonth) {
-                // String
-            } else if (fieldType == FieldType.UtcDate) {
-                UtcDateOnlyConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.UtcTimeOnly) {
-                UtcTimeOnlyConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.UtcTimeStamp || fieldType == FieldType.Time) {
-                UtcTimestampConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.NumInGroup) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Percentage) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.SeqNum) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Length) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Country) {
-                // String
+            switch (fieldType) {
+                case STRING:
+                case MULTIPLEVALUESTRING:
+                case MULTIPLESTRINGVALUE:
+                case EXCHANGE:
+                case LOCALMKTDATE:
+                case DATA:
+                case MONTHYEAR:
+                case DAYOFMONTH:
+                case COUNTRY:
+                    // String
+                    break;
+                case INT:
+                case NUMINGROUP:
+                case SEQNUM:
+                case LENGTH:
+                    IntConverter.convert(field.getValue());
+                    break;
+                case PRICE:
+                case AMT:
+                case QTY:
+                case FLOAT:
+                case PRICEOFFSET:
+                case PERCENTAGE:
+                    DoubleConverter.convert(field.getValue());
+                    break;
+                case BOOLEAN:
+                    BooleanConverter.convert(field.getValue());
+                    break;
+                case UTCDATE:
+                    UtcDateOnlyConverter.convert(field.getValue());
+                    break;
+                case UTCTIMEONLY:
+                    UtcTimeOnlyConverter.convert(field.getValue());
+                    break;
+                case UTCTIMESTAMP:
+                case TIME:
+                    UtcTimestampConverter.convert(field.getValue());
+                    break;
+                case CHAR:
+                    if (beginString.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
+                        CharConverter.convert(field.getValue());
+                    } // otherwise it's a String, for older FIX versions
+                    break;
             }
         } catch (final FieldConvertError e) {
             throw new IncorrectDataFormat(field.getTag(), field.getValue());
