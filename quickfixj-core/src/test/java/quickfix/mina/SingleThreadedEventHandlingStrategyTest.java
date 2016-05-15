@@ -259,7 +259,7 @@ public class SingleThreadedEventHandlingStrategyTest {
         acceptorProperties.put("ConnectionType", "acceptor");
         acceptorProperties.put("HeartBtInt", "5");
         acceptorProperties.put("SocketAcceptHost", "localhost");
-        acceptorProperties.put("SocketAcceptPort", String.valueOf(9999 + i) );
+        acceptorProperties.put("SocketAcceptPort", Integer.toString(9999 + i));
         acceptorProperties.put("ReconnectInterval", "2");
         acceptorProperties.put("StartTime", "00:00:00");
         acceptorProperties.put("EndTime", "00:00:00");
@@ -284,7 +284,7 @@ public class SingleThreadedEventHandlingStrategyTest {
         acceptorProperties.put("ConnectionType", "initiator");
         acceptorProperties.put("HeartBtInt", "5");
         acceptorProperties.put("SocketConnectHost", "localhost");
-        acceptorProperties.put("SocketConnectPort", String.valueOf(9999 + i) );
+        acceptorProperties.put("SocketConnectPort", Integer.toString(9999 + i));
         acceptorProperties.put("ReconnectInterval", "2");
         acceptorProperties.put("StartTime", "00:00:00");
         acceptorProperties.put("EndTime", "00:00:00");

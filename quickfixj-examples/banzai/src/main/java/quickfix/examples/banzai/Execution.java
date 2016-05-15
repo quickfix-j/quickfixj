@@ -29,7 +29,7 @@ public class Execution {
     private static int nextID = 1;
 
     public Execution() {
-        ID = Integer.valueOf(nextID++).toString();
+        ID = Integer.toString(nextID++);
     }
 
     public Execution(String ID) {

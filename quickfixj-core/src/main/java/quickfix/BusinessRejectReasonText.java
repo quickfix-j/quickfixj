@@ -50,7 +50,7 @@ public class BusinessRejectReasonText extends BusinessRejectReason {
      * @return the description or null if there isn't a description for that reason
      */
     public static String getMessage(int rejectReason) {
-        return rejectReasonText.get(Integer.valueOf(rejectReason));
+        return rejectReasonText.get(rejectReason);
     }
 
 }

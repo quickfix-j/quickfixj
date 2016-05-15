@@ -669,7 +669,7 @@ public class DataDictionary {
 
     // / Check if field tag number is defined in spec.
     void checkValidTagNumber(Field<?> field) {
-        if (!fields.contains(Integer.valueOf(field.getTag()))) {
+        if (!fields.contains(field.getTag())) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
         }
     }
@@ -687,7 +687,7 @@ public class DataDictionary {
         }
         
         if (fail) {
-            if (fields.contains(Integer.valueOf(field.getTag()))) {
+            if (fields.contains(field.getTag())) {
                 throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getField());
             } else {
                 throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());

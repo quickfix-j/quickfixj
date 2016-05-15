@@ -62,7 +62,7 @@ public class MessageCodeGenerator {
     private static final long SERIAL_UID = 20050617;
 
     // The String representation of the UID
-    private static final String SERIAL_UID_STR = String.valueOf(SERIAL_UID);
+    private static final String SERIAL_UID_STR = Long.toString(SERIAL_UID);
 
     // The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";

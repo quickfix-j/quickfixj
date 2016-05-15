@@ -69,7 +69,7 @@ public class ExecutionTableModel extends AbstractTableModel {
     }
 
     public Execution getExecution(int row) {
-        return rowToExecution.get(Integer.valueOf(row));
+        return rowToExecution.get(row);
     }
 
     public void setValueAt(Object value, int rowIndex, int columnIndex) { }
@@ -91,7 +91,7 @@ public class ExecutionTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Execution execution = rowToExecution.get(Integer.valueOf(rowIndex));
+        Execution execution = rowToExecution.get(rowIndex);
 
         switch (columnIndex) {
         case SYMBOL:
