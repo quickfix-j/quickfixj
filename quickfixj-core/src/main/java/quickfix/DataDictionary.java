@@ -272,8 +272,7 @@ public class DataDictionary {
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
-        Set<Integer> fields = messageFields.get(HEADER_ID);
-        return fields != null && fields.contains(field);
+        return isMsgField(HEADER_ID, field);
     }
 
     /**
@@ -283,8 +282,7 @@ public class DataDictionary {
      * @return true if field is a trailer field, false otherwise.
      */
     public boolean isTrailerField(int field) {
-        Set<Integer> fields = messageFields.get(TRAILER_ID);
-        return fields != null && fields.contains(field);
+        return isMsgField(TRAILER_ID, field);
     }
 
     private void addFieldType(int field, FieldType fieldType) {
@@ -542,7 +540,7 @@ public class DataDictionary {
     }
 
     @SuppressWarnings("unchecked")
-    private <K, V> void copyMap(Map<K, V> lhs, Map<K, V> rhs) {
+    private static <K, V> void copyMap(Map<K, V> lhs, Map<K, V> rhs) {
         lhs.clear();
         for (Map.Entry<K, V> entry : rhs.entrySet()) {
             Object value = entry.getValue();
@@ -562,7 +560,7 @@ public class DataDictionary {
         }
     }
 
-    private <V> void copyCollection(Collection<V> lhs, Collection<V> rhs) {
+    private static <V> void copyCollection(Collection<V> lhs, Collection<V> rhs) {
         lhs.clear();
         lhs.addAll(rhs);
     }
@@ -752,13 +750,8 @@ public class DataDictionary {
     }
 
     private void checkValue(StringField field) throws IncorrectTagValue {
-        final int tag = field.getField();
-        if (!hasFieldValue(tag)) {
-            return;
-        }
-
-        final String value = field.getValue();
-        if (!isFieldValue(tag, value)) {
+        int tag = field.getField();
+        if (hasFieldValue(tag) && !isFieldValue(tag, field.getValue())) {
             throw new IncorrectTagValue(tag);
         }
     }
@@ -1056,11 +1049,9 @@ public class DataDictionary {
     public int[] getOrderedFields() {
         if (orderedFieldsArray == null) {
             orderedFieldsArray = new int[fields.size()];
-
-            final Iterator<Integer> fieldItr = fields.iterator();
             int i = 0;
-            while (fieldItr.hasNext()) {
-                orderedFieldsArray[i++] = fieldItr.next();
+            for (Integer field : fields) {
+                orderedFieldsArray[i++] = field;
             }
         }
 
@@ -1215,14 +1206,6 @@ public class DataDictionary {
             intValue = value;
             stringValue = value2;
         }
-
-        //public int getIntValue() {
-        //    return intValue;
-        //}
-
-        //public String getStringValue() {
-        //    return stringValue;
-        //}
 
         @Override
         public boolean equals(Object other) {
