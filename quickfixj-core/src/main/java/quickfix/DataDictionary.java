@@ -550,7 +550,7 @@ public class DataDictionary {
                     copy = (Collection<V>) value.getClass().newInstance();
                 } catch (final RuntimeException e) {
                     throw e;
-                } catch (final java.lang.Exception e) {
+                } catch (final Exception e) {
                     throw new RuntimeException(e);
                 }
                 copyCollection(copy, (Collection<V>) value);
@@ -817,12 +817,12 @@ public class DataDictionary {
         final InputStream inputStream = FileUtil.open(getClass(), location, URL, FILESYSTEM,
                 CONTEXT_RESOURCE, CLASSLOADER_RESOURCE);
         if (inputStream == null) {
-            throw new DataDictionary.Exception("Could not find data dictionary: " + location);
+            throw new ConfigError("Could not find data dictionary: " + location);
         }
 
         try {
             load(inputStream);
-        } catch (final java.lang.Exception e) {
+        } catch (final Exception e) {
             throw new ConfigError(location + ": " + e.getMessage(), e);
         } finally {
             try {
@@ -1181,20 +1181,6 @@ public class DataDictionary {
             return namedItem != null ? namedItem.getNodeValue() : null;
         }
         return defaultValue;
-    }
-
-    /**
-     * Data dictionary-related exception.
-     */
-    public static class Exception extends RuntimeException {
-
-        public Exception(Throwable cause) {
-            super(cause);
-        }
-
-        public Exception(String message) {
-            super(message);
-        }
     }
 
     private static final class IntStringPair {
