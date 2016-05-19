@@ -56,9 +56,10 @@ import quickfix.fix44.Logon;
  */
 public class TimerTestServer extends MessageCracker implements Application, Runnable {
     SocketAcceptor acceptor;
-    private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
+    private Thread serverThread;
+    private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private class DelayedTestRequest extends TimerTask {
@@ -99,6 +100,16 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
     public void onLogout(SessionID sessionId) {
         log.info("logout");
+        shutdownLatch.countDown();
+    }
+
+    public void start() {
+        serverThread = new Thread(this, "TimerTestServer");
+        serverThread.setDaemon(true);
+        serverThread.start();
+    }
+
+    public void stop() {
         shutdownLatch.countDown();
     }
 

@@ -48,9 +48,10 @@ import quickfix.UnsupportedMessageType;
 public class ResynchTestServer extends MessageCracker implements Application, Runnable {
 
     SocketAcceptor acceptor;
-    private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final Logger log = LoggerFactory.getLogger(ResynchTestServer.class);
     private final SessionSettings settings = new SessionSettings();
+    private Thread serverThread;
+    private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private boolean unsynchMode = false;
@@ -97,6 +98,16 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
         shutdownLatch.countDown();
     }
 
+    public void start() {
+        serverThread = new Thread(this, "ResynchTestServer");
+        serverThread.setDaemon(true);
+        serverThread.start();
+    }
+
+    public void stop() {
+        shutdownLatch.countDown();
+    }
+
     public void run() {
         try {
             HashMap<Object, Object> defaults = new HashMap<Object, Object>();
@@ -131,12 +142,12 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
                 } catch (InterruptedException e) {
                 }
 
-                log.info("TimerTestServer shutting down.");
+                log.info("ResynchTestServer shutting down.");
             } finally {
                 acceptor.stop();
             }
         } catch (Throwable e) {
-            log.error("Error in TimerTestServer server: ", e);
+            log.error("Error in ResynchTestServer server: ", e);
         }
     }
 
