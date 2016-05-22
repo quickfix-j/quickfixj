@@ -70,24 +70,6 @@ public class FIXMessageDecoder implements MessageDecoder {
     private int position;
     private final String charsetEncoding;
 
-    static class BufPos {
-        final int _offset;
-        final int _length;
-
-        /**
-         * @param offset
-         * @param length
-         */
-        public BufPos(int offset, int length) {
-            _offset = offset;
-            _length = length;
-        }
-
-        public String toString() {
-            return _offset + "," + _length;
-        }
-    }
-
     private void resetState() {
         state = SEEKING_HEADER;
         bodyLength = 0;
@@ -106,14 +88,13 @@ public class FIXMessageDecoder implements MessageDecoder {
         charsetEncoding = CharsetSupport.validate(charset);
         HEADER_PATTERN = getBytes("8=FIXt.?.?" + delimiter + "9=");
         CHECKSUM_PATTERN = getBytes("10=???" + delimiter);
-        LOGON_PATTERN = getBytes("\00135=A" + delimiter);
+        LOGON_PATTERN = getBytes(delimiter + "35=A" + delimiter);
         resetState();
     }
 
     public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
-        BufPos bufPos = indexOf(in, in.position(), HEADER_PATTERN);
-        int headerOffset = bufPos._offset;
-        return headerOffset != -1 ? MessageDecoderResult.OK :
+        boolean hasHeader = indexOf(in, in.position(), HEADER_PATTERN) != -1L;
+        return hasHeader ? MessageDecoderResult.OK :
             (in.remaining() > MAX_UNDECODED_DATA_LENGTH ? MessageDecoderResult.NOT_OK : MessageDecoderResult.NEED_DATA);
     }
 
@@ -148,18 +129,19 @@ public class FIXMessageDecoder implements MessageDecoder {
             while (in.hasRemaining() && !messageFound) {
                 if (state == SEEKING_HEADER) {
 
-                    BufPos bufPos = indexOf(in, position, HEADER_PATTERN);
-                    int headerOffset = bufPos._offset;
-                    if (headerOffset == -1) {
+                    long headerPos = indexOf(in, position, HEADER_PATTERN);
+                    if (headerPos == -1L) {
                         break;
                     }
+                    int headerOffset = (int)headerPos;
+                    int headerLength = (int)(headerPos >>> 32);
                     in.position(headerOffset);
 
                     if (log.isDebugEnabled()) {
                         log.debug("detected header: " + getBufferDebugInfo(in));
                     }
 
-                    position = headerOffset + bufPos._length;
+                    position = headerOffset + headerLength;
                     state = PARSING_LENGTH;
                 }
 
@@ -201,7 +183,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                 }
 
                 if (state == PARSING_CHECKSUM) {
-                    if (startsWith(in, position, CHECKSUM_PATTERN) > 0) {
+                    if (matches(in, position, CHECKSUM_PATTERN) > 0) {
                         // we are trying to parse the checksum but should
                         // check if the CHECKSUM_PATTERN is preceded by SOH
                         // or if the pattern just occurs inside of another field
@@ -268,12 +250,12 @@ public class FIXMessageDecoder implements MessageDecoder {
         return position < in.limit();
     }
 
-    private static int minMaskLength(byte[] data) {
+    private static int minPatternLength(byte[] pattern) {
         int len = 0;
-        for (byte aChar : data) {
-            if (Character.isLetter(aChar) && Character.isLowerCase(aChar))
-                continue;
-            ++len;
+        for (byte b : pattern) {
+            if (b < 'a' || b > 'z') { // if not optional character (lowercase)
+                len++;
+            }
         }
         return len;
     }
@@ -306,53 +288,65 @@ public class FIXMessageDecoder implements MessageDecoder {
     }
 
     private boolean isLogon(IoBuffer buffer) {
-        BufPos bufPos = indexOf(buffer, buffer.position(), LOGON_PATTERN);
-        return bufPos._offset != -1;
-    }
-
-    private static BufPos indexOf(IoBuffer buffer, int position, byte[] data) {
-        for (int offset = position, limit = buffer.limit() - minMaskLength(data) + 1; offset < limit; offset++) {
-            int length;
-            if (buffer.get(offset) == data[0] && (length = startsWith(buffer, offset, data)) > 0) {
-                return new BufPos(offset, length);
-            }
-        }
-        return new BufPos(-1, 0);
+        return indexOf(buffer, buffer.position(), LOGON_PATTERN) != -1L;
     }
 
     /**
-     * Checks to see if the byte_buffer[buffer_offset] starts with data[]. The
-     * character ? is a one byte wildcard, lowercase letters are optional.
+     * Searches for the given pattern within a buffer,
+     * starting at the given buffer position.
      *
-     * @param buffer
-     * @param bufferOffset
-     * @param data
-     * @return
+     * @param buffer the buffer to search within
+     * @param position the buffer position to start searching at
+     * @param pattern the pattern to search for
+     * @return a long value whose lower 32 bits contain the index of the
+     *         found pattern, and upper 32 bits contain the found pattern length;
+     *         if the pattern is not found at all, returns -1L
      */
-    private static int startsWith(IoBuffer buffer, int bufferOffset, byte[] data) {
-        if (bufferOffset + minMaskLength(data) > buffer.limit()) {
+    private static long indexOf(IoBuffer buffer, int position, byte[] pattern) {
+        int length;
+        byte first = pattern[0];
+        for (int limit = buffer.limit() - minPatternLength(pattern) + 1; position < limit; position++) {
+            if (buffer.get(position) == first && (length = matches(buffer, position, pattern)) > 0) {
+                return (long)length << 32 | position;
+            }
+        }
+        return -1L;
+    }
+
+    /**
+     * Checks if the buffer at the given offset matches the given pattern.
+     * The character '?' is a one byte wildcard, and lowercase letters are optional.
+     *
+     * @param buffer the buffer to check
+     * @param bufferOffset the buffer offset at which to check
+     * @param pattern the pattern to try matching
+     * @return the length of the matched pattern, or -1 if there is no match
+     */
+    private static int matches(IoBuffer buffer, int bufferOffset, byte[] pattern) {
+        if (bufferOffset + minPatternLength(pattern) > buffer.limit()) {
             return -1;
         }
         final int initOffset = bufferOffset;
-        int dataOffset = 0;
-        for (int bufferLimit = buffer.limit(); dataOffset < data.length
-                && bufferOffset < bufferLimit; dataOffset++, bufferOffset++) {
-            if (buffer.get(bufferOffset) != data[dataOffset] && data[dataOffset] != '?') {
-                // Now check for optional characters, at this point we know we didn't
-                // match, so we can just check to see if we failed a match on an optional character,
-                // and if so then just rewind the buffer one byte and keep going.
-                if (Character.toUpperCase(data[dataOffset]) == buffer.get(bufferOffset))
-                    continue;
-                // Didn't match the optional character, so act like it was not included and keep going
-                if (Character.isLetter(data[dataOffset]) && Character.isLowerCase(data[dataOffset])) {
-                    --bufferOffset;
-                    continue;
-                }
-                return -1;
+        int patternOffset = 0;
+        for (int bufferLimit = buffer.limit(); patternOffset < pattern.length
+                && bufferOffset < bufferLimit; patternOffset++, bufferOffset++) {
+            byte b = pattern[patternOffset];
+            // check exact character match or wildcard match
+            if (buffer.get(bufferOffset) == b || b == '?')
+                continue;
+            // check optional character match
+            if (b >= 'a' && b <= 'z') { // lowercase is optional
+                // at this point we know it's not an exact match, so we only need to check the
+                // uppercase character. If there's a match we go on as usual, and if not we
+                // ignore the optional character by rewinding the buffer offset
+                if (b - 'a' + 'A' != buffer.get(bufferOffset)) // no uppercase match
+                    bufferOffset--;
+                continue;
             }
+            return -1; // no match
         }
-        if (dataOffset != data.length) {
-            // when minMaskLength(data) != data.length we might run out of buffer before we run out of data
+        if (patternOffset != pattern.length) {
+            // when minPatternLength(pattern) != pattern.length we might run out of buffer before we run out of pattern
             return -1;
         }
         return bufferOffset - initOffset;
