@@ -46,14 +46,15 @@ import quickfix.mina.CriticalProtocolCodecException;
  * message string is then passed to MINA IO handlers for further processing.
  */
 public class FIXMessageDecoder implements MessageDecoder {
+
     private static final char SOH = '\001';
     private static final String FIELD_DELIMITER = String.valueOf(SOH);
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final byte[] HEADER_PATTERN;
-    private final byte[] CHECKSUM_PATTERN;
-    private final byte[] LOGON_PATTERN;
+    private final PatternMatcher HEADER_PATTERN;
+    private final PatternMatcher CHECKSUM_PATTERN;
+    private final PatternMatcher LOGON_PATTERN;
 
     // Parsing states
     private static final int SEEKING_HEADER = 1;
@@ -86,14 +87,14 @@ public class FIXMessageDecoder implements MessageDecoder {
 
     public FIXMessageDecoder(String charset, String delimiter) throws UnsupportedEncodingException {
         charsetEncoding = CharsetSupport.validate(charset);
-        HEADER_PATTERN = getBytes("8=FIXt.?.?" + delimiter + "9=");
-        CHECKSUM_PATTERN = getBytes("10=???" + delimiter);
-        LOGON_PATTERN = getBytes(delimiter + "35=A" + delimiter);
+        HEADER_PATTERN = new PatternMatcher("8=FIXt.?.?" + delimiter + "9=");
+        CHECKSUM_PATTERN = new PatternMatcher("10=???" + delimiter);
+        LOGON_PATTERN = new PatternMatcher(delimiter + "35=A" + delimiter);
         resetState();
     }
 
     public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
-        boolean hasHeader = indexOf(in, in.position(), HEADER_PATTERN) != -1L;
+        boolean hasHeader = HEADER_PATTERN.find(in, in.position()) != -1L;
         return hasHeader ? MessageDecoderResult.OK :
             (in.remaining() > MAX_UNDECODED_DATA_LENGTH ? MessageDecoderResult.NOT_OK : MessageDecoderResult.NEED_DATA);
     }
@@ -129,7 +130,7 @@ public class FIXMessageDecoder implements MessageDecoder {
             while (in.hasRemaining() && !messageFound) {
                 if (state == SEEKING_HEADER) {
 
-                    long headerPos = indexOf(in, position, HEADER_PATTERN);
+                    long headerPos = HEADER_PATTERN.find(in, position);
                     if (headerPos == -1L) {
                         break;
                     }
@@ -183,7 +184,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                 }
 
                 if (state == PARSING_CHECKSUM) {
-                    if (matches(in, position, CHECKSUM_PATTERN) > 0) {
+                    if (CHECKSUM_PATTERN.match(in, position) > 0) {
                         // we are trying to parse the checksum but should
                         // check if the CHECKSUM_PATTERN is preceded by SOH
                         // or if the pattern just occurs inside of another field
@@ -195,9 +196,9 @@ public class FIXMessageDecoder implements MessageDecoder {
                         if (log.isDebugEnabled()) {
                             log.debug("found checksum: " + getBufferDebugInfo(in));
                         }
-                        position += CHECKSUM_PATTERN.length;
+                        position += CHECKSUM_PATTERN.getMinLength();
                     } else {
-                        if (position + CHECKSUM_PATTERN.length <= in.limit()) {
+                        if (position + CHECKSUM_PATTERN.getMinLength() <= in.limit()) {
                             // FEATURE allow configurable recovery position
                             // int recoveryPosition = in.position() + 1;
                             // Following recovery position is compatible with QuickFIX C++
@@ -250,16 +251,6 @@ public class FIXMessageDecoder implements MessageDecoder {
         return position < in.limit();
     }
 
-    private static int minPatternLength(byte[] pattern) {
-        int len = 0;
-        for (byte b : pattern) {
-            if (b < 'a' || b > 'z') { // if not optional character (lowercase)
-                len++;
-            }
-        }
-        return len;
-    }
-
     private String getMessageString(IoBuffer buffer) throws UnsupportedEncodingException {
         byte[] data = new byte[position - buffer.position()];
         buffer.get(data);
@@ -288,68 +279,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     }
 
     private boolean isLogon(IoBuffer buffer) {
-        return indexOf(buffer, buffer.position(), LOGON_PATTERN) != -1L;
-    }
-
-    /**
-     * Searches for the given pattern within a buffer,
-     * starting at the given buffer position.
-     *
-     * @param buffer the buffer to search within
-     * @param position the buffer position to start searching at
-     * @param pattern the pattern to search for
-     * @return a long value whose lower 32 bits contain the index of the
-     *         found pattern, and upper 32 bits contain the found pattern length;
-     *         if the pattern is not found at all, returns -1L
-     */
-    private static long indexOf(IoBuffer buffer, int position, byte[] pattern) {
-        int length;
-        byte first = pattern[0];
-        for (int limit = buffer.limit() - minPatternLength(pattern) + 1; position < limit; position++) {
-            if (buffer.get(position) == first && (length = matches(buffer, position, pattern)) > 0) {
-                return (long)length << 32 | position;
-            }
-        }
-        return -1L;
-    }
-
-    /**
-     * Checks if the buffer at the given offset matches the given pattern.
-     * The character '?' is a one byte wildcard, and lowercase letters are optional.
-     *
-     * @param buffer the buffer to check
-     * @param bufferOffset the buffer offset at which to check
-     * @param pattern the pattern to try matching
-     * @return the length of the matched pattern, or -1 if there is no match
-     */
-    private static int matches(IoBuffer buffer, int bufferOffset, byte[] pattern) {
-        if (bufferOffset + minPatternLength(pattern) > buffer.limit()) {
-            return -1;
-        }
-        final int initOffset = bufferOffset;
-        int patternOffset = 0;
-        for (int bufferLimit = buffer.limit(); patternOffset < pattern.length
-                && bufferOffset < bufferLimit; patternOffset++, bufferOffset++) {
-            byte b = pattern[patternOffset];
-            // check exact character match or wildcard match
-            if (buffer.get(bufferOffset) == b || b == '?')
-                continue;
-            // check optional character match
-            if (b >= 'a' && b <= 'z') { // lowercase is optional
-                // at this point we know it's not an exact match, so we only need to check the
-                // uppercase character. If there's a match we go on as usual, and if not we
-                // ignore the optional character by rewinding the buffer offset
-                if (b - 'a' + 'A' != buffer.get(bufferOffset)) // no uppercase match
-                    bufferOffset--;
-                continue;
-            }
-            return -1; // no match
-        }
-        if (patternOffset != pattern.length) {
-            // when minPatternLength(pattern) != pattern.length we might run out of buffer before we run out of pattern
-            return -1;
-        }
-        return bufferOffset - initOffset;
+        return LOGON_PATTERN.find(buffer, buffer.position()) != -1L;
     }
 
     public void finishDecode(IoSession arg0, ProtocolDecoderOutput arg1) throws Exception {
@@ -419,11 +349,4 @@ public class FIXMessageDecoder implements MessageDecoder {
         fileIn.close();
     }
 
-    private static byte[] getBytes(String s) {
-        try {
-            return s.getBytes(CharsetSupport.getDefaultCharset());
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
