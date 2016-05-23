@@ -48,7 +48,6 @@ import quickfix.mina.CriticalProtocolCodecException;
 public class FIXMessageDecoder implements MessageDecoder {
 
     private static final char SOH = '\001';
-    private static final String FIELD_DELIMITER = String.valueOf(SOH);
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -78,11 +77,11 @@ public class FIXMessageDecoder implements MessageDecoder {
     }
 
     public FIXMessageDecoder() throws UnsupportedEncodingException {
-        this(CharsetSupport.getCharset(), FIELD_DELIMITER);
+        this(CharsetSupport.getCharset());
     }
 
     public FIXMessageDecoder(String charset) throws UnsupportedEncodingException {
-        this(charset, FIELD_DELIMITER);
+        this(charset, String.valueOf(SOH));
     }
 
     public FIXMessageDecoder(String charset, String delimiter) throws UnsupportedEncodingException {
@@ -93,12 +92,14 @@ public class FIXMessageDecoder implements MessageDecoder {
         resetState();
     }
 
+    @Override
     public MessageDecoderResult decodable(IoSession session, IoBuffer in) {
         boolean hasHeader = HEADER_PATTERN.find(in, in.position()) != -1L;
         return hasHeader ? MessageDecoderResult.OK :
             (in.remaining() > MAX_UNDECODED_DATA_LENGTH ? MessageDecoderResult.NOT_OK : MessageDecoderResult.NEED_DATA);
     }
 
+    @Override
     public MessageDecoderResult decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out)
             throws ProtocolCodecException {
         int messageCount = 0;
@@ -148,9 +149,9 @@ public class FIXMessageDecoder implements MessageDecoder {
 
                 if (state == PARSING_LENGTH) {
                     byte ch = 0;
-                    while (hasRemaining(in)) {
-                        ch = get(in);
-                        if (!Character.isDigit((char) ch)) {
+                    while (position < in.limit()) { // while data remains
+                        ch = in.get(position++);
+                        if (ch < '0' || ch > '9') { // if not digit
                             break;
                         }
                         bodyLength = bodyLength * 10 + (ch - '0');
@@ -161,7 +162,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                             log.debug("body length = " + bodyLength + ": " + getBufferDebugInfo(in));
                         }
                     } else {
-                        if (hasRemaining(in)) {
+                        if (position < in.limit()) { // if data remains
                             String messageString = getMessageStringForError(in);
                             handleError(in, in.position() + 1, "Length format error in message (last character:" + ch + "): " + messageString,
                                     false);
@@ -173,7 +174,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                 }
 
                 if (state == READING_BODY) {
-                    if (remaining(in) < bodyLength) {
+                    if (in.limit() - position < bodyLength) { // if remaining data is less than body
                         break;
                     }
                     position += bodyLength;
@@ -223,9 +224,7 @@ public class FIXMessageDecoder implements MessageDecoder {
             }
             return messageFound;
         } catch (Throwable t) {
-            state = SEEKING_HEADER;
-            position = 0;
-            bodyLength = 0;
+            resetState();
             if (t instanceof ProtocolCodecException) {
                 throw (ProtocolCodecException) t;
             } else {
@@ -234,21 +233,9 @@ public class FIXMessageDecoder implements MessageDecoder {
         }
     }
 
-    private int remaining(IoBuffer in) {
-        return in.limit() - position;
-    }
-
     private String getBufferDebugInfo(IoBuffer in) {
         return "pos=" + in.position() + ",lim=" + in.limit() + ",rem=" + in.remaining()
                 + ",offset=" + position + ",state=" + state;
-    }
-
-    private byte get(IoBuffer in) {
-        return in.get(position++);
-    }
-
-    private boolean hasRemaining(IoBuffer in) {
-        return position < in.limit();
     }
 
     private String getMessageString(IoBuffer buffer) throws UnsupportedEncodingException {
@@ -282,7 +269,8 @@ public class FIXMessageDecoder implements MessageDecoder {
         return LOGON_PATTERN.find(buffer, buffer.position()) != -1L;
     }
 
-    public void finishDecode(IoSession arg0, ProtocolDecoderOutput arg1) throws Exception {
+    @Override
+    public void finishDecode(IoSession session, ProtocolDecoderOutput out) throws Exception {
         // empty
     }
 
@@ -309,6 +297,7 @@ public class FIXMessageDecoder implements MessageDecoder {
     public List<String> extractMessages(File file) throws IOException, ProtocolCodecException {
         final List<String> messages = new ArrayList<String>();
         extractMessages(file, new MessageListener() {
+            @Override
             public void onMessage(String message) {
                 messages.add(message);
             }
@@ -331,22 +320,23 @@ public class FIXMessageDecoder implements MessageDecoder {
             ProtocolCodecException {
         // Set up a read-only memory-mapped file
         RandomAccessFile fileIn = new RandomAccessFile(file, "r");
-        FileChannel readOnlyChannel = fileIn.getChannel();
-        MappedByteBuffer memoryMappedBuffer = readOnlyChannel.map(FileChannel.MapMode.READ_ONLY, 0,
-                (int) readOnlyChannel.size());
-
-        decode(null, IoBuffer.wrap(memoryMappedBuffer), new ProtocolDecoderOutput() {
-
-            public void write(Object message) {
-                listener.onMessage((String) message);
-            }
-
-            public void flush(IoFilter.NextFilter nextFilter, IoSession ioSession) {
-                // ignored
-            }
-        });
-        readOnlyChannel.close();
-        fileIn.close();
+        try {
+            FileChannel readOnlyChannel = fileIn.getChannel();
+            MappedByteBuffer memoryMappedBuffer = readOnlyChannel.map(FileChannel.MapMode.READ_ONLY, 0,
+                    (int) readOnlyChannel.size());
+            decode(null, IoBuffer.wrap(memoryMappedBuffer), new ProtocolDecoderOutput() {
+                @Override
+                public void write(Object message) {
+                    listener.onMessage((String) message);
+                }
+                @Override
+                public void flush(IoFilter.NextFilter nextFilter, IoSession ioSession) {
+                    // ignored
+                }
+            });
+        } finally {
+            fileIn.close();
+        }
     }
 
 }
