@@ -30,13 +30,12 @@ import quickfix.SessionNotFound;
  * This is testing the test framework rather than QFJ functionality per se
  */
 public class ResynchTest {
-    private Thread serverThread;
 
     ResynchTestServer server;
 
     @Test(timeout=30000)
     public void testAcceptorTimerSync() throws ConfigError, SessionNotFound, InterruptedException {
-        serverThread.start();
+        server.start();
         server.waitForInitialization();
         new ResynchTestClient().run();
     }
@@ -45,7 +44,7 @@ public class ResynchTest {
     public void testAcceptorTimerUnsyncWithValidatingSequenceNumbers() throws ConfigError, SessionNotFound, InterruptedException {
         server.setUnsynchMode(true);
         server.setValidateSequenceNumbers(true);
-        serverThread.start();
+        server.start();
         server.waitForInitialization();
         ResynchTestClient client = new ResynchTestClient();
         client.setUnsynchMode(true);
@@ -56,7 +55,7 @@ public class ResynchTest {
     public void testAcceptorTimerUnsyncWithoutValidatingSequenceNumbers() throws ConfigError, SessionNotFound, InterruptedException {
         server.setUnsynchMode(true);
         server.setValidateSequenceNumbers(false);
-        serverThread.start();
+        server.start();
         server.waitForInitialization();
         ResynchTestClient client = new ResynchTestClient();
         client.setUnsynchMode(false);
@@ -67,12 +66,10 @@ public class ResynchTest {
     @Before
     public void setUp() throws Exception {
         server = new ResynchTestServer();
-        serverThread = new Thread(server, "TimerTestServer");
-        serverThread.setDaemon(true);
     }
 
     @After
     public void tearDown() throws Exception {
-        serverThread.interrupt();
+        server.stop();
     }
 }
