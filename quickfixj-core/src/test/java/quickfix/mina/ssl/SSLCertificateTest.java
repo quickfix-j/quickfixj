@@ -56,7 +56,8 @@ import quickfix.mina.SessionConnector;
 
 public class SSLCertificateTest {
 
-    private static final String CIPHER_SUITES_ANON = "SSL_DH_anon_WITH_RC4_128_MD5";
+    // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
+    private static final String CIPHER_SUITES_ANON = "TLS_DH_anon_WITH_AES_128_CBC_SHA";
     private static final String CIPHER_SUITES_TLS = "TLS_RSA_WITH_AES_128_CBC_SHA";
 
     @Test
