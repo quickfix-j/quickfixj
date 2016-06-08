@@ -18,8 +18,8 @@ public class SSLContextFactoryTest {
     @Test
     public void testGetInstance() throws Exception {
         SSLConfig sslConfig = new SSLConfig();
-        sslConfig.setKeyStoreName(SSLSupport.QUICKFIXJ_CERT);
-        sslConfig.setKeyStorePassword(SSLSupport.QUICKFIXJ_PW.toCharArray());
+        sslConfig.setKeyStoreName(SSLSupport.QUICKFIXJ_KEY_STORE);
+        sslConfig.setKeyStorePassword(SSLSupport.QUICKFIXJ_KEY_STORE_PWD.toCharArray());
         sslConfig.setKeyStoreType("JKS");
         sslConfig.setKeyManagerFactoryAlgorithm("SunX509");
         sslConfig.setTrustStoreName("nonexistent");
