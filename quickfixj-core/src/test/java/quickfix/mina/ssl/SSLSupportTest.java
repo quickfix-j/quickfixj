@@ -21,8 +21,8 @@ public class SSLSupportTest {
 		Assert.assertNull(sslConfig.getEnabledCipherSuites());
 		Assert.assertNull(sslConfig.getEnabledProtocols());
 		Assert.assertEquals("SunX509", sslConfig.getKeyManagerFactoryAlgorithm());
-		Assert.assertEquals(SSLSupport.QUICKFIXJ_CERT, sslConfig.getKeyStoreName());
-		Assert.assertTrue(Arrays.equals(SSLSupport.QUICKFIXJ_PW.toCharArray(), sslConfig.getKeyStorePassword()));
+		Assert.assertEquals(SSLSupport.QUICKFIXJ_KEY_STORE, sslConfig.getKeyStoreName());
+		Assert.assertTrue(Arrays.equals(SSLSupport.QUICKFIXJ_KEY_STORE_PWD.toCharArray(), sslConfig.getKeyStorePassword()));
 		Assert.assertEquals("JKS", sslConfig.getKeyStoreType());
 		Assert.assertEquals("PKIX", sslConfig.getTrustManagerFactoryAlgorithm());
 		Assert.assertNull(sslConfig.getTrustStoreName());
