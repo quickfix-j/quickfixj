@@ -13,7 +13,7 @@
 	<name>QuickFIX/J Message classes for FIX 4.4</name>
 	<description>QuickFIX/J Message classes for FIX 4.4</description>
 	<url>http://www.quickfixj.org</url>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
@@ -40,17 +40,17 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-			<plugin>   
+
+			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
 						<phase>process-classes</phase>
-						<goals>    
+						<goals>
 							<goal>manifest</goal>
-						</goals>   
+						</goals>
 						<configuration>
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix44;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
@@ -61,7 +61,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -74,12 +74,12 @@
 						<include>quickfix/field/*.class</include>
 						<include>quickfix/fix44/**</include>
 					</includes>
-					<archive>  
+					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive> 
+					</archive>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -89,7 +89,7 @@
 						<include>FIX44.xml</include>
 						<include>FIX44.modified.xml</include>
 						<include>quickfix/fix44/**</include>
-						<include>quickfix/field/**</include>						
+						<include>quickfix/field/**</include>
 					</includes>
 				</configuration>
 			</plugin>

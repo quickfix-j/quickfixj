@@ -95,10 +95,10 @@
       <field name="EncodedTextLen" required="N"/>
       <field name="EncodedText" required="N"/>
     </message>
-    <!-- 
+    <!--
     <message name="XMLnonFIX" msgtype="n" msgcat="admin">
     </message>
-    --> 
+    -->
   </messages>
   <components>
     <component name="HopGrp">

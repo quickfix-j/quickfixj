@@ -23,27 +23,27 @@
  <xsl:param name="serialVersionUID"/>
  <xsl:param name="messagePackage"/>
  <xsl:param name="fieldPackage"/>
- 
+
 <xsl:template match="text()"/>
 
 
 <xsl:template match="/">/* Generated Java Source File */
 /*******************************************************************************
- * Copyright (c) quickfixengine.org  All rights reserved. 
- * 
- * This file is part of the QuickFIX FIX Engine 
- * 
- * This file may be distributed under the terms of the quickfixengine.org 
- * license as defined by quickfixengine.org and appearing in the file 
- * LICENSE included in the packaging of this file. 
- * 
- * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
- * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A 
- * PARTICULAR PURPOSE. 
- * 
- * See http://www.quickfixengine.org/LICENSE for licensing information. 
- * 
- * Contact ask@quickfixengine.org if any conditions of this licensing 
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
 package <xsl:value-of select="$messagePackage"/>;
@@ -132,11 +132,11 @@ public class Message extends quickfix.Message {
       <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>
     </xsl:if>
 </xsl:template>
-  
+
 <xsl:template mode="group-delimeter" match="group">
     <xsl:value-of select="@number"/>
 </xsl:template>
-  
+
 <xsl:template mode="group-delimeter" match="group//component">
     <xsl:if test="position() = 1">
       <xsl:variable name="name" select="@name"/>
@@ -144,9 +144,9 @@ public class Message extends quickfix.Message {
           mode="group-delimeter"/>
     </xsl:if>
 </xsl:template>
-  
+
   <!-- Find the component numbers and order -->
-  
+
 <xsl:template mode="component-field-numbers" match="field">
     <xsl:variable name="name" select="@name"/>
     <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
@@ -154,7 +154,7 @@ public class Message extends quickfix.Message {
 <xsl:template mode="component-field-numbers" match="group">
     <xsl:variable name="name" select="@name"/>
     <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
- 
+
 <xsl:template mode="component-field-numbers" match="component">
     <xsl:variable name="name" select="@name"/>
     <xsl:apply-templates select="/fix/components/component[@name=$name]/*"
@@ -164,7 +164,7 @@ public class Message extends quickfix.Message {
   <!-- ================================================================= -->
 
   <!-- Find the field numbers and order -->
-  
+
 <xsl:template mode="group-field-numbers" match="field|group">
     <xsl:variable name="name" select="@name"/>
     <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>, </xsl:template>
@@ -174,7 +174,7 @@ public class Message extends quickfix.Message {
     <xsl:apply-templates select="/fix/components/component[@name=$name]/*"
         mode="group-field-numbers"/>
 </xsl:template>
- 
+
   <!--
     *********************************************************************
     Field accessor method generation.
@@ -244,7 +244,7 @@ import quickfix.Group;</xsl:when>
       </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
-    
+
     <!-- TODO Remove this duplication from MessageSubclass.xsl -->
 <xsl:template name="extra-imports-component">
     <xsl:param name="components"/>

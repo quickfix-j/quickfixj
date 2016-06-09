@@ -4703,9 +4703,9 @@
     <field number="198" name="SecondaryOrderID" type="STRING"/>
     <field number="199" name="NoIOIQualifiers" type="NUMINGROUP"/>
     <field number="200" name="MaturityMonthYear" type="MONTHYEAR"/>
-    <field number="201" name="PutOrCall" type="INT"> 
-      <value enum="0" description="PUT"/> 
-      <value enum="1" description="CALL"/> 
+    <field number="201" name="PutOrCall" type="INT">
+      <value enum="0" description="PUT"/>
+      <value enum="1" description="CALL"/>
     </field>
     <field number="202" name="StrikePrice" type="PRICE"/>
     <field number="203" name="CoveredOrUncovered" type="INT">
@@ -5090,8 +5090,8 @@
     <field number="312" name="UnderlyingSymbolSfx" type="STRING"/>
     <field number="313" name="UnderlyingMaturityMonthYear" type="MONTHYEAR"/>
     <field number="315" name="UnderlyingPutOrCall" type="INT">
-      <value enum="0" description="PUT"/> 
-      <value enum="1" description="CALL"/> 
+      <value enum="0" description="PUT"/>
+      <value enum="1" description="CALL"/>
     </field>
     <field number="316" name="UnderlyingStrikePrice" type="PRICE"/>
     <field number="317" name="UnderlyingOptAttribute" type="CHAR"/>
@@ -5572,7 +5572,7 @@
     <field number="478" name="CashDistribCurr" type="CURRENCY"/>
     <field number="479" name="CommCurrency" type="CURRENCY"/>
     <field number="480" name="CancellationRights" type="CHAR">
-      <value enum="Y" description="YES"/> 
+      <value enum="Y" description="YES"/>
       <value enum="N" description="NO_EXECUTION_ONLY"/>
       <value enum="M" description="NO_WAIVER_AGREEMENT"/>
       <value enum="O" description="NO_INSTITUTIONAL"/>

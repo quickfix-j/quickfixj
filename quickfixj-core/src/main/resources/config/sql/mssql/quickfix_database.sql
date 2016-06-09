@@ -14,7 +14,7 @@ CREATE TABLE sessions (
   creation_time DATETIME NOT NULL,
   incoming_seqnum INT NOT NULL,
   outgoing_seqnum INT NOT NULL,
-  PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid, 
+  PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
   				targetcompid, targetsubid, targetlocid, session_qualifier)
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE messages (
   session_qualifier VARCHAR(64) NOT NULL,
   msgseqnum INT NOT NULL,
   message TEXT NOT NULL,
-  PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid, 
+  PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
   				targetcompid, targetsubid, targetlocid, session_qualifier,
   				msgseqnum)
 );

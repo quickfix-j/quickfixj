@@ -21,7 +21,7 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -40,17 +40,17 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-			<plugin>   
+
+			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
 						<phase>process-classes</phase>
-						<goals>    
+						<goals>
 							<goal>manifest</goal>
-						</goals>   
+						</goals>
 						<configuration>
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix50;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
@@ -61,7 +61,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -73,12 +73,12 @@
 						<include>quickfix/field/*.class</include>
 						<include>quickfix/fix50/**</include>
 					</includes>
-					<archive>  
+					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive> 
+					</archive>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>

@@ -10,7 +10,7 @@
 <h2>Customizing Message Code Generation</h2>
 <p>
 QuickFIX/J includes message libraries generated from standard FIX meta data. However,
-there are several ways to customize code generation in QuickFIX/J. 
+there are several ways to customize code generation in QuickFIX/J.
 </p>
 <p>
 The simplest customization is to just modify one or more data dictionaries
@@ -19,7 +19,7 @@ define new messages not included in the specification, change whether fields
 are required or optional, and so on.
 </p>
 <p>
-You can also do more advanced customization by using the 
+You can also do more advanced customization by using the
 <code>quickfix.codegen.MessageCodeGenerator</code> class. You can define
 code generation tasks (<code>quickfix.codegen.MessageCodeGenerator.Task</code>)
 that customize various aspects of the generation
@@ -63,7 +63,7 @@ process. The types of customizations currently supported include:
 </tr>
 <tr>
 	<td>orderedFields</td>
-	<td>Generates message classes where regular (nongroup) body fields are ordered as specified in 
+	<td>Generates message classes where regular (nongroup) body fields are ordered as specified in
 	the meta. Although the FIX specification does not require this ordering, some exchanges do
 	require it. There may be a slight (probably very slight) performance degradation when
 	using this option.</td>

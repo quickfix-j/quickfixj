@@ -9,9 +9,9 @@
 </div>
 <h2>Managing QFJ Applications with JMX</h2>
 <p>
-QuickFIX/J provides FIX engine monitoring and control using 
-standard Java JMX MBeans. See the 
-<a href="http://java.sun.com/javase/6/docs/technotes/guides/management/index.html">Java 
+QuickFIX/J provides FIX engine monitoring and control using
+standard Java JMX MBeans. See the
+<a href="http://java.sun.com/javase/6/docs/technotes/guides/management/index.html">Java
 6 Monitoring and Management</a> information for more details about JMX. Java 5 also
 includes built-in support for JMX. External libraries must be used with JDK 1.4
 applications. However, this is an option feature so no changes to existing
@@ -27,7 +27,7 @@ The following MBeans are available:
 </ul>
 
 <h3>Adding JMX support to a QFJ application</h3>
-MX support is an optional feature. It is enabled for each initiator or acceptor by 
+MX support is an optional feature. It is enabled for each initiator or acceptor by
 using the <code>JmxExporter</code> utility class.
 
 <pre class="code">acceptor = new SocketAcceptor
@@ -39,20 +39,20 @@ ObjectName connectorObjectName = jmxExporter.register(acceptor);</b>
 acceptor.start();
 
 // Later... if you need to unregister the connector MBean
-// This should only be needed if you destroying connectors in 
+// This should only be needed if you destroying connectors in
 // an application (not typical).
 <b>jmxExporter.getMBeanServer().unregisterMBean(connectorObjectName);</b>
 </pre>
 
-By default, the exporter will try to use the Java 5+ platform MBean server. You can also 
+By default, the exporter will try to use the Java 5+ platform MBean server. You can also
 create an exporter for an <code>MBeanServer</code> created by the application.
 
 <h3>Accessing JMX MBeans Remotely</h3>
 
-To access JMX MBeans from a separate process (for example, a management console) 
-a JMX connector must be used. The easiest way to expose the MBeans is to 
-use Java 6 and the JConsole application included in the Java 6 JDK. 
-Just start the JConsole application and you will be shown a dialog 
+To access JMX MBeans from a separate process (for example, a management console)
+a JMX connector must be used. The easiest way to expose the MBeans is to
+use Java 6 and the JConsole application included in the Java 6 JDK.
+Just start the JConsole application and you will be shown a dialog
 that allows you to connect to your QFJ JMX-enabled application.
 
 <p>
@@ -70,23 +70,23 @@ that allows you to connect to your QFJ JMX-enabled application.
 </p>
 
 <p>
-Use Java 5, you must add the <code>-Dcom.sun.management.jmxremote</code> system 
-property when running your QFJ application. This will enable a connector 
-included with Java 5 that will allow MBeans to be viewed in JConsole 
+Use Java 5, you must add the <code>-Dcom.sun.management.jmxremote</code> system
+property when running your QFJ application. This will enable a connector
+included with Java 5 that will allow MBeans to be viewed in JConsole
 (only on the local machine).
 </p>
 
 <p>
-Java 1.4 applications must use a separate library to expose the QFJ MBeans. 
-One very popular option is to use the 
-<a href="http://mx4j.sourceforge.net/">MX4J library</a>. 
-MX4J includes standard RMI connector and several other options for exposing 
+Java 1.4 applications must use a separate library to expose the QFJ MBeans.
+One very popular option is to use the
+<a href="http://mx4j.sourceforge.net/">MX4J library</a>.
+MX4J includes standard RMI connector and several other options for exposing
 MBeans (including HTTP). See the MX4J documentation for more details.
 </p>
 
 <h3>JMX Notifications</h3>
 <p>
-The QFJ JMX Sesson MBean provides notifications related to state change events. 
+The QFJ JMX Sesson MBean provides notifications related to state change events.
 The JMX notification type is <code>quickfix.Session</code>. The event names are shown
 in the following table.
 </p>
@@ -134,7 +134,7 @@ in the following table.
 
 <h3>Related JMX Management Tools</h3>
 
-JConsole is a convenient tools for accessing JMX MBeans, but there are also 
+JConsole is a convenient tools for accessing JMX MBeans, but there are also
 many other options. The following table lists a few examples.
 
 <p>
@@ -151,7 +151,7 @@ many other options. The following table lists a few examples.
 	</tr>
 	<tr>
 		<td><a href="http://mx4j.sourceforge.net/">MX4J</a></td>
-		<td>Open Source</td><td>Includes an HTTP adapter that 
+		<td>Open Source</td><td>Includes an HTTP adapter that
 		   can be embedded in your QFJ process and then accessed through a browser.</td>
 	</tr>
 	<tr>
@@ -160,7 +160,7 @@ many other options. The following table lists a few examples.
 	</tr>
 	<tr>
 		<td><a href="http://www.jmanage.org/">JManage</a></td>
-		<td>Open Source</td><td>A web-based management console with 
+		<td>Open Source</td><td>A web-based management console with
 		    alerting and monitoring capabilities. It also provides a command line interface. </td>
 	</tr>
 	<tr>

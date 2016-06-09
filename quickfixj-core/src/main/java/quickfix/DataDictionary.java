@@ -671,19 +671,19 @@ public class DataDictionary {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
         }
     }
-    
+
     // / Check if field tag is defined for message or group
     void checkField(Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
         boolean fail;
-        
+
         if (field.getField() < USER_DEFINED_TAG_MIN) {
-            fail = !messageField && !allowUnknownMessageFields; 
+            fail = !messageField && !allowUnknownMessageFields;
         } else {
-            fail = !messageField && checkUserDefinedFields; 
+            fail = !messageField && checkUserDefinedFields;
         }
-        
+
         if (fail) {
             if (fields.contains(field.getTag())) {
                 throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getField());

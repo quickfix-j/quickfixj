@@ -27,7 +27,7 @@
     <th>Description</th>
   </tr>
   <tr>
-    <td>The QFJ core JAR and message JARs. 
+    <td>The QFJ core JAR and message JARs.
     <ul>
     <li> quickfixj-core.jar
     <li> quickfixj-msg-fix40.jar
@@ -101,14 +101,14 @@
   </tr>
 </table>
 
-<p>	
+<p>
 By default, the XML processing in QuickFIX/J uses the XML parser included
 	with the JDK. In general other parsers can be used but it's possible you
 	will have problems. We've had users report that Xerces 2.6 does not work,
 	but that version 2.8 does. If you try other parsers, please let us know if it
 	works or not.
 </p>
-	
+
 <h2><a name="build"></a>Building QuickFIX/J</h2>
 
 <p><em>These instructions are for developers who don't want
@@ -118,11 +118,11 @@ By default, the XML processing in QuickFIX/J uses the XML parser included
     an IDE, Maven is usually included.
 
 <em>Building from source requires Java 7+.</em>
-    
+
 </p>
 <ol>
   <li>Check out the code from GitHub.
-      See the <a href="https://help.github.com/articles/which-remote-url-should-i-use/">instructions</a> at 
+      See the <a href="https://help.github.com/articles/which-remote-url-should-i-use/">instructions</a> at
       GitHub for more details on cloning the repository.</li>
   <li>Change directory to the top-level directory of the checked out code. You
     should see a pom.xml file.</li>
@@ -159,7 +159,7 @@ There are various command-line switches you can pass to ant to modify the produc
 <h3>IDE support:</h3>
 <p>There are
   Eclipse and Netbeans project definition files in the top-level directory of the checked out directory.
-   
+
    <em style="color:red">When the project is first created, it will not have the generated message classes
    and compile errors will occur!</em> Best is to compile once on the command line before importing
    the project into the IDE.
@@ -217,7 +217,7 @@ There are various command-line switches you can pass to ant to modify the produc
     &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
     &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
     &lt;version&gt;1.7.12&lt;/version&gt;
-&lt;/dependency&gt;</pre>           
+&lt;/dependency&gt;</pre>
     </li>
     <li>And add the Marketcetera Repository to your repository list:<br>
         <pre class="code">

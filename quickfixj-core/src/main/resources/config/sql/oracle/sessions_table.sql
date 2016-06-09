@@ -8,8 +8,8 @@ CREATE TABLE sessions (
   targetlocid VARCHAR2(64) NOT NULL,
   session_qualifier VARCHAR2(64) NOT NULL,
   creation_time TIMESTAMP NOT NULL,
-  incoming_seqnum INTEGER NOT NULL, 
+  incoming_seqnum INTEGER NOT NULL,
   outgoing_seqnum INTEGER NOT NULL,
-  PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid, 
+  PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
   				targetcompid, targetsubid, targetlocid, session_qualifier)
 );

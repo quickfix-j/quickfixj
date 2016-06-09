@@ -164,7 +164,7 @@ public class FieldTest {
         assertEquals(33, field.getTag());
         assertEquals(45.6, field.getValue(), 0);
     }
-    
+
     @Test(expected = NumberFormatException.class)
     public void testDoubleFieldException() {
         DoubleField field = new DoubleField(11, Double.NaN);
@@ -269,7 +269,7 @@ public class FieldTest {
         DataDictionary dd = new DataDictionary("FIX50.xml");
         dd.validate(md);
     }
-    
+
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {
         assertEquals("fields not equal", field1, field2);
         assertEquals("fields hashcode not equal", field1.hashCode(), field2.hashCode());

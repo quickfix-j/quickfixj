@@ -32,12 +32,12 @@ import quickfix.fix44.News;
  * doesn't get propagated to the application layer.
  * Important information, like logout reason, will not
  * be available to the application.
- * 
- * The source of this problem lies in inconsistent signalling 
+ *
+ * The source of this problem lies in inconsistent signalling
  * between the mina thread and the processing thread (QFJ
  * Message Processor) which leads to random or incorrect
  * behaviour.
- * 
+ *
  * The best way to fix this issue would be to signal the
  * end of a TCP/IP stream to the QFJ Message Processor
  * through the message queue instead of polling the
@@ -70,10 +70,10 @@ public class LostLogoutThreadedTest {
         // send logout request from client to server and close the socket
         client.sendLogoutAndDisconnect();
 
-        // give the server plenty of time to process the logout request 
+        // give the server plenty of time to process the logout request
         Thread.sleep(3000);
 
-        // verify if the server received the logout message via the fromAdmin() call-back 
+        // verify if the server received the logout message via the fromAdmin() call-back
         System.out.println("EXPECTED LOGOUT MESSAGE FROM CLIENT: " + logoutMessage);
         try {
             assertNotNull("Logout message from client lost", logoutMessage);
@@ -84,7 +84,7 @@ public class LostLogoutThreadedTest {
     }
 
     /*
-     * The server app is a simple FIX 4.4 acceptor. 
+     * The server app is a simple FIX 4.4 acceptor.
      */
     private class ServerApp implements Application {
         private ThreadedSocketAcceptor acceptor = null;
@@ -121,7 +121,7 @@ public class LostLogoutThreadedTest {
         }
 
         /*
-         * Save the logout message received from client.  
+         * Save the logout message received from client.
          */
         public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {

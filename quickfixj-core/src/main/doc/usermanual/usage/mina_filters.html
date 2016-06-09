@@ -28,13 +28,13 @@ gives some examples of how this could be useful:
 </blockquote>
 
 <p>To add a filter, you need to insert it into the filter chain by supplying an IoFilterChainBuilder to
- the connector or acceptor with setIoFilterChainBuilder().  
-</p> 
+ the connector or acceptor with setIoFilterChainBuilder().
+</p>
 <pre class="code">
-final BlacklistFilter blacklistFilter = new BlacklistFilter();  
+final BlacklistFilter blacklistFilter = new BlacklistFilter();
 ...
  /*
-  * setIoFilterChainBuilder is defined on the SessionConnector abstract class 
+  * setIoFilterChainBuilder is defined on the SessionConnector abstract class
   */
 ((SessionConnector) acceptor).setIoFilterChainBuilder(new IoFilterChainBuilder() {
 
@@ -43,14 +43,14 @@ final BlacklistFilter blacklistFilter = new BlacklistFilter();
     }});
 </pre>
 
-<p>Note the reference to FIXProtocolCodecFactory.FILTER_NAME.  QuickFIX/J uses a ProtocolCodecFilter 
-to transform between streamed byte data on the wire and quickfix.Message objects, as shown below. 
+<p>Note the reference to FIXProtocolCodecFactory.FILTER_NAME.  QuickFIX/J uses a ProtocolCodecFilter
+to transform between streamed byte data on the wire and quickfix.Message objects, as shown below.
 </p>
 
 <img src="protocol codec filter.png"/>
 
 <p>You should add your filter before this one to have it act on the byte stream, or after it to act on
-quickfix.Message data.</p> 
+quickfix.Message data.</p>
 <p>Following are some examples showing how to add filters to the example order executor application</p>
 
 <hr/>
@@ -120,7 +120,7 @@ INFO: MINA session created: /127.0.0.1:4538
 <hr/>
 <h3>Whitelist Filter</h3>
 <p>A whitelist filter is available at <a href='http://www.quickfixj.org/confluence/download/attachments/530/WhitelistFilter.java'>
-http://www.quickfixj.org/confluence/download/attachments/530/WhitelistFilter.java</a>.  
+http://www.quickfixj.org/confluence/download/attachments/530/WhitelistFilter.java</a>.
 The code changes required to use it are similar to the Blacklist filter, except that:</p>
 <ul>
 <li>The filter is configured from SessionSettings.</li>
@@ -138,11 +138,11 @@ final WhitelistFilter whitelistFilter = new WhitelistFilter(settings);
     public void buildFilterChain(IoFilterChain chain) {
         chain.addAfter(FIXProtocolCodecFactory.FILTER_NAME, "WhitelistFilter", whitelistFilter);
     }});
-    
+
 acceptor.start();
 </pre>
 <p>
-Specify valid IP addresses with the WhitelistHost setting, at either the default 
+Specify valid IP addresses with the WhitelistHost setting, at either the default
 or session levels as required.
 </p>
 <pre class="code">

@@ -11,7 +11,7 @@
 		<p>Sometimes an application needs more flexibility than a static configuration provides.
 		For example, test programs or simulators may not want to predefine define every session.
 		</p>
-		
+
 		<p>Dynamic sessions are implemented using a <em>session provider</em>. A simple session
 		provider implementation, <code>DynamicAcceptorSessionProvider</code>, is available for
 		simple applications. This provider specifies a session ID for a session definition that
@@ -19,7 +19,7 @@
 		file should be marked with the <code>AcceptorTemplate=Y</code> setting so the
 		session will not be registered as an normal session.
 		</p>
-		
+
 		<p>
 		You programatically associate a specific acceptor socket
 		address with a session provider instance. A dynamic session will be created for any logon attempt on this socket

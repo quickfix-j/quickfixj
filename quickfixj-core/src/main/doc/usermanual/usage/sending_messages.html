@@ -18,14 +18,11 @@
     </p>
 	<pre class="code">package quickfix;
 
-
 public static boolean sendToTarget(Message message)
   throws SessionNotFound
 
-
 public static boolean sendToTarget(Message message, SessionID sessionID)
   throws SessionNotFound
-
 
 public static boolean sendToTarget
   (Message message, String senderCompID, String targetCompID)
@@ -48,7 +45,6 @@ public static boolean sendToTarget
 public void sendOrderCancelRequest()
 {
   Message message = new Message();
-
 
   // BeginString
   message.getHeader().setField(new StringField(8, "FIX.4.2"));
@@ -79,7 +75,6 @@ public void sendOrderCancelRequest()
 
   Session.sendToTarget(message);
 }    </pre>
-  
 
     <H2>More Type Safe</H2>
 

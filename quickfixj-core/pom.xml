@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
-		<version>1.7.0-SNAPSHOT</version>		
+		<version>1.7.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>quickfixj-core</artifactId>
@@ -257,7 +257,7 @@
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
-					</execution>				
+					</execution>
 					<execution>
 						<id>fix50sp2</id>
 						<goals>
@@ -341,7 +341,7 @@
 					</instructions>
 				</configuration>
 			</plugin>
-			<plugin>				
+			<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>

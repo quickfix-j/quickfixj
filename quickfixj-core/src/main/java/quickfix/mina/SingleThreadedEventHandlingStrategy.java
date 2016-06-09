@@ -105,7 +105,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
      * If thread is still alive, an attempt is made to stop it.
      * An IllegalStateException is thrown if stopping the old thread
      * was not successful.
-     * 
+     *
      * This method must not be called by several threads concurrently.
      */
     public void blockInThread() {
@@ -158,10 +158,10 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
         isStopped = true;
     }
-    
+
     public void stopHandlingMessages(boolean join) {
         stopHandlingMessages();
-        
+
         if (join) {
             try {
                 messageProcessingThread.join();
@@ -181,5 +181,5 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         // we only have one queue for all sessions
         return getQueueSize();
     }
-    
+
 }
