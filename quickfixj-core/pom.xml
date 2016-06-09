@@ -53,7 +53,7 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-jdk14</artifactId>
 			<version>${slf4j.version}</version>
-		    <scope>test</scope>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -86,7 +86,7 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-		    <!-- slf4j facade for JCL which is required by proxool -->
+			<!-- slf4j facade for JCL which is required by proxool -->
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>${slf4j.version}</version>
@@ -102,7 +102,7 @@
 	</dependencies>
 
 	<build>
-	    <resources>
+		<resources>
 			<resource>
 				<directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
 			</resource>
@@ -302,7 +302,7 @@
 				</configuration>
 			</plugin>
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<configuration>
 					<includes>
@@ -342,7 +342,7 @@
 				</configuration>
 			</plugin>
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<argLine>-Xmx512m -XX:MaxPermSize=256m</argLine>

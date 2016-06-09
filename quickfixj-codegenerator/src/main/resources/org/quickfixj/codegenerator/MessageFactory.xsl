@@ -68,7 +68,7 @@ public class MessageFactory implements quickfix.MessageFactory {
 		switch (msgType) {
 	<xsl:for-each select="//fix/messages/message">
 			case <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>.MSGTYPE:
-		    	return new <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>();
+				return new <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>();
 	</xsl:for-each>
 		}
 </xsl:template>

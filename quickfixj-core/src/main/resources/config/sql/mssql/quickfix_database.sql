@@ -15,7 +15,7 @@ CREATE TABLE sessions (
   incoming_seqnum INT NOT NULL,
   outgoing_seqnum INT NOT NULL,
   PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
-  				targetcompid, targetsubid, targetlocid, session_qualifier)
+               targetcompid, targetsubid, targetlocid, session_qualifier)
 );
 
 CREATE TABLE messages (
@@ -30,8 +30,8 @@ CREATE TABLE messages (
   msgseqnum INT NOT NULL,
   message TEXT NOT NULL,
   PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
-  				targetcompid, targetsubid, targetlocid, session_qualifier,
-  				msgseqnum)
+               targetcompid, targetsubid, targetlocid, session_qualifier,
+               msgseqnum)
 );
 
 CREATE TABLE event_log (

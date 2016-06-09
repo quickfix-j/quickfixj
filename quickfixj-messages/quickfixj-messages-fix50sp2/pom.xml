@@ -54,7 +54,7 @@
 						<configuration>
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix50sp2;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
-							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
 								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
@@ -65,7 +65,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin-version}</version>
+				<version>${maven-jar-plugin-version}</version>
 				<configuration>
 					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
@@ -83,7 +83,7 @@
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-                <version>${maven-source-plugin-version}</version>
+				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>FIX50SP2.xml</include>

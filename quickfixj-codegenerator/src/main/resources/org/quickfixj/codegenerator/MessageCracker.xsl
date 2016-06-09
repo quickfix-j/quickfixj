@@ -57,7 +57,6 @@ public class MessageCracker {
 	 *
 	 * @param message
 	 * @param sessionID
-	 *
 	 * @throws FieldNotFound
 	 * @throws UnsupportedMessageType
 	 * @throws IncorrectTagValue
@@ -77,7 +76,6 @@ public class MessageCracker {
 	 *
 	 * @param message
 	 * @param sessionID
-	 *
 	 * @throws FieldNotFound
 	 * @throws UnsupportedMessageType
 	 * @throws IncorrectTagValue

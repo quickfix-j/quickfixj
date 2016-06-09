@@ -262,10 +262,10 @@
         <group name="NoLegs" required="N">
           <component name="InstrumentLeg" required="N" />
 
-			<!-- Added for testing purpose - see RepeatingGroupTest -->
-    	    <field name="OrderID" required="N" />
-	        <field name="9001" required="N" />
-			<!-- Till here -->
+          <!-- Added for testing purpose - see RepeatingGroupTest -->
+          <field name="OrderID" required="N" />
+          <field name="9001" required="N" />
+          <!-- Till here -->
 
           <field name="LegQty" required="N" />
           <field name="LegSwapType" required="N" />

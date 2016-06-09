@@ -13,5 +13,5 @@ CREATE TABLE sessions (
   incoming_seqnum INT NOT NULL,
   outgoing_seqnum INT NOT NULL,
   PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
-  				targetcompid, targetsubid, targetlocid, session_qualifier)
+               targetcompid, targetsubid, targetlocid, session_qualifier)
 );

@@ -10,5 +10,5 @@ CREATE TABLE messages (
   msgseqnum INTEGER NOT NULL,
   message VARCHAR2(4000) NOT NULL,
   PRIMARY KEY (beginstring, sendercompid, sendersubid, senderlocid,
-  				targetcompid, targetsubid, targetlocid, session_qualifier, msgseqnum)
+               targetcompid, targetsubid, targetlocid, session_qualifier, msgseqnum)
 );

@@ -125,14 +125,14 @@ import quickfix.MessageCracker;
 public class MyApplication extends MessageCracker implements quickfix.Application
 {
     public void fromApp(Message message, SessionID sessionID)
-	      throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-	  crack(message, sessionID);
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        crack(message, sessionID);
     }
 
     // Using annotation
     @Handler
     public void myEmailHandler(quickfix.fix50.Email email, SessionID sessionID) {
-         // handler implementation
+        // handler implementation
     }
 
     // By convention (notice different version of FIX. It's an error to have two handlers for the same message)
