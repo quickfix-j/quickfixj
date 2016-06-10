@@ -90,7 +90,7 @@ public class FileLog extends AbstractLog {
         writeMessage(messages, message, false);
     }
 
-    private void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
+    private synchronized void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
         try {
             if (forceTimestamp || includeTimestampForMessages) {
                 writeTimeStamp(stream);
