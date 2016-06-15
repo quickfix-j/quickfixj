@@ -72,12 +72,19 @@ import quickfix.field.Text;
 import quickfix.mina.EventHandlingStrategy;
 
 /**
- * The Session is the primary FIX abstraction for message communication. It
- * performs sequencing and error recovery and represents a communication channel
- * to a counterparty. Sessions are independent of specific communication layer
- * connections. A Session is defined as starting with message sequence number of 1
- * and ending when the session is reset. The Session could span many sequential
- * connections (it cannot operate on multiple connection simultaneously).
+ * The Session is the primary FIX abstraction for message communication.
+ * <p>
+ * It performs sequencing and error recovery and represents a communication
+ * channel to a counter-party. Sessions are independent of specific
+ * communication layer connections. The Session could span many sequential
+ * connections (but cannot operate on multiple connection simultaneously).
+ * <p>
+ * A logical session is defined as starting with message sequence number 1
+ * and ending when the session is reset. However, the Session object
+ * instance is registered when first created (per SessionID), and remains
+ * registered for the lifetime of the application (until the Connector is
+ * stopped), even across resets (which reset its internal state, such as
+ * the sequence number).
  */
 public class Session implements Closeable {
 

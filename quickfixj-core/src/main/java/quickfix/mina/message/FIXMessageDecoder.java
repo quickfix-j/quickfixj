@@ -216,7 +216,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     if (log.isDebugEnabled()) {
                         log.debug("parsed message: " + getBufferDebugInfo(in) + " " + messageString);
                     }
-                    out.write(messageString);
+                    out.write(messageString); // eventually invokes AbstractIoHandler.messageReceived
                     state = SEEKING_HEADER;
                     bodyLength = 0;
                     messageFound = true;
