@@ -19,14 +19,13 @@
 
 package quickfix.mina;
 
-import java.net.SocketAddress;
-
-import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.future.WriteFuture;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Responder;
+
+import java.net.SocketAddress;
 
 /**
  * The class that partially integrates the QuickFIX/J Session to
@@ -71,6 +70,7 @@ public class IoSessionResponder implements Responder {
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
         ioSession.closeNow();
+        ioSession.setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
     }
 
     private void waitForScheduleMessagesToBeWritten() {
