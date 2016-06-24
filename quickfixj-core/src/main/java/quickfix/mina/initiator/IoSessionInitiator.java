@@ -158,9 +158,9 @@ public class IoSessionInitiator {
         }
 
         private void connect() {
+            lastReconnectAttemptTime = SystemTime.currentTimeMillis();
+            SocketAddress nextSocketAddress = getNextSocketAddress();
             try {
-                lastReconnectAttemptTime = SystemTime.currentTimeMillis();
-                SocketAddress nextSocketAddress = getNextSocketAddress();
                 if (localAddress == null) {
                     connectFuture = ioConnector.connect(nextSocketAddress);
                 } else {
