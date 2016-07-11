@@ -250,11 +250,12 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     // XXX does this need to by synchronized?
     protected void stopAcceptingConnections() throws ConfigError {
-        Iterator<IoAcceptor> ioIt = ioAcceptors.values().iterator();
+        Iterator<IoAcceptor> ioIt = getEndpoints().iterator();
         while (ioIt.hasNext()) {
             IoAcceptor ioAcceptor = ioIt.next();
             SocketAddress localAddress = ioAcceptor.getLocalAddress();
             ioAcceptor.unbind();
+            ioAcceptor.dispose(true);
             log.info("No longer accepting connections on " + localAddress);
             ioIt.remove();
         }
