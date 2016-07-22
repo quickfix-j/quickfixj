@@ -19,23 +19,18 @@
 
 package quickfix.mina;
 
-import static quickfix.MessageUtils.parse;
-
-import java.io.IOException;
-
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import quickfix.InvalidMessage;
-import quickfix.Message;
-import quickfix.MessageUtils;
-import quickfix.Session;
-import quickfix.SessionID;
+import quickfix.*;
 import quickfix.field.MsgType;
+
+import java.io.IOException;
+
+import static quickfix.MessageUtils.parse;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.
@@ -57,6 +52,15 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         Throwable realCause = cause;
         if (cause instanceof ProtocolDecoderException && cause.getCause() != null) {
             realCause = cause.getCause();
+        } else {
+            Throwable chain = cause;
+            while (chain != null && chain.getCause() != null) {
+                chain = chain.getCause();
+                if (chain instanceof IOException) {
+                    realCause = chain;
+                    break;
+                }
+            }
         }
         String reason;
         if (realCause instanceof IOException) {
@@ -75,11 +79,15 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             reason = cause.toString();
         }
         if (disconnectNeeded) {
-            if (quickFixSession != null) {
-                quickFixSession.disconnect(reason, true);
-            } else {
-                log.error(reason, cause);
-                ioSession.closeNow();
+            try {
+                if (quickFixSession != null) {
+                    quickFixSession.disconnect(reason, true);
+                } else {
+                    log.error(reason, cause);
+                    ioSession.closeNow();
+                }
+            } finally {
+                ioSession.setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
             }
         } else {
             log.error(reason, cause);
@@ -97,7 +105,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         try {
             Session quickFixSession = findQFSession(ioSession);
             if (quickFixSession != null) {
-                eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM );
+                eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM);
                 ioSession.removeAttribute(SessionConnector.QF_SESSION);
             }
             ioSession.closeNow();

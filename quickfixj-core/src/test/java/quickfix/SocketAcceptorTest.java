@@ -95,7 +95,7 @@ public class SocketAcceptorTest {
             Thread.sleep(500);
         }
     }
-    
+
     // QFJ-825
     @Test
     public void testQuickRestartOfAcceptor() throws Exception {

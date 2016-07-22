@@ -60,7 +60,7 @@ public class Order implements Cloneable {
     }
 
     public String generateID() {
-        return Long.valueOf(System.currentTimeMillis() + (nextID++)).toString();
+        return Long.toString(System.currentTimeMillis() + (nextID++));
     }
 
     public SessionID getSessionID() {
@@ -139,7 +139,7 @@ public class Order implements Cloneable {
         if (limit == null || limit.equals("")) {
             this.limit = null;
         } else {
-            this.limit = new Double(limit);
+            this.limit = Double.parseDouble(limit);
         }
     }
 
@@ -155,7 +155,7 @@ public class Order implements Cloneable {
         if (stop == null || stop.equals("")) {
             this.stop = null;
         } else {
-            this.stop = new Double(stop);
+            this.stop = Double.parseDouble(stop);
         }
     }
 

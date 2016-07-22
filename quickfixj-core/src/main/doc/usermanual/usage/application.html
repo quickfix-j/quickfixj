@@ -42,8 +42,6 @@ public interface Application {
   exist whether or not a counter party is connected to it. As soon as a session
   is created, you can begin sending messages to it. If no one is logged on, the
   messages will be sent at the time a connection is established with the counterparty.</dd>
-
-
   <dt>onLogon</dt>
   <dd> This callback notifies you when a valid logon has been established
   with a counter party. This is called when a connection has been established
@@ -98,7 +96,6 @@ public interface Application {
 import quickfix.*;
 import java.io.FileInputStream;
 
-
 public class MyClass {
 
   public static void main(String args[]) throws Exception {
@@ -118,7 +115,7 @@ public class MyClass {
     // while(condition == true) { do something; }
     acceptor.stop();
   }
-}  
+}
 </pre>
 
 <div class="footer">More information at <a href="http://www.quickfixj.org/">www.quickfixj.org</a></div>

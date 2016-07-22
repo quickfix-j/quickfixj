@@ -294,8 +294,8 @@ public class Generator {
             System.exit(1);
             return;
         }
-        int major = Integer.valueOf(args[1]);
-        int minor = Integer.valueOf(args[2]);
+        int major = Integer.parseInt(args[1]);
+        int minor = Integer.parseInt(args[2]);
 
         new Generator(repository, major, minor).generate();
     }

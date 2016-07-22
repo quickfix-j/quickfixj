@@ -1,98 +1,98 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.quickfixj</groupId>
-        <artifactId>quickfixj-parent</artifactId>
-        <version>1.7.0-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>org.quickfixj</groupId>
+		<artifactId>quickfixj-parent</artifactId>
+		<version>1.7.0-SNAPSHOT</version>
+	</parent>
 
-    <artifactId>quickfixj-all</artifactId>
-    <packaging>bundle</packaging>
+	<artifactId>quickfixj-all</artifactId>
+	<packaging>bundle</packaging>
 
-    <name>QuickFIX/J All runtime modules</name>
-    <description>QuickFIX/J All runtime modules</description>
-    <url>http://www.quickfixj.org</url>
+	<name>QuickFIX/J All runtime modules</name>
+	<description>QuickFIX/J All runtime modules</description>
+	<url>http://www.quickfixj.org</url>
 
-    <properties>
-        <mainClass>org.quickfixj.Version</mainClass>
-    </properties>
+	<properties>
+		<mainClass>org.quickfixj.Version</mainClass>
+	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.quickfixj</groupId>
-            <artifactId>quickfixj-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.quickfixj</groupId>
-            <artifactId>quickfixj-messages-all</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.quickfixj</groupId>
-            <artifactId>quickfixj-codegenerator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.quickfixj</groupId>
-            <artifactId>quickfixj-dictgenerator</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-codegenerator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-dictgenerator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>merge-all-modules</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createSourcesJar>true</createSourcesJar>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <artifactSet>
-                                <includes>
-                                    <include>org.quickfixj:*</include>
-                                </includes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                        <manifestEntries>
-                            <Main-Class>${mainClass}</Main-Class>
-                        </manifestEntries>
-                    </archive>
-                    <instructions>
-                        <!-- transitive dependencies are not being set as optional,
-                             see https://issues.apache.org/jira/browse/FELIX-3877 -->
-                        <Import-Package>
-                            com.sleepycat*;resolution:=optional,
-                            org.apache.maven*;resolution:=optional,
-                            org.codehaus.plexus*;resolution:=optional,
-                            org.logicalcobwebs.proxool*;resolution:=optional,
-                            org.dom4j*;resolution:=optional,
-                            *
-                        </Import-Package>
-                        <Export-Package>quickfix.*,org.quickfixj.*</Export-Package>
-                        <Private-Package>quickfix.*,org.quickfixj.*</Private-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>merge-all-modules</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createSourcesJar>true</createSourcesJar>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<includes>
+									<include>org.quickfixj:*</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Main-Class>${mainClass}</Main-Class>
+						</manifestEntries>
+					</archive>
+					<instructions>
+						<!-- transitive dependencies are not being set as optional,
+							 see https://issues.apache.org/jira/browse/FELIX-3877 -->
+						<Import-Package>
+							com.sleepycat*;resolution:=optional,
+							org.apache.maven*;resolution:=optional,
+							org.codehaus.plexus*;resolution:=optional,
+							org.logicalcobwebs.proxool*;resolution:=optional,
+							org.dom4j*;resolution:=optional,
+							*
+						</Import-Package>
+						<Export-Package>quickfix.*,org.quickfixj.*</Export-Package>
+						<Private-Package>quickfix.*,org.quickfixj.*</Private-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

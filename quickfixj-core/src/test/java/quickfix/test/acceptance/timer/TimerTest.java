@@ -24,23 +24,20 @@ import quickfix.ConfigError;
 import quickfix.SessionNotFound;
 
 public class TimerTest extends TestCase {
-    private Thread serverThread;
+
+    TimerTestServer server;
 
     public void testAcceptorTimer() throws ConfigError, SessionNotFound, InterruptedException {
         new TimerTestClient().run();
     }
 
     protected void setUp() throws Exception {
-        super.setUp();
-        TimerTestServer server = new TimerTestServer();
-        serverThread = new Thread(server, "TimerTestServer");
-        serverThread.setDaemon(true);
-        serverThread.start();
+        server = new TimerTestServer();
+        server.start();
         server.waitForInitialization();
     }
 
     protected void tearDown() throws Exception {
-        serverThread.interrupt();
-        super.tearDown();
+        server.stop();
     }
 }

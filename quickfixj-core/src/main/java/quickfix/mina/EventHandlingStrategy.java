@@ -46,6 +46,6 @@ public interface EventHandlingStrategy {
     SessionConnector getSessionConnector();
 
     int getQueueSize();
-    
+
     int getQueueSize(SessionID sessionID);
 }

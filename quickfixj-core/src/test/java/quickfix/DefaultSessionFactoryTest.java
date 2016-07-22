@@ -134,7 +134,7 @@ public class DefaultSessionFactoryTest {
         try {
             factory.create(sessionID, settings);
             fail("no data dictionary exception");
-        } catch (DataDictionary.Exception e) {
+        } catch (ConfigError e) {
             assertTrue("exception message not matched, expected: " + "... Could not find data ..."
                     + ", got: " + e.getMessage(),
                     e.getMessage().contains("Could not find data"));

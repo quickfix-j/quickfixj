@@ -63,14 +63,14 @@ public class DataDictionaryTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
-    
+
     @Test
     public void testDictionary() throws Exception {
         DataDictionary dd = getDictionary();
 
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
         assertEquals("wrong value description", "BUY", dd.getValueName(4, "B"));
-        assertEquals("wrong value type", FieldType.String, dd.getFieldTypeEnum(1));
+        assertEquals("wrong value type", FieldType.STRING, dd.getFieldType(1));
         assertEquals("wrong version", FixVersions.BEGINSTRING_FIX44, dd.getVersion());
         assertFalse("unexpected field values existence", dd.hasFieldValue(1));
         assertTrue("unexpected field values nonexistence", dd.hasFieldValue(4));
@@ -477,137 +477,135 @@ public class DataDictionaryTest {
         assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
 
     }
-    
+
     /**
      * <pre>
      * +---------------------------+------------------------+-------+------------+
-     * | AllowUnknownMessageFields | CheckUserDefinedFields | Field | Validation | 
-     * +---------------------------+------------------------+-------+------------+ 
-     * |                     false |                  false |     6 |    FAILURE | 
+     * | AllowUnknownMessageFields | CheckUserDefinedFields | Field | Validation |
+     * +---------------------------+------------------------+-------+------------+
+     * |                     false |                  false |     6 |    FAILURE |
      * |                     false |                   true |     6 |    FAILURE |
      * |                      true |                  false |     6 |    SUCCESS |
      * |                      true |                   true |     6 |    SUCCESS |
      * +---------------------------+------------------------+-------+------------+
      * </pre>
      */
-    
     @Test
     public void testNonUDFDefinedInFieldsSectionDontAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=6");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testNonUDFDefinedInFieldsSectionDontAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=6");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testNonUDFDefinedInFieldsSectionAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testNonUDFDefinedInFieldsSectionAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     /**
      * <pre>
      * +---------------------------+------------------------+-------+------------+
      * | AllowUnknownMessageFields | CheckUserDefinedFields | Field | Validation |
-     * +---------------------------+------------------------+-------+------------+                       
+     * +---------------------------+------------------------+-------+------------+
      * |                     false |                  false |  5000 |    SUCCESS |
      * |                     false |                   true |  5000 |    FAILURE |
      * |                      true |                  false |  5000 |    SUCCESS |
      * |                      true |                   true |  5000 |    FAILURE |
-     * +---------------------------+------------------------+-------+------------+ 
+     * +---------------------------+------------------------+-------+------------+
      * </pre>
      */
-
     @Test
     public void testUDFDefinedInFieldsSectionDontAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(5000, 555);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testUDFDefinedInFieldsSectionDontAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(5000, 555);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=5000");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testUDFDefinedInFieldsSectionAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(5000, 555);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testUDFDefinedInFieldsSectionAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(5000, 555);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=5000");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     /**
      * <pre>
      * +---------------------------+------------------------+-------+------------+
@@ -617,127 +615,125 @@ public class DataDictionaryTest {
      * |                     false |                   true |  1000 |    FAILURE |
      * |                      true |                  false |  1000 |    SUCCESS |
      * |                      true |                   true |  1000 |    SUCCESS |
-     * +---------------------------+------------------------+-------+------------+ 
-     * </pre> 
+     * +---------------------------+------------------------+-------+------------+
+     * </pre>
      */
-    
     @Test
     public void testNonUDFNotDefinedInFieldsSectionDontAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(1000, 111);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=1000");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testNonUDFNotDefinedInFieldsSectionDontAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(1000, 111);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=1000");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testNonUDFNotDefinedInFieldsSectionAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(1000, 111);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testNonUDFNotDefinedInFieldsSectionAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(1000, 111);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     /**
      * <pre>
      * +---------------------------+------------------------+-------+------------+
      * | AllowUnknownMessageFields | CheckUserDefinedFields | Field | Validation |
      * +---------------------------+------------------------+-------+------------+
-     * |                     false |                  false |  6000 |    SUCCESS | 
+     * |                     false |                  false |  6000 |    SUCCESS |
      * |                     false |                   true |  6000 |    FAILURE |
      * |                      true |                  false |  6000 |    SUCCESS |
      * |                      true |                   true |  6000 |    FAILURE |
      * +---------------------------+------------------------+-------+------------+
      * </pre>
      */
-    
     @Test
     public void testUDFNotDefinedInFieldsSectionDontAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(6000, 666);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testUDFNotDefinedInFieldsSectionDontAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(6000, 666);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(false);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=6000");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testUDFNotDefinedInFieldsSectionAllowUMFDontCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(6000, 666);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(false);
-        
+
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     @Test
     public void testUDFNotDefinedInFieldsSectionAllowUMFCheckUDF() throws Exception {
         Message quoteRequest = createQuoteRequest();
         quoteRequest.setInt(6000, 666);
-        
+
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         dataDictionary.setAllowUnknownMessageFields(true);
         dataDictionary.setCheckUserDefinedFields(true);
-        
+
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=6000");
         dataDictionary.validate(quoteRequest, true);
     }
-    
+
     private Message createQuoteRequest() {
         Message quoteRequest = new Message();
         quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
@@ -745,7 +741,7 @@ public class DataDictionaryTest {
         quoteRequest.addGroup(new Group(NoRelatedSym.FIELD, Symbol.FIELD));
         return quoteRequest;
     }
-    
+
     //
     // Group Validation Tests in RepeatingGroupTest
     //

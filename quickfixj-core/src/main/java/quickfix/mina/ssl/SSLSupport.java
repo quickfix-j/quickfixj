@@ -46,8 +46,8 @@ public class SSLSupport {
     static final String DEFAULT_STORE_TYPE = "JKS";
     static final String DEFAULT_KEY_STORE_MANAGER_ALGORITHM = "SunX509";
     static final String DEFAULT_TRUST_STORE_MANAGER_ALGORITHM = "PKIX";
-    static final String QUICKFIXJ_CERT = "quickfixj.cert";
-    static final String QUICKFIXJ_PW = "quickfixjpw";
+    static final String QUICKFIXJ_KEY_STORE = "quickfixj.keystore";
+    static final String QUICKFIXJ_KEY_STORE_PWD = "quickfixjpw";
 
     public static String[] getDefaultCipherSuites(SSLContext sslContext) {
         return sslContext.getSocketFactory().getDefaultCipherSuites();
@@ -75,11 +75,11 @@ public class SSLSupport {
     }
 
     public static String getKeyStoreName(SessionSettings sessionSettings, SessionID sessionID) {
-        return getString(sessionSettings, sessionID, SETTING_KEY_STORE_NAME, QUICKFIXJ_CERT);
+        return getString(sessionSettings, sessionID, SETTING_KEY_STORE_NAME, QUICKFIXJ_KEY_STORE);
     }
 
     public static char[] getKeyStorePassword(SessionSettings sessionSettings, SessionID sessionID) {
-        String keyStorePassword = getString(sessionSettings, sessionID, SETTING_KEY_STORE_PWD, QUICKFIXJ_PW);
+        String keyStorePassword = getString(sessionSettings, sessionID, SETTING_KEY_STORE_PWD, QUICKFIXJ_KEY_STORE_PWD);
         return keyStorePassword != null ? keyStorePassword.toCharArray() : null;
     }
 

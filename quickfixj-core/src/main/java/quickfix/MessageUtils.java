@@ -298,6 +298,27 @@ public class MessageUtils {
     /**
      * Calculates the checksum for the given data.
      *
+     * @param data the data to calculate the checksum on
+     * @param isEntireMessage specifies whether the data is an entire message;
+     *        if true, and it ends with a checksum field, that checksum
+     *        field is excluded from the current checksum calculation
+     * @return the calculated checksum
+     */
+    public static int checksum(byte[] data, boolean isEntireMessage) {
+        int sum = 0;
+        int len = data.length;
+        if (isEntireMessage && data[len - 8] == '\001' && data[len - 7] == '1'
+                && data[len - 6] == '0' && data[len - 5] == '=')
+            len = len - 7;
+        for (int i = 0; i < len; i++) {
+            sum += (data[i] & 0xFF);
+        }
+        return sum & 0xFF; // better than sum % 256 since it avoids overflow issues
+    }
+
+    /**
+     * Calculates the checksum for the given data.
+     *
      * @param charset the charset used in encoding the data
      * @param data the data to calculate the checksum on
      * @param isEntireMessage specifies whether the data is an entire message;
@@ -306,24 +327,16 @@ public class MessageUtils {
      * @return the calculated checksum
      */
     public static int checksum(Charset charset, String data, boolean isEntireMessage) {
-        int sum = 0;
-        if (CharsetSupport.isStringEquivalent(charset)) { // optimization - skip encoding
+        if (CharsetSupport.isStringEquivalent(charset)) { // optimization - skip charset encoding
+            int sum = 0;
             int end = isEntireMessage ? data.lastIndexOf("\00110=") : -1;
             int len = end > -1 ? end + 1 : data.length();
             for (int i = 0; i < len; i++) {
                 sum += data.charAt(i);
             }
-        } else {
-            byte[] bytes = data.getBytes(charset);
-            int len = bytes.length;
-            if (isEntireMessage && bytes[len - 8] == '\001' && bytes[len - 7] == '1'
-                    && bytes[len - 6] == '0' && bytes[len - 5] == '=')
-                len = len - 7;
-            for (int i = 0; i < len; i++) {
-                sum += (bytes[i] & 0xFF);
-            }
+            return sum & 0xFF; // better than sum % 256 since it avoids overflow issues
         }
-        return sum & 0xFF; // better than sum % 256 since it avoids overflow issues
+        return checksum(data.getBytes(charset), isEntireMessage);
     }
 
     /**

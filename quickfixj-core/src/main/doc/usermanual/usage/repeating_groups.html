@@ -27,7 +27,6 @@
 
     <pre class="code">package quickfix;
 
-
 quickfix.fix42.MarketDataSnapshotFullRefresh message =
   new quickfix.fix42.MarketDataSnapshotFullRefresh(new Symbol("QF"));
 
@@ -46,7 +45,6 @@ group.set(new MDEntrySize(100));
 group.set(new OrderID("ORDERID"));
 message.addGroup(group);</PRE>
 
-
     <H3>Reading Messages With Repeating Groups</H3>
 
     <p>
@@ -56,7 +54,6 @@ message.addGroup(group);</PRE>
     </p>
 
     <pre class="code">package quickfix;
-
 
 NoMDEntries noMDEntries = new NoMDEntries();
 message.get(noMDEntries);

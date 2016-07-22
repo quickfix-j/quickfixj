@@ -104,7 +104,7 @@ public class OrderTableModel extends AbstractTableModel {
     }
 
     public Order getOrder(int row) {
-        return rowToOrder.get(Integer.valueOf(row));
+        return rowToOrder.get(row);
     }
 
     public void setValueAt(Object value, int rowIndex, int columnIndex) { }
@@ -126,7 +126,7 @@ public class OrderTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Order order = rowToOrder.get(Integer.valueOf(rowIndex));
+        Order order = rowToOrder.get(rowIndex);
         switch (columnIndex) {
         case SYMBOL:
             return order.getSymbol();

@@ -71,7 +71,7 @@ public class SingleThreadedEventHandlingStrategyTest {
         }
 
     }
-    
+
     @Test
     public void testMultipleStart() throws Exception {
         SingleThreadedEventHandlingStrategy ehs = null;
@@ -129,7 +129,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             }
         }
     }
-    
+
     @Test
     public void shouldCleanUpAcceptorQFJMessageProcessorThreadAfterInterrupt() throws Exception {
         final SocketAcceptor acceptor = createAcceptor(0);
@@ -159,10 +159,10 @@ public class SingleThreadedEventHandlingStrategyTest {
 
         Thread.sleep(1000);
         assertQFJMessageProcessorThreads(0);
-        
+
         acceptorThread.join();
     }
-    
+
     @Test
     public void shouldCleanUpInitiatorQFJMessageProcessorThreadAfterInterrupt() throws Exception {
         final SocketInitiator initiator = createInitiator(0);
@@ -192,10 +192,10 @@ public class SingleThreadedEventHandlingStrategyTest {
 
         Thread.sleep(1000);
         assertQFJMessageProcessorThreads(0);
-        
+
         initiatorThread.join();
     }
-    
+
     @Test(timeout = 10000)
     public void shouldCleanUpAcceptorQFJMessageProcessorThreadAfterStop() throws Exception {
         final SocketAcceptor acceptor = createAcceptor(1);
@@ -218,13 +218,13 @@ public class SingleThreadedEventHandlingStrategyTest {
 
         Thread.sleep(1000);
         acceptor.stop();
-        
+
         Thread.sleep(1000);
         assertQFJMessageProcessorThreads(0);
-        
+
         acceptorThread.join();
     }
-    
+
     @Test(timeout = 10000)
     public void shouldCleanUpInitiatorQFJMessageProcessorThreadAfterStop() throws Exception {
         final SocketInitiator initiator = createInitiator(1);
@@ -247,19 +247,19 @@ public class SingleThreadedEventHandlingStrategyTest {
 
         Thread.sleep(1000);
         initiator.stop();
-        
+
         Thread.sleep(1000);
         assertQFJMessageProcessorThreads(0);
-        
+
         initiatorThread.join();
     }
-    
+
     private SocketAcceptor createAcceptor(int i) throws ConfigError {
         Map<Object, Object> acceptorProperties = new HashMap<Object, Object>();
         acceptorProperties.put("ConnectionType", "acceptor");
         acceptorProperties.put("HeartBtInt", "5");
         acceptorProperties.put("SocketAcceptHost", "localhost");
-        acceptorProperties.put("SocketAcceptPort", String.valueOf(9999 + i) );
+        acceptorProperties.put("SocketAcceptPort", Integer.toString(9999 + i));
         acceptorProperties.put("ReconnectInterval", "2");
         acceptorProperties.put("StartTime", "00:00:00");
         acceptorProperties.put("EndTime", "00:00:00");
@@ -278,13 +278,13 @@ public class SingleThreadedEventHandlingStrategyTest {
 
         return acceptor;
     }
-    
+
     public SocketInitiator createInitiator(int i) throws ConfigError {
         Map<Object, Object> acceptorProperties = new HashMap<Object, Object>();
         acceptorProperties.put("ConnectionType", "initiator");
         acceptorProperties.put("HeartBtInt", "5");
         acceptorProperties.put("SocketConnectHost", "localhost");
-        acceptorProperties.put("SocketConnectPort", String.valueOf(9999 + i) );
+        acceptorProperties.put("SocketConnectPort", Integer.toString(9999 + i));
         acceptorProperties.put("ReconnectInterval", "2");
         acceptorProperties.put("StartTime", "00:00:00");
         acceptorProperties.put("EndTime", "00:00:00");
@@ -300,10 +300,10 @@ public class SingleThreadedEventHandlingStrategyTest {
 
         SocketInitiator initiator = new SocketInitiator(Mockito.mock(Application.class), new MemoryStoreFactory(),
                 acceptorSettings, new DefaultMessageFactory());
-        
+
         return initiator;
     }
-    
+
     private void assertQFJMessageProcessorThreads(int expected) {
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
@@ -326,7 +326,7 @@ public class SingleThreadedEventHandlingStrategyTest {
                 }
             }
         }
-        
+
         Assert.assertEquals("Expected " + expected + " 'QFJ Message Processor' thread(s)", expected, qfjMPThreads);
     }
 

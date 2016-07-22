@@ -56,6 +56,12 @@ public abstract class FieldMap implements Serializable {
 
     private final TreeMap<Integer, List<Group>> groups = new TreeMap<Integer, List<Group>>();
 
+    /**
+     * Constructs a FieldMap with the given field order.
+     * The given array must not be modified.
+     *
+     * @param fieldOrder the field order, or null if there is none
+     */
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
         fields = new TreeMap<Integer, Field<?>>(
@@ -66,6 +72,12 @@ public abstract class FieldMap implements Serializable {
         this(null);
     }
 
+    /**
+     * Returns the order of fields in the group.
+     * The returned array must not be modified.
+     *
+     * @return the field order
+     */
     public int[] getFieldOrder() {
         return fieldOrder;
     }

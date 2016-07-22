@@ -20,7 +20,7 @@
 package quickfix.mina.message;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,15 +39,9 @@ import quickfix.Message;
  */
 public class FIXMessageEncoder implements MessageEncoder<Object> {
 
-    private static final Set<Class<?>> TYPES;
+    private static final Set<Class<?>> TYPES =
+            new HashSet<>(Arrays.<Class<?>>asList(Message.class, String.class));
     private final String charsetEncoding;
-
-    static {
-        Set<Class<?>> types = new HashSet<Class<?>>();
-        types.add(Message.class);
-        types.add(String.class);
-        TYPES = Collections.unmodifiableSet(types);
-    }
 
     public FIXMessageEncoder() {
         charsetEncoding = CharsetSupport.getCharset();
@@ -57,25 +51,28 @@ public class FIXMessageEncoder implements MessageEncoder<Object> {
         return TYPES;
     }
 
+    private byte[] toBytes(String str) throws ProtocolCodecException {
+        try {
+            return str.getBytes(charsetEncoding);
+        } catch (UnsupportedEncodingException e) {
+            throw new ProtocolCodecException(e);
+        }
+    }
+
+    @Override
     public void encode(IoSession session, Object message, ProtocolEncoderOutput out)
             throws ProtocolCodecException {
-        String fixMessageString;
+        // get message bytes
+        byte[] bytes;
         if (message instanceof String) {
-            fixMessageString = (String) message;
+            bytes = toBytes((String) message);
         } else if (message instanceof Message) {
-            fixMessageString = message.toString();
+            bytes = toBytes(message.toString());
         } else {
             throw new ProtocolCodecException("Invalid FIX message object type: "
                     + message.getClass());
         }
-
-        byte[] bytes;
-        try {
-            bytes = fixMessageString.getBytes(charsetEncoding);
-        } catch (UnsupportedEncodingException e) {
-            throw new ProtocolCodecException(e);
-        }
-
+        // write bytes to buffer and output it
         IoBuffer buffer = IoBuffer.allocate(bytes.length);
         buffer.put(bytes);
         buffer.flip();

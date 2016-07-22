@@ -373,6 +373,7 @@ public class Message extends FieldMap {
         static final long serialVersionUID = -3193357271891865972L;
         private static final int[] TRAILER_FIELD_ORDER = { SignatureLength.FIELD, Signature.FIELD,
                 CheckSum.FIELD };
+        private static final int[] TRAILER_POST_FIELDS = { CheckSum.FIELD };
 
         public Trailer() {
             super(TRAILER_FIELD_ORDER);
@@ -384,7 +385,7 @@ public class Message extends FieldMap {
 
         @Override
         protected void calculateString(StringBuilder buffer, int[] excludedFields, int[] postFields) {
-            super.calculateString(buffer, null, new int[] { CheckSum.FIELD });
+            super.calculateString(buffer, null, TRAILER_POST_FIELDS);
         }
     }
 

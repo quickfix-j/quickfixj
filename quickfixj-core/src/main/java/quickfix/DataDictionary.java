@@ -188,7 +188,7 @@ public class DataDictionary {
      * @param field the tag
      * @return the field type
      */
-    public FieldType getFieldTypeEnum(int field) {
+    public FieldType getFieldType(int field) {
         return fieldTypes.get(field);
     }
 
@@ -272,8 +272,7 @@ public class DataDictionary {
      * @return true if field is a header field, false otherwise.
      */
     public boolean isHeaderField(int field) {
-        Set<Integer> fields = messageFields.get(HEADER_ID);
-        return fields != null && fields.contains(field);
+        return isMsgField(HEADER_ID, field);
     }
 
     /**
@@ -283,23 +282,11 @@ public class DataDictionary {
      * @return true if field is a trailer field, false otherwise.
      */
     public boolean isTrailerField(int field) {
-        Set<Integer> fields = messageFields.get(TRAILER_ID);
-        return fields != null && fields.contains(field);
+        return isMsgField(TRAILER_ID, field);
     }
 
     private void addFieldType(int field, FieldType fieldType) {
         fieldTypes.put(field, fieldType);
-    }
-
-    /**
-     * Get the field type for a field.
-     *
-     * @param field a tag
-     * @return the field type
-     * @see #getFieldTypeEnum
-     */
-    public int getFieldType(int field) {
-        return getFieldTypeEnum(field).getOrdinal();
     }
 
     /**
@@ -450,12 +437,12 @@ public class DataDictionary {
      * @return true if field is a raw data field, false otherwise
      */
     public boolean isDataField(int field) {
-        return fieldTypes.get(field) == FieldType.Data;
+        return fieldTypes.get(field) == FieldType.DATA;
     }
 
     private boolean isMultipleValueStringField(int field) {
         final FieldType fieldType = fieldTypes.get(field);
-        return fieldType == FieldType.MultipleValueString || fieldType == FieldType.MultipleStringValue;
+        return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE;
     }
 
     /**
@@ -553,7 +540,7 @@ public class DataDictionary {
     }
 
     @SuppressWarnings("unchecked")
-    private <K, V> void copyMap(Map<K, V> lhs, Map<K, V> rhs) {
+    private static <K, V> void copyMap(Map<K, V> lhs, Map<K, V> rhs) {
         lhs.clear();
         for (Map.Entry<K, V> entry : rhs.entrySet()) {
             Object value = entry.getValue();
@@ -563,7 +550,7 @@ public class DataDictionary {
                     copy = (Collection<V>) value.getClass().newInstance();
                 } catch (final RuntimeException e) {
                     throw e;
-                } catch (final java.lang.Exception e) {
+                } catch (final Exception e) {
                     throw new RuntimeException(e);
                 }
                 copyCollection(copy, (Collection<V>) value);
@@ -573,7 +560,7 @@ public class DataDictionary {
         }
     }
 
-    private <V> void copyCollection(Collection<V> lhs, Collection<V> rhs) {
+    private static <V> void copyCollection(Collection<V> lhs, Collection<V> rhs) {
         lhs.clear();
         lhs.addAll(rhs);
     }
@@ -680,25 +667,25 @@ public class DataDictionary {
 
     // / Check if field tag number is defined in spec.
     void checkValidTagNumber(Field<?> field) {
-        if (!fields.contains(Integer.valueOf(field.getTag()))) {
+        if (!fields.contains(field.getTag())) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
         }
     }
-    
+
     // / Check if field tag is defined for message or group
     void checkField(Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
         boolean fail;
-        
+
         if (field.getField() < USER_DEFINED_TAG_MIN) {
-            fail = !messageField && !allowUnknownMessageFields; 
+            fail = !messageField && !allowUnknownMessageFields;
         } else {
-            fail = !messageField && checkUserDefinedFields; 
+            fail = !messageField && checkUserDefinedFields;
         }
-        
+
         if (fail) {
-            if (fields.contains(Integer.valueOf(field.getTag()))) {
+            if (fields.contains(field.getTag())) {
                 throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getField());
             } else {
                 throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
@@ -707,62 +694,55 @@ public class DataDictionary {
     }
 
     private void checkValidFormat(StringField field) throws IncorrectDataFormat {
+        FieldType fieldType = getFieldType(field.getTag());
+        if (fieldType == null) {
+            return;
+        }
         try {
-            final FieldType fieldType = getFieldTypeEnum(field.getTag());
-            if (fieldType == FieldType.String) {
-                // String
-            } else if (fieldType == FieldType.Char) {
-                if (beginString.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
-                    CharConverter.convert(field.getValue());
-                } else {
-                    // String, for older FIX versions
-                }
-            } else if (fieldType == FieldType.Price) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Int) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Amt) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Qty) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Qty) {
-                // String
-            } else if (fieldType == FieldType.MultipleValueString) {
-                // String
-            } else if (fieldType == FieldType.MultipleStringValue) {
-                // String
-            } else if (fieldType == FieldType.Exchange) {
-                // String
-            } else if (fieldType == FieldType.Boolean) {
-                BooleanConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.LocalMktDate) {
-                // String
-            } else if (fieldType == FieldType.Data) {
-                // String
-            } else if (fieldType == FieldType.Float) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.PriceOffset) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.MonthYear) {
-                // String
-            } else if (fieldType == FieldType.DayOfMonth) {
-                // String
-            } else if (fieldType == FieldType.UtcDate) {
-                UtcDateOnlyConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.UtcTimeOnly) {
-                UtcTimeOnlyConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.UtcTimeStamp || fieldType == FieldType.Time) {
-                UtcTimestampConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.NumInGroup) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Percentage) {
-                DoubleConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.SeqNum) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Length) {
-                IntConverter.convert(field.getValue());
-            } else if (fieldType == FieldType.Country) {
-                // String
+            switch (fieldType) {
+                case STRING:
+                case MULTIPLEVALUESTRING:
+                case MULTIPLESTRINGVALUE:
+                case EXCHANGE:
+                case LOCALMKTDATE:
+                case DATA:
+                case MONTHYEAR:
+                case DAYOFMONTH:
+                case COUNTRY:
+                    // String
+                    break;
+                case INT:
+                case NUMINGROUP:
+                case SEQNUM:
+                case LENGTH:
+                    IntConverter.convert(field.getValue());
+                    break;
+                case PRICE:
+                case AMT:
+                case QTY:
+                case FLOAT:
+                case PRICEOFFSET:
+                case PERCENTAGE:
+                    DoubleConverter.convert(field.getValue());
+                    break;
+                case BOOLEAN:
+                    BooleanConverter.convert(field.getValue());
+                    break;
+                case UTCDATE:
+                    UtcDateOnlyConverter.convert(field.getValue());
+                    break;
+                case UTCTIMEONLY:
+                    UtcTimeOnlyConverter.convert(field.getValue());
+                    break;
+                case UTCTIMESTAMP:
+                case TIME:
+                    UtcTimestampConverter.convert(field.getValue());
+                    break;
+                case CHAR:
+                    if (beginString.compareTo(FixVersions.BEGINSTRING_FIX41) > 0) {
+                        CharConverter.convert(field.getValue());
+                    } // otherwise it's a String, for older FIX versions
+                    break;
             }
         } catch (final FieldConvertError e) {
             throw new IncorrectDataFormat(field.getTag(), field.getValue());
@@ -770,13 +750,8 @@ public class DataDictionary {
     }
 
     private void checkValue(StringField field) throws IncorrectTagValue {
-        final int tag = field.getField();
-        if (!hasFieldValue(tag)) {
-            return;
-        }
-
-        final String value = field.getValue();
-        if (!isFieldValue(tag, value)) {
+        int tag = field.getField();
+        if (hasFieldValue(tag) && !isFieldValue(tag, field.getValue())) {
             throw new IncorrectTagValue(tag);
         }
     }
@@ -842,12 +817,12 @@ public class DataDictionary {
         final InputStream inputStream = FileUtil.open(getClass(), location, URL, FILESYSTEM,
                 CONTEXT_RESOURCE, CLASSLOADER_RESOURCE);
         if (inputStream == null) {
-            throw new DataDictionary.Exception("Could not find data dictionary: " + location);
+            throw new ConfigError("Could not find data dictionary: " + location);
         }
 
         try {
             load(inputStream);
-        } catch (final java.lang.Exception e) {
+        } catch (final Exception e) {
             throw new ConfigError(location + ": " + e.getMessage(), e);
         } finally {
             try {
@@ -1074,11 +1049,9 @@ public class DataDictionary {
     public int[] getOrderedFields() {
         if (orderedFieldsArray == null) {
             orderedFieldsArray = new int[fields.size()];
-
-            final Iterator<Integer> fieldItr = fields.iterator();
             int i = 0;
-            while (fieldItr.hasNext()) {
-                orderedFieldsArray[i++] = fieldItr.next();
+            for (Integer field : fields) {
+                orderedFieldsArray[i++] = field;
             }
         }
 
@@ -1210,20 +1183,6 @@ public class DataDictionary {
         return defaultValue;
     }
 
-    /**
-     * Data dictionary-related exception.
-     */
-    public static class Exception extends RuntimeException {
-
-        public Exception(Throwable cause) {
-            super(cause);
-        }
-
-        public Exception(String message) {
-            super(message);
-        }
-    }
-
     private static final class IntStringPair {
         private final int intValue;
 
@@ -1233,14 +1192,6 @@ public class DataDictionary {
             intValue = value;
             stringValue = value2;
         }
-
-        //public int getIntValue() {
-        //    return intValue;
-        //}
-
-        //public String getStringValue() {
-        //    return stringValue;
-        //}
 
         @Override
         public boolean equals(Object other) {

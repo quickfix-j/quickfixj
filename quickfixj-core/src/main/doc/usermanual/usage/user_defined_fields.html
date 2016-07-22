@@ -30,7 +30,6 @@ StringField field = message.getField(new StringField(6123));
 
 import quickfix.StringField;
 
-
 public class MyStringField extends StringField
 {
   public MyStringField() { super(6123); }
@@ -42,14 +41,13 @@ public class MyStringField extends StringField
 
 import quickfix.DoubleField;
 
-
 public class MyPriceField extends DoubleField
 {
   public MyPriceField() { super(8756); }
   public MyPriceField(double data) { super(8756, data); }
 }
   </pre>
-  
+
   <p>
   Now, elsewhere in your application, you can write code like this:
   </p>

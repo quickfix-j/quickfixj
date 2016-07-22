@@ -121,8 +121,7 @@ public class CancelReplacePanel extends JPanel {
             Order newOrder = (Order) order.clone();
             newOrder.setQuantity
             (Integer.parseInt(quantityTextField.getText()));
-            newOrder.setLimit
-            (new Double(limitPriceTextField.getText()));
+            newOrder.setLimit(Double.parseDouble(limitPriceTextField.getText()));
             newOrder.setRejected(false);
             newOrder.setCanceled(false);
             newOrder.setOpen(0);

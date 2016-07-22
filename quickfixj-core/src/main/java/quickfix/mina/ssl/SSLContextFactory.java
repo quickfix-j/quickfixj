@@ -81,7 +81,7 @@ public class SSLContextFactory {
         if (tmf == null) {
             tmf = new BogusTrustManagerFactory();
         }
-        
+
         TrustManager[] trustManagers = tmf.getTrustManagers();
 
         if (trustManagers != null) {
@@ -118,7 +118,7 @@ public class SSLContextFactory {
         }
         return keyStore;
     }
-    
+
     private static TrustManagerFactory initializeTrustManager(SSLConfig sslConfig)
             throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
         KeyStore ts = initializeTrustStore(sslConfig.getTrustStoreName(), sslConfig.getTrustStorePassword(),

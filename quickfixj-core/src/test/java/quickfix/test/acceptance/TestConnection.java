@@ -62,7 +62,7 @@ public class TestConnection {
 
     private TestIoHandler getIoHandler(int clientId) {
         synchronized (ioHandlers) {
-            return ioHandlers.get(Integer.valueOf(clientId));
+            return ioHandlers.get(clientId);
         }
     }
 

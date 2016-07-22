@@ -111,17 +111,17 @@
 		</dependency>
 	</dependencies>
 
-    <profiles>
-        <profile>
-          <id>doclint-java8-disable</id>
-          <activation>
-            <jdk>[1.8,)</jdk>
-          </activation>
-          <properties>
-            <javadoc.opts>-Xdoclint:none</javadoc.opts>
-          </properties>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>doclint-java8-disable</id>
+			<activation>
+				<jdk>[1.8,)</jdk>
+			</activation>
+			<properties>
+				<javadoc.opts>-Xdoclint:none</javadoc.opts>
+			</properties>
+		</profile>
+	</profiles>
 
 	<build>
 		<plugins>
@@ -137,7 +137,7 @@
 							<goal>javadoc</goal>
 						</goals>
 						<configuration>
-                            <additionalparam>${javadoc.opts}</additionalparam>
+							<additionalparam>${javadoc.opts}</additionalparam>
 							<includeDependencySources>true</includeDependencySources>
 							<dependencySourceIncludes>
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
@@ -189,17 +189,17 @@
 					</execution>
 				</executions>
 			</plugin>
-		    	     
-		    <!--	          
-            <plugin>
-              	<groupId>org.sonatype.plugins</groupId>
-              	<artifactId>nexus-staging-maven-plugin</artifactId>
-              	<configuration>
-              		<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-          		</configuration>
-            </plugin>
-            -->
-            
+
+			<!--
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<configuration>
+					<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+				</configuration>
+			</plugin>
+			-->
+
 		</plugins>
 	</build>
 </project>

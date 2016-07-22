@@ -28,13 +28,12 @@
 <pre class="code">
 import quickfix.*;
 
-
 public void fromApp(Message message, SessionID sessionID)
   throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
   StringField field = new StringField(44);
   message.getField(field);
-}    
+}
 </pre>
 <H3>More Type Safe</H3>
 <p> A way to add some type safety to this is by using field classes that represent
@@ -47,7 +46,7 @@ public void fromApp(Message message, SessionID sessionID)
 <pre class="code">
 import quickfix.*;
 import quickfix.field.*;
- 
+
 public void fromApp(Message message, SessionID sessionID)
   throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
@@ -71,13 +70,12 @@ public void fromApp(Message message, SessionID sessionID)
 <pre class="code">
 import quickfix.*;
 import quickfix.field.*;
- 
+
 public void fromApp(Message message, SessionID sessionID)
       throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
   crack(message, sessionID);
 }
-
 
 public void onMessage(quickfix.fix42.NewOrderSingle message, SessionID sessionID)
       throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
@@ -89,7 +87,6 @@ public void onMessage(quickfix.fix42.NewOrderSingle message, SessionID sessionID
   message.get(clearingAccount);
 }
 
-
 public void onMessage(quickfix.fix42.OrderCancelRequest message, SessionID sessionID)
       throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
 
@@ -99,7 +96,7 @@ public void onMessage(quickfix.fix42.OrderCancelRequest message, SessionID sessi
   // compile time error!! field not defined for OrderCancelRequest
   ClearingAccount clearingAccount = new ClearingAccount();
   message.get(clearingAccount);
-}    
+}
 </pre>
 <p> In order to use this you must use the <code>MessageCracker</code> as a mixin to
   your application. This will provide you with the <code>crack</code> function and
@@ -110,7 +107,6 @@ public void onMessage(quickfix.fix42.OrderCancelRequest message, SessionID sessi
 <pre class="code">
 import quickfix.Application;
 import quickfix.MessageCracker;
-
 
 public class MyApplication
   extends MessageCracker implements quickfix.Application
@@ -126,20 +122,19 @@ Examples...
 import quickfix.Application;
 import quickfix.MessageCracker;
 
-
 public class MyApplication extends MessageCracker implements quickfix.Application
 {
     public void fromApp(Message message, SessionID sessionID)
-	      throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
-	  crack(message, sessionID);
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        crack(message, sessionID);
     }
-    
+
     // Using annotation
     @Handler
     public void myEmailHandler(quickfix.fix50.Email email, SessionID sessionID) {
-         // handler implementation
+        // handler implementation
     }
-    
+
     // By convention (notice different version of FIX. It's an error to have two handlers for the same message)
     // Convention is "onMessage" method with message object as first argument and SessionID as second argument
     public void onMessage(quickfix.fix44.Email email, SessionID sessionID) {

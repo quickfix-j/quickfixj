@@ -52,7 +52,7 @@
 				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
 			</resource>
 		</resources>
-		
+
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -70,28 +70,28 @@
 					</execution>
 				</executions>
 			</plugin>
-			
-			<plugin>   
+
+			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
 						<phase>process-classes</phase>
-						<goals>    
+						<goals>
 							<goal>manifest</goal>
-						</goals>   
+						</goals>
 						<configuration>
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix41;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
-							    <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
-								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>								
+								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -103,21 +103,21 @@
 						<include>quickfix/field/*.class</include>
 						<include>quickfix/fix*/**</include>
 					</includes>
-					<archive>  
+					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive> 
+					</archive>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-                <version>${maven-source-plugin-version}</version>
+				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>*.xml</include>
 						<include>quickfix/fix*/**</include>
-						<include>quickfix/field/**</include>						
+						<include>quickfix/field/**</include>
 					</includes>
 				</configuration>
 			</plugin>

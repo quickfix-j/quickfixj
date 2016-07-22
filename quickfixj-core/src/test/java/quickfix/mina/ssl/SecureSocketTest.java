@@ -98,24 +98,25 @@ public class SecureSocketTest extends TestCase {
     }
 
     public void testLogonWithCustomCertificate() throws Exception {
-        doLogonTest("test.cert", "testpassword");
+        doLogonTest("test.keystore", "quickfixjtestpw");
     }
 
     /**
      * This is more of an anti-test. To verify that the client-side initiator adds the
      * specified keystore/pwd to the SSL context, reset the pwd to be invalid.
-     * During startup, the socket initiator should fail b/c ssl context is misconfigured
+     * During startup, the socket initiator should fail because SSL context is mis-configured.
      * Thus, we verify that we use SSL keystore/pwd in client connection, since
-     * we don't have any easy way to get to any of the vars inside the client-side initiator
-     * Note that we have to use a unique cert here (not same as test.cert) so that it's not cached
-     * by another test so that there are no false failures.
+     * we don't have any easy way to get to any of the vars inside the client-side initiator.
+     * Note that we have to use a unique certificate here (not test.keystore)
+     * so that it's not cached by another test so that there are no false failures.
+     * The test-client.keystore key store is just a copy of test.keystore under a different name.
      */
     public void testLogonWithBadCertificateOnInitiatorSide() throws Exception {
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
         SessionSettings settings = getClientSessionSettings(clientSessionID);
         // reset client side to invalid certs
-        settings.setString(SSLSupport.SETTING_KEY_STORE_NAME, "test-client.cert");
-        settings.setString(SSLSupport.SETTING_KEY_STORE_PWD, "bogus-pwd");
+        settings.setString(SSLSupport.SETTING_KEY_STORE_NAME, "test-client.keystore");
+        settings.setString(SSLSupport.SETTING_KEY_STORE_PWD, "wrong-pwd");
         ClientApplication clientApplication = new ClientApplication();
         final ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                 new MemoryStoreFactory(), settings, new DefaultMessageFactory());
