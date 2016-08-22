@@ -233,6 +233,35 @@ public class SessionSettings {
         }
     }
 
+    /**
+     * Gets an int from the default section of settings.
+     *
+     * @param key
+     * @return the default value
+     * @throws ConfigError
+     * @throws FieldConvertError
+     */
+    public int getInt(String key) throws ConfigError, FieldConvertError {
+        return getInt(DEFAULT_SESSION_ID, key);
+    }
+
+    /**
+     * Get a settings value as an integer.
+     *
+     * @param sessionID the session ID
+     * @param key       the settings key
+     * @return the long integer value for the setting
+     * @throws ConfigError       configurion error, probably a missing setting.
+     * @throws FieldConvertError error during field type conversion.
+     */
+    public int getInt(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
+        try {
+            return Integer.parseInt(getString(sessionID, key));
+        } catch (final NumberFormatException e) {
+            throw new FieldConvertError(e.getMessage());
+        }
+    }
+
     private Properties getOrCreateSessionProperties(SessionID sessionID) {
         Properties p = sections.get(sessionID);
         if (p == null) {
