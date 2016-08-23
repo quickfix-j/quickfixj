@@ -913,17 +913,17 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>JdbcMaxActiveTime</I></TD>
     <TD>Specifies if the housekeeper comes across a thread that has been active for longer than
-      this then it will kill it. So make sure you set this to a number bigger than your
+      this (milliseconds) then it will kill it. So make sure you set this to a number bigger than your
       slowest expected response!</TD>
     <TD>Any number</TD>
-    <TD>32</TD>
+    <TD>5000</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>JdbcMaxConnectionLifeTime</I></TD>
     <TD>Specifies the maximum amount of time that a connection exists for before
       it is killed (milliseconds).</TD>
     <TD>Any number</TD>
-    <TD>5000</TD>
+    <TD>28800000</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>JdbcSimultaneousBuildThrottle</I></TD>
@@ -935,7 +935,7 @@
         ensuring that a lot of threads don't all decide to build a connection at once.
         (We could solve this in a smarter way - and indeed we will one day)</TD>
     <TD>Any number</TD>
-    <TD>28800000</TD>
+    <TD>32</TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
