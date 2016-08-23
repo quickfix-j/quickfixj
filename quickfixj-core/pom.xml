@@ -86,6 +86,24 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>com.cloudhopper.proxool</groupId>
+			<artifactId>proxool-cglib</artifactId>
+			<version>0.9.1</version>
+			<optional>true</optional>
+			<exclusions>
+				<!-- bug in proxool pom - should be test scope -->
+				<exclusion>
+					<groupId>avalon-framework</groupId>
+					<artifactId>avalon-framework-api</artifactId>
+				</exclusion>
+				<!-- we use slf4j which provides this API -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<!-- slf4j facade for JCL which is required by proxool -->
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
