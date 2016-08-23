@@ -4136,9 +4136,10 @@
       </group>
     </component>
     <component name="LegSecAltIDGrp">
-      <field name="NoLegSecurityAltID" required="N"/>
-      <field name="LegSecurityAltID" required="N"/>
-      <field name="LegSecurityAltIDSource" required="N"/>
+      <group name="NoLegSecurityAltID" required="N">
+        <field name="LegSecurityAltID" required="N"/>
+        <field name="LegSecurityAltIDSource" required="N"/>
+      </group>
     </component>
     <component name="UndSecAltIDGrp">
       <group name="NoUnderlyingSecurityAltID" required="N">
