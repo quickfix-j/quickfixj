@@ -90,16 +90,18 @@ public class FileLog extends AbstractLog {
         writeMessage(messages, message, false);
     }
 
-    private synchronized void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
+    private void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
         try {
-            if (forceTimestamp || includeTimestampForMessages) {
-                writeTimeStamp(stream);
-            }
-            stream.write(message.getBytes(CharsetSupport.getCharset()));
-            stream.write('\n');
-            stream.flush();
-            if (syncAfterWrite) {
-                stream.getFD().sync();
+            synchronized(stream) {
+                if (forceTimestamp || includeTimestampForMessages) {
+                    writeTimeStamp(stream);
+                }
+                stream.write(message.getBytes(CharsetSupport.getCharset()));
+                stream.write('\n');
+                stream.flush();
+                if (syncAfterWrite) {
+                    stream.getFD().sync();
+                }
             }
         } catch (IOException e) {
             // QFJ-459: no point trying to log the error in the file if we had an IOException
