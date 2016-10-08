@@ -11,5 +11,6 @@ It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
 
 For more information see the project website at http://www.quickfixj.org.
 
-Please report issues at http://www.quickfixj.org/jira.
+For asking questions please use the mailing list: https://lists.sourceforge.net/lists/listinfo/quickfixj-users
 
+Please report issues at http://www.quickfixj.org/jira.
