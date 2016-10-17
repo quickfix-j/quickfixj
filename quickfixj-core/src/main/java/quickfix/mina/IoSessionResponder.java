@@ -77,31 +77,13 @@ public class IoSessionResponder implements Responder {
 
     @Override
     public void disconnect() {
-        waitForScheduleMessagesToBeWritten();
         // We cannot call join() on the CloseFuture returned
         // by the following call. We are using a minimal
         // threading model and calling join will prevent the
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
-        ioSession.closeNow();
+        ioSession.closeOnFlush();
         ioSession.setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
-    }
-
-    private void waitForScheduleMessagesToBeWritten() {
-        // This is primarily to allow logout messages to be sent before
-        // closing the socket. Future versions of MINA may have support
-        // in close() to force all pending messages to be written before
-        // the socket close is performed.
-        //
-        // Only wait for a limited time since MINA may deadlock
-        // in some rare cases where a socket dies in a strange way.
-        for (int i = 0; i < 5 && ioSession.getScheduledWriteMessages() > 0; i++) {
-            try {
-                Thread.sleep(10L);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
     }
 
     @Override

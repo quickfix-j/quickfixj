@@ -104,8 +104,7 @@ public class IoSessionResponderTest extends TestCase {
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0, 0);
         responder.disconnect();
 
-        verify(mockProtocolSession).getScheduledWriteMessages();
-        verify(mockProtocolSession).closeNow();
+        verify(mockProtocolSession).closeOnFlush();
         verify(mockProtocolSession).setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
 
         verifyNoMoreInteractions(mockProtocolSession);
