@@ -1,4 +1,5 @@
-/*******************************************************************************
+/*
+ ******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
  * This file is part of the QuickFIX FIX Engine
@@ -19,15 +20,13 @@
 
 package quickfix.mina;
 
+import quickfix.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import quickfix.LogUtil;
-import quickfix.Message;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SystemTime;
 
 /**
  * Processes messages for all sessions in a single thread.
@@ -68,9 +67,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             synchronized (this) {
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
-                        final LinkedBlockingQueue<SessionMessageEvent> tempQueue = new LinkedBlockingQueue<SessionMessageEvent>();
-                        eventQueue.drainTo(tempQueue);
-                        for (SessionMessageEvent event : tempQueue) {
+                        final List<SessionMessageEvent> tempList = new ArrayList<SessionMessageEvent>();
+                        eventQueue.drainTo(tempList);
+                        for (SessionMessageEvent event : tempList) {
                             event.processMessage();
                         }
                     }
