@@ -1,4 +1,5 @@
-/*******************************************************************************
+/*
+ ******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
  * This file is part of the QuickFIX FIX Engine
@@ -19,19 +20,16 @@
 
 package quickfix.mina;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.Session;
 import quickfix.SessionID;
-import static quickfix.mina.EventHandlingStrategy.END_OF_STREAM;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * Processes messages in a session-specific thread.
@@ -153,9 +151,9 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 }
             }
             if (!messages.isEmpty()) {
-                final LinkedBlockingQueue<Message> tempQueue = new LinkedBlockingQueue<Message>();
-                messages.drainTo(tempQueue);
-                for (Message message : tempQueue) {
+                final List<Message> tempList = new ArrayList<Message>();
+                messages.drainTo(tempList);
+                for (Message message : tempList) {
                     try {
                         quickfixSession.next(message);
                     } catch (final Throwable e) {
