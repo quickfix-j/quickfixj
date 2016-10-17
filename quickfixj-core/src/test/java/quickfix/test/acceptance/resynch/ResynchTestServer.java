@@ -95,6 +95,11 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
     public void stop() {
         shutdownLatch.countDown();
+        try {
+            serverThread.join();
+        } catch (InterruptedException ex) {
+            // ignore on stop
+        }
     }
 
     @Override
