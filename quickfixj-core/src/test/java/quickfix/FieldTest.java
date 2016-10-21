@@ -19,13 +19,6 @@
 
 package quickfix;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
-
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.assertEquals;
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 import quickfix.field.MDUpdateAction;
@@ -33,6 +26,14 @@ import quickfix.field.RawData;
 import quickfix.field.Side;
 import quickfix.field.TradeCondition;
 import quickfix.fix50.MarketDataIncrementalRefresh;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Date;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 public class FieldTest {
 
@@ -48,7 +49,7 @@ public class FieldTest {
     }
 
     private void testFieldCalcuations(String value, int checksum, int length) {
-        Field<String> field = new Field<String>(12, value);
+        Field<String> field = new Field<>(12, value);
         field.setObject(value);
         assertEquals("12=" + value, field.toString());
         assertEquals(checksum, field.getChecksum());

@@ -19,19 +19,13 @@
 
 package quickfix.mina.ssl;
 
-import java.util.HashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import junit.framework.TestCase;
-
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
@@ -46,6 +40,10 @@ import quickfix.ThreadedSocketInitiator;
 import quickfix.mina.ProtocolFactory;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.ExpectedTestFailure;
+
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class SecureSocketTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -159,7 +157,7 @@ public class SecureSocketTest extends TestCase {
 
     private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
         SessionSettings settings = new SessionSettings();
-        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(transportProtocol));
         defaults.put("SocketUseSSL", "Y");

@@ -19,19 +19,6 @@
 
 package quickfix.mina.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
@@ -42,12 +29,24 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
-
 import quickfix.DataDictionaryTest;
 import quickfix.InvalidMessage;
 import quickfix.Message;
 import quickfix.field.Headline;
 import quickfix.mina.CriticalProtocolCodecException;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class FIXMessageDecoderTest {
     private FIXMessageDecoder decoder;
@@ -277,7 +276,7 @@ public class FIXMessageDecoderTest {
         File testFile = setUpTestFile();
 
         FIXMessageDecoder decoder = new FIXMessageDecoder();
-        final List<String> messages = new ArrayList<String>();
+        final List<String> messages = new ArrayList<>();
         decoder.extractMessages(testFile, new FIXMessageDecoder.MessageListener() {
             public void onMessage(String message) {
                 messages.add(message);

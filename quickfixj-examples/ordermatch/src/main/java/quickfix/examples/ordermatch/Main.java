@@ -19,17 +19,17 @@
 
 package quickfix.examples.ordermatch;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
 import quickfix.LogFactory;
 import quickfix.ScreenLogFactory;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class Main {
     public static void main(String[] args) {
@@ -54,16 +54,20 @@ public class Main {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             acceptor.start();
+            label:
             while (true) {
                 System.out.println("type #quit to quit");
                 String value = in.readLine();
                 if (value != null) {
-                    if (value.equals("#symbols")) {
-                        application.orderMatcher().display();
-                    } else if (value.equals("#quit")) {
-                        break;
-                    } else {
-                        application.orderMatcher().display();
+                    switch (value) {
+                        case "#symbols":
+                            application.orderMatcher().display();
+                            break;
+                        case "#quit":
+                            break label;
+                        default:
+                            application.orderMatcher().display();
+                            break;
                     }
                 }
             }

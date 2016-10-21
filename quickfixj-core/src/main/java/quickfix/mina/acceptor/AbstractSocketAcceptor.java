@@ -19,21 +19,10 @@
 
 package quickfix.mina.acceptor;
 
-import java.net.SocketAddress;
-import java.security.GeneralSecurityException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-
 import quickfix.Acceptor;
 import quickfix.Application;
 import quickfix.ConfigError;
@@ -59,14 +48,23 @@ import quickfix.mina.ssl.SSLContextFactory;
 import quickfix.mina.ssl.SSLFilter;
 import quickfix.mina.ssl.SSLSupport;
 
+import javax.net.ssl.SSLContext;
+import java.net.SocketAddress;
+import java.security.GeneralSecurityException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 /**
  * Abstract base class for socket acceptors.
  */
 public abstract class AbstractSocketAcceptor extends SessionConnector implements Acceptor {
-    private final Map<SocketAddress, AcceptorSessionProvider> sessionProviders = new HashMap<SocketAddress, AcceptorSessionProvider>();
+    private final Map<SocketAddress, AcceptorSessionProvider> sessionProviders = new HashMap<>();
     private final SessionFactory sessionFactory;
-    private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<SocketAddress, AcceptorSocketDescriptor>();
-    private final Map<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new HashMap<AcceptorSocketDescriptor, IoAcceptor>();
+    private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<>();
+    private final Map<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new HashMap<>();
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -221,7 +219,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
-        HashMap<SessionID, Session> allSessions = new HashMap<SessionID, Session>();
+        HashMap<SessionID, Session> allSessions = new HashMap<>();
         for (Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
             SessionID sessionID = i.next();
             String connectionType = settings.getString(sessionID,
@@ -265,7 +263,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         private final SocketAddress address;
         private final boolean useSSL;
         private final SSLConfig sslConfig;
-        private final Map<SessionID, Session> acceptedSessions = new HashMap<SessionID, Session>();
+        private final Map<SessionID, Session> acceptedSessions = new HashMap<>();
 
         public AcceptorSocketDescriptor(SocketAddress address, boolean useSSL, SSLConfig sslConfig) {
             this.address = address;
@@ -299,7 +297,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     public Map<SessionID, SocketAddress> getAcceptorAddresses() {
-        Map<SessionID, SocketAddress> sessionIdToAddressMap = new HashMap<SessionID, SocketAddress>();
+        Map<SessionID, SocketAddress> sessionIdToAddressMap = new HashMap<>();
         for (AcceptorSocketDescriptor descriptor : socketDescriptorForAddress.values()) {
             for (SessionID sessionID : descriptor.getAcceptedSessions().keySet()) {
                 sessionIdToAddressMap.put(sessionID, descriptor.getAddress());

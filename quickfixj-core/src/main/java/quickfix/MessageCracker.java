@@ -34,7 +34,7 @@ import java.util.Map;
  * type-safe onMessage methods.
  */
 public class MessageCracker {
-    private final Map<Class<?>, Invoker> invokers = new HashMap<Class<?>, Invoker>();
+    private final Map<Class<?>, Invoker> invokers = new HashMap<>();
 
     @Target({ ElementType.METHOD })
     @Retention(RetentionPolicy.RUNTIME)
@@ -128,11 +128,7 @@ public class MessageCracker {
             } catch (InvocationTargetException ite) {
                 try {
                     throw ite.getTargetException();
-                } catch (UnsupportedMessageType e) {
-                    throw e;
-                } catch (FieldNotFound e) {
-                    throw e;
-                } catch (IncorrectTagValue e) {
+                } catch (UnsupportedMessageType | IncorrectTagValue | FieldNotFound e) {
                     throw e;
                 } catch (Throwable t) {
                     propagate(t);

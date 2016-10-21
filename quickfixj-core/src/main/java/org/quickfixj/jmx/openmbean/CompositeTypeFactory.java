@@ -17,11 +17,10 @@
 
 package org.quickfixj.jmx.openmbean;
 
-import java.util.ArrayList;
-
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import java.util.ArrayList;
 
 // NOTE: Do not parameterize OpenType for Java6 since it will
 // be incompatible with Java 5
@@ -29,11 +28,11 @@ import javax.management.openmbean.OpenType;
 public class CompositeTypeFactory {
     private final String name;
     private final String description;
-    private final ArrayList<String> itemNames = new ArrayList<String>();
-    private final ArrayList<String> itemDescriptions = new ArrayList<String>();
+    private final ArrayList<String> itemNames = new ArrayList<>();
+    private final ArrayList<String> itemDescriptions = new ArrayList<>();
 
     @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
-    private final ArrayList<OpenType> itemTypes = new ArrayList<OpenType>();
+    private final ArrayList<OpenType> itemTypes = new ArrayList<>();
 
     public CompositeTypeFactory(String name, String description) {
         this.name = name;

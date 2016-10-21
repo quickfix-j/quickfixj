@@ -24,23 +24,16 @@
 	<dependencies>
 		<dependency>
 			<!-- used by dictgenerator package -->
-			<groupId>dom4j</groupId>
+			<groupId>org.dom4j</groupId>
 			<artifactId>dom4j</artifactId>
-			<version>1.6.1</version>
+			<version>2.0.0</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<!-- should be test scope -->
-					<groupId>xml-apis</groupId>
-					<artifactId>xml-apis</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<!-- required by dom4j at runtime -->
 			<groupId>jaxen</groupId>
 			<artifactId>jaxen</artifactId>
-			<version>1.1.4</version>
+			<version>1.1.6</version>
 			<scope>runtime</scope>
 			<!-- we don't need any of the transient dependencies -->
 			<exclusions>

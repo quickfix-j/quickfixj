@@ -19,11 +19,12 @@
 
 package org.quickfixj.codegenerator;
 
-import java.io.File;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
+
+import java.io.File;
 
 /**
  * A mojo that uses the quickfix code generator to generate
@@ -137,8 +138,6 @@ public class GenerateMojo extends AbstractMojo {
             task.setOrderedFields(orderedFields);
             task.setDecimalGenerated(decimal);
             generator.generate(task);
-        } catch (Exception e) {
-            throw new MojoExecutionException("QuickFIX code generator execution failed", e);
         } catch (Throwable t) {
             throw new MojoExecutionException("QuickFIX code generator execution failed", t);
         }

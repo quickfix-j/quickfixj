@@ -19,23 +19,10 @@
 
 package quickfix;
 
-import java.io.ByteArrayOutputStream;
-import java.text.DecimalFormat;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.quickfixj.CharsetSupport;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
@@ -69,6 +56,17 @@ import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
 import quickfix.field.XmlData;
 import quickfix.field.XmlDataLen;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents a FIX message.
@@ -115,9 +113,7 @@ public class Message extends FieldMap {
         try {
             final Message message = getClass().newInstance();
             return cloneTo(message);
-        } catch (final InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (final IllegalAccessException e) {
+        } catch (final InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }

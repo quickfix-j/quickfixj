@@ -19,27 +19,11 @@
 
 package quickfix.test.acceptance;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
-import java.net.BindException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import junit.framework.TestSuite;
-
 import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.DefaultMessageFactory;
 import quickfix.FileStoreFactory;
 import quickfix.FixVersions;
@@ -56,11 +40,25 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.util.ReflectionUtil;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.net.BindException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final CountDownLatch tearDownLatch = new CountDownLatch(1);
-    private final Set<String> fixVersions = new HashSet<String>();
+    private final Set<String> fixVersions = new HashSet<>();
     private final SessionSettings settings = new SessionSettings();
     private boolean resetOnDisconnect;
     private boolean usingMemoryStore;
@@ -97,7 +95,7 @@ public class ATServer implements Runnable {
 
     public void run() {
         try {
-            HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+            HashMap<Object, Object> defaults = new HashMap<>();
             defaults.put("ConnectionType", "acceptor");
             defaults.put("SocketAcceptProtocol", ProtocolFactory.getTypeString(transportType));
             defaults.put("SocketAcceptPort", Integer.toString(port));
@@ -196,7 +194,7 @@ public class ATServer implements Runnable {
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
                     long[] threadIds = bean.findDeadlockedThreads();
 
-                    final List<String> deadlockedThreads = new ArrayList<String>();
+                    final List<String> deadlockedThreads = new ArrayList<>();
                     if (threadIds != null) {
                         for (long threadId : threadIds) {
                             final ThreadInfo threadInfo = bean.getThreadInfo(threadId);

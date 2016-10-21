@@ -19,6 +19,17 @@
 
 package quickfix;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import static quickfix.JdbcSetting.SETTING_JDBC_DS_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_MESSAGES_TABLE_NAME;
 import static quickfix.JdbcSetting.SETTING_JDBC_STORE_SESSIONS_TABLE_NAME;
@@ -29,18 +40,6 @@ import static quickfix.JdbcTestSupport.assertNoActiveConnections;
 import static quickfix.JdbcTestSupport.dropTable;
 import static quickfix.JdbcTestSupport.loadSQL;
 import static quickfix.JdbcUtil.close;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
 
 public class JdbcStoreTest extends AbstractMessageStoreTest {
     private String initialContextFactory;
@@ -114,7 +113,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         assertTrue("set failed", store.set(113, "message1"));
         assertTrue("set failed", store.set(120, "message3"));
 
-        ArrayList<String> messages = new ArrayList<String>();
+        ArrayList<String> messages = new ArrayList<>();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "message2", messages.get(0));
@@ -166,7 +165,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         assertTrue(store.set(1, "MESSAGE1"));
         assertTrue(store.set(1, "MESSAGE2"));
 
-        List<String> messages = new ArrayList<String>();
+        List<String> messages = new ArrayList<>();
         store.get(1, 1, messages);
         assertEquals("MESSAGE2", messages.get(0));
     }

@@ -19,12 +19,12 @@
 
 package quickfix;
 
-import static org.junit.Assert.*;
-import static quickfix.FixVersions.*;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+
+import static org.junit.Assert.assertEquals;
+import static quickfix.FixVersions.BEGINSTRING_FIX44;
 
 public class LoginTestCase {
 
@@ -59,7 +59,7 @@ public class LoginTestCase {
     private static SessionSettings createSettings(String senderCompID) {
         SessionSettings settings = new SessionSettings();
 
-        Map<Object, Object> defaults = new HashMap<Object, Object>();
+        Map<Object, Object> defaults = new HashMap<>();
         defaults.put("FileStorePath", "target/data/banzai");
         defaults.put("ConnectionType", "initiator");
         defaults.put("TargetCompID", "EXEC");

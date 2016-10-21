@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrderType {
-    static private final Map<String, OrderType> known = new HashMap<String, OrderType>();
+    static private final Map<String, OrderType> known = new HashMap<>();
     static public final OrderType MARKET = new OrderType("Market");
     static public final OrderType LIMIT = new OrderType("Limit");
     static public final OrderType STOP = new OrderType("Stop");

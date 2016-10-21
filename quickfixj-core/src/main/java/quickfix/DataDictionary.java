@@ -19,11 +19,24 @@
 
 package quickfix;
 
-import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
-import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
-import static quickfix.FileUtil.Location.FILESYSTEM;
-import static quickfix.FileUtil.Location.URL;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import quickfix.field.BeginString;
+import quickfix.field.MsgType;
+import quickfix.field.SessionRejectReason;
+import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DoubleConverter;
+import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.UtcDateOnlyConverter;
+import quickfix.field.converter.UtcTimeOnlyConverter;
+import quickfix.field.converter.UtcTimestampConverter;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -35,25 +48,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import quickfix.field.BeginString;
-import quickfix.field.MsgType;
-import quickfix.field.SessionRejectReason;
-import quickfix.field.converter.BooleanConverter;
-import quickfix.field.converter.CharConverter;
-import quickfix.field.converter.DoubleConverter;
-import quickfix.field.converter.IntConverter;
-import quickfix.field.converter.UtcDateOnlyConverter;
-import quickfix.field.converter.UtcTimeOnlyConverter;
-import quickfix.field.converter.UtcTimestampConverter;
+import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
+import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
+import static quickfix.FileUtil.Location.FILESYSTEM;
+import static quickfix.FileUtil.Location.URL;
 
 /**
  * Provide the message metadata for various versions of FIX.
@@ -76,19 +74,19 @@ public class DataDictionary {
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
     private String beginString;
-    private final Map<String, Set<Integer>> messageFields = new HashMap<String, Set<Integer>>();
-    private final Map<String, Set<Integer>> requiredFields = new HashMap<String, Set<Integer>>();
-    private final Set<String> messages = new HashSet<String>();
-    private final Map<String, String> messageCategory = new HashMap<String, String>();
-    private final Map<String, String> messageTypeForName = new HashMap<String, String>();
-    private final LinkedHashSet<Integer> fields = new LinkedHashSet<Integer>();
-    private final Map<Integer, FieldType> fieldTypes = new HashMap<Integer, FieldType>();
-    private final Map<Integer, Set<String>> fieldValues = new HashMap<Integer, Set<String>>();
-    private final Map<Integer, String> fieldNames = new HashMap<Integer, String>();
-    private final Map<String, Integer> names = new HashMap<String, Integer>();
-    private final Map<IntStringPair, String> valueNames = new HashMap<IntStringPair, String>();
-    private final Map<IntStringPair, GroupInfo> groups = new HashMap<IntStringPair, GroupInfo>();
-    private final Map<String, Node> components = new HashMap<String, Node>();
+    private final Map<String, Set<Integer>> messageFields = new HashMap<>();
+    private final Map<String, Set<Integer>> requiredFields = new HashMap<>();
+    private final Set<String> messages = new HashSet<>();
+    private final Map<String, String> messageCategory = new HashMap<>();
+    private final Map<String, String> messageTypeForName = new HashMap<>();
+    private final LinkedHashSet<Integer> fields = new LinkedHashSet<>();
+    private final Map<Integer, FieldType> fieldTypes = new HashMap<>();
+    private final Map<Integer, Set<String>> fieldValues = new HashMap<>();
+    private final Map<Integer, String> fieldNames = new HashMap<>();
+    private final Map<String, Integer> names = new HashMap<>();
+    private final Map<IntStringPair, String> valueNames = new HashMap<>();
+    private final Map<IntStringPair, GroupInfo> groups = new HashMap<>();
+    private final Map<String, Node> components = new HashMap<>();
 
     private DataDictionary() {
     }
@@ -247,7 +245,7 @@ public class DataDictionary {
     private void addMsgField(String msgType, int field) {
         Set<Integer> fields = messageFields.get(msgType);
         if (fields == null) {
-            fields = new HashSet<Integer>();
+            fields = new HashSet<>();
             messageFields.put(msgType, fields);
         }
         fields.add(field);
@@ -303,7 +301,7 @@ public class DataDictionary {
     private void addRequiredField(String msgType, int field) {
         Set<Integer> fields = requiredFields.get(msgType);
         if (fields == null) {
-            fields = new HashSet<Integer>();
+            fields = new HashSet<>();
             requiredFields.put(msgType, fields);
         }
         fields.add(field);
@@ -344,7 +342,7 @@ public class DataDictionary {
     private void addFieldValue(int field, String value) {
         Set<String> values = fieldValues.get(field);
         if (values == null) {
-            values = new HashSet<String>();
+            values = new HashSet<>();
             fieldValues.put(field, values);
         }
         values.add(value);

@@ -19,22 +19,22 @@
 
 package quickfix;
 
+import quickfix.field.ApplVerID;
+import quickfix.field.DefaultApplVerID;
+
 import java.net.InetAddress;
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
-import quickfix.field.ApplVerID;
-import quickfix.field.DefaultApplVerID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory for creating sessions. Used by the communications code (acceptors,
  * initiators) for creating sessions.
  */
 public class DefaultSessionFactory implements SessionFactory {
-    private static final Map<String, DataDictionary> dictionaryCache = new Hashtable<String, DataDictionary>();
+    private static final Map<String, DataDictionary> dictionaryCache = new ConcurrentHashMap<>();
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
     private final LogFactory logFactory;

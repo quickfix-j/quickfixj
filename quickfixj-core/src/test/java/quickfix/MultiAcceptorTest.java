@@ -19,18 +19,16 @@
 
 package quickfix;
 
-import java.util.HashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import junit.framework.TestCase;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.field.TestReqID;
 import quickfix.fix42.TestRequest;
 import quickfix.mina.ProtocolFactory;
+
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class MultiAcceptorTest extends TestCase {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -131,7 +129,7 @@ public class MultiAcceptorTest extends TestCase {
     }
 
     private static class TestAcceptorApplication extends ApplicationAdapter {
-        private final HashMap<SessionID, Message> sessionMessages = new HashMap<SessionID, Message>();
+        private final HashMap<SessionID, Message> sessionMessages = new HashMap<>();
         private final CountDownLatch logonLatch;
         private CountDownLatch messageLatch;
 
@@ -192,7 +190,7 @@ public class MultiAcceptorTest extends TestCase {
 
     private Initiator createInitiator(boolean wrongPort) throws ConfigError {
         SessionSettings settings = new SessionSettings();
-        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
@@ -222,7 +220,7 @@ public class MultiAcceptorTest extends TestCase {
 
     private Acceptor createAcceptor() throws ConfigError {
         SessionSettings settings = new SessionSettings();
-        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "acceptor");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");

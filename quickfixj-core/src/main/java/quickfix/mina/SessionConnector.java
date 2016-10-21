@@ -19,6 +19,19 @@
 
 package quickfix.mina;
 
+import org.apache.mina.core.filterchain.IoFilterChainBuilder;
+import org.apache.mina.core.session.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.ConfigError;
+import quickfix.Connector;
+import quickfix.FieldConvertError;
+import quickfix.Session;
+import quickfix.SessionFactory;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
+import quickfix.field.converter.IntConverter;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
@@ -34,20 +47,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.mina.core.filterchain.IoFilterChainBuilder;
-import org.apache.mina.core.session.IoSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.ConfigError;
-import quickfix.Connector;
-import quickfix.FieldConvertError;
-import quickfix.Session;
-import quickfix.SessionFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.field.converter.IntConverter;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
@@ -98,7 +97,7 @@ public abstract class SessionConnector implements Connector {
      * @see quickfix.Session
      */
     public List<Session> getManagedSessions() {
-        return new ArrayList<Session>(sessions.values());
+        return new ArrayList<>(sessions.values());
     }
 
     /**
@@ -118,7 +117,7 @@ public abstract class SessionConnector implements Connector {
      * @return list of session identifiers
      */
     public ArrayList<SessionID> getSessions() {
-        return new ArrayList<SessionID>(sessions.keySet());
+        return new ArrayList<>(sessions.keySet());
     }
 
     public void addDynamicSession(Session inSession) {
@@ -168,7 +167,7 @@ public abstract class SessionConnector implements Connector {
     }
 
     private Set<quickfix.Session> getLoggedOnSessions() {
-        Set<quickfix.Session> loggedOnSessions = new HashSet<quickfix.Session>(sessions.size());
+        Set<quickfix.Session> loggedOnSessions = new HashSet<>(sessions.size());
         for (Session session : sessions.values()) {
             if (session.isLoggedOn()) {
                 loggedOnSessions.add(session);

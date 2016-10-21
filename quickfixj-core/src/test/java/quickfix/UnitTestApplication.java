@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UnitTestApplication implements ApplicationExtended, SessionStateListener {
-    public final List<Message> fromAppMessages = new ArrayList<Message>();
-    public final List<Message> toAppMessages = new ArrayList<Message>();
-    public final List<Message> fromAdminMessages = new ArrayList<Message>();
-    public final List<Message> toAdminMessages = new ArrayList<Message>();
-    public final List<SessionID> logonSessions = new ArrayList<SessionID>();
-    public final List<SessionID> logoutSessions = new ArrayList<SessionID>();
-    public final List<SessionID> createSessions = new ArrayList<SessionID>();
+    public final List<Message> fromAppMessages = new ArrayList<>();
+    public final List<Message> toAppMessages = new ArrayList<>();
+    public final List<Message> fromAdminMessages = new ArrayList<>();
+    public final List<Message> toAdminMessages = new ArrayList<>();
+    public final List<SessionID> logonSessions = new ArrayList<>();
+    public final List<SessionID> logoutSessions = new ArrayList<>();
+    public final List<SessionID> createSessions = new ArrayList<>();
     public int sessionResets = 0;
 
     public boolean canLogon(SessionID sessionID) {

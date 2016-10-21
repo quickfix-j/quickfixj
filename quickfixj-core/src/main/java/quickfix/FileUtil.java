@@ -24,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class FileUtil {
@@ -143,8 +142,6 @@ public class FileUtil {
             case URL:
                 try {
                     in = new URL(name).openStream();
-                } catch (MalformedURLException e) {
-                    // ignore
                 } catch (IOException e) {
                     // ignore
                 }

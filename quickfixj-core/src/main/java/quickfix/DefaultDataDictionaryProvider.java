@@ -19,18 +19,17 @@
 
 package quickfix;
 
-import static quickfix.MessageUtils.*;
+import org.quickfixj.QFJException;
+import quickfix.field.ApplVerID;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.quickfixj.QFJException;
-
-import quickfix.field.ApplVerID;
+import static quickfix.MessageUtils.toBeginString;
 
 public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
-    private final Map<String, DataDictionary> transportDictionaries = new ConcurrentHashMap<String, DataDictionary>();
-    private final Map<AppVersionKey, DataDictionary> applicationDictionaries = new ConcurrentHashMap<AppVersionKey, DataDictionary>();
+    private final Map<String, DataDictionary> transportDictionaries = new ConcurrentHashMap<>();
+    private final Map<AppVersionKey, DataDictionary> applicationDictionaries = new ConcurrentHashMap<>();
     private final boolean findDataDictionaries;
 
     public DefaultDataDictionaryProvider() {

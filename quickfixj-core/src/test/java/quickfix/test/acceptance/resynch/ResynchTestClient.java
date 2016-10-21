@@ -19,14 +19,8 @@
 
 package quickfix.test.acceptance.resynch;
 
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
@@ -50,6 +44,11 @@ import quickfix.SocketInitiator;
 import quickfix.UnsupportedMessageType;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
+
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 
 public class ResynchTestClient extends MessageCracker implements Application {
     private final Logger log = LoggerFactory.getLogger(ResynchTestServer.class);
@@ -99,7 +98,7 @@ public class ResynchTestClient extends MessageCracker implements Application {
     }
 
     public void run() throws ConfigError, SessionNotFound, InterruptedException {
-        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("HeartBtInt", "2");
         defaults.put("SocketConnectHost", "localhost");

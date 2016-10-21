@@ -72,7 +72,7 @@ public class Generator {
             builder.append("<fix major=\"").append(major).append("\" minor=\"").append(minor).append("\">\n");
         }
 
-        Map<String, MsgType> msgTypes = new LinkedHashMap<String, MsgType>();
+        Map<String, MsgType> msgTypes = new LinkedHashMap<>();
         if (!merged) {
             if (admin) {
                 msgTypes.putAll(repository.getSessionMsgTypes());
@@ -181,7 +181,7 @@ public class Generator {
             builder.append("    <field number=\"").append(tag).append("\" name=\"").append(field.getFieldName()).append("\" type=\"").append(fieldType.toUpperCase()).append("\"");
             if (!field.getEnums().isEmpty()) {
                 builder.append(">\n");
-                Set<String> enumDescCache = new HashSet<String>();
+                Set<String> enumDescCache = new HashSet<>();
                 for (Enum theEnum : field.getEnums()) {
                     String enumDesc = theEnum.getDesc().toUpperCase();
                     enumDesc = enumDesc.replaceAll("\\(.*\\)", ""); // remove stuff in parentheses
@@ -241,7 +241,7 @@ public class Generator {
     }
 
     private Set<Integer> getAllFieldsUsed(Map<String, MsgType> msgTypes) {
-        Set<Integer> result = new TreeSet<Integer>();
+        Set<Integer> result = new TreeSet<>();
         for (MsgType msgType : msgTypes.values()) {
             result = addFields(result, msgType.getMsgContent());
         }
@@ -261,7 +261,7 @@ public class Generator {
     }
 
     private Set<String> getAllComponentsUsed(Map<String, MsgType> msgTypes) {
-        Set<String> result = new HashSet<String>();
+        Set<String> result = new HashSet<>();
         for (MsgType msgType : msgTypes.values()) {
             result = addComponents(result, msgType.getMsgContent());
         }

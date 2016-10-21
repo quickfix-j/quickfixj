@@ -19,13 +19,13 @@
 
 package quickfix.mina.message;
 
+import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.mina.filter.codec.ProtocolDecoderOutput;
-
 public class ProtocolDecoderOutputForTest implements ProtocolDecoderOutput {
-    public final List<Object> messages = new ArrayList<Object>();
+    public final List<Object> messages = new ArrayList<>();
 
     public void write(Object message) {
         messages.add(message);

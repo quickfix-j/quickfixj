@@ -19,20 +19,19 @@
 
 package quickfix.mina;
 
-import java.net.SocketException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.session.IoSessionConfig;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.FieldConvertError;
 import quickfix.field.converter.BooleanConverter;
 import quickfix.field.converter.IntConverter;
+
+import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * This class holds the QFJ settings information related to networking options.
@@ -65,7 +64,7 @@ public class NetworkingOptions {
     public static final String IPTOC_RELIABILITY = "IPTOS_RELIABILITY";
     public static final String IPTOC_THROUGHPUT = "IPTOS_THROUGHPUT";
     public static final String IPTOC_LOWDELAY = "IPTOS_LOWDELAY";
-    public static final Map<String, Integer> trafficClasses = new HashMap<String, Integer>();
+    public static final Map<String, Integer> trafficClasses = new HashMap<>();
 
     static {
         trafficClasses.put(IPTOC_LOWCOST, 0x02);

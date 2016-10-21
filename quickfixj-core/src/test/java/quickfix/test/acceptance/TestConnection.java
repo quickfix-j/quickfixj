@@ -19,6 +19,22 @@
 
 package quickfix.test.acceptance;
 
+import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.service.IoConnector;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.transport.socket.nio.NioSocketConnector;
+import org.apache.mina.transport.vmpipe.VmPipeAddress;
+import org.apache.mina.transport.vmpipe.VmPipeConnector;
+import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.mina.ProtocolFactory;
+import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.test.util.ReflectionUtil;
+
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -33,27 +49,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mina.core.future.CloseFuture;
-import org.apache.mina.core.future.ConnectFuture;
-import org.apache.mina.core.service.IoConnector;
-import org.apache.mina.core.service.IoHandlerAdapter;
-import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.transport.socket.nio.NioSocketConnector;
-import org.apache.mina.transport.vmpipe.VmPipeAddress;
-import org.apache.mina.transport.vmpipe.VmPipeConnector;
-import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.mina.ProtocolFactory;
-import quickfix.mina.message.FIXProtocolCodecFactory;
-import quickfix.test.util.ReflectionUtil;
-
 public class TestConnection {
-    private static final HashMap<String, IoConnector> connectors = new HashMap<String, IoConnector>();
+    private static final HashMap<String, IoConnector> connectors = new HashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<Integer, TestIoHandler>();
+    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -120,7 +119,7 @@ public class TestConnection {
 
     private class TestIoHandler extends IoHandlerAdapter {
         private IoSession session;
-        private final BlockingQueue<Object> messages = new LinkedBlockingQueue<Object>();
+        private final BlockingQueue<Object> messages = new LinkedBlockingQueue<>();
         private final CountDownLatch sessionCreatedLatch = new CountDownLatch(1);
         private final CountDownLatch disconnectLatch = new CountDownLatch(1);
 
@@ -156,7 +155,7 @@ public class TestConnection {
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
                     long[] threadIds = bean.findDeadlockedThreads();
 
-                    final List<String> deadlockedThreads = new ArrayList<String>();
+                    final List<String> deadlockedThreads = new ArrayList<>();
                     if (threadIds != null) {
                         for (long threadId : threadIds) {
                             final ThreadInfo threadInfo = bean.getThreadInfo(threadId);

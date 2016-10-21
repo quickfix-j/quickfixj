@@ -17,17 +17,16 @@
 
 package org.quickfixj.jmx.openmbean;
 
-import java.util.ArrayList;
-
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
+import java.util.ArrayList;
 
 public class CompositeDataFactory {
     private final CompositeType compositeType;
-    private final ArrayList<String> itemNames = new ArrayList<String>();
-    private final ArrayList<Object> itemValues = new ArrayList<Object>();
+    private final ArrayList<String> itemNames = new ArrayList<>();
+    private final ArrayList<Object> itemValues = new ArrayList<>();
 
     public CompositeDataFactory(CompositeType compositeType) {
         this.compositeType = compositeType;

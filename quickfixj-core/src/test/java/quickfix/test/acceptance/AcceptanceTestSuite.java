@@ -1,34 +1,32 @@
 package quickfix.test.acceptance;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import junit.extensions.TestSetup;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
-
 import org.apache.mina.util.AvailablePortFinder;
 import org.logicalcobwebs.proxool.ProxoolException;
 import org.logicalcobwebs.proxool.ProxoolFacade;
 import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Session;
 import quickfix.mina.ProtocolFactory;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
@@ -109,7 +107,7 @@ public class AcceptanceTestSuite extends TestSuite {
         }
 
         private List<TestStep> load(String filename) throws IOException {
-            ArrayList<TestStep> steps = new ArrayList<TestStep>();
+            ArrayList<TestStep> steps = new ArrayList<>();
             log.info("load test: " + filename);
             BufferedReader in = null;
             try {
@@ -252,17 +250,17 @@ public class AcceptanceTestSuite extends TestSuite {
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", true)));
 
-        Map<Object, Object> resendRequestChunkSizeProperties = new HashMap<Object, Object>();
+        Map<Object, Object> resendRequestChunkSizeProperties = new HashMap<>();
         resendRequestChunkSizeProperties.put(Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, "5");
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", true, resendRequestChunkSizeProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", false, resendRequestChunkSizeProperties)));
 
-        Map<Object, Object> lastMsgSeqNumProcessedProperties = new HashMap<Object, Object>();
+        Map<Object, Object> lastMsgSeqNumProcessedProperties = new HashMap<>();
         lastMsgSeqNumProcessedProperties.put(Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, "Y");
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", true, lastMsgSeqNumProcessedProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", false, lastMsgSeqNumProcessedProperties)));
 
-        Map<Object, Object> nextExpectedMsgSeqNumProperties = new HashMap<Object, Object>();
+        Map<Object, Object> nextExpectedMsgSeqNumProperties = new HashMap<>();
         nextExpectedMsgSeqNumProperties.put(Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, "Y");
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true, nextExpectedMsgSeqNumProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties)));

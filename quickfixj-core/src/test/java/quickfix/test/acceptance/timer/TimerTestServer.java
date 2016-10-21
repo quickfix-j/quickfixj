@@ -19,15 +19,8 @@
 
 package quickfix.test.acceptance.timer;
 
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CountDownLatch;
-
-import org.apache.mina.util.AvailablePortFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Application;
 import quickfix.DefaultMessageFactory;
 import quickfix.DoNotSend;
@@ -50,6 +43,11 @@ import quickfix.UnsupportedMessageType;
 import quickfix.field.ListID;
 import quickfix.fix44.ListStatusRequest;
 import quickfix.fix44.Logon;
+
+import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -115,7 +113,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
     public void run() {
         try {
-            HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+            HashMap<Object, Object> defaults = new HashMap<>();
             defaults.put("ConnectionType", "acceptor");
             defaults.put("SocketAcceptPort", "19888" );
             defaults.put("StartTime", "00:00:00");

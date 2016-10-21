@@ -19,8 +19,6 @@
 
 package quickfix.examples.ordermatch;
 
-import java.util.ArrayList;
-
 import quickfix.DoNotSend;
 import quickfix.FieldNotFound;
 import quickfix.IncorrectDataFormat;
@@ -59,6 +57,8 @@ import quickfix.fix42.ExecutionReport;
 import quickfix.fix42.MarketDataRequest;
 import quickfix.fix42.NewOrderSingle;
 import quickfix.fix42.OrderCancelRequest;
+
+import java.util.ArrayList;
 
 public class Application extends MessageCracker implements quickfix.Application {
     private final OrderMatcher orderMatcher = new OrderMatcher();
@@ -129,7 +129,7 @@ public class Application extends MessageCracker implements quickfix.Application 
         if (orderMatcher.insert(order)) {
             acceptOrder(order);
 
-            ArrayList<Order> orders = new ArrayList<Order>();
+            ArrayList<Order> orders = new ArrayList<>();
             orderMatcher.match(order.getSymbol(), orders);
 
             while (orders.size() > 0) {

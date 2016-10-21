@@ -29,13 +29,13 @@ import java.util.Map;
  */
 public class Dictionary {
     private String name;
-    private final HashMap<Object, Object> data = new HashMap<Object, Object>();
+    private final HashMap<Object, Object> data = new HashMap<>();
 
     public Dictionary() {
     }
 
     public Dictionary(String name) {
-        this(name, new HashMap<Object, Object>());
+        this(name, new HashMap<>());
     }
 
     public Dictionary(Dictionary dictionary) {

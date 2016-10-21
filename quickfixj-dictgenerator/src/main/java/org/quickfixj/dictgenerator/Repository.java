@@ -19,6 +19,10 @@
 
 package org.quickfixj.dictgenerator;
 
+import org.dom4j.Document;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,21 +32,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.dom4j.Document;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
-
 public class Repository {
 
     private final File repository;
     private final Document components, enums, fields, msgContents, msgType;
-    private final Map<String, MsgType> sessionMsgTypes = new TreeMap<String, MsgType>(), applicationMsgTypes = new TreeMap<String, MsgType>();
-    private final Map<String, Field> allFields = new TreeMap<String, Field>();
-    private final Map<String, Component> allComponents = new TreeMap<String, Component>();
+    private final Map<String, MsgType> sessionMsgTypes = new TreeMap<>(), applicationMsgTypes = new TreeMap<>();
+    private final Map<String, Field> allFields = new TreeMap<>();
+    private final Map<String, Component> allComponents = new TreeMap<>();
 
     public Repository(File repositoryFile) throws Exception {
         this.repository = repositoryFile;
-        Set<String> requiredFiles = new HashSet<String>();
+        Set<String> requiredFiles = new HashSet<>();
         requiredFiles.add("Components.xml");
         requiredFiles.add("Enums.xml");
         requiredFiles.add("Fields.xml");

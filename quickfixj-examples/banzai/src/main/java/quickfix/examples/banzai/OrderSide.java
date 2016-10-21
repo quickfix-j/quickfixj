@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrderSide {
-    static private final Map<String, OrderSide> known = new HashMap<String, OrderSide>();
+    static private final Map<String, OrderSide> known = new HashMap<>();
     static public final OrderSide BUY = new OrderSide("Buy");
     static public final OrderSide SELL = new OrderSide("Sell");
     static public final OrderSide SHORT_SELL = new OrderSide("Short Sell");

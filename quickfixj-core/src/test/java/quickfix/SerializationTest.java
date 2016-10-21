@@ -19,12 +19,19 @@
 
 package quickfix;
 
-import java.io.*;
+import junit.framework.TestCase;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.regex.Pattern;
-
-import junit.framework.TestCase;
 
 public class SerializationTest extends TestCase {
 
@@ -135,11 +142,7 @@ public class SerializationTest extends TestCase {
         try {
             Class<?> cl = Class.forName(className);
             res = createMessageWithDefaultValues(cl, maxGroupElts);
-        } catch (ClassNotFoundException e) {
-            fail(e.getMessage());
-        } catch (InstantiationException e) {
-            fail(e.getMessage());
-        } catch (IllegalAccessException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             fail(e.getMessage());
         }
         return res;
@@ -150,11 +153,7 @@ public class SerializationTest extends TestCase {
         try {
             Class<?> cl = Class.forName(className);
             res = cl.newInstance();
-        } catch (ClassNotFoundException e) {
-            fail(e.getMessage());
-        } catch (InstantiationException e) {
-            fail(e.getMessage());
-        } catch (IllegalAccessException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
             fail(e.getMessage());
         }
         return res;
@@ -171,9 +170,7 @@ public class SerializationTest extends TestCase {
             ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
             ObjectInputStream ins = new ObjectInputStream(in);
             res = ins.readObject();
-        } catch (IOException e) {
-            fail(e.getMessage());
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             fail(e.getMessage());
         }
         return res;
@@ -181,7 +178,7 @@ public class SerializationTest extends TestCase {
 
     private interface SerializationAssertion {
 
-        public void assertSerialization(String className);
+        void assertSerialization(String className);
     }
 
     private final class MessageSerializationAssertion implements SerializationAssertion {
@@ -246,15 +243,7 @@ public class SerializationTest extends TestCase {
                         Object[] args = new Object[1];
                         args[0] = g;
                         addGroup.invoke(res, args);
-                    } catch (SecurityException e) {
-                        fail(e.getMessage());
-                    } catch (NoSuchMethodException e) {
-                        fail(e.getMessage());
-                    } catch (IllegalArgumentException e) {
-                        fail(e.getMessage());
-                    } catch (IllegalAccessException e) {
-                        fail(e.getMessage());
-                    } catch (InvocationTargetException e) {
+                    } catch (SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException e) {
                         fail(e.getMessage());
                     }
                 }
@@ -284,15 +273,7 @@ public class SerializationTest extends TestCase {
                     Object[] args = new Object[1];
                     args[0] = f;
                     setter.invoke(res, args);
-                } catch (SecurityException e) {
-                    fail(e.getMessage());
-                } catch (NoSuchMethodException e) {
-                    fail(e.getMessage());
-                } catch (IllegalArgumentException e) {
-                    fail(e.getMessage());
-                } catch (IllegalAccessException e) {
-                    fail(e.getMessage());
-                } catch (InvocationTargetException e) {
+                } catch (SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException e) {
                     fail(e.getMessage());
                 }
             }

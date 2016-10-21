@@ -19,6 +19,12 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+import org.junit.Test;
+import quickfix.field.TestReqID;
+import quickfix.fix42.TestRequest;
+import quickfix.mina.ProtocolFactory;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -27,14 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import junit.framework.TestCase;
-
-import org.junit.Test;
-
-import quickfix.field.TestReqID;
-import quickfix.fix42.TestRequest;
-import quickfix.mina.ProtocolFactory;
 
 public class SessionDisconnectConcurrentlyTest extends TestCase {
     private TestAcceptorApplication testAcceptorApplication;
@@ -87,7 +85,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
     }
 
     private static class TestAcceptorApplication extends ApplicationAdapter {
-        private final HashMap<SessionID, Message> sessionMessages = new HashMap<SessionID, Message>();
+        private final HashMap<SessionID, Message> sessionMessages = new HashMap<>();
         private final CountDownLatch logonLatch;
         private CountDownLatch messageLatch;
 
@@ -144,7 +142,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
 
     private Initiator createInitiator() throws ConfigError {
         SessionSettings settings = new SessionSettings();
-        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
@@ -174,7 +172,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
 
     private Acceptor createAcceptor() throws ConfigError {
         SessionSettings settings = new SessionSettings();
-        HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+        HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "acceptor");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
@@ -216,7 +214,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         }
 
         public List<String> getDeadlockedThreads() {
-            List<String> deadlockedThreads = new ArrayList<String>();
+            List<String> deadlockedThreads = new ArrayList<>();
             if (null != threadIds) {
                 for (long threadId : threadIds) {
                     ThreadInfo threadInfo = bean.getThreadInfo(threadId);

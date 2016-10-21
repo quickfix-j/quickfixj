@@ -19,20 +19,7 @@
 
 package quickfix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
 import org.junit.Test;
-
 import org.quickfixj.CharsetSupport;
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
@@ -108,6 +95,18 @@ import quickfix.fix44.News;
 import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
+
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class MessageTest {
 
@@ -1414,14 +1413,18 @@ public class MessageTest {
     }
 
     private void assertAllocation(String accountId, Object shares) {
-        if (accountId.equals("AllocACC1")) {
-            assertEquals("got shares: " + shares, 0,
-                    new BigDecimal("1010.10").compareTo(new BigDecimal(shares.toString())));
-        } else if (accountId.equals("AllocACC2")) {
-            assertEquals("got shares: " + shares, 0,
-                    new BigDecimal("2020.20").compareTo(new BigDecimal(shares.toString())));
-        } else {
-            fail("Unknown account");
+        switch (accountId) {
+            case "AllocACC1":
+                assertEquals("got shares: " + shares, 0,
+                        new BigDecimal("1010.10").compareTo(new BigDecimal(shares.toString())));
+                break;
+            case "AllocACC2":
+                assertEquals("got shares: " + shares, 0,
+                        new BigDecimal("2020.20").compareTo(new BigDecimal(shares.toString())));
+                break;
+            default:
+                fail("Unknown account");
+                break;
         }
     }
 
