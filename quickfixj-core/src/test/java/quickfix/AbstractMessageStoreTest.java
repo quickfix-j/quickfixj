@@ -19,10 +19,10 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+
 import java.io.IOException;
 import java.util.ArrayList;
-
-import junit.framework.TestCase;
 
 public abstract class AbstractMessageStoreTest extends TestCase {
     private SessionID sessionID;
@@ -106,7 +106,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
         store.refresh();
 
-        final ArrayList<String> messages = new ArrayList<String>();
+        final ArrayList<String> messages = new ArrayList<>();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "\u00E4bcf\u00F6d\u00E7\u00E9", messages.get(0));
@@ -123,7 +123,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
 
         store.refresh();
 
-        final ArrayList<String> messages = new ArrayList<String>();
+        final ArrayList<String> messages = new ArrayList<>();
         store.get(100, 115, messages);
         assertEquals("wrong # of messages", 2, messages.size());
         assertEquals("wrong message", "message1", messages.get(0));

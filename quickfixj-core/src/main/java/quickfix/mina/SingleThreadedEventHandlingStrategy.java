@@ -20,7 +20,11 @@
 
 package quickfix.mina;
 
-import quickfix.*;
+import quickfix.LogUtil;
+import quickfix.Message;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SystemTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +45,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
-        eventQueue = new LinkedBlockingQueue<SessionMessageEvent>(queueCapacity);
+        eventQueue = new LinkedBlockingQueue<>(queueCapacity);
     }
 
     @Override
@@ -67,7 +71,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             synchronized (this) {
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
-                        final List<SessionMessageEvent> tempList = new ArrayList<SessionMessageEvent>();
+                        final List<SessionMessageEvent> tempList = new ArrayList<>();
                         eventQueue.drainTo(tempList);
                         for (SessionMessageEvent event : tempList) {
                             event.processMessage();

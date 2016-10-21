@@ -19,13 +19,13 @@
 
 package quickfix;
 
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-
-import org.slf4j.LoggerFactory;
 
 /**
  * In-memory message store implementation.
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @see quickfix.MemoryStoreFactory
  */
 public class MemoryStore implements MessageStore {
-    private final HashMap<Integer, String> messages = new HashMap<Integer, String>();
+    private final HashMap<Integer, String> messages = new HashMap<>();
     private int nextSenderMsgSeqNum;
     private int nextTargetMsgSeqNum;
     private SessionID sessionID;

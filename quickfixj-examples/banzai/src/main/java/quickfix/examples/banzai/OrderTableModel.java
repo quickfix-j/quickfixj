@@ -19,9 +19,8 @@
 
 package quickfix.examples.banzai;
 
-import java.util.HashMap;
-
 import javax.swing.table.AbstractTableModel;
+import java.util.HashMap;
 
 public class OrderTableModel extends AbstractTableModel {
 
@@ -43,9 +42,9 @@ public class OrderTableModel extends AbstractTableModel {
     private final String[] headers;
 
     public OrderTableModel() {
-        rowToOrder = new HashMap<Integer, Order>();
-        idToRow = new HashMap<String, Integer>();
-        idToOrder = new HashMap<String, Order>();
+        rowToOrder = new HashMap<>();
+        idToRow = new HashMap<>();
+        idToOrder = new HashMap<>();
 
         headers = new String[]
                   {"Symbol", "Quantity", "Open", "Executed",

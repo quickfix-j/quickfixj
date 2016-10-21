@@ -55,7 +55,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
 
         store.set(2, "MESSAGE");
 
-        List<String> messages = new ArrayList<String>();
+        List<String> messages = new ArrayList<>();
         store.get(1, 1, messages);
 
         assertEquals(0, messages.size());

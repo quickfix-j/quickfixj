@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ListenerSupport {
-    private final List<Object> listeners = new CopyOnWriteArrayList<Object>();
+    private final List<Object> listeners = new CopyOnWriteArrayList<>();
     private final Object multicaster;
 
     public ListenerSupport(Class<?> listenerClass) {

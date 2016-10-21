@@ -27,20 +27,20 @@ public interface Acceptor extends Connector {
     /**
      * Acceptor setting specifying the socket protocol used to accept connections.
      */
-    public static final String SETTING_SOCKET_ACCEPT_PROTOCOL = "SocketAcceptProtocol";
+    String SETTING_SOCKET_ACCEPT_PROTOCOL = "SocketAcceptProtocol";
 
     /**
      * Acceptor setting specifying port for accepting FIX client connections.
      */
-    public static final String SETTING_SOCKET_ACCEPT_PORT = "SocketAcceptPort";
+    String SETTING_SOCKET_ACCEPT_PORT = "SocketAcceptPort";
 
     /**
      * Acceptor setting specifying local IP interface address for accepting connections.
      */
-    public static final String SETTING_SOCKET_ACCEPT_ADDRESS = "SocketAcceptAddress";
+    String SETTING_SOCKET_ACCEPT_ADDRESS = "SocketAcceptAddress";
 
     /**
      * Acceptor setting specifying local IP interface address for accepting connections.
      */
-    public static final String SETTING_ACCEPTOR_TEMPLATE = "AcceptorTemplate";
+    String SETTING_ACCEPTOR_TEMPLATE = "AcceptorTemplate";
 }

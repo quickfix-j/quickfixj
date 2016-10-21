@@ -19,9 +19,7 @@
 
 package quickfix;
 
-import static quickfix.JdbcSetting.*;
-import static quickfix.JdbcUtil.*;
-
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -29,7 +27,15 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.sql.DataSource;
+import static quickfix.JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS;
+import static quickfix.JdbcSetting.SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE;
+import static quickfix.JdbcSetting.SETTING_LOG_EVENT_TABLE;
+import static quickfix.JdbcSetting.SETTING_LOG_INCOMING_TABLE;
+import static quickfix.JdbcSetting.SETTING_LOG_OUTGOING_TABLE;
+import static quickfix.JdbcUtil.determineSessionIdSupport;
+import static quickfix.JdbcUtil.getIDColumns;
+import static quickfix.JdbcUtil.getIDPlaceholders;
+import static quickfix.JdbcUtil.getIDWhereClause;
 
 class JdbcLog extends AbstractLog {
     private static final String DEFAULT_MESSAGES_LOG_TABLE = "messages_log";
@@ -45,8 +51,8 @@ class JdbcLog extends AbstractLog {
 
     private Throwable recursiveException = null;
 
-    private final Map<String, String> insertItemSqlCache = new HashMap<String, String>();
-    private final Map<String, String> deleteItemsSqlCache = new HashMap<String, String>();
+    private final Map<String, String> insertItemSqlCache = new HashMap<>();
+    private final Map<String, String> deleteItemsSqlCache = new HashMap<>();
 
     public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource ds)
             throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {

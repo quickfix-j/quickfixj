@@ -19,6 +19,15 @@
 
 package quickfix.mina.ssl;
 
+import org.apache.mina.filter.ssl.BogusTrustManagerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.FileUtil;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -30,17 +39,6 @@ import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.apache.mina.filter.ssl.BogusTrustManagerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.FileUtil;
-
 /**
  * SSL context factory that deals with various SSL configuration.
  * Caches the created SSL contexts for future reuse.
@@ -48,7 +46,7 @@ import quickfix.FileUtil;
 public class SSLContextFactory {
     private static final Logger log = LoggerFactory.getLogger(SSLContextFactory.class);
     private static final String PROTOCOL = "TLS";
-    private static final Map<SSLConfig, SSLContext> contextCache = new HashMap<SSLConfig, SSLContext>();
+    private static final Map<SSLConfig, SSLContext> contextCache = new HashMap<>();
 
     /**
      * Creates an {@link SSLContext} with a specified {@link SSLConfig}

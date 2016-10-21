@@ -19,6 +19,11 @@
 
 package quickfix;
 
+import org.logicalcobwebs.proxool.ProxoolDataSource;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -27,17 +32,11 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
-import org.logicalcobwebs.proxool.ProxoolDataSource;
-
 class JdbcUtil {
 
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
 
-    private static final Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<String, ProxoolDataSource>();
+    private static final Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<>();
     private static int dataSourceCounter = 1;
 
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
@@ -146,24 +145,18 @@ class JdbcUtil {
     }
 
     static boolean determineSessionIdSupport(DataSource dataSource, String tableName) throws SQLException {
-        Connection connection = dataSource.getConnection();
-        try {
+        try (Connection connection = dataSource.getConnection()) {
             DatabaseMetaData metaData = connection.getMetaData();
             String columnName = "sendersubid";
             return isColumn(metaData, tableName.toUpperCase(), columnName.toUpperCase())
                     || isColumn(metaData, tableName, columnName);
-        } finally {
-            connection.close();
         }
     }
 
     private static boolean isColumn(DatabaseMetaData metaData, String tableName, String columnName)
             throws SQLException {
-        ResultSet columns = metaData.getColumns(null, null, tableName, columnName);
-        try {
+        try (ResultSet columns = metaData.getColumns(null, null, tableName, columnName)) {
             return columns.next();
-        } finally {
-            columns.close();
         }
     }
 

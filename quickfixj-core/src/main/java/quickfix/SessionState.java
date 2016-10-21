@@ -72,7 +72,7 @@ public final class SessionState {
     private final AtomicInteger nextExpectedMsgSeqNum = new AtomicInteger(0);
 
     // The messageQueue should be accessed from a single thread
-    private final Map<Integer, Message> messageQueue = new LinkedHashMap<Integer, Message>();
+    private final Map<Integer, Message> messageQueue = new LinkedHashMap<>();
 
     public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator, MessageStore messageStore,
             double testRequestDelayMultiplier) {

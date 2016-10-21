@@ -19,6 +19,9 @@
 
 package quickfix;
 
+import org.quickfixj.CharsetSupport;
+import quickfix.field.converter.UtcTimestampConverter;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
@@ -36,10 +39,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
-
-import org.quickfixj.CharsetSupport;
-
-import quickfix.field.converter.UtcTimestampConverter;
 
 /**
  * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN
@@ -124,16 +123,13 @@ public class FileStore implements MessageStore, Closeable {
     private void initializeSessionCreateTime() throws IOException {
         final File sessionTimeFile = new File(sessionFileName);
         if (sessionTimeFile.exists() && sessionTimeFile.length() > 0) {
-            final DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
-                    new FileInputStream(sessionTimeFile)));
-            try {
+            try (DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
+                    new FileInputStream(sessionTimeFile)))) {
                 final Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter
                         .convert(sessionTimeInput.readUTF()));
                 cache.setCreationTime(c);
             } catch (final Exception e) {
                 throw new IOException(e.getMessage());
-            } finally {
-                sessionTimeInput.close();
             }
         } else {
             storeSessionTimeStamp();
@@ -141,14 +137,11 @@ public class FileStore implements MessageStore, Closeable {
     }
 
     private void storeSessionTimeStamp() throws IOException {
-        final DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
-                new FileOutputStream(sessionFileName, false)));
-        try {
+        try (DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
+                new FileOutputStream(sessionFileName, false)))) {
             final Date date = SystemTime.getDate();
             cache.setCreationTime(SystemTime.getUtcCalendar(date));
             sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(date, true));
-        } finally {
-            sessionTimeOutput.close();
         }
     }
 
@@ -180,17 +173,14 @@ public class FileStore implements MessageStore, Closeable {
             messageIndex.clear();
             final File headerFile = new File(headerFileName);
             if (headerFile.exists()) {
-                final DataInputStream headerDataInputStream = new DataInputStream(
-                        new BufferedInputStream(new FileInputStream(headerFile)));
-                try {
+                try (DataInputStream headerDataInputStream = new DataInputStream(
+                        new BufferedInputStream(new FileInputStream(headerFile)))) {
                     while (headerDataInputStream.available() > 0) {
                         final int sequenceNumber = headerDataInputStream.readInt();
                         final long offset = headerDataInputStream.readLong();
                         final int size = headerDataInputStream.readInt();
                         updateMessageIndex(sequenceNumber, offset, size);
                     }
-                } finally {
-                    headerDataInputStream.close();
                 }
             }
         }
@@ -303,9 +293,9 @@ public class FileStore implements MessageStore, Closeable {
     @Override
     public void get(int startSequence, int endSequence, Collection<String> messages)
             throws IOException {
-        final Set<Integer> uncachedOffsetMsgIds = new HashSet<Integer>();
+        final Set<Integer> uncachedOffsetMsgIds = new HashSet<>();
         // Use a treemap to make sure the messages are sorted by sequence num
-        final TreeMap<Integer, String> messagesFound = new TreeMap<Integer, String>();
+        final TreeMap<Integer, String> messagesFound = new TreeMap<>();
         for (int i = startSequence; i <= endSequence; i++) {
             final String message = getMessage(i);
             if (message != null) {
@@ -318,9 +308,8 @@ public class FileStore implements MessageStore, Closeable {
         if (!uncachedOffsetMsgIds.isEmpty()) {
             // parse the header file to find missing messages
             final File headerFile = new File(headerFileName);
-            final DataInputStream headerDataInputStream = new DataInputStream(
-                    new BufferedInputStream(new FileInputStream(headerFile)));
-            try {
+            try (DataInputStream headerDataInputStream = new DataInputStream(
+                    new BufferedInputStream(new FileInputStream(headerFile)))) {
                 while (!uncachedOffsetMsgIds.isEmpty() && headerDataInputStream.available() > 0) {
                     final int sequenceNumber = headerDataInputStream.readInt();
                     final long offset = headerDataInputStream.readLong();
@@ -330,8 +319,6 @@ public class FileStore implements MessageStore, Closeable {
                         messagesFound.put(sequenceNumber, message);
                     }
                 }
-            } finally {
-                headerDataInputStream.close();
             }
         }
 

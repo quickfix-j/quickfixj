@@ -1,37 +1,8 @@
 package quickfix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static quickfix.SessionFactoryTestSupport.createSession;
-
-import java.io.BufferedOutputStream;
-import java.io.Closeable;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
@@ -63,6 +34,34 @@ import quickfix.fix44.ResendRequest;
 import quickfix.fix44.SequenceReset;
 import quickfix.fix44.TestRequest;
 import quickfix.test.util.ReflectionUtil;
+
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static quickfix.SessionFactoryTestSupport.createSession;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -811,16 +810,13 @@ public class SessionTest {
         final String prefix = FileUtil.fileAppendPath(fullPath, sessionName
                 + ".");
         final String sessionFileName = prefix + "session";
-        final DataOutputStream sessionTimeOutput = new DataOutputStream(
+        try (DataOutputStream sessionTimeOutput = new DataOutputStream(
                 new BufferedOutputStream(new FileOutputStream(sessionFileName,
-                        false)));
-        try {
+                        false)))) {
             // removing the file does NOT trigger the reset in the Session
             // constructor, so we fake an outdated session
             sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(
                     new Date(0), true));
-        } finally {
-            sessionTimeOutput.close();
         }
 
         // delete files to have the message store reset seqNums to 1

@@ -19,19 +19,30 @@
 
 package quickfix.mina.acceptor;
 
-import static quickfix.mina.acceptor.DynamicAcceptorSessionProvider.*;
+import junit.framework.TestCase;
+import org.quickfixj.QFJException;
+import quickfix.Application;
+import quickfix.ConfigError;
+import quickfix.DefaultMessageFactory;
+import quickfix.LogFactory;
+import quickfix.MemoryStoreFactory;
+import quickfix.MessageFactory;
+import quickfix.MessageStoreFactory;
+import quickfix.RuntimeError;
+import quickfix.ScreenLogFactory;
+import quickfix.Session;
+import quickfix.SessionFactory;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
+import quickfix.UnitTestApplication;
+import quickfix.mina.SessionConnector;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 
-import junit.framework.TestCase;
-
-import org.quickfixj.QFJException;
-
-import quickfix.*;
-import quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
-import quickfix.mina.SessionConnector;
+import static quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
+import static quickfix.mina.acceptor.DynamicAcceptorSessionProvider.WILDCARD;
 
 public class DynamicAcceptorSessionProviderTest extends TestCase {
     private DynamicAcceptorSessionProvider provider;
@@ -45,7 +56,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
     @Override
     protected void setUp() throws Exception {
         settings = new SessionSettings();
-        templateMappings = new ArrayList<TemplateMapping>();
+        templateMappings = new ArrayList<>();
         application = new UnitTestApplication();
         messageStoreFactory = new MemoryStoreFactory();
         logFactory = new ScreenLogFactory();
@@ -152,7 +163,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
     }
 
     private static class MySessionConnector extends SessionConnector {
-        private final HashMap<SessionID, Session> sessions = new HashMap<SessionID, Session>();
+        private final HashMap<SessionID, Session> sessions = new HashMap<>();
 
         public MySessionConnector(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
             super(settings, sessionFactory);

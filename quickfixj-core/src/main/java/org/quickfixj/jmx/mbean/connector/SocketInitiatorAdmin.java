@@ -17,20 +17,17 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
-import javax.management.ObjectName;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.TabularData;
-
 import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.JmxSupport;
 import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
-
 import quickfix.mina.initiator.AbstractSocketInitiator;
-import quickfix.mina.initiator.IoSessionInitiator;
+
+import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.TabularData;
+import java.io.IOException;
+import java.util.ArrayList;
 
 class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdminMBean {
 
@@ -47,7 +44,7 @@ class SocketInitiatorAdmin extends ConnectorAdmin implements SocketInitiatorAdmi
     public TabularData getEndpoints() throws IOException {
         try {
             return tabularDataAdapter.fromBeanList("Endpoints", "Endpoint", "sessionID",
-                    new ArrayList<IoSessionInitiator>(initiator.getInitiators()));
+                    new ArrayList<>(initiator.getInitiators()));
         } catch (OpenDataException e) {
             throw JmxSupport.toIOException(e);
         }

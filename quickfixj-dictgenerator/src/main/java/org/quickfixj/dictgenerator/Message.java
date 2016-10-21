@@ -26,7 +26,7 @@ public class Message {
 
     String msgID = null, name = null, type = null, category = null, notReqXML = null;
 
-    final List<Object> msgContents = new ArrayList<Object>();
+    final List<Object> msgContents = new ArrayList<>();
 
     public Message(String msgID, String name, String type, String category, String notReqXML) {
         this.msgID = msgID;

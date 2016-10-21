@@ -19,17 +19,10 @@
 
 package org.quickfixj.codegenerator;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -42,11 +35,17 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
@@ -84,7 +83,7 @@ public class MessageCodeGenerator {
             ParserConfigurationException, SAXException, IOException,
             TransformerFactoryConfigurationError, TransformerException {
         logInfo(task.getName() + ": generating message base class");
-        Map<String, String> parameters = new HashMap<String, String>();
+        Map<String, String> parameters = new HashMap<>();
         parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
         generateClassCode(task, "Message", parameters);
     }
@@ -107,7 +106,7 @@ public class MessageCodeGenerator {
             TransformerException {
         logDebug("generating " + className + " for " + task.getName());
         if (parameters == null) {
-            parameters = new HashMap<String, String>();
+            parameters = new HashMap<>();
         }
         parameters.put("messagePackage", task.getMessagePackage());
         parameters.put("fieldPackage", task.getFieldPackage());
@@ -131,7 +130,7 @@ public class MessageCodeGenerator {
                 String outputFile = outputDirectory + fieldName + ".java";
                 if (!new File(outputFile).exists()) {
                     logDebug("field: " + fieldName);
-                    Map<String, String> parameters = new HashMap<String, String>();
+                    Map<String, String> parameters = new HashMap<>();
                     parameters.put("fieldName", fieldName);
                     parameters.put("fieldPackage", task.getFieldPackage());
                     if (task.isDecimalGenerated()) {
@@ -159,7 +158,7 @@ public class MessageCodeGenerator {
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
         for (String messageName : messageNames) {
             logDebug("generating message class: " + messageName);
-            Map<String, String> parameters = new HashMap<String, String>();
+            Map<String, String> parameters = new HashMap<>();
             parameters.put("itemName", messageName);
             parameters.put(XSLPARAM_SERIAL_UID, SERIAL_UID_STR);
             parameters.put("orderedFields", Boolean.toString(task.isOrderedFields()));
@@ -185,7 +184,7 @@ public class MessageCodeGenerator {
         Transformer transformer = createTransformer(task, "MessageSubclass.xsl");
         for (String componentName : componentNames) {
             logDebug("generating component class: " + componentName);
-            Map<String, String> parameters = new HashMap<String, String>();
+            Map<String, String> parameters = new HashMap<>();
             parameters.put("itemName", componentName);
             parameters.put("baseClass", "quickfix.MessageComponent");
             parameters.put("subpackage", ".component");
@@ -212,7 +211,7 @@ public class MessageCodeGenerator {
         return transformerFactory.newTransformer(styleSource);
     }
 
-    private final Map<String, Document> specificationCache = new HashMap<String, Document>();
+    private final Map<String, Document> specificationCache = new HashMap<>();
 
     private Document getSpecification(Task task) throws ParserConfigurationException, SAXException,
             IOException {

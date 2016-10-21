@@ -19,11 +19,11 @@
 
 package quickfix.field.converter;
 
+import quickfix.FieldConvertError;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
-
-import quickfix.FieldConvertError;
 
 /**
  * Convert between a date and a String
@@ -31,7 +31,7 @@ import quickfix.FieldConvertError;
 public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static final ThreadLocal<UtcDateOnlyConverter> utcDateConverter = new ThreadLocal<UtcDateOnlyConverter>();
+    private static final ThreadLocal<UtcDateOnlyConverter> utcDateConverter = new ThreadLocal<>();
     private final DateFormat dateFormat = createDateFormat("yyyyMMdd");
 
     /**

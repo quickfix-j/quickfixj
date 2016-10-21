@@ -50,5 +50,5 @@ public interface MessageFactory {
      * @param correspondingFieldID the fieldID of the field in the group
      * @return group, or null if the group can't be created.
      */
-    public Group create(String beginString, String msgType, int correspondingFieldID);
+    Group create(String beginString, String msgType, int correspondingFieldID);
 }

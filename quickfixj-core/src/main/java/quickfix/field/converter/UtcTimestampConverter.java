@@ -19,24 +19,24 @@
 
 package quickfix.field.converter;
 
+import quickfix.FieldConvertError;
+import quickfix.SystemTime;
+
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.concurrent.*;
-
-import quickfix.FieldConvertError;
-import quickfix.SystemTime;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Convert between a timestamp and a String. A timestamp includes both a date
  * and a time.
  */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
-    private static final ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<UtcTimestampConverter>();
+    private static final ThreadLocal<UtcTimestampConverter> utcTimestampConverter = new ThreadLocal<>();
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
-    private final static ConcurrentHashMap<String, Long> dateCache = new ConcurrentHashMap<String, Long>();
+    private final static ConcurrentHashMap<String, Long> dateCache = new ConcurrentHashMap<>();
 
     /**
      * Convert a timestamp (represented as a Date) to a String.

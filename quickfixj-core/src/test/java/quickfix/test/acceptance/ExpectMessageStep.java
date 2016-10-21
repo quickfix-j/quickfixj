@@ -19,6 +19,12 @@
 
 package quickfix.test.acceptance;
 
+import junit.framework.TestResult;
+import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.test.util.ReflectionUtil;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -30,14 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import junit.framework.TestResult;
-
-import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.test.util.ReflectionUtil;
 
 public class ExpectMessageStep implements TestStep {
     public static long TIMEOUT_IN_MS = 10000;
@@ -66,7 +64,7 @@ public class ExpectMessageStep implements TestStep {
     }
 
     private Map<String, String> simpleParse(String data) {
-        HashMap<String, String> fields = new HashMap<String, String>();
+        HashMap<String, String> fields = new HashMap<>();
         Matcher fieldMatcher = FIELD_PATTERN.matcher(data);
         while (fieldMatcher.find()) {
             fields.put(fieldMatcher.group(1), fieldMatcher.group(2));
@@ -83,7 +81,7 @@ public class ExpectMessageStep implements TestStep {
             final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             long[] threadIds = bean.findDeadlockedThreads();
 
-            final List<String> deadlockedThreads = new ArrayList<String>();
+            final List<String> deadlockedThreads = new ArrayList<>();
             if (threadIds != null) {
                 for (long threadId : threadIds) {
                     final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
@@ -104,7 +102,7 @@ public class ExpectMessageStep implements TestStep {
         assertMessageEqual(actualFields);
     }
 
-    private static final HashSet<String> timeFields = new HashSet<String>();
+    private static final HashSet<String> timeFields = new HashSet<>();
 
     static {
         timeFields.add("52");

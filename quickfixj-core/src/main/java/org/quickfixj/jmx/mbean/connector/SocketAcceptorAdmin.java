@@ -17,24 +17,22 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
+import org.quickfixj.jmx.JmxExporter;
+import org.quickfixj.jmx.mbean.JmxSupport;
+import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
+import org.quickfixj.jmx.openmbean.TabularDataAdapter;
+import quickfix.SessionID;
+import quickfix.mina.acceptor.AbstractSocketAcceptor;
+
+import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.TabularData;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import javax.management.ObjectName;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.TabularData;
-
-import org.quickfixj.jmx.JmxExporter;
-import org.quickfixj.jmx.mbean.JmxSupport;
-import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
-import org.quickfixj.jmx.openmbean.TabularDataAdapter;
-
-import quickfix.SessionID;
-import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
 /**
  * Implementation of the socket acceptor management interface.
@@ -85,7 +83,7 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
     }
 
     public TabularData getAcceptorAddresses() throws IOException {
-        List<SessionAcceptorAddressRow> rows = new ArrayList<SessionAcceptorAddressRow>();
+        List<SessionAcceptorAddressRow> rows = new ArrayList<>();
         for (Map.Entry<SessionID, SocketAddress> entry : acceptor.getAcceptorAddresses().entrySet()) {
             SessionID sessionID = entry.getKey();
             SocketAddress address = entry.getValue();

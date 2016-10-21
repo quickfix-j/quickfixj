@@ -17,26 +17,24 @@
 
 package org.quickfixj.jmx.mbean.session;
 
-import static quickfix.SessionID.NOT_SET;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.management.JMException;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-
 import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.ObjectNameFactory;
-
 import quickfix.ConfigError;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
+import javax.management.JMException;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static quickfix.SessionID.NOT_SET;
+
 public class SessionJmxExporter {
-    private final Map<SessionID, ObjectName> sessionObjectNames = new HashMap<SessionID, ObjectName>();
+    private final Map<SessionID, ObjectName> sessionObjectNames = new HashMap<>();
 
     public ObjectName register(JmxExporter jmxExporter, Session session, ObjectName connectorName,
             SessionSettings settings) throws JMException, ConfigError {
@@ -60,7 +58,7 @@ public class SessionJmxExporter {
     }
 
     public ObjectName createSessionName(SessionID sessionID) throws MalformedObjectNameException {
-        TreeMap<String, String> properties = new TreeMap<String, String>();
+        TreeMap<String, String> properties = new TreeMap<>();
         properties.put("type", "Session");
         ObjectNameFactory nameFactory = new ObjectNameFactory();
         nameFactory.addProperty("type", "Session");

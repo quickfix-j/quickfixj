@@ -19,11 +19,11 @@
 
 package quickfix.field.converter;
 
+import quickfix.FieldConvertError;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
-
-import quickfix.FieldConvertError;
 
 /**
  * Convert between a time and a String.
@@ -31,7 +31,7 @@ import quickfix.FieldConvertError;
 public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static final ThreadLocal<UtcTimeOnlyConverter> utcTimeConverter = new ThreadLocal<UtcTimeOnlyConverter>();
+    private static final ThreadLocal<UtcTimeOnlyConverter> utcTimeConverter = new ThreadLocal<>();
     private final DateFormat utcTimeFormat = createDateFormat("HH:mm:ss");
     private final DateFormat utcTimeFormatMillis = createDateFormat("HH:mm:ss.SSS");
 

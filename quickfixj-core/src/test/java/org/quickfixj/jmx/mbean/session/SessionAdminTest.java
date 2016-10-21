@@ -1,7 +1,11 @@
 package org.quickfixj.jmx.mbean.session;
 
 import junit.framework.TestCase;
-import quickfix.*;
+import quickfix.Message;
+import quickfix.Session;
+import quickfix.SessionFactoryTestSupport;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
 import quickfix.field.NewSeqNo;
 
 import javax.management.ObjectName;
@@ -24,7 +28,7 @@ public class SessionAdminTest extends TestCase {
     }
 
     private class MockSessionAdmin extends SessionAdmin {
-        final ArrayList<Message> sentMessages = new ArrayList<Message>();
+        final ArrayList<Message> sentMessages = new ArrayList<>();
 
         public MockSessionAdmin(Session session, ObjectName connectorName, ObjectName settingsName) {
             super(session, connectorName, settingsName);

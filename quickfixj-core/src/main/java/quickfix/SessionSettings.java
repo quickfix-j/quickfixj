@@ -19,6 +19,10 @@
 
 package quickfix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.field.converter.BooleanConverter;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,11 +45,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.field.converter.BooleanConverter;
 
 /**
  * Settings for sessions. Settings are grouped by FIX version and target company
@@ -373,10 +372,10 @@ public class SessionSettings {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
     }
 
-    private final HashMap<SessionID, Properties> sections = new HashMap<SessionID, Properties>();
+    private final HashMap<SessionID, Properties> sections = new HashMap<>();
 
     public Iterator<SessionID> sectionIterator() {
-        final HashSet<SessionID> nondefaultSessions = new HashSet<SessionID>(sections.keySet());
+        final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
         nondefaultSessions.remove(DEFAULT_SESSION_ID);
         return nondefaultSessions.iterator();
     }
@@ -729,7 +728,7 @@ public class SessionSettings {
         }
         final String multiplierCharacter = raw.contains("*") ? "\\*" : "x";
         final String[] data = raw.split(";");
-        final List<Integer> result = new ArrayList<Integer>();
+        final List<Integer> result = new ArrayList<>();
         for (final String multi : data) {
             final String[] timesSec = multi.split(multiplierCharacter);
             int times;
@@ -767,7 +766,7 @@ public class SessionSettings {
             return null;
         }
         final String[] data = raw.split(",");
-        final Set<InetAddress> result = new HashSet<InetAddress>();
+        final Set<InetAddress> result = new HashSet<>();
         for (final String multi : data) {
             try {
                 result.add(InetAddress.getByName(multi));

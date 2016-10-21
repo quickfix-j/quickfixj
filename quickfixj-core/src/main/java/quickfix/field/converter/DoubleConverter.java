@@ -19,21 +19,21 @@
 
 package quickfix.field.converter;
 
+import quickfix.FieldConvertError;
+import quickfix.RuntimeError;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import quickfix.FieldConvertError;
-import quickfix.RuntimeError;
-
 /**
  * Converts between a double and a String.
  */
 public class DoubleConverter {
     private static final Pattern DECIMAL_PATTERN = Pattern.compile("-?\\d*(\\.\\d*)?");
-    private static final ThreadLocal<DecimalFormat[]> THREAD_DECIMAL_FORMATS = new ThreadLocal<DecimalFormat[]>();
+    private static final ThreadLocal<DecimalFormat[]> THREAD_DECIMAL_FORMATS = new ThreadLocal<>();
 
     /**
      * Converts a double to a string with no padding.

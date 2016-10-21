@@ -46,7 +46,7 @@ public interface Connector {
      *
      * @param force don't wait for logout before disconnect.
      */
-    public void stop(boolean force);
+    void stop(boolean force);
 
     /**
      * Start accepting connections. This method blocks until stop is called from

@@ -19,19 +19,8 @@
 
 package quickfix.mina.acceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Properties;
-
 import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
-
 import quickfix.FixVersions;
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
@@ -51,6 +40,16 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
 public class AcceptorIoHandlerTest {
 
     /**
@@ -69,7 +68,7 @@ public class AcceptorIoHandlerTest {
                 new UnitTestApplication(), false);
         stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
 
-        final HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
+        final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
         acceptorSessions.put(sessionID, session);
         final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
 
@@ -96,7 +95,7 @@ public class AcceptorIoHandlerTest {
 
         EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
 
-        HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
+        HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
@@ -126,7 +125,7 @@ public class AcceptorIoHandlerTest {
         logout.getHeader()
                 .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
 
-        HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
+        HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
@@ -156,7 +155,7 @@ public class AcceptorIoHandlerTest {
         // Expect that onMessage will not be called
         //mockEventHandlingStrategy.onMessage(qfSession, logout);
 
-        HashMap<SessionID, Session> acceptorSessions = new HashMap<SessionID, Session>();
+        HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
         acceptorSessions.put(qfSession.getSessionID(), qfSession);
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                 new NetworkingOptions(new Properties()), mockEventHandlingStrategy);

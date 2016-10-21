@@ -20,13 +20,20 @@ package org.quickfixj.jmx.mbean.session;
 import org.quickfixj.QFJException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.*;
+import quickfix.Message;
+import quickfix.Session;
+import quickfix.SessionID;
+import quickfix.SessionNotFound;
+import quickfix.SessionStateListener;
 import quickfix.field.MsgType;
 import quickfix.field.NewSeqNo;
 import quickfix.field.converter.UtcTimestampConverter;
 
-import javax.management.*;
-
+import javax.management.MBeanRegistration;
+import javax.management.MBeanServer;
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
+import javax.management.ObjectName;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -167,7 +174,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
      * @see quickfix.jmx.SessionMBean#getMessages(int, int)
      */
     public String[] getMessages(int startSequence, int endSequence) throws IOException {
-        ArrayList<String> messages = new ArrayList<String>();
+        ArrayList<String> messages = new ArrayList<>();
         session.getStore().get(startSequence, endSequence, messages);
         return messages.toArray(new String[messages.size()]);
     }

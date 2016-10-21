@@ -17,19 +17,18 @@
 
 package org.quickfixj.jmx.openmbean;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import javax.management.openmbean.TabularDataSupport;
 import javax.management.openmbean.TabularType;
+import java.beans.BeanInfo;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class TabularDataAdapter {
 
@@ -113,7 +112,7 @@ public class TabularDataAdapter {
         TabularData table;
         try {
             CompositeTypeFactory rowTypeFactory = new CompositeTypeFactory(rowTypeName, rowTypeName);
-            List<String> indexNames = new ArrayList<String>();
+            List<String> indexNames = new ArrayList<>();
             indexNames.add(keyProperty);
             rowTypeFactory.defineItem(formatHeader(keyProperty), SimpleType.STRING);
             for (Object bean : beans) {

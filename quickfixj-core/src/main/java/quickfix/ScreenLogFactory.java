@@ -126,9 +126,7 @@ public class ScreenLogFactory implements LogFactory {
             includeMillis = getBooleanSetting(sessionID,
                     ScreenLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, false);
             return new ScreenLog(incoming, outgoing, events, heartBeats, includeMillis, sessionID, System.out);
-        } catch (FieldConvertError e) {
-            throw new RuntimeError(e);
-        } catch (ConfigError e) {
+        } catch (FieldConvertError | ConfigError e) {
             throw new RuntimeError(e);
         }
     }

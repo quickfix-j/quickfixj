@@ -19,15 +19,8 @@
 
 package quickfix.test.acceptance.resynch;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.concurrent.CountDownLatch;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Application;
 import quickfix.DefaultMessageFactory;
 import quickfix.DoNotSend;
@@ -47,6 +40,12 @@ import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.UnsupportedMessageType;
 import quickfix.mina.SessionConnector;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
 
 public class ResynchTestServer extends MessageCracker implements Application, Runnable, PropertyChangeListener {
 
@@ -105,7 +104,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     @Override
     public void run() {
         try {
-            HashMap<Object, Object> defaults = new HashMap<Object, Object>();
+            HashMap<Object, Object> defaults = new HashMap<>();
             defaults.put("ConnectionType", "acceptor");
             defaults.put("SocketAcceptPort", "19889");
             defaults.put("StartTime", "00:00:00");

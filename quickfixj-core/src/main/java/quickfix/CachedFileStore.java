@@ -19,6 +19,11 @@
 
 package quickfix;
 
+import org.quickfixj.CharsetSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.field.converter.UtcTimestampConverter;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -38,12 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import org.quickfixj.CharsetSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import quickfix.field.converter.UtcTimestampConverter;
 
 /**
  * File store implementation. THIS CLASS IS PUBLIC ONLY TO MAINTAIN COMPATIBILITY WITH THE QUICKFIX JNI. IT SHOULD ONLY
@@ -134,16 +133,13 @@ public class CachedFileStore implements MessageStore {
     private void initializeSessionCreateTime() throws IOException {
         final File sessionTimeFile = new File(sessionFileName);
         if (sessionTimeFile.exists() && sessionTimeFile.length() > 0) {
-            final DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
-                    new FileInputStream(sessionTimeFile)));
-            try {
+            try (DataInputStream sessionTimeInput = new DataInputStream(new BufferedInputStream(
+                    new FileInputStream(sessionTimeFile)))) {
                 final Calendar c = SystemTime.getUtcCalendar(UtcTimestampConverter
                         .convert(sessionTimeInput.readUTF()));
                 cache.setCreationTime(c);
             } catch (final Exception e) {
                 throw new IOException(e.getMessage());
-            } finally {
-                sessionTimeInput.close();
             }
         } else {
             storeSessionTimeStamp();
@@ -151,14 +147,11 @@ public class CachedFileStore implements MessageStore {
     }
 
     private void storeSessionTimeStamp() throws IOException {
-        final DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
-                new FileOutputStream(sessionFileName, false)));
-        try {
+        try (DataOutputStream sessionTimeOutput = new DataOutputStream(new BufferedOutputStream(
+                new FileOutputStream(sessionFileName, false)))) {
             final Date date = SystemTime.getDate();
             cache.setCreationTime(SystemTime.getUtcCalendar(date));
             sessionTimeOutput.writeUTF(UtcTimestampConverter.convert(date, true));
-        } finally {
-            sessionTimeOutput.close();
         }
     }
 
@@ -187,17 +180,14 @@ public class CachedFileStore implements MessageStore {
     private void initializeMessageIndex() throws IOException {
         final File headerFile = new File(headerFileName);
         if (headerFile.exists()) {
-            final DataInputStream headerDataInputStream = new DataInputStream(
-                    new BufferedInputStream(new FileInputStream(headerFile)));
-            try {
+            try (DataInputStream headerDataInputStream = new DataInputStream(
+                    new BufferedInputStream(new FileInputStream(headerFile)))) {
                 while (headerDataInputStream.available() > 0) {
                     final int sequenceNumber = headerDataInputStream.readInt();
                     final long offset = headerDataInputStream.readLong();
                     final int size = headerDataInputStream.readInt();
-                    messageIndex.put((long) sequenceNumber, new long[] { offset, size });
+                    messageIndex.put((long) sequenceNumber, new long[]{offset, size});
                 }
-            } finally {
-                headerDataInputStream.close();
             }
         }
         headerFileOutputStream = new FileOutputStream(headerFileName, true);
@@ -331,7 +321,7 @@ public class CachedFileStore implements MessageStore {
     }
 
     private Collection<String> getMessage(long startSequence, long endSequence) throws IOException {
-        final Collection<String> messages = new ArrayList<String>();
+        final Collection<String> messages = new ArrayList<>();
 
         final List<long[]> offsetAndSizes = messageIndex.get(startSequence, endSequence);
         for (final long[] offsetAndSize : offsetAndSizes) {
@@ -407,7 +397,7 @@ public class CachedFileStore implements MessageStore {
      */
     private class CachedHashMap implements Map<Long, long[]> {
 
-        private final TreeMap<Long, long[]> cacheIndex = new TreeMap<Long, long[]>();
+        private final TreeMap<Long, long[]> cacheIndex = new TreeMap<>();
 
         private int currentSize;
 
@@ -510,7 +500,7 @@ public class CachedFileStore implements MessageStore {
         }
 
         private List<long[]> seekMessageIndex(final long startSequence, final long endSequence) {
-            final TreeMap<Integer, long[]> indexPerSequenceNumber = new TreeMap<Integer, long[]>();
+            final TreeMap<Integer, long[]> indexPerSequenceNumber = new TreeMap<>();
             final File headerFile = new File(headerFileName);
             if (headerFile.exists()) {
                 DataInputStream headerDataInputStream = null;
@@ -538,7 +528,7 @@ public class CachedFileStore implements MessageStore {
                     }
                 }
             }
-            return new ArrayList<long[]>(indexPerSequenceNumber.values());
+            return new ArrayList<>(indexPerSequenceNumber.values());
         }
 
         public List<long[]> get(final long startSequence, final long endSequence) {

@@ -19,18 +19,26 @@
 
 package quickfix;
 
-import static quickfix.FixVersions.*;
 import quickfix.field.MsgType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static quickfix.FixVersions.BEGINSTRING_FIX40;
+import static quickfix.FixVersions.BEGINSTRING_FIX41;
+import static quickfix.FixVersions.BEGINSTRING_FIX42;
+import static quickfix.FixVersions.BEGINSTRING_FIX43;
+import static quickfix.FixVersions.BEGINSTRING_FIX44;
+import static quickfix.FixVersions.BEGINSTRING_FIXT11;
+import static quickfix.FixVersions.FIX50;
+import static quickfix.FixVersions.FIX50SP1;
+import static quickfix.FixVersions.FIX50SP2;
+
 /**
  * The default factory for creating FIX message instances.
  */
 public class DefaultMessageFactory implements MessageFactory {
-    private final Map<String, MessageFactory> messageFactories
-        = new ConcurrentHashMap<String, MessageFactory>();
+    private final Map<String, MessageFactory> messageFactories = new ConcurrentHashMap<>();
 
     /**
      * Constructs a DefaultMessageFactory, which dynamically loads and delegates to

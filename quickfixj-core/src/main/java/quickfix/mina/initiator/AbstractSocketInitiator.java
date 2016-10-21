@@ -19,20 +19,10 @@
 
 package quickfix.mina.initiator;
 
-import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
@@ -53,13 +43,22 @@ import quickfix.mina.SessionConnector;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLSupport;
 
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Abstract base class for socket initiators.
  */
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private final Set<IoSessionInitiator> initiators = new HashSet<IoSessionInitiator>();
+    private final Set<IoSessionInitiator> initiators = new HashSet<>();
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -146,7 +145,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
         }
 
-        final Map<SessionID, Session> initiatorSessions = new HashMap<SessionID, Session>();
+        final Map<SessionID, Session> initiatorSessions = new HashMap<>();
         for (final Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
             final SessionID sessionID = i.next();
             if (isInitiatorSession(sessionID)) {
@@ -188,7 +187,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     private SocketAddress[] getSocketAddresses(SessionID sessionID) throws ConfigError {
         final SessionSettings settings = getSettings();
-        final ArrayList<SocketAddress> addresses = new ArrayList<SocketAddress>();
+        final ArrayList<SocketAddress> addresses = new ArrayList<>();
         for (int index = 0;; index++) {
             try {
                 final String protocolKey = Initiator.SETTING_SOCKET_CONNECT_PROTOCOL

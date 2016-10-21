@@ -19,23 +19,8 @@
 
 package quickfix;
 
-import static quickfix.LogUtil.logThrowable;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Message.Header;
 import quickfix.SessionState.ResendRange;
 import quickfix.field.ApplVerID;
@@ -70,6 +55,20 @@ import quickfix.field.TargetSubID;
 import quickfix.field.TestReqID;
 import quickfix.field.Text;
 import quickfix.mina.EventHandlingStrategy;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static quickfix.LogUtil.logThrowable;
 
 /**
  * The Session is the primary FIX abstraction for message communication.
@@ -344,7 +343,7 @@ public class Session implements Closeable {
 
     public static final String SETTING_MAX_SCHEDULED_WRITE_REQUESTS = "MaxScheduledWriteRequests";
 
-    private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<SessionID, Session>();
+    private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
     private final SessionID sessionID;
@@ -397,7 +396,7 @@ public class Session implements Closeable {
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
             .getMulticaster();
 
-    private final AtomicReference<ApplVerID> targetDefaultApplVerID = new AtomicReference<ApplVerID>();
+    private final AtomicReference<ApplVerID> targetDefaultApplVerID = new AtomicReference<>();
     private final DefaultApplVerID senderDefaultApplVerID;
     private boolean validateSequenceNumbers = true;
     private boolean validateIncomingMessage = true;
@@ -975,25 +974,34 @@ public class Session implements Closeable {
                 }
             }
 
-            if (msgType.equals(MsgType.LOGON)) {
-                nextLogon(message);
-            } else if (msgType.equals(MsgType.HEARTBEAT)) {
-                nextHeartBeat(message);
-            } else if (msgType.equals(MsgType.TEST_REQUEST)) {
-                nextTestRequest(message);
-            } else if (msgType.equals(MsgType.SEQUENCE_RESET)) {
-                nextSequenceReset(message);
-            } else if (msgType.equals(MsgType.LOGOUT)) {
-                nextLogout(message);
-            } else if (msgType.equals(MsgType.RESEND_REQUEST)) {
-                nextResendRequest(message);
-            } else if (msgType.equals(MsgType.REJECT)) {
-                nextReject(message);
-            } else {
-                if (!verify(message)) {
-                    return;
-                }
-                state.incrNextTargetMsgSeqNum();
+            switch (msgType) {
+                case MsgType.LOGON:
+                    nextLogon(message);
+                    break;
+                case MsgType.HEARTBEAT:
+                    nextHeartBeat(message);
+                    break;
+                case MsgType.TEST_REQUEST:
+                    nextTestRequest(message);
+                    break;
+                case MsgType.SEQUENCE_RESET:
+                    nextSequenceReset(message);
+                    break;
+                case MsgType.LOGOUT:
+                    nextLogout(message);
+                    break;
+                case MsgType.RESEND_REQUEST:
+                    nextResendRequest(message);
+                    break;
+                case MsgType.REJECT:
+                    nextReject(message);
+                    break;
+                default:
+                    if (!verify(message)) {
+                        return;
+                    }
+                    state.incrNextTargetMsgSeqNum();
+                    break;
             }
         } catch (final FieldException e) {
             getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
@@ -2143,7 +2151,7 @@ public class Session implements Closeable {
     private void resendMessages(Message receivedMessage, int beginSeqNo, int endSeqNo)
             throws IOException, InvalidMessage, FieldNotFound {
 
-        final ArrayList<String> messages = new ArrayList<String>();
+        final ArrayList<String> messages = new ArrayList<>();
         try {
             state.get(beginSeqNo, endSeqNo, messages);
         } catch (final IOException e) {

@@ -17,10 +17,9 @@
 
 package org.quickfixj.jmx.mbean.session;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import quickfix.ConfigError;
+import quickfix.SessionID;
+import quickfix.SessionSettings;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -31,10 +30,10 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.ReflectionException;
-
-import quickfix.ConfigError;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * This is a read-only view of a sessions settings.
@@ -68,7 +67,7 @@ public class SessionSettingsAdmin implements DynamicMBean {
     }
 
     public MBeanInfo getMBeanInfo() {
-        List<MBeanAttributeInfo> attributeInfos = new ArrayList<MBeanAttributeInfo>();
+        List<MBeanAttributeInfo> attributeInfos = new ArrayList<>();
         for (Map.Entry<Object, Object> entry : settings.entrySet()) {
             String name = (String) entry.getKey();
             attributeInfos.add(new MBeanAttributeInfo(name, "Setting for " + name, entry.getValue().getClass().getName(), true, false,

@@ -19,27 +19,9 @@
 
 package quickfix.examples.executor;
 
-import static quickfix.Acceptor.SETTING_ACCEPTOR_TEMPLATE;
-import static quickfix.Acceptor.SETTING_SOCKET_ACCEPT_ADDRESS;
-import static quickfix.Acceptor.SETTING_SOCKET_ACCEPT_PORT;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.management.JMException;
-import javax.management.ObjectName;
-
 import org.quickfixj.jmx.JmxExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
 import quickfix.FieldConvertError;
@@ -55,10 +37,26 @@ import quickfix.SocketAcceptor;
 import quickfix.mina.acceptor.DynamicAcceptorSessionProvider;
 import quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
 
+import javax.management.JMException;
+import javax.management.ObjectName;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static quickfix.Acceptor.SETTING_ACCEPTOR_TEMPLATE;
+import static quickfix.Acceptor.SETTING_SOCKET_ACCEPT_ADDRESS;
+import static quickfix.Acceptor.SETTING_SOCKET_ACCEPT_PORT;
+
 public class Executor {
     private final static Logger log = LoggerFactory.getLogger(Executor.class);
     private final SocketAcceptor acceptor;
-    private final Map<InetSocketAddress, List<TemplateMapping>> dynamicSessionMappings = new HashMap<InetSocketAddress, List<TemplateMapping>>();
+    private final Map<InetSocketAddress, List<TemplateMapping>> dynamicSessionMappings = new HashMap<>();
 
     private final JmxExporter jmxExporter;
     private final ObjectName connectorObjectName;
@@ -108,7 +106,7 @@ public class Executor {
     private List<TemplateMapping> getMappings(InetSocketAddress address) {
         List<TemplateMapping> mappings = dynamicSessionMappings.get(address);
         if (mappings == null) {
-            mappings = new ArrayList<TemplateMapping>();
+            mappings = new ArrayList<>();
             dynamicSessionMappings.put(address, mappings);
         }
         return mappings;

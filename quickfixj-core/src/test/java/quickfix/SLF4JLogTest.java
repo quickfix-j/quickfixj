@@ -19,17 +19,16 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+import org.slf4j.Marker;
+import org.slf4j.spi.LocationAwareLogger;
+
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-
-import junit.framework.TestCase;
-
-import org.slf4j.Marker;
-import org.slf4j.spi.LocationAwareLogger;
 
 public class SLF4JLogTest extends TestCase {
     public SLF4JLogTest(String name) {
@@ -225,7 +224,7 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class TestHandler extends java.util.logging.Handler {
-        public final ArrayList<LogRecord> records = new ArrayList<LogRecord>();
+        public final ArrayList<LogRecord> records = new ArrayList<>();
 
         @Override
         public void close() throws SecurityException {
@@ -259,8 +258,8 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class MyLog4JLog extends DummySLF4JLogger implements LocationAwareLogger {
-        final Vector<String> messages = new Vector<String>();
-        final Vector<String> fqcns = new Vector<String>();
+        final Vector<String> messages = new Vector<>();
+        final Vector<String> fqcns = new Vector<>();
 
         public void log(Marker marker, String fqcn, int level, String message, Object[] params,
                 Throwable t) {

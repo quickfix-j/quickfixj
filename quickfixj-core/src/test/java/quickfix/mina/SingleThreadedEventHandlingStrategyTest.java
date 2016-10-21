@@ -19,17 +19,9 @@
  */
 package quickfix.mina;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import quickfix.Application;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
@@ -44,6 +36,13 @@ import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.SocketInitiator;
 import quickfix.UnitTestApplication;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  *
@@ -255,7 +254,7 @@ public class SingleThreadedEventHandlingStrategyTest {
     }
 
     private SocketAcceptor createAcceptor(int i) throws ConfigError {
-        Map<Object, Object> acceptorProperties = new HashMap<Object, Object>();
+        Map<Object, Object> acceptorProperties = new HashMap<>();
         acceptorProperties.put("ConnectionType", "acceptor");
         acceptorProperties.put("HeartBtInt", "5");
         acceptorProperties.put("SocketAcceptHost", "localhost");
@@ -280,7 +279,7 @@ public class SingleThreadedEventHandlingStrategyTest {
     }
 
     public SocketInitiator createInitiator(int i) throws ConfigError {
-        Map<Object, Object> acceptorProperties = new HashMap<Object, Object>();
+        Map<Object, Object> acceptorProperties = new HashMap<>();
         acceptorProperties.put("ConnectionType", "initiator");
         acceptorProperties.put("HeartBtInt", "5");
         acceptorProperties.put("SocketConnectHost", "localhost");

@@ -17,20 +17,6 @@
 
 package org.quickfixj.jmx.mbean.connector;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.management.MBeanRegistration;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.TabularData;
-
 import org.quickfixj.QFJException;
 import org.quickfixj.jmx.JmxExporter;
 import org.quickfixj.jmx.mbean.JmxSupport;
@@ -38,7 +24,6 @@ import org.quickfixj.jmx.mbean.session.SessionJmxExporter;
 import org.quickfixj.jmx.openmbean.TabularDataAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import quickfix.Acceptor;
 import quickfix.Connector;
 import quickfix.Initiator;
@@ -46,6 +31,19 @@ import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.mina.SessionConnector;
+
+import javax.management.MBeanRegistration;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.TabularData;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -64,7 +62,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     private final ObjectName connectorName;
 
-    private final List<ObjectName> sessionNames = new ArrayList<ObjectName>();
+    private final List<ObjectName> sessionNames = new ArrayList<>();
 
     private final SessionSettings settings;
 
@@ -118,7 +116,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     }
 
     public TabularData getSessions() throws IOException {
-        List<ConnectorSession> sessions = new ArrayList<ConnectorSession>();
+        List<ConnectorSession> sessions = new ArrayList<>();
         for (SessionID sessionID : connector.getSessions()) {
             Session session = Session.lookupSession(sessionID);
             sessions.add(new ConnectorSession(session, sessionExporter.getSessionName(sessionID)));
@@ -131,7 +129,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     }
 
     public TabularData getLoggedOnSessions() throws OpenDataException {
-        List<ObjectName> names = new ArrayList<ObjectName>();
+        List<ObjectName> names = new ArrayList<>();
         for (SessionID sessionID : connector.getSessions()) {
             Session session = Session.lookupSession(sessionID);
             if (session.isLoggedOn()) {

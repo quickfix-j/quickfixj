@@ -30,12 +30,12 @@ public interface Initiator extends Connector {
      *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
-    public static final String SETTING_RECONNECT_INTERVAL = "ReconnectInterval";
+    String SETTING_RECONNECT_INTERVAL = "ReconnectInterval";
 
     /**
      * Initiator setting for connection protocol (defaults to "tcp").
      */
-    public static final String SETTING_SOCKET_CONNECT_PROTOCOL = "SocketConnectProtocol";
+    String SETTING_SOCKET_CONNECT_PROTOCOL = "SocketConnectProtocol";
 
     /**
      * Initiator setting for connection host. Only valid when session connection
@@ -43,7 +43,7 @@ public interface Initiator extends Connector {
      *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
-    public static final String SETTING_SOCKET_CONNECT_HOST = "SocketConnectHost";
+    String SETTING_SOCKET_CONNECT_HOST = "SocketConnectHost";
 
     /**
      * Initiator setting for connection port. Only valid when session connection
@@ -51,7 +51,7 @@ public interface Initiator extends Connector {
      *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
-    public static final String SETTING_SOCKET_CONNECT_PORT = "SocketConnectPort";
+    String SETTING_SOCKET_CONNECT_PORT = "SocketConnectPort";
 
     /**
      * Initiator setting for local/bind host. Only valid when session connection
@@ -59,7 +59,7 @@ public interface Initiator extends Connector {
      *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
-    public static final String SETTING_SOCKET_LOCAL_HOST = "SocketLocalHost";
+    String SETTING_SOCKET_LOCAL_HOST = "SocketLocalHost";
 
     /**
      * Initiator setting for local/bind port. Only valid when session connection
@@ -67,5 +67,5 @@ public interface Initiator extends Connector {
      *
      * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
      */
-    public static final String SETTING_SOCKET_LOCAL_PORT = "SocketLocalPort";
+    String SETTING_SOCKET_LOCAL_PORT = "SocketLocalPort";
 }

@@ -19,12 +19,12 @@
 
 package quickfix;
 
-import java.util.HashMap;
-
 import quickfix.field.SessionRejectReason;
 
+import java.util.HashMap;
+
 class SessionRejectReasonText extends SessionRejectReason {
-    private static final HashMap<Integer, String> rejectReasonText = new HashMap<Integer, String>();
+    private static final HashMap<Integer, String> rejectReasonText = new HashMap<>();
 
     static {
         rejectReasonText.put(INVALID_TAG_NUMBER, "Invalid tag number");

@@ -19,18 +19,18 @@
 
 package quickfix.examples.ordermatch;
 
+import quickfix.field.OrdType;
+import quickfix.field.Side;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import quickfix.field.OrdType;
-import quickfix.field.Side;
-
 public class Market {
 
-    private final List<Order> bidOrders = new ArrayList<Order>();
-    private final List<Order> askOrders = new ArrayList<Order>();
+    private final List<Order> bidOrders = new ArrayList<>();
+    private final List<Order> askOrders = new ArrayList<>();
 
     public boolean match(String symbol, List<Order> orders) {
         while (true) {

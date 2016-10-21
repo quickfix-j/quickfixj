@@ -19,15 +19,14 @@
 
 package quickfix.mina.ssl;
 
-import java.io.IOException;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-
 import quickfix.ConfigError;
 import quickfix.FieldConvertError;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import java.io.IOException;
 
 public class SSLSupport {
     public static final String FILTER_NAME = "SslFilter";
@@ -122,8 +121,7 @@ public class SSLSupport {
         if (sessionSettings.isSetting(sessionID, key)) {
             try {
                 propertyValue = sessionSettings.getString(sessionID, key);
-            } catch (ConfigError ignored) {
-            } catch (FieldConvertError ignored) {
+            } catch (ConfigError | FieldConvertError ignored) {
             }
         }
         return propertyValue;

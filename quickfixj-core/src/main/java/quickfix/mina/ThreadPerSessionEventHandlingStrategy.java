@@ -29,14 +29,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
 
-    private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<SessionID, MessageDispatchingThread>();
+    private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<>();
     private final SessionConnector sessionConnector;
     private final int queueCapacity;
 
@@ -110,7 +114,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         private MessageDispatchingThread(Session session, int queueCapacity) {
             super("QF/J Session dispatcher: " + session.getSessionID());
             quickfixSession = session;
-            messages = new LinkedBlockingQueue<Message>(queueCapacity);
+            messages = new LinkedBlockingQueue<>(queueCapacity);
         }
 
         public void enqueue(Message message) {
@@ -151,7 +155,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 }
             }
             if (!messages.isEmpty()) {
-                final List<Message> tempList = new ArrayList<Message>();
+                final List<Message> tempList = new ArrayList<>();
                 messages.drainTo(tempList);
                 for (Message message : tempList) {
                     try {
