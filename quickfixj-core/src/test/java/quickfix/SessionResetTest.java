@@ -1,8 +1,16 @@
 package quickfix;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import quickfix.field.BeginString;
+import quickfix.field.EncryptMethod;
+import quickfix.field.HeartBtInt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
+import quickfix.field.TargetCompID;
+import quickfix.field.TestReqID;
+import quickfix.fix44.TestRequest;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -14,18 +22,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.junit.Test;
-
-import quickfix.field.BeginString;
-import quickfix.field.EncryptMethod;
-import quickfix.field.HeartBtInt;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.MsgType;
-import quickfix.field.SenderCompID;
-import quickfix.field.SendingTime;
-import quickfix.field.TargetCompID;
-import quickfix.field.TestReqID;
-import quickfix.fix44.TestRequest;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class SessionResetTest {
 
@@ -60,21 +59,17 @@ public class SessionResetTest {
         header.setInt(MsgSeqNum.FIELD, 1);
         header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
 
-        Thread resetThread = new Thread(new Runnable() {
-            public void run() {
-                try {
-                    session.reset();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        Thread resetThread = new Thread(() -> {
+            try {
+                session.reset();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }, "SessionReset");
 
-        Thread messageSender = new Thread(new Runnable() {
-            public void run() {
-                for (int i = 2; i <= NUMBER_OF_ADMIN_MESSAGES; i++) {
-                    session.send(createAdminMessage(i));
-                }
+        Thread messageSender = new Thread(() -> {
+            for (int i = 2; i <= NUMBER_OF_ADMIN_MESSAGES; i++) {
+                session.send(createAdminMessage(i));
             }
         }, "SessionSend");
 
@@ -149,7 +144,7 @@ public class SessionResetTest {
         private final Condition unpaused = pauseLock.newCondition();
 
         public PausableThreadPoolExecutor() {
-            super(2, 2, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10000));
+            super(2, 2, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10000));
         }
 
         protected void beforeExecute(Thread t, Runnable r) {

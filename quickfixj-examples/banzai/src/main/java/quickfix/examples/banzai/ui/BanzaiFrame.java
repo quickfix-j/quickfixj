@@ -20,8 +20,6 @@
 package quickfix.examples.banzai.ui;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -60,19 +58,11 @@ public class BanzaiFrame extends JFrame {
         menubar.add(sessionMenu);
 
         JMenuItem logonItem = new JMenuItem("Logon");
-        logonItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Banzai.get().logon();
-            }
-        });
+        logonItem.addActionListener(e -> Banzai.get().logon());
         sessionMenu.add(logonItem);
 
         JMenuItem logoffItem = new JMenuItem("Logoff");
-        logoffItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Banzai.get().logout();
-            }
-        });
+        logoffItem.addActionListener(e -> Banzai.get().logout());
         sessionMenu.add(logoffItem);
 
         JMenu appMenu = new JMenu("Application");
@@ -80,20 +70,12 @@ public class BanzaiFrame extends JFrame {
 
         JMenuItem appAvailableItem = new JCheckBoxMenuItem("Available");
         appAvailableItem.setSelected(application.isAvailable());
-        appAvailableItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                application.setAvailable(((JCheckBoxMenuItem) e.getSource()).isSelected());
-            }
-        });
+        appAvailableItem.addActionListener(e -> application.setAvailable(((JCheckBoxMenuItem) e.getSource()).isSelected()));
         appMenu.add(appAvailableItem);
 
         JMenuItem sendMissingFieldRejectItem = new JCheckBoxMenuItem("Send Missing Field Reject");
         sendMissingFieldRejectItem.setSelected(application.isMissingField());
-        sendMissingFieldRejectItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                application.setMissingField(((JCheckBoxMenuItem) e.getSource()).isSelected());
-            }
-        });
+        sendMissingFieldRejectItem.addActionListener(e -> application.setMissingField(((JCheckBoxMenuItem) e.getSource()).isSelected()));
         appMenu.add(sendMissingFieldRejectItem);
 
         setJMenuBar(menubar);

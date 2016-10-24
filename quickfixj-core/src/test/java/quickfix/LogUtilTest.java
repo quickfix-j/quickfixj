@@ -19,12 +19,12 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
-
-import junit.framework.TestCase;
 
 public class LogUtilTest extends TestCase {
 
@@ -49,18 +49,16 @@ public class LogUtilTest extends TestCase {
         settings.setString(Session.SETTING_END_TIME, "13:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
         SessionSchedule schedule = new SessionSchedule(settings, sessionID);
-        Session session = new Session(null, new MessageStoreFactory() {
-            public MessageStore create(SessionID sessionID) {
-                try {
-                    return new MemoryStore() {
-                        public Date getCreationTime() throws IOException {
-                            throw new IOException("test");
-                        }
-                    };
-                } catch (IOException e) {
-                    // ignore
-                    return null;
-                }
+        Session session = new Session(null, sessionID1 -> {
+            try {
+                return new MemoryStore() {
+                    public Date getCreationTime() throws IOException {
+                        throw new IOException("test");
+                    }
+                };
+            } catch (IOException e) {
+                // ignore
+                return null;
             }
         }, sessionID, null, schedule, mockLogFactory, null, 0);
         try {

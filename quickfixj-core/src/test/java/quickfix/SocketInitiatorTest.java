@@ -20,8 +20,6 @@
 package quickfix;
 
 import org.apache.mina.core.filterchain.IoFilterAdapter;
-import org.apache.mina.core.filterchain.IoFilterChain;
-import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteRequest;
 import org.junit.Before;
@@ -70,11 +68,7 @@ public class SocketInitiatorTest {
             ClientApplication clientApplication = new ClientApplication();
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-            initiator.setIoFilterChainBuilder(new IoFilterChainBuilder() {
-                public void buildFilterChain(IoFilterChain chain) throws Exception {
-                    chain.addLast("TestFilter", initiatorWriteCounter);
-                }
-            });
+            initiator.setIoFilterChainBuilder(chain -> chain.addLast("TestFilter", initiatorWriteCounter));
 
             try {
                 log.info("Do first login");
@@ -353,11 +347,7 @@ public class SocketInitiatorTest {
         public ServerThread() {
             super("test server");
             server = new ATServer();
-            server.setIoFilterChainBuilder(new IoFilterChainBuilder() {
-                public void buildFilterChain(IoFilterChain chain) throws Exception {
-                    chain.addLast("TestFilter", writeCounter);
-                }
-            });
+            server.setIoFilterChainBuilder(chain -> chain.addLast("TestFilter", writeCounter));
         }
 
         public void run() {

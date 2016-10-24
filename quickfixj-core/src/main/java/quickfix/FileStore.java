@@ -76,7 +76,7 @@ public class FileStore implements MessageStore, Closeable {
         this.syncWrites = syncWrites;
         this.maxCachedMsgs = maxCachedMsgs;
 
-        messageIndex = maxCachedMsgs > 0 ? new TreeMap<Long, long[]>() : null;
+        messageIndex = maxCachedMsgs > 0 ? new TreeMap<>() : null;
 
         final String fullPath = new File(path == null ? "." : path).getAbsolutePath();
         final String sessionName = FileUtil.sessionIdFileName(sessionID);

@@ -21,7 +21,6 @@ package quickfix.mina.ssl;
 
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.filterchain.IoFilterChain;
-import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -523,20 +522,15 @@ public class SSLCertificateTest {
 
         private SessionConnector prepareConnector(SessionSettings sessionSettings) throws ConfigError {
             SessionConnector sessionConnector = createConnector(sessionSettings);
-            sessionConnector.setIoFilterChainBuilder(new IoFilterChainBuilder() {
+            sessionConnector.setIoFilterChainBuilder(chain -> chain.addLast("SSL exception handler", new IoFilterAdapter() {
                 @Override
-                public void buildFilterChain(IoFilterChain chain) throws Exception {
-                    chain.addLast("SSL exception handler", new IoFilterAdapter() {
-                        @Override
-                        public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause)
-                                throws Exception {
-                            LOGGER.info("SSL exception", cause);
-                            exceptionThrownLatch.countDown();
-                            nextFilter.exceptionCaught(session, cause);
-                        }
-                    });
+                public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause)
+                        throws Exception {
+                    LOGGER.info("SSL exception", cause);
+                    exceptionThrownLatch.countDown();
+                    nextFilter.exceptionCaught(session, cause);
                 }
-            });
+            }));
 
             return sessionConnector;
         }

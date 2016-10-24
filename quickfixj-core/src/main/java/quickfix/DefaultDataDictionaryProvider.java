@@ -20,54 +20,51 @@
 package quickfix;
 
 import org.quickfixj.QFJException;
+import org.quickfixj.SimpleCache;
 import quickfix.field.ApplVerID;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static quickfix.MessageUtils.toBeginString;
 
 public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
-    private final Map<String, DataDictionary> transportDictionaries = new ConcurrentHashMap<>();
-    private final Map<AppVersionKey, DataDictionary> applicationDictionaries = new ConcurrentHashMap<>();
-    private final boolean findDataDictionaries;
+    private final SimpleCache<String, DataDictionary> transportDictionaries;
+    private final SimpleCache<ApplVerID, DataDictionary> applicationDictionaries;
 
     public DefaultDataDictionaryProvider() {
-        findDataDictionaries = true;
+        this(true);
     }
 
     public DefaultDataDictionaryProvider(boolean findDataDictionaries) {
-        this.findDataDictionaries = findDataDictionaries;
+        transportDictionaries = new SimpleCache<>(beginString -> {
+            if (findDataDictionaries) {
+                final String path = beginString.replace(".", "") + ".xml";
+                try {
+                    return new DataDictionary(path);
+                } catch (ConfigError e) {
+                    throw new QFJException(e);
+                }
+            }
+            return null;
+        });
+        applicationDictionaries = new SimpleCache<>(applVerID -> {
+            if (findDataDictionaries) {
+                final String beginString = toBeginString(applVerID);
+                final String path = beginString.replace(".", "") + ".xml";
+                try {
+                    return new DataDictionary(path);
+                } catch (ConfigError e) {
+                    throw new QFJException(e);
+                }
+            }
+            return null;
+        });
     }
 
-    public synchronized DataDictionary getSessionDataDictionary(String beginString) {
-        DataDictionary dd = transportDictionaries.get(beginString);
-        if (dd == null && findDataDictionaries) {
-            String path = beginString.replace(".", "") + ".xml";
-            try {
-                dd = new DataDictionary(path);
-                transportDictionaries.put(beginString, dd);
-            } catch (ConfigError e) {
-                throw new QFJException(e);
-            }
-        }
-        return dd;
+    public DataDictionary getSessionDataDictionary(String beginString) {
+        return transportDictionaries.computeIfAbsent(beginString);
     }
 
     public DataDictionary getApplicationDataDictionary(ApplVerID applVerID) {
-        AppVersionKey appVersionKey = new AppVersionKey(applVerID);
-        DataDictionary dd = applicationDictionaries.get(appVersionKey);
-        if (dd == null && findDataDictionaries) {
-            String beginString = toBeginString(applVerID);
-            String path = beginString.replace(".", "") + ".xml";
-            try {
-                dd = new DataDictionary(path);
-                applicationDictionaries.put(appVersionKey, dd);
-            } catch (ConfigError e) {
-                throw new QFJException(e);
-            }
-        }
-        return dd;
+        return applicationDictionaries.computeIfAbsent(applVerID);
     }
 
     public void addTransportDictionary(String beginString, DataDictionary dd) {
@@ -75,44 +72,6 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
     }
 
     public void addApplicationDictionary(ApplVerID applVerID, DataDictionary dataDictionary) {
-        applicationDictionaries.put(new AppVersionKey(applVerID), dataDictionary);
-    }
-
-    private static class AppVersionKey {
-        private final ApplVerID applVerID;
-
-        public AppVersionKey(ApplVerID applVerID) {
-            this.applVerID = applVerID;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((applVerID == null) ? 0 : applVerID.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            AppVersionKey other = (AppVersionKey) obj;
-            if (applVerID == null) {
-                if (other.applVerID != null) {
-                    return false;
-                }
-            } else if (!applVerID.equals(other.applVerID)) {
-                return false;
-            }
-            return true;
-        }
+        applicationDictionaries.put(applVerID, dataDictionary);
     }
 }

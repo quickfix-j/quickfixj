@@ -31,13 +31,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 class JdbcUtil {
 
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
 
     private static final Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<>();
-    private static int dataSourceCounter = 1;
+    private static AtomicInteger dataSourceCounter = new AtomicInteger();
 
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
             throws ConfigError, FieldConvertError {
@@ -81,35 +83,35 @@ class JdbcUtil {
     }
 
     /**
-     * This is typically called from a single thread, but just in case we are synchronizing modification
-     * of the cache. The cache itself is thread safe.
+     * This is typically called from a single thread, but just in case we are using an atomic loading function
+     * to avoid the creation of two data sources simultaneously. The cache itself is thread safe.
      */
-    static synchronized DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password,
+    static DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password,
                                                  boolean cache, int maxConnCount, int simultaneousBuildThrottle,
                                                  long maxActiveTime, int maxConnLifetime) {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
         ProxoolDataSource ds = cache ? dataSources.get(key) : null;
 
         if (ds == null) {
-            ds = new ProxoolDataSource(JdbcUtil.CONNECTION_POOL_ALIAS + "-" + dataSourceCounter++);
+            final Function<String, ProxoolDataSource> loadingFunction = dataSourceKey -> {
+                final ProxoolDataSource dataSource = new ProxoolDataSource(CONNECTION_POOL_ALIAS + "-" + dataSourceCounter.incrementAndGet());
 
-            ds.setDriver(jdbcDriver);
-            ds.setDriverUrl(connectionURL);
+                dataSource.setDriver(jdbcDriver);
+                dataSource.setDriverUrl(connectionURL);
 
-            // Bug in Proxool 0.9RC2. Must set both delegate properties and individual setters. :-(
-            ds.setDelegateProperties("user=" + user + ","
-                    + (password != null && !"".equals(password) ? "password=" + password : ""));
-            ds.setUser(user);
-            ds.setPassword(password);
+                // Bug in Proxool 0.9RC2. Must set both delegate properties and individual setters. :-(
+                dataSource.setDelegateProperties("user=" + user + ","
+                        + (password != null && !"".equals(password) ? "password=" + password : ""));
+                dataSource.setUser(user);
+                dataSource.setPassword(password);
 
-            ds.setMaximumActiveTime(maxActiveTime);
-            ds.setMaximumConnectionLifetime(maxConnLifetime);
-            ds.setMaximumConnectionCount(maxConnCount);
-            ds.setSimultaneousBuildThrottle(simultaneousBuildThrottle);
-
-            if (cache) {
-                dataSources.put(key, ds);
-            }
+                dataSource.setMaximumActiveTime(maxActiveTime);
+                dataSource.setMaximumConnectionLifetime(maxConnLifetime);
+                dataSource.setMaximumConnectionCount(maxConnCount);
+                dataSource.setSimultaneousBuildThrottle(simultaneousBuildThrottle);
+                return dataSource;
+            };
+            ds = cache ? dataSources.computeIfAbsent(key, loadingFunction) : loadingFunction.apply(key);
         }
         return ds;
     }
