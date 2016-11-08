@@ -191,7 +191,10 @@ import quickfix.Group;</xsl:if>
 </xsl:template>
 
 <xsl:template mode="group-delimeter" match="group">
-	<xsl:value-of select="@number"/>
+    <xsl:if test="position() = 1">
+        <xsl:variable name="name" select="@name"/>
+        <xsl:value-of select="/fix/fields/field[@name=$name]/@number"/>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template mode="group-delimeter" match="group//component">

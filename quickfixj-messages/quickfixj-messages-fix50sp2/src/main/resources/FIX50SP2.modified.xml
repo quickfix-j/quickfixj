@@ -3502,8 +3502,6 @@
     </component>
     <component name="StrmAsgnRptGrp">
       <group name="NoAsgnReqs" required="N">
-		<!-- MODIFIED: added dummy StreamAsgnReqType field for code generator to work -->
-		<field name="StreamAsgnReqType" required="N"/>
         <component name="Parties" required="N"/>
         <component name="StrmAsgnRptInstrmtGrp" required="N"/>
       </group>
@@ -3786,8 +3784,6 @@
     </component>
     <component name="StrmAsgnReqGrp">
       <group name="NoAsgnReqs" required="N">
-		<!-- MODIFIED: added dummy StreamAsgnReqType field for code generator to work -->
-		<field name="StreamAsgnReqType" required="N"/>
         <component name="Parties" required="N"/>
         <component name="StrmAsgnReqInstrmtGrp" required="N"/>
       </group>
