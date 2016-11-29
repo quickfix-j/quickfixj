@@ -50,6 +50,8 @@ public class FileLog extends AbstractLog {
     private final String messagesFileName;
     private final String eventFileName;
     private boolean syncAfterWrite;
+    private final Object messagesLock = new Object();
+    private final Object eventsLock = new Object();
 
     private FileOutputStream messages;
     private FileOutputStream events;
@@ -83,16 +85,16 @@ public class FileLog extends AbstractLog {
     }
 
     protected void logIncoming(String message) {
-        writeMessage(messages, message, false);
+        writeMessage(messages, messagesLock, message, false);
     }
 
     protected void logOutgoing(String message) {
-        writeMessage(messages, message, false);
+        writeMessage(messages, messagesLock, message, false);
     }
 
-    private void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
+    private void writeMessage(FileOutputStream stream, Object lock, String message, boolean forceTimestamp) {
         try {
-            synchronized(stream) {
+            synchronized(lock) {
                 if (forceTimestamp || includeTimestampForMessages) {
                     writeTimeStamp(stream);
                 }
@@ -112,11 +114,11 @@ public class FileLog extends AbstractLog {
     }
 
     public void onEvent(String message) {
-        writeMessage(events, message, true);
+        writeMessage(events, eventsLock, message, true);
     }
 
     public void onErrorEvent(String message) {
-        writeMessage(events, message, true);
+        writeMessage(events, eventsLock, message, true);
     }
 
     private void writeTimeStamp(OutputStream out) throws IOException {
