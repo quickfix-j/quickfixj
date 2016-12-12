@@ -29,6 +29,6 @@ public final class NoopStoreFactory implements MessageStoreFactory {
 
     @Override
     public MessageStore create(SessionID sessionID) {
-        return new NoopStore(sessionID);
+        return new NoopStore();
     }
 }
