@@ -3263,8 +3263,9 @@
     <field name="AccountType" required="Y"/>
     <component name="Instrument" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
     </group>
@@ -3311,8 +3312,9 @@
     <field name="Quantity" required="N"/>
     <field name="QtyType" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
       <field name="CollAction" required="N"/>
@@ -3373,8 +3375,9 @@
     <field name="Quantity" required="N"/>
     <field name="QtyType" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
       <field name="CollAction" required="N"/>
@@ -3437,8 +3440,9 @@
     <field name="Quantity" required="N"/>
     <field name="QtyType" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
       <field name="CollAction" required="N"/>
@@ -3492,8 +3496,9 @@
     <field name="Quantity" required="N"/>
     <field name="QtyType" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
     </group>
@@ -3554,8 +3559,9 @@
     <field name="Quantity" required="N"/>
     <field name="QtyType" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
     </group>
@@ -3634,8 +3640,9 @@
     <field name="Quantity" required="N"/>
     <field name="QtyType" required="N"/>
     <field name="Currency" required="N"/>
-    <field name="NoLegs" required="N"/>
-    <component name="InstrumentLeg" required="N"/>
+    <group name="NoLegs" required="N">
+      <component name="InstrumentLeg" required="N"/>
+    </group>
     <group name="NoUnderlyings" required="N">
       <component name="UnderlyingInstrument" required="N"/>
     </group>
