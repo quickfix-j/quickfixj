@@ -302,12 +302,7 @@ public class FIXMessageDecoder implements MessageDecoder {
      */
     public List<String> extractMessages(File file) throws IOException, ProtocolCodecException {
         final List<String> messages = new ArrayList<>();
-        extractMessages(file, new MessageListener() {
-            @Override
-            public void onMessage(String message) {
-                messages.add(message);
-            }
-        });
+        extractMessages(file, messages::add);
         return messages;
     }
 

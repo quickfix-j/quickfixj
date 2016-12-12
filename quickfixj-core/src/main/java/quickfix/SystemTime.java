@@ -29,11 +29,7 @@ import java.util.TimeZone;
 public class SystemTime {
     public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
 
-    private static final SystemTimeSource DEFAULT_TIME_SOURCE = new SystemTimeSource() {
-        public long getTime() {
-            return System.currentTimeMillis();
-        }
-    };
+    private static final SystemTimeSource DEFAULT_TIME_SOURCE = System::currentTimeMillis;
 
     private static volatile SystemTimeSource systemTimeSource = DEFAULT_TIME_SOURCE;
 

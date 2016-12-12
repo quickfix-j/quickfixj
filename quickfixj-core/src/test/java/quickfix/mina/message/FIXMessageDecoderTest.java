@@ -277,11 +277,7 @@ public class FIXMessageDecoderTest {
 
         FIXMessageDecoder decoder = new FIXMessageDecoder();
         final List<String> messages = new ArrayList<>();
-        decoder.extractMessages(testFile, new FIXMessageDecoder.MessageListener() {
-            public void onMessage(String message) {
-                messages.add(message);
-            }
-        });
+        decoder.extractMessages(testFile, messages::add);
         assertCorrectlyExtractedMessages(messages);
     }
 

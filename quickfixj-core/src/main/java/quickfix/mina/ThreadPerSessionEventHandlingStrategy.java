@@ -53,12 +53,11 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
     public void onMessage(Session quickfixSession, Message message) {
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
-            final MessageDispatchingThread temp = new MessageDispatchingThread(quickfixSession, queueCapacity);
-            dispatcher = dispatchers.putIfAbsent(quickfixSession.getSessionID(), temp);
-            if (dispatcher == null) {
-                dispatcher = temp;
-            }
-            startDispatcherThread(dispatcher);
+            dispatcher = dispatchers.computeIfAbsent(quickfixSession.getSessionID(), sessionID -> {
+               final MessageDispatchingThread newDispatcher = new MessageDispatchingThread(quickfixSession, queueCapacity);
+                startDispatcherThread(newDispatcher);
+                return newDispatcher;
+            });
         }
         if (message != null) {
             dispatcher.enqueue(message);

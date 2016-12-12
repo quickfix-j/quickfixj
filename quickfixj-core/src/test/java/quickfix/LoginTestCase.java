@@ -35,23 +35,20 @@ public class LoginTestCase {
     }
 
     private static void login(final String senderCompID) {
-        new Thread(new Runnable() {
+        new Thread(() -> {
+            try {
+                SessionSettings settings = createSettings(senderCompID);
+                SessionID sessionID = settings.sectionIterator().next();
+                SocketInitiator initiator = new SocketInitiator(new TestApplication(sessionID),
+                        new FileStoreFactory(settings), settings,
+                        new ScreenLogFactory(settings), new DefaultMessageFactory());
 
-            public void run() {
-                try {
-                    SessionSettings settings = createSettings(senderCompID);
-                    SessionID sessionID = settings.sectionIterator().next();
-                    SocketInitiator initiator = new SocketInitiator(new TestApplication(sessionID),
-                            new FileStoreFactory(settings), settings,
-                            new ScreenLogFactory(settings), new DefaultMessageFactory());
+                System.out.println(senderCompID + ": starting initiator");
+                initiator.start();
 
-                    System.out.println(senderCompID + ": starting initiator");
-                    initiator.start();
-
-                    new CountDownLatch(1).await();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                new CountDownLatch(1).await();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }).start();
     }

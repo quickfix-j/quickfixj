@@ -142,13 +142,13 @@ public class SessionConnectorTest extends TestCase {
                 new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
 
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
-        connector.setSessions(new HashMap<SessionID, Session>());
+        connector.setSessions(new HashMap<>());
         Session session = connector.createSession(sessionID);
 
         // one-time use connector to create a slightly different session
         SessionSettings settings2 = setUpSessionSettings(sessionID2);
         SessionConnector connector2 = new SessionConnectorUnderTest(settings2, sessionFactory);
-        connector.setSessions(new HashMap<SessionID, Session>());
+        connector.setSessions(new HashMap<>());
         Session session2 = connector2.createSession(sessionID2);
         assertNotNull(session);
         assertNotNull(session2);

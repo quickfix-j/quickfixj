@@ -37,8 +37,6 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -167,11 +165,9 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     public void postRegister(Boolean registrationDone) {
         if (connector instanceof SessionConnector) {
-            ((SessionConnector) connector).addPropertyChangeListener(new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent evt) {
-                    if (SessionConnector.SESSIONS_PROPERTY.equals(evt.getPropertyName())) {
-                        registerSessions();
-                    }
+            ((SessionConnector) connector).addPropertyChangeListener(evt -> {
+                if (SessionConnector.SESSIONS_PROPERTY.equals(evt.getPropertyName())) {
+                    registerSessions();
                 }
             });
         }

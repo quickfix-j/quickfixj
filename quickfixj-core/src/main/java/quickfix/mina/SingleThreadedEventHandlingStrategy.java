@@ -121,13 +121,10 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
 
         startHandlingMessages();
-        messageProcessingThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                sessionConnector.log.info("Started " + MESSAGE_PROCESSOR_THREAD_NAME);
-                block();
-                sessionConnector.log.info("Stopped " + MESSAGE_PROCESSOR_THREAD_NAME);
-            }
+        messageProcessingThread = new Thread(() -> {
+            sessionConnector.log.info("Started " + MESSAGE_PROCESSOR_THREAD_NAME);
+            block();
+            sessionConnector.log.info("Stopped " + MESSAGE_PROCESSOR_THREAD_NAME);
         }, MESSAGE_PROCESSOR_THREAD_NAME);
         messageProcessingThread.setDaemon(true);
         messageProcessingThread.start();

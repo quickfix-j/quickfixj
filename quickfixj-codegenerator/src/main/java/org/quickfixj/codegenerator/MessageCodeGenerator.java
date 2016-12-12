@@ -241,7 +241,7 @@ public class MessageCodeGenerator {
     }
 
     private List<String> getNames(Element element, String path) {
-        return getNames(element, path, new ArrayList<String>());
+        return getNames(element, path, new ArrayList<>());
     }
 
     private List<String> getNames(Element element, String path, List<String> names) {

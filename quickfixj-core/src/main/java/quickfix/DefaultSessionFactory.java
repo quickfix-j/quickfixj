@@ -19,22 +19,29 @@
 
 package quickfix;
 
+import org.quickfixj.QFJException;
+import org.quickfixj.SimpleCache;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory for creating sessions. Used by the communications code (acceptors,
  * initiators) for creating sessions.
  */
 public class DefaultSessionFactory implements SessionFactory {
-    private static final Map<String, DataDictionary> dictionaryCache = new ConcurrentHashMap<>();
+    private static final SimpleCache<String, DataDictionary> dictionaryCache = new SimpleCache<>(path -> {
+        try {
+            return new DataDictionary(path);
+        } catch (ConfigError e) {
+            throw new QFJException(e);
+        }
+    });
+
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
     private final LogFactory logFactory;
@@ -320,13 +327,14 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private DataDictionary getDataDictionary(String path) throws ConfigError {
-        synchronized (dictionaryCache) {
-            DataDictionary dataDictionary = dictionaryCache.get(path);
-            if (dataDictionary == null) {
-                dataDictionary = new DataDictionary(path);
-                dictionaryCache.put(path, dataDictionary);
+        try {
+            return dictionaryCache.computeIfAbsent(path);
+        } catch (QFJException e) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof ConfigError) {
+                throw (ConfigError) cause;
             }
-            return dataDictionary;
+            throw e;
         }
     }
 

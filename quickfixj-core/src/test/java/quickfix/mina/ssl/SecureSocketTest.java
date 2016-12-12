@@ -21,8 +21,6 @@ package quickfix.mina.ssl;
 
 import junit.framework.TestCase;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
-import org.apache.mina.core.filterchain.IoFilterChain;
-import org.apache.mina.core.filterchain.IoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,17 +64,12 @@ public class SecureSocketTest extends TestCase {
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
             final CountDownLatch exceptionCaught = new CountDownLatch(1);
-            initiator.setIoFilterChainBuilder(new IoFilterChainBuilder() {
-
-                public void buildFilterChain(IoFilterChain chain) throws Exception {
-                    chain.addLast("ExceptionCatcher", new IoFilterAdapter() {
-                        public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
-                            log.info("MINA exception: " + cause.getMessage());
-                            exceptionCaught.countDown();
-                        }
-                    });
+            initiator.setIoFilterChainBuilder(chain -> chain.addLast("ExceptionCatcher", new IoFilterAdapter() {
+                public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
+                    log.info("MINA exception: " + cause.getMessage());
+                    exceptionCaught.countDown();
                 }
-            });
+            }));
 
             try {
                 log.info("Do login");
