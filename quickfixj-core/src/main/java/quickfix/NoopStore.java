@@ -20,8 +20,6 @@
 
 package quickfix;
 
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Date;
 
@@ -32,15 +30,9 @@ import java.util.Date;
  */
 public class NoopStore implements MessageStore {
 
-    private final SessionID sessionID;
-
     private Date creationTime = new Date();
     private int nextSenderMsgSeqNum = 1;
     private int nextTargetMsgSeqNum = 1;
-
-    public NoopStore(SessionID sessionID) {
-        this.sessionID = sessionID;
-    }
 
     public void get(int startSequence, int endSequence, Collection<String> messages) {
     }
@@ -84,12 +76,5 @@ public class NoopStore implements MessageStore {
     }
 
     public void refresh() {
-        final String text = "No-op store does not support refresh!";
-        if (sessionID != null) {
-            final Session session = Session.lookupSession(sessionID);
-            session.getLog().onErrorEvent("ERROR: " + text);
-        } else {
-            LoggerFactory.getLogger(NoopStore.class).error(text);
-        }
     }
 }
