@@ -1,4 +1,5 @@
-/*******************************************************************************
+/*
+ ******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
  * This file is part of the QuickFIX FIX Engine
@@ -23,12 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class SimpleCache<K, V> extends ConcurrentHashMap<K, V> {
-    static final int CPUs = Runtime.getRuntime().availableProcessors();
+    static final int CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors() * 2;
 
     final Function<K, V> loadingFunction;
 
     public SimpleCache(Function<K, V> loadingFunction) {
-        super(CPUs, 0.7f, CPUs);
+        super(CONCURRENCY_LEVEL, 0.7f, CONCURRENCY_LEVEL);
         this.loadingFunction = loadingFunction;
     }
 
