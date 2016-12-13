@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
-		<version>1.6.3-SNAPSHOT</version>
+		<version>1.6.3</version>
 	</parent>
 
 	<artifactId>quickfixj-examples</artifactId>
