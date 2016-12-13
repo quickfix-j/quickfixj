@@ -104,10 +104,46 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     sslConfig = SSLSupport.getSslConfig(getSettings(), sessionID);
                 }
 
+                String proxyUser = null;
+                String proxyPassword = null;
+                String proxyHost = null;
+
+                String proxyType = null;
+                String proxyVersion = null;
+
+                String proxyWorkstation = null;
+                String proxyDomain = null;
+
+                int proxyPort = -1;
+
+                if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_TYPE)) {
+                    proxyType = settings.getString(sessionID, Initiator.SETTING_PROXY_TYPE);
+                    if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_VERSION)) {
+                        proxyVersion = settings.getString(sessionID,
+                                                          Initiator.SETTING_PROXY_VERSION);
+                    }
+
+                    if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_USER)) {
+                        proxyUser = settings.getString(sessionID, Initiator.SETTING_PROXY_USER);
+                        proxyPassword = settings.getString(sessionID,
+                                                           Initiator.SETTING_PROXY_PASSWORD);
+                    }
+                    if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_WORKSTATION)
+                            && getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_DOMAIN)) {
+                        proxyWorkstation = settings.getString(sessionID,
+                                                              Initiator.SETTING_PROXY_WORKSTATION);
+                        proxyDomain = settings.getString(sessionID, Initiator.SETTING_PROXY_DOMAIN);
+                    }
+
+                    proxyHost = settings.getString(sessionID, Initiator.SETTING_PROXY_HOST);
+                    proxyPort = (int) settings.getLong(sessionID, Initiator.SETTING_PROXY_PORT);
+                }
+
                 final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
-                        socketAddresses, localAddress, reconnectingIntervals, getScheduledExecutorService(),
-                        networkingOptions, getEventHandlingStrategy(), getIoFilterChainBuilder(),
-                        sslEnabled, sslConfig);
+                        socketAddresses, localAddress, reconnectingIntervals,
+                        getScheduledExecutorService(), networkingOptions,
+                        getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
+                        proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
 
                 initiators.add(ioSessionInitiator);
             }
