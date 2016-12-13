@@ -133,7 +133,7 @@ public class ProtocolFactory {
         connector.setConnectTimeoutMillis(5000);
 
         if (proxyType.equalsIgnoreCase("http")) {
-            req = createHttpProxyRequest(address, proxyVersion, proxyUser, proxyDomain, proxyWorkstation);
+            req = createHttpProxyRequest(address, proxyVersion, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
         } else if (proxyType.equalsIgnoreCase("socks")) {
             req = createSocksProxyRequest(address, proxyVersion, proxyUser, proxyPassword);
         } else {
@@ -157,12 +157,13 @@ public class ProtocolFactory {
     private static ProxyRequest createHttpProxyRequest(InetSocketAddress address,
                                                        String proxyVersion,
                                                        String proxyUser,
+                                                       String proxyPassword,
                                                        String proxyDomain,
                                                        String proxyWorkstation) {
         String uri = "http://" + address.getAddress().getHostAddress() + ":" + address.getPort();
         HashMap<String, String> props = new HashMap<>();
         props.put(HttpProxyConstants.USER_PROPERTY, proxyUser);
-        props.put(HttpProxyConstants.PWD_PROPERTY, proxyUser);
+        props.put(HttpProxyConstants.PWD_PROPERTY, proxyPassword);
         if (proxyDomain != null && proxyWorkstation != null) {
             props.put(HttpProxyConstants.DOMAIN_PROPERTY, proxyDomain);
             props.put(HttpProxyConstants.WORKSTATION_PROPERTY, proxyWorkstation);
