@@ -19,27 +19,27 @@
 
 package quickfix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Corresponds to SessionTime in C++ code
  */
-public class SessionSchedule {
+public class DefaultSessionSchedule implements SessionSchedule {
     private static final int NOT_SET = -1;
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{2}):(\\d{2}):(\\d{2})(.*)");
     private final TimeEndPoint startTime;
     private final TimeEndPoint endTime;
     private final boolean nonStopSession;
-    protected final static Logger log = LoggerFactory.getLogger(SessionSchedule.class);
+    protected final static Logger log = LoggerFactory.getLogger(DefaultSessionSchedule.class);
 
-    public SessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
+    public DefaultSessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
 
         nonStopSession = settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION) && settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
@@ -66,7 +66,7 @@ public class SessionSchedule {
     }
 
     private TimeEndPoint getTimeEndPoint(SessionSettings settings, SessionID sessionID,
-            TimeZone defaultTimeZone, String timeSetting, String daySetting) throws ConfigError,
+                                         TimeZone defaultTimeZone, String timeSetting, String daySetting) throws ConfigError,
             FieldConvertError {
 
         Matcher matcher = TIME_PATTERN.matcher(settings.getString(sessionID, timeSetting));
@@ -138,7 +138,7 @@ public class SessionSchedule {
                 final SimpleDateFormat utc = new SimpleDateFormat("HH:mm:ss");
                 utc.setTimeZone(TimeZone.getTimeZone("UTC"));
                 return (isSet(weekDay) ? DayConverter.toString(weekDay) + "," : "")
-                    + utc.format(calendar.getTime()) + "-" + utc.getTimeZone().getID();
+                        + utc.format(calendar.getTime()) + "-" + utc.getTimeZone().getID();
             } catch (ConfigError e) {
                 return "ERROR: " + e;
             }
@@ -300,7 +300,7 @@ public class SessionSchedule {
     }
 
     private void formatTimeInterval(StringBuilder buf, TimeInterval timeInterval,
-            SimpleDateFormat timeFormat, boolean local) {
+                                    SimpleDateFormat timeFormat, boolean local) {
         if (!isDailySession()) {
             buf.append("weekly, ");
             formatDayOfWeek(buf, startTime.getDay());

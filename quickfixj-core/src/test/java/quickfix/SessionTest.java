@@ -2156,7 +2156,7 @@ public class SessionTest {
             SessionID sessionID) throws NoSuchFieldException,
             IllegalAccessException, ConfigError, FieldConvertError, IOException {
 
-        final SessionSchedule sessionSchedule = new SessionSchedule(settings,
+        final SessionSchedule sessionSchedule = new DefaultSessionSchedule(settings,
                 sessionID);
         final Session session = SessionFactoryTestSupport
                 .createFileStoreSession(sessionID, application, isInitiator,
