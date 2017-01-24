@@ -72,6 +72,7 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     }
 
     public void start() throws ConfigError, RuntimeError {
+    	eventHandlingStrategy.setExecutor(longLivedExecutor);
         createSessionInitiators();
         startInitiators();
     }
