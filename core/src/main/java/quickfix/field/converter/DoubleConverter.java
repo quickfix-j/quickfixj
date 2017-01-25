@@ -22,8 +22,6 @@ package quickfix.field.converter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import quickfix.FieldConvertError;
 import quickfix.RuntimeError;
