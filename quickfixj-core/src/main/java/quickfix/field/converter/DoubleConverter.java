@@ -106,7 +106,7 @@ public class DoubleConverter {
         for (; i < value.length(); i++) {
             c = value.charAt(i);
             if (!dot && c == '.') dot = true;
-            else if (!Character.isDigit(c)) throw new NumberFormatException(value);
+            else if (c < '0' || c > '9') throw new NumberFormatException(value);
         }
         return Double.parseDouble(value);
     }
