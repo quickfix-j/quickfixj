@@ -132,7 +132,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             sessionConnector.log.info("Started " + MESSAGE_PROCESSOR_THREAD_NAME);
             block();
             sessionConnector.log.info("Stopped " + MESSAGE_PROCESSOR_THREAD_NAME);
-        }, MESSAGE_PROCESSOR_THREAD_NAME);
+        }, MESSAGE_PROCESSOR_THREAD_NAME, executor);
         messageProcessingThread.setDaemon(true);
         messageProcessingThread.start();
     }
