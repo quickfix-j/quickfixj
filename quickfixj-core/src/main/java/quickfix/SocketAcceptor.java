@@ -83,6 +83,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     private void initialize(boolean blockInThread) throws ConfigError {
         synchronized (lock) {
             if (isStarted.equals(Boolean.FALSE)) {
+            	eventHandlingStrategy.setExecutor(longLivedExecutor);
                 startAcceptingConnections();
                 if (blockInThread) {
                     eventHandlingStrategy.blockInThread();

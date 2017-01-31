@@ -70,6 +70,7 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     }
 
     public void start() throws ConfigError, RuntimeError {
+    	eventHandlingStrategy.setExecutor(longLivedExecutor);
         startAcceptingConnections();
     }
 
