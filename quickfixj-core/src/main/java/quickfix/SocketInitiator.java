@@ -111,6 +111,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
     private void initialize(boolean blockInThread) throws ConfigError {
         synchronized (lock) {
             if (isStarted.equals(Boolean.FALSE)) {
+            	eventHandlingStrategy.setExecutor(longLivedExecutor);
                 createSessionInitiators();
                 for (Session session : getSessionMap().values()) {
                     Session.registerSession(session);
