@@ -211,7 +211,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 		}
 
 		public void setDaemon(boolean b) {
-			/* No-Op. Already set for SimpleThreadExecutor. Not relevant for externally supplied Executors. */
+			/* No-Op. Already set for DedicatedThreadExecutor. Not relevant for externally supplied Executors. */
 		}
 
 		public boolean isAlive() {
