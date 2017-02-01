@@ -19,16 +19,9 @@
 
 package quickfix;
 
-import java.util.Calendar;
-
 /**
- * Used to decide when to login and out of FIX sessions
+ * Creates a SessionSchedule based on the specified settings.
  */
-public interface SessionSchedule {
-
-    boolean isSameSession(Calendar time1, Calendar time2);
-
-    boolean isNonStopSession();
-
-    boolean isSessionTime();
+public interface SessionScheduleFactory {
+    SessionSchedule create(SessionID sessionID, SessionSettings settings) throws ConfigError;
 }

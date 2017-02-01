@@ -46,6 +46,7 @@ public class DefaultSessionFactory implements SessionFactory {
     private final MessageStoreFactory messageStoreFactory;
     private final LogFactory logFactory;
     private final MessageFactory messageFactory;
+    private final SessionScheduleFactory sessionScheduleFactory;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
             LogFactory logFactory) {
@@ -53,6 +54,7 @@ public class DefaultSessionFactory implements SessionFactory {
         this.messageStoreFactory = messageStoreFactory;
         this.logFactory = logFactory;
         this.messageFactory = new DefaultMessageFactory();
+        this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
@@ -61,6 +63,17 @@ public class DefaultSessionFactory implements SessionFactory {
         this.messageStoreFactory = messageStoreFactory;
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
+        this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
+    }
+
+    public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+                                 LogFactory logFactory, MessageFactory messageFactory,
+                                 SessionScheduleFactory sessionScheduleFactory) {
+        this.application = application;
+        this.messageStoreFactory = messageStoreFactory;
+        this.logFactory = logFactory;
+        this.messageFactory = messageFactory;
+        this.sessionScheduleFactory = sessionScheduleFactory;
     }
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
@@ -187,8 +200,10 @@ public class DefaultSessionFactory implements SessionFactory {
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
 
+            final SessionSchedule sessionSchedule = sessionScheduleFactory.create(sessionID, settings);
+
             final Session session = new Session(application, messageStoreFactory, sessionID,
-                    dataDictionaryProvider, new SessionSchedule(settings, sessionID), logFactory,
+                    dataDictionaryProvider, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,

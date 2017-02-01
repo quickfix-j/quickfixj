@@ -48,7 +48,7 @@ public class LogUtilTest extends TestCase {
         settings.setString(Session.SETTING_START_TIME, "16:00:00");
         settings.setString(Session.SETTING_END_TIME, "13:00:00");
         SessionID sessionID = new SessionID("FIX.4.2", "SENDER", "TARGET");
-        SessionSchedule schedule = new SessionSchedule(settings, sessionID);
+        SessionSchedule schedule = new DefaultSessionSchedule(settings, sessionID);
         Session session = new Session(null, sessionID1 -> {
             try {
                 return new MemoryStore() {
