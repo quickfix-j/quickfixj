@@ -59,6 +59,15 @@ public class FieldConvertersTest extends TestCase {
         } catch (FieldConvertError e) {
             // expected
         }
+
+        try {
+            //Sequence of digits without commas or decimals and optional sign character (ASCII characters "-" and "0" - "9" ).
+            //FIXME
+            IntConverter.convert("１００");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
     }
 
     public void testDoubleConversion() throws Exception {
