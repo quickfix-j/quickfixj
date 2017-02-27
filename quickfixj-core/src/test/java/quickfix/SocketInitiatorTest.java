@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.test.acceptance.ATServer;
@@ -150,8 +151,18 @@ public class SocketInitiatorTest {
     }
 
     @Test
-    public void testInitiatorStopStartFileLog() throws Exception {
+    public void testInitiatorStop() throws Exception {
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        ClientApplication clientApplication = new ClientApplication();
+        Initiator initiator = new SocketInitiator(clientApplication, new MemoryStoreFactory(),
+            settings, new DefaultMessageFactory());
 
+        doTestOfStop(clientSessionID, clientApplication, initiator);
+    }
+
+    @Test
+    public void testInitiatorStopStartFileLog() throws Exception {
         File messageLog = new File(getTempDirectory() + File.separatorChar
                 + "FIX.4.2-TW-ISLD.messages.log");
         File eventLog = new File(getTempDirectory() + File.separatorChar
@@ -182,6 +193,17 @@ public class SocketInitiatorTest {
                 new MemoryStoreFactory(), settings, new DefaultMessageFactory());
 
         doTestOfRestart(clientSessionID, clientApplication, initiator, null);
+    }
+
+    @Test
+    public void testInitiatorStopThreaded() throws Exception {
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        ClientApplication clientApplication = new ClientApplication();
+        Initiator initiator = new ThreadedSocketInitiator(clientApplication,
+            new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+
+        doTestOfStop(clientSessionID, clientApplication, initiator);
     }
 
     // QFJ-825
@@ -260,6 +282,36 @@ public class SocketInitiatorTest {
         }
     }
 
+    private void doTestOfStop(SessionID clientSessionID, ClientApplication clientApplication,
+        Initiator initiator) throws InterruptedException, ConfigError {
+        ServerThread serverThread = new ServerThread();
+        try {
+            serverThread.setDaemon(true);
+            serverThread.start();
+            serverThread.waitForInitialization();
+            try {
+                clientApplication.setUpLogonExpectation();
+
+                initiator.start();
+                assertTrue(initiator.getSessions().contains(clientSessionID));
+                assertTrue(initiator.getSessions().size() == 1);
+
+                Session clientSession = Session.lookupSession(clientSessionID);
+                assertLoggedOn(clientApplication, clientSession);
+
+                clientApplication.setUpLogoutExpectation();
+
+                initiator.stop();
+                assertLoggedOut(clientApplication, clientSession);
+            } finally {
+                initiator.stop();
+            }
+        } finally {
+            serverThread.interrupt();
+            serverThread.join();
+        }
+    }
+
     private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
@@ -283,12 +335,20 @@ public class SocketInitiatorTest {
     private void assertLoggedOn(ClientApplication clientApplication, Session clientSession)
             throws InterruptedException {
         assertNotNull("no client session", clientSession);
-        clientApplication.logonLatch.await(20, TimeUnit.SECONDS);
+        assertTrue("Expected logon did not occur", clientApplication.logonLatch.await(20, TimeUnit.SECONDS));
         assertTrue("client session not logged in", clientSession.isLoggedOn());
+    }
+
+    private void assertLoggedOut(ClientApplication clientApplication, Session clientSession)
+        throws InterruptedException {
+        assertNotNull("no client session", clientSession);
+        assertTrue("Expected logout did not occur", clientApplication.logoutLatch.await(20, TimeUnit.SECONDS));
+        assertFalse("client session logged in?", clientSession.isLoggedOn());
     }
 
     private class ClientApplication extends ApplicationAdapter {
         public CountDownLatch logonLatch;
+        public CountDownLatch logoutLatch;
         private Initiator initiator;
         private boolean stopAfterLogon;
 
@@ -301,6 +361,11 @@ public class SocketInitiatorTest {
             logonLatch = new CountDownLatch(1);
         }
 
+        public void setUpLogoutExpectation() {
+            logoutLatch = new CountDownLatch(1);
+        }
+
+        @Override
         public void onLogon(SessionID sessionId) {
             if (logonLatch != null) {
                 log.info("Releasing logon latch");
@@ -309,6 +374,21 @@ public class SocketInitiatorTest {
             if (stopAfterLogon) {
                 log.info("Stopping after logon");
                 initiator.stop();
+            }
+        }
+
+        public void toAdmin(Message message, SessionID sessionId) {
+            log.info("[{}] {}", sessionId, message);
+
+            // Only countdown the latch if a logout message is actually sent
+            try {
+                if (logoutLatch != null && message.getHeader().isSetField(MsgType.FIELD)
+                    && MsgType.LOGOUT.equals(message.getHeader().getString(MsgType.FIELD))) {
+                    log.info("Releasing logout latch for session [{}] with message {}", sessionId, message);
+                    logoutLatch.countDown();
+                }
+            } catch (FieldNotFound fieldNotFound) {
+                log.error("FieldNotFound for session [{}] in message {}", sessionId, message);
             }
         }
     }
