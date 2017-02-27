@@ -96,10 +96,10 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void stop(boolean forceDisconnect) {
-        eventHandlingStrategy.stopHandlingMessages();
         synchronized (lock) {
             try {
                 logoutAllSessions(forceDisconnect);
+                eventHandlingStrategy.stopHandlingMessages();
                 stopInitiators();
             } finally {
                 Session.unregisterSessions(getSessions());
