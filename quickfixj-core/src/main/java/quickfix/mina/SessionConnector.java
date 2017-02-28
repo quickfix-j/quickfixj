@@ -218,20 +218,21 @@ public abstract class SessionConnector implements Connector {
             }
         }
 
-        if (forceDisconnect && isLoggedOn()) {
-            for (Session session : sessions.values()) {
-                try {
-                    if (session.isLoggedOn()) {
-                        session.disconnect("Forcibly disconnecting session", false);
+        if (isLoggedOn()) {
+            if (forceDisconnect) {
+                for (Session session : sessions.values()) {
+                    try {
+                        if (session.isLoggedOn()) {
+                            session.disconnect("Forcibly disconnecting session", false);
+                        }
+                    } catch (Throwable e) {
+                        logError(session.getSessionID(), null, "Error during disconnect", e);
                     }
-                } catch (Throwable e) {
-                    logError(session.getSessionID(), null, "Error during disconnect", e);
                 }
+            } else {
+                // Only need to wait for logout if previously logged in
+                waitForLogout();
             }
-        }
-
-        if (!forceDisconnect) {
-            waitForLogout();
         }
     }
 
