@@ -96,10 +96,12 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void stop(boolean forceDisconnect) {
+        // stopHandlingMessages should be called logoutAllSession
+        // doing so would cause deadlock when the initiator cannot connect to an acceptor
+        eventHandlingStrategy.stopHandlingMessages();
         synchronized (lock) {
             try {
                 logoutAllSessions(forceDisconnect);
-                eventHandlingStrategy.stopHandlingMessages();
                 stopInitiators();
             } finally {
                 Session.unregisterSessions(getSessions());
