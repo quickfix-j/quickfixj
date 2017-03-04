@@ -105,7 +105,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     @Override
     public void stop(boolean forceDisconnect) {
-        eventHandlingStrategy.stopHandlingMessages();
+        eventHandlingStrategy.stop();
         synchronized (lock) {
             try {
                 try {
@@ -115,6 +115,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 }
                 logoutAllSessions(forceDisconnect);
                 stopSessionTimer();
+                eventHandlingStrategy.stopHandlingMessages();
             } finally {
                 Session.unregisterSessions(getSessions());
                 isStarted = Boolean.FALSE;
