@@ -63,7 +63,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         try {
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
-            isStopped = true;
+            stop();
             throw new RuntimeException(e);
         }
     }
@@ -158,6 +158,27 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         }
     }
 
+    /**
+     * Allow the termination of message processing without explicitly processing sending the
+     * END_OF_STREAM message which causes session disconnection, preventing LOGOUT from being sent.
+     *
+     * This will not explicitly terminate message processing, but will allow it to end gracefully if possible.
+     */
+    public void stop() {
+        // isStopped is volatile, so does not require synchronization.
+        isStopped = true;
+    }
+
+    /**
+     * Provide current state of message processing.
+     * @return {@code true} if stop has been called. This indicates the message processing loop will
+     * terminate once the sessionConnector is logged out or 5 seconds has elapsed.
+     */
+    public boolean isStopped() {
+        // isStopped is volatile, so does not require synchronization.
+        return isStopped;
+    }
+
     private synchronized void startHandlingMessages() {
         isStopped = false;
     }
@@ -166,7 +187,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         for (Session session : sessionConnector.getSessionMap().values()) {
             onMessage(session, END_OF_STREAM);
         }
-        isStopped = true;
+        stop();
     }
 
     public void stopHandlingMessages(boolean join) {
