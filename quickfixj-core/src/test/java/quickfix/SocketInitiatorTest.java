@@ -151,6 +151,17 @@ public class SocketInitiatorTest {
     }
 
     @Test
+    public void testInitiatorStop() throws Exception {
+        SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        ClientApplication clientApplication = new ClientApplication();
+        Initiator initiator = new SocketInitiator(clientApplication, new MemoryStoreFactory(),
+            settings, new DefaultMessageFactory());
+
+        doTestOfStop(clientSessionID, clientApplication, initiator);
+    }
+
+    @Test
     public void testInitiatorStopStartFileLog() throws Exception {
         File messageLog = new File(getTempDirectory() + File.separatorChar
                 + "FIX.4.2-TW-ISLD.messages.log");
