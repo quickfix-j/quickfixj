@@ -169,16 +169,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = true;
     }
 
-    /**
-     * Provide current state of message processing.
-     * @return {@code true} if stop has been called. This indicates the message processing loop will
-     * terminate once the sessionConnector is logged out or 5 seconds has elapsed.
-     */
-    public boolean isStopped() {
-        // isStopped is volatile, so does not require synchronization.
-        return isStopped;
-    }
-
     private synchronized void startHandlingMessages() {
         isStopped = false;
     }
