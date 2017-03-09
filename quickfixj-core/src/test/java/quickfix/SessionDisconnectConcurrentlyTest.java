@@ -233,7 +233,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
 
     @Test
     public void testOnLogoutIsCalledIfTwoThreadsAreCallingDisconnectConcurrently() throws Exception {
-        for (int i=0; i<25; i++) {
+        for (int i=0; i<100; i++) {
             onLogoutIsCalledIfTwoThreadsAreCallingDisconnectConcurrently0();
         }
     }
@@ -251,38 +251,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
 
-        final Session session = new Session(application, new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true), new DefaultMessageFactory(),
-                30, false, 30, true, false, false, false, false, false, false,
-                true, false, 1.5, null, false, new int[]{5}, false, false, false, true,
-                false, true, false, null, true, 0, false, false) {
-            @Override
-            protected boolean disconnect0(String reason, boolean logError) throws IOException {
-                try {
-                    return super.disconnect0(reason, logError);
-                } finally {
-                    Thread.yield();
-                }
-            }
-
-            @Override
-            protected void disconnect1(String reason, boolean logError) throws IOException {
-                Thread.yield();
-                super.disconnect1(reason, logError);
-            }
-
-            @Override
-            public void disconnect(String reason, boolean logError) throws IOException {
-                try {
-                    if (disconnect0(reason,logError)) {
-                        Thread.yield();
-                        disconnect1(reason,logError);
-                    }
-                } finally {
-                    disconnect2();
-                }
-            }
-        };
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, true, false);
 
         final UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -291,6 +260,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         session.next();
 
         final Message logonRequest = new Message(responder.sentMessageData);
+
         final Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
         logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
         logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
@@ -302,27 +272,19 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         header.setInt(MsgSeqNum.FIELD, 1);
         header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
 
-        final Thread disconnectThread1 = new Thread(() -> {
-            try {
-                session.disconnect("No Reason", false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }, "disconnectThread1");
-
-        final Thread disconnectThread2 = new Thread(() -> {
-            try {
-                session.disconnect("No Reason", false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }, "disconnectThread2");
-
-        // submit threads to pausable executor and try to let them start at the same time
-        PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
+        final PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
         ptpe.pause();
-        ptpe.submit(disconnectThread1);
-        ptpe.submit(disconnectThread2);
+
+        for (int j=0; j<1000; j++) {
+            ptpe.submit(new Thread(() -> {
+                try {
+                    session.disconnect("No reason", false);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }, "disconnectThread"+j));
+        }
+
         ptpe.resume();
         ptpe.awaitTermination(2, TimeUnit.SECONDS);
 
