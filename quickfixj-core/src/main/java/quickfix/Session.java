@@ -23,7 +23,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Message.Header;
 import quickfix.SessionState.ResendRange;
-import quickfix.field.*;
+import quickfix.field.ApplVerID;
+import quickfix.field.BeginSeqNo;
+import quickfix.field.BeginString;
+import quickfix.field.BusinessRejectReason;
+import quickfix.field.DefaultApplVerID;
+import quickfix.field.EncryptMethod;
+import quickfix.field.EndSeqNo;
+import quickfix.field.GapFillFlag;
+import quickfix.field.HeartBtInt;
+import quickfix.field.LastMsgSeqNumProcessed;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.NewSeqNo;
+import quickfix.field.NextExpectedMsgSeqNum;
+import quickfix.field.OrigSendingTime;
+import quickfix.field.PossDupFlag;
+import quickfix.field.RefMsgType;
+import quickfix.field.RefSeqNum;
+import quickfix.field.RefTagID;
+import quickfix.field.ResetSeqNumFlag;
+import quickfix.field.SenderCompID;
+import quickfix.field.SenderLocationID;
+import quickfix.field.SenderSubID;
+import quickfix.field.SendingTime;
+import quickfix.field.SessionRejectReason;
+import quickfix.field.SessionStatus;
+import quickfix.field.TargetCompID;
+import quickfix.field.TargetLocationID;
+import quickfix.field.TargetSubID;
+import quickfix.field.TestReqID;
+import quickfix.field.Text;
 import quickfix.mina.EventHandlingStrategy;
 
 import java.io.Closeable;
@@ -586,7 +616,7 @@ public class Session implements Closeable {
      * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-                                       String qualifier) throws SessionNotFound {
+            String qualifier) throws SessionNotFound {
         try {
             return sendToTarget(message,
                     new SessionID(message.getHeader().getString(BeginString.FIELD), senderCompID,
@@ -1525,7 +1555,7 @@ public class Session implements Closeable {
     }
 
     private void setRejectReason(Message reject, int field, String reason,
-                                 boolean includeFieldInReason) {
+            boolean includeFieldInReason) {
         boolean isRejectMessage;
         try {
             isRejectMessage = MsgType.REJECT.equals(reject.getHeader().getString(MsgType.FIELD));
