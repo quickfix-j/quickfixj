@@ -23,37 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Message.Header;
 import quickfix.SessionState.ResendRange;
-import quickfix.field.ApplVerID;
-import quickfix.field.BeginSeqNo;
-import quickfix.field.BeginString;
-import quickfix.field.BusinessRejectReason;
-import quickfix.field.DefaultApplVerID;
-import quickfix.field.EncryptMethod;
-import quickfix.field.EndSeqNo;
-import quickfix.field.GapFillFlag;
-import quickfix.field.HeartBtInt;
-import quickfix.field.LastMsgSeqNumProcessed;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.MsgType;
-import quickfix.field.NewSeqNo;
-import quickfix.field.NextExpectedMsgSeqNum;
-import quickfix.field.OrigSendingTime;
-import quickfix.field.PossDupFlag;
-import quickfix.field.RefMsgType;
-import quickfix.field.RefSeqNum;
-import quickfix.field.RefTagID;
-import quickfix.field.ResetSeqNumFlag;
-import quickfix.field.SenderCompID;
-import quickfix.field.SenderLocationID;
-import quickfix.field.SenderSubID;
-import quickfix.field.SendingTime;
-import quickfix.field.SessionRejectReason;
-import quickfix.field.SessionStatus;
-import quickfix.field.TargetCompID;
-import quickfix.field.TargetLocationID;
-import quickfix.field.TargetSubID;
-import quickfix.field.TestReqID;
-import quickfix.field.Text;
+import quickfix.field.*;
 import quickfix.mina.EventHandlingStrategy;
 
 import java.io.Closeable;
@@ -616,7 +586,7 @@ public class Session implements Closeable {
      * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-            String qualifier) throws SessionNotFound {
+                                       String qualifier) throws SessionNotFound {
         try {
             return sendToTarget(message,
                     new SessionID(message.getHeader().getString(BeginString.FIELD), senderCompID,
@@ -1555,7 +1525,7 @@ public class Session implements Closeable {
     }
 
     private void setRejectReason(Message reject, int field, String reason,
-            boolean includeFieldInReason) {
+                                 boolean includeFieldInReason) {
         boolean isRejectMessage;
         try {
             isRejectMessage = MsgType.REJECT.equals(reject.getHeader().getString(MsgType.FIELD));
@@ -1939,52 +1909,65 @@ public class Session implements Closeable {
      */
     public void disconnect(String reason, boolean logError) throws IOException {
         try {
-            synchronized (responderLock) {
-                if (!hasResponder()) {
-                    if (!ENCOUNTERED_END_OF_STREAM.equals(reason)) {
-                        getLog().onEvent("Already disconnected: " + reason);
-                    }
-                    return;
-                }
-                final String msg = "Disconnecting: " + reason;
-                if (logError) {
-                    getLog().onErrorEvent(msg);
-                } else {
-                    log.info("[" + getSessionID() + "] " + msg);
-                }
-                responder.disconnect();
-                setResponder(null);
-            }
-
-            final boolean logonReceived = state.isLogonReceived();
-            final boolean logonSent = state.isLogonSent();
-            if (logonReceived || logonSent) {
-                try {
-                    application.onLogout(sessionID);
-                } catch (final Throwable t) {
-                    logApplicationException("onLogout()", t);
-                }
-
-                stateListener.onLogout();
-            }
-            // QFJ-457 now enabled again if acceptor
-            if (!state.isInitiator()) {
-                setEnabled(true);
+            if (disconnect0(reason,logError)) {
+                disconnect1(reason,logError);
             }
         } finally {
-            state.setLogonReceived(false);
-            state.setLogonSent(false);
-            state.setLogoutSent(false);
-            state.setLogoutReceived(false);
-            state.setResetReceived(false);
-            state.setResetSent(false);
-            state.clearQueue();
-            state.clearLogoutReason();
-            state.setResendRange(0, 0);
+            disconnect2();
+        }
+    }
 
-            if (resetOnDisconnect) {
-                resetState();
+    protected boolean disconnect0(String reason, boolean logError) throws IOException {
+        synchronized (responderLock) {
+            if (!hasResponder()) {
+                if (!ENCOUNTERED_END_OF_STREAM.equals(reason)) {
+                    getLog().onEvent("Already disconnected: " + reason);
+                }
+                return false;
             }
+            final String msg = "Disconnecting: " + reason;
+            if (logError) {
+                getLog().onErrorEvent(msg);
+            } else {
+                log.info("[" + getSessionID() + "] " + msg);
+            }
+            responder.disconnect();
+            setResponder(null);
+        }
+        return true;
+    }
+
+    protected void disconnect1(String reason, boolean logError) throws IOException {
+        final boolean logonReceived = state.isLogonReceived();
+        final boolean logonSent = state.isLogonSent();
+        if (logonReceived || logonSent) {
+            try {
+                application.onLogout(sessionID);
+            } catch (final Throwable t) {
+                logApplicationException("onLogout()", t);
+            }
+
+            stateListener.onLogout();
+        }
+        // QFJ-457 now enabled again if acceptor
+        if (!state.isInitiator()) {
+            setEnabled(true);
+        }
+    }
+
+    protected void disconnect2() {
+        state.setLogonReceived(false);
+        state.setLogonSent(false);
+        state.setLogoutSent(false);
+        state.setLogoutReceived(false);
+        state.setResetReceived(false);
+        state.setResetSent(false);
+        state.clearQueue();
+        state.clearLogoutReason();
+        state.setResendRange(0, 0);
+
+        if (resetOnDisconnect) {
+            resetState();
         }
     }
 

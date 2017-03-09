@@ -21,10 +21,11 @@ package quickfix;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import quickfix.field.TestReqID;
+import quickfix.field.*;
 import quickfix.fix42.TestRequest;
 import quickfix.mina.ProtocolFactory;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -33,13 +34,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SessionDisconnectConcurrentlyTest extends TestCase {
     private TestAcceptorApplication testAcceptorApplication;
 
     protected void tearDown() throws Exception {
         super.tearDown();
-        testAcceptorApplication.tearDown();
+        if (testAcceptorApplication != null) {
+            testAcceptorApplication.tearDown();
+        }
     }
 
     // QFJ-738
@@ -226,4 +230,143 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         }
 
     }
+
+    @Test
+    public void testOnLogoutIsCalledIfTwoThreadsAreCallingDisconnectConcurrently() throws Exception {
+        for (int i=0; i<25; i++) {
+            onLogoutIsCalledIfTwoThreadsAreCallingDisconnectConcurrently0();
+        }
+    }
+
+    private void onLogoutIsCalledIfTwoThreadsAreCallingDisconnectConcurrently0() throws Exception {
+        final AtomicInteger onLogoutCount = new AtomicInteger(0);
+
+        final UnitTestApplication application = new UnitTestApplication() {
+            @Override
+            public void onLogout(SessionID sessionId) {
+                super.onLogout(sessionId);
+                onLogoutCount.incrementAndGet();
+            }
+        };
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        final Session session = new Session(application, new MemoryStoreFactory(), sessionID, null, null,
+                new ScreenLogFactory(true, true, true), new DefaultMessageFactory(),
+                30, false, 30, true, false, false, false, false, false, false,
+                true, false, 1.5, null, false, new int[]{5}, false, false, false, true,
+                false, true, false, null, true, 0, false, false) {
+            @Override
+            protected boolean disconnect0(String reason, boolean logError) throws IOException {
+                try {
+                    return super.disconnect0(reason, logError);
+                } finally {
+                    Thread.yield();
+                }
+            }
+
+            @Override
+            protected void disconnect1(String reason, boolean logError) throws IOException {
+                Thread.yield();
+                super.disconnect1(reason, logError);
+            }
+
+            @Override
+            public void disconnect(String reason, boolean logError) throws IOException {
+                try {
+                    if (disconnect0(reason,logError)) {
+                        Thread.yield();
+                        disconnect1(reason,logError);
+                    }
+                } finally {
+                    disconnect2();
+                }
+            }
+        };
+
+        final UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.addStateListener(responder);
+        session.logon();
+        session.next();
+
+        final Message logonRequest = new Message(responder.sentMessageData);
+        final Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
+        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
+
+        final Message.Header header = logonResponse.getHeader();
+        header.setString(BeginString.FIELD, sessionID.getBeginString());
+        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+        header.setInt(MsgSeqNum.FIELD, 1);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+
+        final Thread disconnectThread1 = new Thread(() -> {
+            try {
+                session.disconnect("No Reason", false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, "disconnectThread1");
+
+        final Thread disconnectThread2 = new Thread(() -> {
+            try {
+                session.disconnect("No Reason", false);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, "disconnectThread2");
+
+        // submit threads to pausable executor and try to let them start at the same time
+        PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
+        ptpe.pause();
+        ptpe.submit(disconnectThread1);
+        ptpe.submit(disconnectThread2);
+        ptpe.resume();
+        ptpe.awaitTermination(2, TimeUnit.SECONDS);
+
+        assertEquals(1, onLogoutCount.intValue());
+    }
+
+    private class UnitTestResponder implements Responder, SessionStateListener {
+        public String sentMessageData;
+
+        public boolean send(String data) {
+            sentMessageData = data;
+            return true;
+        }
+
+        public String getRemoteAddress() {
+            return null;
+        }
+
+        public void disconnect() {
+        }
+
+        public void onConnect() {
+        }
+
+        public void onDisconnect() {
+        }
+
+        public void onLogon() {
+        }
+
+        public void onLogout() {
+        }
+
+        public void onReset() {
+        }
+
+        public void onRefresh() {
+        }
+
+        public void onMissedHeartBeat() {
+        }
+
+        public void onHeartBeatTimeout() {
+        }
+    }
+
 }
