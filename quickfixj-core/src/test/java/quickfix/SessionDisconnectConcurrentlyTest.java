@@ -21,7 +21,15 @@ package quickfix;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import quickfix.field.*;
+import quickfix.field.BeginString;
+import quickfix.field.EncryptMethod;
+import quickfix.field.HeartBtInt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
+import quickfix.field.TargetCompID;
+import quickfix.field.TestReqID;
 import quickfix.fix42.TestRequest;
 import quickfix.mina.ProtocolFactory;
 

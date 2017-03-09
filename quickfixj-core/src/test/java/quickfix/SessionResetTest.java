@@ -1,7 +1,15 @@
 package quickfix;
 
 import org.junit.Test;
-import quickfix.field.*;
+import quickfix.field.BeginString;
+import quickfix.field.EncryptMethod;
+import quickfix.field.HeartBtInt;
+import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
+import quickfix.field.SenderCompID;
+import quickfix.field.SendingTime;
+import quickfix.field.TargetCompID;
+import quickfix.field.TestReqID;
 import quickfix.fix44.TestRequest;
 
 import java.io.IOException;
@@ -10,7 +18,9 @@ import java.lang.management.ThreadMXBean;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class SessionResetTest {
 
