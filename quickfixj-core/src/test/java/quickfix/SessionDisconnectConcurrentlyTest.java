@@ -312,6 +312,10 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         }
 
         public void disconnect() {
+            try {
+                Thread.sleep(10);
+            } catch (Exception e) {
+            }
         }
 
         public void onConnect() {
