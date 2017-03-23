@@ -47,6 +47,7 @@ public class DefaultSessionFactory implements SessionFactory {
     private final LogFactory logFactory;
     private final MessageFactory messageFactory;
     private final SessionScheduleFactory sessionScheduleFactory;
+    private final EditableDataDictionaryProvider editableDataDictionaryProvider;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
             LogFactory logFactory) {
@@ -55,6 +56,7 @@ public class DefaultSessionFactory implements SessionFactory {
         this.logFactory = logFactory;
         this.messageFactory = new DefaultMessageFactory();
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
+        this.editableDataDictionaryProvider = new DefaultDataDictionaryProvider();
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
@@ -64,6 +66,7 @@ public class DefaultSessionFactory implements SessionFactory {
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
+        this.editableDataDictionaryProvider = new DefaultDataDictionaryProvider();
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
@@ -74,6 +77,19 @@ public class DefaultSessionFactory implements SessionFactory {
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = sessionScheduleFactory;
+        this.editableDataDictionaryProvider = new DefaultDataDictionaryProvider();
+    }
+
+    public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+                                 LogFactory logFactory, MessageFactory messageFactory,
+                                 SessionScheduleFactory sessionScheduleFactory,
+                                 EditableDataDictionaryProvider editableDataDictionaryProvider) {
+        this.application = application;
+        this.messageStoreFactory = messageStoreFactory;
+        this.logFactory = logFactory;
+        this.messageFactory = messageFactory;
+        this.sessionScheduleFactory = sessionScheduleFactory;
+        this.editableDataDictionaryProvider = editableDataDictionaryProvider;
     }
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
@@ -131,9 +147,9 @@ public class DefaultSessionFactory implements SessionFactory {
                         .getBool(sessionID, Session.SETTING_USE_DATA_DICTIONARY);
             }
 
-            DefaultDataDictionaryProvider dataDictionaryProvider = null;
+            EditableDataDictionaryProvider dataDictionaryProvider = null;
             if (useDataDictionary) {
-                dataDictionaryProvider = new DefaultDataDictionaryProvider();
+                dataDictionaryProvider = editableDataDictionaryProvider;
                 if (sessionID.isFIXT()) {
                     processFixtDataDictionaries(sessionID, settings, dataDictionaryProvider);
                 } else {
@@ -234,7 +250,7 @@ public class DefaultSessionFactory implements SessionFactory {
     }
 
     private void processPreFixtDataDictionary(SessionID sessionID, SessionSettings settings,
-            DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
+            EditableDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
             FieldConvertError {
         final DataDictionary dataDictionary = createDataDictionary(sessionID, settings,
                 Session.SETTING_DATA_DICTIONARY, sessionID.getBeginString());
@@ -276,8 +292,8 @@ public class DefaultSessionFactory implements SessionFactory {
         return dataDictionary;
     }
 
-    private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
-            DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
+    private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings, 
+                 EditableDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
             FieldConvertError {
         dataDictionaryProvider.addTransportDictionary(
                 sessionID.getBeginString(),

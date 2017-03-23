@@ -25,7 +25,7 @@ import quickfix.field.ApplVerID;
 
 import static quickfix.MessageUtils.toBeginString;
 
-public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
+public class DefaultDataDictionaryProvider implements EditableDataDictionaryProvider {
     private final SimpleCache<String, DataDictionary> transportDictionaries;
     private final SimpleCache<ApplVerID, DataDictionary> applicationDictionaries;
 
