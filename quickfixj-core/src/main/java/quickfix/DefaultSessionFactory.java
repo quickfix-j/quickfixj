@@ -56,7 +56,7 @@ public class DefaultSessionFactory implements SessionFactory {
         this.logFactory = logFactory;
         this.messageFactory = new DefaultMessageFactory();
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
-        this.editableDataDictionaryProvider = new DefaultDataDictionaryProvider();
+        this.editableDataDictionaryProvider = null;
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
@@ -66,7 +66,7 @@ public class DefaultSessionFactory implements SessionFactory {
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
-        this.editableDataDictionaryProvider = new DefaultDataDictionaryProvider();
+        this.editableDataDictionaryProvider = null;
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
@@ -77,7 +77,7 @@ public class DefaultSessionFactory implements SessionFactory {
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = sessionScheduleFactory;
-        this.editableDataDictionaryProvider = new DefaultDataDictionaryProvider();
+        this.editableDataDictionaryProvider = null;
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
@@ -149,7 +149,11 @@ public class DefaultSessionFactory implements SessionFactory {
 
             EditableDataDictionaryProvider dataDictionaryProvider = null;
             if (useDataDictionary) {
-                dataDictionaryProvider = editableDataDictionaryProvider;
+                if(editableDataDictionaryProvider == null) {
+                    dataDictionaryProvider = new DefaultDataDictionaryProvider();
+                } else {
+                    dataDictionaryProvider = editableDataDictionaryProvider;
+                }
                 if (sessionID.isFIXT()) {
                     processFixtDataDictionaries(sessionID, settings, dataDictionaryProvider);
                 } else {
