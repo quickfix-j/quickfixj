@@ -1939,6 +1939,9 @@ public class Session implements Closeable {
      */
     public void disconnect(String reason, boolean logError) throws IOException {
         try {
+            final boolean logonReceived = state.isLogonReceived();
+            final boolean logonSent = state.isLogonSent();
+
             synchronized (responderLock) {
                 if (!hasResponder()) {
                     if (!ENCOUNTERED_END_OF_STREAM.equals(reason)) {
@@ -1956,8 +1959,6 @@ public class Session implements Closeable {
                 setResponder(null);
             }
 
-            final boolean logonReceived = state.isLogonReceived();
-            final boolean logonSent = state.isLogonSent();
             if (logonReceived || logonSent) {
                 try {
                     application.onLogout(sessionID);
