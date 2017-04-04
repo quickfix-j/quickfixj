@@ -65,7 +65,7 @@ public class DataDictionary {
     private static final String MESSAGE_CATEGORY_ADMIN = "admin".intern();
     private static final String MESSAGE_CATEGORY_APP = "app".intern();
 
-    private static final int USER_DEFINED_TAG_MIN = 5000;
+    static final int USER_DEFINED_TAG_MIN = 5000;
     private static final String NO = "N";
     private boolean hasVersion = false;
     private boolean checkFieldsOutOfOrder = true;
