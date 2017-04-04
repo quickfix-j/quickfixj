@@ -77,8 +77,7 @@ public class Message extends FieldMap {
     protected Header header = new Header();
     protected Trailer trailer = new Trailer();
 
-    // @GuardedBy("this")
-    private FieldException exception;
+    private volatile FieldException exception;
 
     public Message() {
         // empty
@@ -510,7 +509,7 @@ public class Message extends FieldMap {
             header.setField(field);
 
             if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                parseGroup(DataDictionary.HEADER_ID, field, dd, header);
+                parseGroup(DataDictionary.HEADER_ID, field, dd, header, doValidation);
             }
 
             field = extractField(dd, header);
@@ -549,7 +548,7 @@ public class Message extends FieldMap {
                 setField(header, field);
                 // Group case
                 if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                    parseGroup(DataDictionary.HEADER_ID, field, dd, header);
+                    parseGroup(DataDictionary.HEADER_ID, field, dd, header, doValidation);
                 }
                 if (doValidation && dd != null && dd.isCheckFieldsOutOfOrder())
                     throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
@@ -558,7 +557,7 @@ public class Message extends FieldMap {
                 setField(this, field);
                 // Group case
                 if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
-                    parseGroup(getMsgType(), field, dd, this);
+                    parseGroup(getMsgType(), field, dd, this, doValidation);
                 }
             }
 
@@ -573,7 +572,7 @@ public class Message extends FieldMap {
         fields.setField(field);
     }
 
-    private void parseGroup(String msgType, StringField field, DataDictionary dd, FieldMap parent)
+    private void parseGroup(String msgType, StringField field, DataDictionary dd, FieldMap parent, boolean doValidation)
             throws InvalidMessage {
         final DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
         final DataDictionary groupDataDictionary = rg.getDataDictionary();
@@ -603,14 +602,14 @@ public class Message extends FieldMap {
                 previousOffset = -1;
                 // QFJ-742
                 if (groupDataDictionary.isGroup(msgType, tag)) {
-                    parseGroup(msgType, field, groupDataDictionary, group);
+                    parseGroup(msgType, field, groupDataDictionary, group, doValidation);
                 }
             } else if (groupDataDictionary.isGroup(msgType, tag)) {
                 if (!firstFieldFound) {
                     throw new InvalidMessage("The group " + groupCountTag
                             + " must set the delimiter field " + firstField + " in " + messageData);
                 }
-                parseGroup(msgType, field, groupDataDictionary, group);
+                parseGroup(msgType, field, groupDataDictionary, group, doValidation);
             } else if (groupDataDictionary.isField(tag)) {
                 if (!firstFieldFound) {
                     throw new FieldException(
@@ -629,6 +628,20 @@ public class Message extends FieldMap {
                 }
                 group.setField(field);
             } else {
+                // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
+                if (!(DataDictionary.HEADER_ID.equals(msgType))) {
+                    if (!isTrailerField(tag) && !dd.isMsgField(msgType, tag)) {
+                        if (doValidation) {
+                            boolean fail = dd.checkFieldFailure(tag, false);
+                            if (fail) {
+                                throw new FieldException(
+                                        SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, tag);
+                            }
+                        }
+                        group.setField(field);
+                        continue;
+                    }
+                }
                 pushBack(field);
                 inGroupParse = false;
             }
@@ -790,11 +803,11 @@ public class Message extends FieldMap {
      *
      * @return flag indicating whether the message has a valid structure
      */
-    synchronized boolean hasValidStructure() {
+    boolean hasValidStructure() {
         return exception == null;
     }
 
-    public synchronized FieldException getException() {
+    public FieldException getException() {
         return exception;
     }
 
@@ -804,7 +817,7 @@ public class Message extends FieldMap {
      *
      * @return the first invalid tag
      */
-    synchronized int getInvalidTag() {
+    int getInvalidTag() {
         return exception != null ? exception.getField() : 0;
     }
 
