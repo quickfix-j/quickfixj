@@ -107,6 +107,24 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import quickfix.field.LastPx;
+import quickfix.field.LastQty;
+import quickfix.field.LegPrice;
+import quickfix.field.LegQty;
+import quickfix.field.LegRefID;
+import quickfix.field.LegSymbol;
+import quickfix.field.MaturityMonthYear;
+import quickfix.field.PreviouslyReported;
+import quickfix.field.PutOrCall;
+import quickfix.field.QuoteAckStatus;
+import quickfix.field.SecurityReqID;
+import quickfix.field.SecurityRequestResult;
+import quickfix.field.SecurityResponseID;
+import quickfix.field.StrikePrice;
+import quickfix.field.Text;
+import quickfix.field.TradeDate;
+import quickfix.field.TradeReportID;
+import quickfix.fix44.TradeCaptureReport;
 
 public class MessageTest {
 
@@ -1350,6 +1368,238 @@ public class MessageTest {
         message = message.replace('~', (char) 1);
         Message msg = new Message(message, false);
         assertTrue(msg.isSetField(Account.FIELD));
+    }
+
+    @Test
+    // QFJ-791
+    public void testRepeatingGroupCount() throws Exception {
+        /*
+         * Prepare a very simple TradeCaptureReport message template and two
+         * legs.
+         */
+        Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"), new PreviouslyReported(
+                false), new LastQty(1000), new LastPx(5.6789), new TradeDate("20140101"),
+                new TransactTime(new Date()));
+        tcr.getHeader().setField(new SenderCompID("SENDER"));
+        tcr.getHeader().setField(new TargetCompID("TARGET"));
+        tcr.getHeader().setField(new MsgSeqNum(1));
+        tcr.getHeader().setField(new SendingTime(new Date()));
+        TradeCaptureReport.NoLegs leg1 = new TradeCaptureReport.NoLegs();
+        leg1.setField(new LegSymbol("L1-XYZ"));
+        leg1.setField(new LegRefID("ABC1234-L1"));
+        leg1.setField(new LegQty(333));
+        leg1.setField(new LegPrice(1.2345));
+        TradeCaptureReport.NoLegs leg2 = new TradeCaptureReport.NoLegs();
+        leg2.setField(new LegSymbol("L2-XYZ"));
+        leg2.setField(new LegRefID("ABC1234-L2"));
+        leg2.setField(new LegQty(777));
+        leg2.setField(new LegPrice(2.3456));
+
+        /*
+         * Create a message from the template and add two legs. Convert the
+         * message to string and parse it. The parsed message should contain two
+         * legs.
+         */
+        {
+            Message m1 = new Message();
+            m1.getHeader().setFields(tcr.getHeader());
+            m1.setFields(tcr);
+            m1.addGroup(leg1);
+            m1.addGroup(leg2);
+
+            String s1 = m1.toString();
+            Message parsed1 = new Message(s1, DataDictionaryTest.getDictionary());
+
+            assertEquals(s1, parsed1.toString());
+            assertEquals(2, parsed1.getGroupCount(555));
+        }
+
+        /*
+         * Create a message from the template and add two legs, but the first
+         * leg contains the additional tag 58 (Text). Convert the message to
+         * string and parse it. The parsed message should also contain two legs.
+         */
+        {
+            Message m2 = new Message();
+            m2.getHeader().setFields(tcr.getHeader());
+            m2.setFields(tcr);
+
+            leg1.setField(new Text("TXT1")); // add unexpected tag to leg1
+            m2.addGroup(leg1);
+            m2.addGroup(leg2);
+
+            String s2 = m2.toString();
+            // do not use validation to parse full message
+            // regardless of errors in message structure
+            Message parsed2 = new Message(s2, DataDictionaryTest.getDictionary(), false);
+            
+            assertEquals(s2, parsed2.toString());
+            assertEquals(2, parsed2.getGroupCount(555));
+
+            /*
+             * If the above test failed, it means that a simple addition of an
+             * unexpected tag made the parsing logic fail pretty badly, as the
+             * number of legs is not 2.
+             */
+        }
+    }
+
+    @Test
+    // QFJ-791
+    public void testUnknownFieldsInRepeatingGroupsAndValidation() throws Exception {
+
+        Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"), new PreviouslyReported(
+                false), new LastQty(1000), new LastPx(5.6789), new TradeDate("20140101"),
+                new TransactTime(new Date()));
+        tcr.getHeader().setField(new SenderCompID("SENDER"));
+        tcr.getHeader().setField(new TargetCompID("TARGET"));
+        tcr.getHeader().setField(new MsgSeqNum(1));
+        tcr.getHeader().setField(new SendingTime(new Date()));
+        tcr.setField(new Symbol("ABC"));
+        TradeCaptureReport.NoLegs leg1 = new TradeCaptureReport.NoLegs();
+        leg1.setField(new LegSymbol("L1-XYZ"));
+        leg1.setField(new LegRefID("ABC1234-L1"));
+        leg1.setField(new LegQty(333));
+        leg1.setField(new LegPrice(1.2345));
+        TradeCaptureReport.NoLegs leg2 = new TradeCaptureReport.NoLegs();
+        leg2.setField(new LegSymbol("L2-XYZ"));
+        leg2.setField(new LegRefID("ABC1234-L2"));
+        leg2.setField(new LegQty(777));
+        leg2.setField(new LegPrice(2.3456));
+        TradeCaptureReport.NoSides sides = new TradeCaptureReport.NoSides();
+        sides.setField(new Side(Side.BUY));
+        sides.setField(new OrderID("ID"));
+
+        {
+            // will add a user-defined tag (i.e. greater than 5000) that is not defined in that group
+            Message m1 = new Message();
+            m1.getHeader().setFields(tcr.getHeader());
+            m1.setFields(tcr);
+
+            leg1.setField(new StringField(10000, "TXT1")); // add unexpected tag to leg1
+            m1.addGroup(leg1);
+            m1.addGroup(leg2);
+            m1.addGroup(sides);
+
+            String s1 = m1.toString();
+            DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+            // parsing without validation should succeed
+            Message parsed1 = new Message(s1, dictionary, false);
+
+            // validation should fail
+            int failingTag = 0;
+            try {
+                dictionary.validate(parsed1);
+            } catch (FieldException e) {
+                failingTag = e.getField();
+            }
+            assertEquals(10000, failingTag);
+
+            // but without checking user-defined fields, validation should succeed
+            dictionary.setCheckUserDefinedFields(false);
+            dictionary.validate(parsed1);
+
+            assertEquals(s1, parsed1.toString());
+            assertEquals(2, parsed1.getGroupCount(555));
+        }
+
+        {
+            // will add a normal tag that is not in the dictionary for that group
+            Message m2 = new Message();
+            m2.getHeader().setFields(tcr.getHeader());
+            m2.setFields(tcr);
+
+            leg1.removeField(10000);         // remove user-defined tag from before
+            leg1.setField(new Text("TXT1")); // add unexpected tag to leg1
+
+            m2.addGroup(leg1);
+            m2.addGroup(leg2);
+            m2.addGroup(sides);
+
+            String s2 = m2.toString();
+            DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+            // parsing without validation should succeed
+            Message parsed2 = new Message(s2, dictionary, false);
+
+            // validation should fail
+            int failingTag = 0;
+            try {
+                dictionary.validate(parsed2);
+            } catch (FieldException e) {
+                failingTag = e.getField();
+            }
+            assertEquals(Text.FIELD, failingTag);
+            
+            // but without checking for unknown message fields, validation should succeed
+            dictionary.setAllowUnknownMessageFields(true);
+            dictionary.validate(parsed2);
+
+            assertEquals(s2, parsed2.toString());
+            assertEquals(2, parsed2.getGroupCount(555));
+        }
+    }
+
+    @Test
+    // QFJ-169
+    public void testInvalidFieldInGroup() throws Exception {
+        SecurityRequestResult resultCode = new SecurityRequestResult(
+                SecurityRequestResult.NO_INSTRUMENTS_FOUND_THAT_MATCH_SELECTION_CRITERIA);
+
+        UnderlyingSymbol underlyingSymbolField = new UnderlyingSymbol("UND");
+        SecurityReqID id = new SecurityReqID("1234");
+
+        quickfix.fix44.DerivativeSecurityList responseMessage = new quickfix.fix44.DerivativeSecurityList();
+        responseMessage.setField(id);
+        responseMessage.setField(underlyingSymbolField);
+        responseMessage.setField(new SecurityResponseID("2345"));
+        Group optionGroup = new quickfix.fix44.DerivativeSecurityList.NoRelatedSym();
+        optionGroup.setField(new Symbol("OPT+RQ"));
+        optionGroup.setField(new StringField(StrikePrice.FIELD, "10"));
+        // add invalid field for this FIX version
+        optionGroup.setField(new QuoteAckStatus(0));
+        optionGroup.setField(new PutOrCall(PutOrCall.CALL));
+        optionGroup.setField(new MaturityMonthYear("200802"));
+        responseMessage.addGroup(optionGroup);
+
+        Group group2 = new quickfix.fix44.DerivativeSecurityList.NoRelatedSym();
+        group2.setField(new Symbol("OPT+RB"));
+        group2.setField(new StringField(StrikePrice.FIELD, "10"));
+        group2.setField(new MaturityMonthYear("200802"));
+        responseMessage.addGroup(group2);
+        resultCode.setValue(SecurityRequestResult.VALID_REQUEST);
+        responseMessage.setField(resultCode);
+
+        DataDictionary dd = new DataDictionary(DataDictionaryTest.getDictionary());
+        
+        int tagNo = 0;
+        try {
+            dd.validate(responseMessage, true);
+        } catch (FieldException e) {
+            tagNo = e.getField();
+        }
+        // make sure that tag 297 is reported as invalid, NOT tag 55
+        // (which is the first field after the invalid 297 field)
+        assertEquals(QuoteAckStatus.FIELD, tagNo);
+
+        Message msg2 = new Message(responseMessage.toString(), dd);
+        try {
+            dd.validate(msg2, true);
+        } catch (FieldException e) {
+            tagNo = e.getField();
+        }
+        // make sure that tag 297 is reported as invalid, NOT tag 55
+        // (which is the first field after the invalid 297 field)
+        assertEquals(QuoteAckStatus.FIELD, tagNo);
+
+        // parse message again without validation
+        msg2 = new Message(responseMessage.toString(), dd, false);
+        assertEquals(responseMessage.toString(), msg2.toString());
+        Group noRelatedSymGroup = new quickfix.fix44.DerivativeSecurityList.NoRelatedSym();
+        Group group = responseMessage.getGroup(1, noRelatedSymGroup);
+        assertTrue(group.isSetField(QuoteAckStatus.FIELD));
+
+        group = responseMessage.getGroup(2, noRelatedSymGroup);
+        assertFalse(group.isSetField(QuoteAckStatus.FIELD));
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
