@@ -43,6 +43,7 @@ import quickfix.field.LastMkt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
+import quickfix.field.NoPartyIDs;
 import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
@@ -476,6 +477,16 @@ public class DataDictionaryTest {
         assertEquals(ddCopy.isCheckUnorderedGroupFields(),dataDictionary.isCheckUnorderedGroupFields());
         assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
 
+        DataDictionary.GroupInfo groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
+        assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
+        // set to false on ORIGINAL DD
+        dataDictionary.setAllowUnknownMessageFields(false);
+        assertFalse(dataDictionary.isAllowUnknownMessageFields());
+        assertFalse(dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary().isAllowUnknownMessageFields());
+        // should be still true on COPIED DD and its group
+        assertTrue(ddCopy.isAllowUnknownMessageFields());
+        groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
+        assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
     }
 
     /**
