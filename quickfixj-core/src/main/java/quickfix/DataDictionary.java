@@ -65,7 +65,7 @@ public class DataDictionary {
     private static final String MESSAGE_CATEGORY_ADMIN = "admin".intern();
     private static final String MESSAGE_CATEGORY_APP = "app".intern();
 
-    static final int USER_DEFINED_TAG_MIN = 5000;
+    private static final int USER_DEFINED_TAG_MIN = 5000;
     private static final String NO = "N";
     private boolean hasVersion = false;
     private boolean checkFieldsOutOfOrder = true;
@@ -688,21 +688,25 @@ public class DataDictionary {
     void checkField(Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
-        boolean fail;
-
-        if (field.getField() < USER_DEFINED_TAG_MIN) {
-            fail = !messageField && !allowUnknownMessageFields;
-        } else {
-            fail = !messageField && checkUserDefinedFields;
-        }
+        boolean fail = checkFieldFailure(field.getField(), messageField);
 
         if (fail) {
-            if (fields.contains(field.getTag())) {
+            if (fields.contains(field.getField())) {
                 throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getField());
             } else {
                 throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
             }
         }
+    }
+
+    boolean checkFieldFailure(int field, boolean messageField) {
+        boolean fail;
+        if (field < USER_DEFINED_TAG_MIN) {
+            fail = !messageField && !allowUnknownMessageFields;
+        } else {
+            fail = !messageField && checkUserDefinedFields;
+        }
+        return fail;
     }
 
     private void checkValidFormat(StringField field) throws IncorrectDataFormat {
