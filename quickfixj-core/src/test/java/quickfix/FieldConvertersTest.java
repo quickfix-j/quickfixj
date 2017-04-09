@@ -211,6 +211,50 @@ public class FieldConvertersTest extends TestCase {
         } catch (FieldConvertError e) {
             // expected
         }
+
+        // just accept up to picoseconds but truncate after millis
+        date = UtcTimestampConverter.convert("20120922-12:34:56.123456");
+        c.setTime(date);
+        assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(34, c.get(Calendar.MINUTE));
+        assertEquals(56, c.get(Calendar.SECOND));
+        assertEquals(2012, c.get(Calendar.YEAR));
+        assertEquals(Calendar.SEPTEMBER, c.get(Calendar.MONTH));
+        assertEquals(22, c.get(Calendar.DAY_OF_MONTH));
+        assertEquals(123, c.get(Calendar.MILLISECOND));
+
+        date = UtcTimestampConverter.convert("20120922-12:34:56.123456789");
+        c.setTime(date);
+        assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(34, c.get(Calendar.MINUTE));
+        assertEquals(56, c.get(Calendar.SECOND));
+        assertEquals(2012, c.get(Calendar.YEAR));
+        assertEquals(Calendar.SEPTEMBER, c.get(Calendar.MONTH));
+        assertEquals(22, c.get(Calendar.DAY_OF_MONTH));
+        assertEquals(123, c.get(Calendar.MILLISECOND));
+
+        date = UtcTimestampConverter.convert("20120922-12:34:56.123456789123");
+        c.setTime(date);
+        assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(34, c.get(Calendar.MINUTE));
+        assertEquals(56, c.get(Calendar.SECOND));
+        assertEquals(2012, c.get(Calendar.YEAR));
+        assertEquals(Calendar.SEPTEMBER, c.get(Calendar.MONTH));
+        assertEquals(22, c.get(Calendar.DAY_OF_MONTH));
+        assertEquals(123, c.get(Calendar.MILLISECOND));
+
+        try {
+            UtcTimestampConverter.convert("20120922-12:34:56.12345");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            UtcTimestampConverter.convert("20120922-12:34:56.1234567");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
     }
 
     public void testUtcTimeOnlyConversion() throws Exception {
@@ -233,6 +277,51 @@ public class FieldConvertersTest extends TestCase {
         assertEquals(1, c.get(Calendar.DAY_OF_MONTH));
         try {
             UtcTimeOnlyConverter.convert("I2:05:06.555");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        
+        date = UtcTimeOnlyConverter.convert("12:05:06.555444");
+        c.setTime(date);
+        assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(5, c.get(Calendar.MINUTE));
+        assertEquals(6, c.get(Calendar.SECOND));
+        assertEquals(555, c.get(Calendar.MILLISECOND));
+        assertEquals(1970, c.get(Calendar.YEAR));
+        assertEquals(0, c.get(Calendar.MONTH));
+        assertEquals(1, c.get(Calendar.DAY_OF_MONTH));
+        
+        date = UtcTimeOnlyConverter.convert("12:05:06.555444333");
+        c.setTime(date);
+        assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(5, c.get(Calendar.MINUTE));
+        assertEquals(6, c.get(Calendar.SECOND));
+        assertEquals(555, c.get(Calendar.MILLISECOND));
+        assertEquals(1970, c.get(Calendar.YEAR));
+        assertEquals(0, c.get(Calendar.MONTH));
+        assertEquals(1, c.get(Calendar.DAY_OF_MONTH));
+
+        date = UtcTimeOnlyConverter.convert("12:05:06.555444333222");
+        c.setTime(date);
+        assertEquals(12, c.get(Calendar.HOUR_OF_DAY));
+        assertEquals(5, c.get(Calendar.MINUTE));
+        assertEquals(6, c.get(Calendar.SECOND));
+        assertEquals(555, c.get(Calendar.MILLISECOND));
+        assertEquals(1970, c.get(Calendar.YEAR));
+        assertEquals(0, c.get(Calendar.MONTH));
+        assertEquals(1, c.get(Calendar.DAY_OF_MONTH));
+
+        UtcTimeOnlyConverter.convert("12:05:06");
+
+        try {
+            UtcTimeOnlyConverter.convert("12:05:06.55544");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            UtcTimeOnlyConverter.convert("12:05:06.55544433");
             fail();
         } catch (FieldConvertError e) {
             // expected
