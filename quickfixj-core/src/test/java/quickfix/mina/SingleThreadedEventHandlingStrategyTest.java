@@ -43,6 +43,9 @@ import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.junit.After;
 
 /**
  *
@@ -52,10 +55,23 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
             new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+    SingleThreadedEventHandlingStrategy ehs = null;
+
+    @After
+    public void cleanup() {
+        if ( ehs != null) {
+            ehs.stopHandlingMessages(true);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SingleThreadedEventHandlingStrategyTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
 
     @Test
     public void testDoubleStart() throws Exception {
-        SingleThreadedEventHandlingStrategy ehs = null;
+        assertQFJMessageProcessorThreads(0);
         try {
             SessionSettings settings = new SessionSettings();
             SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
@@ -73,8 +89,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test
     public void testMultipleStart() throws Exception {
-        SingleThreadedEventHandlingStrategy ehs = null;
-
+        assertQFJMessageProcessorThreads(0);
         try {
             SessionSettings settings = new SessionSettings();
             SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
@@ -92,7 +107,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test
     public void testStartStop() throws Exception {
-        SingleThreadedEventHandlingStrategy ehs = null;
+        assertQFJMessageProcessorThreads(0);
         try {
             SessionSettings settings = new SessionSettings();
             SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
@@ -112,7 +127,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test
     public void testMultipleStartStop() throws Exception {
-        SingleThreadedEventHandlingStrategy ehs = null;
+        assertQFJMessageProcessorThreads(0);
         SessionSettings settings = new SessionSettings();
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
 
@@ -131,6 +146,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test
     public void shouldCleanUpAcceptorQFJMessageProcessorThreadAfterInterrupt() throws Exception {
+        assertQFJMessageProcessorThreads(0);
         final SocketAcceptor acceptor = createAcceptor(0);
         final CountDownLatch acceptorCountDownLatch = new CountDownLatch(1);
 
@@ -164,6 +180,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test
     public void shouldCleanUpInitiatorQFJMessageProcessorThreadAfterInterrupt() throws Exception {
+        assertQFJMessageProcessorThreads(0);
         final SocketInitiator initiator = createInitiator(0);
         final CountDownLatch initiatorCountDownLatch = new CountDownLatch(1);
 
@@ -197,6 +214,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test(timeout = 10000)
     public void shouldCleanUpAcceptorQFJMessageProcessorThreadAfterStop() throws Exception {
+        assertQFJMessageProcessorThreads(0);
         final SocketAcceptor acceptor = createAcceptor(1);
 
         Thread acceptorThread = new Thread("Acceptor-Thread") {
@@ -226,6 +244,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
     @Test(timeout = 10000)
     public void shouldCleanUpInitiatorQFJMessageProcessorThreadAfterStop() throws Exception {
+        assertQFJMessageProcessorThreads(0);
         final SocketInitiator initiator = createInitiator(1);
 
         Thread initiatorThread = new Thread("Initiator-Thread") {
@@ -278,7 +297,7 @@ public class SingleThreadedEventHandlingStrategyTest {
         return acceptor;
     }
 
-    public SocketInitiator createInitiator(int i) throws ConfigError {
+    private SocketInitiator createInitiator(int i) throws ConfigError {
         Map<Object, Object> acceptorProperties = new HashMap<>();
         acceptorProperties.put("ConnectionType", "initiator");
         acceptorProperties.put("HeartBtInt", "5");
@@ -306,6 +325,33 @@ public class SingleThreadedEventHandlingStrategyTest {
     private void assertQFJMessageProcessorThreads(int expected) {
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
+        int qfjMPThreads = getMessageProcessorThreads(dumpAllThreads);
+        if (qfjMPThreads != expected) {
+            // since ManagementFactory.getThreadMXBean().dumpAllThreads(false, false)
+            // might return threads which are already terminated, we try again once more
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SingleThreadedEventHandlingStrategyTest.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            dumpAllThreads = bean.dumpAllThreads(false, false);
+            qfjMPThreads = getMessageProcessorThreads(dumpAllThreads);
+            for (ThreadInfo threadInfo : dumpAllThreads) {
+                if (qfjMPThreads > 1) {
+                    if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
+                            .getThreadName())) {
+                        printStackTraces(threadInfo);
+                    }
+                } else {
+                    printStackTraces(threadInfo);
+                }
+            }
+        }
+
+        Assert.assertEquals("Expected " + expected + " 'QFJ Message Processor' thread(s)", expected, qfjMPThreads);
+    }
+
+    private int getMessageProcessorThreads(ThreadInfo[] dumpAllThreads) {
         int qfjMPThreads = 0;
         for (ThreadInfo threadInfo : dumpAllThreads) {
             if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
@@ -313,20 +359,15 @@ public class SingleThreadedEventHandlingStrategyTest {
                 qfjMPThreads++;
             }
         }
-        if (qfjMPThreads > 1) {
-            for (ThreadInfo threadInfo : dumpAllThreads) {
-                if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
-                    .getThreadName())) {
-                    System.out.println( threadInfo.getThreadName() + " " + threadInfo.getThreadState());
-                    StackTraceElement[] stackTrace = threadInfo.getStackTrace();
-                    for (StackTraceElement stackTrace1 : stackTrace) {
-                        System.out.println( "     " + stackTrace1 );
-                    }
-                }
-            }
-        }
+        return qfjMPThreads;
+    }
 
-        Assert.assertEquals("Expected " + expected + " 'QFJ Message Processor' thread(s)", expected, qfjMPThreads);
+    private void printStackTraces(ThreadInfo threadInfo) {
+        System.out.println( threadInfo.getThreadName() + " " + threadInfo.getThreadState());
+        StackTraceElement[] stackTrace = threadInfo.getStackTrace();
+        for (StackTraceElement stackTrace1 : stackTrace) {
+            System.out.println( "     " + stackTrace1 );
+        }
     }
 
     private static class SessionConnectorUnderTest extends SessionConnector {
