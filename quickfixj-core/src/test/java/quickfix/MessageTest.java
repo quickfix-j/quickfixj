@@ -1602,6 +1602,64 @@ public class MessageTest {
         assertFalse(group.isSetField(QuoteAckStatus.FIELD));
     }
 
+    @Test
+    // QFJ-169/QFJ-791
+    public void testNestedRepeatingGroup()
+        throws Exception {
+        
+        String newOrdersSingleString = "8=FIX.4.4|9=265|35=D|34=62|49=sender|52=20160803-12:55:42.094|"
+                + "56=target|11=16H03A0000021|15=CHF|22=4|38=13|40=2|44=132|48=CH000000000|54=1|55=[N/A]|59=0|"
+                + "60=20160803-12:55:41.866|207=XXXX|423=2|526=foo|528=P|"
+                // tag 20000 is not defined, tag 22000 is defined for NewOrderSingle in FIX44_Custom_Test.xml
+                + "453=1|448=test|447=D|452=7|20000=0|802=1|523=test|803=25|22000=foobar|10=244|";
+
+        quickfix.fix44.NewOrderSingle nos = new quickfix.fix44.NewOrderSingle();
+        // using custom dictionary with user-defined tag 22000
+        final DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
+        dataDictionary.setCheckUserDefinedFields(false);
+        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
+        assertNull(nos.getException());
+        dataDictionary.validate(nos);
+
+        // defined tag should be set on the message
+        assertTrue(nos.isSetField(22000));
+        // undefined tag should not be set on the message
+        assertFalse(nos.isSetField(20000));
+        Group partyGroup = nos.getGroup(1, quickfix.field.NoPartyIDs.FIELD);
+        // undefined tag should be set on the group instead
+        assertTrue(partyGroup.isSetField(20000));
+        assertFalse(partyGroup.getGroup(1, quickfix.field.NoPartySubIDs.FIELD).isSetField(20000));
+    }
+
+    @Test
+    // QFJ-169/QFJ-791
+    public void testNestedRepeatingSubGroup()
+            throws Exception {
+
+        String newOrdersSingleString = "8=FIX.4.4|9=265|35=D|34=62|49=sender|52=20160803-12:55:42.094|"
+                + "56=target|11=16H03A0000021|15=CHF|22=4|38=13|40=2|44=132|48=CH000000000|54=1|55=[N/A]|59=0|"
+                + "60=20160803-12:55:41.866|207=XXXX|423=2|526=foo|528=P|"
+                // tag 20000 is not defined, tag 22000 is defined for NewOrderSingle in FIX44_Custom_Test.xml
+                + "453=1|448=test|447=D|452=7|802=1|523=test|803=25|20000=0|22000=foobar|10=244|";
+
+        quickfix.fix44.NewOrderSingle nos = new quickfix.fix44.NewOrderSingle();
+        // using custom dictionary with user-defined tag 22000
+        final DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
+        dataDictionary.setCheckUserDefinedFields(false);
+        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
+        assertNull(nos.getException());
+        dataDictionary.validate(nos);
+
+        // defined tag should be set on the message
+        assertTrue(nos.isSetField(22000));
+        // undefined tag should not be set on the message
+        assertFalse(nos.isSetField(20000));
+        Group partyGroup = nos.getGroup(1, quickfix.field.NoPartyIDs.FIELD);
+        // undefined tag should be set on the subgroup instead
+        assertFalse(partyGroup.isSetField(20000));
+        assertTrue(partyGroup.getGroup(1, quickfix.field.NoPartySubIDs.FIELD).isSetField(20000));
+    }
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
