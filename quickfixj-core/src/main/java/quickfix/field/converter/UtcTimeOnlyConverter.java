@@ -29,9 +29,16 @@ import java.util.Date;
  * Convert between a time and a String.
  */
 public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
+
+    static final int LENGTH_INCL_SECONDS    = 8;
+    static final int LENGTH_INCL_MILLIS     = 12;
+    static final int LENGTH_INCL_MICROS     = 15;
+    static final int LENGTH_INCL_NANOS      = 18;
+    static final int LENGTH_INCL_PICOS      = 21;
+
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static final ThreadLocal<UtcTimeOnlyConverter> utcTimeConverter = new ThreadLocal<>();
+    private static final ThreadLocal<UtcTimeOnlyConverter> UTC_TIME_CONVERTER = new ThreadLocal<>();
     private final DateFormat utcTimeFormat = createDateFormat("HH:mm:ss");
     private final DateFormat utcTimeFormatMillis = createDateFormat("HH:mm:ss.SSS");
 
@@ -47,10 +54,10 @@ public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
     }
 
     private static DateFormat getFormatter(boolean includeMillis) {
-        UtcTimeOnlyConverter converter = utcTimeConverter.get();
+        UtcTimeOnlyConverter converter = UTC_TIME_CONVERTER.get();
         if (converter == null) {
             converter = new UtcTimeOnlyConverter();
-            utcTimeConverter.set(converter);
+            UTC_TIME_CONVERTER.set(converter);
         }
         return includeMillis ? converter.utcTimeFormatMillis : converter.utcTimeFormat;
     }
@@ -64,8 +71,12 @@ public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
      */
     public static Date convert(String value) throws FieldConvertError {
         Date d = null;
+        if (value.length() != LENGTH_INCL_SECONDS && value.length() != LENGTH_INCL_MILLIS && value.length() != LENGTH_INCL_MICROS && value.length() != LENGTH_INCL_NANOS && value.length() != LENGTH_INCL_PICOS) {
+            throwFieldConvertError(value, "time");
+        }
         try {
-            d = getFormatter(value.length() == 12).parse(value);
+            final boolean includeMillis = (value.length() >= LENGTH_INCL_MILLIS);
+            d = getFormatter(includeMillis).parse(includeMillis ? value.substring(0, LENGTH_INCL_MILLIS) : value);
         } catch (ParseException e) {
             throwFieldConvertError(value, "time");
         }
