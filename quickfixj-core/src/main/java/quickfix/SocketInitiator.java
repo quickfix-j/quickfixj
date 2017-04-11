@@ -96,11 +96,14 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void stop(boolean forceDisconnect) {
-        eventHandlingStrategy.stopHandlingMessages();
+        // eventHandlingStrategy.stop() sets isStopped=true, which allows the block loop to exit
+        eventHandlingStrategy.stop();
         synchronized (lock) {
             try {
                 logoutAllSessions(forceDisconnect);
                 stopInitiators();
+                // stopHandlingMessages sends the END_OF_STREAM message disconnecting the session
+                eventHandlingStrategy.stopHandlingMessages();
             } finally {
                 Session.unregisterSessions(getSessions());
                 isStarted = Boolean.FALSE;

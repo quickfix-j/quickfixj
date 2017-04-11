@@ -168,7 +168,7 @@ public class SocketAcceptorTest {
 
         public void waitForLogon() {
             try {
-                logonLatch.await(10, TimeUnit.SECONDS);
+                assertTrue("Logon timed out", logonLatch.await(10, TimeUnit.SECONDS));
             } catch (InterruptedException e) {
                 fail(e.getMessage());
             }
