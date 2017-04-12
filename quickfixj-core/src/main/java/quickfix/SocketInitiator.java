@@ -28,8 +28,7 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private Boolean isStarted = Boolean.FALSE;
-    private final Object lock = new Object();
+    private volatile Boolean isStarted = Boolean.FALSE;
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
@@ -96,37 +95,34 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void stop(boolean forceDisconnect) {
-        eventHandlingStrategy.stopHandlingMessages();
-        synchronized (lock) {
+        if (isStarted.equals(Boolean.TRUE)) {
             try {
                 logoutAllSessions(forceDisconnect);
                 stopInitiators();
             } finally {
                 Session.unregisterSessions(getSessions());
+                eventHandlingStrategy.stopHandlingMessages();
                 isStarted = Boolean.FALSE;
             }
         }
     }
 
     private void initialize(boolean blockInThread) throws ConfigError {
-        synchronized (lock) {
-            if (isStarted.equals(Boolean.FALSE)) {
-            	eventHandlingStrategy.setExecutor(longLivedExecutor);
-                createSessionInitiators();
-                for (Session session : getSessionMap().values()) {
-                    Session.registerSession(session);
-                }
-                startInitiators();
-                if (blockInThread) {
-                    eventHandlingStrategy.blockInThread();
-                    isStarted = Boolean.TRUE;
-                } else {
-                    isStarted = Boolean.TRUE;
-                    eventHandlingStrategy.block();
-                }
-            } else {
-                log.warn("Ignored attempt to start already running SocketInitiator.");
+        if (isStarted.equals(Boolean.FALSE)) {
+            eventHandlingStrategy.setExecutor(longLivedExecutor);
+            createSessionInitiators();
+            for (Session session : getSessionMap().values()) {
+                Session.registerSession(session);
             }
+            startInitiators();
+            isStarted = Boolean.TRUE;
+            if (blockInThread) {
+                eventHandlingStrategy.blockInThread();
+            } else {
+                eventHandlingStrategy.block();
+            }
+        } else {
+            log.warn("Ignored attempt to start already running SocketInitiator.");
         }
     }
 

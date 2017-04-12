@@ -29,7 +29,8 @@ public interface Connector {
     /**
      * Start accepting connections. Returns immediately. See implementations of
      * this interface potential threading issues.
-     *
+     * This method must not be called by several threads concurrently.
+     * 
      * @throws ConfigError Problem with acceptor configuration.
      * @throws RuntimeError Other unspecified error
      */
@@ -38,11 +39,13 @@ public interface Connector {
     /**
      * Logout existing sessions, close their connections, and stop accepting new
      * connections.
+     * This method must not be called by several threads concurrently.
      */
     void stop();
 
     /**
      * Stops all sessions, optionally waiting for logout completion.
+     * This method must not be called by several threads concurrently.
      *
      * @param force don't wait for logout before disconnect.
      */
@@ -51,6 +54,7 @@ public interface Connector {
     /**
      * Start accepting connections. This method blocks until stop is called from
      * another thread.
+     * This method must not be called by several threads concurrently.
      *
      * @throws ConfigError Problem with acceptor configuration.
      * @throws RuntimeError Other unspecified error

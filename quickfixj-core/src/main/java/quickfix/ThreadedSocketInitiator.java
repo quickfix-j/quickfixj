@@ -82,11 +82,8 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     }
 
     public void stop(boolean forceDisconnect) {
-        stopInitiators();
         logoutAllSessions(forceDisconnect);
-        if (!forceDisconnect) {
-            waitForLogout();
-        }
+        stopInitiators();
         eventHandlingStrategy.stopDispatcherThreads();
         Session.unregisterSessions(getSessions());
     }
