@@ -52,10 +52,10 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     public void setExecutor(Executor executor) {
-		this.executor = executor;
-	}
+        this.executor = executor;
+    }
 
-	@Override
+    @Override
     public void onMessage(Session quickfixSession, Message message) {
         if (message == END_OF_STREAM && isStopped) {
             return;
@@ -101,7 +101,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                     event.processMessage();
                 }
             } catch (InterruptedException e) {
-                // ignore
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -229,31 +229,31 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 			private final String name;
 
 			public RunnableWrapper(Runnable command, String name) {
-				this.command = command;
-				this.name = name;
+                            this.command = command;
+                            this.name = name;
 			}
 
-			@Override
-			public void run() {
-				Thread currentThread = Thread.currentThread();
-				String threadName = currentThread.getName();
-				try {
-					if (!name.equals(threadName)) {
-						currentThread.setName(name + " (" + threadName + ")");
-					}
-					command.run();
-				} finally {
-					latch.countDown();
-					currentThread.setName(threadName);
-				}
-			}
+                        @Override
+                        public void run() {
+                            Thread currentThread = Thread.currentThread();
+                            String threadName = currentThread.getName();
+                            try {
+                                if (!name.equals(threadName)) {
+                                    currentThread.setName(name + " (" + threadName + ")");
+                                }
+                                command.run();
+                            } finally {
+                                latch.countDown();
+                                currentThread.setName(threadName);
+                            }
+                        }
 
 			public void join() throws InterruptedException {
-				latch.await();
+                            latch.await();
 			}
 
 			public boolean isAlive() {
-				return latch.getCount() > 0;
+                            return latch.getCount() > 0;
 			}
 
 		}

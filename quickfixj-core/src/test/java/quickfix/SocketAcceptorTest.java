@@ -37,6 +37,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import quickfix.field.MsgType;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -80,19 +81,19 @@ public class SocketAcceptorTest {
         } finally {
             if (initiator != null) {
                 try {
-                    initiator.stop(true);
+                    initiator.stop();
                 } catch (RuntimeException e) {
                     log.error(e.getMessage(), e);
                 }
             }
             if (acceptor != null) {
                 try {
-                    acceptor.stop(true);
+                    acceptor.stop();
                 } catch (RuntimeException e) {
                     log.error(e.getMessage(), e);
                 }
             }
-            Thread.sleep(500);
+            assertEquals("application should receive logout", 1, testAcceptorApplication.logoutCounter);
         }
     }
 
@@ -156,11 +157,13 @@ public class SocketAcceptorTest {
     private static class TestAcceptorApplication extends ApplicationAdapter {
 
         private final CountDownLatch logonLatch;
+        public volatile int logoutCounter = 0;
 
         public TestAcceptorApplication() {
             logonLatch = new CountDownLatch(1);
         }
 
+        @Override
         public void onLogon(SessionID sessionId) {
             super.onLogon(sessionId);
             logonLatch.countDown();
@@ -168,9 +171,20 @@ public class SocketAcceptorTest {
 
         public void waitForLogon() {
             try {
-                logonLatch.await(10, TimeUnit.SECONDS);
+                assertTrue("Logon timed out", logonLatch.await(10, TimeUnit.SECONDS));
             } catch (InterruptedException e) {
                 fail(e.getMessage());
+            }
+        }
+        
+        @Override
+        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+            try {
+                if (MsgType.LOGOUT.equals(MessageUtils.getMessageType(message.toString()))) {
+                    logoutCounter++;
+                }
+            } catch (InvalidMessage ex) {
+                // ignore
             }
         }
     }

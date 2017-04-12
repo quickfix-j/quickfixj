@@ -246,7 +246,6 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         }
     }
 
-    // XXX does this need to by synchronized?
     protected void stopAcceptingConnections() throws ConfigError {
         Iterator<IoAcceptor> ioIt = getEndpoints().iterator();
         while (ioIt.hasNext()) {
