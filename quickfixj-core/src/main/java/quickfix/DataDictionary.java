@@ -243,12 +243,7 @@ public class DataDictionary {
     }
 
     private void addMsgField(String msgType, int field) {
-        Set<Integer> fields = messageFields.get(msgType);
-        if (fields == null) {
-            fields = new HashSet<>();
-            messageFields.put(msgType, fields);
-        }
-        fields.add(field);
+        messageFields.computeIfAbsent(msgType, k -> new HashSet<>()).add(field);
     }
 
     /**
@@ -299,12 +294,7 @@ public class DataDictionary {
     }
 
     private void addRequiredField(String msgType, int field) {
-        Set<Integer> fields = requiredFields.get(msgType);
-        if (fields == null) {
-            fields = new HashSet<>();
-            requiredFields.put(msgType, fields);
-        }
-        fields.add(field);
+        requiredFields.computeIfAbsent(msgType, k -> new HashSet<>()).add(field);
     }
 
     /**
@@ -340,12 +330,7 @@ public class DataDictionary {
     }
 
     private void addFieldValue(int field, String value) {
-        Set<String> values = fieldValues.get(field);
-        if (values == null) {
-            values = new HashSet<>();
-            fieldValues.put(field, values);
-        }
-        values.add(value);
+        fieldValues.computeIfAbsent(field, k -> new HashSet<>()).add(value);
     }
 
     /**

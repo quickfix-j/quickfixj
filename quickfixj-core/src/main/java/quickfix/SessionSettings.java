@@ -262,12 +262,7 @@ public class SessionSettings {
     }
 
     private Properties getOrCreateSessionProperties(SessionID sessionID) {
-        Properties p = sections.get(sessionID);
-        if (p == null) {
-            p = new Properties(sections.get(DEFAULT_SESSION_ID));
-            sections.put(sessionID, p);
-        }
-        return p;
+        return sections.computeIfAbsent(sessionID, k -> new Properties(sections.get(DEFAULT_SESSION_ID)));
     }
 
     /**

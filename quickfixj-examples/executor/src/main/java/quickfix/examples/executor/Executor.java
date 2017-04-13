@@ -104,12 +104,7 @@ public class Executor {
     }
 
     private List<TemplateMapping> getMappings(InetSocketAddress address) {
-        List<TemplateMapping> mappings = dynamicSessionMappings.get(address);
-        if (mappings == null) {
-            mappings = new ArrayList<>();
-            dynamicSessionMappings.put(address, mappings);
-        }
-        return mappings;
+        return dynamicSessionMappings.computeIfAbsent(address, k -> new ArrayList<>());
     }
 
     private InetSocketAddress getAcceptorSocketAddress(SessionSettings settings, SessionID sessionID)

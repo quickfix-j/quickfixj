@@ -27,7 +27,6 @@ import quickfix.SessionID;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -100,13 +99,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 Thread.currentThread().interrupt();
             }
 
-            for (final Iterator<MessageDispatchingThread> iterator = dispatchersToShutdown
-                    .iterator(); iterator.hasNext();) {
-                final MessageDispatchingThread messageDispatchingThread = iterator.next();
-                if (messageDispatchingThread.isStopped()) {
-                    iterator.remove();
-                }
-            }
+            dispatchersToShutdown.removeIf(MessageDispatchingThread::isStopped);
         }
     }
 
