@@ -1660,6 +1660,75 @@ public class MessageTest {
         assertTrue(partyGroup.getGroup(1, quickfix.field.NoPartySubIDs.FIELD).isSetField(20000));
     }
 
+    @Test
+    // QFJ-792
+    public void testRepeatingGroupCountForIncorrectFieldOrder() throws Exception {
+        // correct order would be 600, 687, 654, 566 
+        testRepeatingGroupCountForFieldOrder(new int[]{600, 687, 566, 654});
+    }
+
+    private void testRepeatingGroupCountForFieldOrder(int fieldOrder[]) throws Exception {
+        /*
+          *  Prepare a very simple TradeCaptureReport message template with 1
+          *  repeating group.
+         */
+        Message tcr = new TradeCaptureReport();
+        tcr.getHeader().setField(new MsgSeqNum(1));
+        tcr.getHeader().setField(new SendingTime(new Date()));
+        tcr.getHeader().setField(new SenderCompID("SENDER"));
+        tcr.getHeader().setField(new TargetCompID("TARGET"));
+        tcr.setField(new TradeReportID("ABC1234"));
+        tcr.setField(new PreviouslyReported(false));
+        tcr.setField(new LastQty(1000));
+        tcr.setField(new LastPx(5.6789));
+        tcr.setField(new TradeDate("20140101"));
+        tcr.setField(new TransactTime(new Date()));
+        Group leg1 = new Group(555, 600, fieldOrder);
+        leg1.setField(new LegSymbol("L1-XYZ"));
+        leg1.setField(new LegRefID("ABC1234-L1"));
+        leg1.setField(new LegQty(333));
+        leg1.setField(new LegPrice(1.2345));
+        tcr.addGroup(leg1);
+        /*
+          * Convert the message to string and parse it. The parsed message should
+          * contain 1 repeating group.
+         */
+        String s = tcr.toString();
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        dictionary.setCheckUnorderedGroupFields(false);
+        // without checking order of repeating group it should work
+        Message parsed = new Message(s, dictionary);
+        FieldException exception = parsed.getException();
+        assertNull(exception);
+
+        assertEquals(1, parsed.getGroupCount(555));
+
+        dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        // when checking order of repeating group, an error should be reported
+        parsed = new Message(s, dictionary);
+        exception = parsed.getException();
+        assertEquals(654, exception.getField());
+        // but we still should have the repeating group set and not ignore it
+        assertEquals(1, parsed.getGroupCount(555));
+    }
+
+    // QFJ-770/QFJ-792
+    @Test
+    public void testRepeatingGroupCountWithUnknownFields() throws Exception {
+        String test = "8=FIX.4.4|9=431|35=d|49=1|34=2|52=20140117-18:20:26.629|56=3|57=21|322=388721|"
+                + "323=4|320=1|393=42|82=1|67=1|711=1|311=780508|309=text|305=8|463=FXXXXX|307=text|542=20140716|"
+                + "436=10.0|9013=1.0|9014=1.0|9017=10|9022=1|9024=1.0|9025=Y|916=20140701|917=20150731|9201=23974|"
+                + "9200=17|9202=text|9300=727|9301=text|9302=text|9303=text|998=text|9100=text|9101=text|9085=text|"
+                + "9083=0|9084=0|9061=579|9062=text|9063=text|9032=10.0|9002=F|9004=780415|9005=780503|10=223|";
+        
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        Message message = new Message();
+        message.fromString(test.replaceAll("\\|", "\001"), dictionary, true);
+        Group group = message.getGroup(1, 711);
+        String underlyingSymbol = group.getString(311);
+        assertEquals("780508", underlyingSymbol);
+    }
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));

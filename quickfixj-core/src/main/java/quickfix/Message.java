@@ -592,9 +592,7 @@ public class Message extends FieldMap {
             }
             int tag = field.getTag();
             if (tag == firstField) {
-                if (group != null) {
-                    parent.addGroupRef(group);
-                }
+                addGroupRefToParent(group, parent);
                 group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
                 group.setField(field);
                 firstFieldFound = true;
@@ -619,6 +617,9 @@ public class Message extends FieldMap {
                     final int offset = indexOf(tag, fieldOrder);
                     if (offset > -1) {
                         if (offset <= previousOffset) {
+                            // QFJ-792: add what we've already got and leave the rest to the validation (if enabled)
+                            group.setField(field);
+                            addGroupRefToParent(group, parent);
                             throw new FieldException(
                                     SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
                         }
@@ -638,11 +639,15 @@ public class Message extends FieldMap {
             }
         }
         // add what we've already got and leave the rest to the validation (if enabled)
+        addGroupRefToParent(group, parent);
+        // For later validation that the group size matches the parsed group count
+        parent.setGroupCount(groupCountTag, declaredGroupCount);
+    }
+
+    private void addGroupRefToParent(Group group, FieldMap parent) {
         if (group != null) {
             parent.addGroupRef(group);
         }
-        // For later validation that the group size matches the parsed group count
-        parent.setGroupCount(groupCountTag, declaredGroupCount);
     }
 
     private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
