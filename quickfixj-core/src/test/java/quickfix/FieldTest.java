@@ -29,6 +29,9 @@ import quickfix.fix50.MarketDataIncrementalRefresh;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -99,7 +102,7 @@ public class FieldTest {
     @Test
     public void testUtcDateOnlyField() {
         UtcDateOnlyField field = new UtcDateOnlyField(11);
-        Date date = new Date();
+        LocalDate date = LocalDate.now();
         field.setValue(date);
         assertEquals(11, field.getTag());
         assertEquals(date, field.getValue());
@@ -111,7 +114,7 @@ public class FieldTest {
     @Test
     public void testUtcTimeOnlyField() {
         UtcTimeOnlyField field = new UtcTimeOnlyField(11);
-        Date date = new Date();
+        LocalTime date = LocalTime.now();
         field.setValue(date);
         assertEquals(11, field.getTag());
         assertEquals(date, field.getValue());
@@ -123,7 +126,7 @@ public class FieldTest {
     @Test
     public void testUtcTimeStampField() {
         UtcTimeStampField field = new UtcTimeStampField(11);
-        Date date = new Date();
+        LocalDateTime date = LocalDateTime.now();
         field.setValue(date);
         assertEquals(11, field.getTag());
         assertEquals(date, field.getValue());
@@ -248,9 +251,9 @@ public class FieldTest {
         assertEqualsAndHash(new StringField(11, "foo"), new StringField(11, "foo"));
         assertEqualsAndHash(new BooleanField(11, true), new BooleanField(11, true));
         assertEqualsAndHash(new CharField(11, 'x'), new CharField(11, 'x'));
-        Date date = new Date();
-        assertEqualsAndHash(new UtcDateOnlyField(11, date), new UtcDateOnlyField(11, date));
-        assertEqualsAndHash(new UtcTimeOnlyField(11, date), new UtcTimeOnlyField(11, date));
+        LocalDateTime date = LocalDateTime.now();
+        assertEqualsAndHash(new UtcDateOnlyField(11, date.toLocalDate()), new UtcDateOnlyField(11, date.toLocalDate()));
+        assertEqualsAndHash(new UtcTimeOnlyField(11, date.toLocalTime()), new UtcTimeOnlyField(11, date.toLocalTime()));
         assertEqualsAndHash(new UtcTimeStampField(11, date), new UtcTimeStampField(11, date));
     }
 

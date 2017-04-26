@@ -59,6 +59,8 @@ import quickfix.mina.EventHandlingStrategy;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -252,10 +254,11 @@ public class Session implements Closeable {
     public static final String SETTING_DISCONNECT_ON_ERROR = "DisconnectOnError";
 
     /**
-     * Session setting to enable milliseconds in message timestamps. Valid
-     * values are "Y" or "N". Default is "Y". Only valid for FIX version >= 4.2.
+     * Session setting to control precision in message timestamps. 
+     * Valid values are "SECONDS", "MILLIS", "MICROS", "NANOS". Default is "MILLIS".
+     * Only valid for FIX version >= 4.2.
      */
-    public static final String SETTING_MILLISECONDS_IN_TIMESTAMP = "MillisecondsInTimeStamp";
+    public static final String SETTING_TIMESTAMP_PRECISION = "TimeStampPrecision";
 
     /**
      * Controls validation of user-defined fields.
@@ -374,7 +377,7 @@ public class Session implements Closeable {
     private final boolean resetOnDisconnect;
     private final boolean resetOnError;
     private final boolean disconnectOnError;
-    private final boolean millisecondsInTimeStamp;
+    private final UtcTimestampPrecision timestampPrecision;
     private final boolean refreshMessageStoreAtLogon;
     private final boolean redundantResentRequestsAllowed;
     private final boolean persistMessages;
@@ -414,7 +417,7 @@ public class Session implements Closeable {
             DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule,
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval) {
         this(application, messageStoreFactory, sessionID, dataDictionaryProvider, sessionSchedule,
-                logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, true,
+                logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
                 false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
@@ -423,7 +426,7 @@ public class Session implements Closeable {
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule,
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
-            boolean checkLatency, int maxLatency, boolean millisecondsInTimeStamp,
+            boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
             boolean resetOnLogon, boolean resetOnLogout, boolean resetOnDisconnect,
             boolean refreshMessageStoreAtLogon, boolean checkCompID,
             boolean redundantResentRequestsAllowed, boolean persistMessages,
@@ -443,7 +446,7 @@ public class Session implements Closeable {
         this.resetOnLogon = resetOnLogon;
         this.resetOnLogout = resetOnLogout;
         this.resetOnDisconnect = resetOnDisconnect;
-        this.millisecondsInTimeStamp = millisecondsInTimeStamp;
+        this.timestampPrecision = timestampPrecision;
         this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
         this.dataDictionaryProvider = dataDictionaryProvider;
         this.messageFactory = messageFactory;
@@ -704,12 +707,15 @@ public class Session implements Closeable {
     }
 
     private void insertSendingTime(Message.Header header) {
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), includeMillis());
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), getTimestampPrecision());
     }
 
-    private boolean includeMillis() {
-        return millisecondsInTimeStamp
-                && sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
+    private UtcTimestampPrecision getTimestampPrecision() {
+        if (sessionID.getBeginString().compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+            return timestampPrecision;
+        } else {
+            return UtcTimestampPrecision.SECONDS;
+        }
     }
 
     /**
@@ -1265,7 +1271,7 @@ public class Session implements Closeable {
         header.setBoolean(PossDupFlag.FIELD, true);
         initializeHeader(header);
         header.setUtcTimeStamp(OrigSendingTime.FIELD, header.getUtcTimeStamp(SendingTime.FIELD),
-                includeMillis());
+                getTimestampPrecision());
         header.setInt(MsgSeqNum.FIELD, beginSeqNo);
         sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
         sequenceReset.setBoolean(GapFillFlag.FIELD, true);
@@ -1297,8 +1303,8 @@ public class Session implements Closeable {
 
     private void initializeResendFields(Message message) throws FieldNotFound {
         final Message.Header header = message.getHeader();
-        final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
-        header.setUtcTimeStamp(OrigSendingTime.FIELD, sendingTime, includeMillis());
+        final LocalDateTime sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
+        header.setUtcTimeStamp(OrigSendingTime.FIELD, sendingTime, getTimestampPrecision());
         header.setBoolean(PossDupFlag.FIELD, true);
         insertSendingTime(header);
     }
@@ -1735,8 +1741,8 @@ public class Session implements Closeable {
         if (!checkLatency) {
             return true;
         }
-        final Date sendingTime = message.getHeader().getUtcTimeStamp(SendingTime.FIELD);
-        return Math.abs(SystemTime.currentTimeMillis() - sendingTime.getTime()) / 1000 <= maxLatency;
+        final LocalDateTime sendingTime = message.getHeader().getUtcTimeStamp(SendingTime.FIELD);
+        return Math.abs(SystemTime.currentTimeMillis() - sendingTime.toInstant(ZoneOffset.UTC).toEpochMilli()) / 1000 <= maxLatency;
     }
 
     private void fromCallback(String msgType, Message msg, SessionID sessionID2)
@@ -2360,8 +2366,8 @@ public class Session implements Closeable {
 
         if (!msgType.equals(MsgType.SEQUENCE_RESET)) {
             if (header.isSetField(OrigSendingTime.FIELD)) {
-                final Date origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
-                final Date sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
+                final LocalDateTime origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
+                final LocalDateTime sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
                 if (origSendingTime.compareTo(sendingTime) > 0) {
                     generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
                     generateLogout();

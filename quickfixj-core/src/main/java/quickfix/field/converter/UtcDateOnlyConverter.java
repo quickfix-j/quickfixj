@@ -23,16 +23,24 @@ import quickfix.FieldConvertError;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 /**
  * Convert between a date and a String
  */
 public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
+
+    static String TYPE = "date";
+    static final int DATE_LENGTH = 8;
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads
-    private static final ThreadLocal<UtcDateOnlyConverter> utcDateConverter = new ThreadLocal<>();
+    private static final ThreadLocal<UtcDateOnlyConverter> UTC_DATE_CONVERTER = new ThreadLocal<>();
     private final DateFormat dateFormat = createDateFormat("yyyyMMdd");
+    private static final DateTimeFormatter FORMATTER_DATE = createDateTimeFormat("yyyyMMdd");
 
     /**
      * Convert a date to a String ("YYYYMMDD")
@@ -44,11 +52,15 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
         return getFormatter().format(d);
     }
 
+    public static String convert(LocalDate d) {
+        return d.format(FORMATTER_DATE);
+    }
+
     private static DateFormat getFormatter() {
-        UtcDateOnlyConverter converter = utcDateConverter.get();
+        UtcDateOnlyConverter converter = UTC_DATE_CONVERTER.get();
         if (converter == null) {
             converter = new UtcDateOnlyConverter();
-            utcDateConverter.set(converter);
+            UTC_DATE_CONVERTER.set(converter);
         }
         return converter.dateFormat;
     }
@@ -62,15 +74,39 @@ public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
      */
     public static Date convert(String value) throws FieldConvertError {
         Date d = null;
-        String type = "date";
-        assertLength(value, 8, type);
-        assertDigitSequence(value, 0, 8, type);
+        checkString(value);
         try {
             d = getFormatter().parse(value);
         } catch (ParseException e) {
-            throwFieldConvertError(value, type);
+            throwFieldConvertError(value, TYPE);
         }
         return d;
+    }
+
+    public static LocalDate convertToLocalDate(String value) throws FieldConvertError {
+        checkString(value);
+        try {
+            return LocalDate.parse(value.substring(0, DATE_LENGTH), FORMATTER_DATE);
+        } catch (DateTimeParseException e) {
+            throwFieldConvertError(value, TYPE);
+        }
+        return null;
+    }
+
+    private static void checkString(String value) throws FieldConvertError {
+        assertLength(value, DATE_LENGTH, TYPE);
+        assertDigitSequence(value, 0, DATE_LENGTH, TYPE);
+    }
+    
+    /**
+     * @param localDate
+     * @return a java.util.Date with date part filled from LocalDate.
+     */
+    public static Date getDate(LocalDate localDate) {
+        if (localDate != null) {
+            return Date.from(localDate.atStartOfDay().atZone(ZoneOffset.UTC).toInstant());
+        }
+        return null;
     }
 
 }

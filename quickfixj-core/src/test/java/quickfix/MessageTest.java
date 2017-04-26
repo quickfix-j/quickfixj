@@ -97,8 +97,10 @@ import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertEquals;
@@ -150,7 +152,7 @@ public class MessageTest {
     private NewOrderSingle createNewOrderSingle() {
         return new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
                 HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
-                new Side(Side.BUY), new TransactTime(new Date(0)), new OrdType(OrdType.LIMIT));
+                new Side(Side.BUY), new TransactTime(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)), new OrdType(OrdType.LIMIT));
     }
 
     @Test
@@ -1039,11 +1041,11 @@ public class MessageTest {
         calendar.set(2002, 8, 6, 12, 34, 56);
         calendar.set(Calendar.MILLISECOND, 0);
 
-        final Date time = calendar.getTime();
+        final LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochMilli(calendar.getTimeInMillis()), ZoneOffset.UTC);
         message.setUtcTimeStamp(8, time);
 
         try {
-            assertEquals(message.getUtcTimeStamp(8).getTime(), time.getTime());
+            assertEquals(message.getUtcTimeStamp(8), time);
         } catch (final FieldNotFound e) {
             assertTrue("exception thrown", false);
         }
@@ -1379,11 +1381,11 @@ public class MessageTest {
          */
         Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"), new PreviouslyReported(
                 false), new LastQty(1000), new LastPx(5.6789), new TradeDate("20140101"),
-                new TransactTime(new Date()));
+                new TransactTime(LocalDateTime.now(ZoneOffset.UTC)));
         tcr.getHeader().setField(new SenderCompID("SENDER"));
         tcr.getHeader().setField(new TargetCompID("TARGET"));
         tcr.getHeader().setField(new MsgSeqNum(1));
-        tcr.getHeader().setField(new SendingTime(new Date()));
+        tcr.getHeader().setField(new SendingTime(LocalDateTime.now(ZoneOffset.UTC)));
         TradeCaptureReport.NoLegs leg1 = new TradeCaptureReport.NoLegs();
         leg1.setField(new LegSymbol("L1-XYZ"));
         leg1.setField(new LegRefID("ABC1234-L1"));
@@ -1450,11 +1452,11 @@ public class MessageTest {
 
         Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"), new PreviouslyReported(
                 false), new LastQty(1000), new LastPx(5.6789), new TradeDate("20140101"),
-                new TransactTime(new Date()));
+                new TransactTime(LocalDateTime.now(ZoneOffset.UTC)));
         tcr.getHeader().setField(new SenderCompID("SENDER"));
         tcr.getHeader().setField(new TargetCompID("TARGET"));
         tcr.getHeader().setField(new MsgSeqNum(1));
-        tcr.getHeader().setField(new SendingTime(new Date()));
+        tcr.getHeader().setField(new SendingTime(LocalDateTime.now(ZoneOffset.UTC)));
         tcr.setField(new Symbol("ABC"));
         TradeCaptureReport.NoLegs leg1 = new TradeCaptureReport.NoLegs();
         leg1.setField(new LegSymbol("L1-XYZ"));
@@ -1674,7 +1676,7 @@ public class MessageTest {
          */
         Message tcr = new TradeCaptureReport();
         tcr.getHeader().setField(new MsgSeqNum(1));
-        tcr.getHeader().setField(new SendingTime(new Date()));
+        tcr.getHeader().setField(new SendingTime(LocalDateTime.now(ZoneOffset.UTC)));
         tcr.getHeader().setField(new SenderCompID("SENDER"));
         tcr.getHeader().setField(new TargetCompID("TARGET"));
         tcr.setField(new TradeReportID("ABC1234"));
@@ -1682,7 +1684,7 @@ public class MessageTest {
         tcr.setField(new LastQty(1000));
         tcr.setField(new LastPx(5.6789));
         tcr.setField(new TradeDate("20140101"));
-        tcr.setField(new TransactTime(new Date()));
+        tcr.setField(new TransactTime(LocalDateTime.now(ZoneOffset.UTC)));
         Group leg1 = new Group(555, 600, fieldOrder);
         leg1.setField(new LegSymbol("L1-XYZ"));
         leg1.setField(new LegRefID("ABC1234-L1"));

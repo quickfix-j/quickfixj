@@ -221,5 +221,22 @@ public class DefaultSessionFactoryTest {
         settings.setString(sessionID, "ReconnectInterval", "2x5;3x15");
         factory.create(sessionID, settings);
     }
+    
+    @Test
+    // QFJ-873
+    public void testTimestampPrecision() throws Exception {
+        settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "FOO");
+        createSessionAndAssertConfigError("no exception", ".*No enum constant quickfix.UtcTimestampPrecision.FOO.*");
+        settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "SECONDS");
+        factory.create(sessionID, settings);
+        settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "MILLIS");
+        factory.create(sessionID, settings);
+        settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "NANOS");
+        factory.create(sessionID, settings);
+        settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "MICROS");
+        factory.create(sessionID, settings);
+        settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "PICOS");
+        createSessionAndAssertConfigError("no exception", ".*No enum constant quickfix.UtcTimestampPrecision.PICOS.*");
+    }
 
 }

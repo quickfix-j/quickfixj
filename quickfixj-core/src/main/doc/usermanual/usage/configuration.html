@@ -221,12 +221,19 @@
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>MillisecondsInTimeStamp</I> </TD>
-    <TD> Determines if milliseconds should be added to
-    timestamps. Only available for FIX.4.2 and greater. </TD>
-    <TD> Y<br>N</TD>
+    <TD> <I>TimeStampPrecision</I> </TD>
+    <TD> Determines precision for timestamps in (Orig)SendingTime fields.
+        Only available for FIX.4.2 and greater.<br><br>
+        NB: This configuration is only considered for messages that are sent out. QuickFIX/J is able to receive UtcTimestamp fields with up to picosecond precision.<br>
+        Please note however that only up to nanosecond precision will be stored, i.e. the picoseconds will be truncated.
+    </TD>
+    <TD> One of
+        <ul><li>SECONDS</li>
+            <li>MILLIS</li>
+            <li>MICROS</li>
+            <li>NANOS</li></ul></TD>
 
-    <TD> Y </TD>
+    <TD> MILLIS </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ClosedResendInterval</I></TD>

@@ -278,7 +278,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
         header.setInt(MsgSeqNum.FIELD, 1);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
 
         final PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
         ptpe.pause();

@@ -19,6 +19,9 @@
 
 package quickfix;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Calendar;
 
 public class MockSystemTimeSource implements SystemTimeSource {
@@ -45,6 +48,7 @@ public class MockSystemTimeSource implements SystemTimeSource {
         setSystemTimes(c.getTimeInMillis());
     }
 
+    @Override
     public long getTime() {
         if (systemTimes.length - offset > 1) {
             offset++;
@@ -57,4 +61,11 @@ public class MockSystemTimeSource implements SystemTimeSource {
             systemTimes[offset] += delta;
         }
     }
+
+    @Override
+    public LocalDateTime getNow() {
+        // TODO maybe we need nano-precision later on
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(getTime()), ZoneOffset.UTC);
+    }
+
 }

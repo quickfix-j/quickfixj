@@ -19,33 +19,57 @@
 
 package quickfix;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * A timestamp-valued message field (a timestamp has both a date and a time).
  */
-public class UtcTimeStampField extends DateField {
-    private boolean includeMilliseconds = true;
+public class UtcTimeStampField extends Field<LocalDateTime> {
+
+    private UtcTimestampPrecision precision = UtcTimestampPrecision.MILLIS;
 
     public UtcTimeStampField(int field) {
-        super(field);
+        super(field, LocalDateTime.now());
     }
 
-    protected UtcTimeStampField(int field, Date data) {
+    protected UtcTimeStampField(int field, LocalDateTime data) {
         super(field, data);
+    }
+
+    protected UtcTimeStampField(int field, LocalDateTime data, UtcTimestampPrecision precision) {
+        super(field, data);
+        this.precision = precision;
     }
 
     public UtcTimeStampField(int field, boolean includeMilliseconds) {
-        super(field);
-        this.includeMilliseconds = includeMilliseconds;
+        super(field, LocalDateTime.now());
+        this.precision = (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
 
-    protected UtcTimeStampField(int field, Date data, boolean includeMilliseconds) {
+    public UtcTimeStampField(int field, UtcTimestampPrecision precision) {
+        super(field, LocalDateTime.now());
+        this.precision = precision;
+    }
+
+    protected UtcTimeStampField(int field, LocalDateTime data, boolean includeMilliseconds) {
         super(field, data);
-        this.includeMilliseconds = includeMilliseconds;
+        this.precision = (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+    }
+    
+    public UtcTimestampPrecision getPrecision() {
+        return precision;
+    }
+    
+    public void setValue(LocalDateTime value) {
+        setObject(value);
     }
 
-    boolean showMilliseconds() {
-        return includeMilliseconds;
+    public LocalDateTime getValue() {
+        return getObject();
     }
+
+    public boolean valueEquals(LocalDateTime value) {
+        return getValue().equals(value);
+    }
+
 }

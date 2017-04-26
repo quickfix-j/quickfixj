@@ -19,6 +19,7 @@
 
 package quickfix.mina.acceptor;
 
+import java.time.LocalDateTime;
 import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
 import quickfix.FixVersions;
@@ -40,7 +41,6 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -80,7 +80,7 @@ public class AcceptorIoHandlerTest {
                 new HeartBtInt(30), defaultApplVerID);
         message.getHeader().setString(TargetCompID.FIELD, sessionID.getSenderCompID());
         message.getHeader().setString(SenderCompID.FIELD, sessionID.getTargetCompID());
-        message.getHeader().setField(new SendingTime(new Date()));
+        message.getHeader().setField(new SendingTime(LocalDateTime.now()));
         message.getHeader().setInt(MsgSeqNum.FIELD, 1);
 
         handler.processMessage(mockIoSession, message);

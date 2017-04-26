@@ -19,34 +19,52 @@
 
 package quickfix;
 
-import java.util.Date;
+import java.time.LocalTime;
 
 /*
  * A time-valued message field.
  */
-public class UtcTimeOnlyField extends DateField {
-    private boolean includeMilliseconds = true;
+public class UtcTimeOnlyField extends Field<LocalTime> {
+    
+    private UtcTimestampPrecision precision = UtcTimestampPrecision.MILLIS;
 
     public UtcTimeOnlyField(int field) {
-        super(field);
+        super(field, LocalTime.now());
     }
 
-    protected UtcTimeOnlyField(int field, Date data) {
+    protected UtcTimeOnlyField(int field, LocalTime data) {
         super(field, data);
+    }
+
+    protected UtcTimeOnlyField(int field, LocalTime data, UtcTimestampPrecision precision) {
+        super(field, data);
+        this.precision = precision;
     }
 
     public UtcTimeOnlyField(int field, boolean includeMilliseconds) {
-        super(field);
-        this.includeMilliseconds = includeMilliseconds;
+        super(field, LocalTime.now());
+        this.precision = (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
 
-    protected UtcTimeOnlyField(int field, Date data, boolean includeMilliseconds) {
+    protected UtcTimeOnlyField(int field, LocalTime data, boolean includeMilliseconds) {
         super(field, data);
-        this.includeMilliseconds = includeMilliseconds;
+        this.precision = (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+    }
+    
+    public UtcTimestampPrecision getPrecision() {
+        return precision;
+    }
+    
+    public void setValue(LocalTime value) {
+        setObject(value);
     }
 
-    boolean showMilliseconds() {
-        return includeMilliseconds;
+    public LocalTime getValue() {
+        return getObject();
+    }
+
+    public boolean valueEquals(LocalTime value) {
+        return getValue().equals(value);
     }
 
 }
