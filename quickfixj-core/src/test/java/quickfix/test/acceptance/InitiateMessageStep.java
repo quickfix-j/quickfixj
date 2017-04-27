@@ -21,7 +21,10 @@ package quickfix.test.acceptance;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import quickfix.FixVersions;
 import quickfix.MessageUtils;
+import quickfix.Session;
+import quickfix.UtcTimestampPrecision;
 import quickfix.field.converter.UtcTimestampConverter;
 
 public class InitiateMessageStep implements TestStep {
@@ -48,20 +53,19 @@ public class InitiateMessageStep implements TestStep {
             "I(\\d,)*(8=FIXT?\\.\\d\\.\\d\\001)(.*?\\001)(10=.*|)$");
 
     private static final Pattern TIME_PATTERN = Pattern.compile("<TIME([+-](\\d+))*>");
-
     private static final Pattern HEARTBEAT_PATTERN = Pattern.compile("108=\\d+\001");
-
     private static final DecimalFormat CHECKSUM_FORMAT = new DecimalFormat("000");
-
     private static final int heartBeatOverride;
+    private final Map<Object, Object> overridenProperties;
 
     static {
         final String hbi = System.getProperty("atest.heartbeat");
         heartBeatOverride = hbi != null ? Integer.parseInt(hbi) : -1;
     }
 
-    public InitiateMessageStep(String data) {
+    public InitiateMessageStep(String data, Map<Object, Object> overridenProperties) {
         this.data = data;
+        this.overridenProperties = overridenProperties;
     }
 
     public void run(TestResult result, TestConnection connection) {
@@ -75,7 +79,7 @@ public class InitiateMessageStep implements TestStep {
                 clientId = 1;
             }
             String version = messageStructureMatcher.group(2);
-            String messageTail = insertTimes(messageStructureMatcher.group(3));
+            String messageTail = insertTimes(messageStructureMatcher.group(3), version);
             messageTail = modifyHeartbeat(messageTail);
             String checksum = messageStructureMatcher.group(4);
             if ("10=0\001".equals(checksum)) {
@@ -112,7 +116,7 @@ public class InitiateMessageStep implements TestStep {
         return messageTail;
     }
 
-    private String insertTimes(String message) {
+    private String insertTimes(String message, String version) {
         Matcher matcher = TIME_PATTERN.matcher(message);
         while (matcher.find()) {
             long offset = 0;
@@ -122,11 +126,14 @@ public class InitiateMessageStep implements TestStep {
                     offset *= -1;
                 }
             }
-            String beginString = message.substring(2, 9);
-            boolean includeMillis = beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0;
-            message = matcher.replaceFirst(UtcTimestampConverter.convert(new Date(System
-                    .currentTimeMillis()
-                    + offset), includeMillis));
+            String beginString = version.substring(2, 9);
+            UtcTimestampPrecision precision = (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+            if (overridenProperties != null) {
+                String timestampPrecision = (String) overridenProperties.getOrDefault(Session.SETTING_TIMESTAMP_PRECISION, UtcTimestampPrecision.MILLIS.toString());
+                precision = UtcTimestampPrecision.valueOf(timestampPrecision);
+            }
+            LocalDateTime nowWithOptionalOffset = LocalDateTime.now(ZoneOffset.UTC).plus(offset, ChronoUnit.MILLIS);
+            message = matcher.replaceFirst(UtcTimestampConverter.convert(nowWithOptionalOffset, precision));
             matcher = TIME_PATTERN.matcher(message);
         }
         return message;

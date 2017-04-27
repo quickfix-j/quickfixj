@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import quickfix.UtcTimestampPrecision;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
@@ -117,7 +118,7 @@ public class AcceptanceTestSuite extends TestSuite {
                     if (line.matches("^[ \t]*#.*")) {
                         steps.add(new PrintComment(line));
                     } else if (line.startsWith("I")) {
-                        steps.add(new InitiateMessageStep(line));
+                        steps.add(new InitiateMessageStep(line, getOverridenProperties()));
                     } else if (line.startsWith("E")) {
                         steps.add(new ExpectMessageStep(line));
                     } else if (line.matches("^i\\d*,?CONNECT")) {
@@ -264,6 +265,11 @@ public class AcceptanceTestSuite extends TestSuite {
         nextExpectedMsgSeqNumProperties.put(Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, "Y");
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true, nextExpectedMsgSeqNumProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties)));
+
+        Map<Object, Object> timestampProperties = new HashMap<>();
+        timestampProperties.put(Session.SETTING_TIMESTAMP_PRECISION, "NANOS");
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", true, timestampProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", false, timestampProperties)));
 
         return acceptanceTests;
     }

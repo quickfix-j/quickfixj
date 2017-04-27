@@ -18,11 +18,16 @@
  ***************************************************************************** */
 package quickfix.field.converter;
 
+import quickfix.UtcTimestampPrecision;
 import org.quickfixj.SimpleCache;
 import quickfix.FieldConvertError;
 import quickfix.SystemTime;
 
 import java.text.DateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -33,6 +38,7 @@ import java.util.GregorianCalendar;
  */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
+    static String TYPE = "timestamp";
     static final int LENGTH_INCL_SECONDS = 17;
     static final int LENGTH_INCL_MILLIS = 21;
     static final int LENGTH_INCL_MICROS = 24;
@@ -52,6 +58,10 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
     private final DateFormat utcTimestampFormat = createDateFormat("yyyyMMdd-HH:mm:ss");
     private final DateFormat utcTimestampFormatMillis = createDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+    private static final DateTimeFormatter FORMATTER_SECONDS = createDateTimeFormat("yyyyMMdd-HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER_MILLIS  = createDateTimeFormat("yyyyMMdd-HH:mm:ss.SSS");
+    private static final DateTimeFormatter FORMATTER_MICROS  = createDateTimeFormat("yyyyMMdd-HH:mm:ss.SSSSSS");
+    private static final DateTimeFormatter FORMATTER_NANOS   = createDateTimeFormat("yyyyMMdd-HH:mm:ss.SSSSSSSSS");
 
     /**
      * Convert a timestamp (represented as a Date) to a String.
@@ -65,6 +75,29 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
         return getFormatter(includeMilliseconds).format(d);
     }
 
+    /**
+     * Convert a timestamp (represented as a LocalDateTime) to a String.
+     *
+     * @param d the date to convert
+     * @param precision controls whether seconds, milliseconds, microseconds or
+     * nanoseconds are included in the result
+     * @return the formatted timestamp
+     */
+    public static String convert(LocalDateTime d, UtcTimestampPrecision precision) {
+        switch (precision) {
+            case SECONDS:
+                return d.format(FORMATTER_SECONDS);
+            case MILLIS:
+                return d.format(FORMATTER_MILLIS);
+            case MICROS:
+                return d.format(FORMATTER_MICROS);
+            case NANOS:
+                return d.format(FORMATTER_NANOS);
+            default:
+                return d.format(FORMATTER_MILLIS);
+        }
+    }
+
     private static DateFormat getFormatter(boolean includeMillis) {
         UtcTimestampConverter converter = UTC_TIMESTAMP_CONVERTER.get();
         if (converter == null) {
@@ -74,13 +107,9 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
         return includeMillis ? converter.utcTimestampFormatMillis : converter.utcTimestampFormat;
     }
 
-    //
-    // Performance optimization: the calendar for the start of the day is cached.
-    // The time is converted to millis and then added to the millis specified by
-    // the base calendar.
-    //
     /**
      * Convert a timestamp string into a Date.
+     * Date has up to millisecond precision.
      *
      * @param value the timestamp String
      * @return the parsed timestamp
@@ -88,46 +117,92 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
      */
     public static Date convert(String value) throws FieldConvertError {
         verifyFormat(value);
-        long timeOffset = (parseLong(value.substring(9, 11)) * 3600000L)
-                + (parseLong(value.substring(12, 14)) * 60000L)
-                + (parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
-        if (value.length() == LENGTH_INCL_MILLIS || value.length() == LENGTH_INCL_MICROS || value.length() == LENGTH_INCL_NANOS || value.length() == LENGTH_INCL_PICOS) {
+        long timeOffset = getTimeOffsetSeconds(value);
+        if (value.length() >= LENGTH_INCL_MILLIS) { // format has already been verified
             // accept up to picosenconds but parse only up to milliseconds
             timeOffset += parseLong(value.substring(18, LENGTH_INCL_MILLIS));
         }
         return new Date(getMillisForDay(value) + timeOffset);
     }
 
+    /**
+     * Convert a timestamp string into a LocalDateTime object.
+     * LocalDateTime has up to nanosecond precision.
+     *
+     * @param value the timestamp String
+     * @return the parsed timestamp
+     * @exception FieldConvertError raised if timestamp is an incorrect format.
+     */
+    public static LocalDateTime convertToLocalDateTime(String value) throws FieldConvertError {
+        verifyFormat(value);
+        int length = value.length();
+        try {
+            switch (length) {
+                case LENGTH_INCL_SECONDS:
+                    return LocalDateTime.parse(value, FORMATTER_SECONDS);
+                case LENGTH_INCL_MILLIS:
+                    return LocalDateTime.parse(value, FORMATTER_MILLIS);
+                case LENGTH_INCL_MICROS:
+                    return LocalDateTime.parse(value, FORMATTER_MICROS);
+                case LENGTH_INCL_NANOS:
+                case LENGTH_INCL_PICOS:
+                    return LocalDateTime.parse(value.substring(0, LENGTH_INCL_NANOS), FORMATTER_NANOS);
+                default:
+                    throwFieldConvertError(value, TYPE);
+            }
+        } catch (DateTimeParseException e) {
+            throwFieldConvertError(value, TYPE);
+        }
+        return null;
+    } 
+
     private static Long getMillisForDay(String value) {
+        // Performance optimization: the calendar for the start of the day is cached.
         return DATE_CACHE.computeIfAbsent(value.substring(0, 8));
     }
 
+    private static long getTimeOffsetSeconds(String value) {
+        long timeOffset = (parseLong(value.substring(9, 11)) * 3600000L)
+                + (parseLong(value.substring(12, 14)) * 60000L)
+                + (parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
+        return timeOffset;
+    }
+
     private static void verifyFormat(String value) throws FieldConvertError {
-        String type = "timestamp";
-        if (value.length() != LENGTH_INCL_SECONDS && value.length() != LENGTH_INCL_MILLIS && value.length() != LENGTH_INCL_MICROS && value.length() != LENGTH_INCL_NANOS && value.length() != LENGTH_INCL_PICOS) {
-            throwFieldConvertError(value, type);
-        }
-        assertDigitSequence(value, 0, 8, type);
-        assertSeparator(value, 8, '-', type);
-        assertDigitSequence(value, 9, 11, type);
-        assertSeparator(value, 11, ':', type);
-        assertDigitSequence(value, 12, 14, type);
-        assertSeparator(value, 14, ':', type);
-        assertDigitSequence(value, 15, LENGTH_INCL_SECONDS, type);
+        assertLength(value, TYPE, LENGTH_INCL_SECONDS, LENGTH_INCL_MILLIS, LENGTH_INCL_MICROS, LENGTH_INCL_NANOS, LENGTH_INCL_PICOS);
+        assertDigitSequence(value, 0, 8, TYPE);
+        assertSeparator(value, 8, '-', TYPE);
+        assertDigitSequence(value, 9, 11, TYPE);
+        assertSeparator(value, 11, ':', TYPE);
+        assertDigitSequence(value, 12, 14, TYPE);
+        assertSeparator(value, 14, ':', TYPE);
+        assertDigitSequence(value, 15, LENGTH_INCL_SECONDS, TYPE);
         if (value.length() == LENGTH_INCL_MILLIS) {
-            assertSeparator(value, LENGTH_INCL_SECONDS, '.', type);
-            assertDigitSequence(value, 18, LENGTH_INCL_MILLIS, type);
+            assertSeparator(value, LENGTH_INCL_SECONDS, '.', TYPE);
+            assertDigitSequence(value, 18, LENGTH_INCL_MILLIS, TYPE);
         } else if (value.length() == LENGTH_INCL_MICROS) {
-            assertSeparator(value, LENGTH_INCL_SECONDS, '.', type);
-            assertDigitSequence(value, 18, LENGTH_INCL_MICROS, type);
+            assertSeparator(value, LENGTH_INCL_SECONDS, '.', TYPE);
+            assertDigitSequence(value, 18, LENGTH_INCL_MICROS, TYPE);
         } else if (value.length() == LENGTH_INCL_NANOS) {
-            assertSeparator(value, LENGTH_INCL_SECONDS, '.', type);
-            assertDigitSequence(value, 18, LENGTH_INCL_NANOS, type);
+            assertSeparator(value, LENGTH_INCL_SECONDS, '.', TYPE);
+            assertDigitSequence(value, 18, LENGTH_INCL_NANOS, TYPE);
         } else if (value.length() == LENGTH_INCL_PICOS) {
-            assertSeparator(value, LENGTH_INCL_SECONDS, '.', type);
-            assertDigitSequence(value, 18, LENGTH_INCL_PICOS, type);
+            assertSeparator(value, LENGTH_INCL_SECONDS, '.', TYPE);
+            assertDigitSequence(value, 18, LENGTH_INCL_PICOS, TYPE);
         } else if (value.length() != LENGTH_INCL_SECONDS) {
-            throwFieldConvertError(value, type);
+            throwFieldConvertError(value, TYPE);
         }
     }
+
+     /**
+     * @param localDateTime
+     * @return a java.util.Date filled from LocalDateTime (truncated to milliseconds).
+     */
+    public static Date getDate(LocalDateTime localDateTime) {
+        if (localDateTime != null) {
+            return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
+        }
+        return null;
+    }
+
 }

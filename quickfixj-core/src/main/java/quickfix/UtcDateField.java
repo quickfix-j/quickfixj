@@ -22,18 +22,18 @@ package quickfix;
 import java.time.LocalDate;
 
 /**
- * A date-valued message field.
+ * A LocalDate-valued message field with up to nanosecond precision.
  */
-public class UtcDateOnlyField extends Field<LocalDate> {
+public class UtcDateField extends Field<LocalDate> {
 
-    public UtcDateOnlyField(int field) {
+    protected UtcDateField(int field) {
         super(field, LocalDate.now());
     }
 
-    protected UtcDateOnlyField(int field, LocalDate data) {
+    protected UtcDateField(int field, LocalDate data) {
         super(field, data);
     }
-        
+
     public void setValue(LocalDate value) {
         setObject(value);
     }
@@ -45,5 +45,5 @@ public class UtcDateOnlyField extends Field<LocalDate> {
     public boolean valueEquals(LocalDate value) {
         return getValue().equals(value);
     }
-
+    
 }

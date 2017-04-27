@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import java.time.LocalDateTime;
+
 /**
  * Interface for obtaining system time. A system time source should be used
  * instead of direct system time to facilitate unit testing.
@@ -31,4 +33,11 @@ public interface SystemTimeSource {
      * @return current (possible simulated) time
      */
     long getTime();
+    
+    /**
+     * Obtain current LocalDateTime.
+     * 
+     * @return current (possible simulated) time up to nanosecond precision.
+     */
+    LocalDateTime getNow();
 }

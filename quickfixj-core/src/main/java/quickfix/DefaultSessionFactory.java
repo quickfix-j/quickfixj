@@ -25,6 +25,7 @@ import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Set;
@@ -157,8 +158,8 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_TEST_REQUEST_DELAY_MULTIPLIER,
                     Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
 
-            final boolean millisInTimestamp = getSetting(settings, sessionID,
-                    Session.SETTING_MILLISECONDS_IN_TIMESTAMP, true);
+            final UtcTimestampPrecision timestampPrecision = getTimestampPrecision(settings, sessionID,
+                    UtcTimestampPrecision.MILLIS);
 
             final boolean resetOnLogout = getSetting(settings, sessionID,
                     Session.SETTING_RESET_ON_LOGOUT, false);
@@ -204,7 +205,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionaryProvider, sessionSchedule, logFactory,
-                    messageFactory, heartbeatInterval, checkLatency, maxLatency, millisInTimestamp,
+                    messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
@@ -398,6 +399,20 @@ public class DefaultSessionFactory implements SessionFactory {
         return settings.isSetting(sessionID, key)
                 ? Double.parseDouble(settings.getString(sessionID, key))
                 : defaultValue;
+    }
+
+    private UtcTimestampPrecision getTimestampPrecision(SessionSettings settings, SessionID sessionID,
+            UtcTimestampPrecision defaultValue) throws ConfigError, FieldConvertError {
+        if (settings.isSetting(sessionID, Session.SETTING_TIMESTAMP_PRECISION)) {
+            String string = settings.getString(sessionID, Session.SETTING_TIMESTAMP_PRECISION);
+            try {
+                return UtcTimestampPrecision.valueOf(string);
+            } catch (IllegalArgumentException e) {
+                throw new ConfigError(e.getMessage() + ". Valid values: " + Arrays.toString(UtcTimestampPrecision.values()));
+            }
+        } else {
+            return defaultValue;
+        }
     }
 
 }

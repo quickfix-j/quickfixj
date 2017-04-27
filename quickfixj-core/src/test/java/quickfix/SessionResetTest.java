@@ -15,7 +15,7 @@ import quickfix.fix44.TestRequest;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
@@ -53,7 +53,7 @@ public class SessionResetTest {
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
         header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
         header.setInt(MsgSeqNum.FIELD, 1);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getDate(), true);
+        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
 
         Thread resetThread = new Thread(() -> {
             try {
@@ -88,7 +88,7 @@ public class SessionResetTest {
         msg.getHeader().setString(SenderCompID.FIELD, "TARGET");
         msg.getHeader().setString(TargetCompID.FIELD, "SENDER");
         msg.getHeader().setInt(MsgSeqNum.FIELD, sequence);
-        msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, new Date());
+        msg.getHeader().setUtcTimeStamp(SendingTime.FIELD, LocalDateTime.now());
         return msg;
     }
 

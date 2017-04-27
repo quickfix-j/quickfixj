@@ -19,31 +19,10 @@
 
 package quickfix;
 
-import java.time.LocalDate;
-
 /**
- * A date-valued message field.
+ *
+ * @author chrjohn
  */
-public class UtcDateOnlyField extends Field<LocalDate> {
-
-    public UtcDateOnlyField(int field) {
-        super(field, LocalDate.now());
-    }
-
-    protected UtcDateOnlyField(int field, LocalDate data) {
-        super(field, data);
-    }
-        
-    public void setValue(LocalDate value) {
-        setObject(value);
-    }
-
-    public LocalDate getValue() {
-        return getObject();
-    }
-
-    public boolean valueEquals(LocalDate value) {
-        return getValue().equals(value);
-    }
-
+public enum UtcTimestampPrecision {
+    SECONDS, MILLIS, MICROS, NANOS
 }

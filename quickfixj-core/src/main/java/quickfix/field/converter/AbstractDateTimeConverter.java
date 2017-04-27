@@ -22,6 +22,7 @@ package quickfix.field.converter;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -32,6 +33,15 @@ abstract class AbstractDateTimeConverter {
         if (value.length() != i) {
             throwFieldConvertError(value, type);
         }
+    }
+
+    protected static void assertLength(String value, String type, int... lengths) throws FieldConvertError {
+        for (int length : lengths) {
+            if (value.length() == length) {
+                return;
+            }
+        }
+        throwFieldConvertError(value, type);
     }
 
     protected static void assertDigitSequence(String value, int i, int j, String type)
@@ -69,5 +79,8 @@ abstract class AbstractDateTimeConverter {
         sdf.setDateFormatSymbols(new DateFormatSymbols(Locale.US));
         return sdf;
     }
-
+    
+    protected static DateTimeFormatter createDateTimeFormat(String format) {
+        return DateTimeFormatter.ofPattern(format);
+    }
 }

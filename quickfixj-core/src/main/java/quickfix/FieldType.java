@@ -19,7 +19,9 @@
 
 package quickfix;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 /**
  * A field type enum class.
@@ -37,7 +39,7 @@ public enum FieldType {
     MULTIPLEVALUESTRING,
     MULTIPLESTRINGVALUE, // QFJ-881
     EXCHANGE,
-    UTCTIMESTAMP(Date.class),
+    UTCTIMESTAMP(LocalDateTime.class),
     BOOLEAN(Boolean.class),
     LOCALMKTDATE,
     DATA,
@@ -45,9 +47,9 @@ public enum FieldType {
     PRICEOFFSET(Double.class),
     MONTHYEAR,
     DAYOFMONTH(Integer.class),
-    UTCDATEONLY(Date.class),
-    UTCDATE(Date.class),
-    UTCTIMEONLY(Date.class),
+    UTCDATEONLY(LocalDate.class),
+    UTCDATE(LocalDate.class),
+    UTCTIMEONLY(LocalTime.class),
     TIME,
     NUMINGROUP(Integer.class),
     PERCENTAGE(Double.class),
