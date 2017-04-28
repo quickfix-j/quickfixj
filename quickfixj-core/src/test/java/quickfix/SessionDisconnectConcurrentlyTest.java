@@ -295,7 +295,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
 
         ptpe.resume();
         ptpe.awaitTermination(2, TimeUnit.SECONDS);
-
+        ptpe.shutdownNow();
         assertEquals(1, onLogoutCount.intValue());
     }
 
