@@ -31,6 +31,8 @@ import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import org.junit.After;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,6 +54,15 @@ public class SocketAcceptorTest {
             "ACCEPTOR", "INITIATOR");
     private final SessionID initiatorSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42,
             "INITIATOR", "ACCEPTOR");
+
+    @After
+    public void cleanup() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            java.util.logging.Logger.getLogger(SocketAcceptorTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     @Test
     public void testRestartOfAcceptor() throws Exception {

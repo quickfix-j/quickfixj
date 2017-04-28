@@ -38,12 +38,15 @@ import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import org.junit.After;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import quickfix.field.MsgType;
+import quickfix.test.util.ReflectionUtil;
 
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -51,6 +54,15 @@ public class SocketInitiatorTest {
     @Before
     public void setUp() throws Exception {
         SystemTime.setTimeSource(null);
+    }
+
+    @After
+    public void cleanup() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            java.util.logging.Logger.getLogger(SocketInitiatorTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Test
@@ -332,15 +344,22 @@ public class SocketInitiatorTest {
     private void assertLoggedOn(ClientApplication clientApplication, Session clientSession)
             throws InterruptedException {
         assertNotNull("no client session", clientSession);
-        clientApplication.logonLatch.await(20, TimeUnit.SECONDS);
-        assertTrue("Expected logon did not occur", clientApplication.logonLatch.await(20, TimeUnit.SECONDS)); 
+        final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS); 
+        if (!await) {
+            ReflectionUtil.dumpStackTraces();
+        }
+        assertTrue("Expected logon did not occur", await); 
         assertTrue("client session not logged in", clientSession.isLoggedOn());
     }
 
     private void assertLoggedOut(ClientApplication clientApplication, Session clientSession)
             throws InterruptedException {
         assertNotNull("no client session", clientSession);
-        assertTrue("Expected logout did not occur", clientApplication.logoutLatch.await(20, TimeUnit.SECONDS));
+        final boolean await = clientApplication.logoutLatch.await(20, TimeUnit.SECONDS);
+        if (!await) {
+            ReflectionUtil.dumpStackTraces();
+        }
+        assertTrue("Expected logout did not occur", await);
         assertFalse("client session logged in?", clientSession.isLoggedOn());
     }
 
