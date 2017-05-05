@@ -520,6 +520,9 @@ public class SessionTest {
     // QFJ-773
     @Test
     public void testLogonLogoutOnAcceptor() throws Exception {
+        
+        System.out.println("quickfix.SessionTest.testLogonLogoutOnAcceptor() XXXXXXXXXXXXXXX");
+
         final LocalDateTime now = LocalDateTime.ofInstant(Instant.ofEpochMilli(1348264800000L), ZoneOffset.of("+2"));
         final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
                 now.toInstant(ZoneOffset.of("+2")).toEpochMilli());
@@ -606,6 +609,8 @@ public class SessionTest {
         assertTrue("Session should be connected", session.isLoggedOn());
 
         session.close();
+        
+        System.out.println("quickfix.SessionTest.testLogonLogoutOnAcceptor() XXXXXXXXXXXXXXX");
     }
 
     @Test
