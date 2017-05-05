@@ -1,0 +1,12 @@
+sudo: false
+language: java
+install:
+  - ./mvnw --version
+script: 
+  - ./.travis-build.sh
+jdk:
+  - oraclejdk8
+branches:
+  only:
+    - travis-ci-build
+
