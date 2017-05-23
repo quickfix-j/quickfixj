@@ -796,13 +796,21 @@ public class Message extends FieldMap {
             // we find the real field-ending SOH by checking the encoded bytes length
             // (we avoid re-encoding when the chars length equals the bytes length, e.g. ASCII text,
             // by assuming the chars length is always smaller than the encoded bytes length)
-            while (sohOffset - equalsOffset - 1 < fieldLength
-                    && messageData.substring(equalsOffset + 1, sohOffset).getBytes(CharsetSupport.getCharsetInstance()).length < fieldLength) {
-                sohOffset = messageData.indexOf('\001', sohOffset + 1);
-                if (sohOffset == -1) {
-                    throw new InvalidMessage("SOH not found at end of field: " + tag + " in " + messageData);
-                }
-            }
+
+
+
+			try {
+				//check if next data is tag
+				Integer.parseInt(messageData.substring(sohOffset +1, messageData.indexOf('=',sohOffset))) ;
+			}catch( NumberFormatException e ){
+				while (sohOffset - equalsOffset - 1 < fieldLength
+						&& messageData.substring(equalsOffset + 1, sohOffset).getBytes(CharsetSupport.getCharsetInstance()).length < fieldLength) {
+					sohOffset = messageData.indexOf('\001', sohOffset + 1);
+					if (sohOffset == -1) {
+						throw new InvalidMessage("SOH not found at end of field: " + tag + " in " + messageData);
+					}
+				}
+			}
         }
 
         position = sohOffset + 1;
