@@ -139,11 +139,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
     private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor, boolean init) throws ConfigError {
         int transportType = ProtocolFactory.getAddressTransportType(socketDescriptor.getAddress());
-        AcceptorSessionProvider sessionProvider = sessionProviders.get(socketDescriptor.getAddress());
-        if (sessionProvider == null) {
-            sessionProvider = new DefaultAcceptorSessionProvider(socketDescriptor.getAcceptedSessions());
-            sessionProviders.put(socketDescriptor.getAddress(), sessionProvider);
-        }
+        AcceptorSessionProvider sessionProvider = sessionProviders.
+                computeIfAbsent(socketDescriptor.getAddress(),
+                        k -> new DefaultAcceptorSessionProvider(socketDescriptor.getAcceptedSessions()));
 
         IoAcceptor ioAcceptor = ioAcceptors.get(socketDescriptor);
         if (ioAcceptor == null && init) {

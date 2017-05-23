@@ -579,12 +579,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public List<Group> getGroups(int field) {
-        List<Group> groupList = groups.get(field);
-        if (groupList == null) {
-            groupList = new ArrayList<>();
-            groups.put(field, groupList);
-        }
-        return groupList;
+        return groups.computeIfAbsent(field, k -> new ArrayList<>());
     }
 
     public Group getGroup(int num, Group group) throws FieldNotFound {
