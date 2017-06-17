@@ -41,7 +41,7 @@ public class OrderTable extends JTable implements MouseListener {
         Order order = ((OrderTableModel) dataModel).getOrder(row);
 
         int open = order.getOpen();
-        int executed = order.getExecuted();
+        double executed = order.getExecuted();
         boolean rejected = order.getRejected();
         boolean canceled = order.getCanceled();
 
@@ -52,7 +52,7 @@ public class OrderTable extends JTable implements MouseListener {
             r.setBackground(Color.red);
         else if (canceled)
             r.setBackground(Color.white);
-        else if (open == 0 && executed == 0)
+        else if (open == 0 && executed == 0.0)
             r.setBackground(Color.yellow);
         else if (open > 0)
             r.setBackground(Color.green);
