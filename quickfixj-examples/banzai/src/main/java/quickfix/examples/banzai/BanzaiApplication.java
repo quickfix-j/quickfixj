@@ -218,7 +218,7 @@ public class BanzaiApplication implements Application {
 
         if (fillSize.compareTo(BigDecimal.ZERO) > 0) {
             order.setOpen(order.getOpen() - (int) Double.parseDouble(fillSize.toPlainString()));
-            order.setExecuted(Integer.parseInt(message.getString(CumQty.FIELD)));
+            order.setExecuted(Double.parseDouble(message.getString(CumQty.FIELD)));
             order.setAvgPx(Double.parseDouble(message.getString(AvgPx.FIELD)));
         }
 
