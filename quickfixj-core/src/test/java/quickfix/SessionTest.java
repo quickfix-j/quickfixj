@@ -730,6 +730,142 @@ public class SessionTest {
         session.close();
     }
 
+    @Test
+    // QFJ-926
+    public void testSessionNotResetRightAfterLogonOnAcceptor() throws Exception {
+        // truncate to seconds, otherwise the session time check in Session.next()
+        // might already reset the session since the session schedule has only precision of seconds
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // we want to start the session before the StartTime
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(4500L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime",   UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, false,
+                new UnitTestResponder(), settings, sessionID);
+        session.addStateListener(application);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        
+        // we should send no messages since we are outside of session time
+        assertEquals(0, application.toAdminMessages.size());
+        // no reset should have been triggered by QF/J (since we were not logged on)
+        assertEquals(0, application.sessionResets);
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        // increase time to be within session time
+        systemTimeSource.increment(5000);
+        // there should be a Logon but no subsequent reset
+        logonTo(session, 1);
+        // call next() to provoke SessionTime check which should NOT reset seqnums now
+        session.next();
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        assertTrue(session.isLoggedOn());
+        assertEquals(1, application.sessionResets);
+
+        systemTimeSource.increment(5000);
+        session.disconnect("test", false);
+        systemTimeSource.increment(5000);
+        session.next();
+        session.setResponder(new UnitTestResponder());
+
+        logonTo(session, 2);
+        session.next();
+
+        // check that no reset is done on next Logon
+        assertEquals(1, application.sessionResets);
+        
+        session.close();
+    }
+
+    @Test
+    // QFJ-926
+    public void testSessionNotResetRightAfterLogonOnInitiator() throws Exception {
+        // truncate to seconds, otherwise the session time check in Session.next()
+        // might already reset the session since the session schedule has only precision of seconds
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // we want to start the session before the StartTime
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(5000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime",   UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        UnitTestResponder responder = new UnitTestResponder();
+        final Session session = setUpFileStoreSession(application, true, responder, settings, sessionID);
+        session.addStateListener(application);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        
+        // we should send no messages since we are outside of session time
+        assertEquals(0, application.toAdminMessages.size());
+        // no reset should have been triggered by QF/J (since we were not logged on)
+        assertEquals(0, application.sessionResets);
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        // increase time to be almost within session time to check if session needs to be reset
+        // (will not reset since it is not yet within session time)
+        systemTimeSource.increment(4500);
+        session.next();
+        // increase time further so that Logon is sent but reset is not done since last check
+        // of session time was done within one second
+        systemTimeSource.increment(600);
+        session.next();
+        systemTimeSource.increment(1000);
+        session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 1));
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        assertTrue(session.isLoggedOn());
+        assertEquals(1, application.sessionResets);
+
+        systemTimeSource.increment(5000);
+        session.disconnect("test", false);
+        systemTimeSource.increment(5000);
+        session.next();
+        responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.next();
+        session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 2));
+        // check that no reset is done on next Logon
+        assertEquals(1, application.sessionResets);
+        
+        session.close();
+    }
+
     /**
      * QFJ-357 This test should make sure that outside the Session time _only_ a
      * Logout message is sent to the counterparty. Formerly it could be observed
@@ -1698,9 +1834,9 @@ public class SessionTest {
 
         session.setResponder(new UnitTestResponder());
 
+        session.next();
         session.setNextSenderMsgSeqNum(177);
         session.setNextTargetMsgSeqNum(223);
-        session.next();
         String[] messages = {
                 "8=FIX.4.2\0019=0081\00135=A\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=227\00198=0\001108=30\00110=36\001",
                 "8=FIX.4.2\0019=0107\00135=z\001115=THEM\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=228\001336=1\001340=2\00176=US\001439=USS\00110=133\001",
@@ -1760,7 +1896,7 @@ public class SessionTest {
 
         session.close();
     }
-
+    
     // QFJ-751
     @Test
     public void testSequenceResetGapFillWithZeroChunkSize() throws Exception {
