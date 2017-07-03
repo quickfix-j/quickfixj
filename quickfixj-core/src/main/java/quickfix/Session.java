@@ -1798,6 +1798,7 @@ public class Session implements Closeable {
                     }
                     return; // since we are outside of session time window
                 } else {
+                    // reset when session becomes active
                     resetIfSessionNotCurrent(sessionID, now);
                 }
             }
@@ -1817,6 +1818,8 @@ public class Session implements Closeable {
                             return;
                         }
                     }
+                    // QFJ-926 - reset session before initiating Logon
+                    resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
                     if (generateLogon()) {
                         getLog().onEvent("Initiated logon request");
                     } else {
@@ -1998,6 +2001,9 @@ public class Session implements Closeable {
         if (!isSessionTime()) {
             throw new RejectLogon("Logon attempt not within session time");
         }
+
+        // QFJ-926 - reset session before accepting Logon
+        resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
 
         if (isStateRefreshNeeded(MsgType.LOGON)) {
             getLog().onEvent("Refreshing message/state store at logon");
