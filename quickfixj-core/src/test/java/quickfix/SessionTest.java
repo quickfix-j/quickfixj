@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -742,20 +743,21 @@ public class SessionTest {
     @Test
     // QFJ-926
     public void testSessionNotResetRightAfterLogonOnAcceptor() throws Exception {
+        final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         // truncate to seconds, otherwise the session time check in Session.next()
         // might already reset the session since the session schedule has only precision of seconds
-        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final Calendar now = Calendar.getInstance();
+        now.set(Calendar.MILLISECOND, 0 );
         final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
-                now.toInstant(offset).toEpochMilli());
+                now.getTimeInMillis());
         SystemTime.setTimeSource(systemTimeSource);
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         final SessionSettings settings = SessionSettingsTest.setUpSession(null);
         // we want to start the session before the StartTime
-        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(4500L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
-        settings.setString("EndTime",   UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("StartTime", dateFormat.format(now.getTimeInMillis() + 5000L));
+        settings.setString("EndTime",   dateFormat.format(now.getTimeInMillis() + 3600000L));
         settings.setString("TimeZone", TimeZone.getDefault().getID());
         setupFileStoreForQFJ357(sessionID, settings);
 
@@ -808,20 +810,21 @@ public class SessionTest {
     @Test
     // QFJ-926
     public void testSessionNotResetRightAfterLogonOnInitiator() throws Exception {
+        final DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         // truncate to seconds, otherwise the session time check in Session.next()
         // might already reset the session since the session schedule has only precision of seconds
-        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final Calendar now = Calendar.getInstance();
+        now.set(Calendar.MILLISECOND, 0 );
         final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
-                now.toInstant(offset).toEpochMilli());
+                now.getTimeInMillis());
         SystemTime.setTimeSource(systemTimeSource);
         // set up some basic stuff
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         final SessionSettings settings = SessionSettingsTest.setUpSession(null);
         // we want to start the session before the StartTime
-        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(5000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
-        settings.setString("EndTime",   UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("StartTime", dateFormat.format(now.getTimeInMillis() + 5000L));
+        settings.setString("EndTime",   dateFormat.format(now.getTimeInMillis() + 3600000L));
         settings.setString("TimeZone", TimeZone.getDefault().getID());
         setupFileStoreForQFJ357(sessionID, settings);
 
