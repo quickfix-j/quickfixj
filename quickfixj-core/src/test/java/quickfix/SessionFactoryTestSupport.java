@@ -11,18 +11,26 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
     @Override
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
-        return new Builder().setSessionId(sessionID).build();
+        return new Builder().setSessionId(sessionID)
+                .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
+                .setCheckCompID(true)
+                .build();
     }
 
     public static Session createSession(SessionID sessionID, Application application,
                                         boolean isInitiator) {
-        return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator).build();
+        return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
+                .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
+                .setCheckCompID(true)
+                .build();
     }
 
     public static Session createFileStoreSession(SessionID sessionID, Application application,
                                                  boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
                 .setMessageStoreFactory(new FileStoreFactory(settings)).setSessionSchedule(sessionSchedule)
+                .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
+                .setCheckCompID(true)
                 .build();
     }
 
@@ -175,8 +183,23 @@ public class SessionFactoryTestSupport implements SessionFactory {
             return this;
         }
 
+        public Builder setCheckLatency(final boolean checkLatency) {
+            this.checkLatency = checkLatency;
+            return this;
+        }
+
+        public Builder setMaxLatency(final int maxLatency) {
+            this.maxLatency = maxLatency;
+            return this;
+        }
+
         public Builder setResetOnLogon(final boolean resetOnLogon) {
             this.resetOnLogon = resetOnLogon;
+            return this;
+        }
+
+        public Builder setCheckCompID(final boolean checkCompID) {
+            this.checkCompID = checkCompID;
             return this;
         }
 
