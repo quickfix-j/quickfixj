@@ -37,6 +37,8 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.junit.After;
@@ -344,6 +346,24 @@ public class SocketInitiatorTest {
     private void assertLoggedOn(ClientApplication clientApplication, Session clientSession)
             throws InterruptedException {
         assertNotNull("no client session", clientSession);
+        
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            executor.execute(() -> {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ex) {
+                    // ignore
+                }
+                if ( clientApplication.logonLatch.getCount() > 0 ) {
+                    System.err.println("XXX Dumping threads since latch count is not zero...");
+                    ReflectionUtil.dumpStackTraces();
+                }
+            });
+        } finally {
+            executor.shutdown();
+        }
+
         final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS); 
         if (!await) {
             ReflectionUtil.dumpStackTraces();
@@ -376,10 +396,20 @@ public class SocketInitiatorTest {
         }
 
         public void setUpLogonExpectation() {
+//            if (logonLatch!=null) {
+//                while (logonLatch.getCount()>1) {
+//                    logonLatch.countDown();
+//                }
+//            }
             logonLatch = new CountDownLatch(1);
         }
  
         public void setUpLogoutExpectation() {
+//            if (logoutLatch!=null) {
+//                while (logoutLatch.getCount()>1) {
+//                    logoutLatch.countDown();
+//                }
+//            }
             logoutLatch = new CountDownLatch(1);
         }
 
