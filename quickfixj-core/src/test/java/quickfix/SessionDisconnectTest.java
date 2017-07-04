@@ -20,58 +20,51 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
+ * The purpose of this test is to simulate the situation where a logon response is received before a logon request can
+ * be successfully persisted to the MessageStore.
+ *
  * @author Jon Freedman
  */
 public class SessionDisconnectTest {
+    private final int TIMEOUT_SECS = 1;
     private final String EXTERNAL_COMP_ID = "THEM";
     private final String INTERNAL_COMP_ID = "US";
 
     @Test
     public void reconnectReceivingLogonResponseBeforeLogonRequestPersisted() throws Exception {
-        final UnitTestApplication application = new UnitTestApplication();
-        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, INTERNAL_COMP_ID, EXTERNAL_COMP_ID);
-        final CountDownLatch notifyLatch = new CountDownLatch(1);
-        final CountDownLatch waitLatch = new CountDownLatch(1);
+        final CountDownLatch storeMessageLatch = new CountDownLatch(1);
+        final CountDownLatch receiveLogonResponseLatch = new CountDownLatch(1);
+        final CountDownLatch sentLogoutLatch = new CountDownLatch(1);
 
-        final Session session = new Session(application, new BlockingStoreFactory(notifyLatch, waitLatch), sessionID, null, null,
-                new ScreenLogFactory(true, true, true), new ListeningMessageFactory(waitLatch), 60, false, 30,
-                UtcTimestampPrecision.MILLIS, false, false, false, false, false,
-                false, true, false, 1.5, null,
-                true, new int[]{5}, false, false, false, true,
-                false, true, false, null, true,
-                0, true, false);
-
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
+        final UnitTestApplication application = new UnitTestApplication() {
+            @Override
+            public void fromAdmin(final Message message, final SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                receiveLogonResponseLatch.countDown();
+                super.fromAdmin(message, sessionId);
+            }
+        };
+        final Session session = buildSession(application, storeMessageLatch, receiveLogonResponseLatch, sentLogoutLatch);
 
         final MessageStore messageStore = session.getStore();
         checkNextSeqNums(messageStore, 1, 1);
 
         session.logon();
 
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            executor.execute(() -> {
-                try {
-                    session.next();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        } finally {
-            executor.shutdown();
-        }
-
-        notifyLatch.await(10, TimeUnit.SECONDS);
+        processOnSeparateThread(session::next);
+        assertTrue(String.format("Message not stored within %s secs", TIMEOUT_SECS), storeMessageLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS));
         assertEquals(1, application.lastToAdminMessage().getHeader().getField(new MsgSeqNum()).getValue());
         checkNextSeqNums(messageStore, 1, 1);
 
-        session.next(createLogonResponse());
+        processOnSeparateThread(() -> {
+            storeMessageLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS);
+            session.next(createLogonResponse());
+        });
+        assertTrue(String.format("Logon response not received within %s secs", TIMEOUT_SECS), receiveLogonResponseLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS));
+        assertTrue(String.format("Logout/SequenceReset not sent %s secs", TIMEOUT_SECS * 2), sentLogoutLatch.await(TIMEOUT_SECS * 2, TimeUnit.SECONDS));
         checkNextSeqNums(messageStore, 2, 2);
-
-        waitLatch.countDown();
 
         session.close();
     }
@@ -79,6 +72,34 @@ public class SessionDisconnectTest {
     private void checkNextSeqNums(final MessageStore messageStore, final int nextTarget, final int nextSender) throws IOException {
         assertEquals("NextTargetMsgSeqNum", nextTarget, messageStore.getNextTargetMsgSeqNum());
         assertEquals("NextSenderMsgSeqNum", nextSender, messageStore.getNextSenderMsgSeqNum());
+    }
+
+    private Session buildSession(final Application application, final CountDownLatch storeMessageLatch, final CountDownLatch receiveLogonResponseLatch, final CountDownLatch sentLogoutLatch) {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, INTERNAL_COMP_ID, EXTERNAL_COMP_ID);
+        final Session session = new Session(application, new BlockingStoreFactory(storeMessageLatch, sentLogoutLatch), sessionID, null, null,
+                new ScreenLogFactory(true, true, true), new ListeningMessageFactory(sentLogoutLatch), 60, false, 30,
+                UtcTimestampPrecision.MILLIS, false, false, false, false, false,
+                false, true, false, 1.5, null,
+                true, new int[]{5}, false, false, false, true,
+                false, true, false, null, true,
+                0, true, false);
+        session.setResponder(new Responder() {
+            @Override
+            public boolean send(final String data) {
+                return true;
+            }
+
+            @Override
+            public void disconnect() {
+            }
+
+            @Override
+            public String getRemoteAddress() {
+                return null;
+            }
+        });
+
+        return session;
     }
 
     private Message createLogonResponse() throws FieldNotFound {
@@ -92,14 +113,34 @@ public class SessionDisconnectTest {
         return logonResponse;
     }
 
+    private void processOnSeparateThread(final SessionAction action) {
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            executor.execute(() -> {
+                try {
+                    action.run();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @FunctionalInterface
+    private interface SessionAction {
+        void run() throws Exception;
+    }
+
     private class BlockingStoreFactory implements MessageStoreFactory {
         private final MemoryStoreFactory factory = new MemoryStoreFactory();
-        private final CountDownLatch notifyLatch;
-        private final CountDownLatch waitLatch;
+        private final CountDownLatch storeMessageLatch;
+        private final CountDownLatch sentLogoutLatch;
 
-        BlockingStoreFactory(final CountDownLatch notifyLatch, final CountDownLatch waitLatch) {
-            this.notifyLatch = notifyLatch;
-            this.waitLatch = waitLatch;
+        BlockingStoreFactory(final CountDownLatch storeMessageLatch, final CountDownLatch sentLogoutLatch) {
+            this.storeMessageLatch = storeMessageLatch;
+            this.sentLogoutLatch = sentLogoutLatch;
         }
 
         @Override
@@ -109,9 +150,10 @@ public class SessionDisconnectTest {
 
                 @Override
                 public boolean set(final int sequence, final String message) throws IOException {
-                    notifyLatch.countDown();
+                    storeMessageLatch.countDown();
                     try {
-                        waitLatch.await(10, TimeUnit.SECONDS);
+                        // we are not verifying the return value of this call to #await as once the issue is fixed with locking this will return false
+                        sentLogoutLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS);
                     } catch (final InterruptedException e) {
                         throw new IOException(e);
                     }
@@ -173,16 +215,16 @@ public class SessionDisconnectTest {
 
     private class ListeningMessageFactory implements MessageFactory {
         private final MessageFactory factory = new DefaultMessageFactory();
-        private final CountDownLatch waitLatch;
+        private final CountDownLatch sentLogoutLatch;
 
-        public ListeningMessageFactory(final CountDownLatch waitLatch) {
-            this.waitLatch = waitLatch;
+        public ListeningMessageFactory(final CountDownLatch sentLogoutLatch) {
+            this.sentLogoutLatch = sentLogoutLatch;
         }
 
         @Override
         public Message create(final String beginString, final String msgType) {
-            if (MsgType.LOGOUT.equals(msgType)) {
-                waitLatch.countDown();
+            if (MsgType.LOGOUT.equals(msgType) || MsgType.SEQUENCE_RESET.equals(msgType)) {
+                sentLogoutLatch.countDown();
             }
             return factory.create(beginString, msgType);
         }
@@ -190,22 +232,6 @@ public class SessionDisconnectTest {
         @Override
         public Group create(final String beginString, final String msgType, final int correspondingFieldID) {
             return factory.create(beginString, msgType, correspondingFieldID);
-        }
-    }
-
-    private class UnitTestResponder implements Responder {
-        String sentMessageData;
-
-        public boolean send(String data) {
-            sentMessageData = data;
-            return true;
-        }
-
-        public String getRemoteAddress() {
-            return null;
-        }
-
-        public void disconnect() {
         }
     }
 
