@@ -866,6 +866,52 @@ public class SessionTest {
         session.close();
     }
 
+    @Test
+    // QFJ-929
+    public void testLogonIsAnsweredWithLogoutOnFieldException() throws Exception {
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        UnitTestApplication application = new UnitTestApplication();
+        Session session = SessionFactoryTestSupport.createSession(sessionID, application,
+                false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.logon();
+
+        session.next();
+        Logon logonRequest = new Logon();
+        setUpHeader(session.getSessionID(), logonRequest, true, 1);
+        logonRequest.setInt(HeartBtInt.FIELD, 30);
+        logonRequest.setString(EncryptMethod.FIELD, "");
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to empty EnryptMethod
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(5, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
+        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+
+        session.setResponder(responder);
+        session.logon();
+        session.next();
+        setUpHeader(session.getSessionID(), logonRequest, true, 2);
+        logonRequest.removeField(EncryptMethod.FIELD);
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to missing EnryptMethod
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(2, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(5, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
+        assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(3, session.getStore().getNextSenderMsgSeqNum());
+        
+        session.close();
+    }
+
     /**
      * QFJ-357 This test should make sure that outside the Session time _only_ a
      * Logout message is sent to the counterparty. Formerly it could be observed
