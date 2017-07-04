@@ -2057,7 +2057,9 @@ public class Session implements Closeable {
         if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
 
             final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
+            state.lockSenderMsgSeqNum();
             final int actualNextNum = state.getMessageStore().getNextSenderMsgSeqNum();
+            state.unlockSenderMsgSeqNum();
             // Is the 789 we received too high ??
             if (targetWantsNextSeqNumToBe > actualNextNum) {
                 // barf! we can't resend what we never sent! something unrecoverable has happened.
