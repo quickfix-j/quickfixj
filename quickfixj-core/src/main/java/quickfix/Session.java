@@ -1010,14 +1010,20 @@ public class Session implements Closeable {
                     break;
             }
         } catch (final FieldException e) {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-            if (resetOrDisconnectIfRequired(message)) {
+            if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
-            generateReject(message, e.getSessionRejectReason(), e.getField());
+            if (msgType.equals(MsgType.LOGON)) {
+                final String reason = SessionRejectReasonText.getMessage(e.getSessionRejectReason());
+                final String errorMessage = "Invalid Logon message: " + reason + " (field " + e.getField() + ")";
+                generateLogout(errorMessage);
+                state.incrNextTargetMsgSeqNum();
+                disconnect(errorMessage, true);
+            } else {
+                generateReject(message, e.getSessionRejectReason(), e.getField());
+            }
         } catch (final FieldNotFound e) {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-            if (resetOrDisconnectIfRequired(message)) {
+            if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
             if (sessionBeginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0
@@ -1033,8 +1039,7 @@ public class Session implements Closeable {
                 }
             }
         } catch (final IncorrectDataFormat e) {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-            if (resetOrDisconnectIfRequired(message)) {
+            if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
             generateReject(message, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
@@ -1059,8 +1064,7 @@ public class Session implements Closeable {
             state.incrNextTargetMsgSeqNum();
             disconnect("Logon rejected: " + e, true);
         } catch (final UnsupportedMessageType e) {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-            if (resetOrDisconnectIfRequired(message)) {
+            if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
             if (sessionBeginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
@@ -1069,8 +1073,7 @@ public class Session implements Closeable {
                 generateReject(message, "Unsupported message type");
             }
         } catch (final UnsupportedVersion e) {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-            if (resetOrDisconnectIfRequired(message)) {
+            if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
             if (msgType.equals(MsgType.LOGOUT)) {
@@ -1123,6 +1126,11 @@ public class Session implements Closeable {
                 next();
             }
         }
+    }
+
+    private boolean logErrorAndDisconnectIfRequired(final Exception e, Message message) {
+        getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
+        return resetOrDisconnectIfRequired(message);
     }
 
     /**
