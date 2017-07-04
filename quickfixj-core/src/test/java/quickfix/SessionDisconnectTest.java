@@ -46,7 +46,7 @@ public class SessionDisconnectTest {
                 super.fromAdmin(message, sessionId);
             }
         };
-        final Session session = buildSession(application, storeMessageLatch, receiveLogonResponseLatch, sentLogoutLatch);
+        final Session session = buildSession(application, storeMessageLatch, sentLogoutLatch);
 
         final MessageStore messageStore = session.getStore();
         checkNextSeqNums(messageStore, 1, 1);
@@ -74,15 +74,18 @@ public class SessionDisconnectTest {
         assertEquals("NextSenderMsgSeqNum", nextSender, messageStore.getNextSenderMsgSeqNum());
     }
 
-    private Session buildSession(final Application application, final CountDownLatch storeMessageLatch, final CountDownLatch receiveLogonResponseLatch, final CountDownLatch sentLogoutLatch) {
-        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, INTERNAL_COMP_ID, EXTERNAL_COMP_ID);
-        final Session session = new Session(application, new BlockingStoreFactory(storeMessageLatch, sentLogoutLatch), sessionID, null, null,
-                new ScreenLogFactory(true, true, true), new ListeningMessageFactory(sentLogoutLatch), 60, false, 30,
-                UtcTimestampPrecision.MILLIS, false, false, false, false, false,
-                false, true, false, 1.5, null,
-                true, new int[]{5}, false, false, false, true,
-                false, true, false, null, true,
-                0, true, false);
+    private Session buildSession(final Application application, final CountDownLatch storeMessageLatch, final CountDownLatch sentLogoutLatch) {
+        final Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(new SessionID(FixVersions.BEGINSTRING_FIX44, INTERNAL_COMP_ID, EXTERNAL_COMP_ID))
+                .setApplication(application)
+                .setMessageStoreFactory(new BlockingStoreFactory(storeMessageLatch, sentLogoutLatch))
+                .setLogFactory(new ScreenLogFactory(true, true, true))
+                .setMessageFactory(new ListeningMessageFactory(sentLogoutLatch))
+                .setSessionHeartbeatInterval(60)
+                .setPersistMessages(true)
+                .setValidateSequenceNumbers(true)
+                .setEnableNextExpectedMsgSeqNum(true)
+                .build();
         session.setResponder(new Responder() {
             @Override
             public boolean send(final String data) {
