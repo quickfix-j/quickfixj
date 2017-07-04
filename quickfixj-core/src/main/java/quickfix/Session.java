@@ -2058,7 +2058,7 @@ public class Session implements Closeable {
 
             final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
             state.lockSenderMsgSeqNum();
-            final int actualNextNum = state.getMessageStore().getNextSenderMsgSeqNum();
+            final int actualNextNum = state.getNextSenderMsgSeqNum();
             state.unlockSenderMsgSeqNum();
             // Is the 789 we received too high ??
             if (targetWantsNextSeqNumToBe > actualNextNum) {
