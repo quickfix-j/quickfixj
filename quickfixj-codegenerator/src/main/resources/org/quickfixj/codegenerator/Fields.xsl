@@ -18,7 +18,7 @@
 *****************************************************************************
 -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:qf="http://www.quickfixj.org" version="2.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
  <xsl:output method="text" encoding="UTF-8"/>
  <xsl:param name="fieldName"/>
  <xsl:param name="fieldPackage"/>
@@ -151,39 +151,26 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
  </xsl:choose>
 </xsl:template>
 
-<xsl:function name="qf:sanitiseDescription">
-    <xsl:param name="text" />
-    <xsl:if test="contains('0123456789', substring($text, 1, 1))">
-        <xsl:text>N_</xsl:text>
-    </xsl:if>
-    <xsl:variable name="toReplace">.,+-=:()/&amp;&quot;&apos;&lt;&gt;</xsl:variable>
-    <xsl:for-each select="tokenize(translate($text,$toReplace,''),' ')">
-        <xsl:value-of select="upper-case(substring(.,1,1))" />
-        <xsl:value-of select="substring(.,2)" />
-    </xsl:for-each>
-</xsl:function>
-
 <xsl:template name="values">
 <xsl:for-each select="value">
-<xsl:variable name="description" select="string-join(qf:sanitiseDescription(@description),'')"/>
 <xsl:choose>
-	<xsl:when test="../@type='STRING'">public static final String <xsl:value-of select="$description"/> = "<xsl:value-of select="@enum"/>";
+	<xsl:when test="../@type='STRING'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
 	</xsl:when>
-	<xsl:when test="../@type='MULTIPLESTRINGVALUE'">public static final String <xsl:value-of select="$description"/> = "<xsl:value-of select="@enum"/>";
+	<xsl:when test="../@type='MULTIPLESTRINGVALUE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
 	</xsl:when>
-	<xsl:when test="../@type='MULTIPLEVALUESTRING'">public static final String <xsl:value-of select="$description"/> = "<xsl:value-of select="@enum"/>";
+	<xsl:when test="../@type='MULTIPLEVALUESTRING'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
 	</xsl:when>
-        <xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="$description"/> = <xsl:call-template name="y-or-n-to-bool" />;
+        <xsl:when test="../@type='BOOLEAN'">public static final boolean <xsl:value-of select="@description"/> = <xsl:call-template name="y-or-n-to-bool" />;
 	</xsl:when>
-	<xsl:when test="../@type='INT'">public static final int <xsl:value-of select="$description"/> = <xsl:value-of select="@enum"/>;
+	<xsl:when test="../@type='INT'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>;
 	</xsl:when>
-	<xsl:when test="../@type='NUMINGROUP'">public static final int <xsl:value-of select="$description"/> = <xsl:value-of select="@enum"/>;
+	<xsl:when test="../@type='NUMINGROUP'">public static final int <xsl:value-of select="@description"/> = <xsl:value-of select="@enum"/>;
 	</xsl:when>
-	<xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="$description"/> = "<xsl:value-of select="@enum"/>";
+	<xsl:when test="../@type='EXCHANGE'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
 	</xsl:when>
-	<xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="$description"/> = "<xsl:value-of select="@enum"/>";
+	<xsl:when test="../@type='MONTHYEAR'">public static final String <xsl:value-of select="@description"/> = "<xsl:value-of select="@enum"/>";
 	</xsl:when>
-	<xsl:otherwise>public static final char <xsl:value-of select="$description"/> = '<xsl:value-of select="@enum"/>';
+	<xsl:otherwise>public static final char <xsl:value-of select="@description"/> = '<xsl:value-of select="@enum"/>';
 	</xsl:otherwise>
 </xsl:choose>
 </xsl:for-each>

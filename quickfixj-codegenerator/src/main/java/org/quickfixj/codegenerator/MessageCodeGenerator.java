@@ -207,7 +207,7 @@ public class MessageCodeGenerator {
             logInfo("Loading predefined xslt file:" + xsltFile);
             styleSource = new StreamSource(this.getClass().getResourceAsStream(xsltFile));
         }
-        TransformerFactory transformerFactory = new net.sf.saxon.TransformerFactoryImpl();
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
         return transformerFactory.newTransformer(styleSource);
     }
 
