@@ -2,8 +2,9 @@ language: java
 jdk:
   - oraclejdk8
 env:
-  - MAVEN_OPTS="-Xms2g -Xmx4g"
+  global:
+    - MAVEN_OPTS="-Xms2g -Xmx4g"
 install:
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V -Xms2g -Xmx4g
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 script:
-  - mvn test -B -V -Xms2g -Xmx4g
+  - mvn test -B -V
