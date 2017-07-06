@@ -3,3 +3,5 @@ jdk:
   - oraclejdk8
 env:
   - MAVEN_OPTS="-Xms2g -Xmx4g"
+script:
+  - mvn test -B -V -Xms2g -Xmx4g
