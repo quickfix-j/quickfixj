@@ -109,6 +109,7 @@
 					<configuration>
 						<source>${jdkLevel}</source>
 						<target>${jdkLevel}</target>
+						<maxmem>2g</maxmem>
 					</configuration>
 				</plugin>
 				<plugin>
