@@ -33,7 +33,7 @@ import quickfix.Message;
 import quickfix.MessageCracker;
 import quickfix.MessageStoreFactory;
 import quickfix.RejectLogon;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -123,7 +123,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
             MessageStoreFactory factory = new MemoryStoreFactory();
 
-            acceptor = new SocketAcceptor(this, factory, settings, new ScreenLogFactory(settings),
+            acceptor = new SocketAcceptor(this, factory, settings, new SLF4JLogFactory(settings),
                     new DefaultMessageFactory());
             acceptor.addPropertyChangeListener(this);
             acceptor.start();

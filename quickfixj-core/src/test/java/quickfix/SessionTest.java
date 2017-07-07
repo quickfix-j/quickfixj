@@ -1682,7 +1682,7 @@ public class SessionTest {
         settings.setBool(Session.SETTING_CHECK_LATENCY, false);
 
         Session session = new DefaultSessionFactory(new ApplicationAdapter(),
-                new MemoryStoreFactory(), new ScreenLogFactory(settings))
+                new MemoryStoreFactory(), new SLF4JLogFactory(settings))
                 .create(sessionID, settings);
 
         session.setResponder(new UnitTestResponder());

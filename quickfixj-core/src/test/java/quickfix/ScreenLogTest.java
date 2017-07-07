@@ -19,13 +19,12 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+import quickfix.field.converter.UtcTimestampConverter;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Date;
-
-import quickfix.field.converter.UtcTimestampConverter;
-
-import junit.framework.TestCase;
 
 public class ScreenLogTest extends TestCase {
     private long systemTime;
@@ -64,7 +63,7 @@ public class ScreenLogTest extends TestCase {
         sessionSettings.setBool(sessionID, ScreenLogFactory.SETTING_LOG_HEARTBEATS,
                 includeHeartBeats);
 
-        ScreenLogFactory factory = new ScreenLogFactory(sessionSettings);
+        LogFactory factory = new SLF4JLogFactory(sessionSettings);
         ScreenLog log = (ScreenLog) factory.create(sessionID);
         log.setOut(new PrintStream(data));
 
