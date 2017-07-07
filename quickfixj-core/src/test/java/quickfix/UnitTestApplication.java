@@ -19,10 +19,15 @@
 
 package quickfix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class UnitTestApplication implements ApplicationExtended, SessionStateListener {
+    private final Logger log = LoggerFactory.getLogger(UnitTestApplication.class);
+
     public final List<Message> fromAppMessages = new ArrayList<>();
     public final List<Message> toAppMessages = new ArrayList<>();
     public final List<Message> fromAdminMessages = new ArrayList<>();
@@ -38,28 +43,28 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
 
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        System.out.println("from app [" + sessionId + "] " + message);
+        log.info("from app [" + sessionId + "] " + message);
         fromAppMessages.add(message);
     }
 
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
-        System.out.println("to app [" + sessionId + "] " + message);
+        log.info("to app [" + sessionId + "] " + message);
         toAppMessages.add(message);
     }
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-        System.out.println("from admin [" + sessionId + "] "+message);
+        log.info("from admin [" + sessionId + "] "+message);
         fromAdminMessages.add(message);
     }
 
     public void toAdmin(Message message, SessionID sessionId) {
-        System.out.println("to admin [" + sessionId + "] " + message);
+        log.info("to admin [" + sessionId + "] " + message);
         toAdminMessages.add(message);
     }
 
     public void onBeforeSessionReset(SessionID sessionId) {
-        System.out.println("onBeforeSessionReset [" + sessionId + "]");
+        log.info("onBeforeSessionReset [" + sessionId + "]");
     }
 
     public void onLogout(SessionID sessionId) {

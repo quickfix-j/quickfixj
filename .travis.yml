@@ -3,3 +3,5 @@ jdk:
   - oraclejdk8
 before_install:
   - echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > ~/.mavenrc
+script:
+  - mvn test -B -V -Djava.util.logging.config.file=logging.properties

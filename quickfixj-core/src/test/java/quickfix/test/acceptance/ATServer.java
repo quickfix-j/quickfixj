@@ -30,7 +30,7 @@ import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
@@ -159,7 +159,7 @@ public class ATServer implements Runnable {
                     : new FileStoreFactory(settings);
             //MessageStoreFactory factory = new JdbcStoreFactory(settings);
             //LogFactory logFactory = new CommonsLogFactory(settings);
-            quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+            quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
             //quickfix.LogFactory logFactory = new JdbcLogFactory(settings);
             if (threaded) {
                 acceptor = new ThreadedSocketAcceptor(application, factory, settings, logFactory,
