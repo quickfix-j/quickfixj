@@ -63,7 +63,7 @@ public class ScreenLogTest extends TestCase {
         sessionSettings.setBool(sessionID, ScreenLogFactory.SETTING_LOG_HEARTBEATS,
                 includeHeartBeats);
 
-        LogFactory factory = new SLF4JLogFactory(sessionSettings);
+        ScreenLogFactory factory = new ScreenLogFactory(sessionSettings);
         ScreenLog log = (ScreenLog) factory.create(sessionID);
         log.setOut(new PrintStream(data));
 
