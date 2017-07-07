@@ -51,12 +51,13 @@ import quickfix.Message;
 import quickfix.Group;
 
 public class MessageFactory implements quickfix.MessageFactory {
-
+	@Override
 	public Message create(String beginString, String msgType) {
 		<xsl:call-template name="switch-statement"/>
 		return new <xsl:value-of select="$messagePackage"/>.Message();
 	}
 
+	@Override
 	public Group create(String beginString, String msgType, int correspondingFieldID) {
 		<xsl:call-template name="group-switch-statement"/>
 		return null;
