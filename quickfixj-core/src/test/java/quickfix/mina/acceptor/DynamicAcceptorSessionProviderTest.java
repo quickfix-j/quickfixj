@@ -29,7 +29,7 @@ import quickfix.MemoryStoreFactory;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
@@ -59,7 +59,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         templateMappings = new ArrayList<>();
         application = new UnitTestApplication();
         messageStoreFactory = new MemoryStoreFactory();
-        logFactory = new ScreenLogFactory();
+        logFactory = new SLF4JLogFactory(new SessionSettings());
         messageFactory = new DefaultMessageFactory();
 
         SessionID templateId1 = new SessionID("FIX.4.2", "ANY", "ANY");

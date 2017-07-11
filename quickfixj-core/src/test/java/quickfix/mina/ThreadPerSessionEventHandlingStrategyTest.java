@@ -19,25 +19,9 @@
 
 package quickfix.mina;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-
-import java.util.Date;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import static junit.framework.Assert.assertTrue;
 import org.junit.After;
 import org.junit.Before;
-
 import org.junit.Test;
-
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
 import quickfix.FieldNotFound;
@@ -48,7 +32,7 @@ import quickfix.MemoryStoreFactory;
 import quickfix.Message;
 import quickfix.RejectLogon;
 import quickfix.Responder;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
@@ -61,6 +45,17 @@ import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
 import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix40.Logon;
+
+import java.util.Date;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static junit.framework.Assert.assertTrue;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 public class ThreadPerSessionEventHandlingStrategyTest {
     private final static class ThreadPerSessionEventHandlingStrategyUnderTest extends
@@ -301,7 +296,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
     private Session setUpSession(SessionID sessionID, UnitTestApplication application)
             throws ConfigError {
         final DefaultSessionFactory sessionFactory = new DefaultSessionFactory(application,
-                new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+                new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
         final SessionSettings settings = new SessionSettings();
         settings.setString(SessionFactory.SETTING_CONNECTION_TYPE,
                 SessionFactory.ACCEPTOR_CONNECTION_TYPE);

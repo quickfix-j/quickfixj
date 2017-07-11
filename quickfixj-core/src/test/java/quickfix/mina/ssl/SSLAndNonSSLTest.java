@@ -30,7 +30,7 @@ import quickfix.FixVersions;
 import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -202,7 +202,7 @@ public class SSLAndNonSSLTest {
 
                 ATApplication application = new ATApplication();
                 MessageStoreFactory factory = new MemoryStoreFactory();
-                quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+                quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
                 acceptor = new SocketAcceptor(application, factory, settings, logFactory,
                         new DefaultMessageFactory());
 

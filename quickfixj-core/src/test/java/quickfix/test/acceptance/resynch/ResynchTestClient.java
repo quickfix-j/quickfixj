@@ -36,7 +36,7 @@ import quickfix.MessageCracker;
 import quickfix.MessageStoreFactory;
 import quickfix.RejectLogon;
 import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
 import quickfix.SessionSettings;
@@ -119,7 +119,7 @@ public class ResynchTestClient extends MessageCracker implements Application {
 
         MessageStoreFactory storeFactory = new MemoryStoreFactory();
         Initiator initiator = new SocketInitiator(this, storeFactory, settings,
-                new ScreenLogFactory(settings), new DefaultMessageFactory());
+                new SLF4JLogFactory(settings), new DefaultMessageFactory());
         initiator.start();
 
         try {

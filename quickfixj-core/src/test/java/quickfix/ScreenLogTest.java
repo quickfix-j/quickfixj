@@ -19,13 +19,12 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+import quickfix.field.converter.UtcTimestampConverter;
+
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Date;
-
-import quickfix.field.converter.UtcTimestampConverter;
-
-import junit.framework.TestCase;
 
 public class ScreenLogTest extends TestCase {
     private long systemTime;

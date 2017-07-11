@@ -106,9 +106,12 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>${maven-compiler-plugin-version}</version>
+					<inherited>true</inherited>
 					<configuration>
 						<source>${jdkLevel}</source>
 						<target>${jdkLevel}</target>
+						<meminitial>2g</meminitial>
+						<maxmem>4g</maxmem>
 					</configuration>
 				</plugin>
 				<plugin>

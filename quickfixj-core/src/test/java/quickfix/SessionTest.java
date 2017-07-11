@@ -24,6 +24,7 @@ import quickfix.field.SessionStatus;
 import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
 import quickfix.field.Text;
+import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
@@ -49,22 +50,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
-import quickfix.field.converter.UtcTimeOnlyConverter;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -1875,7 +1864,7 @@ public class SessionTest {
         settings.setBool(Session.SETTING_CHECK_LATENCY, false);
 
         Session session = new DefaultSessionFactory(new ApplicationAdapter(),
-                new MemoryStoreFactory(), new ScreenLogFactory(settings))
+                new MemoryStoreFactory(), new SLF4JLogFactory(settings))
                 .create(sessionID, settings);
 
         session.setResponder(new UnitTestResponder());
@@ -1977,7 +1966,7 @@ public class SessionTest {
 
         Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true),
+                new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
@@ -2137,7 +2126,7 @@ public class SessionTest {
 
         Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true),
+                new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
@@ -2174,7 +2163,7 @@ public class SessionTest {
 
         Session session = new Session(unitTestApplication,
                 new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true),
+                new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },

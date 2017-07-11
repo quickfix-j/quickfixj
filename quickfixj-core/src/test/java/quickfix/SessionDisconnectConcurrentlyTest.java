@@ -168,7 +168,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         configureInitiatorForSession(settings, 1, 10001);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
         return new SocketInitiator(new ApplicationAdapter() {
         }, factory, settings, logFactory, new DefaultMessageFactory());
     }
@@ -197,7 +197,7 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         configureAcceptorForSession(settings, 1, 10001);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
         return new SocketAcceptor(testAcceptorApplication, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }

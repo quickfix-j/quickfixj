@@ -26,7 +26,7 @@ import quickfix.DefaultSessionFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
@@ -50,7 +50,7 @@ public class SessionConnectorTest extends TestCase {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionSettings settings = setUpSessionSettings(sessionID);
         DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
-                new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+                new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
 
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
 
@@ -91,7 +91,7 @@ public class SessionConnectorTest extends TestCase {
         SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionSettings settings = setUpSessionSettings(sessionID1);
         DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
-                new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+                new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
 
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
 
@@ -139,7 +139,7 @@ public class SessionConnectorTest extends TestCase {
         SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "me", "you");
         SessionSettings settings = setUpSessionSettings(sessionID);
         DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
-                new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+                new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
 
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
         connector.setSessions(new HashMap<>());

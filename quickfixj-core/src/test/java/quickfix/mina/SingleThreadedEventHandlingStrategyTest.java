@@ -19,6 +19,7 @@
  */
 package quickfix.mina;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -29,7 +30,7 @@ import quickfix.DefaultSessionFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.RuntimeError;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -45,7 +46,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.junit.After;
 
 /**
  *
@@ -54,7 +54,7 @@ import org.junit.After;
 public class SingleThreadedEventHandlingStrategyTest {
 
     DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
-            new MemoryStoreFactory(), new ScreenLogFactory(true, true, true));
+            new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
     SingleThreadedEventHandlingStrategy ehs = null;
 
     @After
