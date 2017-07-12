@@ -50,6 +50,8 @@ public class FileLog extends AbstractLog {
     private final String messagesFileName;
     private final String eventFileName;
     private boolean syncAfterWrite;
+    private final Object messagesLock = new Object();
+    private final Object eventsLock = new Object();
 
     private FileOutputStream messages;
     private FileOutputStream events;
@@ -83,23 +85,25 @@ public class FileLog extends AbstractLog {
     }
 
     protected void logIncoming(String message) {
-        writeMessage(messages, message, false);
+        writeMessage(messages, messagesLock, message, false);
     }
 
     protected void logOutgoing(String message) {
-        writeMessage(messages, message, false);
+        writeMessage(messages, messagesLock, message, false);
     }
 
-    private void writeMessage(FileOutputStream stream, String message, boolean forceTimestamp) {
+    private void writeMessage(FileOutputStream stream, Object lock, String message, boolean forceTimestamp) {
         try {
-            if (forceTimestamp || includeTimestampForMessages) {
-                writeTimeStamp(stream);
-            }
-            stream.write(message.getBytes(CharsetSupport.getCharset()));
-            stream.write('\n');
-            stream.flush();
-            if (syncAfterWrite) {
-                stream.getFD().sync();
+            synchronized(lock) {
+                if (forceTimestamp || includeTimestampForMessages) {
+                    writeTimeStamp(stream);
+                }
+                stream.write(message.getBytes(CharsetSupport.getCharset()));
+                stream.write('\n');
+                stream.flush();
+                if (syncAfterWrite) {
+                    stream.getFD().sync();
+                }
             }
         } catch (IOException e) {
             // QFJ-459: no point trying to log the error in the file if we had an IOException
@@ -110,11 +114,11 @@ public class FileLog extends AbstractLog {
     }
 
     public void onEvent(String message) {
-        writeMessage(events, message, true);
+        writeMessage(events, eventsLock, message, true);
     }
 
     public void onErrorEvent(String message) {
-        writeMessage(events, message, true);
+        writeMessage(events, eventsLock, message, true);
     }
 
     private void writeTimeStamp(OutputStream out) throws IOException {
