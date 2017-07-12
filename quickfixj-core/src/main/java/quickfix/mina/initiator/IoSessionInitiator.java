@@ -24,7 +24,6 @@ import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.transport.socket.SocketConnector;
 import org.slf4j.Logger;
@@ -145,7 +144,7 @@ public class IoSessionInitiator {
         private void setupIoConnector() throws ConfigError, GeneralSecurityException {
             final CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(userIoFilterChainBuilder);
 
-            boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[0] instanceof InetSocketAddress;
+            boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress;
 
             SSLFilter sslFilter = null;
             if (sslEnabled) {
@@ -155,14 +154,14 @@ public class IoSessionInitiator {
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME, new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
             IoConnector newConnector;
-            newConnector = ProtocolFactory.createIoConnector(socketAddresses[0]);
+            newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
             newConnector.setHandler(new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy));
             newConnector.setFilterChainBuilder(ioFilterChainBuilder);
 
             if (hasProxy) {
                 ProxyConnector proxyConnector = ProtocolFactory.createIoProxyConnector(
                         (SocketConnector) newConnector,
-                        (InetSocketAddress) socketAddresses[0],
+                        (InetSocketAddress) socketAddresses[nextSocketAddressIndex],
                         new InetSocketAddress(proxyHost, proxyPort),
                         proxyType, proxyVersion, proxyUser, proxyPassword, proxyDomain, proxyWorkstation
                 );
