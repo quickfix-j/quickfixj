@@ -335,7 +335,7 @@ public class SocketInitiatorTest {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", Integer.toString(port));
         defaults.put("StartTime", "00:00:00");
@@ -492,7 +492,7 @@ public class SocketInitiatorTest {
         public ServerThread(final int port) {
             super("test server");
             this.port = port;
-            server = new ATServer(port);
+            server = new ATServer(port, ProtocolFactory.VM_PIPE);
             server.setIoFilterChainBuilder(chain -> chain.addLast("TestFilter", writeCounter));
         }
 

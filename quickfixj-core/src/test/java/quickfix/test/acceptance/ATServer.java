@@ -76,8 +76,9 @@ public class ATServer implements Runnable {
         // defaults
     }
 
-    public ATServer(int port) {
+    public ATServer(int port, int transportType) {
         this.port = port;
+        this.transportType = transportType;
     }
 
     public ATServer(TestSuite suite, boolean threaded, int transportType, int port) {
