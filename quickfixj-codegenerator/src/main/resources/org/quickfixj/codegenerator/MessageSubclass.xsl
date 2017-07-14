@@ -18,7 +18,7 @@
 *****************************************************************************
 -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
  <xsl:output method="text" encoding="UTF-8" />
  <xsl:param name="orderedFields"/>
  <xsl:param name="itemName"/>
@@ -87,8 +87,10 @@ public class <xsl:value-of select="@name"/> extends <xsl:value-of select="$baseC
 	public static final String MSGTYPE = "<xsl:value-of select="@msgtype"/>";
 	<xsl:if test="$baseClass = 'quickfix.MessageComponent'">
 	private int[] componentFields = { <xsl:apply-templates select="field|component" mode="component-field-numbers"/> };
+	@Override
 	protected int[] getFields() { return componentFields; }
 	private int[] componentGroups = { <xsl:apply-templates select="group" mode="component-field-numbers"/> };
+	@Override
 	protected int[] getGroupFields() { return componentGroups; }
 	</xsl:if>
 

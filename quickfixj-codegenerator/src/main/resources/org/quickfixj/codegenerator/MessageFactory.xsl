@@ -18,7 +18,7 @@
 *****************************************************************************
 -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
  <xsl:output method="text" encoding="UTF-8"/>
  <xsl:param name="fieldPackage"/>
  <xsl:param name="messagePackage"/>
@@ -51,12 +51,13 @@ import quickfix.Message;
 import quickfix.Group;
 
 public class MessageFactory implements quickfix.MessageFactory {
-
+	@Override
 	public Message create(String beginString, String msgType) {
 		<xsl:call-template name="switch-statement"/>
 		return new <xsl:value-of select="$messagePackage"/>.Message();
 	}
 
+	@Override
 	public Group create(String beginString, String msgType, int correspondingFieldID) {
 		<xsl:call-template name="group-switch-statement"/>
 		return null;
