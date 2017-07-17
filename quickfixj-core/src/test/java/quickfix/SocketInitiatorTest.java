@@ -32,21 +32,26 @@ import quickfix.test.acceptance.ATServer;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import static junit.framework.TestCase.assertNotNull;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
 import quickfix.field.MsgType;
@@ -252,6 +257,143 @@ public class SocketInitiatorTest {
                 initiator.stop(true);
             }
         }
+    }
+
+    private interface LogSessionStateListener extends Log, SessionStateListener {}
+
+    // QFJ-907
+    @Test
+    public void testConnectedSocketsAreClosedAfterInitiatorClosed() throws Exception {
+        final ServerSocket serverSocket = new ServerSocket(0);
+        final int port = serverSocket.getLocalPort();
+
+        final AtomicBoolean socketConnected = new AtomicBoolean(false);
+        Thread socketThread = new Thread() {
+            public void run() {
+                Socket socket = null;
+                try {
+                    socket = serverSocket.accept();
+                    socketConnected.set(true);
+                    final InputStream is = socket.getInputStream();
+                    while (is.read() != -1) {
+                    }
+                } catch (Exception e) {
+                } finally {
+                    try {
+                        serverSocket.close();
+                    } catch (Exception e) {
+                    }
+                    try {
+                        socket.close();
+                    } catch (Exception e) {
+                    }
+                    socketConnected.set(false);
+                }
+            }
+        };
+
+        socketThread.setDaemon(true);
+        socketThread.start();
+
+        final SessionSettings settings = new SessionSettings();
+        settings.setString("StartTime", "00:00:00");
+        settings.setString("EndTime", "00:00:00");
+        settings.setString("ReconnectInterval", "30");
+        settings.setString("HeartBtInt", "30");
+
+        final SessionID sessionId = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        settings.setString(sessionId, "BeginString", "FIX.4.4");
+
+        settings.setString("ConnectionType", "initiator");
+        settings.setLong(sessionId, "SocketConnectPort", port);
+        settings.setString(sessionId, "SocketConnectHost", "localhost");
+
+        final AtomicInteger onConnectCallCount = new AtomicInteger(0);
+        final AtomicInteger onDisconnectCallCount = new AtomicInteger(0);
+
+        LogSessionStateListener logSessionStateListener = new LogSessionStateListener() {
+            @Override
+            public void clear() {
+            }
+
+            @Override
+            public void onIncoming(String message) {
+            }
+
+            @Override
+            public void onOutgoing(String message) {
+            }
+
+            @Override
+            public void onEvent(String text) {
+            }
+
+            @Override
+            public void onErrorEvent(String text) {
+            }
+
+            @Override
+            public void onConnect() {
+                onConnectCallCount.incrementAndGet();
+            }
+
+            @Override
+            public void onDisconnect() {
+                onDisconnectCallCount.incrementAndGet();
+            }
+
+            @Override
+            public void onLogon() {
+            }
+
+            @Override
+            public void onLogout() {
+            }
+
+            @Override
+            public void onReset() {
+            }
+
+            @Override
+            public void onRefresh() {
+            }
+
+            @Override
+            public void onMissedHeartBeat() {
+            }
+
+            @Override
+            public void onHeartBeatTimeout() {
+            }
+        };
+
+        LogFactory logFactory = new LogFactory() {
+            @Override
+            public Log create() {
+                return logSessionStateListener;
+            }
+
+            @Override
+            public Log create(SessionID sessionID) {
+                return logSessionStateListener;
+            }
+        };
+
+        final SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                logFactory, new DefaultMessageFactory());
+        initiator.start();
+
+        Thread.sleep(5000L);
+        assertTrue(socketConnected.get()); // make sure socket is connected
+        assertEquals(1, onConnectCallCount.intValue());
+        assertEquals(0, onDisconnectCallCount.intValue());
+
+        initiator.stop();
+
+        Thread.sleep(5000L);
+        assertFalse(socketConnected.get()); // make sure socket is NOT connected after initiator is stopped
+        assertEquals(1, onConnectCallCount.intValue());
+        assertEquals(1, onDisconnectCallCount.intValue());
     }
 
     private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,
