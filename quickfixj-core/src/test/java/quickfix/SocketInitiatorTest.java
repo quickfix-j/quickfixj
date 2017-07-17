@@ -59,6 +59,15 @@ public class SocketInitiatorTest {
         SystemTime.setTimeSource(null);
     }
 
+    @After
+    public void cleanup() {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            java.util.logging.Logger.getLogger(SocketInitiatorTest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     @Test
     public void testLogonAfterServerDisconnect() throws Exception {
         final WriteCounter initiatorWriteCounter = new WriteCounter("initiator");
