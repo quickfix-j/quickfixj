@@ -65,6 +65,7 @@ public class SessionResetTest {
                 }
             }
         }, "SessionReset");
+        resetThread.setDaemon(true);
 
         Thread messageSender = new Thread(new Runnable() {
             public void run() {
@@ -73,6 +74,7 @@ public class SessionResetTest {
                 }
             }
         }, "SessionSend");
+        messageSender.setDaemon(true);
 
         // submit threads to pausable executor and try to let them start at the same time
         PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
@@ -86,6 +88,8 @@ public class SessionResetTest {
         long[] threadIds = bean.findDeadlockedThreads();
         assertNull("no threads should be deadlocked", threadIds);
         assertTrue("session should have been reset", responder.onResetCalled);
+        
+        ptpe.shutdownNow();
     }
 
     private Message createAdminMessage(int sequence) {
