@@ -258,9 +258,13 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         };
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-
-        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, true, false);
-
+        final Session session = new SessionFactoryTestSupport.Builder()
+                .setSessionId(sessionID)
+                .setApplication(application)
+                .setLogFactory(null)
+                .setResetOnLogon(false)
+                .setIsInitiator(true)
+                .build();
         final UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
         session.addStateListener(responder);
@@ -284,13 +288,15 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         ptpe.pause();
 
         for (int j=0; j<1000; j++) {
-            ptpe.submit(new Thread(() -> {
+            final Thread thread = new Thread(() -> {
                 try {
                     session.disconnect("No reason", false);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }, "disconnectThread"+j));
+            }, "disconnectThread"+j);
+            thread.setDaemon(true);
+            ptpe.submit(thread);
         }
 
         ptpe.resume();
@@ -342,5 +348,5 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         public void onHeartBeatTimeout() {
         }
     }
-
+    
 }

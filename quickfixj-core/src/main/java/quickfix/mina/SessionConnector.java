@@ -292,7 +292,7 @@ public abstract class SessionConnector implements Connector {
 
     protected void stopSessionTimer() {
         if (sessionTimerFuture != null) {
-            if (sessionTimerFuture.cancel(false))
+            if (sessionTimerFuture.cancel(true))
                 log.info("SessionTimer canceled");
         }
     }
