@@ -26,8 +26,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.transport.socket.SocketConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
@@ -51,6 +49,7 @@ import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import quickfix.mina.SessionConnector;
 
 public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
@@ -58,7 +57,6 @@ public class IoSessionInitiator {
     private final ConnectTask reconnectTask;
 
     private Future<?> reconnectFuture;
-    protected final static Logger log = LoggerFactory.getLogger("display." + IoSessionInitiator.class.getName());
 
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
             SocketAddress localAddress, int[] reconnectIntervalInSeconds,
@@ -81,7 +79,7 @@ public class IoSessionInitiator {
             throw new ConfigError(e);
         }
 
-        log.info("[" + fixSession.getSessionID() + "] " + Arrays.asList(socketAddresses));
+        fixSession.getLog().onEvent("Configured socket addresses for session: " + Arrays.asList(socketAddresses));
     }
 
     private static class ConnectTask implements Runnable {
@@ -332,17 +330,16 @@ public class IoSessionInitiator {
         }
 
         private void resetIoConnector() {
-            if (ioSession != null && Boolean.TRUE.equals(ioSession.getAttribute("QFJ_RESET_IO_CONNECTOR"))) {
+            if (ioSession != null && Boolean.TRUE.equals(ioSession.getAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR))) {
                 try {
                     setupIoConnector();
-                    log.info("[" + fixSession.getSessionID() + "] - reset IoConnector");
                     if (connectFuture != null) {
                         connectFuture.cancel();
                     }
                     connectFuture = null;
                     ioSession = null;
                 } catch (Throwable e) {
-                    log.error("[" + fixSession.getSessionID() + "] - Exception during resetIoConnector call", e);
+                    LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);
                 }
             }
         }

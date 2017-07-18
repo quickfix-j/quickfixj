@@ -83,7 +83,7 @@ public class IoSessionResponder implements Responder {
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
         ioSession.closeOnFlush();
-        ioSession.setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
+        ioSession.setAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR, Boolean.TRUE);
     }
 
     @Override
