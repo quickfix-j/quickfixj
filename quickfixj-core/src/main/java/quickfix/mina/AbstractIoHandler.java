@@ -87,10 +87,14 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                     ioSession.closeNow();
                 }
             } finally {
-                ioSession.setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
+                ioSession.setAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR, Boolean.TRUE);
             }
         } else {
-            log.error(reason, cause);
+            if (quickFixSession != null) {
+                LogUtil.logThrowable(quickFixSession.getLog(), reason, cause);
+            } else {
+                log.error(reason, cause);
+            }
         }
     }
 
@@ -121,16 +125,17 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
         Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
-            quickFixSession.getLog().onIncoming(messageString);
+            final Log sessionLog = quickFixSession.getLog();
+            sessionLog.onIncoming(messageString);
             try {
                 Message fixMessage = parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
-                    log.error("Invalid LOGON message, disconnecting: " + e.getMessage());
+                    sessionLog.onErrorEvent("Invalid LOGON message, disconnecting: " + e.getMessage());
                     ioSession.closeNow();
                 } else {
-                    log.error("Invalid message: " + e.getMessage());
+                    sessionLog.onErrorEvent("Invalid message: " + e.getMessage());
                 }
             }
         } else {

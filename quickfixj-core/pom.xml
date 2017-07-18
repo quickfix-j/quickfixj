@@ -278,18 +278,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>fix50sp2</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <dictFile>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml</dictFile>
-                            <packaging>quickfix.fix50sp2</packaging>
-                            <fieldPackage>quickfix.field</fieldPackage>
-                            <decimal>${generator.decimal}</decimal>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>fix50sp1</id>
                         <goals>
                             <goal>generate</goal>
@@ -297,6 +285,18 @@
                         <configuration>
                             <dictFile>../quickfixj-messages/quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml</dictFile>
                             <packaging>quickfix.fix50sp1</packaging>
+                            <fieldPackage>quickfix.field</fieldPackage>
+                            <decimal>${generator.decimal}</decimal>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>fix50sp2</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <dictFile>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml</dictFile>
+                            <packaging>quickfix.fix50sp2</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
                         </configuration>

@@ -54,7 +54,7 @@ class InitiatorIoHandler extends AbstractIoHandler {
                 networkingOptions.getSynchronousWrites(),
                 networkingOptions.getSynchronousWriteTimeout(),
                 quickfixSession.getMaxScheduledWriteRequests()));
-        log.info("MINA session created for " + quickfixSession.getSessionID() + ": local="
+        quickfixSession.getLog().onEvent("MINA session created: local="
                 + session.getLocalAddress() + ", " + session.getClass() + ", remote="
                 + session.getRemoteAddress());
     }
@@ -67,7 +67,7 @@ class InitiatorIoHandler extends AbstractIoHandler {
                 if (message.isSetField(DefaultApplVerID.FIELD)) {
                     final ApplVerID applVerID = new ApplVerID(message.getString(DefaultApplVerID.FIELD));
                     quickfixSession.setTargetDefaultApplicationVersionID(applVerID);
-                    log.info("Setting DefaultApplVerID (" + DefaultApplVerID.FIELD + "="
+                    quickfixSession.getLog().onEvent("Setting DefaultApplVerID (" + DefaultApplVerID.FIELD + "="
                             + applVerID.getValue() + ") from Logon");
                 }
             }
