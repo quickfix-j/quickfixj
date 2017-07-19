@@ -391,6 +391,7 @@ public class Session implements Closeable {
     private int maxScheduledWriteRequests = 0;
 
     private final AtomicBoolean isResetting = new AtomicBoolean();
+    private final AtomicBoolean isResettingState = new AtomicBoolean();
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
@@ -2536,8 +2537,15 @@ public class Session implements Closeable {
     }
 
     private void resetState() {
-        state.reset();
-        stateListener.onReset();
+        if (!isResettingState.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            state.reset();
+            stateListener.onReset();
+        } finally {
+            isResettingState.set(false);
+        }
     }
 
     /**
