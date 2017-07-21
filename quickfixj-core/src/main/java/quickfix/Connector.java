@@ -55,10 +55,11 @@ public interface Connector {
      * Start accepting connections. This method blocks until stop is called from
      * another thread.
      * This method must not be called by several threads concurrently.
-     *
+     * @deprecated Use start() instead.
      * @throws ConfigError Problem with acceptor configuration.
      * @throws RuntimeError Other unspecified error
      */
+    @Deprecated
     void block() throws ConfigError, RuntimeError;
 
     /**
