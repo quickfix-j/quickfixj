@@ -151,7 +151,7 @@
 							<!-- don't use custom stylesheet since it just breaks all style -->
 							<!--<stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile>-->
 							<show>protected</show>
-							<maxmemory>1536m</maxmemory>
+							<maxmemory>2g</maxmemory>
 							<breakiterator>true</breakiterator>
 						</configuration>
 					</execution>
