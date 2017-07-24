@@ -38,7 +38,7 @@ import java.util.GregorianCalendar;
  */
 public class UtcTimestampConverter extends AbstractDateTimeConverter {
 
-    static String TYPE = "timestamp";
+    static final String TYPE = "timestamp";
     static final int LENGTH_INCL_SECONDS = 17;
     static final int LENGTH_INCL_MILLIS = 21;
     static final int LENGTH_INCL_MICROS = 24;

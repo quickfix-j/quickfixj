@@ -34,7 +34,7 @@ import java.util.Date;
  */
 public class UtcDateOnlyConverter extends AbstractDateTimeConverter {
 
-    static String TYPE = "date";
+    static final String TYPE = "date";
     static final int DATE_LENGTH = 8;
     // SimpleDateFormats are not thread safe. A thread local is being
     // used to maintain high concurrency among multiple session threads

@@ -39,7 +39,7 @@ class JdbcUtil {
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
 
     private static final Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<>();
-    private static AtomicInteger dataSourceCounter = new AtomicInteger();
+    private static final AtomicInteger dataSourceCounter = new AtomicInteger();
 
     static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
             throws ConfigError, FieldConvertError {

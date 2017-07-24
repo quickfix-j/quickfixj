@@ -51,7 +51,6 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
 

@@ -36,7 +36,7 @@ import java.util.Date;
  */
 public class UtcTimeOnlyConverter extends AbstractDateTimeConverter {
 
-    static String TYPE = "time";
+    static final String TYPE = "time";
     static final int LENGTH_INCL_SECONDS    = 8;
     static final int LENGTH_INCL_MILLIS     = 12;
     static final int LENGTH_INCL_MICROS     = 15;

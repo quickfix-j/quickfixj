@@ -268,29 +268,27 @@ public class SocketInitiatorTest {
         final int port = serverSocket.getLocalPort();
 
         final AtomicBoolean socketConnected = new AtomicBoolean(false);
-        Thread socketThread = new Thread() {
-            public void run() {
-                Socket socket = null;
-                try {
-                    socket = serverSocket.accept();
-                    socketConnected.set(true);
-                    final InputStream is = socket.getInputStream();
-                    while (is.read() != -1) {
-                    }
-                } catch (Exception e) {
-                } finally {
-                    try {
-                        serverSocket.close();
-                    } catch (Exception e) {
-                    }
-                    try {
-                        socket.close();
-                    } catch (Exception e) {
-                    }
-                    socketConnected.set(false);
+        Thread socketThread = new Thread(() -> {
+            Socket socket = null;
+            try {
+                socket = serverSocket.accept();
+                socketConnected.set(true);
+                final InputStream is = socket.getInputStream();
+                while (is.read() != -1) {
                 }
+            } catch (Exception e) {
+            } finally {
+                try {
+                    serverSocket.close();
+                } catch (Exception e) {
+                }
+                try {
+                    socket.close();
+                } catch (Exception e) {
+                }
+                socketConnected.set(false);
             }
-        };
+        });
 
         socketThread.setDaemon(true);
         socketThread.start();

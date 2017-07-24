@@ -189,7 +189,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setUtcTimeStamp(int field, LocalDateTime value, boolean includeMilliseconds) {
-        setField(new StringField(field, UtcTimestampConverter.convert(value, (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS)));
+        setField(new StringField(field, UtcTimestampConverter.convert(value, includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS)));
     }
 
     public void setUtcTimeStamp(int field, LocalDateTime value, UtcTimestampPrecision precision) {
@@ -201,7 +201,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setUtcTimeOnly(int field, LocalTime value, boolean includeMilliseconds) {
-        setField(new StringField(field, UtcTimeOnlyConverter.convert(value, (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS)));
+        setField(new StringField(field, UtcTimeOnlyConverter.convert(value, includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS)));
     }
 
     public void setUtcTimeOnly(int field, LocalTime value, UtcTimestampPrecision precision) {
