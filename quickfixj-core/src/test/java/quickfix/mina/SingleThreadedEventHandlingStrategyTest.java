@@ -221,7 +221,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             @Override
             public void run() {
                 try {
-                    acceptor.block();
+                    acceptor.start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -251,7 +251,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             @Override
             public void run() {
                 try {
-                    initiator.block();
+                    initiator.start();
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

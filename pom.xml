@@ -52,7 +52,7 @@
 	</issueManagement>
 
 	<prerequisites>
-		<maven>3.3.9</maven>
+		<maven>3.5.0</maven>
 	</prerequisites>
 
 	<modules>
@@ -77,7 +77,7 @@
 		<maven-compiler-plugin-version>3.6.1</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.0.2</maven-jar-plugin-version>
 		<maven-surefire-plugin-version>2.20</maven-surefire-plugin-version>
-		<maven-pmd-plugin-version>3.7</maven-pmd-plugin-version>
+		<maven-pmd-plugin-version>3.8</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.0.1</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
 		<maven-shade-plugin-version>3.0.0</maven-shade-plugin-version>

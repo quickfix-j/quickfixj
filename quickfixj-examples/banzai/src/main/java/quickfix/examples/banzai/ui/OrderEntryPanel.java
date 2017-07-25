@@ -52,6 +52,7 @@ import quickfix.examples.banzai.OrderTIF;
 import quickfix.examples.banzai.OrderTableModel;
 import quickfix.examples.banzai.OrderType;
 
+@SuppressWarnings("unchecked")
 public class OrderEntryPanel extends JPanel implements Observer {
     private boolean symbolEntered = false;
     private boolean quantityEntered = false;
