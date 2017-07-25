@@ -55,10 +55,17 @@ import quickfix.field.Text;
 import quickfix.field.TimeInForce;
 import quickfix.fix42.ExecutionReport;
 import quickfix.fix42.MarketDataRequest;
+import quickfix.fix42.MarketDataSnapshotFullRefresh;
 import quickfix.fix42.NewOrderSingle;
 import quickfix.fix42.OrderCancelRequest;
 
 import java.util.ArrayList;
+import quickfix.field.CxlRejResponseTo;
+import quickfix.field.MDEntryPx;
+import quickfix.field.MDEntryType;
+import quickfix.field.MDReqID;
+import quickfix.field.OrdRejReason;
+import quickfix.fix42.OrderCancelReject;
 
 public class Application extends MessageCracker implements quickfix.Application {
     private final OrderMatcher orderMatcher = new OrderMatcher();
@@ -103,7 +110,7 @@ public class Application extends MessageCracker implements quickfix.Application 
 
             processOrder(order);
         } catch (Exception e) {
-            rejectOrder(senderCompId, targetCompId, clOrdId, symbol, side, e.getMessage());
+            rejectOrder(targetCompId, senderCompId, clOrdId, symbol, side, e.getMessage());
         }
     }
 
@@ -117,6 +124,7 @@ public class Application extends MessageCracker implements quickfix.Application 
 
         fixOrder.setString(ClOrdID.FIELD, clOrdId);
         fixOrder.setString(Text.FIELD, message);
+        fixOrder.setInt(OrdRejReason.FIELD, OrdRejReason.BROKER_EXCHANGE_OPTION);
 
         try {
             Session.sendToTarget(fixOrder, senderCompId, targetCompId);
@@ -187,9 +195,23 @@ public class Application extends MessageCracker implements quickfix.Application 
         char side = message.getChar(Side.FIELD);
         String id = message.getString(OrigClOrdID.FIELD);
         Order order = orderMatcher.find(symbol, side, id);
-        order.cancel();
-        cancelOrder(order);
-        orderMatcher.erase(order);
+        if (order != null) {
+            order.cancel();
+            cancelOrder(order);
+            orderMatcher.erase(order);
+        } else {
+            OrderCancelReject fixOrderReject = new OrderCancelReject(new OrderID("NONE"), new ClOrdID(message.getString(ClOrdID.FIELD)),
+                    new OrigClOrdID(message.getString(OrigClOrdID.FIELD)), new OrdStatus(OrdStatus.REJECTED), new CxlRejResponseTo(CxlRejResponseTo.ORDER_CANCEL_REQUEST));
+
+                    String senderCompId = message.getHeader().getString(SenderCompID.FIELD);
+            String targetCompId = message.getHeader().getString(TargetCompID.FIELD);
+            fixOrderReject.getHeader().setString(SenderCompID.FIELD, targetCompId);
+            fixOrderReject.getHeader().setString(TargetCompID.FIELD, senderCompId);
+            try {
+                Session.sendToTarget(fixOrderReject, targetCompId, senderCompId);
+            } catch (SessionNotFound e) {
+            }
+        }
     }
 
     public void onMessage(MarketDataRequest message, SessionID sessionID) throws FieldNotFound,
@@ -204,10 +226,26 @@ public class Application extends MessageCracker implements quickfix.Application 
         //int marketDepth = message.getInt(MarketDepth.FIELD);
         int relatedSymbolCount = message.getInt(NoRelatedSym.FIELD);
 
+        MarketDataSnapshotFullRefresh fixMD = new MarketDataSnapshotFullRefresh();
+        fixMD.setString(MDReqID.FIELD, message.getString(MDReqID.FIELD));
+        
         for (int i = 1; i <= relatedSymbolCount; ++i) {
             message.getGroup(i, noRelatedSyms);
             String symbol = noRelatedSyms.getString(Symbol.FIELD);
-            System.err.println("*** market data: " + symbol);
+            fixMD.setString(Symbol.FIELD, symbol);
+        }
+        
+        MarketDataSnapshotFullRefresh.NoMDEntries noMDEntries = new MarketDataSnapshotFullRefresh.NoMDEntries();
+        noMDEntries.setChar(MDEntryType.FIELD, '0');
+        noMDEntries.setDouble(MDEntryPx.FIELD, 123.45);
+        fixMD.addGroup(noMDEntries);
+        String senderCompId = message.getHeader().getString(SenderCompID.FIELD);
+        String targetCompId = message.getHeader().getString(TargetCompID.FIELD);
+        fixMD.getHeader().setString(SenderCompID.FIELD, targetCompId);
+        fixMD.getHeader().setString(TargetCompID.FIELD, senderCompId);
+        try {
+            Session.sendToTarget(fixMD, targetCompId, senderCompId);
+        } catch (SessionNotFound e) {
         }
     }
 
