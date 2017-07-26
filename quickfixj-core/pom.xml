@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-parent</artifactId>
-		<version>1.6.4-SNAPSHOT</version>
+		<version>1.6.4</version>
 	</parent>
 
 	<artifactId>quickfixj-core</artifactId>
@@ -355,7 +355,7 @@
                             <!-- add the required imports -->
                             quickfix,quickfix.field,*
                         </Import-Package>
-                        <Private-Package/>
+                        <Private-Package />
                     </instructions>
                 </configuration>
             </plugin>
@@ -389,7 +389,7 @@
 			<plugin>
 				<artifactId>maven-surefire-report-plugin</artifactId>
 				<version>${maven-surefire-plugin-version}</version>
-				<reportSets/>
+				<reportSets />
 				<configuration>
 					<showSuccess>true</showSuccess>
 				</configuration>
@@ -412,7 +412,7 @@
 				</property>
 			</activation>
 			<properties>
-				<acceptance.tests/>
+				<acceptance.tests />
 			</properties>
 		</profile>
 	</profiles>
