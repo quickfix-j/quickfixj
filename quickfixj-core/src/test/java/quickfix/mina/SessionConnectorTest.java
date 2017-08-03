@@ -129,6 +129,7 @@ public class SessionConnectorTest extends TestCase {
         assertNotNull(session2);
         sessions.put(session2.getSessionID(), session2);
         assertFalse(connector.isLoggedOn());
+        assertTrue(connector.anyLoggedOn());
     }
 
     /**
