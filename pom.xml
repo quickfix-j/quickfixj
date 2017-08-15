@@ -161,9 +161,10 @@
 							<goals>
 								<goal>jar</goal>
 							</goals>
-							<configuration>
-								<additionalparam>-Xdoclint:none</additionalparam>
-							</configuration>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+							<maxmemory>3g</maxmemory>
+						</configuration>
 						</execution>
 					</executions>
 				</plugin>
