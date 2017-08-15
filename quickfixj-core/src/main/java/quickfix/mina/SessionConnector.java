@@ -195,6 +195,25 @@ public abstract class SessionConnector implements Connector {
         return true;
     }
 
+    /**
+     * Check if we have at least one session and that at least one session is logged on.
+     *
+     * @return false if no sessions exist or all sessions are logged off, true otherwise
+     */
+    //visible for testing only
+    boolean anyLoggedOn() {
+        // if no session, not logged on
+        if (sessions.isEmpty())
+            return false;
+        for (Session session : sessions.values()) {
+            // at least one session logged on
+            if (session.isLoggedOn())
+                return true;
+        }
+        // no sessions are logged on
+        return false;
+    }
+
     private Set<quickfix.Session> getLoggedOnSessions() {
         Set<quickfix.Session> loggedOnSessions = new HashSet<>(sessions.size());
         for (Session session : sessions.values()) {
@@ -219,7 +238,7 @@ public abstract class SessionConnector implements Connector {
             }
         }
 
-        if (isLoggedOn()) {
+        if (anyLoggedOn()) {
             if (forceDisconnect) {
                 for (Session session : sessions.values()) {
                     try {
