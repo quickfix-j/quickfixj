@@ -166,6 +166,7 @@
 							</goals>
 							<configuration>
 								<additionalparam>-Xdoclint:none</additionalparam>
+							    <maxmemory>3g</maxmemory>
 							</configuration>
 						</execution>
 					</executions>
