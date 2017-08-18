@@ -43,12 +43,12 @@ public class UtcTimeOnlyField extends Field<LocalTime> {
 
     public UtcTimeOnlyField(int field, boolean includeMilliseconds) {
         super(field, LocalTime.now());
-        this.precision = (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+        this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
 
     protected UtcTimeOnlyField(int field, LocalTime data, boolean includeMilliseconds) {
         super(field, data);
-        this.precision = (includeMilliseconds == true) ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+        this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
     
     public UtcTimestampPrecision getPrecision() {

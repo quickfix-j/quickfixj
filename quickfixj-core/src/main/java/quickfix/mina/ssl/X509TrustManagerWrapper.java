@@ -48,7 +48,7 @@ public class X509TrustManagerWrapper implements X509TrustManager {
         return wrappers;
     }
 
-    private X509TrustManager trustManager;
+    private final X509TrustManager trustManager;
 
     public X509TrustManagerWrapper(final X509TrustManager trustManager) {
         this.trustManager = trustManager;

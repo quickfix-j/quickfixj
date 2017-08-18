@@ -24,7 +24,6 @@ import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -159,7 +158,7 @@ public class Repository {
             allFields.put(field.getTag(), field);
             // Find enums
             List<?> enumNodes = enums.selectNodes("//dataroot/Enums[Tag=" + tag + "]");
-            Collections.sort(enumNodes, new EnumNodeComparator());
+            enumNodes.sort(new EnumNodeComparator());
             if (!enumNodes.isEmpty()) {
                 for (Object enumO : enumNodes) {
                     Node enumNode = (Node) enumO;
@@ -223,7 +222,7 @@ public class Repository {
 
     private List<?> getMsgContents(String msgID) {
         List<?> nodes = msgContents.selectNodes("//dataroot/MsgContents[MsgID=" + msgID + "]");
-        Collections.sort(nodes, new MsgContentNodeComparator());
+        nodes.sort(new MsgContentNodeComparator());
         return nodes;
     }
 

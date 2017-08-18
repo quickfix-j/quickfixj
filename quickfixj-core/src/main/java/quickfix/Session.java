@@ -394,6 +394,7 @@ public class Session implements Closeable {
     private int maxScheduledWriteRequests = 0;
 
     private final AtomicBoolean isResetting = new AtomicBoolean();
+    private final AtomicBoolean isResettingState = new AtomicBoolean();
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
@@ -2542,8 +2543,15 @@ public class Session implements Closeable {
     }
 
     private void resetState() {
-        state.reset();
-        stateListener.onReset();
+        if (!isResettingState.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            state.reset();
+            stateListener.onReset();
+        } finally {
+            isResettingState.set(false);
+        }
     }
 
     /**
@@ -2793,18 +2801,18 @@ public class Session implements Closeable {
     }
 
     private static String extractNumber(String txt, int from) {
-        String ret = "";
+        final StringBuilder ret = new StringBuilder();
         for (int i = from; i != txt.length(); ++i) {
             final char c = txt.charAt(i);
             if (c >= '0' && c <= '9') {
-                ret += c;
+                ret.append(c);
             } else {
                 if (ret.length() != 0) {
                     break;
                 }
             }
         }
-        return ret.trim();
+        return ret.toString();
     }
 
     protected static Integer extractExpectedSequenceNumber(String txt) {
