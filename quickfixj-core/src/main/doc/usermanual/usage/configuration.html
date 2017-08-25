@@ -202,15 +202,29 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>StartDay</I> </TD>
-    <TD> For week long sessions, the starting day of week for the session. Use in combination with StartTime. </TD>
+    <TD> For week long sessions, the starting day of week for the session.
+      <br>Use in combination with StartTime.
+      <br>Incompatible with Weekdays</TD>
     <TD> Day of week in the default locale (e.g. Monday, mon, lundi, lun. etc.)</TD>
 
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>EndDay</I> </TD>
-    <TD> For week long sessions, the ending day of week for the session. Use in combination with EndTime. </TD>
+    <TD> For week long sessions, the ending day of week for the session.
+      <br>Use in combination with EndTime.
+      <br>Incompatible with Weekdays</TD>
     <TD> Day of week in the default locale (e.g. Monday, mon, lundi, lun. etc.)</TD>
+
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>Weekdays</I> </TD>
+    <TD> For daily sessions that are active on specific days of the week.
+      <br>Use in combination with StartTime and EndTime.
+      <br>Incompatible with StartDay and EndDay.
+      <br>If StartTime is before EndTime then the day corresponds to the StartTime.</TD>
+    <TD> Comma-delimited list of days of the week in the default locale (e.g. "Sun,Mon,Tue", "Dimanche,Lundi,Mardi" etc.)</TD>
 
     <TD>&nbsp; </TD>
   </TR>
