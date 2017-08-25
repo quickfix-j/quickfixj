@@ -26,9 +26,21 @@ import java.util.Calendar;
  */
 public interface SessionSchedule {
 
+    /**
+     * Predicate for determining if the two times are in the same session
+     * @param time1 test time 1
+     * @param time2 test time 2
+     * @return return true if in the same session
+     */
     boolean isSameSession(Calendar time1, Calendar time2);
 
     boolean isNonStopSession();
 
+    /**
+     * Predicate for determining if the session should be active at the current time.
+     *
+     * @return true if session should be active, false otherwise.
+     */
     boolean isSessionTime();
+
 }
