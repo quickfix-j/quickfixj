@@ -148,13 +148,13 @@ public class Session implements Closeable {
     public static final String SETTING_END_TIME = "EndTime";
 
     /**
-     * Session scheduling setting to specify active days of the week when using a WeekdaySessionSchedule.
+     * Session scheduling setting to specify active days of the week.
      */
     public static final String SETTING_WEEKDAYS = "Weekdays";
 
     /**
      * Session setting to indicate whether a data dictionary should be used. If
-     * a data dictionary is not used then message validation is not possble.
+     * a data dictionary is not used then message validation is not possible.
      */
     public static final String SETTING_USE_DATA_DICTIONARY = "UseDataDictionary";
 
