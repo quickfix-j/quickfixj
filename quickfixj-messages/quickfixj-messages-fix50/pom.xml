@@ -40,7 +40,26 @@
 					</execution>
 				</executions>
 			</plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <maxmemory>3g</maxmemory>
+                            <detectOfflineLinks>false</detectOfflineLinks>
+                            <includeDependencySources>false</includeDependencySources>
+                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fix50;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
