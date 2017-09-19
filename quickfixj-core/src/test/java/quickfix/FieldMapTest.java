@@ -32,13 +32,13 @@ public class FieldMapTest extends TestCase {
         FieldMap map = new Message();
         LocalDateTime aDate = LocalDateTime.now();
         map.setField(new UtcTimeStampField(EffectiveTime.FIELD, aDate, false));
-        assertEquals("milliseconds should not be preserved", aDate.toInstant(ZoneOffset.UTC).toEpochMilli() - (aDate.toInstant(ZoneOffset.UTC).toEpochMilli() % 1000),
-                    map.getField(new EffectiveTime()).getValue().toInstant(ZoneOffset.UTC).toEpochMilli());
+        assertEquals("milliseconds should not be preserved", epochMilliOfLocalDate(aDate) - (epochMilliOfLocalDate(aDate) % 1000),
+                epochMilliOfLocalDate(map.getField(new EffectiveTime()).getValue()));
 
         // now set it with preserving millis
         map.setField(new UtcTimeStampField(EffectiveTime.FIELD, aDate, true));
-        assertEquals("milliseconds should be preserved", aDate.toInstant(ZoneOffset.UTC).toEpochMilli(),
-                    map.getField(new EffectiveTime()).getValue().toInstant(ZoneOffset.UTC).toEpochMilli());
+        assertEquals("milliseconds should be preserved", epochMilliOfLocalDate(aDate),
+                epochMilliOfLocalDate(map.getField(new EffectiveTime()).getValue()));
     }
 
     public void testSetUtcTimeOnlyField() throws Exception {
@@ -46,12 +46,12 @@ public class FieldMapTest extends TestCase {
         LocalTime aDate = LocalTime.now();
         map.setField(new UtcTimeOnlyField(MDEntryTime.FIELD, aDate, false));
         assertEquals("milliseconds should not be preserved", UtcTimeOnlyConverter.convert(aDate, UtcTimestampPrecision.SECONDS),
-                    UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.SECONDS));
+                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.SECONDS));
 
         // now set it with preserving millis
         map.setField(new UtcTimeOnlyField(MDEntryTime.FIELD, aDate, true));
         assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aDate, UtcTimestampPrecision.MILLIS),
-                    UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
+                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
     }
 
     /**
@@ -61,12 +61,12 @@ public class FieldMapTest extends TestCase {
         FieldMap map = new Message();
         LocalDateTime aDate = LocalDateTime.now();
         map.setField(new EffectiveTime(aDate));
-        assertEquals("milliseconds should be preserved", aDate.toInstant(ZoneOffset.UTC).toEpochMilli(),
-                    map.getField(new EffectiveTime()).getValue().toInstant(ZoneOffset.UTC).toEpochMilli());
+        assertEquals("milliseconds should be preserved", epochMilliOfLocalDate(aDate),
+                epochMilliOfLocalDate(map.getField(new EffectiveTime()).getValue()));
         LocalTime aTime = LocalTime.now();
         map.setField(new MDEntryTime(aTime));
         assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aTime, UtcTimestampPrecision.MILLIS),
-                    UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
+                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
     }
 
     private void testOrdering(int[] vals, int[] order, int[] expected) {
@@ -89,5 +89,9 @@ public class FieldMapTest extends TestCase {
         testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
         testOrdering(new int[] { 1, 2, 3 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
         testOrdering(new int[] { 3, 2, 1 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
+    }
+
+    private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
+        return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 }
