@@ -192,7 +192,7 @@ class JdbcStore implements MessageStore {
             setSessionIdParameters(updateTime, 4);
             updateTime.execute();
         } catch (SQLException e) {
-            throw (IOException) new IOException(e.getMessage()).initCause(e);
+            throw new IOException(e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, deleteMessages);
             JdbcUtil.close(sessionID, updateTime);
@@ -217,7 +217,7 @@ class JdbcStore implements MessageStore {
                 messages.add(message);
             }
         } catch (SQLException e) {
-            throw (IOException) new IOException(e.getMessage()).initCause(e);
+            throw new IOException(e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, rs);
             JdbcUtil.close(sessionID, query);
@@ -247,7 +247,7 @@ class JdbcStore implements MessageStore {
                     boolean status = update.execute();
                     return !status && update.getUpdateCount() > 0;
                 } catch (SQLException e) {
-                    throw (IOException) new IOException(e.getMessage()).initCause(e);
+                    throw new IOException(e.getMessage(), e);
                 } finally {
                     JdbcUtil.close(sessionID, update);
                 }
@@ -281,7 +281,7 @@ class JdbcStore implements MessageStore {
             setSessionIdParameters(update, 3);
             update.execute();
         } catch (SQLException e) {
-            throw (IOException) new IOException(e.getMessage()).initCause(e);
+            throw new IOException(e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, update);
             JdbcUtil.close(sessionID, connection);
@@ -292,7 +292,7 @@ class JdbcStore implements MessageStore {
         try {
             loadCache();
         } catch (SQLException e) {
-            throw (IOException) new IOException(e.getMessage()).initCause(e);
+            throw new IOException(e.getMessage(), e);
         }
     }
 
