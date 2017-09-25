@@ -205,7 +205,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                    <execution>
                         <id>fix50sp2</id>
                         <goals>
                             <goal>generate</goal>
@@ -229,7 +228,8 @@
                             <decimal>${generator.decimal}</decimal>
                         </configuration>
                     </execution>
-					<id>fix50</id>
+					<execution>
+						<id>fix50</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
