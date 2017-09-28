@@ -2821,7 +2821,7 @@ public class Session implements Closeable {
     }
 
     private static String extractNumber(String txt, int from) {
-        final StringBuilder ret = new StringBuilder();
+        final StringBuilder ret = new StringBuilder(txt.length() - from);
         for (int i = from; i != txt.length(); ++i) {
             final char c = txt.charAt(i);
             if (c >= '0' && c <= '9') {

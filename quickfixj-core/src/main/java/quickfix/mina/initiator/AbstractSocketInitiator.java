@@ -254,7 +254,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     break;
                 }
             } catch (final FieldConvertError e) {
-                throw (ConfigError) new ConfigError(e.getMessage()).initCause(e);
+                throw new ConfigError(e.getMessage(), e);
             }
         }
 
