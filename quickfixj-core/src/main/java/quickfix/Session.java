@@ -1598,7 +1598,11 @@ public class Session implements Closeable {
             reject.setInt(RefTagID.FIELD, field);
             reject.setString(Text.FIELD, reason);
         } else {
-            reject.setString(Text.FIELD, reason + (includeFieldInReason ? " (" + field + ")" : ""));
+            String rejectReason = reason;
+            if (includeFieldInReason && !rejectReason.endsWith("" + field) ) {
+                rejectReason = rejectReason + " (" + field + ")";
+            }
+            reject.setString(Text.FIELD, rejectReason);
         }
     }
 
