@@ -1022,6 +1022,7 @@ public class Session implements Closeable {
             if (msgType.equals(MsgType.LOGON)) {
                 logoutWithErrorMessage(e.getMessage());
             } else {
+                getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
                 generateReject(message, e.getMessage(), e.getSessionRejectReason(), e.getField());
             }
         } catch (final FieldNotFound e) {
@@ -1047,14 +1048,18 @@ public class Session implements Closeable {
             if (msgType.equals(MsgType.LOGON)) {
                 logoutWithErrorMessage(e.getMessage());
             } else {
-                generateReject(message, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
+                getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
+                generateReject(message, null, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
             }
         } catch (final IncorrectTagValue e) {
+            if (logErrorAndDisconnectIfRequired(e, message)) {
+                return;
+            }
             if (msgType.equals(MsgType.LOGON)) {
                 logoutWithErrorMessage(e.getMessage());
             } else {
                 getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-                generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
+                generateReject(message, null, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
             }
         } catch (final InvalidMessage e) {
             /* InvalidMessage means a low-level error (e.g. checksum problem) and we should
