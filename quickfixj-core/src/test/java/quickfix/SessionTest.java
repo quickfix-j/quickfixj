@@ -855,8 +855,8 @@ public class SessionTest {
     }
 
     @Test
-    // QFJ-929
-    public void testLogonIsAnsweredWithLogoutOnFieldException() throws Exception {
+    // QFJ-929/QFJ-933
+    public void testLogonIsAnsweredWithLogoutOnException() throws Exception {
 
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
@@ -896,6 +896,36 @@ public class SessionTest {
         assertEquals(5, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
         assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
         assertEquals(3, session.getStore().getNextSenderMsgSeqNum());
+
+        session.setResponder(responder);
+        session.logon();
+        session.next();
+        setUpHeader(session.getSessionID(), logonRequest, true, 3);
+        logonRequest.setString(EncryptMethod.FIELD, "A");
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to IncorrectDataFormat
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(3, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(5, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
+        assertEquals(4, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(4, session.getStore().getNextSenderMsgSeqNum());
+
+        session.setResponder(responder);
+        session.logon();
+        session.next();
+        setUpHeader(session.getSessionID(), logonRequest, true, 3);
+        logonRequest.setString(EncryptMethod.FIELD, "99");
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to IncorrectTagValue
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(4, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(5, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
+        assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
         
         session.close();
     }

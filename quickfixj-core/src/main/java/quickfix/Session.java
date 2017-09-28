@@ -1020,12 +1020,7 @@ public class Session implements Closeable {
                 return;
             }
             if (msgType.equals(MsgType.LOGON)) {
-                final String reason = SessionRejectReasonText.getMessage(e.getSessionRejectReason());
-                final String errorMessage = "Invalid Logon message: " + (reason != null ? reason : "unspecific reason")
-                        + " (field " + e.getField() + ")";
-                generateLogout(errorMessage);
-                state.incrNextTargetMsgSeqNum();
-                disconnect(errorMessage, true);
+                logoutWithErrorMessage(e.getMessage());
             } else {
                 generateReject(message, e.getMessage(), e.getSessionRejectReason(), e.getField());
             }
@@ -1049,11 +1044,23 @@ public class Session implements Closeable {
             if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
-            generateReject(message, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
+            if (msgType.equals(MsgType.LOGON)) {
+                logoutWithErrorMessage(e.getMessage());
+            } else {
+                generateReject(message, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
+            }
         } catch (final IncorrectTagValue e) {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-            generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
+            if (msgType.equals(MsgType.LOGON)) {
+                logoutWithErrorMessage(e.getMessage());
+            } else {
+                getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
+                generateReject(message, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
+            }
         } catch (final InvalidMessage e) {
+            /* InvalidMessage means a low-level error (e.g. checksum problem) and we should
+               ignore the message and let the problem correct itself (optimistic approach).
+               Target sequence number is not incremented, so it will trigger a ResendRequest
+               on the next message that is received. */
             getLog().onErrorEvent("Skipping invalid message: " + e + ": " + message);
             if (resetOrDisconnectIfRequired(message)) {
                 return;
@@ -1135,8 +1142,15 @@ public class Session implements Closeable {
         }
     }
 
+    private void logoutWithErrorMessage(final String reason) throws IOException {
+        final String errorMessage = "Invalid Logon message: " + (reason != null ? reason : "unspecific reason");
+        generateLogout(errorMessage);
+        state.incrNextTargetMsgSeqNum();
+        disconnect(errorMessage, true);
+    }
+
     private boolean logErrorAndDisconnectIfRequired(final Exception e, Message message) {
-        getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
+        getLog().onErrorEvent("Encountered invalid message: " + e + ": " + message);
         return resetOrDisconnectIfRequired(message);
     }
 
