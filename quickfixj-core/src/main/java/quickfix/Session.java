@@ -1021,12 +1021,13 @@ public class Session implements Closeable {
             }
             if (msgType.equals(MsgType.LOGON)) {
                 final String reason = SessionRejectReasonText.getMessage(e.getSessionRejectReason());
-                final String errorMessage = "Invalid Logon message: " + reason + " (field " + e.getField() + ")";
+                final String errorMessage = "Invalid Logon message: " + (reason != null ? reason : "unspecific reason")
+                        + " (field " + e.getField() + ")";
                 generateLogout(errorMessage);
                 state.incrNextTargetMsgSeqNum();
                 disconnect(errorMessage, true);
             } else {
-                generateReject(message, e.getSessionRejectReason(), e.getField());
+                generateReject(message, e.getMessage(), e.getSessionRejectReason(), e.getField());
             }
         } catch (final FieldNotFound e) {
             if (logErrorAndDisconnectIfRequired(e, message)) {
@@ -1490,7 +1491,17 @@ public class Session implements Closeable {
 
     private void generateReject(Message message, int err, int field) throws IOException,
             FieldNotFound {
-        final String reason = SessionRejectReasonText.getMessage(err);
+        generateReject(message, null, err, field);
+    }
+
+    private void generateReject(Message message, String text, int err, int field) throws IOException,
+            FieldNotFound {
+        final String reason;
+        if (text != null) {
+            reason = text;
+        } else {
+            reason = SessionRejectReasonText.getMessage(err);
+        }
         if (!state.isLogonReceived()) {
             final String errorMessage = "Tried to send a reject while not logged on: " + reason
                     + " (field " + field + ")";
@@ -1587,7 +1598,11 @@ public class Session implements Closeable {
             reject.setInt(RefTagID.FIELD, field);
             reject.setString(Text.FIELD, reason);
         } else {
-            reject.setString(Text.FIELD, reason + (includeFieldInReason ? " (" + field + ")" : ""));
+            String rejectReason = reason;
+            if (includeFieldInReason && !rejectReason.endsWith("" + field) ) {
+                rejectReason = rejectReason + " (" + field + ")";
+            }
+            reject.setString(Text.FIELD, rejectReason);
         }
     }
 
