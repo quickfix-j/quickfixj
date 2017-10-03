@@ -908,7 +908,7 @@ public class SessionTest {
         assertFalse(session.isLoggedOn());
 
         assertEquals(3, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
-        assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
+	assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
         assertEquals(4, session.getStore().getNextTargetMsgSeqNum());
         assertEquals(4, session.getStore().getNextSenderMsgSeqNum());
 
@@ -923,7 +923,7 @@ public class SessionTest {
         assertFalse(session.isLoggedOn());
 
         assertEquals(4, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
-        assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getInt(MsgType.FIELD));
+	assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
         assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
         assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
         
