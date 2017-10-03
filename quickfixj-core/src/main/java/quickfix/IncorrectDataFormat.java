@@ -19,19 +19,22 @@
 
 package quickfix;
 
+import quickfix.field.SessionRejectReason;
+
 /**
  * Field has a badly formatted value. (From the C++ API documentation.)
  */
-public class IncorrectDataFormat extends Exception {
-    public final int field;
-    public final String data;
+public class IncorrectDataFormat extends Exception implements HasFieldAndReason {
+    private final int field;
+    private final String data;
+    private final int sessionRejectReason;
 
     /**
      * @param field the tag number with the incorrect data
      * @param data the incorrect data
      */
     public IncorrectDataFormat(final int field, final String data) {
-        this(field, data, "Field [" + field + "] contains badly formatted data.");
+        this(field, data, SessionRejectReasonText.getMessage(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE) + ", field=" + field);
     }
 
     /**
@@ -51,10 +54,25 @@ public class IncorrectDataFormat extends Exception {
     public IncorrectDataFormat(final String message) {
         this(0, null, message);
     }
+    
+    @Override
+    public int getSessionRejectReason() {
+        return sessionRejectReason;
+    }
 
+    @Override
+    public int getField() {
+        return field;
+    }
+    
+    public String getData() {
+        return data;
+    }
+    
     private IncorrectDataFormat(final int field, final String data, final String message) {
         super(message);
         this.field = field;
         this.data = data;
+        this.sessionRejectReason = SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE;
     }
 }

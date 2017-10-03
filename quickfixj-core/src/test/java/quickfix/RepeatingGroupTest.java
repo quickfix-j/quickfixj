@@ -531,7 +531,7 @@ public class RepeatingGroupTest {
             Assert.fail("No exception");
         } catch (final IncorrectTagValue e) {
             // expected
-            assertEquals(385, e.field);
+            assertEquals(385, e.getField());
         }
     }
 

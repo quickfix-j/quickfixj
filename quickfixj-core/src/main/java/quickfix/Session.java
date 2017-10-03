@@ -1015,16 +1015,11 @@ public class Session implements Closeable {
                     state.incrNextTargetMsgSeqNum();
                     break;
             }
-        } catch (final FieldException e) {
+        } catch (final FieldException | IncorrectDataFormat | IncorrectTagValue e) {
             if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
-            if (msgType.equals(MsgType.LOGON)) {
-                logoutWithErrorMessage(e.getMessage());
-            } else {
-                getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-                generateReject(message, e.getMessage(), e.getSessionRejectReason(), e.getField());
-            }
+            handleExceptionAndRejectMessage(msgType, message, e);
         } catch (final FieldNotFound e) {
             if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
@@ -1040,26 +1035,6 @@ public class Session implements Closeable {
                 } else {
                     generateReject(message, SessionRejectReason.REQUIRED_TAG_MISSING, e.field);
                 }
-            }
-        } catch (final IncorrectDataFormat e) {
-            if (logErrorAndDisconnectIfRequired(e, message)) {
-                return;
-            }
-            if (msgType.equals(MsgType.LOGON)) {
-                logoutWithErrorMessage(e.getMessage());
-            } else {
-                getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-                generateReject(message, null, SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE, e.field);
-            }
-        } catch (final IncorrectTagValue e) {
-            if (logErrorAndDisconnectIfRequired(e, message)) {
-                return;
-            }
-            if (msgType.equals(MsgType.LOGON)) {
-                logoutWithErrorMessage(e.getMessage());
-            } else {
-                getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
-                generateReject(message, null, SessionRejectReason.VALUE_IS_INCORRECT, e.field);
             }
         } catch (final InvalidMessage e) {
             /* InvalidMessage means a low-level error (e.g. checksum problem) and we should
@@ -1147,6 +1122,15 @@ public class Session implements Closeable {
         }
     }
 
+    private void handleExceptionAndRejectMessage(final String msgType, final Message message, final HasFieldAndReason e) throws FieldNotFound, IOException {
+        if (MsgType.LOGON.equals(msgType)) {
+            logoutWithErrorMessage(e.getMessage());
+        } else {
+            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
+            generateReject(message, e.getMessage(), e.getSessionRejectReason(), e.getField());
+        }
+    }
+
     private void logoutWithErrorMessage(final String reason) throws IOException {
         final String errorMessage = "Invalid Logon message: " + (reason != null ? reason : "unspecific reason");
         generateLogout(errorMessage);
@@ -1155,8 +1139,11 @@ public class Session implements Closeable {
     }
 
     private boolean logErrorAndDisconnectIfRequired(final Exception e, Message message) {
-        getLog().onErrorEvent("Encountered invalid message: " + e + ": " + message);
-        return resetOrDisconnectIfRequired(message);
+        final boolean resetOrDisconnectIfRequired = resetOrDisconnectIfRequired(message);
+        if (resetOrDisconnectIfRequired) {
+            getLog().onErrorEvent("Encountered invalid message: " + e + ": " + message);
+        }
+        return resetOrDisconnectIfRequired;
     }
 
     /**
@@ -1619,7 +1606,7 @@ public class Session implements Closeable {
         } else {
             String rejectReason = reason;
             if (includeFieldInReason && !rejectReason.endsWith("" + field) ) {
-                rejectReason = rejectReason + " (" + field + ")";
+                rejectReason = rejectReason + ", field=" + field;
             }
             reject.setString(Text.FIELD, rejectReason);
         }
