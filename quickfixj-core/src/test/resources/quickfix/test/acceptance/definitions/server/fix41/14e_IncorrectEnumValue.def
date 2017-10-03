@@ -13,7 +13,7 @@ E8=FIX.4.19=5635=A34=149=ISLD52=00000000-00:00:0056=TW98=0108=210=0
 #New order message with incorrect enum value. Handling instructions (21) = 4
 I8=FIX.4.135=D34=249=TW52=<TIME>56=ISLD11=ID21=440=154=138=002000.0055=INTC60=<TIME>
 # expect a reject
-E8=FIX.4.19=10535=334=249=ISLD52=00000000-00:00:0056=TW45=258=Value is incorrect (out of range) for this tag (21)10=0
+E8=FIX.4.19=10535=334=249=ISLD52=00000000-00:00:0056=TW45=258=Value is incorrect (out of range) for this tag, field=2110=0
 
 #------------------------
 # end message exchange
