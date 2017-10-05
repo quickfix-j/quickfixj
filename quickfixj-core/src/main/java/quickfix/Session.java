@@ -411,11 +411,15 @@ public class Session implements Closeable {
     private boolean validateIncomingMessage = true;
     private final int[] logonIntervals;
     private final Set<InetAddress> allowedRemoteAddresses;
-
+    
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final int DEFAULT_RESEND_RANGE_CHUNK_SIZE = 0; // no resend range
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
     private static final String ENCOUNTERED_END_OF_STREAM = "Encountered END_OF_STREAM";
+
+    private static final int BAD_TIME_REJ_REASON = SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM;
+    private static final String BAD_ORIG_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, OrigSendingTime.FIELD).getMessage();
+    private static final String BAD_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, SendingTime.FIELD).getMessage();
 
     protected final static Logger log = LoggerFactory.getLogger(Session.class);
 
@@ -1764,8 +1768,12 @@ public class Session implements Closeable {
 
     private void doBadTime(Message msg) throws IOException, FieldNotFound {
         try {
-            generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
-            generateLogout();
+            if (!MsgType.LOGON.equals(msg.getHeader().getString(MsgType.FIELD))) {
+                generateReject(msg, BAD_TIME_REJ_REASON, SendingTime.FIELD);
+                generateLogout(BAD_TIME_TEXT);
+            } else {
+                logoutWithErrorMessage(BAD_TIME_TEXT);
+            }
         } catch (final SessionException ex) {
             generateLogout(ex.getMessage());
             throw ex;
@@ -2416,8 +2424,8 @@ public class Session implements Closeable {
                 final LocalDateTime origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
                 final LocalDateTime sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
                 if (origSendingTime.compareTo(sendingTime) > 0) {
-                    generateReject(msg, SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM, 0);
-                    generateLogout();
+                    generateReject(msg, BAD_TIME_REJ_REASON, OrigSendingTime.FIELD);
+                    generateLogout(BAD_ORIG_TIME_TEXT);
                     return false;
                 }
             } else {
