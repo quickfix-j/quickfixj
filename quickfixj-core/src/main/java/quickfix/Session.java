@@ -417,6 +417,8 @@ public class Session implements Closeable {
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
     private static final String ENCOUNTERED_END_OF_STREAM = "Encountered END_OF_STREAM";
 
+    private static final int BAD_COMPID_REJ_REASON = SessionRejectReason.COMPID_PROBLEM;
+    private static final String BAD_COMPID_TEXT = new FieldException(BAD_COMPID_REJ_REASON).getMessage();
     private static final int BAD_TIME_REJ_REASON = SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM;
     private static final String BAD_ORIG_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, OrigSendingTime.FIELD).getMessage();
     private static final String BAD_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, SendingTime.FIELD).getMessage();
@@ -591,12 +593,22 @@ public class Session implements Closeable {
      */
     public static boolean sendToTarget(Message message, String qualifier) throws SessionNotFound {
         try {
-            final String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
-            final String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
+            final String senderCompID = getSenderCompIDFromMessage(message);
+            final String targetCompID = getTargetCompIDFromMessage(message);
             return sendToTarget(message, senderCompID, targetCompID, qualifier);
         } catch (final FieldNotFound e) {
             throw new SessionNotFound("missing sender or target company ID");
         }
+    }
+
+    private static String getTargetCompIDFromMessage(final Message message) throws FieldNotFound {
+        final String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
+        return targetCompID;
+    }
+
+    private static String getSenderCompIDFromMessage(final Message message) throws FieldNotFound {
+        final String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
+        return senderCompID;
     }
 
     /**
@@ -1752,7 +1764,6 @@ public class Session implements Closeable {
     private boolean doTargetTooLow(Message msg) throws FieldNotFound, IOException {
         if (!isPossibleDuplicate(msg)) {
             final int msgSeqNum = msg.getHeader().getInt(MsgSeqNum.FIELD);
-
             final String text = "MsgSeqNum too low, expecting " + getExpectedTargetNum()
                     + " but received " + msgSeqNum;
             generateLogout(text);
@@ -1762,8 +1773,12 @@ public class Session implements Closeable {
     }
 
     private void doBadCompID(Message msg) throws IOException, FieldNotFound {
-        generateReject(msg, SessionRejectReason.COMPID_PROBLEM, 0);
-        generateLogout();
+        if (!MsgType.LOGON.equals(msg.getHeader().getString(MsgType.FIELD))) {
+            generateReject(msg, BAD_COMPID_REJ_REASON, 0);
+            generateLogout(BAD_COMPID_TEXT);
+        } else {
+            logoutWithErrorMessage(BAD_COMPID_TEXT);
+        }
     }
 
     private void doBadTime(Message msg) throws IOException, FieldNotFound {
@@ -2625,8 +2640,8 @@ public class Session implements Closeable {
         if (!checkCompID) {
             return true;
         }
-        final String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
-        final String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
+        final String senderCompID = getSenderCompIDFromMessage(message);
+        final String targetCompID = getTargetCompIDFromMessage(message);
         return sessionID.getSenderCompID().equals(targetCompID)
                 && sessionID.getTargetCompID().equals(senderCompID);
     }
