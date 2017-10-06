@@ -70,15 +70,6 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     @Override
-    @Deprecated
-    /**
-     * Use SocketAcceptor.start().
-     */
-    public void block() throws ConfigError, RuntimeError {
-        initialize(false);
-    }
-
-    @Override
     public void start() throws ConfigError, RuntimeError {
         initialize(true);
     }

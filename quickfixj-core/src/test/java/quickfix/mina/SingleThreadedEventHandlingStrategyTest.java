@@ -387,10 +387,6 @@ public class SingleThreadedEventHandlingStrategyTest {
         @Override
         public void stop(boolean force) {
         }
-
-        @Override
-        public void block() throws ConfigError, RuntimeError {
-        }
     }
 
 }

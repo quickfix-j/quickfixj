@@ -58,8 +58,4 @@ public class CompositeLogFactory implements LogFactory {
         return new CompositeLog(logs);
     }
 
-    public Log create() {
-        throw new UnsupportedOperationException();
-    }
-
 }

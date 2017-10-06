@@ -78,10 +78,6 @@ public class LogUtilTest extends TestCase {
             public Log create(SessionID sessionID, String callerFQCN) {
                 return log;
             }
-
-            public Log create() {
-                throw new UnsupportedOperationException();
-            }
         };
     }
 

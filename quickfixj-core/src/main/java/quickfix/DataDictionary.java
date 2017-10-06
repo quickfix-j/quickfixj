@@ -1235,17 +1235,6 @@ public class DataDictionary {
          * Returns the delimiter field used to start a repeating group instance.
          *
          * @return delimiter field
-         * @deprecated use getDelimiterField() instead
-         */
-        @Deprecated
-        public int getDelimeterField() {
-            return delimiterField;
-        }
-
-        /**
-         * Returns the delimiter field used to start a repeating group instance.
-         *
-         * @return delimiter field
          */
         public int getDelimiterField() {
             return delimiterField;

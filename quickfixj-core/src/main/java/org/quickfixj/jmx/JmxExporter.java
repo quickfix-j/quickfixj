@@ -104,16 +104,6 @@ public class JmxExporter {
         }
     }
 
-    /**
-     * Register a connector with JMX
-     *
-     * @deprecated use register instead
-     * @param connector
-     */
-    public void export(Connector connector) {
-        register(connector);
-    }
-
     public ObjectName register(Connector connector) {
         return connectorExporter.register(this, (SessionConnector) connector);
     }

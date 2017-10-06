@@ -57,10 +57,6 @@ public class JdbcLogFactory implements LogFactory {
         return settings;
     }
 
-    public Log create() {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * Set a data source to be used by the JdbcLog to access
      * the database.
