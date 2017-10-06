@@ -417,13 +417,15 @@ public class Session implements Closeable {
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
     private static final String ENCOUNTERED_END_OF_STREAM = "Encountered END_OF_STREAM";
 
+
     private static final int BAD_COMPID_REJ_REASON = SessionRejectReason.COMPID_PROBLEM;
     private static final String BAD_COMPID_TEXT = new FieldException(BAD_COMPID_REJ_REASON).getMessage();
     private static final int BAD_TIME_REJ_REASON = SessionRejectReason.SENDINGTIME_ACCURACY_PROBLEM;
     private static final String BAD_ORIG_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, OrigSendingTime.FIELD).getMessage();
     private static final String BAD_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, SendingTime.FIELD).getMessage();
 
-    protected final static Logger log = LoggerFactory.getLogger(Session.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(Session.class);
+
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
             DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule,
@@ -681,7 +683,7 @@ public class Session implements Closeable {
                 try {
                     session.close();
                 } catch (final IOException e) {
-                    log.error("Failed to close session resources", e);
+                    LOG.error("Failed to close session resources", e);
                 }
             }
         }
@@ -1187,7 +1189,7 @@ public class Session implements Closeable {
                 getLog().onErrorEvent("Auto reset");
                 reset();
             } catch (final IOException e) {
-                log.error("Failed reseting: " + e);
+                LOG.error("Failed reseting: " + e);
             }
             return true;
         }
@@ -1195,7 +1197,7 @@ public class Session implements Closeable {
             try {
                 disconnect("Auto disconnect", false);
             } catch (final IOException e) {
-                log.error("Failed disconnecting: " + e);
+                LOG.error("Failed disconnecting: " + e);
             }
             return true;
         }
@@ -1909,7 +1911,7 @@ public class Session implements Closeable {
                 disconnect("Timed out waiting for heartbeat", true);
                 stateListener.onHeartBeatTimeout();
             } else {
-                log.warn("Heartbeat failure detected but deactivated");
+                LOG.warn("Heartbeat failure detected but deactivated");
             }
         } else {
             if (state.isTestRequestNeeded()) {
@@ -1999,7 +2001,12 @@ public class Session implements Closeable {
 
     /**
      * Logs out from session and closes the network connection.
-     *
+     * 
+     * This method should not be called from user-code since it is likely
+     * to deadlock when called from a different thread than the Session thread
+     * and messages are sent/received concurrently.
+     * Instead the logout() method should be used where possible.
+     * 
      * @param reason the reason why the session is disconnected
      * @param logError set to true if this disconnection is an error
      * @throws IOException IO error
@@ -2020,7 +2027,7 @@ public class Session implements Closeable {
                 if (logError) {
                     getLog().onErrorEvent(msg);
                 } else {
-                    log.info("[" + getSessionID() + "] " + msg);
+                    getLog().onEvent(msg);
                 }
                 responder.disconnect();
                 setResponder(null);
@@ -2233,7 +2240,7 @@ public class Session implements Closeable {
             state.get(beginSeqNo, endSeqNo, messages);
         } catch (final IOException e) {
             if (forceResendWhenCorruptedStore) {
-                log.error("Cannot read messages from stores, resend HeartBeats", e);
+                LOG.error("Cannot read messages from stores, resend HeartBeats", e);
                 for (int i = beginSeqNo; i < endSeqNo; i++) {
                     final Message heartbeat = messageFactory.create(sessionID.getBeginString(),
                             MsgType.HEARTBEAT);
