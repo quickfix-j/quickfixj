@@ -30,7 +30,7 @@ public class FieldException extends RuntimeException implements HasFieldAndReaso
     }
 
     public FieldException(int sessionRejectReason, int field) {
-        super(SessionRejectReasonText.getMessage(sessionRejectReason) + ", field=" + field);
+        super(SessionRejectReasonText.getMessage(sessionRejectReason) + (field != -1 ? ", field=" + field : ""));
         this.sessionRejectReason = sessionRejectReason;
         this.field = field;
     }

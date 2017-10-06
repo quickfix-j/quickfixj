@@ -568,7 +568,7 @@ public class DataDictionary {
      * @param message the message
      * @throws IncorrectTagValue if a field value is not valid
      * @throws FieldNotFound if a field cannot be found
-     * @throws IncorrectDataFormat
+     * @throws IncorrectDataFormat if a field value has a wrong data type
      */
     public void validate(Message message) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
@@ -582,7 +582,7 @@ public class DataDictionary {
      * @param bodyOnly whether to validate just the message body, or to validate the header and trailer sections as well.
      * @throws IncorrectTagValue if a field value is not valid
      * @throws FieldNotFound if a field cannot be found
-     * @throws IncorrectDataFormat
+     * @throws IncorrectDataFormat if a field value has a wrong data type
      */
     public void validate(Message message, boolean bodyOnly) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
@@ -653,23 +653,21 @@ public class DataDictionary {
         }
     }
 
-    // / Check if message type is defined in spec.
+    /** Check if message type is defined in spec. **/
     private void checkMsgType(String msgType) {
         if (!isMsgType(msgType)) {
-            // It would be better to include the msgType in exception message
-            // Doing that will break acceptance tests
-            throw new FieldException(SessionRejectReason.INVALID_MSGTYPE);
+            throw new FieldException(SessionRejectReason.INVALID_MSGTYPE, MsgType.FIELD);
         }
     }
 
-    // / Check if field tag number is defined in spec.
+    /** Check if field tag number is defined in spec. **/
     void checkValidTagNumber(Field<?> field) {
         if (!fields.contains(field.getTag())) {
             throw new FieldException(SessionRejectReason.INVALID_TAG_NUMBER, field.getField());
         }
     }
 
-    // / Check if field tag is defined for message or group
+    /** Check if field tag is defined for message or group **/
     void checkField(Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
@@ -757,7 +755,7 @@ public class DataDictionary {
         }
     }
 
-    // / Check if a field has a value.
+    /** Check if a field has a value. **/
     private void checkHasValue(StringField field) {
         if (checkFieldsHaveValues && field.getValue().length() == 0) {
             throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
@@ -765,7 +763,7 @@ public class DataDictionary {
         }
     }
 
-    // / Check if group count matches number of groups in
+    /** Check if group count matches number of groups in **/
     private void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
         final int fieldNum = field.getField();
         if (isGroup(msgType, fieldNum)) {
@@ -777,7 +775,7 @@ public class DataDictionary {
         }
     }
 
-    // / Check if a message has all required fields.
+    /** Check if a message has all required fields. **/
     void checkHasRequired(FieldMap header, FieldMap body, FieldMap trailer, String msgType,
             boolean bodyOnly) {
         if (!bodyOnly) {
