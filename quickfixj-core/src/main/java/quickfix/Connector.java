@@ -52,17 +52,6 @@ public interface Connector {
     void stop(boolean force);
 
     /**
-     * Start accepting connections. This method blocks until stop is called from
-     * another thread.
-     * This method must not be called by several threads concurrently.
-     * @deprecated Use start() instead.
-     * @throws ConfigError Problem with acceptor configuration.
-     * @throws RuntimeError Other unspecified error
-     */
-    @Deprecated
-    void block() throws ConfigError, RuntimeError;
-
-    /**
      * Checks the logged on status of the session.
      *
      * @return true is any session is logged on, false otherwise.

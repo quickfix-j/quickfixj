@@ -79,15 +79,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
 
     @Override
-    @Deprecated
-    /**
-     * Use SocketInitiator.start().
-     */
-    public void block() throws ConfigError, RuntimeError {
-        initialize(false);
-    }
-
-    @Override
     public void start() throws ConfigError, RuntimeError {
         initialize(true);
     }

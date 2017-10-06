@@ -140,16 +140,6 @@ public class FileLog extends AbstractLog {
     }
 
     /**
-     * Closes the messages and events files.
-     *
-     * @deprecated Use close instead.
-     * @throws IOException
-     */
-    public void closeFiles() throws IOException {
-        close();
-    }
-
-    /**
      * Closed the messages and events files.
      *
      * @throws IOException

@@ -104,8 +104,4 @@ public class SLF4JLogFactory implements LocationAwareLogFactory {
                 prependSessionID, logHeartbeats, callerFQCN);
     }
 
-    public Log create() {
-        throw new UnsupportedOperationException();
-    }
-
 }

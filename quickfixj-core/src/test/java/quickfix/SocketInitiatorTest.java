@@ -127,37 +127,6 @@ public class SocketInitiatorTest {
     }
 
     @Test
-    @Ignore
-    public void testBlockLogoffAfterLogon() throws Exception {
-        int freePort = AvailablePortFinder.getNextAvailable();
-        ServerThread serverThread = new ServerThread(freePort);
-        try {
-            serverThread.setDaemon(true);
-            serverThread.start();
-            serverThread.waitForInitialization();
-
-            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
-            ClientApplication clientApplication = new ClientApplication();
-            final SocketInitiator initiator = new SocketInitiator(clientApplication,
-                    new MemoryStoreFactory(), settings, new DefaultMessageFactory());
-            try {
-                clientApplication.stopAfterLogon(initiator);
-                clientApplication.setUpLogonExpectation();
-
-                initiator.block();
-                assertFalse("wrong logon status", initiator.isLoggedOn());
-                assertEquals("wrong # of session", 1, initiator.getManagedSessions().size());
-            } finally {
-                initiator.stop();
-            }
-        } finally {
-            serverThread.interrupt();
-            serverThread.join();
-        }
-    }
-
-    @Test
     public void testInitiatorStop() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
@@ -366,11 +335,6 @@ public class SocketInitiatorTest {
         };
 
         LogFactory logFactory = new LogFactory() {
-            @Override
-            public Log create() {
-                return logSessionStateListener;
-            }
-
             @Override
             public Log create(SessionID sessionID) {
                 return logSessionStateListener;

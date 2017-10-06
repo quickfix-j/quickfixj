@@ -1990,16 +1990,6 @@ public class Session implements Closeable {
     }
 
     /**
-     * Use disconnect(reason, logError) instead.
-     *
-     * @deprecated
-     */
-    @Deprecated
-    public void disconnect() throws IOException {
-        disconnect("Other reason", true);
-    }
-
-    /**
      * Logs out from session and closes the network connection.
      * 
      * This method should not be called from user-code since it is likely
@@ -2651,18 +2641,6 @@ public class Session implements Closeable {
         final String targetCompID = getTargetCompIDFromMessage(message);
         return sessionID.getSenderCompID().equals(targetCompID)
                 && sessionID.getTargetCompID().equals(senderCompID);
-    }
-
-    /**
-     * Set the data dictionary. (QF Compatibility)
-     *
-     * @deprecated
-     * @param dataDictionary
-     */
-    @Deprecated
-    public void setDataDictionary(DataDictionary dataDictionary) {
-        throw new UnsupportedOperationException(
-                "Modification of session dictionary is not supported in QFJ");
     }
 
     public DataDictionary getDataDictionary() {

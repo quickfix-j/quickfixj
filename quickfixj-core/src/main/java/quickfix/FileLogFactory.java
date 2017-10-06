@@ -90,7 +90,4 @@ public class FileLogFactory implements LogFactory {
         }
     }
 
-    public Log create() {
-        throw new UnsupportedOperationException();
-    }
 }
