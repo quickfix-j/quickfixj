@@ -132,12 +132,12 @@ public class JmxExporter {
         } catch (final InstanceAlreadyExistsException ex) {
             if (registrationBehaviour == REGISTRATION_IGNORE_EXISTING) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Ignoring existing MBean at [" + objectName + "]");
+                    log.debug("Ignoring existing MBean at [{}]", objectName);
                 }
             } else if (registrationBehaviour == REGISTRATION_REPLACE_EXISTING) {
                 try {
                     if (log.isDebugEnabled()) {
-                        log.debug("Replacing existing MBean at [" + objectName + "]");
+                        log.debug("Replacing existing MBean at [{}]", objectName);
                     }
                     mbeanServer.unregisterMBean(objectName);
                     mbeanServer.registerMBean(mbean, objectName);

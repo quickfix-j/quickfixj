@@ -168,7 +168,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             }
             localAddress = ProtocolFactory.createSocketAddress(ProtocolFactory.SOCKET, host, port);
             if (log.isInfoEnabled()) {
-                log.info("Using initiator local host: " + localAddress);
+                log.info("Using initiator local host: {}", localAddress);
             }
         }
         return localAddress;

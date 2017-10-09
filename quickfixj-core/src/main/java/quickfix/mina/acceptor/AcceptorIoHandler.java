@@ -54,8 +54,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
     @Override
     public void sessionCreated(IoSession session) throws Exception {
         super.sessionCreated(session);
-        log.info("MINA session created: local=" + session.getLocalAddress() + ", "
-                + session.getClass() + ", remote=" + session.getRemoteAddress());
+        log.info("MINA session created: local={}, {}, remote={}", session.getLocalAddress(), session.getClass(), session.getRemoteAddress());
     }
 
     @Override
@@ -95,15 +94,15 @@ class AcceptorIoHandler extends AbstractIoHandler {
                         }
                     }
                 } else {
-                    log.error("Unknown session ID during logon: " + sessionID
-                            + " cannot be found in session list "
-                            + eventHandlingStrategy.getSessionConnector().getSessions()
-                            + " (connecting from " + protocolSession.getRemoteAddress() + " to "
-                            + protocolSession.getLocalAddress() + ")");
+                    log.error("Unknown session ID during logon: {} cannot be found in session list {} (connecting from {} to {})",
+                            sessionID,
+                            eventHandlingStrategy.getSessionConnector().getSessions(),
+                            protocolSession.getRemoteAddress(),
+                            protocolSession.getLocalAddress());
                     return;
                 }
             } else {
-                log.warn("Ignoring non-logon message before session establishment: " + message);
+                log.warn("Ignoring non-logon message before session establishment: {}", message);
                 protocolSession.closeNow();
                 return;
             }

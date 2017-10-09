@@ -120,7 +120,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
      */
     public void blockInThread() {
         if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
-            sessionConnector.log.warn("Trying to stop still running " + MESSAGE_PROCESSOR_THREAD_NAME);
+            sessionConnector.log.warn("Trying to stop still running {}", MESSAGE_PROCESSOR_THREAD_NAME);
             stopHandlingMessages(true);
             if (messageProcessingThread.isAlive()) {
                 throw new IllegalStateException("Still running " + MESSAGE_PROCESSOR_THREAD_NAME + " could not be stopped!");
@@ -129,9 +129,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
         startHandlingMessages();
         messageProcessingThread = new ThreadAdapter(() -> {
-            sessionConnector.log.info("Started " + MESSAGE_PROCESSOR_THREAD_NAME);
+            sessionConnector.log.info("Started {}", MESSAGE_PROCESSOR_THREAD_NAME);
             block();
-            sessionConnector.log.info("Stopped " + MESSAGE_PROCESSOR_THREAD_NAME);
+            sessionConnector.log.info("Stopped {}", MESSAGE_PROCESSOR_THREAD_NAME);
         }, MESSAGE_PROCESSOR_THREAD_NAME, executor);
         messageProcessingThread.setDaemon(true);
         messageProcessingThread.start();
@@ -173,7 +173,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             try {
                 messageProcessingThread.join();
             } catch (InterruptedException e) {
-                sessionConnector.log.error(MESSAGE_PROCESSOR_THREAD_NAME + " interrupted.");
+                sessionConnector.log.error("{} interrupted.", MESSAGE_PROCESSOR_THREAD_NAME);
             }
         }
     }

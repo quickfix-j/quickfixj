@@ -234,7 +234,7 @@ public class CachedFileStore implements MessageStore {
     private void deleteFile(String fileName) throws IOException {
         final File file = new File(fileName);
         if (file.exists() && !file.delete()) {
-            log.error("File delete failed: " + fileName);
+            log.error("File delete failed: {}", fileName);
         }
     }
 

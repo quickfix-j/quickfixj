@@ -676,7 +676,7 @@ public class SSLCertificateTest {
 
         @Override
         public SessionConnector createConnector(SessionSettings sessionSettings) throws ConfigError {
-            LOGGER.info("Creating acceptor: " + sessionSettings);
+            LOGGER.info("Creating acceptor: {}", sessionSettings);
 
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
@@ -697,7 +697,7 @@ public class SSLCertificateTest {
 
         @Override
         public SessionConnector createConnector(SessionSettings sessionSettings) throws ConfigError {
-            LOGGER.info("Creating initiator: " + sessionSettings);
+            LOGGER.info("Creating initiator: {}", sessionSettings);
 
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();

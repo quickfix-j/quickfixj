@@ -108,7 +108,7 @@ public class SSLContextFactory {
         try {
             in = FileUtil.open(SSLContextFactory.class, keyStoreName);
             if (in == null) {
-                log.warn(keyStoreName + ": keystore not found, using empty keystore");
+                log.warn("{}: keystore not found, using empty keystore", keyStoreName);
             }
             keyStore.load(in, keyStorePassword);
         } finally {

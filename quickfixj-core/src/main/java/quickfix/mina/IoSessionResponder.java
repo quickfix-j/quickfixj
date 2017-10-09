@@ -64,11 +64,11 @@ public class IoSessionResponder implements Responder {
         if (synchronousWrites) {
             try {
                 if (!future.awaitUninterruptibly(synchronousWriteTimeout)) {
-                    log.error("Synchronous write timed out after " + synchronousWriteTimeout + "ms");
+                    log.error("Synchronous write timed out after {}ms", synchronousWriteTimeout);
                     return false;
                 }
             } catch (RuntimeException e) {
-                log.error("Synchronous write failed: " + e.getMessage());
+                log.error("Synchronous write failed: {}", e.getMessage());
                 return false;
             }
         }

@@ -100,8 +100,7 @@ public class NetworkingOptions {
                 }
             }
             trafficClassSetting = trafficClassBits;
-            log.info("Socket option: " + SETTING_SOCKET_TRAFFIC_CLASS + "= 0x"
-                    + Integer.toHexString(trafficClassBits) + " (" + trafficClassEnumString + ")");
+            log.info("Socket option: {}= 0x{} ({})", SETTING_SOCKET_TRAFFIC_CLASS, Integer.toHexString(trafficClassBits), trafficClassEnumString);
         }
 
         trafficClass = trafficClassSetting;
@@ -116,7 +115,7 @@ public class NetworkingOptions {
 
     private void logOption(String key, Object value) {
         if (value != null) {
-            log.info("Socket option: " + key + "=" + value);
+            log.info("Socket option: {}={}", key, value);
         }
     }
 

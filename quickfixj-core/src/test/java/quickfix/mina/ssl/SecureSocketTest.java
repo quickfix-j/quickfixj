@@ -66,7 +66,7 @@ public class SecureSocketTest extends TestCase {
             final CountDownLatch exceptionCaught = new CountDownLatch(1);
             initiator.setIoFilterChainBuilder(chain -> chain.addLast("ExceptionCatcher", new IoFilterAdapter() {
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
-                    log.info("MINA exception: " + cause.getMessage());
+                    log.info("MINA exception: {}", cause.getMessage());
                     exceptionCaught.countDown();
                 }
             }));

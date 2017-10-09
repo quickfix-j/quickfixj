@@ -142,7 +142,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
     }
 
     public void stop(boolean force) {
-        log.info("JMX operation: stop " + getRole() + " " + this);
+        log.info("JMX operation: stop {} {}", getRole(), this);
         connector.stop(force);
     }
 
