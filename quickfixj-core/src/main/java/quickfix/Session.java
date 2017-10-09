@@ -1189,7 +1189,7 @@ public class Session implements Closeable {
                 getLog().onErrorEvent("Auto reset");
                 reset();
             } catch (final IOException e) {
-                LOG.error("Failed reseting: " + e);
+                LOG.error("Failed resetting: {}", e);
             }
             return true;
         }
@@ -1197,7 +1197,7 @@ public class Session implements Closeable {
             try {
                 disconnect("Auto disconnect", false);
             } catch (final IOException e) {
-                LOG.error("Failed disconnecting: " + e);
+                LOG.error("Failed disconnecting: {}", e);
             }
             return true;
         }

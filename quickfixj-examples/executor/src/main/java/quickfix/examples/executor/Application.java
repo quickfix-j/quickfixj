@@ -92,7 +92,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
                     }
                 };
             } else {
-                log.warn("Ignoring " + DEFAULT_MARKET_PRICE_KEY + " since provider is already defined.");
+                log.warn("Ignoring {} since provider is already defined.", DEFAULT_MARKET_PRICE_KEY);
             }
         }
     }

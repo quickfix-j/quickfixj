@@ -55,7 +55,7 @@ public class ConnectToServerStep implements TestStep {
         } else {
             Assert.fail("incorrect connect command: " + command);
         }
-        log.debug("connecting to client " + clientId);
+        log.debug("connecting to client {}", clientId);
         long reconnectDelay = Long.getLong("atest.reconnectDelay", 50L);
         if (reconnectDelay > 0) {
             try {

@@ -84,7 +84,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
         }
         startTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_START_TIME, Session.SETTING_START_DAY);
         endTime = getTimeEndPoint(settings, sessionID, defaultTimeZone, Session.SETTING_END_TIME, Session.SETTING_END_DAY);
-        LOG.info("[" + sessionID + "] " + toString());
+        LOG.info("[{}] {}", sessionID, toString());
     }
 
     private TimeEndPoint getTimeEndPoint(SessionSettings settings, SessionID sessionID,

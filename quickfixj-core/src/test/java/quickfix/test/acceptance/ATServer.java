@@ -95,7 +95,7 @@ public class ATServer implements Runnable {
             fixVersions.add(e.nextElement().toString().substring(0, 5));
         }
         resetOnDisconnect = true;
-        log.info("creating sessions for " + fixVersions);
+        log.info("creating sessions for {}", fixVersions);
     }
 
     public void run() {
@@ -180,7 +180,7 @@ public class ATServer implements Runnable {
                 acceptor.start();
             } catch (RuntimeError e) {
                 if (e.getCause() instanceof BindException) {
-                    log.warn("Acceptor port " + port + " is still bound! Waiting 60 seconds and trying again...");
+                    log.warn("Acceptor port {} is still bound! Waiting 60 seconds and trying again...", port);
                     Thread.sleep(60000);
                     acceptor.start();
                 }

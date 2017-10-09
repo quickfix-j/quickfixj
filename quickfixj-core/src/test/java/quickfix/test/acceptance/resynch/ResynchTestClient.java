@@ -88,7 +88,7 @@ public class ResynchTestClient extends MessageCracker implements Application {
     // Cracked
     public void onMessage(Heartbeat message, SessionID sessionID) throws FieldNotFound,
             UnsupportedMessageType, IncorrectTagValue {
-        log.info("Received Heartbeat: " + message);
+        log.info("Received Heartbeat: {}", message);
         stop(false);
     }
 

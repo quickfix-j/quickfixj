@@ -151,13 +151,13 @@ public abstract class SessionConnector implements Connector {
 
     public void addDynamicSession(Session inSession) {
         sessions.put(inSession.getSessionID(), inSession);
-        log.debug("adding session for " + inSession.getSessionID());
+        log.debug("adding session for {}", inSession.getSessionID());
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
     public void removeDynamicSession(SessionID inSessionID) {
         sessions.remove(inSessionID);
-        log.debug("removing session for " + inSessionID);
+        log.debug("removing session for {}", inSessionID);
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 

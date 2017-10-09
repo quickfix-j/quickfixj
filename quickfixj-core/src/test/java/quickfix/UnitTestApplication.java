@@ -43,28 +43,28 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
 
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        log.info("from app [" + sessionId + "] " + message);
+        log.info("from app [{}] {}", sessionId, message);
         fromAppMessages.add(message);
     }
 
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
-        log.info("to app [" + sessionId + "] " + message);
+        log.info("to app [{}] {}", sessionId, message);
         toAppMessages.add(message);
     }
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-        log.info("from admin [" + sessionId + "] "+message);
+        log.info("from admin [{}] {}", sessionId, message);
         fromAdminMessages.add(message);
     }
 
     public void toAdmin(Message message, SessionID sessionId) {
-        log.info("to admin [" + sessionId + "] " + message);
+        log.info("to admin [{}] {}", sessionId, message);
         toAdminMessages.add(message);
     }
 
     public void onBeforeSessionReset(SessionID sessionId) {
-        log.info("onBeforeSessionReset [" + sessionId + "]");
+        log.info("onBeforeSessionReset [{}]", sessionId);
     }
 
     public void onLogout(SessionID sessionId) {
