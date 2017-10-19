@@ -2032,11 +2032,12 @@ public class Session implements Closeable {
 
                 stateListener.onLogout();
             }
+        } finally {
             // QFJ-457 now enabled again if acceptor
             if (!state.isInitiator()) {
                 setEnabled(true);
             }
-        } finally {
+            
             state.setLogonReceived(false);
             state.setLogonSent(false);
             state.setLogoutSent(false);
