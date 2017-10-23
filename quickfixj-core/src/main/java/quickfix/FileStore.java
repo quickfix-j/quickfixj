@@ -97,10 +97,10 @@ public class FileStore implements MessageStore, Closeable {
     }
 
     void initialize(boolean deleteFiles) throws IOException {
-        close();
-
         if (deleteFiles) {
-            deleteFiles();
+            closeAndDeleteFiles();
+        } else {
+            close();
         }
 
         String mode = READ_OPTION + WRITE_OPTION + (syncWrites ? SYNC_OPTION : NOSYNC_OPTION);
@@ -219,7 +219,7 @@ public class FileStore implements MessageStore, Closeable {
         }
     }
 
-    public void deleteFiles() throws IOException {
+    public void closeAndDeleteFiles() throws IOException {
         close();
         deleteFile(headerFileName);
         deleteFile(msgFileName);
