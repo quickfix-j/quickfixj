@@ -218,13 +218,11 @@ public class Generator {
     }
 
     private MsgType getNextMsgType(Map<String, MsgType> msgTypes) {
-        try
-        {
-            return msgTypes.values().iterator().next();
-        }
-        catch(NoSuchElementException ex)
-        {
-            throw new RuntimeException("Message type not found. Check the MsgType.xml file.", ex);
+        Iterator<MsgType> it = msgTypes.values().iterator();
+        if(it.hasNext()) {
+            return it.next();
+        } else {
+            throw new RuntimeException("Message type not found. Check the MsgType.xml file.");
         }
     }
 
