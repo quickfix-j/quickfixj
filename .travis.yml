@@ -1,6 +1,6 @@
 language: java
 sudo: required
-dist: trusty
+dist: precise
 jdk:
   - oraclejdk8
 before_install:
