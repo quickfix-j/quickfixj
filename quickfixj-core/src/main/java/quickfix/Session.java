@@ -1073,7 +1073,7 @@ public class Session implements Closeable {
                     generateLogout(e.getMessage());
                 }
             }
-            state.incrNextTargetMsgSeqNum();
+            //Don't increment sequence number - no guarantee rejected logon was in sequence - can skip messages
             disconnect("Logon rejected: " + e, true);
         } catch (final UnsupportedMessageType e) {
             if (logErrorAndDisconnectIfRequired(e, message)) {
