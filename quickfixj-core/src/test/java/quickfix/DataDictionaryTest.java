@@ -751,7 +751,9 @@ public class DataDictionaryTest {
         Message quoteRequest = new Message();
         quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
         quoteRequest.setString(QuoteReqID.FIELD, "QR-12345");
-        quoteRequest.addGroup(new Group(NoRelatedSym.FIELD, Symbol.FIELD));
+        final Group noRelatedSymGroup = new Group(NoRelatedSym.FIELD, Symbol.FIELD);
+        noRelatedSymGroup.setString(Symbol.FIELD, "AAPL");
+        quoteRequest.addGroup(noRelatedSymGroup);
         return quoteRequest;
     }
 
