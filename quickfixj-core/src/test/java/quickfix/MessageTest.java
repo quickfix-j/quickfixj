@@ -1718,7 +1718,7 @@ public class MessageTest {
     @Test
     public void testRepeatingGroupCountWithNonIntegerValues() throws Exception {
         DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
-        Message ioi = new IOI();
+        Message ioi = new quickfix.fix50.IOI();
         ioi.setString(quickfix.field.NoPartyIDs.FIELD, "abc");
         final String invalidCountMessage = ioi.toString();
         try {
