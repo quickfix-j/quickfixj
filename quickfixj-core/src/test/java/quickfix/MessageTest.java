@@ -1758,6 +1758,23 @@ public class MessageTest {
         assertFieldNotFound(message, field);
         assertFieldNotFound(message.getHeader(), field);
     }
+	
+	// QFJ-533
+    @Test
+    public void testRepeatingGroupCountWithNonIntegerValues() throws Exception {
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        Message ioi = new quickfix.fix50.IOI();
+        ioi.setString(quickfix.field.NoPartyIDs.FIELD, "abc");
+        final String invalidCountMessage = ioi.toString();
+        try {
+            Message message =  new Message(invalidCountMessage, dictionary);
+        } catch (final InvalidMessage im) {
+            assertNotNull("InvalidMessage correctly thrown", im);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            fail("InvalidMessage expected, got " + e.getClass().getName());
+        }
+    }
 
     private void assertGroupContent(Message message, NewOrderSingle.NoAllocs numAllocs) {
         StringField field;
