@@ -1713,6 +1713,24 @@ public class MessageTest {
         // but we still should have the repeating group set and not ignore it
         assertEquals(1, parsed.getGroupCount(555));
     }
+    
+    // QFJ-533
+    @Test
+    public void testRepeatingGroupCountWithNonIntegerValues() throws Exception {
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        Message ioi = new IOI();
+        ioi.setString(quickfix.field.NoPartyIDs.FIELD, "abc");
+        final String invalidCountMessage = ioi.toString();
+        try {
+            Message message =  new Message(invalidCountMessage, dictionary);
+        } catch (final InvalidMessage im) {
+            assertNotNull(im, "InvalidMessage correctly thrown");
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            fail("InvalidMessage expected, got " + e.getClass().getName());
+        }
+    }
+    
 
     // QFJ-770/QFJ-792
     @Test

@@ -578,7 +578,13 @@ public class Message extends FieldMap {
         final int[] fieldOrder = groupDataDictionary.getOrderedFields();
         int previousOffset = -1;
         final int groupCountTag = field.getField();
-        final int declaredGroupCount = Integer.parseInt(field.getValue());
+		// QFJ-533
+        int declaredGroupCount = 0;
+        try {
+          declaredGroupCount = Integer.parseInt(field.getValue());
+        } catch (final NumberFormatException e) {
+            throw new InvalidMessage("NumberFormatException: Repeating group count requires an but found:" +field.getValue());
+        }
         parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimiterField();
         boolean firstFieldFound = false;
