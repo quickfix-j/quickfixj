@@ -162,75 +162,56 @@ There are various command-line switches you can pass to ant to modify the produc
 
 <h3>Maven Integration:</h3>
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
-    the pre-built QuickFIX/J libraries hosted at the <a href="http://www.marketcetera.org">Marketcetera</a>
+    the pre-built QuickFIX/J libraries hosted at the <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.quickfixj%22">Central Repository</a>
     repository.</p>
-<ol>
-    <li>Add the following to your <em>dependencies</em> section, with appropriate modifications based on
+<p> Add the following to your <em>dependencies</em> section, with appropriate modifications based on
         the logging subsystem you choose:<br>
         <pre class="code">
 &lt;!-- QuickFIX/J dependencies --&gt;
 &lt;dependency&gt;
-    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-core&lt;/artifactId&gt;
-    &lt;version&gt;1.6.0&lt;/version&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
-    &lt;artifactId&gt;quickfixj-msg-fix40&lt;/artifactId&gt;
-    &lt;version&gt;1.6.0&lt;/version&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj-messages-fix40&lt;/artifactId&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
-    &lt;artifactId&gt;quickfixj-msg-fix41&lt;/artifactId&gt;
-    &lt;version&gt;1.6.0&lt;/version&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj-messages-fix41&lt;/artifactId&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
-    &lt;artifactId&gt;quickfixj-msg-fix42&lt;/artifactId&gt;
-    &lt;version&gt;1.6.0&lt;/version&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj-messages-fix42&lt;/artifactId&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
-    &lt;artifactId&gt;quickfixj-msg-fix43&lt;/artifactId&gt;
-    &lt;version&gt;1.6.0&lt;/version&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj-messages-fix43&lt;/artifactId&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-    &lt;groupId&gt;quickfixj&lt;/groupId&gt;
-    &lt;artifactId&gt;quickfixj-msg-fix44&lt;/artifactId&gt;
-    &lt;version&gt;1.6.0&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.mina&lt;/groupId&gt;
-    &lt;artifactId&gt;mina-core&lt;/artifactId&gt;
-    &lt;version&gt;2.0.9&lt;/version&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj-messages-fix44&lt;/artifactId&gt;
+    &lt;version&gt;2.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
     &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
-    &lt;version&gt;1.7.12&lt;/version&gt;
+    &lt;version&gt;1.7.22&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
     &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
-    &lt;version&gt;1.7.12&lt;/version&gt;
+    &lt;version&gt;1.7.22&lt;/version&gt;
 &lt;/dependency&gt;</pre>
-    </li>
-    <li>And add the Marketcetera Repository to your repository list:<br>
-        <pre class="code">
-&lt;repositories&gt;
-    &lt;repository&gt;
-        &lt;id&gt;MarketceteraRepo&lt;/id&gt;
-        &lt;url&gt;http://repo.marketcetera.org/maven&lt;/url&gt;
-            &lt;releases&gt;
-                &lt;enabled&gt;true&lt;/enabled&gt;
-            &lt;/releases&gt;
-    &lt;/repository&gt;
-&lt;/repositories&gt;</pre>
-    </li>
-</ol>
-There's an <a href="http://trac.marketcetera.org/trac.fcgi/browser/platform/trunk/pom.xml">example POM file</a> if you need it.
+</p>
+
 <h2><a name="database"></a>Generating the database for JDBC based store and log</h2>
-<p> Everything needed to generate your database is in the <code>etc/sql</code> subdirectories.
+<p> Everything needed to generate your database is in the <a href="https://github.com/quickfix-j/quickfixj/tree/master/quickfixj-core/src/main/resources/config/sql"> src/main/resources/config/sql</a> subdirectories.
   For MySQL, there are the script and batch files <code>create_mysql.sh</code> and <code>create_mysql.bat</code>.
   These scripts will work on a newly installed mysql database with default permisions.
   The scripts will try to generate the database using the root MySQL account
