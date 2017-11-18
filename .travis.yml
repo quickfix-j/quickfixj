@@ -3,6 +3,8 @@ sudo: required
 dist: precise
 jdk:
   - oraclejdk8
+before_script:
+  - ulimit -n 4096
 before_install:
   - echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > ~/.mavenrc
 script:
