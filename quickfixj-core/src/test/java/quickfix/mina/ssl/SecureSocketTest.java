@@ -68,6 +68,7 @@ public class SecureSocketTest extends TestCase {
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
                     log.info("MINA exception: {}", cause.getMessage());
                     exceptionCaught.countDown();
+                    nextFilter.exceptionCaught(session, cause);
                 }
             }));
 
