@@ -1,6 +1,4 @@
 language: java
-sudo: required
-dist: precise
 jdk:
   - oraclejdk8
 before_script:
