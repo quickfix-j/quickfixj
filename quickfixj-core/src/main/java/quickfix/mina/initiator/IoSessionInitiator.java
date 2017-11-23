@@ -34,6 +34,7 @@ import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
+import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
@@ -49,7 +50,6 @@ import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import quickfix.mina.SessionConnector;
 
 public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
@@ -228,6 +228,7 @@ public class IoSessionInitiator {
                 if (connectFuture.getSession() != null) {
                     ioSession = connectFuture.getSession();
                     connectionFailureCount = 0;
+                    nextSocketAddressIndex = 0;
                     lastConnectTime = System.currentTimeMillis();
                     connectFuture = null;
                 } else {
