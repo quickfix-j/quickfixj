@@ -1105,7 +1105,7 @@ public class DataDictionary {
 
                 final String required = getAttribute(componentFieldNode, "required");
                 if (required.equalsIgnoreCase("Y") && componentRequired) {
-                    addRequiredField(msgtype, field);
+                    dd.addRequiredField(msgtype, field);
                 }
 
                 dd.addField(field);
@@ -1148,7 +1148,9 @@ public class DataDictionary {
                     groupDD.addRequiredField(msgtype, field);
                 }
             } else if (fieldNode.getNodeName().equals("component")) {
-                field = addXMLComponentFields(document, fieldNode, msgtype, groupDD, false);
+                final String required = getAttribute(fieldNode, "required");
+                final boolean isRequired = required != null && required.equalsIgnoreCase("Y");
+                field = addXMLComponentFields(document, fieldNode, msgtype, groupDD, isRequired);
             } else if (fieldNode.getNodeName().equals("group")) {
                 field = lookupXMLFieldNumber(document, fieldNode);
                 groupDD.addField(field);
