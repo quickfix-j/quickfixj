@@ -214,13 +214,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
         try {
             Session session = createSession(sessionID);
-
             super.addDynamicSession(session);
-
             createInitiator(session);
-            
             startInitiators();
-
         } catch (final FieldConvertError e) {
             throw new ConfigError(e);
         }
