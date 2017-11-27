@@ -583,9 +583,7 @@ public class Message extends FieldMap {
         try {
             declaredGroupCount = Integer.parseInt(field.getValue());
         } catch (final NumberFormatException e) {
-            InvalidMessage invalidMessage = new InvalidMessage("Repeating group count requires an Integer but found:" +field.getValue());
-            invalidMessage.initCause(e);
-            throw invalidMessage;
+            throw new InvalidMessage("Repeating group count requires an Integer but found: " + field.getValue(), e);
         }
         parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimiterField();
