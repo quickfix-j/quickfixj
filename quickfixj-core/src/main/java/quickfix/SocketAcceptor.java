@@ -106,8 +106,8 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 }
                 stopSessionTimer();
             } finally {
-                Session.unregisterSessions(getSessions());
                 eventHandlingStrategy.stopHandlingMessages();
+                Session.unregisterSessions(getSessions());
                 isStarted = Boolean.FALSE;
             }
         }
