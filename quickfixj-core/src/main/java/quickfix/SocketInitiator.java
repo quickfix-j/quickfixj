@@ -95,8 +95,8 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 logoutAllSessions(forceDisconnect);
                 stopInitiators();
             } finally {
-                Session.unregisterSessions(getSessions());
                 eventHandlingStrategy.stopHandlingMessages();
+                Session.unregisterSessions(getSessions());
                 isStarted = Boolean.FALSE;
             }
         }
