@@ -338,6 +338,9 @@ public class IoSessionInitiator {
                         connectFuture.cancel();
                     }
                     connectFuture = null;
+                    if ( !ioSession.isClosing()) {
+                        ioSession.closeNow();
+                    }
                     ioSession = null;
                 } catch (Throwable e) {
                     LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);

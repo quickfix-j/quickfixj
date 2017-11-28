@@ -574,12 +574,7 @@ public class SSLCertificateTest {
         }
 
         private Session findSession(SessionID sessionID) {
-            for (Session session : connector.getManagedSessions()) {
-                if (session.getSessionID().equals(sessionID))
-                    return session;
-            }
-
-            return null;
+            return Session.lookupSession(sessionID);
         }
 
         private IoSession findIoSession(Session session) throws Exception {

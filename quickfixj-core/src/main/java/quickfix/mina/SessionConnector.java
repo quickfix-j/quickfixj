@@ -301,11 +301,11 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void startSessionTimer() {
-		Runnable timerTask = new SessionTimerTask();
-		if (shortLivedExecutor != null) {
-			timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
-		}
-		sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
+        Runnable timerTask = new SessionTimerTask();
+        if (shortLivedExecutor != null) {
+            timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
+        }
+        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
                 TimeUnit.MILLISECONDS);
         log.info("SessionTimer started");
     }

@@ -79,6 +79,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         try {
             // QFJ698: clear() is needed on restart, otherwise the set gets filled up with
             // more and more initiators which are not equal because the local port differs
+            initiators.forEach((initiator) -> {
+                initiator.stop();
+            });
             initiators.clear();
             createSessions();
             SessionSettings settings = getSettings();
