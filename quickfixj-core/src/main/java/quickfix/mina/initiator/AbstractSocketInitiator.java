@@ -59,9 +59,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = new HashSet<>();
-    
-    private static final String SETTING_INACTIVE_SESSION = "Inactive";
-    
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -193,7 +190,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             final SessionID sessionID = i.next();
             if (isInitiatorSession(sessionID)) {
                 try {
-                    if (!settings.isSetting(sessionID, SETTING_INACTIVE_SESSION) || !settings.getBool(sessionID, SETTING_INACTIVE_SESSION)) {
+                    if (!settings.isSetting(sessionID, SETTING_DYNAMIC_SESSION) || !settings.getBool(sessionID, SETTING_DYNAMIC_SESSION)) {
                         final Session quickfixSession = createSession(sessionID);
                         initiatorSessions.put(sessionID, quickfixSession);
                     }
@@ -220,7 +217,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         } catch (final FieldConvertError e) {
             throw new ConfigError(e);
         }
-    }    
+    }
 
     private int[] getReconnectIntervalInSeconds(SessionID sessionID) throws ConfigError {
         final SessionSettings settings = getSettings();
