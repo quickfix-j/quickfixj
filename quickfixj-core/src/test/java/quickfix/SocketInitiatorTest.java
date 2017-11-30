@@ -38,6 +38,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -109,7 +110,8 @@ public class SocketInitiatorTest {
                 }
                 assertLoggedOn(clientApplication, clientSession);
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
             serverThread.interrupt();
@@ -220,7 +222,8 @@ public class SocketInitiatorTest {
             assertEquals("Exactly one 'QFJ Message Processor' thread expected", 1, qfjMPThreads);
         } finally {
             if (initiator != null) {
-                initiator.stop(true);
+                startShutdown(initiator);
+//                initiator.stop(true);
             }
         }
     }
@@ -347,7 +350,8 @@ public class SocketInitiatorTest {
         assertEquals(1, onConnectCallCount.intValue());
         assertEquals(0, onDisconnectCallCount.intValue());
 
-        initiator.stop();
+        startShutdown(initiator);
+//        initiator.stop();
 
         Thread.sleep(5000L);
         assertFalse(socketConnected.get()); // make sure socket is NOT connected after initiator is stopped
@@ -372,7 +376,8 @@ public class SocketInitiatorTest {
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
 
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
                 assertFalse(clientSession.isLoggedOn());
                 assertTrue(initiator.getSessions().contains(clientSessionID));
                 assertTrue(initiator.getSessions().size() == 1);
@@ -395,7 +400,8 @@ public class SocketInitiatorTest {
                     assertTrue(messageLog.length() > messageLogLength);
                 }
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
             serverThread.interrupt();
@@ -423,10 +429,12 @@ public class SocketInitiatorTest {
 
                 clientApplication.setUpLogoutExpectation();
 
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
                 assertLoggedOut(clientApplication, clientSession);
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
             serverThread.interrupt();
@@ -505,7 +513,8 @@ public class SocketInitiatorTest {
             }
             if (stopAfterLogon) {
                 log.info("Stopping after logon");
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         }
 
@@ -605,6 +614,35 @@ public class SocketInitiatorTest {
         File path = File.createTempFile("test", "");
         File tempdir = path.getParentFile();
         return tempdir.getAbsolutePath();
+    }
+
+    private void startShutdown(Connector connector) {
+        
+        Runnable shutdownRunnable = new ConnectorShutdown(connector);
+        Thread shutdownThread = new Thread(shutdownRunnable, "shutdown-" + connector.toString());
+        shutdownThread.setDaemon(true);
+        shutdownThread.start();
+        try {
+            shutdownThread.join(5000);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static class ConnectorShutdown implements Runnable {
+
+        final Connector connector;
+        
+        public ConnectorShutdown( final Connector connector ) {
+            this.connector = connector;
+        }
+
+        @Override
+        public void run() {
+            System.err.println("XXX " + new Date() + " stop " + connector );
+            connector.stop();
+            System.err.println("XXX " + new Date() + " stop " + connector + " successful." );
+        }
     }
 
 }
