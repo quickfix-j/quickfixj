@@ -47,6 +47,7 @@ import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -94,10 +95,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -127,10 +130,12 @@ public class SSLCertificateTest {
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"),
                         new BigInteger("1448538787"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -161,10 +166,12 @@ public class SSLCertificateTest {
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"),
                         new BigInteger("1449683336"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -220,12 +227,16 @@ public class SSLCertificateTest {
                         new BigInteger("1449581412"));
 
             } finally {
-                initiator1.stop();
-                initiator2.stop();
-                initiator3.stop();
+                startShutdown(initiator1);
+                startShutdown(initiator2);
+                startShutdown(initiator3);
+//                initiator1.stop();
+//                initiator2.stop();
+//                initiator3.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -276,12 +287,16 @@ public class SSLCertificateTest {
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA2", "ZULU2"),
                         new BigInteger("1449581412"));
             } finally {
-                initiator1.stop();
-                initiator2.stop();
-                initiator3.stop();
+                startShutdown(initiator1);
+                startShutdown(initiator2);
+                startShutdown(initiator3);
+//                initiator1.stop();
+//                initiator2.stop();
+//                initiator3.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -310,10 +325,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -340,10 +357,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -370,10 +389,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -400,10 +421,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -431,10 +454,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -462,10 +487,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -493,10 +520,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -524,10 +553,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -844,5 +875,36 @@ public class SSLCertificateTest {
         sessionSettings.setString(sessionID, "TargetCompID", targetId);
 
         return sessionSettings;
+    }
+    
+    
+    private void startShutdown(TestConnector connector) {
+        
+        Runnable shutdownRunnable = new ConnectorShutdown(connector);
+        Thread shutdownThread = new Thread(shutdownRunnable, "shutdown-" + connector.toString());
+        shutdownThread.setDaemon(true);
+        shutdownThread.start();
+        try {
+            shutdownThread.join(5000);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static class ConnectorShutdown implements Runnable {
+
+        final TestConnector connector;
+        
+        public ConnectorShutdown( final TestConnector connector ) {
+            this.connector = connector;
+        }
+
+        @Override
+        public void run() {
+            System.err.println("XXX " + new Date() + " stop " + connector );
+            connector.stop();
+            System.err.println("XXX " + new Date() + " stop " + connector + " successful." );
+        }
+        
     }
 }
