@@ -43,8 +43,9 @@ public class MemoryStore implements MessageStore {
         reset();
     }
 
-    public MemoryStore(SessionID sessionID) {
+    public MemoryStore(SessionID sessionID) throws IOException  {
         this.sessionID = sessionID;
+        reset();
     }
 
     public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
