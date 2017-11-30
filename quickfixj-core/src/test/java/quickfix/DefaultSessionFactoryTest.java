@@ -29,12 +29,7 @@ import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class DefaultSessionFactoryTest {
 
@@ -47,7 +42,7 @@ public class DefaultSessionFactoryTest {
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "SENDER", "TARGET");
         setUpDefaultSettings(sessionID);
         factory = new DefaultSessionFactory(new ATApplication(), new MemoryStoreFactory(),
-                new ScreenLogFactory(true, true, true));
+                new SLF4JLogFactory(new SessionSettings()));
     }
 
     @Test
@@ -60,7 +55,7 @@ public class DefaultSessionFactoryTest {
         sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
         setUpDefaultSettings(sessionID);
         factory = new DefaultSessionFactory(new ATApplication(), new MemoryStoreFactory(),
-                new ScreenLogFactory(true, true, true));
+                new SLF4JLogFactory(new SessionSettings()));
         Exception e = null;
         try {
             factory.create(sessionID, settings);

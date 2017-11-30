@@ -75,11 +75,4 @@ public class Group extends FieldMap {
         return field.getTag();
     }
 
-    /**
-     * @deprecated Use getFieldTag
-     * @return the field's tag number
-     */
-    public int field() {
-        return getFieldTag();
-    }
 }

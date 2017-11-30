@@ -19,9 +19,11 @@
 
 package quickfix;
 
+import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 
@@ -32,14 +34,8 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import org.junit.After;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import quickfix.field.MsgType;
+import static org.junit.Assert.*;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -214,7 +210,7 @@ public class SocketAcceptorTest {
         settings.set(defaults);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
         return new SocketAcceptor(testAcceptorApplication, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }
@@ -236,7 +232,7 @@ public class SocketAcceptorTest {
         settings.set(defaults);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true);
+        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
         return new SocketInitiator(new ApplicationAdapter() {
         }, factory, settings, logFactory, new DefaultMessageFactory());
     }

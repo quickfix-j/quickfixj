@@ -221,16 +221,14 @@ public class SleepycatStore implements MessageStore {
                     LockMode.DEFAULT);
 
             if (retVal == OperationStatus.NOTFOUND) {
-                log.debug(sequenceKey + "/" + messageBytes + " not matched in database "
-                        + messageDatabase.getDatabaseName());
+                log.debug("{}/{} not matched in database {}", sequenceKey, messageBytes, messageDatabase.getDatabaseName());
             } else {
                 Integer sequenceNumber = (Integer) sequenceBinding.entryToObject(sequenceKey);
                 while (sequenceNumber <= endSequence) {
                     messages.add(new String(messageBytes.getData(), charsetEncoding));
                     if (log.isDebugEnabled()) {
-                        log.debug("Found record " + sequenceNumber + "=>"
-                                + new String(messageBytes.getData(), charsetEncoding) + " for search key/data: "
-                                + sequenceKey + "=>" + messageBytes);
+                        log.debug("Found record {}=>{} for search key/data: {}=>{}",
+                                sequenceNumber, new String(messageBytes.getData(), charsetEncoding), sequenceKey, messageBytes);
                     }
                     cursor.getNext(sequenceKey, messageBytes, LockMode.DEFAULT);
                     sequenceNumber = (Integer) sequenceBinding.entryToObject(sequenceKey);

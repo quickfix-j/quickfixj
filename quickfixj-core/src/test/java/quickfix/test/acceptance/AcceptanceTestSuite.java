@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import quickfix.UtcTimestampPrecision;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";

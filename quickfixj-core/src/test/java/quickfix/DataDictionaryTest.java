@@ -19,20 +19,9 @@
 
 package quickfix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.net.URLClassLoader;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
 import quickfix.field.Account;
 import quickfix.field.AvgPx;
 import quickfix.field.BodyLength;
@@ -52,6 +41,7 @@ import quickfix.field.QuoteReqID;
 import quickfix.field.SenderCompID;
 import quickfix.field.SenderSubID;
 import quickfix.field.SendingTime;
+import quickfix.field.SessionRejectReason;
 import quickfix.field.Side;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
@@ -59,6 +49,18 @@ import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 import quickfix.fix44.NewOrderSingle;
 import quickfix.test.util.ExpectedTestFailure;
+
+import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class DataDictionaryTest {
 
@@ -749,8 +751,34 @@ public class DataDictionaryTest {
         Message quoteRequest = new Message();
         quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
         quoteRequest.setString(QuoteReqID.FIELD, "QR-12345");
-        quoteRequest.addGroup(new Group(NoRelatedSym.FIELD, Symbol.FIELD));
+        final Group noRelatedSymGroup = new Group(NoRelatedSym.FIELD, Symbol.FIELD);
+        noRelatedSymGroup.setString(Symbol.FIELD, "AAPL");
+        quoteRequest.addGroup(noRelatedSymGroup);
         return quoteRequest;
+    }
+
+    /**
+     * Dictionary "FIX44.xml":<br/>
+     * <pre>
+     * message name=QuoteRequest msgtype=R msgcat=app
+     *   group name=NoRelatedSym required=Y
+     *     component name=Instrument required=Y
+     *       field name=Symbol required=Y
+     * </pre>
+     * Field Symbol(55) is required, so validation must fail.
+     * @throws Exception
+     */
+    @Test
+    public void testGroupWithReqdComponentWithReqdFieldValidation() throws Exception {
+        final Message quoteRequest = createQuoteRequest();
+        quoteRequest.getGroup(1, NoRelatedSym.FIELD).removeField(Symbol.FIELD);
+        final DataDictionary dictionary = getDictionary();
+
+        expectedException.expect(FieldException.class);
+        expectedException.expect(hasProperty("sessionRejectReason", is(SessionRejectReason.REQUIRED_TAG_MISSING)));
+        expectedException.expect(hasProperty("field", is(Symbol.FIELD)));
+
+        dictionary.validate(quoteRequest, true);
     }
 
     //

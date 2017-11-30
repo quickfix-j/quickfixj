@@ -91,7 +91,7 @@ public class MessageCrackerTest {
         MessageCracker cracker = new MessageCracker() {
             @Handler
             public void handle(quickfix.fixt11.Logon logon, SessionID sessionID) throws IncorrectTagValue {
-                throw new IncorrectTagValue("test");
+                throw new IncorrectTagValue(0, "test");
             }
         };
 

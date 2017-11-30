@@ -578,7 +578,13 @@ public class Message extends FieldMap {
         final int[] fieldOrder = groupDataDictionary.getOrderedFields();
         int previousOffset = -1;
         final int groupCountTag = field.getField();
-        final int declaredGroupCount = Integer.parseInt(field.getValue());
+        // QFJ-533
+        int declaredGroupCount = 0;
+        try {
+            declaredGroupCount = Integer.parseInt(field.getValue());
+        } catch (final NumberFormatException e) {
+            throw new InvalidMessage("Repeating group count requires an Integer but found: " + field.getValue(), e);
+        }
         parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimiterField();
         boolean firstFieldFound = false;
@@ -602,17 +608,11 @@ public class Message extends FieldMap {
                     parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
                 }
             } else if (groupDataDictionary.isGroup(msgType, tag)) {
-                if (!firstFieldFound) {
-                    throw new InvalidMessage("The group " + groupCountTag
-                            + " must set the delimiter field " + firstField + " in " + messageData);
-                }
+                // QFJ-934: message should be rejected and not ignored when first field not found
+                checkFirstFieldFound(firstFieldFound, groupCountTag, firstField, tag);
                 parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
             } else if (groupDataDictionary.isField(tag)) {
-                if (!firstFieldFound) {
-                    throw new FieldException(
-                            SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
-                }
-
+                checkFirstFieldFound(firstFieldFound, groupCountTag, firstField, tag);
                 if (fieldOrder != null && dd.isCheckUnorderedGroupFields()) {
                     final int offset = indexOf(tag, fieldOrder);
                     if (offset > -1) {
@@ -647,6 +647,14 @@ public class Message extends FieldMap {
     private void addGroupRefToParent(Group group, FieldMap parent) {
         if (group != null) {
             parent.addGroupRef(group);
+        }
+    }
+
+    private void checkFirstFieldFound(boolean firstFieldFound, final int groupCountTag, final int firstField, int tag) throws FieldException {
+        if (!firstFieldFound) {
+            throw new FieldException(
+                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, "The group " + groupCountTag
+                    + " must set the delimiter field " + firstField, tag);
         }
     }
 

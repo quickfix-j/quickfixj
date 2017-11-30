@@ -160,7 +160,6 @@ public class ProtocolFactory {
                                                        String proxyPassword,
                                                        String proxyDomain,
                                                        String proxyWorkstation) {
-        String uri = "http://" + address.getAddress().getHostAddress() + ":" + address.getPort();
         HashMap<String, String> props = new HashMap<>();
         props.put(HttpProxyConstants.USER_PROPERTY, proxyUser);
         props.put(HttpProxyConstants.PWD_PROPERTY, proxyPassword);
@@ -169,7 +168,7 @@ public class ProtocolFactory {
             props.put(HttpProxyConstants.WORKSTATION_PROPERTY, proxyWorkstation);
         }
 
-        HttpProxyRequest req = new HttpProxyRequest(uri);
+        HttpProxyRequest req = new HttpProxyRequest(address);
         req.setProperties(props);
         if (proxyVersion != null && proxyVersion.equalsIgnoreCase("1.1")) {
             req.setHttpVersion(HttpProxyConstants.HTTP_1_1);

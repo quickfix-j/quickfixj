@@ -113,19 +113,19 @@ public class ExpectMessageStep implements TestStep {
     private void assertMessageEqual(Map<String, String> actualFields) {
         Assert.assertEquals("wrong msg type", expectedFields.get("35"), actualFields.get("35"));
         for (Map.Entry<String, String> entry : actualFields.entrySet()) {
-            Object key = entry.getKey();
+            String key = entry.getKey();
             if (timeFields.contains(key) || key.equals("10") || key.equals("9")) {
                 continue;
             }
             if (expectedFields.get("108") != null && heartBeatOverride >= 0) {
                 continue;
             }
-            if (key.equals("58")) {
+            if (!expectedFields.containsKey(key)) {
+                Assert.fail("Unexpected field " + key + ", value=" + entry.getValue());
+            } else if (key.equals("58")) {
                 Assert.assertTrue("field " + key + " not equal: actual=" + entry.getValue()
                         + ",expected(prefix)=" + expectedFields.get(key),
                         entry.getValue().startsWith(expectedFields.get(key)));
-            } else if (!expectedFields.containsKey(key)) {
-                Assert.fail("Unexpected field " + key + ",value=" + entry.getValue());
             } else {
                 Assert.assertEquals("field " + key + " not equal: ", expectedFields.get(key), entry
                         .getValue());

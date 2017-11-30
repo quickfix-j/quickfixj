@@ -24,11 +24,8 @@ import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.filter.logging.LoggingFilter;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.transport.socket.SocketConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
@@ -37,6 +34,7 @@ import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
+import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
@@ -59,7 +57,6 @@ public class IoSessionInitiator {
     private final ConnectTask reconnectTask;
 
     private Future<?> reconnectFuture;
-    protected final static Logger log = LoggerFactory.getLogger("display." + IoSessionInitiator.class.getName());
 
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
             SocketAddress localAddress, int[] reconnectIntervalInSeconds,
@@ -82,7 +79,7 @@ public class IoSessionInitiator {
             throw new ConfigError(e);
         }
 
-        log.info("[" + fixSession.getSessionID() + "] " + Arrays.asList(socketAddresses));
+        fixSession.getLog().onEvent("Configured socket addresses for session: " + Arrays.asList(socketAddresses));
     }
 
     private static class ConnectTask implements Runnable {
@@ -145,7 +142,7 @@ public class IoSessionInitiator {
         private void setupIoConnector() throws ConfigError, GeneralSecurityException {
             final CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(userIoFilterChainBuilder);
 
-            boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[0] instanceof InetSocketAddress;
+            boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress;
 
             SSLFilter sslFilter = null;
             if (sslEnabled) {
@@ -155,14 +152,14 @@ public class IoSessionInitiator {
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME, new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
             IoConnector newConnector;
-            newConnector = ProtocolFactory.createIoConnector(socketAddresses[0]);
+            newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
             newConnector.setHandler(new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy));
             newConnector.setFilterChainBuilder(ioFilterChainBuilder);
 
             if (hasProxy) {
                 ProxyConnector proxyConnector = ProtocolFactory.createIoProxyConnector(
                         (SocketConnector) newConnector,
-                        (InetSocketAddress) socketAddresses[0],
+                        (InetSocketAddress) socketAddresses[nextSocketAddressIndex],
                         new InetSocketAddress(proxyHost, proxyPort),
                         proxyType, proxyVersion, proxyUser, proxyPassword, proxyDomain, proxyWorkstation
                 );
@@ -231,6 +228,7 @@ public class IoSessionInitiator {
                 if (connectFuture.getSession() != null) {
                     ioSession = connectFuture.getSession();
                     connectionFailureCount = 0;
+                    nextSocketAddressIndex = 0;
                     lastConnectTime = System.currentTimeMillis();
                     connectFuture = null;
                 } else {
@@ -333,17 +331,16 @@ public class IoSessionInitiator {
         }
 
         private void resetIoConnector() {
-            if (ioSession != null && Boolean.TRUE.equals(ioSession.getAttribute("QFJ_RESET_IO_CONNECTOR"))) {
+            if (ioSession != null && Boolean.TRUE.equals(ioSession.getAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR))) {
                 try {
                     setupIoConnector();
-                    log.info("[" + fixSession.getSessionID() + "] - reset IoConnector");
                     if (connectFuture != null) {
                         connectFuture.cancel();
                     }
                     connectFuture = null;
                     ioSession = null;
                 } catch (Throwable e) {
-                    log.error("[" + fixSession.getSessionID() + "] - Exception during resetIoConnector call", e);
+                    LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);
                 }
             }
         }

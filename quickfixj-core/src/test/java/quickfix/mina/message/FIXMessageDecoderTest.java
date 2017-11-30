@@ -369,10 +369,11 @@ public class FIXMessageDecoderTest {
         final IoSessionStub mockSession = new IoSessionStub();
 
         int count = 5;
-        String data = "";
+        final StringBuilder builder = new StringBuilder(message.length() * 5);
         for (int i = 0; i < count; i++) {
-            data += message;
+            builder.append(message);
         }
+        final String data = builder.toString();
 
         for (int i = 1; i < data.length(); i++) {
             String chunk1 = data.substring(0, i);

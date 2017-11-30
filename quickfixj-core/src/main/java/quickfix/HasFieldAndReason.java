@@ -19,17 +19,9 @@
 
 package quickfix;
 
-/**
- * Used by a session to create a log implementation.
- */
-public interface LogFactory {
-
-    /**
-     * Create a log implementation.
-     *
-     * @param sessionID session ID usually used for configuration access
-     * @return the log implementation
-     */
-    Log create(SessionID sessionID);
-
+interface HasFieldAndReason {
+    
+    int getField();
+    int getSessionRejectReason();
+    String getMessage();
 }

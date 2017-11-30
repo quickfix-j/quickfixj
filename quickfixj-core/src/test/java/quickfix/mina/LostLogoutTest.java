@@ -1,9 +1,6 @@
 package quickfix.mina;
 
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Test;
-
 import quickfix.Application;
 import quickfix.DefaultMessageFactory;
 import quickfix.DoNotSend;
@@ -13,7 +10,7 @@ import quickfix.IncorrectTagValue;
 import quickfix.MemoryStoreFactory;
 import quickfix.Message;
 import quickfix.RejectLogon;
-import quickfix.ScreenLogFactory;
+import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -23,6 +20,8 @@ import quickfix.UnsupportedMessageType;
 import quickfix.field.Headline;
 import quickfix.field.MsgType;
 import quickfix.fix44.News;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * QFJ-790
@@ -103,7 +102,7 @@ public class LostLogoutTest {
             settings.setString(sid, "TargetCompID", sid.getTargetCompID());
 
             acceptor = new SocketAcceptor(this, new MemoryStoreFactory(), settings,
-                    new ScreenLogFactory(), new DefaultMessageFactory());
+                    new SLF4JLogFactory(new SessionSettings()), new DefaultMessageFactory());
             acceptor.start();
             Thread.sleep(1000);
         }
@@ -180,7 +179,7 @@ public class LostLogoutTest {
             settings.setString(sid, "TargetCompID", sid.getTargetCompID());
 
             initiator = new SocketInitiator(this, new MemoryStoreFactory(), settings,
-                    new ScreenLogFactory(), new DefaultMessageFactory());
+                    new SLF4JLogFactory(new SessionSettings()), new DefaultMessageFactory());
             initiator.start();
             session = Session.lookupSession(sid);
         }

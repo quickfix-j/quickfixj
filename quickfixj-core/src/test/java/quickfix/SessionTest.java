@@ -24,6 +24,7 @@ import quickfix.field.SessionStatus;
 import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
 import quickfix.field.Text;
+import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
@@ -49,22 +50,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
-import quickfix.field.converter.UtcTimeOnlyConverter;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -727,6 +715,218 @@ public class SessionTest {
         assertEquals(2, state.getNextSenderMsgSeqNum());
         assertEquals(1, state.getNextTargetMsgSeqNum());
 
+        session.close();
+    }
+
+    @Test
+    // QFJ-926
+    public void testSessionNotResetRightAfterLogonOnAcceptor() throws Exception {
+        // truncate to seconds, otherwise the session time check in Session.next()
+        // might already reset the session since the session schedule has only precision of seconds
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // we want to start the session before the StartTime
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(4500L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime",   UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        final Session session = setUpFileStoreSession(application, false,
+                new UnitTestResponder(), settings, sessionID);
+        session.addStateListener(application);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        
+        // we should send no messages since we are outside of session time
+        assertEquals(0, application.toAdminMessages.size());
+        // no reset should have been triggered by QF/J (since we were not logged on)
+        assertEquals(0, application.sessionResets);
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        // increase time to be within session time
+        systemTimeSource.increment(5000);
+        // there should be a Logon but no subsequent reset
+        logonTo(session, 1);
+        // call next() to provoke SessionTime check which should NOT reset seqnums now
+        session.next();
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        assertTrue(session.isLoggedOn());
+        assertEquals(1, application.sessionResets);
+
+        systemTimeSource.increment(5000);
+        session.disconnect("test", false);
+        systemTimeSource.increment(5000);
+        session.next();
+        session.setResponder(new UnitTestResponder());
+
+        logonTo(session, 2);
+        session.next();
+
+        // check that no reset is done on next Logon
+        assertEquals(1, application.sessionResets);
+        
+        session.close();
+    }
+
+    @Test
+    // QFJ-926
+    public void testSessionNotResetRightAfterLogonOnInitiator() throws Exception {
+        // truncate to seconds, otherwise the session time check in Session.next()
+        // might already reset the session since the session schedule has only precision of seconds
+        final LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ZoneOffset offset = ZoneOffset.systemDefault().getRules().getOffset(now);
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource(
+                now.toInstant(offset).toEpochMilli());
+        SystemTime.setTimeSource(systemTimeSource);
+        // set up some basic stuff
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        // we want to start the session before the StartTime
+        settings.setString("StartTime", UtcTimeOnlyConverter.convert(now.toLocalTime().plus(5000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("EndTime",   UtcTimeOnlyConverter.convert(now.toLocalTime().plus(3600000L, ChronoUnit.MILLIS), UtcTimestampPrecision.SECONDS));
+        settings.setString("TimeZone", TimeZone.getDefault().getID());
+        setupFileStoreForQFJ357(sessionID, settings);
+
+        // Session gets constructed, triggering a reset
+        final UnitTestApplication application = new UnitTestApplication();
+        UnitTestResponder responder = new UnitTestResponder();
+        final Session session = setUpFileStoreSession(application, true, responder, settings, sessionID);
+        session.addStateListener(application);
+        final SessionState state = getSessionState(session);
+
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        session.next();
+        
+        // we should send no messages since we are outside of session time
+        assertEquals(0, application.toAdminMessages.size());
+        // no reset should have been triggered by QF/J (since we were not logged on)
+        assertEquals(0, application.sessionResets);
+        assertEquals(1, state.getNextSenderMsgSeqNum());
+        assertEquals(1, state.getNextTargetMsgSeqNum());
+
+        // increase time to be almost within session time to check if session needs to be reset
+        // (will not reset since it is not yet within session time)
+        systemTimeSource.increment(4500);
+        session.next();
+        // increase time further so that Logon is sent but reset is not done since last check
+        // of session time was done within one second
+        systemTimeSource.increment(600);
+        session.next();
+        systemTimeSource.increment(1000);
+        session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 1));
+        assertEquals(1, application.toAdminMessages.size());
+        assertEquals(2, state.getNextSenderMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        assertTrue(session.isLoggedOn());
+        assertEquals(1, application.sessionResets);
+
+        systemTimeSource.increment(5000);
+        session.disconnect("test", false);
+        systemTimeSource.increment(5000);
+        session.next();
+        responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        session.next();
+        session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 2));
+        // check that no reset is done on next Logon
+        assertEquals(1, application.sessionResets);
+        
+        session.close();
+    }
+
+    @Test
+    // QFJ-929/QFJ-933
+    public void testLogonIsAnsweredWithLogoutOnException() throws Exception {
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        UnitTestApplication application = new UnitTestApplication();
+        Session session = SessionFactoryTestSupport.createSession(sessionID, application,
+                false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.logon();
+
+        session.next();
+        Logon logonRequest = new Logon();
+        setUpHeader(session.getSessionID(), logonRequest, true, 1);
+        logonRequest.setInt(HeartBtInt.FIELD, 30);
+        logonRequest.setString(EncryptMethod.FIELD, "");
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to empty EncryptMethod
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+
+        session.setResponder(responder);
+        session.logon();
+        session.next();
+        setUpHeader(session.getSessionID(), logonRequest, true, 2);
+        logonRequest.removeField(EncryptMethod.FIELD);
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to missing EncryptMethod
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(2, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+        assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(3, session.getStore().getNextSenderMsgSeqNum());
+
+        session.setResponder(responder);
+        session.logon();
+        session.next();
+        setUpHeader(session.getSessionID(), logonRequest, true, 3);
+        logonRequest.setString(EncryptMethod.FIELD, "A");
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to IncorrectDataFormat
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(3, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+	assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        assertEquals(4, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(4, session.getStore().getNextSenderMsgSeqNum());
+
+        session.setResponder(responder);
+        session.logon();
+        session.next();
+        setUpHeader(session.getSessionID(), logonRequest, true, 3);
+        logonRequest.setString(EncryptMethod.FIELD, "99");
+        logonRequest.toString();    // calculate length and checksum
+        session.next(logonRequest);
+        // session should not be logged on due to IncorrectTagValue
+        assertFalse(session.isLoggedOn());
+
+        assertEquals(4, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+	assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
+        assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
+        
         session.close();
     }
 
@@ -1693,14 +1893,14 @@ public class SessionTest {
         settings.setBool(Session.SETTING_CHECK_LATENCY, false);
 
         Session session = new DefaultSessionFactory(new ApplicationAdapter(),
-                new MemoryStoreFactory(), new ScreenLogFactory(settings))
+                new MemoryStoreFactory(), new SLF4JLogFactory(settings))
                 .create(sessionID, settings);
 
         session.setResponder(new UnitTestResponder());
 
+        session.next();
         session.setNextSenderMsgSeqNum(177);
         session.setNextTargetMsgSeqNum(223);
-        session.next();
         String[] messages = {
                 "8=FIX.4.2\0019=0081\00135=A\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=227\00198=0\001108=30\00110=36\001",
                 "8=FIX.4.2\0019=0107\00135=z\001115=THEM\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=228\001336=1\001340=2\00176=US\001439=USS\00110=133\001",
@@ -1760,7 +1960,7 @@ public class SessionTest {
 
         session.close();
     }
-
+    
     // QFJ-751
     @Test
     public void testSequenceResetGapFillWithZeroChunkSize() throws Exception {
@@ -1795,7 +1995,7 @@ public class SessionTest {
 
         Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true),
+                new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
@@ -1955,7 +2155,7 @@ public class SessionTest {
 
         Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true),
+                new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
@@ -1992,7 +2192,7 @@ public class SessionTest {
 
         Session session = new Session(unitTestApplication,
                 new MemoryStoreFactory(), sessionID, null, null,
-                new ScreenLogFactory(true, true, true),
+                new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },

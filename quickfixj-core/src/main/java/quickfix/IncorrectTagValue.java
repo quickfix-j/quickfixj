@@ -19,24 +19,35 @@
 
 package quickfix;
 
+import quickfix.field.SessionRejectReason;
+
 /**
  * An exception thrown when a tags value is not valid according to the data dictionary.
  */
-public class IncorrectTagValue extends Exception {
+public class IncorrectTagValue extends Exception implements HasFieldAndReason {
+    
+    private String value;
+    private final int field;
+    private final int sessionRejectReason;
 
     public IncorrectTagValue(int field) {
-        super("Field [" + field + "] contains an incorrect tag value.");
+        super(SessionRejectReasonText.getMessage(SessionRejectReason.VALUE_IS_INCORRECT) + ", field=" + field);
         this.field = field;
+        this.sessionRejectReason = SessionRejectReason.VALUE_IS_INCORRECT;
     }
 
     public IncorrectTagValue(int field, String value) {
-        super();
+        super(SessionRejectReasonText.getMessage(SessionRejectReason.VALUE_IS_INCORRECT) + ", field=" + field + (value != null ? ", value=" + value : ""));
         this.field = field;
         this.value = value;
+        this.sessionRejectReason = SessionRejectReason.VALUE_IS_INCORRECT;
     }
 
-    public IncorrectTagValue(String s) {
-        super(s);
+    public IncorrectTagValue(int field, String value, String message) {
+        super(message);
+        this.field = field;
+        this.value = value;
+        this.sessionRejectReason = SessionRejectReason.VALUE_IS_INCORRECT;
     }
 
     @Override
@@ -49,7 +60,14 @@ public class IncorrectTagValue extends Exception {
         return str;
     }
 
-    public int field;
+    @Override
+    public int getField() {
+        return field;
+    }
 
-    public String value;
+    @Override
+    public int getSessionRejectReason() {
+        return sessionRejectReason;
+    }
+    
 }

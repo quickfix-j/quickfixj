@@ -29,14 +29,13 @@ public class ExceptionTest extends TestCase {
 
     public void testIncorrectDataFormat() {
         IncorrectDataFormat e = new IncorrectDataFormat(5, "test");
-        assertEquals(5, e.field);
-        assertEquals("test", e.data);
+        assertEquals(5, e.getField());
+        assertEquals("test", e.getData());
     }
 
     public void testIncorrectTagValue() {
         new IncorrectTagValue(5);
-        IncorrectTagValue e = new IncorrectTagValue("test");
-        e.field = 5;
+        IncorrectTagValue e = new IncorrectTagValue(5, "test");
     }
 
     public void testRejectLogon() {

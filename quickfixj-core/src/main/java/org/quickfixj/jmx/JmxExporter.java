@@ -104,16 +104,6 @@ public class JmxExporter {
         }
     }
 
-    /**
-     * Register a connector with JMX
-     *
-     * @deprecated use register instead
-     * @param connector
-     */
-    public void export(Connector connector) {
-        register(connector);
-    }
-
     public ObjectName register(Connector connector) {
         return connectorExporter.register(this, (SessionConnector) connector);
     }
@@ -141,14 +131,10 @@ public class JmxExporter {
             mbeanServer.registerMBean(mbean, objectName);
         } catch (final InstanceAlreadyExistsException ex) {
             if (registrationBehaviour == REGISTRATION_IGNORE_EXISTING) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Ignoring existing MBean at [" + objectName + "]");
-                }
+                log.debug("Ignoring existing MBean at [{}]", objectName);
             } else if (registrationBehaviour == REGISTRATION_REPLACE_EXISTING) {
                 try {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Replacing existing MBean at [" + objectName + "]");
-                    }
+                    log.debug("Replacing existing MBean at [{}]", objectName);
                     mbeanServer.unregisterMBean(objectName);
                     mbeanServer.registerMBean(mbean, objectName);
                 } catch (final InstanceNotFoundException ex2) {

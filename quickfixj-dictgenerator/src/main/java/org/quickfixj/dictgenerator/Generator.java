@@ -22,12 +22,7 @@ package org.quickfixj.dictgenerator;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.Writer;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * QFJ-483: QFJ Dictionary Generator
@@ -90,11 +85,11 @@ public class Generator {
         if (!merged) {
             if (admin) {
                 builder.append("  <header>\n");
-                Component standardHeader = repository.getStandardHeader(msgTypes.values().iterator().next());
+                Component standardHeader = repository.getStandardHeader(getNextMsgType(msgTypes));
                 addMsgContents(builder, standardHeader.getMsgContent(), "    ");
                 builder.append("  </header>\n");
                 builder.append("  <trailer>\n");
-                Component standardTrailer = repository.getStandardTrailer(msgTypes.values().iterator().next());
+                Component standardTrailer = repository.getStandardTrailer(getNextMsgType(msgTypes));
                 addMsgContents(builder, standardTrailer.getMsgContent(), "    ");
                 builder.append("  </trailer>\n");
             } else {
@@ -103,11 +98,11 @@ public class Generator {
             }
         } else {
             builder.append("  <header>\n");
-            Component standardHeader = repository.getStandardHeader(msgTypes.values().iterator().next());
+            Component standardHeader = repository.getStandardHeader(getNextMsgType(msgTypes));
             addMsgContents(builder, standardHeader.getMsgContent(), "    ");
             builder.append("  </header>\n");
             builder.append("  <trailer>\n");
-            Component standardTrailer = repository.getStandardTrailer(msgTypes.values().iterator().next());
+            Component standardTrailer = repository.getStandardTrailer(getNextMsgType(msgTypes));
             addMsgContents(builder, standardTrailer.getMsgContent(), "    ");
             builder.append("  </trailer>\n");
         }
@@ -219,6 +214,15 @@ public class Generator {
             writer.close();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private MsgType getNextMsgType(Map<String, MsgType> msgTypes) {
+        Iterator<MsgType> it = msgTypes.values().iterator();
+        if(it.hasNext()) {
+            return it.next();
+        } else {
+            throw new RuntimeException("Message type not found. Check the MsgType.xml file.");
         }
     }
 

@@ -70,11 +70,6 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     @Override
-    public void block() throws ConfigError, RuntimeError {
-        initialize(false);
-    }
-
-    @Override
     public void start() throws ConfigError, RuntimeError {
         initialize(true);
     }
@@ -111,8 +106,8 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 }
                 stopSessionTimer();
             } finally {
-                Session.unregisterSessions(getSessions());
                 eventHandlingStrategy.stopHandlingMessages();
+                Session.unregisterSessions(getSessions());
                 isStarted = Boolean.FALSE;
             }
         }

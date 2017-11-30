@@ -27,7 +27,7 @@ package quickfix;
 public class FieldNotFound extends Exception {
 
     public FieldNotFound(int field) {
-        super("Field [" + field + "] was not found in message.");
+        super("Field was not found in message, field=" + field);
         this.field = field;
     }
 

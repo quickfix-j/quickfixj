@@ -43,6 +43,7 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvid
 
 import java.util.HashMap;
 import java.util.Properties;
+import static junit.framework.TestCase.fail;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -165,4 +166,40 @@ public class AcceptorIoHandlerTest {
         verify(mockIoSession).getAttribute("QF_SESSION");
         verifyNoMoreInteractions(mockEventHandlingStrategy);
     }
+
+    // QFJ-933
+    @Test
+    public void testLogonWithoutHeartBtInt() throws Exception {
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
+        IoSession mockIoSession = mock(IoSession.class);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
+                "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID,
+                new UnitTestApplication(), false);
+        stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
+
+        final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
+        acceptorSessions.put(sessionID, session);
+        final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
+
+        final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
+                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+
+        final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
+        final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
+                new HeartBtInt(30), defaultApplVerID);
+        message.getHeader().setString(TargetCompID.FIELD, sessionID.getSenderCompID());
+        message.getHeader().setString(SenderCompID.FIELD, sessionID.getTargetCompID());
+        message.getHeader().setField(new SendingTime(LocalDateTime.now()));
+        message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+        // remove HeartBtInt field and make sure there is no Exception
+        message.removeField(HeartBtInt.FIELD);
+        try {
+            handler.processMessage(mockIoSession, message);
+        } catch (Exception e) {
+            fail("No exception should be thrown!");
+        }
+    }
+
 }

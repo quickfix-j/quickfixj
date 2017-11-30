@@ -64,11 +64,11 @@ public class IoSessionResponder implements Responder {
         if (synchronousWrites) {
             try {
                 if (!future.awaitUninterruptibly(synchronousWriteTimeout)) {
-                    log.error("Synchronous write timed out after " + synchronousWriteTimeout + "ms");
+                    log.error("Synchronous write timed out after {}ms", synchronousWriteTimeout);
                     return false;
                 }
             } catch (RuntimeException e) {
-                log.error("Synchronous write failed: " + e.getMessage());
+                log.error("Synchronous write failed: {}", e.getMessage());
                 return false;
             }
         }
@@ -83,7 +83,7 @@ public class IoSessionResponder implements Responder {
         // close event from being processed by this thread (if
         // this thread is the MINA IO processor thread.
         ioSession.closeOnFlush();
-        ioSession.setAttribute("QFJ_RESET_IO_CONNECTOR", Boolean.TRUE);
+        ioSession.setAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR, Boolean.TRUE);
     }
 
     @Override

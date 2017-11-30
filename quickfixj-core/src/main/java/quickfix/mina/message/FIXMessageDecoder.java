@@ -139,7 +139,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     in.position(headerOffset);
 
                     if (log.isDebugEnabled()) {
-                        log.debug("detected header: " + getBufferDebugInfo(in));
+                        log.debug("detected header: {}", getBufferDebugInfo(in));
                     }
 
                     position = headerOffset + headerLength;
@@ -165,7 +165,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     if (ch == SOH) {
                         state = READING_BODY;
                         if (log.isDebugEnabled()) {
-                            log.debug("body length = " + bodyLength + ": " + getBufferDebugInfo(in));
+                            log.debug("body length = {}: {}", bodyLength, getBufferDebugInfo(in));
                         }
                     } else {
                         if (position < in.limit()) { // if data remains
@@ -186,7 +186,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     position += bodyLength;
                     state = PARSING_CHECKSUM;
                     if (log.isDebugEnabled()) {
-                        log.debug("message body found: " + getBufferDebugInfo(in));
+                        log.debug("message body found: {}", getBufferDebugInfo(in));
                     }
                 }
 
@@ -201,7 +201,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                             continue;
                         }
                         if (log.isDebugEnabled()) {
-                            log.debug("found checksum: " + getBufferDebugInfo(in));
+                            log.debug("found checksum: {}", getBufferDebugInfo(in));
                         }
                         position += CHECKSUM_PATTERN.getMinLength();
                     } else {
@@ -220,7 +220,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                     }
                     String messageString = getMessageString(in);
                     if (log.isDebugEnabled()) {
-                        log.debug("parsed message: " + getBufferDebugInfo(in) + " " + messageString);
+                        log.debug("parsed message: {} {}", getBufferDebugInfo(in), messageString);
                     }
                     out.write(messageString); // eventually invokes AbstractIoHandler.messageReceived
                     state = SEEKING_HEADER;
