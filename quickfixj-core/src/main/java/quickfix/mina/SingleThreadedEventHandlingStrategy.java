@@ -56,7 +56,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     @Override
-    public void onMessage(Session quickfixSession, Message message) {
+    public void onMessage(Session quickfixSession, Message message) throws InterruptedException {
         if (message == END_OF_STREAM && isStopped) {
             return;
         }
@@ -65,8 +65,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         } catch (InterruptedException e) {
             isStopped = true;
             Thread.currentThread().interrupt();
-            // XXX throw InterruptedException instead??
-            throw new RuntimeException(e);
+            throw e;
+//            throw new RuntimeException(e);
         }
     }
 

@@ -38,7 +38,7 @@ public interface EventHandlingStrategy {
     // will be put to the eventQueue to signal a disconnection
     Message END_OF_STREAM = new Message();
 
-    void onMessage(Session quickfixSession, Message message);
+    void onMessage(Session quickfixSession, Message message) throws InterruptedException;
 
     /**
      * @return the SessionConnector associated with this strategy
