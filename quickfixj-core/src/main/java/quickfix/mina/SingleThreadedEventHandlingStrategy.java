@@ -161,10 +161,15 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     public synchronized void stopHandlingMessages() {
-        for (Session session : sessionConnector.getSessionMap().values()) {
-            onMessage(session, END_OF_STREAM);
+        try {
+            for (Session session : sessionConnector.getSessionMap().values()) {
+//                onMessage(session, END_OF_STREAM);
+                // try to insert END_OF_STREAM in any case, i.e. not using eventQueue.put() and maybe getting interrupted
+                eventQueue.offer(new SessionMessageEvent(session, END_OF_STREAM));
+            }
+        } finally {
+            isStopped = true;
         }
-        isStopped = true;
     }
 
     public void stopHandlingMessages(boolean join) {
