@@ -64,6 +64,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
             isStopped = true;
+            // XXX interrupted flag??
             throw new RuntimeException(e);
         }
     }
@@ -75,7 +76,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     public void block() {
         while (true) {
-            synchronized (this) {
+//            synchronized (this) {
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
                         final List<SessionMessageEvent> tempList = new ArrayList<>();
@@ -94,7 +95,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                         return;
                     }
                 }
-            }
+//            }
             try {
                 SessionMessageEvent event = getMessage();
                 if (event != null) {
