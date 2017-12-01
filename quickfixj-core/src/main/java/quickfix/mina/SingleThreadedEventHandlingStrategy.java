@@ -120,7 +120,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
      * This method must not be called by several threads concurrently.
      */
     public void blockInThread() {
-        if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
+//        if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
+        if (messageProcessingThread != null) {
+            messageProcessingThread.stop();
             sessionConnector.log.warn("Trying to stop still running {}", MESSAGE_PROCESSOR_THREAD_NAME);
             stopHandlingMessages(true);
             if (messageProcessingThread.isAlive()) {
@@ -225,6 +227,12 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 			executor.execute(wrapper);
 		}
 
+		public void stop() {
+                    if (executor instanceof DedicatedThreadExecutor) {
+                        ((DedicatedThreadExecutor)executor).interrupt();
+                    }
+		}
+
 		/**
 		 * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
 		 */
@@ -265,12 +273,13 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 		}
 
 		/**
-		 * An Executor that uses it's own dedicated Thread.
+		 * An Executor that uses its own dedicated Thread.
 		 * Provides equivalent behavior to the prior non-Executor approach.
 		 */
 		static final class DedicatedThreadExecutor implements Executor {
 
 			private final String name;
+                        private Thread thread;
 			
 			DedicatedThreadExecutor(String name) {
 				this.name = name;
@@ -278,11 +287,16 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
 			@Override
 			public void execute(Runnable command) {
-				Thread thread = new Thread(command, name);
+                                thread = new Thread(command, name);
 				thread.setDaemon(true);
 				thread.start();
 			}
-
+                        
+                        public void interrupt() {
+                            if (thread != null) {
+                                thread.interrupt();
+                            }
+                        }
 		}
 
 	}
