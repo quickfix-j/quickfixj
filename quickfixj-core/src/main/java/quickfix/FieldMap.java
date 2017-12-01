@@ -37,13 +37,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 /**
  * Field container used by messages, groups, and composites.
@@ -230,6 +225,15 @@ public abstract class FieldMap implements Serializable {
 
     public String getString(int field) throws FieldNotFound {
         return getField(field).getObject();
+    }
+
+    public Optional<String> getOptionalString(int field) {
+        final StringField f = (StringField) fields.get(field);
+        if (f == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(f.getValue());
+        }
     }
 
     public boolean getBoolean(int field) throws FieldNotFound {
