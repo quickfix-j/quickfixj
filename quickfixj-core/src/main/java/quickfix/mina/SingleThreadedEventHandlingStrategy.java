@@ -64,7 +64,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
             isStopped = true;
-            // XXX interrupted flag??
+            Thread.currentThread().interrupt();
+            // XXX throw InterruptedException instead??
             throw new RuntimeException(e);
         }
     }
