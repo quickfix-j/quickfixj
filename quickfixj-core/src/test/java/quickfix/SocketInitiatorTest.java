@@ -446,7 +446,8 @@ public class SocketInitiatorTest {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+//        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", Integer.toString(port));
         defaults.put("StartTime", "00:00:00");
@@ -582,12 +583,11 @@ public class SocketInitiatorTest {
     private class ServerThread extends Thread {
         private final ATServer server;
         private final WriteCounter writeCounter = new WriteCounter("acceptor");
-        private final int port;
 
         public ServerThread(final int port) {
             super("test server");
-            this.port = port;
-            server = new ATServer(port, ProtocolFactory.VM_PIPE);
+//            server = new ATServer(port, ProtocolFactory.VM_PIPE);
+            server = new ATServer(port, ProtocolFactory.SOCKET);
             server.setIoFilterChainBuilder(chain -> chain.addLast("TestFilter", writeCounter));
         }
 
