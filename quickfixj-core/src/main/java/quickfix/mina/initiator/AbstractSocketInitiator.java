@@ -46,6 +46,7 @@ import quickfix.mina.ssl.SSLSupport;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -80,7 +81,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             // QFJ698: clear() is needed on restart, otherwise the set gets filled up with
             // more and more initiators which are not equal because the local port differs
             initiators.forEach((initiator) -> {
+//                System.err.println("XXX " + new Date() + " stopping still running initiator: " + initiator);
                 initiator.stop();
+//                System.err.println("XXX " + new Date() + " stopping still running initiator: " + initiator + " successful." );
             });
             initiators.clear();
             createSessions();
@@ -281,10 +284,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     protected void stopInitiators() {
+        stopSessionTimer();
         for (final IoSessionInitiator initiator : initiators) {
             initiator.stop();
         }
-        super.stopSessionTimer();
     }
 
     public Set<IoSessionInitiator> getInitiators() {
