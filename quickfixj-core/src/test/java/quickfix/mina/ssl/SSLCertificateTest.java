@@ -54,7 +54,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
+import org.junit.Ignore;
 
+@Ignore
 public class SSLCertificateTest {
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
