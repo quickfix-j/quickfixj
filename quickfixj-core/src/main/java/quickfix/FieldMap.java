@@ -614,6 +614,16 @@ public abstract class FieldMap implements Serializable {
         getGroups(field).clear();
         removeField(field);
     }
+    
+    public void removeGroup(int field, boolean removeCount) {
+        if(!removeCount) {
+            removeGroup(field);
+        } else {
+            getGroups(field).clear();
+            groups.remove(new Integer(field));
+            removeField(field);
+        }
+    }
 
     public void removeGroup(int num, int field) {
         final List<Group> groupList = getGroups(field);
@@ -632,6 +642,8 @@ public abstract class FieldMap implements Serializable {
     public void removeGroup(Group group) {
         removeGroup(group.getFieldTag());
     }
+    
+    
 
     public boolean hasGroup(int field) {
         return groups.containsKey(field);
