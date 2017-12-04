@@ -54,9 +54,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
-import org.junit.Ignore;
+import quickfix.test.util.ReflectionUtil;
 
-@Ignore
 public class SSLCertificateTest {
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
@@ -179,23 +178,24 @@ public class SSLCertificateTest {
 
     @Test
     public void shouldAuthenticateServerAndClientCertificatesForIndividualSessions() throws Exception {
+        int[] freePorts = new int[]{AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable()};
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+                CIPHER_SUITES_TLS, "TLSv1.2", freePorts));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", Integer.toString(freePorts[0]), "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", Integer.toString(freePorts[1]), "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", Integer.toString(freePorts[2]), "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -244,23 +244,24 @@ public class SSLCertificateTest {
 
     @Test
     public void shouldFailIndividualSessionsWhenInvalidCertificatesUsed() throws Exception {
+        int[] freePorts = new int[]{AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable()};
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+                CIPHER_SUITES_TLS, "TLSv1.2", freePorts));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", Integer.toString(freePorts[0]), "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", Integer.toString(freePorts[1]), "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", Integer.toString(freePorts[2]), "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -674,6 +675,9 @@ public class SSLCertificateTest {
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
+                System.err.println("XXX test failed - stacktraces START XXX");
+                ReflectionUtil.dumpStackTraces();
+                System.err.println("XXX test failed - stacktraces END   XXX");
                 throw new AssertionError("No SSL exception thrown");
             }
         }
@@ -682,6 +686,9 @@ public class SSLCertificateTest {
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (reachedZero) {
+                System.err.println("XXX test failed - stacktraces START XXX");
+                ReflectionUtil.dumpStackTraces();
+                System.err.println("XXX test failed - stacktraces END   XXX");
                 throw new AssertionError("SSL exception thrown");
             }
         }
@@ -739,7 +746,7 @@ public class SSLCertificateTest {
     }
 
     private SessionSettings createMultiSessionAcceptorSettings(String keyStoreName, boolean needClientAuth,
-            String[] trustStoreNames, String cipherSuites, String protocols) {
+            String[] trustStoreNames, String cipherSuites, String protocols, int[] freePorts) {
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "acceptor");
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
@@ -773,7 +780,7 @@ public class SSLCertificateTest {
             sessionSettings.setString(sessionID, "SenderCompID", "ALFA" + i);
             sessionSettings.setString(sessionID, SSLSupport.SETTING_TRUST_STORE_NAME, trustStoreNames[i]);
             sessionSettings.setString(sessionID, SSLSupport.SETTING_TRUST_STORE_PWD, "password");
-            sessionSettings.setString(sessionID, "SocketAcceptPort", "1234" + i);
+            sessionSettings.setString(sessionID, "SocketAcceptPort", Integer.toString(freePorts[i]));
         }
 
         return sessionSettings;
