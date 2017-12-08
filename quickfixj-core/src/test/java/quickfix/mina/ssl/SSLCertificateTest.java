@@ -650,7 +650,7 @@ public class SSLCertificateTest {
             try {
                 X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
 
-                if (peerCertificateChain != null & peerCertificateChain.length > 0) {
+                if (peerCertificateChain != null && peerCertificateChain.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
             } catch (SSLPeerUnverifiedException e) {
