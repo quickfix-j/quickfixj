@@ -276,12 +276,14 @@
 
 	<distributionManagement>
 		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<id>ig.snapshots</id>
+			<name>ig-repository</name>
+			<url>${maven.repo.url.snapshots}</url>
 		</snapshotRepository>
 		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>ig.releases</id>
+			<name>ig-repository</name>
+			<url>${maven.repo.url.releases}</url>
 		</repository>
 	</distributionManagement>
 
