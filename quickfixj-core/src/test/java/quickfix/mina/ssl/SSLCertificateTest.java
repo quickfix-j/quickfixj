@@ -650,7 +650,7 @@ public class SSLCertificateTest {
             try {
                 X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
 
-                if (peerCertificateChain != null & peerCertificateChain.length > 0) {
+                if (peerCertificateChain != null && peerCertificateChain.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
             } catch (SSLPeerUnverifiedException e) {
@@ -678,7 +678,7 @@ public class SSLCertificateTest {
                 System.err.println("XXX test failed - stacktraces START XXX " + connector);
                 ReflectionUtil.dumpStackTraces();
                 System.err.println("XXX test failed - stacktraces END   XXX " + connector);
-//                throw new AssertionError("No SSL exception thrown");
+                throw new AssertionError("No SSL exception thrown");
             }
         }
 
