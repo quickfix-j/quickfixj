@@ -50,7 +50,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class TestConnection {
-    private static final HashMap<String, IoConnector> connectors = new HashMap<>();
+    private final HashMap<String, IoConnector> connectors = new HashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<>();
 
@@ -60,15 +60,24 @@ public class TestConnection {
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        synchronized (ioHandlers) {
+//        synchronized (ioHandlers) {
             return ioHandlers.get(clientId);
-        }
+//        }
     }
 
     public void tearDown() {
+        for (IoConnector ioConnector : connectors.values()) {
+            System.out.println("XXX disposing ioConnector in TestConnection.tearDown()");
+            ioConnector.dispose();
+        }
+        
         for (TestIoHandler testIoHandler : ioHandlers.values()) {
             CloseFuture closeFuture = testIoHandler.getSession().closeNow();
-            closeFuture.awaitUninterruptibly();
+            boolean awaitUninterruptibly = closeFuture.awaitUninterruptibly(2000);
+            System.out.println("XXX closing IoSession in TestConnection.tearDown()");
+            if (!awaitUninterruptibly) {
+                System.err.println("XXX could not close session in 2000 ms");
+            }
         }
         ioHandlers.clear();
     }
@@ -85,7 +94,6 @@ public class TestConnection {
             throws IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
         if (connector != null) {
-            log.info("Disposing connector for clientId " + clientId);
             connector.dispose();
         }
 
@@ -108,13 +116,13 @@ public class TestConnection {
         }
 
         TestIoHandler testIoHandler = new TestIoHandler();
-        synchronized (ioHandlers) {
+//        synchronized (ioHandlers) {
             ioHandlers.put(clientId, testIoHandler);
             connector.setHandler(testIoHandler);
             ConnectFuture future = connector.connect(address);
             future.awaitUninterruptibly(5000L);
             Assert.assertTrue("connection to server failed", future.isConnected());
-        }
+//        }
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
