@@ -265,7 +265,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                     Logger.getLogger(AbstractSocketAcceptor.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });
-            ioAcceptor.dispose(true);
+            ioAcceptor.dispose();
             log.info("No longer accepting connections on {}", localAddress);
             ioIt.remove();
         }
