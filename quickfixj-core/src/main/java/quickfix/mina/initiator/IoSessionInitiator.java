@@ -47,9 +47,13 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.mina.core.future.CloseFuture;
 
 public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
@@ -364,6 +368,19 @@ public class IoSessionInitiator {
             reconnectFuture.cancel(true);
             reconnectFuture = null;
         }
+        Collection<IoSession> managedIoSessions = reconnectTask.ioConnector.getManagedSessions().values();
+        managedIoSessions.forEach((managedIoSession) -> {
+            try {
+                CloseFuture closeOnFlush = managedIoSession.closeOnFlush();
+                boolean await = closeOnFlush.await(500);
+                if (!await) {
+                    System.err.println("XXX IoSession " + managedIoSession + " could not be closed in 500ms.");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                Logger.getLogger(IoSessionInitiator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         // QFJ-849: clean up resources of MINA connector
         reconnectTask.ioConnector.dispose();
     }

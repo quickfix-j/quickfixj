@@ -56,6 +56,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.session.IoSession;
 
 /**
  * Abstract base class for socket acceptors.
@@ -109,7 +113,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                         new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
                 ioAcceptor.setFilterChainBuilder(ioFilterChainBuilder);
-                ioAcceptor.setCloseOnDeactivation(false);
+                ioAcceptor.setCloseOnDeactivation(false);   // XXX why is this explicitly set to false? default is true
                 ioAcceptor.bind(socketDescriptor.getAddress());
                 log.info("Listening for connections at {} for session(s) {}", address, socketDescriptor.getAcceptedSessions().keySet());
             }
@@ -248,6 +252,19 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             IoAcceptor ioAcceptor = ioIt.next();
             SocketAddress localAddress = ioAcceptor.getLocalAddress();
             ioAcceptor.unbind();
+            Collection<IoSession> managedIoSessions = ioAcceptor.getManagedSessions().values();
+            managedIoSessions.forEach((managedIoSession) -> {
+                try {
+                    CloseFuture closeOnFlush = managedIoSession.closeOnFlush();
+                    boolean await = closeOnFlush.await(500);
+                    if (!await) {
+                        System.err.println("XXX IoSession " + managedIoSession + " could not be closed in 500ms.");
+                    }
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    Logger.getLogger(AbstractSocketAcceptor.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
             ioAcceptor.dispose(true);
             log.info("No longer accepting connections on {}", localAddress);
             ioIt.remove();
