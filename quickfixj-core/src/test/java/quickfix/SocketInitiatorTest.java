@@ -52,11 +52,9 @@ import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.junit.Ignore;
 import quickfix.field.MsgType;
 import quickfix.test.util.ReflectionUtil;
 
-@Ignore
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
