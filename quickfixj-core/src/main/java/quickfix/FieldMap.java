@@ -49,9 +49,9 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     static final long serialVersionUID = -3193357271891865972L;
 
-    private final int[] fieldOrder;
+    private int[] fieldOrder;
 
-    protected final TreeMap<Integer, Field<?>> fields;
+    protected Map<Integer, Field<?>> fields;
 
     protected final TreeMap<Integer, List<Group>> groups = new TreeMap<>();
 
@@ -63,7 +63,9 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
      */
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        fields = new TreeMap<>(fieldOrder != null ? new FieldOrderComparator() : null);
+        fields = (fieldOrder != null) ?
+                new TreeMap<>(new FieldOrderComparator()) :
+                new LinkedHashMap<>();
     }
 
     protected FieldMap() {
@@ -111,6 +113,18 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     private static boolean isOrderedField(int field, int[] fieldOrder) {
         return indexOf(field, fieldOrder) > -1;
+    }
+
+    public void setFieldOrder(int[] fieldOrder) {
+        if (fieldOrder != null) {
+            this.fieldOrder = fieldOrder;
+            Map<Integer, Field<?>> fields = new TreeMap<>(new FieldOrderComparator());
+            fields.putAll(this.fields);
+            this.fields = fields;
+        } else {
+            this.fieldOrder = null;
+            this.fields = new LinkedHashMap<>(this.fields);
+        }
     }
 
     private class FieldOrderComparator implements Comparator<Integer>, Serializable {
@@ -454,6 +468,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
     }
 
     protected void initializeFrom(FieldMap source) {
+        fieldOrder = source.getFieldOrder();
         fields.clear();
         fields.putAll(source.fields);
         for (Entry<Integer, List<Group>> entry : source.groups.entrySet()) {
@@ -696,6 +711,24 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
             setGroupCount(field, groupList.size());
         }
     }
+
+    /**
+      * Added by Flextrade - 09/2011<p>
+      * This version of the method genuinely removes the group,
+      * rather than simply emptying it.
+      * @param field
+      * @param removeCount
+      */
+    public void removeGroup(int field, boolean removeCount) {
+        if(!removeCount) {
+            removeGroup(field);
+        } else {
+            getGroups(field).clear();
+            groups.remove(new Integer(field));
+            removeField(field);
+        }
+    }
+
 
     public void removeGroup(int num, Group group) {
         removeGroup(num, group.getFieldTag());

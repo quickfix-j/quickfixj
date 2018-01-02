@@ -122,8 +122,8 @@ public class ApplicationFunctionalAdapterTest {
     @Test
     public void testToAdminListenersInvokedInOrder() {
         ApplicationFunctionalAdapter adapter = new ApplicationFunctionalAdapter();
-        BiConsumer<Message, SessionID> listener = mock(BiConsumer.class);
-        BiConsumer<Message, SessionID> listener2 = mock(BiConsumer.class);
+        BiConsumer<IMessage, SessionID> listener = mock(BiConsumer.class);
+        BiConsumer<IMessage, SessionID> listener2 = mock(BiConsumer.class);
 
         adapter.addToAdminListener(listener);
         adapter.addToAdminListener(listener2);
@@ -141,8 +141,8 @@ public class ApplicationFunctionalAdapterTest {
     @Test
     public void testRemovedToAdminListenersNotInvoked() {
         ApplicationFunctionalAdapter adapter = new ApplicationFunctionalAdapter();
-        BiConsumer<Message, SessionID> listener = mock(BiConsumer.class);
-        BiConsumer<Message, SessionID> listener2 = mock(BiConsumer.class);
+        BiConsumer<IMessage, SessionID> listener = mock(BiConsumer.class);
+        BiConsumer<IMessage, SessionID> listener2 = mock(BiConsumer.class);
 
         adapter.addToAdminListener(listener);
         adapter.addToAdminListener(listener2);

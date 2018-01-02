@@ -183,9 +183,10 @@ public class MultiAcceptorTest {
             logonLatch.countDown();
         }
 
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+        @Override
+        public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-            sessionMessages.put(sessionId, message);
+            sessionMessages.put(sessionId, (Message) message);
             if (messageLatch != null) {
                 messageLatch.countDown();
             }

@@ -110,9 +110,6 @@
 						<include>quickfix/fix50sp2/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
-					<archive>
-						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive>
 				</configuration>
 			</plugin>
 		</plugins>

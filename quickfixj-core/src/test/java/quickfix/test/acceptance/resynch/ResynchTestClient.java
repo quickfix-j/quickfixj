@@ -21,27 +21,7 @@ package quickfix.test.acceptance.resynch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.Application;
-import quickfix.ConfigError;
-import quickfix.DefaultMessageFactory;
-import quickfix.DoNotSend;
-import quickfix.FieldNotFound;
-import quickfix.FixVersions;
-import quickfix.IncorrectDataFormat;
-import quickfix.IncorrectTagValue;
-import quickfix.Initiator;
-import quickfix.MemoryStoreFactory;
-import quickfix.Message;
-import quickfix.MessageCracker;
-import quickfix.MessageStoreFactory;
-import quickfix.RejectLogon;
-import quickfix.RuntimeError;
-import quickfix.SLF4JLogFactory;
-import quickfix.SessionID;
-import quickfix.SessionNotFound;
-import quickfix.SessionSettings;
-import quickfix.SocketInitiator;
-import quickfix.UnsupportedMessageType;
+import quickfix.*;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
 
@@ -65,27 +45,31 @@ public class ResynchTestClient extends MessageCracker implements Application {
     }
 
     
-    
-    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+    @Override
+    public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         try {
-            crack(message, sessionId);
+            crack((Message) message, sessionId);
         } catch (UnsupportedMessageType e) {
             log.error(e.getMessage());
         }
     }
 
-    public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
+    @Override
+    public void fromApp(IMessage message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        crack(message, sessionID);
+        crack((Message) message, sessionID);
     }
 
+    @Override
     public void onCreate(SessionID sessionId) {
     }
 
+    @Override
     public void onLogon(SessionID sessionId) {
     }
 
+    @Override
     public void onLogout(SessionID sessionId) {
         if (unsynchMode && !forceResynch) {
             stop(false);
@@ -152,13 +136,15 @@ public class ResynchTestClient extends MessageCracker implements Application {
         }
     }
 
-    public void toAdmin(Message message, SessionID sessionId) {
+    @Override
+    public void toAdmin(IMessage message, SessionID sessionId) {
         if (message instanceof Logon) {
             System.out.println("Sending logon message: " + message);
         }
     }
 
-    public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+    @Override
+    public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
     }
 
     public void setUnsynchMode(boolean unsynchMode) {

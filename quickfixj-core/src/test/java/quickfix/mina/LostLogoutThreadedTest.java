@@ -2,22 +2,7 @@ package quickfix.mina;
 
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.Test;
-import quickfix.Application;
-import quickfix.DefaultMessageFactory;
-import quickfix.DoNotSend;
-import quickfix.FieldNotFound;
-import quickfix.IncorrectDataFormat;
-import quickfix.IncorrectTagValue;
-import quickfix.MemoryStoreFactory;
-import quickfix.Message;
-import quickfix.RejectLogon;
-import quickfix.SLF4JLogFactory;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.ThreadedSocketAcceptor;
-import quickfix.ThreadedSocketInitiator;
-import quickfix.UnsupportedMessageType;
+import quickfix.*;
 import quickfix.field.Headline;
 import quickfix.field.MsgType;
 import quickfix.fix44.News;
@@ -118,28 +103,28 @@ public class LostLogoutThreadedTest {
         public void onLogout(SessionID sessionId) {
         }
 
-        public void toAdmin(Message message, SessionID sessionId) {
+        public void toAdmin(IMessage message, SessionID sessionId) {
         }
 
         /*
          * Save the logout message received from client.
          */
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+        public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-            if (message.getHeader().getString(MsgType.FIELD).equals("5")) {
+            if (((Message) message).getHeader().getString(MsgType.FIELD).equals("5")) {
                 logoutMessage = message.toString();
                 System.out.println("Server: Logout message received: " + logoutMessage);
             }
         }
 
-        public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+        public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
         }
 
         /*
          * Process the incoming application message.
          * Simulate a slow server, which needs 1000 ms to process each application message.
          */
-        public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+        public void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
             System.out.println("Server: Message received: " + message.toString());
             System.out.println("Server: message processing begin");
@@ -195,17 +180,17 @@ public class LostLogoutThreadedTest {
         public void onLogout(SessionID sessionId) {
         }
 
-        public void toAdmin(Message message, SessionID sessionId) {
+        public void toAdmin(IMessage message, SessionID sessionId) {
         }
 
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+        public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         }
 
-        public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+        public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
         }
 
-        public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+        public void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         }
 

@@ -27,14 +27,14 @@ public class ApplicationAdapter implements Application {
     /* (non-Javadoc)
      * @see quickfix.Application#fromAdmin(quickfix.Message, quickfix.SessionID)
      */
-    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+    public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         // EMPTY
     }
 
     /* (non-Javadoc)
      * @see quickfix.Application#fromApp(quickfix.Message, quickfix.SessionID)
      */
-    public void fromApp(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+    public void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         // EMPTY
     }
 
@@ -62,14 +62,14 @@ public class ApplicationAdapter implements Application {
     /* (non-Javadoc)
      * @see quickfix.Application#toAdmin(quickfix.Message, quickfix.SessionID)
      */
-    public void toAdmin(Message message, SessionID sessionId) {
+    public void toAdmin(IMessage message, SessionID sessionId) {
         // EMPTY
     }
 
     /* (non-Javadoc)
      * @see quickfix.Application#toApp(quickfix.Message, quickfix.SessionID)
      */
-    public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+    public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
         // EMPTY
     }
 

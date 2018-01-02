@@ -137,7 +137,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
      */
     public void reset() {
         logInvocation("reset");
-        session.reset();
+        session.reset("Reset requested");
     }
 
     /* (non-Javadoc)

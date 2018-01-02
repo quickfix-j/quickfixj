@@ -17,13 +17,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Tests the {@link FieldMap} class.
- * Specifically, verifies that the setters for {@link UtcTimeStampField} work correctly.
- *
- * @author toli
- */
 public class FieldMapTest {
+
+    @Test
+    public void testDefaultFieldOrderIsInsertionOrdering()  {
+        FieldMap map = new Message();
+        map.setString(2, "A");
+        map.setString(1, "B");
+        assertEquals("9=82=A1=B10=017",map.toString());
+    }
 
     @Test
     public void testSetUtcTimeStampField() throws Exception {
@@ -80,16 +82,16 @@ public class FieldMapTest {
 
     @Test
     public void testOrdering() {
-        testOrdering(new int[]{1, 2, 3}, null, new int[]{1, 2, 3});
-        testOrdering(new int[]{3, 2, 1}, null, new int[]{1, 2, 3});
-        testOrdering(new int[]{1, 2, 3}, new int[]{1, 2, 3}, new int[]{1, 2, 3});
-        testOrdering(new int[]{3, 2, 1}, new int[]{1, 2, 3}, new int[]{1, 2, 3});
-        testOrdering(new int[]{1, 2, 3}, new int[]{1, 3, 2}, new int[]{1, 3, 2});
-        testOrdering(new int[]{3, 2, 1}, new int[]{1, 3, 2}, new int[]{1, 3, 2});
-        testOrdering(new int[]{1, 2, 3}, new int[]{1, 3}, new int[]{1, 3, 2});
-        testOrdering(new int[]{3, 2, 1}, new int[]{1, 3}, new int[]{1, 3, 2});
-        testOrdering(new int[]{1, 2, 3}, new int[]{3, 1}, new int[]{3, 1, 2});
-        testOrdering(new int[]{3, 2, 1}, new int[]{3, 1}, new int[]{3, 1, 2});
+        testOrdering(new int[] { 1, 2, 3 }, null, new int[] { 1, 2, 3 });
+        testOrdering(new int[] { 3, 2, 1 }, null, new int[] { 3, 2, 1 });
+        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
+        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
+        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });
+        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });
+        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
+        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
+        testOrdering(new int[] { 1, 2, 3 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
+        testOrdering(new int[] { 3, 2, 1 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
     }
 
     @Test
@@ -119,6 +121,50 @@ public class FieldMapTest {
         assertThrows(FieldException.class, () -> map.setField(field));
     }
 
+    public void testGroupRemovalByGroup() {
+        FieldMap map = new Message();
+        Group g = new Group(73, 11);
+        map.addGroup(g);
+        assertEquals(1, map.getGroups(73).size());
+        assertTrue(map.isSetField(73));
+
+        map.removeGroup(g);
+
+        //Method doesn't remove group entry
+        assertTrue(map.getGroups().containsKey(73));
+        assertEquals(0, map.getGroups(73).size());
+        assertFalse(map.isSetField(73));
+    }
+
+    public void testGroupRemovalByField() {
+        FieldMap map = new Message();
+        Group g = new Group(73, 11);
+        map.addGroup(g);
+        assertEquals(1, map.getGroups(73).size());
+        assertTrue(map.isSetField(73));
+
+        map.removeGroup(73);
+
+        //Method doesn't remove group entry
+        assertTrue(map.getGroups().containsKey(73));
+        assertEquals(0, map.getGroups(73).size());
+        assertFalse(map.isSetField(73));
+    }
+
+    public void testGroupRemovalByFieldBoolean() {
+        FieldMap map = new Message();
+        Group g = new Group(73, 11);
+        map.addGroup(g);
+        assertEquals(1, map.getGroups(73).size());
+        assertTrue(map.isSetField(73));
+
+        map.removeGroup(73, true);
+
+        assertFalse(map.getGroups().containsKey(73));
+        assertEquals(0, map.getGroups(73).size());
+        assertFalse(map.isSetField(73));
+    }
+
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
@@ -131,5 +177,11 @@ public class FieldMapTest {
         assertTrue(map.hasGroup(73));
         map.removeGroup(73);
         assertFalse(map.hasGroup(73));
+    }
+
+    @Test
+    public void testRemoveMissingField() {
+        FieldMap map = new Message();
+        map.removeField(1);
     }
 }

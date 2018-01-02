@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Factory for creating sessions. Used by the communications code (acceptors,
@@ -39,7 +40,7 @@ import java.util.Set;
 public class DefaultSessionFactory implements SessionFactory {
     private static final SimpleCache<String, DataDictionary> dictionaryCache = new SimpleCache<>(path -> {
         try {
-            return new DataDictionary(path);
+            return new DataDictionary(path, true);
         } catch (ConfigError e) {
             throw new QFJException(e);
         }
@@ -51,47 +52,47 @@ public class DefaultSessionFactory implements SessionFactory {
     private final LogFactory logFactory;
     private final MessageFactory messageFactory;
     private final SessionScheduleFactory sessionScheduleFactory;
+    private final DefaultDataDictionaryProviderHolder dataDictionaryProviderHolder;
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
             LogFactory logFactory) {
-        this.application = application;
-        this.messageStoreFactory = messageStoreFactory;
-        this.messageQueueFactory = new InMemoryMessageQueueFactory();
-        this.logFactory = logFactory;
-        this.messageFactory = new DefaultMessageFactory();
-        this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
+        this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), logFactory,
+            new DefaultMessageFactory(), new DefaultSessionScheduleFactory(), new DefaultDataDictionaryProviderHolder());
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
             LogFactory logFactory, MessageFactory messageFactory) {
-        this.application = application;
-        this.messageStoreFactory = messageStoreFactory;
-        this.messageQueueFactory = new InMemoryMessageQueueFactory();
-        this.logFactory = logFactory;
-        this.messageFactory = messageFactory;
-        this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
+        this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), logFactory, messageFactory,
+            new DefaultSessionScheduleFactory(), new DefaultDataDictionaryProviderHolder());
     }
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
                                  LogFactory logFactory, MessageFactory messageFactory,
                                  SessionScheduleFactory sessionScheduleFactory) {
-        this.application = application;
-        this.messageStoreFactory = messageStoreFactory;
-        this.messageQueueFactory = new InMemoryMessageQueueFactory();
-        this.logFactory = logFactory;
-        this.messageFactory = messageFactory;
-        this.sessionScheduleFactory = sessionScheduleFactory;
+        this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), logFactory, messageFactory,
+            sessionScheduleFactory, new DefaultDataDictionaryProviderHolder());
     }
+
 
     public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
                                  MessageQueueFactory messageQueueFactory, LogFactory logFactory,
                                  MessageFactory messageFactory, SessionScheduleFactory sessionScheduleFactory) {
+        this(application, messageStoreFactory, messageQueueFactory, logFactory, messageFactory,
+            sessionScheduleFactory, new DefaultDataDictionaryProviderHolder());
+    }
+
+
+    public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+                                 MessageQueueFactory messageQueueFactory, LogFactory logFactory,
+                                 MessageFactory messageFactory, SessionScheduleFactory sessionScheduleFactory,
+                                 DefaultDataDictionaryProviderHolder dataDictionaryProviderHolder) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
         this.messageQueueFactory = messageQueueFactory;
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = sessionScheduleFactory;
+        this.dataDictionaryProviderHolder = dataDictionaryProviderHolder;
     }
 
     public Session create(SessionID sessionID, SessionSettings settings) throws ConfigError {
@@ -103,6 +104,10 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final boolean validateChecksum = getSetting(settings, sessionID,
                     Session.SETTING_VALIDATE_CHECKSUM, true);
+
+            final Message.WeakParsingMode weakParsingMode = Message.WeakParsingMode.valueOf(
+                    settings.isSetting(sessionID, Session.SETTING_WEAK_PARSING_MODE) ?
+                        settings.getString(sessionID, Session.SETTING_WEAK_PARSING_MODE) : "DISABLED");
 
             if (rejectGarbledMessage && !validateChecksum) {
                 throw new ConfigError("Not possible to reject garbled message and process " +
@@ -162,13 +167,14 @@ public class DefaultSessionFactory implements SessionFactory {
 
             DefaultDataDictionaryProvider dataDictionaryProvider = null;
             if (useDataDictionary) {
-                dataDictionaryProvider = new DefaultDataDictionaryProvider();
+                dataDictionaryProvider = dataDictionaryProviderHolder.obtain();
                 if (sessionID.isFIXT()) {
                     processFixtDataDictionaries(sessionID, settings, dataDictionaryProvider);
                 } else {
                     processPreFixtDataDictionary(sessionID, settings, dataDictionaryProvider);
                 }
             }
+            ValidationSettings validationSettings = createDataDictionarySettings(sessionID, settings);
 
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
@@ -219,6 +225,9 @@ public class DefaultSessionFactory implements SessionFactory {
             final int logonTimeout = getSetting(settings, sessionID, Session.SETTING_LOGON_TIMEOUT, 10);
             final int logoutTimeout = getSetting(settings, sessionID, Session.SETTING_LOGOUT_TIMEOUT, 2);
 
+            final boolean allowPosDup = getSetting(settings, sessionID, Session.SETTING_ALLOW_POS_DUP_MESSAGES, false);
+            final boolean fix41ResendRequestAsFix42 = getSetting(settings, sessionID, Session.SETTING_FIX_41_RESEND_AS_FIX42, false);
+
             final boolean validateSequenceNumbers = getSetting(settings, sessionID, Session.SETTING_VALIDATE_SEQUENCE_NUMBERS, true);
             final boolean validateIncomingMessage = getSetting(settings, sessionID, Session.SETTING_VALIDATE_INCOMING_MESSAGE, true);
             final boolean resetOnError = getSetting(settings, sessionID, Session.SETTING_RESET_ON_ERROR, false);
@@ -228,17 +237,22 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean enableNextExpectedMsgSeqNum = getSetting(settings, sessionID, Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, false);
             final boolean enableLastMsgSeqNumProcessed = getSetting(settings, sessionID, Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, false);
             final int resendRequestChunkSize = getSetting(settings, sessionID, Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, Session.DEFAULT_RESEND_RANGE_CHUNK_SIZE);
-            final boolean allowPossDup = getSetting(settings, sessionID, Session.SETTING_ALLOW_POS_DUP_MESSAGES, false);
-
+            final boolean useDictionaryOrdering = getSetting(settings, sessionID, Session.SETTING_USE_DICTIONARY_ORDERING, false);
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
 
             final SessionSchedule sessionSchedule = sessionScheduleFactory.create(sessionID, settings);
 
             final List<StringField> logonTags = getLogonTags(settings, sessionID);
+            final int maxResendBatchRetrievalSize = getSetting(settings, sessionID, Session.SETTING_MAX_RESEND_RETRIEVAL_BATCH_SIZE, Session.DEFAULT_MAX_RESEND_BATCH_RETRIEVAL_SIZE);
+            String msgTypesToUseDictionaryString = settings.isSetting(sessionID, Session.SETTING_USE_DATA_DICTIONARY_FOR_MSG_TYPES) ?
+                settings.getString(sessionID, Session.SETTING_USE_DATA_DICTIONARY_FOR_MSG_TYPES) : "";
+            final Set<String> msgTypesToUseDictionary = toSet(msgTypesToUseDictionaryString);
+
+            final boolean rejectMessageOutOfTime = getSetting(settings, sessionID, Session.SETTING_REJECT_MESSAGE_OUT_OF_TIME, true);
 
             final Session session = new Session(application, messageStoreFactory, messageQueueFactory,
-                    sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
+                    sessionID, dataDictionaryProvider, validationSettings, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshOnLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
@@ -247,10 +261,14 @@ public class DefaultSessionFactory implements SessionFactory {
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup);
+                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, useDictionaryOrdering, allowPosDup,
+                    weakParsingMode, maxResendBatchRetrievalSize, msgTypesToUseDictionary, rejectMessageOutOfTime);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
+            session.setAllowPosDup(allowPosDup);
+            session.setFix41ResendRequestAsFix42(fix41ResendRequestAsFix42);
+            session.setUseDictionaryOrdering(useDictionaryOrdering);
 
             final int maxScheduledWriteRequests = getSetting(settings, sessionID, Session.SETTING_MAX_SCHEDULED_WRITE_REQUESTS, 0);
             session.setMaxScheduledWriteRequests(maxScheduledWriteRequests);
@@ -269,6 +287,10 @@ public class DefaultSessionFactory implements SessionFactory {
         }
     }
 
+    private Set<String> toSet(String settingValue) {
+        return Arrays.stream(settingValue.split(",")).filter(v -> !v.isEmpty()).collect(Collectors.toSet());
+    }
+
     private void processPreFixtDataDictionary(SessionID sessionID, SessionSettings settings,
             DefaultDataDictionaryProvider dataDictionaryProvider) throws ConfigError,
             FieldConvertError {
@@ -282,34 +304,48 @@ public class DefaultSessionFactory implements SessionFactory {
     private DataDictionary createDataDictionary(SessionID sessionID, SessionSettings settings,
             String settingsKey, String beginString) throws ConfigError, FieldConvertError {
         final String path = getDictionaryPath(sessionID, settings, settingsKey, beginString);
-        final DataDictionary dataDictionary = getDataDictionary(path);
+        return getDataDictionary(path);
+    }
+
+    private ValidationSettings createDataDictionarySettings(SessionID sessionID, SessionSettings settings) throws FieldConvertError, ConfigError {
+        ValidationSettings validationSettings = new ValidationSettings();
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
-            dataDictionary.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
+            validationSettings.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES)) {
-            dataDictionary.setCheckFieldsHaveValues(settings.getBool(sessionID,
+            validationSettings.setCheckFieldsHaveValues(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS)) {
-            dataDictionary.setCheckUnorderedGroupFields(settings.getBool(sessionID,
+            validationSettings.setCheckUnorderedGroupFields(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {
-            dataDictionary.setCheckUserDefinedFields(settings.getBool(sessionID,
+            validationSettings.setCheckUserDefinedFields(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS)) {
-            dataDictionary.setAllowUnknownMessageFields(settings.getBool(sessionID,
+            validationSettings.setAllowUnknownMessageFields(settings.getBool(sessionID,
                     Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
         }
 
-        return dataDictionary;
+        if (settings.isSetting(sessionID, Session.SETTING_USE_FIRST_TAG_AS_GROUP_DELIMITER)) {
+            validationSettings.setUseFirstTagAsGroupDelimiter(settings.getBool(sessionID,
+                Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
+        }
+
+        if (settings.isSetting(sessionID, Session.SETTING_ONLY_ALLOW_SEEN_OR_KNOWN_FIELDS_IN_LAST_GROUP)) {
+            validationSettings.setOnlyAllowSeenOrKnownFieldsInLastGroup(settings.getBool(sessionID,
+                Session.SETTING_ONLY_ALLOW_SEEN_OR_KNOWN_FIELDS_IN_LAST_GROUP));
+        }
+
+        return validationSettings;
     }
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
@@ -324,7 +360,9 @@ public class DefaultSessionFactory implements SessionFactory {
         final Enumeration<?> keys = sessionProperties.propertyNames();
         while (keys.hasMoreElements()) {
             final String key = (String) keys.nextElement();
-            if (key.startsWith(Session.SETTING_APP_DATA_DICTIONARY)) {
+            if (key.equals(Session.SETTING_DATA_DICTIONARY)) {
+                throw new ConfigError("DataDictionary setting not supported in FIXT sessions");
+            } else if (key.startsWith(Session.SETTING_APP_DATA_DICTIONARY)) {
                 if (key.equals(Session.SETTING_APP_DATA_DICTIONARY)) {
                     final ApplVerID applVerID = toApplVerID(settings.getString(sessionID,
                             Session.SETTING_DEFAULT_APPL_VER_ID));
@@ -377,7 +415,7 @@ public class DefaultSessionFactory implements SessionFactory {
         return beginString.replaceAll("\\.", "") + ".xml";
     }
 
-    private DataDictionary getDataDictionary(String path) throws ConfigError {
+    protected DataDictionary getDataDictionary(String path) throws ConfigError {
         try {
             return dictionaryCache.computeIfAbsent(path);
         } catch (QFJException e) {
@@ -396,7 +434,7 @@ public class DefaultSessionFactory implements SessionFactory {
                 final int[] ret = SessionSettings.parseSettingReconnectInterval(raw);
                 if (ret != null)
                     return ret;
-            } catch (final Throwable e) {
+            } catch (final ConfigError e) {
                 throw new ConfigError(e);
             }
         }
@@ -410,7 +448,7 @@ public class DefaultSessionFactory implements SessionFactory {
                 final String raw = settings.getString(sessionID,
                         Session.SETTING_ALLOWED_REMOTE_ADDRESSES);
                 return SessionSettings.parseRemoteAddresses(raw);
-            } catch (final Throwable e) {
+            } catch (final ConfigError e) {
                 throw new ConfigError(e);
             }
         }

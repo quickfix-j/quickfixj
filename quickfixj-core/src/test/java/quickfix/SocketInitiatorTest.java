@@ -351,7 +351,16 @@ public class SocketInitiatorTest {
             }
 
             @Override
-            public void onErrorEvent(String text) {
+            public void onErrorEvent(String category, String text) {
+            }
+
+            @Override
+            public void onInvalidMessage(String messageString, String failureReason) {
+            }
+
+            @Override
+            public void onDisconnect(String messageString) {
+
             }
 
             @Override
@@ -360,7 +369,7 @@ public class SocketInitiatorTest {
             }
 
             @Override
-            public void onDisconnect(SessionID sessionID) {
+            public void onDisconnect(SessionID sessionID, String reason) {
                 onDisconnectCallCount.incrementAndGet();
             }
         };
@@ -527,7 +536,7 @@ public class SocketInitiatorTest {
     private void assertLoggedOn(ClientApplication clientApplication, Session clientSession)
             throws InterruptedException {
         assertNotNull("no client session", clientSession);
-        
+
         final ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             executor.execute(() -> {
@@ -545,8 +554,8 @@ public class SocketInitiatorTest {
             executor.shutdown();
         }
 
-        final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS); 
-        assertTrue("Expected logon did not occur", await); 
+        final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS);
+        assertTrue("Expected logon did not occur", await);
         assertTrue("client session not logged in", clientSession.isLoggedOn());
     }
 
@@ -576,7 +585,7 @@ public class SocketInitiatorTest {
         public void setUpLogonExpectation() {
             logonLatch = new CountDownLatch(1);
         }
- 
+
         public void setUpLogoutExpectation() {
             logoutLatch = new CountDownLatch(1);
         }
@@ -594,13 +603,13 @@ public class SocketInitiatorTest {
         }
 
         @Override
-        public void toAdmin(Message message, SessionID sessionId) {
+        public void toAdmin(IMessage message, SessionID sessionId) {
             log.info("toAdmin: [{}] {}", sessionId, message);
 
             // Only countdown the latch if a logout message is actually sent
             try {
-                if (logoutLatch != null && logoutLatch.getCount() > 0 && message.getHeader().isSetField(MsgType.FIELD)
-                        && MsgType.LOGOUT.equals(message.getHeader().getString(MsgType.FIELD))) {
+                if (logoutLatch != null && logoutLatch.getCount() > 0 && message.isSetHeaderField(MsgType.FIELD)
+                        && MsgType.LOGOUT.equals(message.getHeaderString(MsgType.FIELD))) {
                     log.info("Releasing logout latch for session [{}] with message {}", sessionId, message);
                     logoutLatch.countDown();
                 }
@@ -610,7 +619,7 @@ public class SocketInitiatorTest {
         }
 
         @Override
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             try {
                 if (MsgType.LOGOUT.equals(MessageUtils.getMessageType(message.toString()))) {
                     logoutCounter++;

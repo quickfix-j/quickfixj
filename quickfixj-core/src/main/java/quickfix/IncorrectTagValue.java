@@ -43,23 +43,6 @@ public class IncorrectTagValue extends Exception implements HasFieldAndReason {
         this.sessionRejectReason = SessionRejectReason.VALUE_IS_INCORRECT;
     }
 
-    public IncorrectTagValue(int field, String value, String message) {
-        super(message);
-        this.field = field;
-        this.value = value;
-        this.sessionRejectReason = SessionRejectReason.VALUE_IS_INCORRECT;
-    }
-
-    @Override
-    public String toString() {
-        String str = super.toString();
-        if (field != 0)
-            str += " field=" + field;
-        if (value != null)
-            str += " value=" + value;
-        return str;
-    }
-
     @Override
     public int getField() {
         return field;

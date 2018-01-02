@@ -55,7 +55,7 @@ public class SLF4JLogTest {
         final SessionSettings settings = new SessionSettings();
         final SLF4JLogFactory factory = new SLF4JLogFactory(settings);
         Log log = factory.create(sessionID);
-
+        final String category = "TestCategory";
         final String loggedText = "TEST123";
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
@@ -63,7 +63,7 @@ public class SLF4JLogTest {
         assertMessageLogged(SLF4JLog.DEFAULT_EVENT_CATEGORY, sessionID, loggedText);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
-        log.onErrorEvent(loggedText);
+        log.onErrorEvent(category, loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, sessionID, loggedText);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
@@ -85,7 +85,7 @@ public class SLF4JLogTest {
         assertMessageLogged("event", sessionID, loggedText);
 
         setUpLoggerForTest("errorEvent");
-        log.onErrorEvent(loggedText);
+        log.onErrorEvent(category, loggedText);
         assertMessageLogged("errorEvent", sessionID, loggedText);
 
         setUpLoggerForTest("in");
@@ -138,7 +138,7 @@ public class SLF4JLogTest {
         final SessionSettings settings = new SessionSettings();
         final SLF4JLogFactory factory = new SLF4JLogFactory(settings);
         final Log log = factory.create(sessionID);
-
+        final String category = "TestCategory";
         final String loggedText = "TEST123";
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
@@ -148,7 +148,7 @@ public class SLF4JLogTest {
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
         getTestHandler(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY).setLevel(Level.SEVERE);
-        log.onErrorEvent(loggedText);
+        log.onErrorEvent(category, loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);

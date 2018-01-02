@@ -21,24 +21,7 @@ package quickfix.test.acceptance.resynch;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.Application;
-import quickfix.DefaultMessageFactory;
-import quickfix.DoNotSend;
-import quickfix.FieldNotFound;
-import quickfix.FixVersions;
-import quickfix.IncorrectDataFormat;
-import quickfix.IncorrectTagValue;
-import quickfix.MemoryStoreFactory;
-import quickfix.Message;
-import quickfix.MessageCracker;
-import quickfix.MessageStoreFactory;
-import quickfix.RejectLogon;
-import quickfix.SLF4JLogFactory;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.SocketAcceptor;
-import quickfix.UnsupportedMessageType;
+import quickfix.*;
 import quickfix.mina.SessionConnector;
 
 import java.beans.PropertyChangeEvent;
@@ -65,14 +48,14 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     }
     
     @Override
-    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+    public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
     }
 
     @Override
-    public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+    public void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        crack(message, sessionId);
+        crack((Message) message, sessionId);
     }
 
     @Override
@@ -155,11 +138,11 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     }
 
     @Override
-    public void toAdmin(Message message, SessionID sessionId) {
+    public void toAdmin(IMessage message, SessionID sessionId) {
     }
 
     @Override
-    public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+    public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
     }
 
     public void waitForInitialization() throws InterruptedException {

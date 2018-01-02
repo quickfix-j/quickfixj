@@ -91,39 +91,46 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 messageFactory));
     }
 
+    protected void createSessionAcceptors() throws ConfigError {
+        createSessions(getSettings(), isContinueInitOnError());
+    }
+
     // TODO SYNC Does this method really need synchronization?
     protected synchronized void startAcceptingConnections() throws ConfigError {
-
         boolean continueInitOnError = isContinueInitOnError();
-        createSessions(getSettings(), continueInitOnError);
-        startSessionTimer();
-
+        // createSessions(getSettings(), continueInitOnError);
         SocketAddress address = null;
-        for (AcceptorSocketDescriptor socketDescriptor : socketDescriptorForAddress.values()) {
-            try {
-                address = socketDescriptor.getAddress();
-                IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor);
-                CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(getIoFilterChainBuilder());
+        try {
+            startSessionTimer();
+            for (AcceptorSocketDescriptor socketDescriptor : socketDescriptorForAddress.values()) {
+                try {
+                    address = socketDescriptor.getAddress();
+                    IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor);
+                    CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(getIoFilterChainBuilder());
 
-                if (socketDescriptor.isUseSSL()) {
-                    installSSL(socketDescriptor, ioFilterChainBuilder);
-                }
+                    if (socketDescriptor.isUseSSL()) {
+                        installSSL(socketDescriptor, ioFilterChainBuilder);
+                    }
 
-                ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
+                    ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME,
                         new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
 
-                ioAcceptor.setFilterChainBuilder(ioFilterChainBuilder);
-                ioAcceptor.setCloseOnDeactivation(false);
-                ioAcceptor.bind(socketDescriptor.getAddress());
-                log.info("Listening for connections at {} for session(s) {}", address, socketDescriptor.getAcceptedSessions().keySet());
-            } catch (IOException | GeneralSecurityException | ConfigError e) {
-                if (continueInitOnError) {
-                    log.warn("error during session initialization for session(s) {}, continuing...", socketDescriptor.getAcceptedSessions().keySet(), e);
-                } else {
-                    log.error("Cannot start acceptor session for {}, error: {}", address, e);
-                    throw new RuntimeError(e);
+                    ioAcceptor.setFilterChainBuilder(ioFilterChainBuilder);
+                    ioAcceptor.setCloseOnDeactivation(false);
+                    ioAcceptor.bind(socketDescriptor.getAddress());
+                    log.info("Listening for connections at {} for session(s) {}", address, socketDescriptor.getAcceptedSessions().keySet());
+                } catch (IOException | GeneralSecurityException | ConfigError e) {
+                    if (continueInitOnError) {
+                        log.warn("error during session initialization for session(s) {}, continuing...", socketDescriptor.getAcceptedSessions().keySet(), e);
+                    } else {
+                        log.error("Cannot start acceptor session for {}, error: {}", address, e);
+                        throw new RuntimeError(e);
+                    }
                 }
             }
+        } catch (Exception e) {
+            log.error("Cannot start acceptor session for {}, error: {}", address, e);
+            throw new RuntimeError(e);
         }
     }
 
@@ -244,7 +251,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
 
                     setupSession(settings, sessionID, isTemplate, allSessions);
                 }
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 if (continueInitOnError) {
                     log.warn("error during session initialization for {}, continuing...", sessionID, t);
                 } else {

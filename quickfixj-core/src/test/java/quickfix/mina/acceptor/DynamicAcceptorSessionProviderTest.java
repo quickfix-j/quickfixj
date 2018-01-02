@@ -20,20 +20,7 @@
 package quickfix.mina.acceptor;
 
 import org.quickfixj.QFJException;
-import quickfix.Application;
-import quickfix.ConfigError;
-import quickfix.DefaultMessageFactory;
-import quickfix.LogFactory;
-import quickfix.MemoryStoreFactory;
-import quickfix.MessageFactory;
-import quickfix.MessageStoreFactory;
-import quickfix.RuntimeError;
-import quickfix.SLF4JLogFactory;
-import quickfix.Session;
-import quickfix.SessionFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.UnitTestApplication;
+import quickfix.*;
 import quickfix.mina.SessionConnector;
 
 import java.util.ArrayList;
@@ -94,6 +81,9 @@ public class DynamicAcceptorSessionProviderTest {
 
     @Test
     public void testSessionCreation() throws Exception {
+        SessionID testSessionId1 = new SessionID("FIX.4.2", "SENDER", "SENDERSUB",
+                "SENDERLOC", "TARGET", "TARGETSUB", "TARGETLOC", null);
+        SessionUnregister.unregisterSession(testSessionId1);
 
         try (Session session1 = provider.getSession(new SessionID("FIX.4.2", "SENDER", "SENDERSUB",
                 "SENDERLOC", "TARGET", "TARGETSUB", "TARGETLOC", null), null)) {
@@ -152,7 +142,7 @@ public class DynamicAcceptorSessionProviderTest {
     public void testToString() throws Exception {
         templateMappings.toString(); // be sure there are no NPEs, etc.
     }
-    
+
     @Test
     public void testSimpleConstructor() throws Exception {
         provider = new DynamicAcceptorSessionProvider(settings, new SessionID("FIX.4.2", "ANY",
@@ -166,7 +156,7 @@ public class DynamicAcceptorSessionProviderTest {
     /**
      * Verify that if a new session comes in it gets added to the list in session connector
      */
-    @Test    
+    @Test
     public void testDynamicSessionIsAddedToSessionConnector() throws Exception {
         MySessionConnector connector = new MySessionConnector(settings, null);
 
@@ -186,7 +176,7 @@ public class DynamicAcceptorSessionProviderTest {
         session2.close();
     }
 
-    @Test    
+    @Test
     public void testDynamicSessionIsAddedToSessionConnectorAndFileStoreIsKept() throws Exception {
         SessionID id = new SessionID("FIX.4.4", "SENDER", "TARGET");
         SessionID templateId = new SessionID("FIX.4.4", "ANY", "ANY");
@@ -207,13 +197,13 @@ public class DynamicAcceptorSessionProviderTest {
         MySessionConnector connector = new MySessionConnector(ownSettings, null);
         Session session2 = provider.getSession(id, connector);
         assertEquals(1, connector.sessions.size());
-        
+
         assertEquals(1, session2.getStore().getNextSenderMsgSeqNum() );
         Message message = new NewOrderSingle();
         session2.send(message);
         assertEquals(2, session2.getStore().getNextSenderMsgSeqNum() );
         session2.close();
-        
+
         session2 = provider.getSession(id, connector);
         assertEquals(1, connector.sessions.size());
 

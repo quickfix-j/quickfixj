@@ -39,7 +39,7 @@ public class DefaultDataDictionaryProviderTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        dictionaryForTest1 = new DataDictionary("FIX44_Custom_Test.xml");
+        dictionaryForTest1 = new DataDictionary("FIX44_Custom_Test.xml", true);
         dictionaryForTest2 = new DataDictionary(dictionaryForTest1);
     }
 
@@ -86,7 +86,7 @@ public class DefaultDataDictionaryProviderTest {
     }
 
     @Test
-    public void returnRegisteredAppDictionaryWithoutDiscovery() throws Exception {
+    public void returnRegisteredAppDictionaryWithoutDiscovery() throws Exception    {
         DefaultDataDictionaryProvider provider = new DefaultDataDictionaryProvider(false);
         provider.addApplicationDictionary(new ApplVerID(FIX44), dictionaryForTest1);
         provider.addApplicationDictionary(new ApplVerID(FIX40), dictionaryForTest2);

@@ -22,27 +22,8 @@ package quickfix.mina;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import quickfix.ConfigError;
-import quickfix.DefaultSessionFactory;
-import quickfix.FieldNotFound;
-import quickfix.FixVersions;
-import quickfix.IncorrectDataFormat;
-import quickfix.IncorrectTagValue;
-import quickfix.MemoryStoreFactory;
-import quickfix.Message;
-import quickfix.RejectLogon;
-import quickfix.Responder;
-import quickfix.SLF4JLogFactory;
-import quickfix.Session;
-import quickfix.SessionFactory;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.UnitTestApplication;
-import quickfix.field.HeartBtInt;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.SenderCompID;
-import quickfix.field.SendingTime;
-import quickfix.field.TargetCompID;
+import quickfix.*;
+import quickfix.field.*;
 import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix40.Logon;
 
@@ -115,7 +96,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
 
         final UnitTestApplication application = new UnitTestApplication() {
             @Override
-            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+            public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
                     IncorrectDataFormat, IncorrectTagValue, RejectLogon {
                 super.fromAdmin(message, sessionId);
                 latch.countDown();
@@ -130,7 +111,9 @@ public class ThreadPerSessionEventHandlingStrategyTest {
             message.getHeader().setString(SendingTime.FIELD,
                     UtcTimestampConverter.convert(new Date(), false));
             message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+            message.setInt(EncryptMethod.FIELD, 0);
             message.setInt(HeartBtInt.FIELD, 30);
+            message.toString();
             
             strategy.onMessage(session, message);
             
@@ -184,7 +167,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
 
         final UnitTestApplication application = new UnitTestApplication() {
             @Override
-            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+            public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
                     IncorrectDataFormat, IncorrectTagValue, RejectLogon {
                 super.fromAdmin(message, sessionId);
                 latch.countDown();
@@ -199,7 +182,9 @@ public class ThreadPerSessionEventHandlingStrategyTest {
             message.getHeader().setString(SendingTime.FIELD,
                     UtcTimestampConverter.convert(new Date(), false));
             message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+            message.setInt(EncryptMethod.FIELD, 0);
             message.setInt(HeartBtInt.FIELD, 30);
+            message.toString();
             
             strategy.onMessage(session, message);
             

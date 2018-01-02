@@ -38,7 +38,7 @@ public interface SessionStateListener {
     /**
      * Called when connection has been disconnected.
      */
-    default void onDisconnect(SessionID sessionID) {
+    default void onDisconnect(SessionID sessionID, String reason) {
     }
 
     /**

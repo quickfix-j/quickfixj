@@ -182,14 +182,21 @@ public class SessionID implements Serializable {
         return beginString
                 + ":"
                 + senderCompID
+                /** TODO: FIXHUB-938
+                 * We currently only distinguish session based on SenderCompID & TargetCompID
                 + (isSet(senderSubID) ? "/" + senderSubID : "")
                 + (isSet(senderLocationID) ? "/" + senderLocationID : "")
+                **/
                 + "->"
                 + targetCompID
+                /** TODO: FIXHUB-938
+                 * We currently only distinguish session based on SenderCompID & TargetCompID
                 + (isSet(targetSubID) ? "/" + targetSubID : "")
                 + (isSet(targetLocationID) ? "/" + targetLocationID : "")
                 + (sessionQualifier != null && !sessionQualifier.equals(NOT_SET) ? ":"
-                        + sessionQualifier : NOT_SET);
+                        + sessionQualifier : NOT_SET)
+                **/
+                ;
     }
 
     private boolean isSet(String value) {

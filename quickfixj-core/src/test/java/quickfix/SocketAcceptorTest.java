@@ -333,7 +333,7 @@ public class SocketAcceptorTest {
         }
 
         @Override
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             try {
                 if (MsgType.LOGOUT.equals(MessageUtils.getMessageType(message.toString()))) {
                     logoutLatch.countDown();
@@ -344,7 +344,7 @@ public class SocketAcceptorTest {
         }
 
         @Override
-        public void toAdmin(Message message, SessionID sessionId) {
+        public void toAdmin(IMessage message, SessionID sessionId) {
             log.info("toAdmin: [{}] {}", sessionId, message);
         }
     }

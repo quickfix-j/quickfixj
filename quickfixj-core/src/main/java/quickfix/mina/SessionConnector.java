@@ -242,7 +242,7 @@ public abstract class SessionConnector implements Connector {
         for (Session session : sessions.values()) {
             try {
                 session.logout();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logError(session.getSessionID(), null, "Error during logout", e);
             }
         }
@@ -254,7 +254,7 @@ public abstract class SessionConnector implements Connector {
                         if (session.isLoggedOn()) {
                             session.disconnect("Forcibly disconnecting session", false);
                         }
-                    } catch (Throwable e) {
+                    } catch (Exception e) {
                         logError(session.getSessionID(), null, "Error during disconnect", e);
                     }
                 }
@@ -295,8 +295,8 @@ public abstract class SessionConnector implements Connector {
         }
     }
 
-    protected void logError(SessionID sessionID, IoSession protocolSession, String message, Throwable t) {
-        log.error(message + getLogSuffix(sessionID, protocolSession), t);
+    protected void logError(SessionID sessionID, IoSession protocolSession, String message, Exception e) {
+        log.error(message + getLogSuffix(sessionID, protocolSession), e);
     }
 
     private String getLogSuffix(SessionID sessionID, IoSession protocolSession) {
@@ -350,7 +350,7 @@ public abstract class SessionConnector implements Connector {
                         logError(session.getSessionID(), null, "Error in session timer processing", e);
                     }
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 log.error("Error during timer processing", e);
             }
         }

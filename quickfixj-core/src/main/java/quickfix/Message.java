@@ -66,52 +66,77 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * Represents a FIX message.
  */
-public class Message extends FieldMap {
+public class Message extends FieldMap implements IMessage {
 
     static final long serialVersionUID = -3193357271891865972L;
 
     protected Header header;
     protected Trailer trailer = new Trailer();
+    protected List<Field<?>> remainingHeaderFields = new ArrayList<>();
+    protected List<Field<?>> remainingBodyFields = new ArrayList<>();
 
     private volatile FieldException exception;
+    private boolean lengthAndChecksumShouldBeAutomaticallyUpdated = true;
 
     public Message() {
         initializeHeader();
     }
 
-    protected Message(int[] fieldOrder) {
+    public Message(boolean lengthAndChecksumShouldBeAutomaticallyUpdated) {
+        initializeHeader();
+        this.lengthAndChecksumShouldBeAutomaticallyUpdated = lengthAndChecksumShouldBeAutomaticallyUpdated;
+    }
+
+    public Message(int[] fieldOrder) {
         super(fieldOrder);
         initializeHeader();
     }
 
+    public Message(int[] fieldOrder, boolean lengthAndChecksumShouldBeAutomaticallyUpdated) {
+        super(fieldOrder);
+        initializeHeader();
+        this.lengthAndChecksumShouldBeAutomaticallyUpdated = lengthAndChecksumShouldBeAutomaticallyUpdated;
+    }
+
     public Message(String string) throws InvalidMessage {
         initializeHeader();
-        fromString(string, null, true, true);
+        fromString(string, null, null, null, true, true, WeakParsingMode.DISABLED);
     }
 
     public Message(String string, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, null, validate, true);
+        fromString(string, null, null, null, validate, true, WeakParsingMode.DISABLED);
     }
 
-    public Message(String string, DataDictionary dd) throws InvalidMessage {
+    public Message(String string, boolean validate, WeakParsingMode weakParsing) throws InvalidMessage {
         initializeHeader();
-        fromString(string, dd, true, true);
+        fromString(string, null, null, null, validate, true, weakParsing);
     }
 
-    public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
+    public Message(String string, DataDictionary dd, ValidationSettings dds) throws InvalidMessage {
         initializeHeader();
-        fromString(string, dd, validate, true);
+        fromString(string, dd, dds, true, true);
     }
-    
-    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, boolean validate) throws InvalidMessage {
+
+    public Message(String string, DataDictionary dd, ValidationSettings dds, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, sessionDictionary, applicationDictionary, validate, true);
+        fromString(string, dd, dds, validate, true);
+    }
+
+    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, ValidationSettings validationSettings) throws InvalidMessage {
+        initializeHeader();
+        fromString(string, sessionDictionary, applicationDictionary, validationSettings, true);
+    }
+
+    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean validate) throws InvalidMessage {
+        initializeHeader();
+        fromString(string, sessionDictionary, applicationDictionary, validationSettings, validate, true, WeakParsingMode.DISABLED);
     }
 
     private void initializeHeader() {
@@ -138,9 +163,54 @@ public class Message extends FieldMap {
 
     private Object cloneTo(Message message) {
         message.initializeFrom(this);
+        message.messageData = this.messageData;
         message.header.initializeFrom(getHeader());
         message.trailer.initializeFrom(getTrailer());
+        message.remainingHeaderFields.addAll(remainingHeaderFields);
+        message.remainingBodyFields.addAll(remainingBodyFields);
         return message;
+    }
+
+    public void replaceWith(Message message) {
+        clear();
+        messageData = message.messageData;
+        initializeFrom(message);
+        header.initializeFrom(message.header);
+        trailer.initializeFrom(message.trailer);
+        remainingHeaderFields.addAll(message.remainingHeaderFields);
+        remainingBodyFields.addAll(message.remainingBodyFields);
+    }
+
+    public List<Field<?>> getRemainingBodyFields() {
+        return remainingBodyFields;
+    }
+
+    public Field<?> getRemainingBodyField(int index) {
+        return remainingBodyFields.get(index);
+    }
+
+    public boolean hasRemainingBodyFields() {
+        return !remainingBodyFields.isEmpty();
+    }
+
+    public Field<?> getFirstRemainingBodyFieldByTag(int tag) {
+        return remainingBodyFields.stream().filter(f -> f.getTag() == tag).findFirst().orElse(null);
+    }
+
+    public List<Field<?>> getRemainingHeaderFields() {
+        return remainingHeaderFields;
+    }
+
+    public Field<?> getRemainingHeaderField(int index) {
+        return remainingHeaderFields.get(index);
+    }
+
+    public boolean hasRemainingHeaderFields() {
+        return !remainingHeaderFields.isEmpty();
+    }
+
+    public Field<?> getFirstRemainingHeaderFieldByTag(int tag) {
+        return remainingHeaderFields.stream().filter(f -> f.getTag() == tag).findFirst().orElse(null);
     }
 
     private static final class Context {
@@ -160,33 +230,43 @@ public class Message extends FieldMap {
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
      * since FieldMap.calculateString() is iterating over the TreeMap of fields.
-     * 
+     *
      * Use toRawString() to get the raw message data.
-     * 
+     *
      * @return Message as String with calculated body length and checksum.
      */
     @Override
     public String toString() {
         Context context = stringContexts.get();
-        if (CharsetSupport.isStringEquivalent()) { // length & checksum can easily be calculated after message is built
+        if (CharsetSupport.isStringEquivalent() && lengthAndChecksumShouldBeAutomaticallyUpdated) {
+            // length & checksum can easily be calculated after message is built
             header.setField(context.bodyLength);
             trailer.setField(context.checkSum);
-        } else {
+        } else if (lengthAndChecksumShouldBeAutomaticallyUpdated) {
             header.setInt(BodyLength.FIELD, bodyLength());
             trailer.setString(CheckSum.FIELD, checksum());
         }
         StringBuilder stringBuilder = context.stringBuilder;
         try {
             header.calculateString(stringBuilder, null, null);
+            calculateStringRemainingFields(stringBuilder, remainingHeaderFields);
             calculateString(stringBuilder, null, null);
+            calculateStringRemainingFields(stringBuilder, remainingBodyFields);
             trailer.calculateString(stringBuilder, null, null);
-            if (CharsetSupport.isStringEquivalent()) {
+            if (CharsetSupport.isStringEquivalent() && lengthAndChecksumShouldBeAutomaticallyUpdated) {
                 setBodyLength(stringBuilder);
                 setChecksum(stringBuilder);
             }
             return stringBuilder.toString();
         } finally {
             stringBuilder.setLength(0);
+        }
+    }
+
+    protected void calculateStringRemainingFields(StringBuilder buffer, List<Field<?>> fields) {
+        for (final Field<?> field : fields) {
+            field.toString(buffer);
+            buffer.append('\001');
         }
     }
 
@@ -215,15 +295,16 @@ public class Message extends FieldMap {
 
     /**
      * Return the raw message data as it was passed to the Message class.
-     * 
-     * This is only available after Message has been parsed via constructor or Message.fromString().
+     *
+     * This is only available after Message has been parsed via constructor, Message.fromString() or cloned/replaced by one that was.
      * Otherwise this method will return NULL.
-     * 
+     *
      * This method neither does change fields nor calculate body length or checksum.
      * Use toString() for that purpose.
-     * 
+     *
      * @return Message as String without recalculating body length and checksum.
      */
+    @Override
     public String toRawString() {
         return messageData;
     }
@@ -446,6 +527,41 @@ public class Message extends FieldMap {
         return false;
     }
 
+    @Override
+    public String getHeaderString(int field) throws FieldNotFound {
+        return header.getString(field);
+    }
+
+    @Override
+    public void removeHeaderField(int field) {
+        header.removeField(field);
+    }
+
+    @Override
+    public int getHeaderInt(int field) throws FieldNotFound {
+        return header.getInt(field);
+    }
+
+    @Override
+    public void setHeaderString(int field, String value) {
+        header.setString(field, value);
+    }
+
+    @Override
+    public void setHeaderInt(int field, int value) {
+        header.setInt(field, value);
+    }
+
+    @Override
+    public void setHeaderUtcTimeStamp(int field, LocalDateTime localDateTime, UtcTimestampPrecision timestampPrecision) {
+        header.setUtcTimeStamp(field, localDateTime, timestampPrecision);
+    }
+
+    @Override
+    public boolean isSetHeaderField(int field) {
+        return header.isSetField(field);
+    }
+
     public boolean isApp() {
         return !isAdmin();
     }
@@ -460,6 +576,8 @@ public class Message extends FieldMap {
         super.clear();
         header.clear();
         trailer.clear();
+        remainingHeaderFields.clear();
+        remainingBodyFields.clear();
         position = 0;
     }
 
@@ -573,44 +691,81 @@ public class Message extends FieldMap {
         }
     }
 
-    public void fromString(String messageData, DataDictionary dd, boolean doValidation)
+    public void fromString(String messageData, DataDictionary dd, ValidationSettings validationSettings, boolean doValidation)
             throws InvalidMessage {
-        parse(messageData, dd, dd, doValidation, true);
+        parse(messageData, dd, dd, validationSettings, doValidation, true, WeakParsingMode.DISABLED);
     }
 
-    public void fromString(String messageData, DataDictionary dd, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
-        parse(messageData, dd, dd, doValidation, validateChecksum);
+    public void fromString(String messageData, DataDictionary dd, ValidationSettings dds, boolean doValidation,
+                           boolean validateChecksum) throws InvalidMessage {
+        parse(messageData, dd, dd, dds, doValidation, validateChecksum, WeakParsingMode.DISABLED);
     }
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
-            DataDictionary applicationDictionary, boolean doValidation) throws InvalidMessage {
-        fromString(messageData, sessionDictionary, applicationDictionary, doValidation, true);
+                           DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean doValidation) throws InvalidMessage {
+        fromString(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, true, WeakParsingMode.DISABLED);
     }
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
-            DataDictionary applicationDictionary, boolean doValidation, boolean validateChecksum)
+                           DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean doValidation, boolean validateChecksum, WeakParsingMode weakParsingMode)
             throws InvalidMessage {
-        if (sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
+        if (sessionDictionary != null && sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
             applicationDictionary = sessionDictionary;
         }
-        parse(messageData, sessionDictionary, applicationDictionary, doValidation, validateChecksum);
+        parse(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, validateChecksum, weakParsingMode);
     }
 
-    void parse(String messageData, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
-        this.messageData = messageData;
+    public enum WeakParsingMode { ENABLED, FALLBACK, DISABLED }
 
+    void parse(String messageData, DataDictionary sessionDataDictionary,
+               DataDictionary applicationDataDictionary, ValidationSettings validationSettings, boolean doValidation,
+               boolean validateChecksum, WeakParsingMode weakParsingMode) throws InvalidMessage {
+        this.messageData = messageData;
         try {
-            parseHeader(sessionDataDictionary, doValidation);
-            parseBody(sessionDataDictionary, applicationDataDictionary, doValidation);
-            parseTrailer(sessionDataDictionary);
-            if (doValidation && validateChecksum) {
-                validateCheckSum(messageData);
+            switch (weakParsingMode) {
+                case ENABLED:
+                    performWeakParse(sessionDataDictionary, applicationDataDictionary, validationSettings, doValidation, validateChecksum);
+                    break;
+                case FALLBACK:
+                    try {
+                        performStrongParse(sessionDataDictionary, applicationDataDictionary, validationSettings, doValidation, validateChecksum);
+                    } catch (final FieldException strongParseError) {
+                        clear();
+                        performWeakParse(sessionDataDictionary, applicationDataDictionary, validationSettings, doValidation, validateChecksum);
+                    }
+                    break;
+                case DISABLED:
+                    performStrongParse(sessionDataDictionary, applicationDataDictionary, validationSettings, doValidation, validateChecksum);
+                    break;
             }
         } catch (final FieldException e) {
             exception = e;
+        }
+    }
+
+    private void performStrongParse(DataDictionary sessionDataDictionary,
+                                    DataDictionary applicationDataDictionary,
+                                    ValidationSettings validationSettings,
+                                    boolean doValidation,
+                                    boolean validateChecksum) throws InvalidMessage {
+        parseHeader(sessionDataDictionary, validationSettings, doValidation);
+        parseBody(sessionDataDictionary, applicationDataDictionary, validationSettings, doValidation);
+        parseTrailer(sessionDataDictionary);
+        if (doValidation && validateChecksum) {
+            validateCheckSum(messageData);
+        }
+    }
+
+    private void performWeakParse(DataDictionary sessionDataDictionary,
+                                  DataDictionary applicationDataDictionary,
+                                  ValidationSettings validationSettings,
+                                  boolean doValidation,
+                                  boolean validateChecksum) throws InvalidMessage {
+        weakParseHeader(sessionDataDictionary, doValidation);
+        weakParseBody(applicationDataDictionary, validationSettings, doValidation);
+        weakParseTrailer(sessionDataDictionary);
+        if (doValidation && validateChecksum) {
+            validateCheckSum(messageData);
         }
     }
 
@@ -628,7 +783,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
+    private void parseHeader(DataDictionary dd, ValidationSettings dds, boolean doValidation) throws InvalidMessage {
         if (doValidation) {
             final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
                     && isNextField(dd, header, BodyLength.FIELD)
@@ -645,7 +800,38 @@ public class Message extends FieldMap {
             header.setField(field);
 
             if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation);
+                parseGroup(DataDictionary.HEADER_ID, field, dd, dd, dds, header, doValidation);
+            }
+
+            field = extractField(dd, header);
+        }
+        pushBack(field);
+    }
+
+    private void weakParseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
+        Set<Integer> preSetFields = header.fields.keySet();
+        if (doValidation) {
+            final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
+                    && isNextField(dd, header, BodyLength.FIELD)
+                    && isNextField(dd, header, MsgType.FIELD);
+            if (!validHeaderFieldOrder) {
+                // Invalid message preamble (first three fields) is a serious
+                // condition and is handled differently from other message parsing errors.
+                throw MessageUtils.newInvalidMessageException("Header fields out of order in " + messageData,
+                        MessageUtils.getMinimalMessage(messageData));
+            }
+        }
+
+        StringField field = extractField(dd, header);
+        while (field != null && isHeaderField(field, dd)) {
+            if (remainingHeaderFields.isEmpty()) {
+                if (header.isSetField(field) && !preSetFields.contains(field.getField())) {
+                    remainingHeaderFields.add(field);
+                } else {
+                    header.setField(field);
+                }
+            } else {
+                remainingHeaderFields.add(field);
             }
 
             field = extractField(dd, header);
@@ -670,36 +856,101 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseBody(DataDictionary sessionDataDictionary, DataDictionary applicationDataDictionary, boolean doValidation) throws InvalidMessage {
-        StringField field = extractField(applicationDataDictionary, this);
+
+    private void parseBody(DataDictionary sdd, DataDictionary dd, ValidationSettings dds, boolean doValidation) throws InvalidMessage {
+        StringField field = extractField(dd, this);
         while (field != null) {
             if (isTrailerField(field.getField())) {
                 pushBack(field);
                 return;
             }
 
-            if (isHeaderField(field, sessionDataDictionary)) {
+            if (isHeaderField(field, sdd)) {
                 // An acceptance test requires the sequence number to
                 // be available even if the related field is out of order
                 setField(header, field);
                 // Group case
-                if (sessionDataDictionary != null && sessionDataDictionary.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                    parseGroup(DataDictionary.HEADER_ID, field, sessionDataDictionary, sessionDataDictionary, header, doValidation);
+                if (sdd != null && sdd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
+                    parseGroup(DataDictionary.HEADER_ID, field, sdd, sdd, dds, header, doValidation);
                 }
-                if (doValidation && sessionDataDictionary != null && sessionDataDictionary.isCheckFieldsOutOfOrder())
+                if (doValidation && dd != null && dds.isCheckFieldsOutOfOrder())
                     throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
                         field.getTag());
             } else {
                 setField(this, field);
                 // Group case
-                if (applicationDataDictionary != null && applicationDataDictionary.isGroup(getMsgType(), field.getField())) {
-                    parseGroup(getMsgType(), field, applicationDataDictionary, applicationDataDictionary, this, doValidation);
+                if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
+                    parseGroup(getMsgType(), field, dd, dd, dds, this, doValidation);
                 }
             }
 
-            field = extractField(applicationDataDictionary, this);
+            field = extractField(dd, this);
         }
     }
+
+    private void weakParseBody(DataDictionary dd, ValidationSettings validationSettings, boolean doValidation) throws InvalidMessage {
+        StringField field = extractField(dd, this);
+        while (field != null) {
+            if (isTrailerField(field.getField())) {
+                pushBack(field);
+                return;
+            }
+
+            if (isHeaderField(field.getField())) {
+                remainingHeaderFields.add(field);
+                if (doValidation && validationSettings != null && validationSettings.isCheckFieldsOutOfOrder())
+                    throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
+                            field.getTag());
+            } else {
+                if (remainingBodyFields.isEmpty()) {
+                    if (isSetField(field)) {
+                        remainingBodyFields.add(field);
+                    } else {
+                        setField(field);
+                    }
+                } else {
+                    remainingBodyFields.add(field);
+                }
+            }
+            field = extractField(dd, this);
+        }
+    }
+
+    /**
+     * Remove the tag before the repeated tag (should be the group count) and all subsequent tags
+     * @return the removed tags
+     */
+    private List<Field<?>> removeAfterFirstIndex(FieldMap fieldMap, int repeatedField) {
+        List<Field<?>> removedFields = new ArrayList<>();
+        Iterator<Field<?>> possibleCountFieldSearchIterator = fieldMap.iterator();
+        Iterator<Field<?>> possibleRepeatedTagSearchIterator = fieldMap.iterator();
+        if (!possibleRepeatedTagSearchIterator.hasNext()) {
+            return removedFields;
+        }
+        Field<?> firstField = possibleRepeatedTagSearchIterator.next();
+        if (firstField.getField() == repeatedField) {
+            removedFields.add(firstField);
+            return removedFields;
+        }
+        Field<?> possibleCountField = possibleCountFieldSearchIterator.next();
+        while (possibleRepeatedTagSearchIterator.hasNext()) {
+            Field<?> possibleRepeatedField = possibleRepeatedTagSearchIterator.next();
+            if (possibleRepeatedField.getField() == repeatedField) {
+                removedFields.add(possibleCountField);
+                possibleCountFieldSearchIterator.remove();
+                while (possibleCountFieldSearchIterator.hasNext()) {
+                    Field<?> fieldToRemove = possibleCountFieldSearchIterator.next();
+                    possibleCountFieldSearchIterator.remove();
+                    removedFields.add(fieldToRemove);
+                }
+                return removedFields;
+            } else {
+                possibleCountField = possibleCountFieldSearchIterator.next();
+            }
+        }
+        return removedFields;
+    }
+
 
     private void setField(FieldMap fields, StringField field) {
         if (fields.isSetField(field)) {
@@ -708,7 +959,7 @@ public class Message extends FieldMap {
         fields.setField(field);
     }
 
-    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, FieldMap parent, boolean doValidation)
+    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, ValidationSettings dds, FieldMap parent, boolean doValidation)
             throws InvalidMessage {
         final DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
         final DataDictionary groupDataDictionary = rg.getDataDictionary();
@@ -723,35 +974,39 @@ public class Message extends FieldMap {
             throw MessageUtils.newInvalidMessageException("Repeating group count requires an Integer but found '" + field.getValue() + "' in " + messageData, this);
         }
         parent.setField(groupCountTag, field);
-        final int firstField = rg.getDelimiterField();
+        int firstField = rg.getDelimiterField();
+        boolean firstFieldFound = false;
         Group group = null;
         boolean inGroupParse = true;
-        while (inGroupParse) {
-            field = extractField(dd, group != null ? group : parent);
-            if (field == null) {
-                // QFJ-760: stop parsing since current position is greater than message length
-                break;
-            }
-            int tag = field.getTag();
-            if (tag == firstField) {
-                addGroupRefToParent(group, parent);
-                group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
-                group.setField(field);
-                previousOffset = -1;
-                // QFJ-742
-                if (groupDataDictionary.isGroup(msgType, tag)) {
-                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
+
+        if (declaredGroupCount != 0) {
+            while (inGroupParse) {
+                field = extractField(dd, group != null ? group : parent);
+                if (field == null) {
+                    // QFJ-760: stop parsing since current position is greater than message length
+                    break;
                 }
-            } else if (groupDataDictionary.isGroup(msgType, tag)) {
-                if (group != null) {
-                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
-                } else {
+                int tag = field.getTag();
+                if (dds != null && dds.isUseFirstTagAsGroupDelimiter() && !firstFieldFound) {
+                    firstField = tag;
+                }
+                if (tag == firstField) {
+                    addGroupRefToParent(group, parent);
+                    group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
+                    group.setField(field);
+                    firstFieldFound = true;
+                    previousOffset = -1;
+                    // QFJ-742
+                    if (groupDataDictionary.isGroup(msgType, tag)) {
+                        parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
+                    }
+                } else if (groupDataDictionary.isGroup(msgType, tag)) {
                     // QFJ-934: message should be rejected and not ignored when first field not found
-                    throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
-                }
-            } else if (groupDataDictionary.isField(tag)) {
-                if (group != null) {
-                    if (fieldOrder != null && dd.isCheckUnorderedGroupFields()) {
+                    checkFirstFieldFound(firstFieldFound, groupCountTag, firstField, tag);
+                    parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
+                } else if (groupDataDictionary.isField(tag)) {
+                    checkFirstFieldFound(firstFieldFound, groupCountTag, firstField, tag);
+                    if (fieldOrder != null && (dds == null || dds.isCheckUnorderedGroupFields())) {
                         final int offset = indexOf(tag, fieldOrder);
                         if (offset > -1) {
                             if (offset <= previousOffset) {
@@ -759,28 +1014,29 @@ public class Message extends FieldMap {
                                 group.setField(field);
                                 addGroupRefToParent(group, parent);
                                 throw new FieldException(
-                                        SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
+                                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
                             }
                             previousOffset = offset;
                         }
                     }
                     group.setField(field);
+                } else if (group == null) {
+                    throw new FieldException(
+                        SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, "Missing first tag in repeating group " + groupCountTag + ". Expected " + firstField + " to be the first tag in the group", tag);
                 } else {
-                    throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
-                }
-            } else {
-                // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
-                if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType) || isHeaderField(field, dd))) {
-                    if (checkFieldValidation(parent, parentDD, field, msgType, doValidation, group)) {
-                        continue;
+                    // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
+                    if (!isTrailerField(tag) && !isHeaderField(field.getField()) && !(DataDictionary.HEADER_ID.equals(msgType))) {
+                        if (checkFieldValidation(parent, parentDD, dds, field, msgType, doValidation, group, parent.getGroups(group.getFieldTag()), declaredGroupCount)) {
+                            continue;
+                        }
                     }
+                    pushBack(field);
+                    inGroupParse = false;
                 }
-                pushBack(field);
-                inGroupParse = false;
             }
+            // add what we've already got and leave the rest to the validation (if enabled)
+            addGroupRefToParent(group, parent);
         }
-        // add what we've already got and leave the rest to the validation (if enabled)
-        addGroupRefToParent(group, parent);
         // For later validation that the group size matches the parsed group count
         parent.setGroupCount(groupCountTag, declaredGroupCount);
     }
@@ -791,17 +1047,19 @@ public class Message extends FieldMap {
         }
     }
 
-    private FieldException newFieldExceptionMissingDelimiter(final int groupCountTag, final int firstField, int tag) throws FieldException {
-        return new FieldException(
+    private void checkFirstFieldFound(boolean firstFieldFound, final int groupCountTag, final int firstField, int tag) throws FieldException {
+        if (!firstFieldFound) {
+            throw new FieldException(
                 SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, "The group " + groupCountTag
                 + " must set the delimiter field " + firstField, tag);
+        }
     }
 
-    private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
+    private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, ValidationSettings dds, StringField field, String msgType, boolean doValidation, Group group, List<Group> previousGroups, int groupCount) throws FieldException {
         boolean isField = (parent instanceof Group) ? parentDD.isField(field.getTag()) : parentDD.isMsgField(msgType, field.getTag());
         if (!isField) {
             if (doValidation) {
-                boolean fail = parentDD.checkFieldFailure(field.getTag(), false);
+                boolean fail = parentDD.checkFieldFailure(dds, field.getTag(), false);
                 if (fail) {
                     throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getTag());
                 }
@@ -810,13 +1068,49 @@ public class Message extends FieldMap {
                 throw new FieldException(
                         SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field.getTag());
             }
-            group.setField(field);
-            return true;
+            boolean lastGroup = previousGroups.size() + 1 >= groupCount;
+            if (!lastGroup) {
+                group.setField(field);
+                return true;
+            } else {
+                if (dds.isOnlyAllowSeenOrKnownFieldsInLastGroup()) {
+                    if (isSeenField(field, previousGroups)) {
+                        group.setField(field);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    group.setField(field);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isSeenField(Field<?> field, List<Group> groups) {
+        for (Group g : groups) {
+            if (g.isSetField(field)) {
+                return true;
+            }
         }
         return false;
     }
 
     private void parseTrailer(DataDictionary dd) throws InvalidMessage {
+        StringField field = extractField(dd, trailer);
+        while (field != null) {
+            if (!isTrailerField(field, dd)) {
+                throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
+                        field.getTag());
+            }
+            trailer.setField(field);
+            field = extractField(dd, trailer);
+        }
+    }
+
+    private void weakParseTrailer(DataDictionary dd) throws InvalidMessage {
         StringField field = extractField(dd, trailer);
         while (field != null) {
             if (!isTrailerField(field, dd)) {
@@ -969,6 +1263,7 @@ public class Message extends FieldMap {
         return exception == null;
     }
 
+    @Override
     public FieldException getException() {
         return exception;
     }
@@ -1001,7 +1296,7 @@ public class Message extends FieldMap {
     boolean isGarbled() {
         return isGarbled;
     }
-    
+
     void setGarbled(boolean isGarbled) {
         this.isGarbled = isGarbled;
     }

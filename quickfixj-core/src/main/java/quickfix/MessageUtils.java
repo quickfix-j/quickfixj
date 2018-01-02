@@ -35,6 +35,7 @@ import quickfix.field.TargetSubID;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MessageUtils {
@@ -90,9 +91,9 @@ public class MessageUtils {
         }
     }
 
-    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary, ValidationSettings validationSettings,
             String messageString) throws InvalidMessage {
-        return parse(messageFactory, dataDictionary, messageString, true);
+        return parse(messageFactory, dataDictionary, validationSettings, messageString, true);
     }
 
     /**
@@ -105,7 +106,7 @@ public class MessageUtils {
      * @return the parsed message
      * @throws InvalidMessage
      */
-    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary, ValidationSettings validationSettings,
             String messageString, boolean validateChecksum) throws InvalidMessage {
         final int index = messageString.indexOf(FIELD_SEPARATOR);
         if (index < 0) {
@@ -114,7 +115,7 @@ public class MessageUtils {
         final String beginString = messageString.substring(2, index);
         final String messageType = getMessageType(messageString);
         final quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(messageString, dataDictionary, dataDictionary != null, validateChecksum);
+        message.fromString(messageString, dataDictionary, validationSettings, dataDictionary != null, validateChecksum);
         return message;
     }
 
@@ -122,15 +123,17 @@ public class MessageUtils {
      * NOTE: This method is intended for internal use.
      *
      * @param session the Session that will process the message
-     * @param messageString
+     * @param messageString the message in raw string format
      * @return the parsed message
-     * @throws InvalidMessage
+     * @throws InvalidMessage when the ApplVerID is missing (for FIXT messages) or the message can't be parsed
      */
     public static Message parse(Session session, String messageString) throws InvalidMessage {
         final String beginString = getStringField(messageString, BeginString.FIELD);
         final String msgType = getMessageType(messageString);
         final MessageFactory messageFactory = session.getMessageFactory();
-        final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
+        final DataDictionaryProvider ddProvider = shouldUseDictionary(session, msgType) ?
+            session.getDataDictionaryProvider() : null;
+        final ValidationSettings validationSettings = session.getValidationSettings();
         final ApplVerID applVerID;
         final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
                 .getSessionDataDictionary(beginString);
@@ -157,10 +160,24 @@ public class MessageUtils {
         final boolean validateChecksum = session.isValidateChecksum();
 
         message = messageFactory.create(beginString, applVerID, msgType);
-        message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
-                validateChecksum);
+        message.parse(messageString, sessionDataDictionary, payloadDictionary, validationSettings, doValidation,
+                validateChecksum, session.getWeakParsingMode());
+
+        if (payloadDictionary != null && session.getUseDictionaryOrdering()) {
+            message.setFieldOrder(payloadDictionary.getOrderedFieldsForMessage(msgType));
+            for (List<Group> groups : message.getGroups().values()) {
+                for (Group group : groups) {
+                    group.setFieldOrder(payloadDictionary.getGroup(msgType,
+                            group.getFieldTag()).getDataDictionary().getOrderedFields());
+                }
+            }
+        }
 
         return message;
+    }
+
+    private static boolean shouldUseDictionary(Session session, String msgType) {
+        return session.useDictionaryForMsgType(msgType);
     }
 
     private static ApplVerID getApplVerID(Session session, String messageString)
@@ -393,7 +410,7 @@ public class MessageUtils {
     public static int length(Charset charset, String data) {
         return CharsetSupport.isStringEquivalent(charset) ? data.length() : data.getBytes(charset).length;
     }
-    
+
     /**
      * Returns an InvalidMessage Exception with optionally attached FIX message.
      *

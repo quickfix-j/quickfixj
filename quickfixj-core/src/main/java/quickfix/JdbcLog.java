@@ -127,14 +127,17 @@ class JdbcLog extends AbstractLog {
         return deleteItemsSqlCache.get(tableName);
     }
 
+    @Override
     public void onEvent(String value) {
         insert(eventTableName, value);
     }
 
+    @Override
     protected void logIncoming(String message) {
         insert(incomingMessagesTableName, message);
     }
 
+    @Override
     protected void logOutgoing(String message) {
         insert(outgoingMessagesTableName, message);
     }
@@ -166,7 +169,7 @@ class JdbcLog extends AbstractLog {
             insert.execute();
         } catch (SQLException e) {
             recursiveException = e;
-            LogUtil.logThrowable(sessionID, e.getMessage(), e);
+            LogUtil.logThrowable(sessionID, ErrorEventReasons.IO_ERROR, e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, insert);
             JdbcUtil.close(sessionID, connection);
@@ -193,7 +196,7 @@ class JdbcLog extends AbstractLog {
             setSessionIdParameters(statement, 1);
             statement.execute();
         } catch (SQLException e) {
-            LogUtil.logThrowable(sessionID, e.getMessage(), e);
+            LogUtil.logThrowable(sessionID, ErrorEventReasons.IO_ERROR, e.getMessage(), e);
         } finally {
             JdbcUtil.close(sessionID, statement);
             JdbcUtil.close(sessionID, connection);
@@ -217,7 +220,8 @@ class JdbcLog extends AbstractLog {
                 extendedSessionIdSupported, defaultSessionIdPropertyValue);
     }
 
-    public void onErrorEvent(String text) {
+    @Override
+    public void onErrorEvent(String category, String text) {
         onEvent(text);
     }
 }

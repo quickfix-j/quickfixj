@@ -294,8 +294,8 @@ public class FieldTest {
         value.set(new TradeCondition("A B AF AG"));
         md.addGroup(value);
 
-        DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(md);
+        DataDictionary dd = new DataDictionary("FIX50.xml", true);
+        dd.validate(md, new ValidationSettings());
     }
 
     @Test
@@ -309,8 +309,8 @@ public class FieldTest {
         nos.set(new ExecInst("i V 7"));
         nos.set(new TransactTime(LocalDateTime.of(2020, 3, 10, 12, 23, 44)));
 
-        DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(nos);
+        DataDictionary dd = new DataDictionary("FIX50.xml", true);
+        dd.validate(nos, new ValidationSettings());
     }
 
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {

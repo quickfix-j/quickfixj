@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -490,19 +491,36 @@ public final class SessionState {
         return lock;
     }
 
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return messageStore.getCreationTimeCalendar();
+    }
+
     private final static class NullLog implements Log {
+        @Override
         public void onOutgoing(String message) {
         }
 
+        @Override
         public void onIncoming(String message) {
         }
 
+        @Override
         public void onEvent(String text) {
         }
 
-        public void onErrorEvent(String text) {
+        @Override
+        public void onErrorEvent(String category, String text) {
         }
 
+        @Override
+        public void onInvalidMessage(String message, String failureReason) {
+        }
+
+        @Override
+        public void onDisconnect(String reason) {
+        }
+
+        @Override
         public void clear() {
         }
     }

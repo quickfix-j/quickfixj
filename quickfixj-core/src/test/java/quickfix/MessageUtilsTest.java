@@ -37,10 +37,10 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -157,6 +157,7 @@ public class MessageUtilsTest {
     public void testParse() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
         when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
         when(mockSession.getMessageFactory()).thenReturn(new quickfix.fix40.MessageFactory());
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
@@ -176,13 +177,14 @@ public class MessageUtilsTest {
             "44=15\00159=1\0016=0\001453=3\001448=AAA35791\001447=D\001452=3\001448=8\001" +
             "447=D\001452=4\001448=FIX11\001447=D\001452=36\00160=20060320-03:34:29\00110=169\001";
 
-        Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), data);
+        Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), new ValidationSettings(), data);
         assertThat(message, is(notNullValue()));
     }
 
     @Test
     public void testParseFixt() throws Exception {
         Session mockSession = mock(Session.class);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
         when(mockSession.getMessageFactory()).thenReturn(new quickfix.fix40.MessageFactory());
@@ -201,6 +203,7 @@ public class MessageUtilsTest {
     @Test
     public void testParseFixtLogon() throws Exception {
         Session mockSession = mock(Session.class);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
         when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
@@ -217,6 +220,7 @@ public class MessageUtilsTest {
     @Test
     public void testParseFixtLogout() throws Exception {
         Session mockSession = mock(Session.class);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
         when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
@@ -232,6 +236,7 @@ public class MessageUtilsTest {
     @Test
     public void testParseFix50() throws Exception {
         Session mockSession = mock(Session.class);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
         when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
@@ -252,6 +257,7 @@ public class MessageUtilsTest {
     public void testParseMessageWithoutChecksumValidation() throws InvalidMessage {
         Session mockSession = mock(Session.class);
         when(mockSession.isValidateChecksum()).thenReturn(Boolean.FALSE);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
 
         DataDictionary dataDictionary = mock(DataDictionary.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
@@ -265,6 +271,32 @@ public class MessageUtilsTest {
         Message message = MessageUtils.parse(mockSession, messageString);
 
         assertThat(message, is(notNullValue()));
+    }
+
+    @Test
+    public void testParseUsingDictionaryBasedOnMessageTypes() throws InvalidMessage, FieldNotFound {
+        Session mockSession = mock(Session.class);
+        when(mockSession.isValidateChecksum()).thenReturn(Boolean.TRUE);
+        when(mockSession.getWeakParsingMode()).thenReturn(Message.WeakParsingMode.DISABLED);
+        when(mockSession.getValidationSettings()).thenReturn(new ValidationSettings());
+
+        when(mockSession.getDataDictionaryProvider()).thenReturn(new DefaultDataDictionaryProvider());
+        when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
+
+        when(mockSession.useDictionaryForMsgType("D")).thenReturn(false);
+
+        String messageString = "8=FIX.4.2\0019=56\00135=D\00134=1\00149=TW\00152=20060118-16:34:19\00156=ISLD\00178=1\00180=2\00110=283\001";
+
+        Message message = MessageUtils.parse(mockSession, messageString);
+        assertThat(message, is(notNullValue()));
+        assertEquals("2", message.getString(80));
+
+        when(mockSession.useDictionaryForMsgType("D")).thenReturn(true);
+
+        Message messageWithDictionary = MessageUtils.parse(mockSession, messageString);
+        assertFalse(messageWithDictionary.hasValidStructure());
+        assertEquals(80, messageWithDictionary.getException().getField());
+        assertEquals("The group 78 must set the delimiter field 79, field=80", messageWithDictionary.getException().getMessage());
     }
 
 }

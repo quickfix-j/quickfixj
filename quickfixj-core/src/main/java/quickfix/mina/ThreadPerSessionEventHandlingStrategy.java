@@ -202,7 +202,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             try {
                 queueTracker.put(message);
             } catch (final InterruptedException e) {
-                quickfixSession.getLog().onErrorEvent(e.toString());
+                quickfixSession.getLog().onErrorEvent(ErrorEventReasons.FAILED_TO_QUEUE_MESSAGE, e.toString());
                 Thread.currentThread().interrupt();
             }
         }
@@ -226,11 +226,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                     }
                 } catch (final InterruptedException e) {
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
+                            ErrorEventReasons.MESSAGE_DISPATCHER_ERROR,
                             "Message dispatcher interrupted", e);
                     stopping = true;
                     Thread.currentThread().interrupt();
-                } catch (final Throwable e) {
+                } catch (final Exception e) {
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
+                        ErrorEventReasons.MESSAGE_PROCESSOR_ERROR,
                             "Error during message processing", e);
                 }
             }
@@ -240,8 +242,9 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 for (Message message : tempList) {
                     try {
                         quickfixSession.next(message);
-                    } catch (final Throwable e) {
+                    } catch (final Exception e) {
                         LogUtil.logThrowable(quickfixSession.getSessionID(),
+                                ErrorEventReasons.MESSAGE_PROCESSOR_ERROR,
                                 "Error during message processing", e);
                     }
                 }

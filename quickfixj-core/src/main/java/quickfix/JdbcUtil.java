@@ -121,7 +121,7 @@ class JdbcUtil {
             try {
                 connection.close();
             } catch (SQLException e) {
-                LogUtil.logThrowable(sessionID, e.getMessage(), e);
+                LogUtil.logThrowable(sessionID, ErrorEventReasons.IO_ERROR, e.getMessage(), e);
             }
         }
     }
@@ -131,7 +131,7 @@ class JdbcUtil {
             try {
                 statement.close();
             } catch (SQLException e) {
-                LogUtil.logThrowable(sessionID, e.getMessage(), e);
+                LogUtil.logThrowable(sessionID, ErrorEventReasons.IO_ERROR, e.getMessage(), e);
             }
         }
     }
@@ -141,7 +141,7 @@ class JdbcUtil {
             try {
                 rs.close();
             } catch (SQLException e) {
-                LogUtil.logThrowable(sessionID, e.getMessage(), e);
+                LogUtil.logThrowable(sessionID, ErrorEventReasons.IO_ERROR, e.getMessage(), e);
             }
         }
     }

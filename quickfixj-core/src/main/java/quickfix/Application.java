@@ -63,7 +63,7 @@ public interface Application {
      * @param message QuickFIX message
      * @param sessionId QuickFIX session ID
      */
-    void toAdmin(Message message, SessionID sessionId);
+    void toAdmin(IMessage message, SessionID sessionId);
 
     /**
      * This callback notifies you when an administrative message is sent from a
@@ -78,7 +78,7 @@ public interface Application {
      * @throws IncorrectTagValue
      * @throws RejectLogon causes a logon reject
      */
-    void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat,
+    void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat,
             IncorrectTagValue, RejectLogon;
 
     /**
@@ -97,7 +97,7 @@ public interface Application {
      * @param sessionId QuickFIX session ID
      * @throws DoNotSend This exception aborts message transmission
      */
-    void toApp(Message message, SessionID sessionId) throws DoNotSend;
+    void toApp(IMessage message, SessionID sessionId) throws DoNotSend;
 
     /**
      * This callback receives messages for the application. This is one of the
@@ -121,6 +121,6 @@ public interface Application {
      * @throws IncorrectTagValue
      * @throws UnsupportedMessageType
      */
-    void fromApp(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat,
+    void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType;
 }

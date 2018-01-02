@@ -34,7 +34,7 @@ public class IncorrectDataFormat extends Exception implements HasFieldAndReason 
      * @param data the incorrect data
      */
     public IncorrectDataFormat(final int field, final String data) {
-        this(field, data, SessionRejectReasonText.getMessage(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE) + ", field=" + field);
+        this(field, data, SessionRejectReasonText.getMessage(SessionRejectReason.INCORRECT_DATA_FORMAT_FOR_VALUE) + ", field=" + field + ", value="+ data);
     }
 
     /**

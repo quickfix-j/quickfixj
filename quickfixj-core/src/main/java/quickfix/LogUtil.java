@@ -38,7 +38,7 @@ public class LogUtil {
      * @param message error message
      * @param t the exception to log
      */
-    public static void logThrowable(Log log, String message, Throwable t) {
+    public static void logThrowable(Log log,String category, String message, Throwable t) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(stringWriter);
         printWriter.println(message);
@@ -47,7 +47,7 @@ public class LogUtil {
             printWriter.println("Cause: " + t.getCause().getMessage());
             t.getCause().printStackTrace(printWriter);
         }
-        log.onErrorEvent(stringWriter.toString());
+        log.onErrorEvent(category, stringWriter.toString());
     }
 
     /**
@@ -57,10 +57,10 @@ public class LogUtil {
      * @param message the error message
      * @param t the exception to log
      */
-    public static void logThrowable(SessionID sessionID, String message, Throwable t) {
+    public static void logThrowable(SessionID sessionID, String category, String message, Throwable t) {
         final Session session = Session.lookupSession(sessionID);
         if (session != null) {
-            logThrowable(session.getLog(), message, t);
+            logThrowable(session.getLog(), category, message, t);
         } else {
             // QFJ-335
             // It's possible the session has been deregistered by the time

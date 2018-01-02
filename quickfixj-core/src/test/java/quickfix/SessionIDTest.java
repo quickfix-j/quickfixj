@@ -180,7 +180,9 @@ public class SessionIDTest extends TestCase {
         assertEquals("TSUB", sessionID.getTargetSubID());
         assertEquals("TLOC", sessionID.getTargetLocationID());
         assertEquals("QUALIFIER", sessionID.getSessionQualifier());
-        assertEquals("FIX.4.2:SENDER/SSUB/SLOC->TARGET/TSUB/TLOC:QUALIFIER", sessionID.toString());
+        // TODO: FIXHUB-938 - Reintroduce this format
+        // assertEquals("FIX.4.2:SENDER/SSUB/SLOC->TARGET/TSUB/TLOC:QUALIFIER", sessionID.toString());
+        assertEquals("FIX.4.2:SENDER->TARGET", sessionID.toString());
     }
 
     public void testStringConstructorNoSubOrLocation() throws Exception {
@@ -189,7 +191,9 @@ public class SessionIDTest extends TestCase {
         assertEquals("SENDER", sessionID.getSenderCompID());
         assertEquals("TARGET", sessionID.getTargetCompID());
         assertEquals("QUALIFIER", sessionID.getSessionQualifier());
-        assertEquals("FIX.4.2:SENDER->TARGET:QUALIFIER", sessionID.toString());
+        //  TODO: FIXHUB-938 - Reintroduce this format
+        // assertEquals("FIX.4.2:SENDER->TARGET:QUALIFIER", sessionID.toString());
+        assertEquals("FIX.4.2:SENDER->TARGET", sessionID.toString());
     }
 
     public void testStringConstructorNoSubLocationOrQualifier() throws Exception {
@@ -220,6 +224,7 @@ public class SessionIDTest extends TestCase {
         }
     }
 
+    // TODO: FIXHUB-938 - Evaluate whether these should be uncommented
     //    public void testFromString() throws Exception {
     //        SessionID sessionID = new SessionID((String) null, (String) null, (String) null);
     //        sessionID.fromString("FIX.4.2:SENDER->TARGET:QUALIFIER");

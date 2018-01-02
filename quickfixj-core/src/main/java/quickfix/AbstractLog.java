@@ -47,6 +47,14 @@ abstract class AbstractLog implements Log, Closeable {
 
     protected abstract void logOutgoing(String message);
 
+    @Override
+    public void onInvalidMessage(String messageString, String failureReason) {
+    }
+
+    @Override
+    public void onDisconnect(String reason) {
+    }
+
     public void close() throws IOException {
         // default is to do nothing
     }

@@ -107,6 +107,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         synchronized (isStarted) {
             if (isStarted.compareAndSet(false, true)) {
                 eventHandlingStrategy.setExecutor(longLivedExecutor);
+                createSessionAcceptors();
                 startAcceptingConnections();
                 eventHandlingStrategy.blockInThread();
             }

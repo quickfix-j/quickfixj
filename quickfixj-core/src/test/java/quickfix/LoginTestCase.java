@@ -83,13 +83,13 @@ public class LoginTestCase {
         }
 
         @Override
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+        public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             assertEquals(expectedSessionID, sessionId);
         }
 
         @Override
-        public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
+        public void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
             assertEquals(expectedSessionID, sessionId);
         }
@@ -110,12 +110,12 @@ public class LoginTestCase {
         }
 
         @Override
-        public void toAdmin(Message message, SessionID sessionId) {
+        public void toAdmin(IMessage message, SessionID sessionId) {
             assertEquals(expectedSessionID, sessionId);
         }
 
         @Override
-        public void toApp(Message message, SessionID sessionId) throws DoNotSend {
+        public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
             assertEquals(expectedSessionID, sessionId);
         }
     }

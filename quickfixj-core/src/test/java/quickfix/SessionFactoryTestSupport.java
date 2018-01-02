@@ -4,6 +4,7 @@ import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -48,10 +49,19 @@ public class SessionFactoryTestSupport implements SessionFactory {
                                         boolean isInitiator, boolean resetOnLogon, boolean validateSequenceNumbers,
                                         boolean useDataDictionary, DefaultApplVerID senderDefaultApplVerID) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
-                .setDataDictionaryProvider(new DefaultDataDictionaryProvider())
+                .setDataDictionaryProvider(useDataDictionary ? new DefaultDataDictionaryProvider() : null)
                 .setResetOnLogon(resetOnLogon).setValidateSequenceNumbers(validateSequenceNumbers)
                 .setPersistMessages(true).setSenderDefaultApplVerID(senderDefaultApplVerID)
                 .build();
+    }
+
+    public static Builder provideSessionBuilder(SessionID sessionID, Application application,
+                                        boolean isInitiator, boolean resetOnLogon, boolean validateSequenceNumbers,
+                                        boolean useDataDictionary, DefaultApplVerID senderDefaultApplVerID) {
+        return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
+            .setDataDictionaryProvider(useDataDictionary ? new DefaultDataDictionaryProvider() : null)
+            .setResetOnLogon(resetOnLogon).setValidateSequenceNumbers(validateSequenceNumbers)
+            .setPersistMessages(true).setSenderDefaultApplVerID(senderDefaultApplVerID);
     }
 
     public static Session createSession(SessionID sessionID, Application application,
@@ -79,6 +89,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
         private Supplier<MessageQueueFactory> messageQueueFactorySupplier = InMemoryMessageQueueFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
+        private Supplier<ValidationSettings> dataDictionarySettingsSupplier = ValidationSettings::new;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
         private Supplier<MessageFactory> messageFactorySupplier = DefaultMessageFactory::new;
@@ -100,9 +111,9 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean validateSequenceNumbers = true;
         private final int[] logonIntervals = new int[]{5};
         private final boolean resetOnError = false;
-        private final boolean disconnectOnError = false;
+        private boolean disconnectOnError = false;
         private final boolean disableHeartBeatCheck = false;
-        private final boolean rejectInvalidMessage = true;
+        private boolean rejectInvalidMessage = true;
         private final boolean rejectMessageOnUnhandledException = false;
         private final boolean requiresOrigSendingTime = true;
         private final boolean forceResendWhenCorruptedStore = false;
@@ -112,12 +123,19 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean enableNextExpectedMsgSeqNum = false;
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
+        private final boolean useDictionaryOrdering = false;
         private final boolean allowPosDup = false;
         private List<StringField> logonTags = new ArrayList<>();
+        private Message.WeakParsingMode weakParsingMode = Message.WeakParsingMode.DISABLED;
+
+        private final int maxResendBatchRetrievalSize = Session.DEFAULT_MAX_RESEND_BATCH_RETRIEVAL_SIZE;
+        private Set<String> msgTypesToUseDictionary = new HashSet<>();
+        private boolean rejectMessageOutOfTime = true;
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), messageQueueFactorySupplier.get(),
-                    sessionIDSupplier.get(), dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
+                    sessionIDSupplier.get(), dataDictionaryProviderSupplier.get(), dataDictionarySettingsSupplier.get(),
+                    sessionScheduleSupplier.get(), logFactorySupplier.get(),
                     messageFactorySupplier.get(), sessionHeartbeatIntervalSupplier.get(), checkLatency, maxLatency,
                     timestampPrecision, resetOnLogon, resetOnLogout, resetOnDisconnect, refreshMessageStoreAtLogon,
                     checkCompID, redundantResentRequestsAllowed, persistMessages, useClosedRangeForResend,
@@ -125,7 +143,8 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, useDictionaryOrdering, allowPosDup,
+                    weakParsingMode, maxResendBatchRetrievalSize, msgTypesToUseDictionary, rejectMessageOutOfTime);
         }
 
         public Builder setBeginString(final String beginString) {
@@ -167,6 +186,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setDataDictionaryProvider(final DataDictionaryProvider dataDictionaryProvider) {
             this.dataDictionaryProviderSupplier = () -> dataDictionaryProvider;
+            return this;
+        }
+
+        public Builder setDataDictionarySettings(final ValidationSettings validationSettings) {
+            this.dataDictionarySettingsSupplier = () -> validationSettings;
             return this;
         }
 
@@ -237,6 +261,26 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setEnableNextExpectedMsgSeqNum(final boolean enableNextExpectedMsgSeqNum) {
             this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
+            return this;
+        }
+
+        public Builder setRejectInvalidMessage(final boolean rejectInvalidMessage) {
+            this.rejectInvalidMessage = rejectInvalidMessage;
+            return this;
+        }
+
+        public Builder setDisconnectOnError(final boolean disconnectOnError) {
+            this.disconnectOnError = disconnectOnError;
+            return this;
+        }
+
+        public Builder setWeakParsingMode(Message.WeakParsingMode weakParsingMode) {
+            this.weakParsingMode = weakParsingMode;
+            return this;
+        }
+
+        public Builder setRejectMessageOutOfTime(boolean rejectMessageOutOfTime) {
+            this.rejectMessageOutOfTime = rejectMessageOutOfTime;
             return this;
         }
     }

@@ -70,6 +70,10 @@ public class MemoryStore implements MessageStore {
         return creationTime.getTime();
     }
 
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return creationTime;
+    }
+
     /* package */void setCreationTime(Calendar creationTime) {
         this.creationTime = creationTime;
     }
@@ -114,7 +118,7 @@ public class MemoryStore implements MessageStore {
         final String text = "memory store does not support refresh!";
         final Session session = sessionID != null ? Session.lookupSession(sessionID) : null;
         if (session != null) {
-            session.getLog().onErrorEvent("ERROR: " + text);
+            session.getLog().onErrorEvent(ErrorEventReasons.REFRESH_UNSUPPORTED, "ERROR: " + text);
         } else {
             LoggerFactory.getLogger(MemoryStore.class).error(text);
         }

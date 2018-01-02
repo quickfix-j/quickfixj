@@ -229,7 +229,7 @@ public class FIXMessageDecoder implements MessageDecoder {
                 }
             }
             return messageFound;
-        } catch (Throwable t) {
+        } catch (Exception t) {
             resetState();
             if (t instanceof ProtocolCodecException) {
                 throw (ProtocolCodecException) t;

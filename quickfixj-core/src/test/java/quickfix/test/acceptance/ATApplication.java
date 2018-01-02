@@ -21,17 +21,7 @@ package quickfix.test.acceptance;
 
 import org.junit.Assert;
 
-import quickfix.Application;
-import quickfix.DoNotSend;
-import quickfix.FieldNotFound;
-import quickfix.IncorrectDataFormat;
-import quickfix.IncorrectTagValue;
-import quickfix.Message;
-import quickfix.MessageCracker;
-import quickfix.RejectLogon;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.UnsupportedMessageType;
+import quickfix.*;
 
 public class ATApplication implements Application {
     private final ATMessageCracker inboundCracker = new ATMessageCracker();
@@ -63,14 +53,14 @@ public class ATApplication implements Application {
         isLoggedOn = false;
     }
 
-    public void toAdmin(Message message, SessionID sessionID) {
+    public void toAdmin(IMessage message, SessionID sessionID) {
         assertNoSessionLock(sessionID);
     }
 
-    public void toApp(Message message, SessionID sessionID) throws DoNotSend {
+    public void toApp(IMessage message, SessionID sessionID) throws DoNotSend {
         assertNoSessionLock(sessionID);
         try {
-            outboundCracker.crack(message, sessionID);
+            outboundCracker.crack((Message) message, sessionID);
         } catch (ClassCastException e) {
             throw e;
         } catch (Exception e) {
@@ -78,14 +68,14 @@ public class ATApplication implements Application {
         }
     }
 
-    public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound,
+    public void fromAdmin(IMessage message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         assertNoSessionLock(sessionID);
     }
 
-    public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
+    public void fromApp(IMessage message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         assertNoSessionLock(sessionID);
-        inboundCracker.crack(message, sessionID);
+        inboundCracker.crack((Message) message, sessionID);
     }
 }

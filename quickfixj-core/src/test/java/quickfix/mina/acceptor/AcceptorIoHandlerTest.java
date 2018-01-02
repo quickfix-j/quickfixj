@@ -30,6 +30,8 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SessionSettingsTest;
 import quickfix.UnitTestApplication;
+import quickfix.*;
+import quickfix.SessionFactoryTestSupport.Builder;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.EncryptMethod;
@@ -47,6 +49,7 @@ import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 import quickfix.mina.SessionConnectorStub;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.TestDataDictionaryProvider;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
 import java.time.LocalDateTime;
@@ -222,7 +225,13 @@ public class AcceptorIoHandlerTest {
     @Test
     public void testRejectGarbledMessage() throws Exception {
         SessionSettings settings = SessionSettingsTest.setUpSession(null);
-        SessionConnector connector = new SessionConnectorStub(settings);
+        SessionConnector connector = new SessionConnector(settings, null) {
+            @Override
+            public void start() throws ConfigError, RuntimeError {}
+
+            @Override
+            public void stop(boolean force) {}
+        };
         SingleThreadedEventHandlingStrategy eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(connector, 1000);
         IoSession mockIoSession = mock(IoSession.class);
 
@@ -287,7 +296,7 @@ public class AcceptorIoHandlerTest {
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
             assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
 
-            // garbled: wrong checksum
+            // garbled: wrong group count
             fixString = "8=FIXT.1.19=6835=B34=449=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=110=256";
             handler.messageReceived(mockIoSession, fixString);
             // wait some time for EventHandlingStrategy to poll the message
@@ -299,10 +308,10 @@ public class AcceptorIoHandlerTest {
 
             lastToAdminMessage = unitTestApplication.lastToAdminMessage();
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
-            assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
+            assertEquals("Missing first tag in repeating group 33. Expected 58 to be the first tag in the group, field=10", lastToAdminMessage.getString(Text.FIELD));
 
-            // garbled: invalid tag 49garbled
-            fixString = "8=FIXT.1.19=6835=B34=549garbled=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=110=256";
+            // garbled: wrong checksum
+            fixString = "8=FIXT.1.19=6835=B34=549=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=010=256";
             handler.messageReceived(mockIoSession, fixString);
             // wait some time for EventHandlingStrategy to poll the message
             Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
@@ -310,6 +319,20 @@ public class AcceptorIoHandlerTest {
             // ensure that seqnums are incremented (i.e. message is not ignored)
             assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(6, session.getStore().getNextSenderMsgSeqNum());
+
+            lastToAdminMessage = unitTestApplication.lastToAdminMessage();
+            assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
+            assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
+
+            // garbled: invalid tag 49garbled
+            fixString = "8=FIXT.1.19=6835=B34=649garbled=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=110=256";
+            handler.messageReceived(mockIoSession, fixString);
+            // wait some time for EventHandlingStrategy to poll the message
+            Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
+
+            // ensure that seqnums are incremented (i.e. message is not ignored)
+            assertEquals(7, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(7, session.getStore().getNextSenderMsgSeqNum());
 
             lastToAdminMessage = unitTestApplication.lastToAdminMessage();
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
@@ -384,4 +407,66 @@ public class AcceptorIoHandlerTest {
             disconnectCalled = true;
         }
     }
+
+    @Test
+    public void testUnparsableMessageWithMsgTypeLogs() throws Exception {
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
+        IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings sessionSettings = mock(SessionSettings.class);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+        final Log mockLog = mock(Log.class);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
+        final Session session = createSession(sessionID, mockLogFactory);
+
+        when(mockIoSession.getAttribute("QF_SESSION")).thenReturn(session);
+
+        final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
+        acceptorSessions.put(sessionID, session);
+        final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
+
+        final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
+            sessionSettings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+
+        String message = "8=FIX.4.2\u000135=D\u0001";
+        handler.messageReceived(mockIoSession, message);
+
+        verify(mockLog).onErrorEvent(ErrorEventReasons.INVALID_MESSAGE, "Invalid message: Header fields out of order in " + message);
+        verify(mockLog).onInvalidMessage(message, "Header fields out of order in " + message);
+    }
+
+    @Test
+    public void testMessageWhichParsesWithExceptionLogs() throws Exception {
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
+        IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings sessionSettings = mock(SessionSettings.class);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET");
+        final LogFactory mockLogFactory = mock(LogFactory.class);
+        final Log mockLog = mock(Log.class);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
+        final Session session = createSession(sessionID, mockLogFactory);
+
+        when(mockIoSession.getAttribute("QF_SESSION")).thenReturn(session);
+
+        final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
+        acceptorSessions.put(sessionID, session);
+        final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
+
+        final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
+            sessionSettings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+
+        String message = "8=FIX.4.2\u00019=123\u000135=D\u00011=abc\u00011=duplicate\u0001";
+        handler.messageReceived(mockIoSession, message);
+
+        verify(mockLog).onInvalidMessage(message, "Tag appears more than once, field=1");
+    }
+
+    private static Session createSession(SessionID sessionID, LogFactory logFactory) {
+        return new Builder().setSessionId(sessionID).setApplication(new UnitTestApplication()).setIsInitiator(false)
+            .setDataDictionaryProvider(new TestDataDictionaryProvider()).setLogFactory(logFactory)
+            .build();
+    }
+
 }

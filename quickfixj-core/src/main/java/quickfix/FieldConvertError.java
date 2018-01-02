@@ -27,4 +27,8 @@ public class FieldConvertError extends Exception {
     public FieldConvertError(String s) {
         super(s);
     }
+
+    public FieldConvertError(String s, Throwable throwable) {
+        super(s, throwable);
+    }
 }

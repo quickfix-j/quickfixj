@@ -42,23 +42,6 @@
 			<artifactId>quickfixj-all</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-examples-banzai</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-examples-executor</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-examples-ordermatch</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-all</artifactId>

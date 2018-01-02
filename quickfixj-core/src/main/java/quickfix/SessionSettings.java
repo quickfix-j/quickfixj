@@ -278,7 +278,7 @@ public class SessionSettings {
         try {
             return Long.parseLong(getString(sessionID, key));
         } catch (final NumberFormatException e) {
-            throw new FieldConvertError(e.getMessage());
+            throw new FieldConvertError("Unable to parse setting "+key+" for session_"+ sessionID + ":" +e.getMessage(), e);
         }
     }
 

@@ -38,7 +38,7 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
             if (findDataDictionaries) {
                 final String path = beginString.replace(".", "") + ".xml";
                 try {
-                    return new DataDictionary(path);
+                    return new DataDictionary(path, true);
                 } catch (ConfigError e) {
                     throw new QFJException(e);
                 }
@@ -50,7 +50,7 @@ public class DefaultDataDictionaryProvider implements DataDictionaryProvider {
                 final String beginString = toBeginString(applVerID);
                 final String path = beginString.replace(".", "") + ".xml";
                 try {
-                    return new DataDictionary(path);
+                    return new DataDictionary(path, true);
                 } catch (ConfigError e) {
                     throw new QFJException(e);
                 }

@@ -26,12 +26,7 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.transport.socket.SocketConnector;
-import quickfix.ConfigError;
-import quickfix.LogUtil;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
-import quickfix.SystemTime;
+import quickfix.*;
 import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
@@ -213,8 +208,8 @@ public class IoSessionInitiator {
                 } else {
                     pollConnectFuture();
                 }
-            } catch (Throwable e) {
-                LogUtil.logThrowable(fixSession.getLog(), "Exception during ConnectTask run", e);
+            } catch (Exception e) {
+                LogUtil.logThrowable(fixSession.getLog(), ErrorEventReasons.IO_ERROR, "Exception during ConnectTask run", e);
             }
         }
 
@@ -229,7 +224,7 @@ public class IoSessionInitiator {
                     connectFuture = ioConnector.connect(nextSocketAddress, localAddress);
                 }
                 pollConnectFuture();
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 handleConnectException(e);
             }
         }
@@ -249,7 +244,7 @@ public class IoSessionInitiator {
                                     + (System.currentTimeMillis() - lastReconnectAttemptTime)
                                     + " ms.");
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 handleConnectException(e);
             }
         }
@@ -263,9 +258,10 @@ public class IoSessionInitiator {
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
             ConnectException wrappedException = new ConnectException(e, socketAddress);
             if (e instanceof IOException) {
-                fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
+                fixSession.getLog().onErrorEvent(ErrorEventReasons.CONNECTION_FAILED,
+                    e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
             } else {
-                LogUtil.logThrowable(fixSession.getLog(), "Exception during connection to " + socketAddress + nextRetryMsg, e);
+                LogUtil.logThrowable(fixSession.getLog(), ErrorEventReasons.IO_ERROR, "Exception during connection to " + socketAddress + nextRetryMsg, e);
             }
             fixSession.getStateListener().onConnectException(fixSession.getSessionID(), wrappedException);
             connectFuture = null;
@@ -343,8 +339,8 @@ public class IoSessionInitiator {
                         ioSession.closeNow();
                     }
                     ioSession = null;
-                } catch (Throwable e) {
-                    LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);
+                } catch (Exception e) {
+                    LogUtil.logThrowable(fixSession.getLog(), ErrorEventReasons.IO_ERROR, "Exception during resetIoConnector call", e);
                 }
             }
         }

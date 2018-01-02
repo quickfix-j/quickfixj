@@ -26,16 +26,7 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.ConfigError;
-import quickfix.FieldConvertError;
-import quickfix.InvalidMessage;
-import quickfix.Log;
-import quickfix.LogUtil;
-import quickfix.Message;
-import quickfix.MessageUtils;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
+import quickfix.*;
 
 import static quickfix.MessageUtils.parse;
 
@@ -89,7 +80,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             }
             disconnectNeeded = true;
         } else if (realCause instanceof CriticalProtocolCodecException) {
-            reason = "Critical protocol codec error: " + cause;
+            reason = "Critical protocol codec erro: " + cause;
             disconnectNeeded = true;
         } else if (realCause instanceof ProtocolCodecException) {
             reason = "Protocol handler exception: " + cause;
@@ -109,7 +100,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             }
         } else {
             if (quickFixSession != null) {
-                LogUtil.logThrowable(quickFixSession.getLog(), reason, cause);
+                LogUtil.logThrowable(quickFixSession.getLog(), ErrorEventReasons.IO_ERROR, reason, cause);
             } else {
                 log.error(reason, cause);
             }
@@ -142,21 +133,25 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             sessionLog.onIncoming(messageString);
             try {
                 Message fixMessage = parse(quickFixSession, messageString);
+                if (fixMessage.getException() != null) {
+                    sessionLog.onInvalidMessage(messageString, fixMessage.getException().getMessage());
+                }
                 processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
                 if (rejectGarbledMessage) {
                     final Message fixMessage = e.getFixMessage();
                     if ( fixMessage != null ) {
-                        sessionLog.onErrorEvent("Processing garbled message: " + e.getMessage());
+                        sessionLog.onErrorEvent(ErrorEventReasons.GARBLED_MESSAGE, "Processing garbled message: " + e.getMessage());
                         processMessage(ioSession, fixMessage);
                         return;
                     }
                 }
                 if (MessageUtils.isLogon(messageString)) {
-                    sessionLog.onErrorEvent("Invalid LOGON message, disconnecting: " + e.getMessage());
+                    sessionLog.onErrorEvent(ErrorEventReasons.INVALID_MESSAGE, "Invalid LOGON message, disconnecting: " + e.getMessage());
                     ioSession.closeNow();
                 } else {
-                    sessionLog.onErrorEvent("Invalid message: " + e.getMessage());
+                    sessionLog.onErrorEvent(ErrorEventReasons.INVALID_MESSAGE, "Invalid message: " + e.getMessage());
+                    sessionLog.onInvalidMessage(messageString, e.getMessage());
                 }
             }
         } else {

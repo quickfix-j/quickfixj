@@ -55,6 +55,19 @@ public interface Log {
      *
      * @param text the event description
      */
-    void onErrorEvent(String text);
+    void onErrorEvent(String category, String text);
+
+    /**
+     * Logs an invalid incoming message.
+     *
+     * @param messageString the unparsed message
+     * @param failureReason the failure reason
+     */
+    void onInvalidMessage(String messageString, String failureReason);
+
+    /**
+     * Logs the reason for a disconnect
+     */
+    void onDisconnect(String messageString);
 
 }

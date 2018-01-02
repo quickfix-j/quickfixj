@@ -19,14 +19,14 @@
 
 package quickfix.mina.acceptor;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Optional;
+
 import org.apache.mina.core.session.IoSession;
-import quickfix.Log;
-import quickfix.Message;
-import quickfix.MessageUtils;
-import quickfix.Responder;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SessionSettings;
+import quickfix.*;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.HeartBtInt;
@@ -36,11 +36,6 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.IoSessionResponder;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.Optional;
 
 class AcceptorIoHandler extends AbstractIoHandler {
     private final EventHandlingStrategy eventHandlingStrategy;
@@ -73,10 +68,16 @@ class AcceptorIoHandler extends AbstractIoHandler {
                     final Log sessionLog = qfSession.getLog();
                     Responder responder = qfSession.getResponder();
                     if (responder != null) {
-                        // Session is already bound to another connection
-                        sessionLog.onErrorEvent("Multiple logons/connections for this session are not allowed."
-                                + " Closing connection from " + protocolSession.getRemoteAddress()
-                                + " since session is already established from " + responder.getRemoteAddress());
+                        if (responder.getRemoteAddress() == null) {
+                            log.error("Responder for session {} has no remote address. Connection from {} will be closed. Session details:\n{}",
+                                sessionID, protocolSession.getRemoteAddress(), qfSession);
+                        } else {
+                            // Session is already bound to another connection
+                            sessionLog.onErrorEvent(ErrorEventReasons.MULTIPLE_LOGONS,
+                                "Multiple logons/connections for session " + sessionID + " are not allowed."
+                                    + " Closing connection from " + protocolSession.getRemoteAddress()
+                                    + " since session is already established from " + responder.getRemoteAddress());
+                        }
                         protocolSession.closeNow();
                         return;
                     }
@@ -101,11 +102,19 @@ class AcceptorIoHandler extends AbstractIoHandler {
                         }
                     }
                 } else {
-                    log.error("Unknown session ID during logon: {} cannot be found in session list {} (connecting from {} to {})",
+                    ArrayList<SessionID> allSessions = eventHandlingStrategy.getSessionConnector().getSessions();
+                    if (allSessions.contains(sessionID)) {
+                        log.error("Session with ID {} is attempting to connect on the wrong port (connecting from {} to {})",
                             sessionID,
-                            eventHandlingStrategy.getSessionConnector().getSessions(),
                             protocolSession.getRemoteAddress(),
                             protocolSession.getLocalAddress());
+                    } else {
+                        log.error("Unknown session ID during logon: {} cannot be found in session list {} (connecting from {} to {})",
+                            sessionID,
+                            allSessions,
+                            protocolSession.getRemoteAddress(),
+                            protocolSession.getLocalAddress());
+                    }
                     return;
                 }
             } else {

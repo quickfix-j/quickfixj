@@ -28,16 +28,16 @@ public class ApplicationFunctionalAdapter implements Application {
     private final List<Consumer<SessionID>> onLogonListeners = new CopyOnWriteArrayList<>();
     private final List<Consumer<SessionID>> onLogoutListeners = new CopyOnWriteArrayList<>();
 
-    private final List<BiConsumer<Message, SessionID>> toAdminListeners = new CopyOnWriteArrayList<>();
+    private final List<BiConsumer<IMessage, SessionID>> toAdminListeners = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Class, List<BiConsumer>> toAdminTypeSafeListeners = new ConcurrentHashMap<>();
 
-    private final List<FromAdminListener<Message>> fromAdminListeners = new CopyOnWriteArrayList<>();
+    private final List<FromAdminListener<IMessage>> fromAdminListeners = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Class, List<FromAdminListener>> fromAdminTypeSafeListeners = new ConcurrentHashMap<>();
 
-    private final List<ToAppListener<Message>> toAppListeners = new CopyOnWriteArrayList<>();
+    private final List<ToAppListener<IMessage>> toAppListeners = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Class, List<ToAppListener>> toAppTypeSafeListeners = new ConcurrentHashMap<>();
 
-    private final List<FromAppListener<Message>> fromAppListeners = new CopyOnWriteArrayList<>();
+    private final List<FromAppListener<IMessage>> fromAppListeners = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<Class, List<FromAppListener>> fromAppTypeSafeListeners = new ConcurrentHashMap<>();
 
     /**
@@ -99,7 +99,7 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param toAdminListener the BiConsumer of Session for toAdmin operation.
      */
-    public void addToAdminListener(BiConsumer<Message, SessionID> toAdminListener) {
+    public void addToAdminListener(BiConsumer<IMessage, SessionID> toAdminListener) {
         toAdminListeners.add(toAdminListener);
     }
 
@@ -109,7 +109,7 @@ public class ApplicationFunctionalAdapter implements Application {
      * @param clazz           the specific Message class the listener expects
      * @param toAdminListener the BiConsumer of Session for toAdmin operation.
      */
-    public <T extends Message> void addToAdminListener(Class<T> clazz, BiConsumer<T, SessionID> toAdminListener) {
+    public <T extends IMessage> void addToAdminListener(Class<T> clazz, BiConsumer<T, SessionID> toAdminListener) {
         getList(toAdminTypeSafeListeners, clazz)
                 .add(toAdminListener);
     }
@@ -119,7 +119,7 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param toAdminListener the BiConsumer of Session for toAdmin operation.
      */
-    public <T extends Message> void removeToAdminListener(BiConsumer<T, SessionID> toAdminListener) {
+    public <T extends IMessage> void removeToAdminListener(BiConsumer<T, SessionID> toAdminListener) {
         toAdminListeners.remove(toAdminListener);
         toAdminTypeSafeListeners
                 .values()
@@ -131,7 +131,7 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param fromAdminListener the listener of fromAdmin operation.
      */
-    public void addFromAdminListener(FromAdminListener<Message> fromAdminListener) {
+    public void addFromAdminListener(FromAdminListener<IMessage> fromAdminListener) {
         fromAdminListeners.add(fromAdminListener);
     }
 
@@ -163,7 +163,7 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param toAppListener the listener of fromAdmin operation.
      */
-    public void addToAppListener(ToAppListener<Message> toAppListener) {
+    public void addToAppListener(ToAppListener<IMessage> toAppListener) {
         toAppListeners.add(toAppListener);
     }
 
@@ -195,7 +195,7 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param fromAppListener the listener of fromApp operation.
      */
-    public void addFromAppListener(FromAppListener<Message> fromAppListener) {
+    public void addFromAppListener(FromAppListener<IMessage> fromAppListener) {
         fromAppListeners.add(fromAppListener);
     }
 
@@ -238,15 +238,15 @@ public class ApplicationFunctionalAdapter implements Application {
     }
 
     @Override
-    public void toAdmin(Message message, SessionID sessionId) {
+    public void toAdmin(IMessage message, SessionID sessionId) {
         toAdminListeners.forEach(c -> c.accept(message, sessionId));
         getList(toAdminTypeSafeListeners, message.getClass())
                 .forEach(c -> c.accept(message, sessionId));
     }
 
     @Override
-    public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-        for (FromAdminListener<Message> listener : fromAdminListeners) {
+    public void fromAdmin(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        for (FromAdminListener<IMessage> listener : fromAdminListeners) {
             listener.accept(message, sessionId);
         }
 
@@ -257,8 +257,8 @@ public class ApplicationFunctionalAdapter implements Application {
     }
 
     @Override
-    public void toApp(Message message, SessionID sessionId) throws DoNotSend {
-        for (ToAppListener<Message> listener : toAppListeners) {
+    public void toApp(IMessage message, SessionID sessionId) throws DoNotSend {
+        for (ToAppListener<IMessage> listener : toAppListeners) {
             listener.accept(message, sessionId);
         }
 
@@ -268,8 +268,8 @@ public class ApplicationFunctionalAdapter implements Application {
     }
 
     @Override
-    public void fromApp(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        for (FromAppListener<Message> listener : fromAppListeners) {
+    public void fromApp(IMessage message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
+        for (FromAppListener<IMessage> listener : fromAppListeners) {
             listener.accept(message, sessionId);
         }
 

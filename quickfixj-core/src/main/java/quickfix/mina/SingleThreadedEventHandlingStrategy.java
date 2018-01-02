@@ -161,8 +161,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         public void processMessage() {
             try {
                 quickfixSession.next(message);
-            } catch (Throwable e) {
-                LogUtil.logThrowable(quickfixSession.getSessionID(), e.getMessage(), e);
+            } catch (Exception e) {
+                LogUtil.logThrowable(quickfixSession.getSessionID(), ErrorEventReasons.MESSAGE_PROCESSOR_ERROR, e.getMessage(), e);
             }
         }
     }

@@ -220,7 +220,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                         final Session quickfixSession = createSession(sessionID);
                         initiatorSessions.put(sessionID, quickfixSession);
                     }
-                } catch (final Throwable e) {
+                } catch (final Exception e) {
                     if (continueInitOnError) {
                         log.warn("error during session initialization for {}, continuing...", sessionID, e);
                     } else {
@@ -255,7 +255,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 if (ret != null) {
                     return ret;
                 }
-            } catch (final Throwable e) {
+            } catch (final Exception e) {
                 throw new ConfigError(e);
             }
         }

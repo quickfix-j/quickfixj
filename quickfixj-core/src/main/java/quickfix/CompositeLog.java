@@ -36,59 +36,86 @@ class CompositeLog implements Log {
         this.logs = logs;
     }
 
+    @Override
     public void clear() {
         for (Log log : logs) {
             try {
                 log.clear();
-            } catch (Throwable e) {
-                handleError(e);
+            } catch (Exception e) {
+                handleException(e);
             }
         }
     }
 
-    private void handleError(Throwable e) {
+    private void handleException(Exception e) {
         if (rethrowException) {
             throw new RuntimeException(e);
         }
         defaultLog.error(e.getMessage() + ", continuing", e);
     }
 
+    @Override
     public void onIncoming(String message) {
         for (Log log : logs) {
             try {
                 log.onIncoming(message);
-            } catch (Throwable e) {
-                handleError(e);
+            } catch (Exception e) {
+                handleException(e);
             }
         }
     }
 
+    @Override
     public void onOutgoing(String message) {
         for (Log log : logs) {
             try {
                 log.onOutgoing(message);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 defaultLog.error(e.getMessage() + ", continuing", e);
             }
         }
     }
 
+    @Override
     public void onEvent(String text) {
         for (Log log : logs) {
             try {
                 log.onEvent(text);
-            } catch (Throwable e) {
-                handleError(e);
+            } catch (Exception e) {
+                handleException(e);
             }
         }
     }
 
-    public void onErrorEvent(String text) {
+    @Override
+    public void onErrorEvent(String category, String text) {
         for (Log log : logs) {
             try {
-                log.onErrorEvent(text);
-            } catch (Throwable e) {
-                handleError(e);
+                log.onErrorEvent(category, text);
+            } catch (Exception e) {
+                handleException(e);
+            }
+        }
+    }
+
+    @Override
+    public void onInvalidMessage(String messageString, String failureReason) {
+        for (Log log : logs) {
+            try {
+                log.onInvalidMessage(messageString, failureReason);
+            } catch (Exception e) {
+                handleException(e);
+            }
+        }
+    }
+
+    @Override
+    public void onDisconnect(String reason) {
+        for (Log log : logs) {
+            try {
+                log.onDisconnect(reason);
+            } catch (Exception e) {
+                handleException(e);
             }
         }
     }
