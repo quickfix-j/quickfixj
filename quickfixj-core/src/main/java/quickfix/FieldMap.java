@@ -50,7 +50,7 @@ public abstract class FieldMap implements Serializable {
 
     private final int[] fieldOrder;
 
-    private final TreeMap<Integer, Field<?>> fields;
+    private final Map<Integer, Field<?>> fields;
 
     private final TreeMap<Integer, List<Group>> groups = new TreeMap<>();
 
@@ -62,7 +62,9 @@ public abstract class FieldMap implements Serializable {
      */
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        fields = new TreeMap<>(fieldOrder != null ? new FieldOrderComparator() : null);
+        fields = (fieldOrder != null) ?
+                new TreeMap<>(new FieldOrderComparator()) :
+                new LinkedHashMap<>();
     }
 
     protected FieldMap() {

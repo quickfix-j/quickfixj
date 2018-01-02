@@ -55,13 +55,11 @@ import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DataDictionaryTest {
 
@@ -104,6 +102,24 @@ public class DataDictionaryTest {
         assertEquals("incorrect msg type", "B", dd.getMsgType("News"));
         assertFalse(dd.isMsgField("UNKNOWN_TYPE", 1));
     }
+
+    @Test
+    public void testGetOrderedRequiredFieldsForMessage() throws Exception {
+        DataDictionary dictionary = getDictionary();
+        assertArrayEquals("incorrect field ordering", new int[]{8, 9, 35, 49, 56, 34, 52, 98, 108, 10},
+                dictionary.getOrderedRequiredFieldsForMessage("A"));
+    }
+
+    @Test
+    public void testGetOrderedFieldsForMessage() throws Exception {
+        DataDictionary dictionary = getDictionary();
+        assertArrayEquals("incorrect field ordering",
+                new int[]{8, 9, 35, 49, 56, 115, 128, 90, 91, 34, 50, 142, 57, 143, 116, 144, 129, 145,
+                        43, 97, 52, 122, 212, 213, 347, 369, 627, 98, 108, 95, 96, 141, 789, 383, 384,
+                        464, 553, 554, 93, 89, 10},
+                dictionary.getOrderedFieldsForMessage("A"));
+    }
+
 
     @Test
     public void testMissingFieldAttributeForRequired() throws Exception {
