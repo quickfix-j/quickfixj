@@ -362,6 +362,16 @@ public class Session implements Closeable {
 
     public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
 
+    /**
+     * Option so that the session doesn't remove PossDupFlag (43) information when sending.
+     */
+    public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
+    /**
+     * Setting telling us to treat FIX.4.1 resend requests as FIX.4.2 ones. I.e. requesting to '0' actually
+	 * requests to infinity.
+	 */
+    public static final String SETTING_FIX_41_RESEND_AS_FIX42 = "Fix41ResendRequestAsFix42";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -408,6 +418,8 @@ public class Session implements Closeable {
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
+    private boolean allowPosDup = false;
+    private boolean fix41ResendRequestAsFix42 = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -1296,7 +1308,12 @@ public class Session implements Closeable {
         // Adjust the ending sequence number for older versions of FIX
         final String beginString = sessionID.getBeginString();
         final int expectedSenderNum = getExpectedSenderNum();
-        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0 && endSeqNo == 0
+
+        boolean isFix42orLaterOrFix41withFlag =
+                (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) ||
+                (fix41ResendRequestAsFix42 && beginString.compareTo(FixVersions.BEGINSTRING_FIX41) == 0);
+
+        if (isFix42orLaterOrFix41withFlag && endSeqNo == 0
                 || beginString.compareTo(FixVersions.BEGINSTRING_FIX42) <= 0 && endSeqNo == 999999
                 || endSeqNo >= expectedSenderNum) {
             endSeqNo = expectedSenderNum - 1;
@@ -2648,7 +2665,7 @@ public class Session implements Closeable {
     }
 
     /**
-     * Send a message to a counterparty. Sequence numbers and information about the sender
+     * Send a message to a counter-party. Sequence numbers and information about the sender
      * and target identification will be added automatically (or overwritten if that
      * information already is present).
      *
@@ -2662,8 +2679,17 @@ public class Session implements Closeable {
      * @return a status flag indicating whether the write to the network layer was successful.
      */
     public boolean send(Message message) {
-        message.getHeader().removeField(PossDupFlag.FIELD);
-        message.getHeader().removeField(OrigSendingTime.FIELD);
+        if (!allowPosDup) {
+            message.getHeader().removeField(PossDupFlag.FIELD);
+            message.getHeader().removeField(OrigSendingTime.FIELD);
+        }
+        return sendRaw(message, 0);
+    }
+
+    /**
+     * This allows sending out without affecting PossDup regardless of AllowPossDup setting.
+     */
+    public boolean sendNoChange(Message message) {
         return sendRaw(message, 0);
     }
 
@@ -2969,6 +2995,14 @@ public class Session implements Closeable {
     public boolean isAllowedForSession(InetAddress remoteInetAddress) {
         return allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()
                 || allowedRemoteAddresses.contains(remoteInetAddress);
+    }
+
+    public void setAllowPosDup(boolean allowPosDup) {
+        this.allowPosDup = allowPosDup;
+    }
+
+    public void setFix41ResendRequestAsFix42(boolean fix41ResendRequestAsFix42) {
+        this.fix41ResendRequestAsFix42 = fix41ResendRequestAsFix42;
     }
 
     /**
