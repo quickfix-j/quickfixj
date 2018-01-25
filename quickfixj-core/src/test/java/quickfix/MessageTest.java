@@ -24,6 +24,7 @@ import org.quickfixj.CharsetSupport;
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
+import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.AvgPx;
 import quickfix.field.BeginString;
@@ -586,6 +587,11 @@ public class MessageTest {
     public void testFix5HeaderFields() {
         assertTrue(Message.isHeaderField(ApplVerID.FIELD));
         assertTrue(Message.isHeaderField(CstmApplVerID.FIELD));
+    }
+
+    @Test
+    public void testApplExtIDIsHeaderField() {
+        assertTrue(Message.isHeaderField(ApplExtID.FIELD));
     }
 
     @Test
