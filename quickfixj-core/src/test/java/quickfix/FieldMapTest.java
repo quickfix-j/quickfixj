@@ -11,6 +11,7 @@ import quickfix.field.MDEntryTime;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * Tests the {@link FieldMap} class.
@@ -90,6 +91,16 @@ public class FieldMapTest extends TestCase {
         testOrdering(new int[] { 1, 2, 3 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
         testOrdering(new int[] { 3, 2, 1 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
     }
+
+    public void testOptionalString() {
+        FieldMap map = new Message();
+        map.setField(new StringField(128, "bigbank"));
+        Optional<String> optValue = map.getOptionalString(128);
+        assertTrue(optValue.isPresent());
+        assertEquals("bigbank", optValue.get());
+        assertFalse(map.getOptionalString(129).isPresent());
+    }
+
 
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
