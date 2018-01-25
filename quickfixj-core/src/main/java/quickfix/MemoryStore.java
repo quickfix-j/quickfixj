@@ -43,8 +43,9 @@ public class MemoryStore implements MessageStore {
         reset();
     }
 
-    public MemoryStore(SessionID sessionID) {
+    public MemoryStore(SessionID sessionID) throws IOException  {
         this.sessionID = sessionID;
+        reset();
     }
 
     public void get(int startSequence, int endSequence, Collection<String> messages) throws IOException {
@@ -111,8 +112,8 @@ public class MemoryStore implements MessageStore {
     public void refresh() throws IOException {
         // IOException is declared to maintain strict compatibility with QF JNI
         final String text = "memory store does not support refresh!";
-        if (sessionID != null) {
-            Session session = Session.lookupSession(sessionID);
+        final Session session = sessionID != null ? Session.lookupSession(sessionID) : null;
+        if (session != null) {
             session.getLog().onErrorEvent("ERROR: " + text);
         } else {
             LoggerFactory.getLogger(MemoryStore.class).error(text);
