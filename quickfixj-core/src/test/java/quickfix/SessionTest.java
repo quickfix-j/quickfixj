@@ -1062,7 +1062,7 @@ public class SessionTest {
         assertEquals(false, state.isLogoutTimedOut());
 
         assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
+        assertEquals(2, state.getNextTargetMsgSeqNum());
 
         session.close();
     }
