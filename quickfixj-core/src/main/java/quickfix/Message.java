@@ -33,6 +33,8 @@ import org.quickfixj.CharsetSupport;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
@@ -720,6 +722,7 @@ public class Message extends FieldMap {
         case OnBehalfOfSendingTime.FIELD:
         case ApplVerID.FIELD:
         case CstmApplVerID.FIELD:
+        case ApplExtID.FIELD:
         case NoHops.FIELD:
             return true;
         default:
