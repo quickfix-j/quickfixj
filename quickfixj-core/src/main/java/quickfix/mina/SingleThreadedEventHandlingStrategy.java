@@ -56,7 +56,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     @Override
-    public void onMessage(Session quickfixSession, Message message) {
+    public void onMessage(Session quickfixSession, Message message) throws InterruptedException {
         if (message == END_OF_STREAM && isStopped) {
             return;
         }
@@ -64,7 +64,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             eventQueue.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
             isStopped = true;
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
+            throw e;
+//            throw new RuntimeException(e);
         }
     }
 
@@ -75,7 +77,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     public void block() {
         while (true) {
-            synchronized (this) {
+//            synchronized (this) {
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
                         final List<SessionMessageEvent> tempList = new ArrayList<>();
@@ -94,7 +96,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                         return;
                     }
                 }
-            }
+//            }
             try {
                 SessionMessageEvent event = getMessage();
                 if (event != null) {
@@ -107,7 +109,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     private SessionMessageEvent getMessage() throws InterruptedException {
-        return eventQueue.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
+//        return eventQueue.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
+        return eventQueue.poll(10, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -119,7 +122,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
      * This method must not be called by several threads concurrently.
      */
     public void blockInThread() {
-        if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
+//        if (messageProcessingThread != null && messageProcessingThread.isAlive()) {
+        if (messageProcessingThread != null) {
+            messageProcessingThread.stop();
             sessionConnector.log.warn("Trying to stop still running {}", MESSAGE_PROCESSOR_THREAD_NAME);
             stopHandlingMessages(true);
             if (messageProcessingThread.isAlive()) {
@@ -160,10 +165,15 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     public synchronized void stopHandlingMessages() {
-        for (Session session : sessionConnector.getSessionMap().values()) {
-            onMessage(session, END_OF_STREAM);
+        try {
+            for (Session session : sessionConnector.getSessionMap().values()) {
+//                onMessage(session, END_OF_STREAM);
+                // try to insert END_OF_STREAM in any case, i.e. not using eventQueue.put() and maybe getting interrupted
+                eventQueue.offer(new SessionMessageEvent(session, END_OF_STREAM));
+            }
+        } finally {
+            isStopped = true;
         }
-        isStopped = true;
     }
 
     public void stopHandlingMessages(boolean join) {
@@ -219,6 +229,12 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 			executor.execute(wrapper);
 		}
 
+		public void stop() {
+                    if (executor instanceof DedicatedThreadExecutor) {
+                        ((DedicatedThreadExecutor)executor).interrupt();
+                    }
+		}
+
 		/**
 		 * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
 		 */
@@ -259,12 +275,13 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 		}
 
 		/**
-		 * An Executor that uses it's own dedicated Thread.
+		 * An Executor that uses its own dedicated Thread.
 		 * Provides equivalent behavior to the prior non-Executor approach.
 		 */
 		static final class DedicatedThreadExecutor implements Executor {
 
 			private final String name;
+                        private Thread thread;
 			
 			DedicatedThreadExecutor(String name) {
 				this.name = name;
@@ -272,11 +289,16 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
 			@Override
 			public void execute(Runnable command) {
-				Thread thread = new Thread(command, name);
+                                thread = new Thread(command, name);
 				thread.setDaemon(true);
 				thread.start();
 			}
-
+                        
+                        public void interrupt() {
+                            if (thread != null) {
+                                thread.interrupt();
+                            }
+                        }
 		}
 
 	}

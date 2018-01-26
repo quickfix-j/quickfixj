@@ -44,15 +44,16 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class TestConnection {
-    private static final HashMap<String, IoConnector> connectors = new HashMap<>();
+    private final Map<String, IoConnector> connectors = new HashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<>();
+//    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -60,17 +61,31 @@ public class TestConnection {
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        synchronized (ioHandlers) {
-            return ioHandlers.get(clientId);
-        }
+//        synchronized (ioHandlers) {
+            return (TestIoHandler) connectors.get(Integer.toString(clientId)).getHandler();
+//            return ioHandlers.get(clientId);
+//        }
     }
 
     public void tearDown() {
-        for (TestIoHandler testIoHandler : ioHandlers.values()) {
-            CloseFuture closeFuture = testIoHandler.getSession().closeNow();
-            closeFuture.awaitUninterruptibly();
+        for (IoConnector ioConnector : connectors.values()) {
+            CloseFuture closeFuture = ((TestIoHandler)ioConnector.getHandler()).getSession().closeNow();
+            boolean awaitUninterruptibly = closeFuture.awaitUninterruptibly(2000);
+            if (!awaitUninterruptibly) {
+                System.err.println("XXX could not close session in 2000 ms");
+            }
+            ioConnector.dispose();
         }
-        ioHandlers.clear();
+        connectors.clear();
+
+//        for (TestIoHandler testIoHandler : ioHandlers.values()) {
+//            CloseFuture closeFuture = testIoHandler.getSession().closeNow();
+//            boolean awaitUninterruptibly = closeFuture.awaitUninterruptibly(2000);
+//            if (!awaitUninterruptibly) {
+//                System.err.println("XXX could not close session in 2000 ms");
+//            }
+//        }
+//        ioHandlers.clear();
     }
 
     public CharSequence readMessage(int clientId, long timeout) throws InterruptedException {
@@ -85,7 +100,6 @@ public class TestConnection {
             throws IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
         if (connector != null) {
-            log.info("Disposing connector for clientId " + clientId);
             connector.dispose();
         }
 
@@ -108,13 +122,13 @@ public class TestConnection {
         }
 
         TestIoHandler testIoHandler = new TestIoHandler();
-        synchronized (ioHandlers) {
-            ioHandlers.put(clientId, testIoHandler);
+//        synchronized (ioHandlers) {
+//            ioHandlers.put(clientId, testIoHandler);
             connector.setHandler(testIoHandler);
             ConnectFuture future = connector.connect(address);
             future.awaitUninterruptibly(5000L);
             Assert.assertTrue("connection to server failed", future.isConnected());
-        }
+//        }
     }
 
     private class TestIoHandler extends IoHandlerAdapter {

@@ -109,11 +109,17 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         try {
             Session quickFixSession = findQFSession(ioSession);
             if (quickFixSession != null) {
-                eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM);
-                ioSession.removeAttribute(SessionConnector.QF_SESSION);
+                try {
+                    eventHandlingStrategy.onMessage(quickFixSession, EventHandlingStrategy.END_OF_STREAM);
+                } finally {
+                    ioSession.removeAttribute(SessionConnector.QF_SESSION);
+                }
             }
             ioSession.closeNow();
         } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             ioSession.closeNow();
             throw e;
         }
@@ -130,6 +136,9 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             try {
                 Message fixMessage = parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw e;
             } catch (InvalidMessage e) {
                 if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
                     sessionLog.onErrorEvent("Invalid LOGON message, disconnecting: " + e.getMessage());

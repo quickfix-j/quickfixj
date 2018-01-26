@@ -337,12 +337,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             dumpAllThreads = bean.dumpAllThreads(false, false);
             qfjMPThreads = getMessageProcessorThreads(dumpAllThreads);
             for (ThreadInfo threadInfo : dumpAllThreads) {
-                if (qfjMPThreads > 1) {
-                    if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
-                            .getThreadName())) {
-                        printStackTraces(threadInfo);
-                    }
-                } else {
+                if (qfjMPThreads != expected) {
                     printStackTraces(threadInfo);
                 }
             }

@@ -47,12 +47,14 @@ import javax.net.ssl.SSLSession;
 import javax.security.cert.X509Certificate;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
+import quickfix.test.util.ReflectionUtil;
 
 public class SSLCertificateTest {
 
@@ -94,10 +96,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -127,10 +131,12 @@ public class SSLCertificateTest {
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"),
                         new BigInteger("1448538787"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -161,32 +167,35 @@ public class SSLCertificateTest {
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"),
                         new BigInteger("1449683336"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
     @Test
     public void shouldAuthenticateServerAndClientCertificatesForIndividualSessions() throws Exception {
+        int[] freePorts = new int[]{AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable()};
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+                CIPHER_SUITES_TLS, "TLSv1.2", freePorts));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", Integer.toString(freePorts[0]), "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", Integer.toString(freePorts[1]), "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", Integer.toString(freePorts[2]), "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -220,34 +229,39 @@ public class SSLCertificateTest {
                         new BigInteger("1449581412"));
 
             } finally {
-                initiator1.stop();
-                initiator2.stop();
-                initiator3.stop();
+                startShutdown(initiator1);
+                startShutdown(initiator2);
+                startShutdown(initiator3);
+//                initiator1.stop();
+//                initiator2.stop();
+//                initiator3.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
     @Test
     public void shouldFailIndividualSessionsWhenInvalidCertificatesUsed() throws Exception {
+        int[] freePorts = new int[]{AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable(), AvailablePortFinder.getNextAvailable()};
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+                CIPHER_SUITES_TLS, "TLSv1.2", freePorts));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", Integer.toString(freePorts[0]), "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", Integer.toString(freePorts[1]), "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", Integer.toString(freePorts[2]), "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -276,12 +290,16 @@ public class SSLCertificateTest {
                 acceptor.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA2", "ZULU2"),
                         new BigInteger("1449581412"));
             } finally {
-                initiator1.stop();
-                initiator2.stop();
-                initiator3.stop();
+                startShutdown(initiator1);
+                startShutdown(initiator2);
+                startShutdown(initiator3);
+//                initiator1.stop();
+//                initiator2.stop();
+//                initiator3.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -310,10 +328,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -340,10 +360,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -370,10 +392,12 @@ public class SSLCertificateTest {
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -400,10 +424,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -431,10 +457,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -462,10 +490,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -493,10 +523,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -524,10 +556,12 @@ public class SSLCertificateTest {
                 acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
-                initiator.stop();
+                startShutdown(initiator);
+//                initiator.stop();
             }
         } finally {
-            acceptor.stop();
+            startShutdown(acceptor);
+//            acceptor.stop();
         }
     }
 
@@ -574,12 +608,7 @@ public class SSLCertificateTest {
         }
 
         private Session findSession(SessionID sessionID) {
-            for (Session session : connector.getManagedSessions()) {
-                if (session.getSessionID().equals(sessionID))
-                    return session;
-            }
-
-            return null;
+            return Session.lookupSession(sessionID);
         }
 
         private IoSession findIoSession(Session session) throws Exception {
@@ -621,7 +650,7 @@ public class SSLCertificateTest {
             try {
                 X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
 
-                if (peerCertificateChain != null & peerCertificateChain.length > 0) {
+                if (peerCertificateChain != null && peerCertificateChain.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
             } catch (SSLPeerUnverifiedException e) {
@@ -646,6 +675,7 @@ public class SSLCertificateTest {
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
+                ReflectionUtil.dumpStackTraces();
                 throw new AssertionError("No SSL exception thrown");
             }
         }
@@ -654,6 +684,7 @@ public class SSLCertificateTest {
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (reachedZero) {
+                ReflectionUtil.dumpStackTraces();
                 throw new AssertionError("SSL exception thrown");
             }
         }
@@ -711,7 +742,7 @@ public class SSLCertificateTest {
     }
 
     private SessionSettings createMultiSessionAcceptorSettings(String keyStoreName, boolean needClientAuth,
-            String[] trustStoreNames, String cipherSuites, String protocols) {
+            String[] trustStoreNames, String cipherSuites, String protocols, int[] freePorts) {
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "acceptor");
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
@@ -745,7 +776,7 @@ public class SSLCertificateTest {
             sessionSettings.setString(sessionID, "SenderCompID", "ALFA" + i);
             sessionSettings.setString(sessionID, SSLSupport.SETTING_TRUST_STORE_NAME, trustStoreNames[i]);
             sessionSettings.setString(sessionID, SSLSupport.SETTING_TRUST_STORE_PWD, "password");
-            sessionSettings.setString(sessionID, "SocketAcceptPort", "1234" + i);
+            sessionSettings.setString(sessionID, "SocketAcceptPort", Integer.toString(freePorts[i]));
         }
 
         return sessionSettings;
@@ -849,5 +880,36 @@ public class SSLCertificateTest {
         sessionSettings.setString(sessionID, "TargetCompID", targetId);
 
         return sessionSettings;
+    }
+    
+    
+    private void startShutdown(TestConnector connector) {
+        
+        Runnable shutdownRunnable = new ConnectorShutdown(connector);
+        Thread shutdownThread = new Thread(shutdownRunnable, "shutdown-" + connector.toString());
+        shutdownThread.setDaemon(true);
+        shutdownThread.start();
+        try {
+            shutdownThread.join(5000);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static class ConnectorShutdown implements Runnable {
+
+        final TestConnector connector;
+        
+        public ConnectorShutdown( final TestConnector connector ) {
+            this.connector = connector;
+        }
+
+        @Override
+        public void run() {
+            System.err.println("XXX " + new Date() + " stop " + connector );
+            connector.stop();
+            System.err.println("XXX " + new Date() + " stop " + connector + " successful." );
+        }
+        
     }
 }

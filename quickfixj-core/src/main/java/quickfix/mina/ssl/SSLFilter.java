@@ -20,6 +20,7 @@
 package quickfix.mina.ssl;
 
 import javax.net.ssl.SSLContext;
+import org.apache.mina.core.session.IoSession;
 
 import org.apache.mina.filter.ssl.SslFilter;
 
@@ -49,4 +50,12 @@ public class SSLFilter extends SslFilter {
     public void setCipherSuites(String[] cipherSuites) {
         super.setEnabledCipherSuites(cipherSuites);
     }
+
+    @Override
+    public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) throws Exception {
+        // override filtering behaviour of super class
+        nextFilter.exceptionCaught(session, cause);
+    }
+    
+    
 }

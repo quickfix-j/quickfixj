@@ -37,10 +37,10 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
 
     private static int transportType = ProtocolFactory.SOCKET;
-    private static int port = 9887;
 
     private final boolean skipSlowTests;
     private final boolean multithreaded;
+    private final int     port;
 
     private final Map<Object, Object> overridenProperties;
 
@@ -146,13 +146,14 @@ public class AcceptanceTestSuite extends TestSuite {
         }
     }
 
-    public AcceptanceTestSuite(String testDirectory, boolean multithreaded) {
-        this(testDirectory, multithreaded, null);
+    public AcceptanceTestSuite(String testDirectory, boolean multithreaded, int port) {
+        this(testDirectory, multithreaded, null, port);
     }
 
-    public AcceptanceTestSuite(String testDirectory, boolean multithreaded, Map<Object, Object> overridenProperties) {
+    public AcceptanceTestSuite(String testDirectory, boolean multithreaded, Map<Object, Object> overridenProperties, int port) {
         this.multithreaded = multithreaded;
         this.overridenProperties = overridenProperties;
+        this.port = port;
         String name = testDirectory.substring(testDirectory.lastIndexOf(File.separatorChar) + 1);
         this.setName(name + (multithreaded ? "-threaded" : ""));
         Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);
@@ -176,6 +177,10 @@ public class AcceptanceTestSuite extends TestSuite {
 
     public boolean isMultithreaded() {
         return multithreaded;
+    }
+    
+    public int getPort() {
+        return port;
     }
 
     protected void addTest(String name) {
@@ -215,6 +220,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final class AcceptanceTestServerSetUp extends TestSetup {
         private final boolean threaded;
         private final Map<Object, Object> overridenProperties;
+        private final int port;
 //        private Thread serverThread;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -224,6 +230,7 @@ public class AcceptanceTestSuite extends TestSuite {
             super(suite);
             this.threaded = suite.isMultithreaded();
             this.overridenProperties = suite.getOverridenProperties();
+            this.port = suite.getPort();
         }
 
         protected void setUp() throws Exception {
@@ -244,31 +251,40 @@ public class AcceptanceTestSuite extends TestSuite {
 
     public static Test suite() {
         transportType = ProtocolFactory.getTransportType(System.getProperty(ATEST_TRANSPORT_KEY, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET)));
-        port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite(AcceptanceTestSuite.class.getSimpleName());
         // default server
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false)));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", true)));
+        int freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false, freePort)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", true, freePort)));
 
         Map<Object, Object> resendRequestChunkSizeProperties = new HashMap<>();
         resendRequestChunkSizeProperties.put(Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, "5");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", true, resendRequestChunkSizeProperties)));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", false, resendRequestChunkSizeProperties)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", true, resendRequestChunkSizeProperties, freePort)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("resendRequestChunkSize", false, resendRequestChunkSizeProperties, freePort)));
 
         Map<Object, Object> lastMsgSeqNumProcessedProperties = new HashMap<>();
         lastMsgSeqNumProcessedProperties.put(Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, "Y");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", true, lastMsgSeqNumProcessedProperties)));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", false, lastMsgSeqNumProcessedProperties)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", true, lastMsgSeqNumProcessedProperties, freePort)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("lastMsgSeqNumProcessed", false, lastMsgSeqNumProcessedProperties, freePort)));
 
         Map<Object, Object> nextExpectedMsgSeqNumProperties = new HashMap<>();
         nextExpectedMsgSeqNumProperties.put(Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, "Y");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true, nextExpectedMsgSeqNumProperties)));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", true, nextExpectedMsgSeqNumProperties, freePort)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("nextExpectedMsgSeqNum", false, nextExpectedMsgSeqNumProperties, freePort)));
 
         Map<Object, Object> timestampProperties = new HashMap<>();
         timestampProperties.put(Session.SETTING_TIMESTAMP_PRECISION, "NANOS");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", true, timestampProperties)));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", false, timestampProperties)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", true, timestampProperties, freePort)));
+        freePort = AvailablePortFinder.getNextAvailable();
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", false, timestampProperties, freePort)));
 
         return acceptanceTests;
     }

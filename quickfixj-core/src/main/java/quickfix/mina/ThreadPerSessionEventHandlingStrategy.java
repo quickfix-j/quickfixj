@@ -55,7 +55,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 	}
 
     @Override
-    public void onMessage(Session quickfixSession, Message message) {
+    public void onMessage(Session quickfixSession, Message message) throws InterruptedException {
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
             dispatcher = dispatchers.computeIfAbsent(quickfixSession.getSessionID(), sessionID -> {
