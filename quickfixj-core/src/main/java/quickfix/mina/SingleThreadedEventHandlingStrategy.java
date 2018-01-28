@@ -20,11 +20,10 @@
 
 package quickfix.mina;
 
-import quickfix.LogUtil;
-import quickfix.Message;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SystemTime;
+import org.apache.mina.core.session.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +37,11 @@ import java.util.concurrent.TimeUnit;
  * Processes messages for all sessions in a single thread.
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
+    private static final Logger LOG = LoggerFactory.getLogger(EventHandlingStrategy.class);
+
     public static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
     private final BlockingQueue<SessionMessageEvent> eventQueue;
+    private final QueueTracker<SessionMessageEvent> queueTracker;
     private final SessionConnector sessionConnector;
     private volatile ThreadAdapter messageProcessingThread;
     private volatile boolean isStopped;
@@ -49,6 +51,39 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
         eventQueue = new LinkedBlockingQueue<>(queueCapacity);
+        queueTracker = QueueTracker.wrap(eventQueue);
+    }
+
+    public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueLowerWatermark, int queueUpperWatermark) {
+        sessionConnector = connector;
+        eventQueue = new LinkedBlockingQueue<>();
+        queueTracker = WatermarkTracker.newMulti(eventQueue, queueLowerWatermark, queueUpperWatermark,
+                evt -> evt.quickfixSession,
+                qfSession -> { // lower watermark crossed down, while reads suspended
+                    final IoSession ioSession = lookupIoSession(qfSession);
+                    if (ioSession != null && ioSession.isReadSuspended()) {
+                        ioSession.resumeRead();
+                        LOG.info("{}: inbound queue size < lower watermark ({}), socket reads resumed",
+                                qfSession.getSessionID(), queueLowerWatermark);
+                    }
+                },
+                qfSession -> { // upper watermark crossed up, while reads active
+                    final IoSession ioSession = lookupIoSession(qfSession);
+                    if (ioSession != null && !ioSession.isReadSuspended()) {
+                        ioSession.suspendRead();
+                        LOG.info("{}: inbound queue size > upper watermark ({}), socket reads suspended",
+                                qfSession.getSessionID(), queueUpperWatermark);
+                    }
+                });
+    }
+    private static IoSession lookupIoSession(Session qfSession) {
+        final Responder responder = qfSession.getResponder();
+
+        if (responder instanceof IoSessionResponder) {
+            return ((IoSessionResponder)responder).getIoSession();
+        } else {
+            return null;
+        }
     }
 
     public void setExecutor(Executor executor) {
@@ -61,7 +96,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             return;
         }
         try {
-            eventQueue.put(new SessionMessageEvent(quickfixSession, message));
+            queueTracker.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
             isStopped = true;
             throw new RuntimeException(e);
@@ -79,7 +114,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
                         final List<SessionMessageEvent> tempList = new ArrayList<>();
-                        eventQueue.drainTo(tempList);
+                        queueTracker.drainTo(tempList);
                         for (SessionMessageEvent event : tempList) {
                             event.processMessage();
                         }
@@ -107,7 +142,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     private SessionMessageEvent getMessage() throws InterruptedException {
-        return eventQueue.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
+        return queueTracker.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
     /**

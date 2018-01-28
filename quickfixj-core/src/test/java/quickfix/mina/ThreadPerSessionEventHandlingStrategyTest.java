@@ -47,7 +47,6 @@ import quickfix.field.converter.UtcTimestampConverter;
 import quickfix.fix40.Logon;
 
 import java.util.Date;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -74,7 +73,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         }
 
         @Override
-        protected Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
+        protected Message getNextMessage(QueueTracker<Message> queueTracker) throws InterruptedException {
             if (getMessageCount-- == 0) {
                 throw new InterruptedException("END COUNT");
             }
@@ -84,7 +83,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
                 }
                 throw (RuntimeException) getNextMessageException;
             }
-            return super.getNextMessage(messages);
+            return super.getNextMessage(queueTracker);
         }
     }
 

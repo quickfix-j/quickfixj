@@ -29,6 +29,34 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
 public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy;
 
+    private ThreadedSocketAcceptor(Builder builder) throws ConfigError {
+        super(builder.application, builder.messageStoreFactory, builder.settings,
+                builder.logFactory, builder.messageFactory);
+
+        if (builder.queueCapacity >= 0) {
+            eventHandlingStrategy
+                    = new ThreadPerSessionEventHandlingStrategy(this, builder.queueCapacity);
+        } else {
+            eventHandlingStrategy
+                    = new ThreadPerSessionEventHandlingStrategy(this, builder.queueLowerWatermark, builder.queueUpperWatermark);
+        }
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends AbstractSessionConnectorBuilder<Builder, ThreadedSocketAcceptor> {
+        private Builder() {
+            super(Builder.class);
+        }
+
+        @Override
+        protected ThreadedSocketAcceptor doBuild() throws ConfigError {
+            return new ThreadedSocketAcceptor(this);
+        }
+    }
+
     public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
                                   SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory,
                                   int queueCapacity )

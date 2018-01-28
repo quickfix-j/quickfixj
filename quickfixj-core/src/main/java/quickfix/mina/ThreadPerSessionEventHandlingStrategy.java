@@ -20,10 +20,10 @@
 
 package quickfix.mina;
 
-import quickfix.LogUtil;
-import quickfix.Message;
-import quickfix.Session;
-import quickfix.SessionID;
+import org.apache.mina.core.session.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import quickfix.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,15 +39,27 @@ import java.util.concurrent.TimeUnit;
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
+    private static final Logger LOG = LoggerFactory.getLogger(EventHandlingStrategy.class);
 
     private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<>();
     private final SessionConnector sessionConnector;
     private final int queueCapacity;
+    private final int queueLowerWatermark;
+    private final int queueUpperWatermark;
     private volatile Executor executor;
 
     public ThreadPerSessionEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
         this.queueCapacity = queueCapacity;
+        this.queueLowerWatermark = -1;
+        this.queueUpperWatermark = -1;
+    }
+
+    public ThreadPerSessionEventHandlingStrategy(SessionConnector connector, int queueLowerWatermark, int queueUpperWatermark) {
+        sessionConnector = connector;
+        this.queueCapacity = -1;
+        this.queueLowerWatermark = queueLowerWatermark;
+        this.queueUpperWatermark = queueUpperWatermark;
     }
 
     public void setExecutor(Executor executor) {
@@ -59,7 +71,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
             dispatcher = dispatchers.computeIfAbsent(quickfixSession.getSessionID(), sessionID -> {
-               final MessageDispatchingThread newDispatcher = new MessageDispatchingThread(quickfixSession, queueCapacity, executor);
+                final MessageDispatchingThread newDispatcher = new MessageDispatchingThread(quickfixSession, executor);
                 startDispatcherThread(newDispatcher);
                 return newDispatcher;
             });
@@ -161,13 +173,46 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 	protected class MessageDispatchingThread extends ThreadAdapter {
         private final Session quickfixSession;
         private final BlockingQueue<Message> messages;
+        private final QueueTracker<Message> queueTracker;
         private volatile boolean stopped;
         private volatile boolean stopping;
 
-        private MessageDispatchingThread(Session session, int queueCapacity, Executor executor) {
+        private MessageDispatchingThread(Session session, Executor executor) {
             super("QF/J Session dispatcher: " + session.getSessionID(), executor);
             quickfixSession = session;
-            messages = new LinkedBlockingQueue<>(queueCapacity);
+            if (queueCapacity >= 0) {
+                messages = new LinkedBlockingQueue<>(queueCapacity);
+                queueTracker = QueueTracker.wrap(messages);
+            } else {
+                messages = new LinkedBlockingQueue<>();
+                queueTracker = WatermarkTracker.newMono(messages, queueLowerWatermark, queueUpperWatermark,
+                        () -> { // lower watermark crossed down, while reads suspended
+                            final IoSession ioSession = lookupIoSession();
+                            if (ioSession != null && ioSession.isReadSuspended()) {
+                                ioSession.resumeRead();
+                                LOG.info("{}: inbound queue size < lower watermark ({}), socket reads resumed",
+                                        quickfixSession.getSessionID(), queueLowerWatermark);
+                            }
+                        },
+                        () -> { // upper watermark crossed up, while reads active
+                            final IoSession ioSession = lookupIoSession();
+                            if (ioSession != null && !ioSession.isReadSuspended()) {
+                                ioSession.suspendRead();
+                                LOG.info("{}: inbound queue size > upper watermark ({}), socket reads suspended",
+                                        quickfixSession.getSessionID(), queueUpperWatermark);
+                            }
+                        });
+            }
+        }
+
+        private IoSession lookupIoSession() {
+            final Responder responder = quickfixSession.getResponder();
+
+            if (responder instanceof IoSessionResponder) {
+                return ((IoSessionResponder)responder).getIoSession();
+            } else {
+                return null;
+            }
         }
 
         public void enqueue(Message message) {
@@ -175,7 +220,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 return;
             }
             try {
-                messages.put(message);
+                queueTracker.put(message);
             } catch (final InterruptedException e) {
                 quickfixSession.getLog().onErrorEvent(e.toString());
             }
@@ -189,7 +234,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         void doRun() {
             while (!stopping) {
                 try {
-                    final Message message = getNextMessage(messages);
+                    final Message message = getNextMessage(queueTracker);
                     if (message == null) {
                         // no message available in polling interval
                         continue;
@@ -209,7 +254,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             }
             if (!messages.isEmpty()) {
                 final List<Message> tempList = new ArrayList<>();
-                messages.drainTo(tempList);
+                queueTracker.drainTo(tempList);
                 for (Message message : tempList) {
                     try {
                         quickfixSession.next(message);
@@ -245,12 +290,12 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      * We do not block indefinitely as that would prevent this thread from ever stopping
      *
      * @see #THREAD_WAIT_FOR_MESSAGE_MS
-     * @param messages
+     * @param queueTracker
      * @return next message or null if nothing arrived within the timeout period
      * @throws InterruptedException
      */
-    protected Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
-        return messages.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
+    protected Message getNextMessage(QueueTracker<Message> queueTracker) throws InterruptedException {
+        return queueTracker.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
