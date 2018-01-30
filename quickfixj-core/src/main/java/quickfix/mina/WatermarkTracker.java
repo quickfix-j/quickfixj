@@ -17,11 +17,6 @@
  * are not clear to you.
  ******************************************************************************/
 
-/*
- * Copyright (c) 2018 Vladimir Lysyy (mrbald@github)
- * ALv2 (http://www.apache.org/licenses/LICENSE-2.0)
- */
-
 package quickfix.mina;
 
 import java.util.AbstractCollection;
@@ -100,8 +95,6 @@ public class WatermarkTracker<E,S> implements QueueTracker<E> {
             long lowerWatermark, long upperWatermark,
             Function<E, S> classifier,
             Consumer<S> onLowerWatermarkCrossed, Consumer<S> onUpperWatermarkCrossed) {
-        assert lowerWatermark >= 0 && lowerWatermark < upperWatermark;
-
         this.queue = queue;
         this.lowerWatermark = lowerWatermark;
         this.upperWatermark = upperWatermark;
@@ -118,8 +111,6 @@ public class WatermarkTracker<E,S> implements QueueTracker<E> {
             BlockingQueue<E> queue,
             long lowerWatermark, long upperWatermark,
             Runnable onLowerWatermarkCrossed, Runnable onUpperWatermarkCrossed) {
-        assert lowerWatermark >= 0 && lowerWatermark < upperWatermark;
-
         this.queue = queue;
         this.lowerWatermark = lowerWatermark;
         this.upperWatermark = upperWatermark;

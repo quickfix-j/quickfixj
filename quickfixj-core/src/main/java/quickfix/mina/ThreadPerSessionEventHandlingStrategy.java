@@ -35,6 +35,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static quickfix.mina.EventHandlingStrategy.lookupIoSession;
+
 /**
  * Processes messages in a session-specific thread.
  */
@@ -187,7 +189,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 messages = new LinkedBlockingQueue<>();
                 queueTracker = WatermarkTracker.newMono(messages, queueLowerWatermark, queueUpperWatermark,
                         () -> { // lower watermark crossed down, while reads suspended
-                            final IoSession ioSession = lookupIoSession();
+                            final IoSession ioSession = lookupIoSession(quickfixSession);
                             if (ioSession != null && ioSession.isReadSuspended()) {
                                 ioSession.resumeRead();
                                 LOG.info("{}: inbound queue size < lower watermark ({}), socket reads resumed",
@@ -195,23 +197,13 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                             }
                         },
                         () -> { // upper watermark crossed up, while reads active
-                            final IoSession ioSession = lookupIoSession();
+                            final IoSession ioSession = lookupIoSession(quickfixSession);
                             if (ioSession != null && !ioSession.isReadSuspended()) {
                                 ioSession.suspendRead();
                                 LOG.info("{}: inbound queue size > upper watermark ({}), socket reads suspended",
                                         quickfixSession.getSessionID(), queueUpperWatermark);
                             }
                         });
-            }
-        }
-
-        private IoSession lookupIoSession() {
-            final Responder responder = quickfixSession.getResponder();
-
-            if (responder instanceof IoSessionResponder) {
-                return ((IoSessionResponder)responder).getIoSession();
-            } else {
-                return null;
             }
         }
 

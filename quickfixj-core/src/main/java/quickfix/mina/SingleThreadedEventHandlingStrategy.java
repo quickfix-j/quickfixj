@@ -33,6 +33,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static quickfix.mina.EventHandlingStrategy.lookupIoSession;
+
 /**
  * Processes messages for all sessions in a single thread.
  */
@@ -75,15 +77,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                                 qfSession.getSessionID(), queueUpperWatermark);
                     }
                 });
-    }
-    private static IoSession lookupIoSession(Session qfSession) {
-        final Responder responder = qfSession.getResponder();
-
-        if (responder instanceof IoSessionResponder) {
-            return ((IoSessionResponder)responder).getIoSession();
-        } else {
-            return null;
-        }
     }
 
     public void setExecutor(Executor executor) {

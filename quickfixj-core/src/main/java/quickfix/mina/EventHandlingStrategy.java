@@ -19,7 +19,9 @@
 
 package quickfix.mina;
 
+import org.apache.mina.core.session.IoSession;
 import quickfix.Message;
+import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
 
@@ -48,4 +50,15 @@ public interface EventHandlingStrategy {
     int getQueueSize();
 
     int getQueueSize(SessionID sessionID);
+
+    static IoSession lookupIoSession(Session qfSession) {
+        final Responder responder = qfSession.getResponder();
+
+        if (responder instanceof IoSessionResponder) {
+            return ((IoSessionResponder)responder).getIoSession();
+        } else {
+            return null;
+        }
+    }
+
 }
