@@ -2336,6 +2336,68 @@ public class SessionTest {
          */
     }
 
+    @Test
+    public void testResendSeqWithReject() throws Exception {
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final boolean resetOnLogon = false;
+        final boolean validateSequenceNumbers = true;
+        boolean enableNextExpectedMsgSeqNum = false;
+        boolean isInitiator = false;
+
+        UnitTestApplication app = new UnitTestApplication() {
+            private int logonCount = 0;
+
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                if (message.getHeader().getString(MsgType.FIELD).equals(Logon.MSGTYPE)) {
+                    logonCount += 1;
+                }
+                if (logonCount == 2) {
+                    throw new RejectLogon("RejectLogon");
+                }
+            }
+        };
+
+        Session session = new Session(app, new MemoryStoreFactory(),
+                sessionID, null, null, null,
+                new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
+                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+                new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+                enableNextExpectedMsgSeqNum, false);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+
+        logonTo(session, 1);
+        //Do Something
+        session.next(createAppMessage(2));
+        session.next(createAppMessage(3));
+        session.disconnect("Disconnecting", true);
+        session.next();
+        session.logon();
+
+        //Logon
+        session.setResponder(responder);
+        logonTo(session, 105);
+        //Rejected
+        assertEquals(Logout.MSGTYPE, app.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        assertEquals("RejectLogon", app.lastToAdminMessage().getString(Text.FIELD));
+
+        //Logon
+        session.setResponder(responder);
+        logonTo(session, 106);
+        //Accepted
+        assertEquals(Logon.MSGTYPE, app.lastFromAdminMessage().getHeader().getString(MsgType.FIELD));
+
+        session.next();
+        session.next();
+        //ResendRequest
+        assertEquals(ResendRequest.MSGTYPE, app.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        assertEquals(4, app.lastToAdminMessage().getInt(BeginSeqNo.FIELD));
+        assertEquals(0, app.lastToAdminMessage().getInt(EndSeqNo.FIELD));
+    }
+
     private News createPossDupAppMessage(int sequence) {
          // create a regular app message and and add the PossDup
         // and OrigSendingTime tags to it
