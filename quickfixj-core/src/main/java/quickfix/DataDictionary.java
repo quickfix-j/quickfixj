@@ -48,10 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
-import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
-import static quickfix.FileUtil.Location.FILESYSTEM;
-import static quickfix.FileUtil.Location.URL;
+import static quickfix.FileUtil.Location.*;
 
 /**
  * Provide the message metadata for various versions of FIX.
@@ -695,6 +692,9 @@ public class DataDictionary {
     private void checkValidFormat(StringField field) throws IncorrectDataFormat {
         FieldType fieldType = getFieldType(field.getTag());
         if (fieldType == null) {
+            return;
+        }
+        if (field.getValue().length() == 0 && !checkFieldsHaveValues) {
             return;
         }
         try {
