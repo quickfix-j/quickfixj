@@ -129,6 +129,10 @@ public class Message extends FieldMap {
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
      * since FieldMap.calculateString() is iterating over the TreeMap of fields.
+     * 
+     * Use toRawString() to get the raw message data.
+     * 
+     * @return Message as String with calculated body length and checksum.
      */
     @Override
     public String toString() {
@@ -142,6 +146,21 @@ public class Message extends FieldMap {
         trailer.calculateString(sb, null, null);
 
         return sb.toString();
+    }
+
+    /**
+     * Return the raw message data as it was passed to the Message class.
+     * 
+     * This is only available after Message has been parsed via constructor or Message.fromString().
+     * Otherwise this method will return NULL.
+     * 
+     * This method neither does change fields nor calculate body length or checksum.
+     * Use toString() for that purpose.
+     * 
+     * @return Message as String without recalculating body length and checksum.
+     */
+    public String toRawString() {
+        return messageData;
     }
 
     public int bodyLength() {

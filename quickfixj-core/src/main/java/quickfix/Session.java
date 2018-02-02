@@ -1508,7 +1508,7 @@ public class Session implements Closeable {
 
         reject.setString(Text.FIELD, str);
         sendRaw(reject, 0);
-        getLog().onErrorEvent("Reject sent for Message " + msgSeqNum + ": " + str);
+        getLog().onErrorEvent("Reject sent for message " + msgSeqNum + ": " + str);
     }
 
     private boolean isPossibleDuplicate(Message message) throws FieldNotFound {
@@ -1531,7 +1531,7 @@ public class Session implements Closeable {
         }
         if (!state.isLogonReceived()) {
             final String errorMessage = "Tried to send a reject while not logged on: " + reason
-                    + " (field " + field + ")";
+                    + (reason.endsWith("" + field) ? "" : " (field " + field + ")");
             throw new SessionException(errorMessage);
         }
 
@@ -1588,16 +1588,15 @@ public class Session implements Closeable {
         } finally {
             state.unlockTargetMsgSeqNum();
         }
-
+        final String logMessage = "Reject sent for message " + msgSeqNum;
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             setRejectReason(reject, field, reason, true);
-            getLog().onErrorEvent(
-                    "Reject sent for Message " + msgSeqNum + ": " + reason + ":" + field);
+            getLog().onErrorEvent(logMessage + ": " + reason + (reason.endsWith("" + field) ? "" : ":" + field));
         } else if (reason != null) {
             setRejectReason(reject, reason);
-            getLog().onErrorEvent("Reject sent for Message " + msgSeqNum + ": " + reason);
+            getLog().onErrorEvent(logMessage + ": " + reason);
         } else {
-            getLog().onErrorEvent("Reject sent for Message " + msgSeqNum);
+            getLog().onErrorEvent(logMessage);
         }
 
         if (enableLastMsgSeqNumProcessed) {
@@ -1651,7 +1650,7 @@ public class Session implements Closeable {
         final String reason = BusinessRejectReasonText.getMessage(err);
         setRejectReason(reject, field, reason, field != 0);
         getLog().onErrorEvent(
-                "Reject sent for Message " + msgSeqNum + (reason != null ? (": " + reason) : "")
+                "Reject sent for message " + msgSeqNum + (reason != null ? (": " + reason) : "")
                         + (field != 0 ? (": tag=" + field) : ""));
 
         sendRaw(reject, 0);
@@ -2283,7 +2282,7 @@ public class Session implements Closeable {
                     if (begin != 0) {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
-                    getLog().onEvent("Resending Message: " + msgSeqNum);
+                    getLog().onEvent("Resending message: " + msgSeqNum);
                     send(msg.toString());
                     begin = 0;
                     appMessageJustSent = true;
@@ -2577,7 +2576,7 @@ public class Session implements Closeable {
 
             return result;
         } catch (final IOException e) {
-            logThrowable(getLog(), "Error Reading/Writing in MessageStore", e);
+            logThrowable(getLog(), "Error reading/writing in MessageStore", e);
             return false;
         } catch (final FieldNotFound e) {
             logThrowable(state.getLog(), "Error accessing message fields", e);
