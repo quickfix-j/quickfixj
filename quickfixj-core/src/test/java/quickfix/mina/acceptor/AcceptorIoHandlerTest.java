@@ -198,7 +198,7 @@ public class AcceptorIoHandlerTest {
         try {
             handler.processMessage(mockIoSession, message);
         } catch (Exception e) {
-            fail("No exception should be thrown!");
+            fail("No exception should be thrown! " + e);
         }
     }
 
