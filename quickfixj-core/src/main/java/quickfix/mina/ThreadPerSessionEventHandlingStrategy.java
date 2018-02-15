@@ -35,6 +35,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static quickfix.mina.EventHandlingStrategy.lookupIoSession;
 
 /**
@@ -192,16 +193,14 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                             final IoSession ioSession = lookupIoSession(quickfixSession);
                             if (ioSession != null && ioSession.isReadSuspended()) {
                                 ioSession.resumeRead();
-                                LOG.info("{}: inbound queue size < lower watermark ({}), socket reads resumed",
-                                        quickfixSession.getSessionID(), queueLowerWatermark);
+                                quickfixSession.getLog().onEvent(format(LOWER_WATERMARK_FMT, queueLowerWatermark));
                             }
                         },
                         () -> { // upper watermark crossed up, while reads active
                             final IoSession ioSession = lookupIoSession(quickfixSession);
                             if (ioSession != null && !ioSession.isReadSuspended()) {
                                 ioSession.suspendRead();
-                                LOG.info("{}: inbound queue size > upper watermark ({}), socket reads suspended",
-                                        quickfixSession.getSessionID(), queueUpperWatermark);
+                                quickfixSession.getLog().onEvent(format(UPPER_WATERMARK_FMT, queueUpperWatermark));
                             }
                         });
             }

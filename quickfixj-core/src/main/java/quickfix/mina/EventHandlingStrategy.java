@@ -30,6 +30,8 @@ import quickfix.SessionID;
  * it only handles message reception events.
  */
 public interface EventHandlingStrategy {
+    final String LOWER_WATERMARK_FMT = "inbound queue size < lower watermark (%d), socket reads resumed";
+    final String UPPER_WATERMARK_FMT = "inbound queue size > upper watermark (%d), socket reads suspended";
 
     /**
      * Constant indicating how long we wait for an incoming message. After
