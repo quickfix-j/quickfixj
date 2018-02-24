@@ -142,7 +142,6 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
                 "ANY"), application, messageStoreFactory, logFactory, messageFactory);
         // Should actually throw an exception if it fails (see previous test)
         try (Session session = provider.getSession(new SessionID("FIX.4.2", "S", "T"), null)) {
-            // Should actually throw an exception if it fails (see previous test)
             assertNotNull(session);
         }
     }
