@@ -676,15 +676,23 @@ public class Session implements Closeable {
         sessions.put(session.getSessionID(), session);
     }
 
-    static void unregisterSessions(List<SessionID> sessionIds) {
+    static void unregisterSessions(List<SessionID> sessionIds, boolean doClose) {
         for (final SessionID sessionId : sessionIds) {
-            final Session session = sessions.remove(sessionId);
-            if (session != null) {
-                try {
+            unregisterSession(sessionId, doClose);
+        }
+    }
+
+    static void unregisterSession(SessionID sessionId, boolean doClose) {
+        final Session session = sessions.get(sessionId);
+        if (session != null) {
+            try {
+                if (doClose) {
                     session.close();
-                } catch (final IOException e) {
-                    LOG.error("Failed to close session resources", e);
                 }
+            } catch (final IOException e) {
+                LOG.error("Failed to close session resources", e);
+            } finally {
+                sessions.remove(sessionId);
             }
         }
     }
@@ -2911,13 +2919,15 @@ public class Session implements Closeable {
     }
 
     /**
-     * Closes session resources. This is for internal use and should typically
-     * not be called by an user application.
+     * Closes session resources and unregisters session. This is for internal
+     * use and should typically not be called by an user application.
      */
     @Override
     public void close() throws IOException {
         closeIfCloseable(getLog());
         closeIfCloseable(getStore());
+        // clean up session just in case close() was not called from Session.unregisterSession()
+        unregisterSession(this.sessionID, false);
     }
 
     private void closeIfCloseable(Object resource) throws IOException {

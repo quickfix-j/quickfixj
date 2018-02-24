@@ -120,6 +120,15 @@ public abstract class SessionConnector implements Connector {
     }
 
     /**
+     * Will remove all Sessions from the SessionConnector's Session map.
+     * Please make sure that these Sessions were unregistered before via
+     * Session.unregisterSessions().
+     */
+    protected void clearConnectorSessions() {
+        this.sessions.clear();
+    }
+
+    /**
      * Get the list of session managed by this connector.
      *
      * @return list of quickfix.Session objects

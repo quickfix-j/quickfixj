@@ -46,27 +46,26 @@ public class SessionDisconnectTest {
                 super.fromAdmin(message, sessionId);
             }
         };
-        final Session session = buildSession(application, storeMessageLatch, sentLogoutLatch);
+        try (Session session = buildSession(application, storeMessageLatch, sentLogoutLatch)) {
 
-        final MessageStore messageStore = session.getStore();
-        checkNextSeqNums(messageStore, 1, 1);
-
-        session.logon();
-
-        processOnSeparateThread(session::next);
-        assertTrue(String.format("Message not stored within %s secs", TIMEOUT_SECS), storeMessageLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS));
-        assertEquals(1, application.lastToAdminMessage().getHeader().getField(new MsgSeqNum()).getValue());
-        checkNextSeqNums(messageStore, 1, 1);
-
-        processOnSeparateThread(() -> {
-            storeMessageLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS);
-            session.next(createLogonResponse());
-        });
-        assertTrue(String.format("Logon response not received within %s secs", TIMEOUT_SECS), receiveLogonResponseLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS));
-        assertTrue(String.format("Logout/SequenceReset not sent %s secs", TIMEOUT_SECS * 2), sentLogoutLatch.await(TIMEOUT_SECS * 2, TimeUnit.SECONDS));
-        checkNextSeqNums(messageStore, 2, 2);
-
-        session.close();
+            final MessageStore messageStore = session.getStore();
+            checkNextSeqNums(messageStore, 1, 1);
+            
+            session.logon();
+            
+            processOnSeparateThread(session::next);
+            assertTrue(String.format("Message not stored within %s secs", TIMEOUT_SECS), storeMessageLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS));
+            assertEquals(1, application.lastToAdminMessage().getHeader().getField(new MsgSeqNum()).getValue());
+            checkNextSeqNums(messageStore, 1, 1);
+            
+            processOnSeparateThread(() -> {
+                storeMessageLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS);
+                session.next(createLogonResponse());
+            });
+            assertTrue(String.format("Logon response not received within %s secs", TIMEOUT_SECS), receiveLogonResponseLatch.await(TIMEOUT_SECS, TimeUnit.SECONDS));
+            assertTrue(String.format("Logout/SequenceReset not sent %s secs", TIMEOUT_SECS * 2), sentLogoutLatch.await(TIMEOUT_SECS * 2, TimeUnit.SECONDS));
+            checkNextSeqNums(messageStore, 2, 2);
+        }
     }
 
     private void checkNextSeqNums(final MessageStore messageStore, final int nextTarget, final int nextSender) throws IOException {

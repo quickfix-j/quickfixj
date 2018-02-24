@@ -85,7 +85,8 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         logoutAllSessions(forceDisconnect);
         stopInitiators();
         eventHandlingStrategy.stopDispatcherThreads();
-        Session.unregisterSessions(getSessions());
+        Session.unregisterSessions(getSessions(), true);
+        clearConnectorSessions();
     }
 
     public void block() throws ConfigError, RuntimeError {

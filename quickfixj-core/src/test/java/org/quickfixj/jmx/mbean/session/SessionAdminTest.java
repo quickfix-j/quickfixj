@@ -20,11 +20,12 @@ import java.util.ArrayList;
 public class SessionAdminTest extends TestCase {
 
     public void testResetSequence() throws Exception {
-        Session session = SessionFactoryTestSupport.createSession();
-        MockSessionAdmin admin = new MockSessionAdmin(session, null, null);
-        admin.resetSequence(25);
-        assertEquals(1, admin.sentMessages.size());
-        assertEquals(25, admin.sentMessages.get(0).getInt(NewSeqNo.FIELD));
+        try (Session session = SessionFactoryTestSupport.createSession()) {
+            MockSessionAdmin admin = new MockSessionAdmin(session, null, null);
+            admin.resetSequence(25);
+            assertEquals(1, admin.sentMessages.size());
+            assertEquals(25, admin.sentMessages.get(0).getInt(NewSeqNo.FIELD));
+        }
     }
 
     private class MockSessionAdmin extends SessionAdmin {
