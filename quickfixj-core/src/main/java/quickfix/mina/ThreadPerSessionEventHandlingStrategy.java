@@ -20,9 +20,6 @@
 
 package quickfix.mina;
 
-import org.apache.mina.core.session.IoSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import quickfix.*;
 
 import java.util.ArrayList;
@@ -35,15 +32,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static java.lang.String.format;
-import static quickfix.mina.EventHandlingStrategy.lookupIoSession;
+import static quickfix.mina.QueueTrackers.newDefaultQueueTracker;
+import static quickfix.mina.QueueTrackers.newSingleSessionWatermarkTracker;
 
 /**
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
-    private static final Logger LOG = LoggerFactory.getLogger(EventHandlingStrategy.class);
-
     private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<>();
     private final SessionConnector sessionConnector;
     private final int queueCapacity;
@@ -185,24 +180,11 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
             quickfixSession = session;
             if (queueCapacity >= 0) {
                 messages = new LinkedBlockingQueue<>(queueCapacity);
-                queueTracker = QueueTracker.wrap(messages);
+                queueTracker = newDefaultQueueTracker(messages);
             } else {
                 messages = new LinkedBlockingQueue<>();
-                queueTracker = WatermarkTracker.newMono(messages, queueLowerWatermark, queueUpperWatermark,
-                        () -> { // lower watermark crossed down, while reads suspended
-                            final IoSession ioSession = lookupIoSession(quickfixSession);
-                            if (ioSession != null && ioSession.isReadSuspended()) {
-                                ioSession.resumeRead();
-                                quickfixSession.getLog().onEvent(format(LOWER_WATERMARK_FMT, queueLowerWatermark));
-                            }
-                        },
-                        () -> { // upper watermark crossed up, while reads active
-                            final IoSession ioSession = lookupIoSession(quickfixSession);
-                            if (ioSession != null && !ioSession.isReadSuspended()) {
-                                ioSession.suspendRead();
-                                quickfixSession.getLog().onEvent(format(UPPER_WATERMARK_FMT, queueUpperWatermark));
-                            }
-                        });
+                queueTracker = newSingleSessionWatermarkTracker(messages, queueLowerWatermark, queueUpperWatermark,
+                        quickfixSession);
             }
         }
 

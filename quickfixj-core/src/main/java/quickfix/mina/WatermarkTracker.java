@@ -75,14 +75,14 @@ public class WatermarkTracker<E,S> implements QueueTracker<E> {
         }
     }
 
-    public static <E, Void> WatermarkTracker<E, Void> newMono(
+    static <E, Void> WatermarkTracker<E, Void> newMono(
             BlockingQueue<E> queue,
             long lowerWatermark, long upperWatermark,
             Runnable onLowerWatermarkCrossed, Runnable onUpperWatermarkCrossed) {
-        return new WatermarkTracker<E, Void>(queue, lowerWatermark, upperWatermark, onLowerWatermarkCrossed, onUpperWatermarkCrossed);
+        return new WatermarkTracker<>(queue, lowerWatermark, upperWatermark, onLowerWatermarkCrossed, onUpperWatermarkCrossed);
     }
 
-    public static <E, S> WatermarkTracker<E, S> newMulti(
+    static <E, S> WatermarkTracker<E, S> newMulti(
             BlockingQueue<E> queue,
             long lowerWatermark, long upperWatermark,
             Function<E, S> classifier,

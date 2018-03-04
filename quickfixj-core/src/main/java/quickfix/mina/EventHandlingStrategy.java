@@ -19,9 +19,7 @@
 
 package quickfix.mina;
 
-import org.apache.mina.core.session.IoSession;
 import quickfix.Message;
-import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
 
@@ -30,9 +28,6 @@ import quickfix.SessionID;
  * it only handles message reception events.
  */
 public interface EventHandlingStrategy {
-    final String LOWER_WATERMARK_FMT = "inbound queue size < lower watermark (%d), socket reads resumed";
-    final String UPPER_WATERMARK_FMT = "inbound queue size > upper watermark (%d), socket reads suspended";
-
     /**
      * Constant indicating how long we wait for an incoming message. After
      * thread has been asked to stop, it can take up to this long to terminate.
@@ -52,15 +47,4 @@ public interface EventHandlingStrategy {
     int getQueueSize();
 
     int getQueueSize(SessionID sessionID);
-
-    static IoSession lookupIoSession(Session qfSession) {
-        final Responder responder = qfSession.getResponder();
-
-        if (responder instanceof IoSessionResponder) {
-            return ((IoSessionResponder)responder).getIoSession();
-        } else {
-            return null;
-        }
-    }
-
 }
