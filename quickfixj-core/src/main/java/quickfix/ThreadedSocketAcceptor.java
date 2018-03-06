@@ -115,7 +115,8 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         }
         stopSessionTimer();
         eventHandlingStrategy.stopDispatcherThreads();
-        Session.unregisterSessions(getSessions());
+        Session.unregisterSessions(getSessions(), true);
+        clearConnectorSessions();
     }
 
     public void block() throws ConfigError, RuntimeError {

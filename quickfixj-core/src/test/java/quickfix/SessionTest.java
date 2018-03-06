@@ -53,6 +53,8 @@ import java.util.TimeZone;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
+import quickfix.field.CheckSum;
+import quickfix.field.NextExpectedMsgSeqNum;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -80,17 +82,15 @@ public class SessionTest {
         final CloseableLog mockLog = mock(CloseableLog.class);
         stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
 
-        final Session session = new Session(application,
+        try (Session session = new Session(application,
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, true, false, true, false,
-                null, true, 0, false, false);
-
-        // Simulate socket disconnect
-        session.setResponder(null);
-
-        session.close();
+                null, true, 0, false, false)) {
+            // Simulate socket disconnect
+            session.setResponder(null);
+        }
 
         verify(mockMessageStore).close();
         verifyNoMoreInteractions(mockMessageStore);
@@ -123,22 +123,20 @@ public class SessionTest {
         final Log mockLog = mock(Log.class);
         stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
 
-        final Session session = new Session(application,
+        try (Session session = new Session(application,
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, true, false, true, false,
-                null, true, 0, false, false);
-
-        // Simulate socket disconnect
-        session.setResponder(null);
-
-        verifyNoMoreInteractions(mockMessageStore);
-
-        verify(mockLog, atLeastOnce()).onEvent(anyString());
-        verifyNoMoreInteractions(mockLog);
-
-        session.close();
+                null, true, 0, false, false)) {
+            // Simulate socket disconnect
+            session.setResponder(null);
+            
+            verifyNoMoreInteractions(mockMessageStore);
+            
+            verify(mockLog, atLeastOnce()).onEvent(anyString());
+            verifyNoMoreInteractions(mockLog);
+        }
     }
 
     private interface CloseableMessageStore extends MessageStore, Closeable {
@@ -154,38 +152,37 @@ public class SessionTest {
 
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = createSession(sessionID, application, true,
-                true, false);
+        try (Session session = createSession(sessionID, application, true,
+                true, false)) {
 
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.logon();
-        session.next();
-
-        final Message logonRequest = new Message(responder.sentMessageData);
-        session.next(createLogonResponse(sessionID, logonRequest, 1));
-
-        assertEquals(
-                1,
-                application.lastToAdminMessage().getHeader()
-                        .getInt(MsgSeqNum.FIELD));
-        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
-        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
-
-        session.next(createHeartbeatMessage(1002));
-        assertFalse(ResendRequest.MSGTYPE.equals(application
-                .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
-
-        session.next(createHeartbeatMessage(1003));
-        assertFalse(ResendRequest.MSGTYPE.equals(application
-                .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
-
-        session.next(createHeartbeatMessage(1001));
-        assertFalse(ResendRequest.MSGTYPE.equals(application
-                .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
-
-        session.close();
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.logon();
+            session.next();
+            
+            final Message logonRequest = new Message(responder.sentMessageData);
+            session.next(createLogonResponse(sessionID, logonRequest, 1));
+            
+            assertEquals(
+                    1,
+                    application.lastToAdminMessage().getHeader()
+                            .getInt(MsgSeqNum.FIELD));
+            assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+            
+            session.next(createHeartbeatMessage(1002));
+            assertFalse(ResendRequest.MSGTYPE.equals(application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+            
+            session.next(createHeartbeatMessage(1003));
+            assertFalse(ResendRequest.MSGTYPE.equals(application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+            
+            session.next(createHeartbeatMessage(1001));
+            assertFalse(ResendRequest.MSGTYPE.equals(application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+        }
     }
 
     // QFJ-703
@@ -265,23 +262,22 @@ public class SessionTest {
 
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = createSession(sessionID, application, true,
-                true);
+        try (Session session = createSession(sessionID, application, true,
+                true)) {
 
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.logon();
-        session.next();
-
-        final Message logonRequest = new Message(responder.sentMessageData);
-        session.next(createLogonResponse(sessionID, logonRequest, 2));
-
-        assertTrue(
-                "Should not infer a reset when the sequence number is not one",
-                responder.disconnectCalled);
-
-        session.close();
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.logon();
+            session.next();
+            
+            final Message logonRequest = new Message(responder.sentMessageData);
+            session.next(createLogonResponse(sessionID, logonRequest, 2));
+            
+            assertTrue(
+                    "Should not infer a reset when the sequence number is not one",
+                    responder.disconnectCalled);
+        }
     }
 
     @Test
@@ -291,24 +287,23 @@ public class SessionTest {
 
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = createSession(sessionID, application, true,
-                true);
+        try (Session session = createSession(sessionID, application, true,
+                true)) {
 
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.logon();
-        session.next();
-
-        final Message logonRequest = new Message(responder.sentMessageData);
-        final Message logonResponse = createLogonResponse(sessionID,
-                logonRequest, 1);
-        session.next(logonResponse);
-
-        assertFalse("Should not disconnect when an accepted reset is inferred",
-                responder.disconnectCalled);
-
-        session.close();
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.logon();
+            session.next();
+            
+            final Message logonRequest = new Message(responder.sentMessageData);
+            final Message logonResponse = createLogonResponse(sessionID,
+                    logonRequest, 1);
+            session.next(logonResponse);
+            
+            assertFalse("Should not disconnect when an accepted reset is inferred",
+                    responder.disconnectCalled);
+        }
     }
 
     @Test
@@ -318,34 +313,33 @@ public class SessionTest {
         final UnitTestApplication application = new UnitTestApplication();
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = createSession(sessionID, application, true,
-                true);
+        try (Session session = createSession(sessionID, application, true,
+                true)) {
 
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.logon();
-        session.next();
-
-        final Message logonRequest = new Message(responder.sentMessageData);
-        final Message logonResponse = createLogonResponse(sessionID,
-                logonRequest, 1);
-        session.next(logonResponse);
-
-        final News newsMessage = createAppMessage(2);
-        // set a BeginString unsupported by the session
-        newsMessage.getHeader().setString(BeginString.FIELD,
-                FixVersions.BEGINSTRING_FIX40);
-        session.next(newsMessage);
-        final Message lastToAdminMessage = application.lastToAdminMessage();
-        assertEquals(MsgType.LOGOUT,
-                lastToAdminMessage.getHeader().getString(MsgType.FIELD));
-        assertEquals(
-                "Incorrect BeginString: Message version 'FIX.4.0' does not match the session version 'FIX.4.4'",
-                lastToAdminMessage.getString(Text.FIELD));
-        assertTrue(responder.disconnectCalled);
-
-        session.close();
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.logon();
+            session.next();
+            
+            final Message logonRequest = new Message(responder.sentMessageData);
+            final Message logonResponse = createLogonResponse(sessionID,
+                    logonRequest, 1);
+            session.next(logonResponse);
+            
+            final News newsMessage = createAppMessage(2);
+            // set a BeginString unsupported by the session
+            newsMessage.getHeader().setString(BeginString.FIELD,
+                    FixVersions.BEGINSTRING_FIX40);
+            session.next(newsMessage);
+            final Message lastToAdminMessage = application.lastToAdminMessage();
+            assertEquals(MsgType.LOGOUT,
+                    lastToAdminMessage.getHeader().getString(MsgType.FIELD));
+            assertEquals(
+                    "Incorrect BeginString: Message version 'FIX.4.0' does not match the session version 'FIX.4.4'",
+                    lastToAdminMessage.getString(Text.FIELD));
+            assertTrue(responder.disconnectCalled);
+        }
     }
 
     // QFJ-650
@@ -353,39 +347,38 @@ public class SessionTest {
     public void testLogoutOnMissingMsgSeqNum() throws Exception {
 
         final Application application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        final TestRequest testRequest = (TestRequest) createAdminMessage(2);
-        session.next(testRequest);
-
-        assertEquals(3, state.getNextSenderMsgSeqNum());
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-
-        testRequest.getHeader().removeField(MsgSeqNum.FIELD);
-        // this should disconnect the session due to the missing MsgSeqNum
-        session.next(testRequest);
-        assertFalse("Session should be disconnected", session.isLoggedOn());
-
-        // make sure that the target seq num has not been incremented
-        assertEquals(4, state.getNextSenderMsgSeqNum());
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-        session.setResponder(new UnitTestResponder());
-        logonTo(session, 3);
-        assertEquals(5, state.getNextSenderMsgSeqNum());
-        assertEquals(4, state.getNextTargetMsgSeqNum());
-        assertTrue("Session should be connected", session.isLoggedOn());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            final TestRequest testRequest = (TestRequest) createAdminMessage(2);
+            session.next(testRequest);
+            
+            assertEquals(3, state.getNextSenderMsgSeqNum());
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+            
+            testRequest.getHeader().removeField(MsgSeqNum.FIELD);
+            // this should disconnect the session due to the missing MsgSeqNum
+            session.next(testRequest);
+            assertFalse("Session should be disconnected", session.isLoggedOn());
+            
+            // make sure that the target seq num has not been incremented
+            assertEquals(4, state.getNextSenderMsgSeqNum());
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+            session.setResponder(new UnitTestResponder());
+            logonTo(session, 3);
+            assertEquals(5, state.getNextSenderMsgSeqNum());
+            assertEquals(4, state.getNextTargetMsgSeqNum());
+            assertTrue("Session should be connected", session.isLoggedOn());
+        }
     }
 
     // QFJ-750
@@ -393,72 +386,70 @@ public class SessionTest {
     public void testLogoutMsgSeqNumTooHighOrLow() throws Exception {
 
         final Application application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        final TestRequest testRequest = (TestRequest) createAdminMessage(2);
-        session.next(testRequest);
-
-        assertEquals(3, state.getNextSenderMsgSeqNum());
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-
-        logoutFrom(session, 100);
-        assertFalse("Session should be disconnected", session.isLoggedOn());
-
-        // make sure that the target seq num has not been incremented
-        assertEquals(4, state.getNextSenderMsgSeqNum());
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-        session.setResponder(new UnitTestResponder());
-        logonTo(session, 3);
-        assertEquals(5, state.getNextSenderMsgSeqNum());
-        assertEquals(4, state.getNextTargetMsgSeqNum());
-        assertTrue("Session should be connected", session.isLoggedOn());
-
-        logoutFrom(session, 1);
-        // make sure that the target seq num has not been incremented
-        assertEquals(6, state.getNextSenderMsgSeqNum());
-        assertEquals(4, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            final TestRequest testRequest = (TestRequest) createAdminMessage(2);
+            session.next(testRequest);
+            
+            assertEquals(3, state.getNextSenderMsgSeqNum());
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+            
+            logoutFrom(session, 100);
+            assertFalse("Session should be disconnected", session.isLoggedOn());
+            
+            // make sure that the target seq num has not been incremented
+            assertEquals(4, state.getNextSenderMsgSeqNum());
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+            session.setResponder(new UnitTestResponder());
+            logonTo(session, 3);
+            assertEquals(5, state.getNextSenderMsgSeqNum());
+            assertEquals(4, state.getNextTargetMsgSeqNum());
+            assertTrue("Session should be connected", session.isLoggedOn());
+            
+            logoutFrom(session, 1);
+            // make sure that the target seq num has not been incremented
+            assertEquals(6, state.getNextSenderMsgSeqNum());
+            assertEquals(4, state.getNextTargetMsgSeqNum());
+        }
     }
 
     @Test
     public void testRejectMsgSeqNumTooHighOrLow() throws Exception {
 
         final Application application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        processMessage(session, createReject(2, 100));
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-
-        // Reject with unexpected seqnum should not increment target seqnum
-        processMessage(session, createReject(50, 100));
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-
-        // Reject with unexpected seqnum should not increment target seqnum
-        processMessage(session, createReject(1, 100));
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            processMessage(session, createReject(2, 100));
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+            
+            // Reject with unexpected seqnum should not increment target seqnum
+            processMessage(session, createReject(50, 100));
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+            
+            // Reject with unexpected seqnum should not increment target seqnum
+            processMessage(session, createReject(1, 100));
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+        }
     }
 
     /**
@@ -481,28 +472,27 @@ public class SessionTest {
 
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpFileStoreSession(application, false,
-                new UnitTestResponder(), settings, sessionID);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        // we should only answer with a Logon message
-        assertEquals(1, application.toAdminMessages.size());
-        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0)
-                .getHeader().getString(MsgType.FIELD));
-
-        // no reset should have been triggered by QF/J after the Logon attempt
-        assertEquals(0, application.sessionResets);
-        assertTrue("Session should be connected", session.isLoggedOn());
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpFileStoreSession(application, false,
+                new UnitTestResponder(), settings, sessionID)) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            
+            // we should only answer with a Logon message
+            assertEquals(1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.toAdminMessages.get(0)
+                    .getHeader().getString(MsgType.FIELD));
+            
+            // no reset should have been triggered by QF/J after the Logon attempt
+            assertEquals(0, application.sessionResets);
+            assertTrue("Session should be connected", session.isLoggedOn());
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+        }
     }
 
     // QFJ-773
@@ -526,76 +516,75 @@ public class SessionTest {
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
         final UnitTestResponder responder = new UnitTestResponder();
-        final Session session = setUpFileStoreSession(application, false,
-                responder, settings, sessionID);
-        session.addStateListener(application);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        // we should only answer with a Logon message
-        assertEquals(1, application.toAdminMessages.size());
-        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0)
-                .getHeader().getString(MsgType.FIELD));
-
-        // no reset should have been triggered by QF/J after the Logon attempt
-        assertEquals(0, application.sessionResets);
-        assertTrue("Session should be connected", session.isLoggedOn());
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        session.next();
-        // increment time to force logout and reset
-        systemTimeSource.increment(3700000);
-        session.next();
-        assertEquals(SystemTime.getDate(), state.getCreationTime());
-        systemTimeSource.increment(10000);
-        session.next();
-        systemTimeSource.increment(10000);
-        session.next();
-        systemTimeSource.increment(10000);
-        session.next();
-        systemTimeSource.increment(10000);
-
-        // we should only reset once outside of the session time window
-        assertEquals(1, application.sessionResets);
-        assertFalse("Session should be disconnected", session.isLoggedOn());
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.setResponder(responder);
-        // this should get rejected since we are outside of the session time
-        // window
-        logonTo(session);
-        assertFalse("Session should be disconnected", session.isLoggedOn());
-
-        // if we now logon to the session, it will be considered new
-        // and a reset will be done
-        session.setResponder(responder);
-        session.next();
-        assertEquals(2, application.sessionResets);
-        systemTimeSource.increment(86100000); // jump one day but stay inside
-                                              // session time
-        session.next();
-        logonTo(session);
-        assertTrue("Session should be connected", session.isLoggedOn());
-        assertEquals(SystemTime.getDate(), state.getCreationTime());
-
-        // check that the creation time is not updated inside of the session
-        // time window
-        int delta = 60000;
-        systemTimeSource.increment(delta);
-        assertTrue(SystemTime.getDate().getTime()
-                - state.getCreationTime().getTime() == delta);
-        session.next();
-        assertTrue("Session should be connected", session.isLoggedOn());
-
-        session.close();
+        try (Session session = setUpFileStoreSession(application, false,
+                responder, settings, sessionID)) {
+            session.addStateListener(application);
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            
+            // we should only answer with a Logon message
+            assertEquals(1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.toAdminMessages.get(0)
+                    .getHeader().getString(MsgType.FIELD));
+            
+            // no reset should have been triggered by QF/J after the Logon attempt
+            assertEquals(0, application.sessionResets);
+            assertTrue("Session should be connected", session.isLoggedOn());
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            session.next();
+            // increment time to force logout and reset
+            systemTimeSource.increment(3700000);
+            session.next();
+            assertEquals(SystemTime.getDate(), state.getCreationTime());
+            systemTimeSource.increment(10000);
+            session.next();
+            systemTimeSource.increment(10000);
+            session.next();
+            systemTimeSource.increment(10000);
+            session.next();
+            systemTimeSource.increment(10000);
+            
+            // we should only reset once outside of the session time window
+            assertEquals(1, application.sessionResets);
+            assertFalse("Session should be disconnected", session.isLoggedOn());
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            session.setResponder(responder);
+            // this should get rejected since we are outside of the session time
+            // window
+            logonTo(session);
+            assertFalse("Session should be disconnected", session.isLoggedOn());
+            
+            // if we now logon to the session, it will be considered new
+            // and a reset will be done
+            session.setResponder(responder);
+            session.next();
+            assertEquals(2, application.sessionResets);
+            systemTimeSource.increment(86100000); // jump one day but stay inside
+            // session time
+            session.next();
+            logonTo(session);
+            assertTrue("Session should be connected", session.isLoggedOn());
+            assertEquals(SystemTime.getDate(), state.getCreationTime());
+            
+            // check that the creation time is not updated inside of the session
+            // time window
+            int delta = 60000;
+            systemTimeSource.increment(delta);
+            assertTrue(SystemTime.getDate().getTime()
+                    - state.getCreationTime().getTime() == delta);
+            session.next();
+            assertTrue("Session should be connected", session.isLoggedOn());
+        }
     }
 
     @Test
@@ -618,56 +607,55 @@ public class SessionTest {
 
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpFileStoreSession(application, true,
-                new UnitTestResponder(), settings, sessionID);
-        session.addStateListener(application);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.next();
-        systemTimeSource.increment(10000);
-        session.next();
-        systemTimeSource.increment(10000);
-        session.next();
-
-        // we should send no messages since we are outside of session time
-        assertEquals(0, application.toAdminMessages.size());
-        // no reset should have been triggered by QF/J (since we were not logged
-        // on)
-        assertEquals(0, application.sessionResets);
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        // increase time to be within session time
-        systemTimeSource.increment(1900000);
-        session.next();
-        session.next();
-        // we should have sent a Logon since the StartTime has been reached now
-        assertEquals(1, application.toAdminMessages.size());
-        Message logon = application.toAdminMessages.get(0);
-        assertEquals(MsgType.LOGON, logon.getHeader().getString(MsgType.FIELD));
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-        Message createLogonResponse = createLogonResponse(new SessionID(
-                FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), logon, 1);
-        session.next(createLogonResponse);
-        assertTrue(session.isLoggedOn());
-        assertEquals(1, application.sessionResets);
-
-        // increase time to be out of session time
-        systemTimeSource.increment(1900000);
-        session.next();
-        Message logout = application.lastToAdminMessage();
-        assertEquals(MsgType.LOGOUT, logout.getHeader()
-                .getString(MsgType.FIELD));
-        assertFalse(session.isLoggedOn());
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-        assertEquals(2, application.sessionResets);
-
-        session.close();
+        try (Session session = setUpFileStoreSession(application, true,
+                new UnitTestResponder(), settings, sessionID)) {
+            session.addStateListener(application);
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            session.next();
+            systemTimeSource.increment(10000);
+            session.next();
+            systemTimeSource.increment(10000);
+            session.next();
+            
+            // we should send no messages since we are outside of session time
+            assertEquals(0, application.toAdminMessages.size());
+            // no reset should have been triggered by QF/J (since we were not logged
+            // on)
+            assertEquals(0, application.sessionResets);
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            // increase time to be within session time
+            systemTimeSource.increment(1900000);
+            session.next();
+            session.next();
+            // we should have sent a Logon since the StartTime has been reached now
+            assertEquals(1, application.toAdminMessages.size());
+            Message logon = application.toAdminMessages.get(0);
+            assertEquals(MsgType.LOGON, logon.getHeader().getString(MsgType.FIELD));
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            Message createLogonResponse = createLogonResponse(new SessionID(
+                    FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), logon, 1);
+            session.next(createLogonResponse);
+            assertTrue(session.isLoggedOn());
+            assertEquals(1, application.sessionResets);
+            
+            // increase time to be out of session time
+            systemTimeSource.increment(1900000);
+            session.next();
+            Message logout = application.lastToAdminMessage();
+            assertEquals(MsgType.LOGOUT, logout.getHeader()
+                    .getString(MsgType.FIELD));
+            assertFalse(session.isLoggedOn());
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            assertEquals(2, application.sessionResets);
+        }
     }
 
     @Test
@@ -692,30 +680,29 @@ public class SessionTest {
 
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpFileStoreSession(application, true,
-                new UnitTestResponder(), settings, sessionID);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.next();
-        systemTimeSource.increment(1000);
-        session.next();
-        systemTimeSource.increment(1000);
-        session.next();
-
-        // we should have sent a Logon since we are inside of the SessionTime
-        assertEquals(1, application.toAdminMessages.size());
-        assertEquals(MsgType.LOGON, application.toAdminMessages.get(0)
-                .getHeader().getString(MsgType.FIELD));
-        // no reset should have been triggered by QF/J
-        assertEquals(0, application.sessionResets);
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpFileStoreSession(application, true,
+                new UnitTestResponder(), settings, sessionID)) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            session.next();
+            systemTimeSource.increment(1000);
+            session.next();
+            systemTimeSource.increment(1000);
+            session.next();
+            
+            // we should have sent a Logon since we are inside of the SessionTime
+            assertEquals(1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGON, application.toAdminMessages.get(0)
+                    .getHeader().getString(MsgType.FIELD));
+            // no reset should have been triggered by QF/J
+            assertEquals(0, application.sessionResets);
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+        }
     }
 
     @Test
@@ -740,48 +727,47 @@ public class SessionTest {
 
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpFileStoreSession(application, false,
-                new UnitTestResponder(), settings, sessionID);
-        session.addStateListener(application);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.next();
-        
-        // we should send no messages since we are outside of session time
-        assertEquals(0, application.toAdminMessages.size());
-        // no reset should have been triggered by QF/J (since we were not logged on)
-        assertEquals(0, application.sessionResets);
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        // increase time to be within session time
-        systemTimeSource.increment(5000);
-        // there should be a Logon but no subsequent reset
-        logonTo(session, 1);
-        // call next() to provoke SessionTime check which should NOT reset seqnums now
-        session.next();
-        assertEquals(1, application.toAdminMessages.size());
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-        assertTrue(session.isLoggedOn());
-        assertEquals(1, application.sessionResets);
-
-        systemTimeSource.increment(5000);
-        session.disconnect("test", false);
-        systemTimeSource.increment(5000);
-        session.next();
-        session.setResponder(new UnitTestResponder());
-
-        logonTo(session, 2);
-        session.next();
-
-        // check that no reset is done on next Logon
-        assertEquals(1, application.sessionResets);
-        
-        session.close();
+        try (Session session = setUpFileStoreSession(application, false,
+                new UnitTestResponder(), settings, sessionID)) {
+            session.addStateListener(application);
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            session.next();
+            
+            // we should send no messages since we are outside of session time
+            assertEquals(0, application.toAdminMessages.size());
+            // no reset should have been triggered by QF/J (since we were not logged on)
+            assertEquals(0, application.sessionResets);
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            // increase time to be within session time
+            systemTimeSource.increment(5000);
+            // there should be a Logon but no subsequent reset
+            logonTo(session, 1);
+            // call next() to provoke SessionTime check which should NOT reset seqnums now
+            session.next();
+            assertEquals(1, application.toAdminMessages.size());
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            assertTrue(session.isLoggedOn());
+            assertEquals(1, application.sessionResets);
+            
+            systemTimeSource.increment(5000);
+            session.disconnect("test", false);
+            systemTimeSource.increment(5000);
+            session.next();
+            session.setResponder(new UnitTestResponder());
+            
+            logonTo(session, 2);
+            session.next();
+            
+            // check that no reset is done on next Logon
+            assertEquals(1, application.sessionResets);
+        }
     }
 
     @Test
@@ -807,51 +793,50 @@ public class SessionTest {
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
         UnitTestResponder responder = new UnitTestResponder();
-        final Session session = setUpFileStoreSession(application, true, responder, settings, sessionID);
-        session.addStateListener(application);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.next();
-        
-        // we should send no messages since we are outside of session time
-        assertEquals(0, application.toAdminMessages.size());
-        // no reset should have been triggered by QF/J (since we were not logged on)
-        assertEquals(0, application.sessionResets);
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        // increase time to be almost within session time to check if session needs to be reset
-        // (will not reset since it is not yet within session time)
-        systemTimeSource.increment(4500);
-        session.next();
-        // increase time further so that Logon is sent but reset is not done since last check
-        // of session time was done within one second
-        systemTimeSource.increment(600);
-        session.next();
-        systemTimeSource.increment(1000);
-        session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 1));
-        assertEquals(1, application.toAdminMessages.size());
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-        assertTrue(session.isLoggedOn());
-        assertEquals(1, application.sessionResets);
-
-        systemTimeSource.increment(5000);
-        session.disconnect("test", false);
-        systemTimeSource.increment(5000);
-        session.next();
-        responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.next();
-        session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 2));
-        // check that no reset is done on next Logon
-        assertEquals(1, application.sessionResets);
-        
-        session.close();
+        try (Session session = setUpFileStoreSession(application, true, responder, settings, sessionID)) {
+            session.addStateListener(application);
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            session.next();
+            
+            // we should send no messages since we are outside of session time
+            assertEquals(0, application.toAdminMessages.size());
+            // no reset should have been triggered by QF/J (since we were not logged on)
+            assertEquals(0, application.sessionResets);
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            // increase time to be almost within session time to check if session needs to be reset
+            // (will not reset since it is not yet within session time)
+            systemTimeSource.increment(4500);
+            session.next();
+            // increase time further so that Logon is sent but reset is not done since last check
+            // of session time was done within one second
+            systemTimeSource.increment(600);
+            session.next();
+            systemTimeSource.increment(1000);
+            session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 1));
+            assertEquals(1, application.toAdminMessages.size());
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            assertTrue(session.isLoggedOn());
+            assertEquals(1, application.sessionResets);
+            
+            systemTimeSource.increment(5000);
+            session.disconnect("test", false);
+            systemTimeSource.increment(5000);
+            session.next();
+            responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.next();
+            session.next(createLogonResponse(new SessionID(FixVersions.BEGINSTRING_FIX44, "TARGET", "SENDER"), application.lastToAdminMessage(), 2));
+            // check that no reset is done on next Logon
+            assertEquals(1, application.sessionResets);
+        }
     }
 
     @Test
@@ -861,73 +846,72 @@ public class SessionTest {
         final SessionID sessionID = new SessionID(
                 FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
         UnitTestApplication application = new UnitTestApplication();
-        Session session = SessionFactoryTestSupport.createSession(sessionID, application,
-                false, false, true, true, null);
-        UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-        session.logon();
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, application,
+                false, false, true, true, null)) {
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            session.logon();
 
-        session.next();
-        Logon logonRequest = new Logon();
-        setUpHeader(session.getSessionID(), logonRequest, true, 1);
-        logonRequest.setInt(HeartBtInt.FIELD, 30);
-        logonRequest.setString(EncryptMethod.FIELD, "");
-        logonRequest.toString();    // calculate length and checksum
-        session.next(logonRequest);
-        // session should not be logged on due to empty EncryptMethod
-        assertFalse(session.isLoggedOn());
+            session.next();
+            Logon logonRequest = new Logon();
+            setUpHeader(session.getSessionID(), logonRequest, true, 1);
+            logonRequest.setInt(HeartBtInt.FIELD, 30);
+            logonRequest.setString(EncryptMethod.FIELD, "");
+            logonRequest.toString();    // calculate length and checksum
+            session.next(logonRequest);
+            // session should not be logged on due to empty EncryptMethod
+            assertFalse(session.isLoggedOn());
 
-        assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
-        assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
-        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
-        assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+            assertEquals(1, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
 
-        session.setResponder(responder);
-        session.logon();
-        session.next();
-        setUpHeader(session.getSessionID(), logonRequest, true, 2);
-        logonRequest.removeField(EncryptMethod.FIELD);
-        logonRequest.toString();    // calculate length and checksum
-        session.next(logonRequest);
-        // session should not be logged on due to missing EncryptMethod
-        assertFalse(session.isLoggedOn());
+            session.setResponder(responder);
+            session.logon();
+            session.next();
+            setUpHeader(session.getSessionID(), logonRequest, true, 2);
+            logonRequest.removeField(EncryptMethod.FIELD);
+            logonRequest.toString();    // calculate length and checksum
+            session.next(logonRequest);
+            // session should not be logged on due to missing EncryptMethod
+            assertFalse(session.isLoggedOn());
 
-        assertEquals(2, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
-        assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
-        assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
-        assertEquals(3, session.getStore().getNextSenderMsgSeqNum());
+            assertEquals(2, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(3, session.getStore().getNextSenderMsgSeqNum());
 
-        session.setResponder(responder);
-        session.logon();
-        session.next();
-        setUpHeader(session.getSessionID(), logonRequest, true, 3);
-        logonRequest.setString(EncryptMethod.FIELD, "A");
-        logonRequest.toString();    // calculate length and checksum
-        session.next(logonRequest);
-        // session should not be logged on due to IncorrectDataFormat
-        assertFalse(session.isLoggedOn());
+            session.setResponder(responder);
+            session.logon();
+            session.next();
+            setUpHeader(session.getSessionID(), logonRequest, true, 3);
+            logonRequest.setString(EncryptMethod.FIELD, "A");
+            logonRequest.toString();    // calculate length and checksum
+            session.next(logonRequest);
+            // session should not be logged on due to IncorrectDataFormat
+            assertFalse(session.isLoggedOn());
 
-        assertEquals(3, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
-	assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
-        assertEquals(4, session.getStore().getNextTargetMsgSeqNum());
-        assertEquals(4, session.getStore().getNextSenderMsgSeqNum());
+            assertEquals(3, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(4, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(4, session.getStore().getNextSenderMsgSeqNum());
 
-        session.setResponder(responder);
-        session.logon();
-        session.next();
-        setUpHeader(session.getSessionID(), logonRequest, true, 3);
-        logonRequest.setString(EncryptMethod.FIELD, "99");
-        logonRequest.toString();    // calculate length and checksum
-        session.next(logonRequest);
-        // session should not be logged on due to IncorrectTagValue
-        assertFalse(session.isLoggedOn());
+            session.setResponder(responder);
+            session.logon();
+            session.next();
+            setUpHeader(session.getSessionID(), logonRequest, true, 3);
+            logonRequest.setString(EncryptMethod.FIELD, "99");
+            logonRequest.toString();    // calculate length and checksum
+            session.next(logonRequest);
+            // session should not be logged on due to IncorrectTagValue
+            assertFalse(session.isLoggedOn());
 
-        assertEquals(4, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
-	assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
-        assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
-        assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
-        
-        session.close();
+            assertEquals(4, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
+        }
     }
 
     /**
@@ -956,31 +940,30 @@ public class SessionTest {
 
         // Session gets constructed, triggering a reset
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpFileStoreSession(application, false,
-                new UnitTestResponder(), settings, sessionID);
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-        // we should only answer with a Logout message
-        assertEquals(1, application.toAdminMessages.size());
-        assertEquals(MsgType.LOGOUT, application.toAdminMessages.get(0)
-                .getHeader().getString(MsgType.FIELD));
-        assertFalse("Session should not be connected", session.isLoggedOn());
-        assertTrue(application.toAdminMessages.get(0).getString(Text.FIELD)
-                .contains("Logon attempt not within session time"));
-        // Normally, next() is called periodically; we only do it here to reset
-        // the seqNums.
-        // The seqNums should be reset because it was tried to establish a
-        // connection
-        // outside of the session schedule.
-        session.next();
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpFileStoreSession(application, false,
+                new UnitTestResponder(), settings, sessionID)) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            // we should only answer with a Logout message
+            assertEquals(1, application.toAdminMessages.size());
+            assertEquals(MsgType.LOGOUT, application.toAdminMessages.get(0)
+                    .getHeader().getString(MsgType.FIELD));
+            assertFalse("Session should not be connected", session.isLoggedOn());
+            assertTrue(application.toAdminMessages.get(0).getString(Text.FIELD)
+                    .contains("Logon attempt not within session time"));
+            // Normally, next() is called periodically; we only do it here to reset
+            // the seqNums.
+            // The seqNums should be reset because it was tried to establish a
+            // connection
+            // outside of the session schedule.
+            session.next();
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+        }
     }
 
     // QFJ-357
@@ -1043,28 +1026,27 @@ public class SessionTest {
             }
         };
 
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextSenderMsgSeqNum());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-
-        logonTo(session);
-
-        assertEquals(false, state.isLogonSent());
-        assertEquals(false, state.isLogonReceived());
-        assertEquals(false, state.isLogonAlreadySent());
-        assertEquals(false, state.isLogonSendNeeded());
-        assertEquals(false, state.isLogonTimedOut());
-        assertEquals(false, state.isLogoutSent());
-        assertEquals(false, state.isLogoutReceived());
-        assertEquals(false, state.isLogoutTimedOut());
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextSenderMsgSeqNum());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            
+            logonTo(session);
+            
+            assertEquals(false, state.isLogonSent());
+            assertEquals(false, state.isLogonReceived());
+            assertEquals(false, state.isLogonAlreadySent());
+            assertEquals(false, state.isLogonSendNeeded());
+            assertEquals(false, state.isLogonTimedOut());
+            assertEquals(false, state.isLogoutSent());
+            assertEquals(false, state.isLogoutReceived());
+            assertEquals(false, state.isLogoutTimedOut());
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+        }
     }
 
     // QFJ-696
@@ -1107,49 +1089,47 @@ public class SessionTest {
     @Test
     // QFJ-339
     public void testSendingTimeRejectBeforeLogon() throws Exception {
-        final Session session = setUpSession(new UnitTestApplication(), false,
-                new UnitTestResponder());
+        try (Session session = setUpSession(new UnitTestApplication(), false,
+                new UnitTestResponder())) {
 
-        final Message message = new Logon();
-        message.getHeader().setString(SenderCompID.FIELD, "SENDER");
-        message.getHeader().setString(TargetCompID.FIELD, "TARGET");
-        message.getHeader().setString(SendingTime.FIELD,
-                UtcTimestampConverter.convert(LocalDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
-        message.getHeader().setInt(MsgSeqNum.FIELD, 1);
-
-        final SessionStateListener mockStateListener = mock(SessionStateListener.class);
-        session.addStateListener(mockStateListener);
-
-        session.next(message);
-
-        verify(mockStateListener).onDisconnect();
-        verifyNoMoreInteractions(mockStateListener);
-
-        session.close();
+            final Message message = new Logon();
+            message.getHeader().setString(SenderCompID.FIELD, "SENDER");
+            message.getHeader().setString(TargetCompID.FIELD, "TARGET");
+            message.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+            
+            final SessionStateListener mockStateListener = mock(SessionStateListener.class);
+            session.addStateListener(mockStateListener);
+            
+            session.next(message);
+            
+            verify(mockStateListener).onDisconnect();
+            verifyNoMoreInteractions(mockStateListener);
+        }
     }
 
     @Test
     // QFJ-339
     public void testCorruptLogonReject() throws Exception {
-        final Session session = setUpSession(new UnitTestApplication(), false,
-                new UnitTestResponder());
+        try (Session session = setUpSession(new UnitTestApplication(), false,
+                new UnitTestResponder())) {
 
-        final Message message = new Logon();
-        message.getHeader().setString(SenderCompID.FIELD, "SENDER");
-        message.getHeader().setString(TargetCompID.FIELD, "TARGET");
-        message.getHeader().setString(SendingTime.FIELD,
-                UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
-        message.getHeader().setInt(MsgSeqNum.FIELD, 100);
-
-        final SessionStateListener mockStateListener = mock(SessionStateListener.class);
-        session.addStateListener(mockStateListener);
-
-        session.next(message);
-
-        verify(mockStateListener).onDisconnect();
-        verifyNoMoreInteractions(mockStateListener);
-
-        session.close();
+            final Message message = new Logon();
+            message.getHeader().setString(SenderCompID.FIELD, "SENDER");
+            message.getHeader().setString(TargetCompID.FIELD, "TARGET");
+            message.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            message.getHeader().setInt(MsgSeqNum.FIELD, 100);
+            
+            final SessionStateListener mockStateListener = mock(SessionStateListener.class);
+            session.addStateListener(mockStateListener);
+            
+            session.next(message);
+            
+            verify(mockStateListener).onDisconnect();
+            verifyNoMoreInteractions(mockStateListener);
+        }
     }
 
     @Test
@@ -1179,28 +1159,27 @@ public class SessionTest {
             }
         };
 
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        logonTo(session);
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        processMessage(session, createAppMessage(2));
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        // To avoid resendRequest
-        state.setNextTargetMsgSeqNum(3);
-
-        processMessage(session, createAdminMessage(3));
-
-        assertEquals(2, state.getNextSenderMsgSeqNum());
-        assertEquals(3, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            logonTo(session);
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            processMessage(session, createAppMessage(2));
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            // To avoid resendRequest
+            state.setNextTargetMsgSeqNum(3);
+            
+            processMessage(session, createAdminMessage(3));
+            
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertEquals(3, state.getNextTargetMsgSeqNum());
+        }
     }
 
     // QFJ-271
@@ -1208,35 +1187,34 @@ public class SessionTest {
     public void testSequenceResetStackOverflow() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        logonTo(session, 1);
-
-        assertTrue(session.isLoggedOn());
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-
-        for (int i = 2; i <= 41; i++) {
-            processMessage(session, createAppMessage(i));
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            logonTo(session, 1);
+            
+            assertTrue(session.isLoggedOn());
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            
+            for (int i = 2; i <= 41; i++) {
+                processMessage(session, createAppMessage(i));
+            }
+            assertEquals(42, state.getNextTargetMsgSeqNum());
+            
+            processMessage(session, createAppMessage(50));
+            processMessage(session, createSequenceReset(51, 51, true));
+            
+            for (int i = 42; i <= 49; i++) {
+                processMessage(session, createAppMessage(i));
+            }
+            
+            assertEquals(51, state.getNextTargetMsgSeqNum());
+            processMessage(session, createHeartbeatMessage(51));
+            assertEquals(52, state.getNextTargetMsgSeqNum());
+            assertTrue(session.isLoggedOn());
+            assertFalse(state.isResendRequested());
+            assertTrue(state.getQueuedSeqNums().isEmpty());
         }
-        assertEquals(42, state.getNextTargetMsgSeqNum());
-
-        processMessage(session, createAppMessage(50));
-        processMessage(session, createSequenceReset(51, 51, true));
-
-        for (int i = 42; i <= 49; i++) {
-            processMessage(session, createAppMessage(i));
-        }
-
-        assertEquals(51, state.getNextTargetMsgSeqNum());
-        processMessage(session, createHeartbeatMessage(51));
-        assertEquals(52, state.getNextTargetMsgSeqNum());
-        assertTrue(session.isLoggedOn());
-        assertFalse(state.isResendRequested());
-        assertTrue(state.getQueuedSeqNums().isEmpty());
-
-        session.close();
     }
 
     // QFJ-626
@@ -1245,45 +1223,44 @@ public class SessionTest {
 
         final UnitTestApplication application = new UnitTestApplication();
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
-        UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-        final SessionState state = getSessionState(session);
-
-        assertTrue(session.isUsingDataDictionary());
-
-        final Logon logonToSend = new Logon();
-        setUpHeader(session.getSessionID(), logonToSend, true, 1);
-        logonToSend.setInt(HeartBtInt.FIELD, 30);
-        logonToSend.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logonToSend.toString(); // calculate length/checksum
-        session.next(logonToSend);
-
-        session.send(createAppMessage(2));
-        final News createAppMessage = createAppMessage(3);
-        createAppMessage.setString(11, "ÄÖÜäöü?ß");
-        session.send(createAppMessage);
-        session.send(createAppMessage(4));
-        session.send(createAppMessage(5));
-
-        // ugly hack: alter the store to get an invalid checksum
-        String toString = createAppMessage.toString();
-        final String replace = toString.replace("10=", "10=1");
-        state.set(3, replace);
-
-        Message createResendRequest = createResendRequest(2, 1);
-        createResendRequest.toString(); // calculate length/checksum
-        processMessage(session, createResendRequest);
-
-        Message createAdminMessage = createAdminMessage(3);
-        createAdminMessage.toString();  // calculate length/checksum
-        session.next(createAdminMessage);
-
-        // all messages should have been resent
-        assertEquals(5, application.lastToAppMessage().header.getInt(MsgSeqNum.FIELD));
-        assertFalse(state.isResendRequested());
-
-        session.close();
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null)) {
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            final SessionState state = getSessionState(session);
+            
+            assertTrue(session.isUsingDataDictionary());
+            
+            final Logon logonToSend = new Logon();
+            setUpHeader(session.getSessionID(), logonToSend, true, 1);
+            logonToSend.setInt(HeartBtInt.FIELD, 30);
+            logonToSend.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+            logonToSend.toString(); // calculate length/checksum
+            session.next(logonToSend);
+            
+            session.send(createAppMessage(2));
+            final News createAppMessage = createAppMessage(3);
+            createAppMessage.setString(11, "ÄÖÜäöü?ß");
+            session.send(createAppMessage);
+            session.send(createAppMessage(4));
+            session.send(createAppMessage(5));
+            
+            // ugly hack: alter the store to get an invalid checksum
+            String toString = createAppMessage.toString();
+            final String replace = toString.replace("10=", "10=1");
+            state.set(3, replace);
+            
+            Message createResendRequest = createResendRequest(2, 1);
+            createResendRequest.toString(); // calculate length/checksum
+            processMessage(session, createResendRequest);
+            
+            Message createAdminMessage = createAdminMessage(3);
+            createAdminMessage.toString();  // calculate length/checksum
+            session.next(createAdminMessage);
+            
+            // all messages should have been resent
+            assertEquals(5, application.lastToAppMessage().header.getInt(MsgSeqNum.FIELD));
+            assertFalse(state.isResendRequested());
+        }
     }
 
     // QFJ-493
@@ -1291,24 +1268,23 @@ public class SessionTest {
     public void testGapFillSatisfiesResendRequest() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        session.setNextTargetMsgSeqNum(684);
-        logonTo(session, 687);
-
-        assertTrue(state.isResendRequested());
-        assertEquals(684, state.getNextTargetMsgSeqNum());
-        processMessage(session, createResendRequest(688, 1));
-
-        processMessage(session, createSequenceReset(684, 688, true));
-
-        processMessage(session, createHeartbeatMessage(689));
-
-        assertFalse(state.isResendRequested());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            session.setNextTargetMsgSeqNum(684);
+            logonTo(session, 687);
+            
+            assertTrue(state.isResendRequested());
+            assertEquals(684, state.getNextTargetMsgSeqNum());
+            processMessage(session, createResendRequest(688, 1));
+            
+            processMessage(session, createSequenceReset(684, 688, true));
+            
+            processMessage(session, createHeartbeatMessage(689));
+            
+            assertFalse(state.isResendRequested());
+        }
     }
 
     // QFJ-673
@@ -1316,31 +1292,30 @@ public class SessionTest {
     public void testResendRequestIsProcessedAndQueued() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        session.setNextSenderMsgSeqNum(1006);
-        logonTo(session, 6);
-
-        assertTrue(state.isResendRequested());
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-        processMessage(session, createResendRequest(7, 1005));
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-        processMessage(session, createSequenceReset(1, 6, true));
-        assertEquals(8, state.getNextTargetMsgSeqNum());
-        // we need to satisfy the resendrequest of the opposing side
-        assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils
-                .getMessageType(application.lastToAdminMessage().toString())));
-        assertTrue(state.isResendRequested());
-        processMessage(session, createHeartbeatMessage(8));
-        assertFalse(state.isResendRequested());
-        processMessage(session, createHeartbeatMessage(9));
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-        assertEquals(10, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            session.setNextSenderMsgSeqNum(1006);
+            logonTo(session, 6);
+            
+            assertTrue(state.isResendRequested());
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            processMessage(session, createResendRequest(7, 1005));
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            processMessage(session, createSequenceReset(1, 6, true));
+            assertEquals(8, state.getNextTargetMsgSeqNum());
+            // we need to satisfy the resendrequest of the opposing side
+            assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils
+                    .getMessageType(application.lastToAdminMessage().toString())));
+            assertTrue(state.isResendRequested());
+            processMessage(session, createHeartbeatMessage(8));
+            assertFalse(state.isResendRequested());
+            processMessage(session, createHeartbeatMessage(9));
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            assertEquals(10, state.getNextTargetMsgSeqNum());
+        }
     }
 
     @Test
@@ -1389,50 +1364,49 @@ public class SessionTest {
     public void testSimultaneousResendRequests() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-        Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        SessionState state = getSessionState(session);
-
-        assertEquals(1, state.getNextTargetMsgSeqNum());
-        logonTo(session, 1);
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-
-        processMessage(session, createAppMessage(2));
-        session.send(createAppMessage(2));
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-
-        processMessage(session, createAppMessage(3));
-        session.send(createAppMessage(3));
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-
-        processMessage(session, createHeartbeatMessage(7));
-        assertTrue(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-        processMessage(session, createResendRequest(8, 2));
-        assertTrue(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-
-        processMessage(session, createHeartbeatMessage(4));
-        assertTrue(state.isResendRequested());
-        processMessage(session, createHeartbeatMessage(5));
-        assertTrue(state.isResendRequested());
-        processMessage(session, createHeartbeatMessage(6));
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-
-        // we need to satisfy the resendrequest of the opposing side
-        assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils
-                .getMessageType(application.lastToAdminMessage().toString())));
-        assertEquals(9, state.getNextTargetMsgSeqNum());
-        processMessage(session, createHeartbeatMessage(9));
-        processMessage(session, createHeartbeatMessage(10));
-        assertEquals(11, state.getNextTargetMsgSeqNum());
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            SessionState state = getSessionState(session);
+            
+            assertEquals(1, state.getNextTargetMsgSeqNum());
+            logonTo(session, 1);
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            
+            processMessage(session, createAppMessage(2));
+            session.send(createAppMessage(2));
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            
+            processMessage(session, createAppMessage(3));
+            session.send(createAppMessage(3));
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            
+            processMessage(session, createHeartbeatMessage(7));
+            assertTrue(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            processMessage(session, createResendRequest(8, 2));
+            assertTrue(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            
+            processMessage(session, createHeartbeatMessage(4));
+            assertTrue(state.isResendRequested());
+            processMessage(session, createHeartbeatMessage(5));
+            assertTrue(state.isResendRequested());
+            processMessage(session, createHeartbeatMessage(6));
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            
+            // we need to satisfy the resendrequest of the opposing side
+            assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils
+                    .getMessageType(application.lastToAdminMessage().toString())));
+            assertEquals(9, state.getNextTargetMsgSeqNum());
+            processMessage(session, createHeartbeatMessage(9));
+            processMessage(session, createHeartbeatMessage(10));
+            assertEquals(11, state.getNextTargetMsgSeqNum());
+        }
     }
 
     // QFJ-750
@@ -1440,38 +1414,37 @@ public class SessionTest {
     public void testRemoveQueuedMessagesOnSequenceReset() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final SessionState state = getSessionState(session);
-
-        final int from = 10;
-        int numberOfMsgs = 200;
-        int to = from + numberOfMsgs;
-
-        logonTo(session, 1);
-        assertEquals(2, state.getNextTargetMsgSeqNum());
-        for (int i = from; i < to; i++) {
-            processMessage(session, createAppMessage(i));
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final SessionState state = getSessionState(session);
+            
+            final int from = 10;
+            int numberOfMsgs = 200;
+            int to = from + numberOfMsgs;
+            
+            logonTo(session, 1);
+            assertEquals(2, state.getNextTargetMsgSeqNum());
+            for (int i = from; i < to; i++) {
+                processMessage(session, createAppMessage(i));
+            }
+            for (int i = from; i < to; i++) {
+                assertTrue(state.getQueuedSeqNums().contains(i));
+            }
+            
+            assertTrue(state.getQueuedSeqNums().size() == numberOfMsgs);
+            assertTrue(application.fromAppMessages.isEmpty());
+            // Create a sequence reset which will cause deletion of almost all
+            // messages
+            // from the sessionState queue since former messages are skipped.
+            // The remaining two messages will then be dequeued and processed by the
+            // app.
+            final int two = 2;
+            processMessage(session, createSequenceReset(2, to - two, true));
+            assertTrue(application.fromAppMessages.size() == two);
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            assertTrue(state.getQueuedSeqNums().isEmpty());
         }
-        for (int i = from; i < to; i++) {
-            assertTrue(state.getQueuedSeqNums().contains(i));
-        }
-
-        assertTrue(state.getQueuedSeqNums().size() == numberOfMsgs);
-        assertTrue(application.fromAppMessages.isEmpty());
-        // Create a sequence reset which will cause deletion of almost all
-        // messages
-        // from the sessionState queue since former messages are skipped.
-        // The remaining two messages will then be dequeued and processed by the
-        // app.
-        final int two = 2;
-        processMessage(session, createSequenceReset(2, to - two, true));
-        assertTrue(application.fromAppMessages.size() == two);
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-        assertTrue(state.getQueuedSeqNums().isEmpty());
-
-        session.close();
     }
 
     /**
@@ -1487,21 +1460,20 @@ public class SessionTest {
         final ApplVerID applVerID = MessageUtils
                 .toApplVerID(FixVersions.BEGINSTRING_FIX44);
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = SessionFactoryTestSupport.createSession(
-                sessionID, application, true, false, true, true, null);
-        session.setResponder(new UnitTestResponder());
-
-        assertTrue(session.isUsingDataDictionary());
-        assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
-        session.next();
-        session.next();
-        Message createHeartbeatMessage = createHeartbeatMessage(1);
-        createHeartbeatMessage.toString(); // calculate checksum, length
-        processMessage(session, createHeartbeatMessage);
-        assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
-        assertFalse(session.isLoggedOn());
-
-        session.close();
+        try (Session session = SessionFactoryTestSupport.createSession(
+                sessionID, application, true, false, true, true, null)) {
+            session.setResponder(new UnitTestResponder());
+            
+            assertTrue(session.isUsingDataDictionary());
+            assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
+            session.next();
+            session.next();
+            Message createHeartbeatMessage = createHeartbeatMessage(1);
+            createHeartbeatMessage.toString(); // calculate checksum, length
+            processMessage(session, createHeartbeatMessage);
+            assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
+            assertFalse(session.isLoggedOn());
+        }
     }
 
     /**
@@ -1516,40 +1488,39 @@ public class SessionTest {
         final ApplVerID applVerID = MessageUtils
                 .toApplVerID(FixVersions.FIX50SP2);
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = SessionFactoryTestSupport.createSession(
+        try (Session session = SessionFactoryTestSupport.createSession(
                 sessionID, application, true, false, true, true,
-                new DefaultApplVerID(ApplVerID.FIX50SP2));
-        session.setResponder(new UnitTestResponder());
-
-        // construct example messages
-        final quickfix.fixt11.Heartbeat heartbeat = new quickfix.fixt11.Heartbeat();
-        setUpHeader(session.getSessionID(), heartbeat, true, 1);
-        heartbeat.toString(); // calculate checksum, length
-        final quickfix.fixt11.Logon logon = new quickfix.fixt11.Logon();
-        setUpHeader(session.getSessionID(), logon, true, 1);
-        logon.setInt(HeartBtInt.FIELD, 30);
-        logon.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logon.setString(DefaultApplVerID.FIELD, ApplVerID.FIX50SP2);
-        logon.toString(); // calculate checksum, length
-
-        assertTrue(session.isUsingDataDictionary());
-        assertNull(session.getTargetDefaultApplicationVersionID());
-        session.next();
-        session.next();
-        session.next(heartbeat);
-        assertNull(session.getTargetDefaultApplicationVersionID());
-        assertFalse(session.isLoggedOn());
-
-        // retry Logon
-        session.setResponder(new UnitTestResponder());
-        session.next();
-        session.next();
-        assertNull(session.getTargetDefaultApplicationVersionID());
-        session.next(logon);
-        assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
-        assertTrue(session.isLoggedOn());
-
-        session.close();
+                new DefaultApplVerID(ApplVerID.FIX50SP2))) {
+            session.setResponder(new UnitTestResponder());
+            
+            // construct example messages
+            final quickfix.fixt11.Heartbeat heartbeat = new quickfix.fixt11.Heartbeat();
+            setUpHeader(session.getSessionID(), heartbeat, true, 1);
+            heartbeat.toString(); // calculate checksum, length
+            final quickfix.fixt11.Logon logon = new quickfix.fixt11.Logon();
+            setUpHeader(session.getSessionID(), logon, true, 1);
+            logon.setInt(HeartBtInt.FIELD, 30);
+            logon.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+            logon.setString(DefaultApplVerID.FIELD, ApplVerID.FIX50SP2);
+            logon.toString(); // calculate checksum, length
+            
+            assertTrue(session.isUsingDataDictionary());
+            assertNull(session.getTargetDefaultApplicationVersionID());
+            session.next();
+            session.next();
+            session.next(heartbeat);
+            assertNull(session.getTargetDefaultApplicationVersionID());
+            assertFalse(session.isLoggedOn());
+            
+            // retry Logon
+            session.setResponder(new UnitTestResponder());
+            session.next();
+            session.next();
+            assertNull(session.getTargetDefaultApplicationVersionID());
+            session.next(logon);
+            assertEquals(applVerID, session.getTargetDefaultApplicationVersionID());
+            assertTrue(session.isLoggedOn());
+        }
     }
 
     private void processMessage(Session session, Message message)
@@ -1631,32 +1602,31 @@ public class SessionTest {
             }
         };
 
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        logonTo(session);
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            logonTo(session);
 
-        try {
-            session.next(createHeartbeatMessage(2)); // should increment target
-                                                     // seqnum
-            session.next(createHeartbeatMessage(3)); // should increment target
-                                                     // seqnum
-            session.next(createHeartbeatMessage(4)); // should increment target
-                                                     // seqnum
-            assertEquals(5, session.getExpectedTargetNum());
-            session.next(createAppMessage(5)); // should NOT increment target
-                                               // seqnum
-            fail("No error thrown");
-        } catch (final Throwable t) {
-            assertEquals("java.lang.Error: TEST", t.getMessage());
-            assertEquals(5, session.getExpectedTargetNum());
-            assertEquals(2, session.getExpectedSenderNum());
-            session.next(createHeartbeatMessage(5)); // should increment target
-                                                     // seqnum
-            assertEquals(6, session.getExpectedTargetNum());
-            assertEquals(2, session.getExpectedSenderNum());
+            try {
+                session.next(createHeartbeatMessage(2)); // should increment target
+                // seqnum
+                session.next(createHeartbeatMessage(3)); // should increment target
+                // seqnum
+                session.next(createHeartbeatMessage(4)); // should increment target
+                // seqnum
+                assertEquals(5, session.getExpectedTargetNum());
+                session.next(createAppMessage(5)); // should NOT increment target
+                // seqnum
+                fail("No error thrown");
+            } catch (final Throwable t) {
+                assertEquals("java.lang.Error: TEST", t.getMessage());
+                assertEquals(5, session.getExpectedTargetNum());
+                assertEquals(2, session.getExpectedSenderNum());
+                session.next(createHeartbeatMessage(5)); // should increment target
+                // seqnum
+                assertEquals(6, session.getExpectedTargetNum());
+                assertEquals(2, session.getExpectedSenderNum());
+            }
         }
-
-        session.close();
     }
 
     // QFJ-572
@@ -1686,41 +1656,40 @@ public class SessionTest {
             }
         };
 
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        session.setRejectMessageOnUnhandledException(true);
-        logonTo(session);
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            session.setRejectMessageOnUnhandledException(true);
+            logonTo(session);
 
-        try {
-            session.next(createAppMessage(2));
-            assertEquals(3, session.getExpectedTargetNum());
-            assertEquals(3, session.getExpectedSenderNum());
-            assertEquals(MsgType.NEWS, application.lastFromAppMessage()
-                    .getHeader().getString(MsgType.FIELD));
-            assertEquals(MsgType.BUSINESS_MESSAGE_REJECT, application
-                    .lastToAppMessage().getHeader().getString(MsgType.FIELD));
-
-            session.next(createHeartbeatMessage(3));
-            assertEquals(4, session.getExpectedTargetNum());
-            assertEquals(4, session.getExpectedSenderNum());
-            assertEquals(MsgType.HEARTBEAT, application.lastFromAdminMessage()
-                    .getHeader().getString(MsgType.FIELD));
-            assertEquals(MsgType.REJECT, application.lastToAdminMessage()
-                    .getHeader().getString(MsgType.FIELD));
-
-            session.next(createAdminMessage(4));
-            assertEquals(5, session.getExpectedTargetNum());
-            assertEquals(5, session.getExpectedSenderNum());
-            assertEquals(MsgType.TEST_REQUEST, application
-                    .lastFromAdminMessage().getHeader()
-                    .getString(MsgType.FIELD));
-            assertEquals(MsgType.HEARTBEAT, application.lastToAdminMessage()
-                    .getHeader().getString(MsgType.FIELD));
-        } catch (final Throwable t) {
-            fail("Error was thrown: " + t.getMessage());
+            try {
+                session.next(createAppMessage(2));
+                assertEquals(3, session.getExpectedTargetNum());
+                assertEquals(3, session.getExpectedSenderNum());
+                assertEquals(MsgType.NEWS, application.lastFromAppMessage()
+                        .getHeader().getString(MsgType.FIELD));
+                assertEquals(MsgType.BUSINESS_MESSAGE_REJECT, application
+                        .lastToAppMessage().getHeader().getString(MsgType.FIELD));
+                
+                session.next(createHeartbeatMessage(3));
+                assertEquals(4, session.getExpectedTargetNum());
+                assertEquals(4, session.getExpectedSenderNum());
+                assertEquals(MsgType.HEARTBEAT, application.lastFromAdminMessage()
+                        .getHeader().getString(MsgType.FIELD));
+                assertEquals(MsgType.REJECT, application.lastToAdminMessage()
+                        .getHeader().getString(MsgType.FIELD));
+                
+                session.next(createAdminMessage(4));
+                assertEquals(5, session.getExpectedTargetNum());
+                assertEquals(5, session.getExpectedSenderNum());
+                assertEquals(MsgType.TEST_REQUEST, application
+                        .lastFromAdminMessage().getHeader()
+                        .getString(MsgType.FIELD));
+                assertEquals(MsgType.HEARTBEAT, application.lastToAdminMessage()
+                        .getHeader().getString(MsgType.FIELD));
+            } catch (final Throwable t) {
+                fail("Error was thrown: " + t.getMessage());
+            }
         }
-
-        session.close();
     }
 
     private News createAppMessage(int sequence) {
@@ -1758,9 +1727,9 @@ public class SessionTest {
                 new UnitTestApplication(), new MemoryStoreFactory(),
                 new JdbcLogFactory(settings));
         try {
-            final Session session = factory.create(sessionID, settings);
-            assertNotNull(session);
-            session.close();
+            try (Session session = factory.create(sessionID, settings)) {
+                assertNotNull(session);
+            }
         } catch (final NullPointerException nex) {
             fail("Session not registering correctly so JdbcLog fails while printing an error: "
                     + nex.getMessage());
@@ -1773,56 +1742,56 @@ public class SessionTest {
     @Test
     public void testNonpersistedGapFill() throws Exception {
         final SessionID sessionID = new SessionID("FIX.4.4:SENDER->TARGET");
-        final Session session = SessionFactoryTestSupport
+        try (Session session = SessionFactoryTestSupport
                 .createNonpersistedSession(sessionID,
-                        new UnitTestApplication(), false);
-        session.getStore().setNextTargetMsgSeqNum(200);
-        final SessionState state = ReflectionUtil.getField(session, "state",
-                SessionState.class);
-        state.setLogonReceived(true);
-        final ResendRequest resendRequest = new ResendRequest();
-        resendRequest.getHeader().setField(
-                new SenderCompID(sessionID.getTargetCompID()));
-        resendRequest.getHeader().setField(
-                new TargetCompID(sessionID.getSenderCompID()));
-        resendRequest.getHeader().setField(new SendingTime(LocalDateTime.now(ZoneOffset.UTC)));
-        resendRequest.getHeader().setField(new MsgSeqNum(200));
-        resendRequest.set(new BeginSeqNo(1));
-        resendRequest.set(new EndSeqNo(100));
-        session.next(resendRequest);
-        assertEquals(201, state.getNextTargetMsgSeqNum());
-        session.close();
+                        new UnitTestApplication(), false)) {
+            session.getStore().setNextTargetMsgSeqNum(200);
+            final SessionState state = ReflectionUtil.getField(session, "state",
+                    SessionState.class);
+            state.setLogonReceived(true);
+            final ResendRequest resendRequest = new ResendRequest();
+            resendRequest.getHeader().setField(
+                    new SenderCompID(sessionID.getTargetCompID()));
+            resendRequest.getHeader().setField(
+                    new TargetCompID(sessionID.getSenderCompID()));
+            resendRequest.getHeader().setField(new SendingTime(LocalDateTime.now(ZoneOffset.UTC)));
+            resendRequest.getHeader().setField(new MsgSeqNum(200));
+            resendRequest.set(new BeginSeqNo(1));
+            resendRequest.set(new EndSeqNo(100));
+            session.next(resendRequest);
+            assertEquals(201, state.getNextTargetMsgSeqNum());
+        }
     }
 
     @Test
     // QFJ-457
     public void testAcceptorRelogon() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
 
-        logonTo(session);
-        assertTrue(session.isEnabled());
-        assertTrue(session.isLoggedOn());
-
-        session.logout();
-        session.next();
-
-        final Message logout = new Logout();
-        logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
-        logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
-        logout.getHeader().setString(SendingTime.FIELD,
-                UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
-        logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
-        session.next(logout);
-
-        // session.reset();
-        assertFalse(session.isLoggedOn());
-        logonTo(session, 3);
-        Message lastToAdminMessage = application.lastToAdminMessage();
-        assertFalse(Logout.MSGTYPE.equals(lastToAdminMessage.getHeader()
-                .getString(MsgType.FIELD)));
-        session.close();
+            logonTo(session);
+            assertTrue(session.isEnabled());
+            assertTrue(session.isLoggedOn());
+            
+            session.logout();
+            session.next();
+            
+            final Message logout = new Logout();
+            logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
+            logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
+            logout.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
+            session.next(logout);
+            
+            // session.reset();
+            assertFalse(session.isLoggedOn());
+            logonTo(session, 3);
+            Message lastToAdminMessage = application.lastToAdminMessage();
+            assertFalse(Logout.MSGTYPE.equals(lastToAdminMessage.getHeader()
+                    .getString(MsgType.FIELD)));
+        }
     }
 
     @Test
@@ -1830,52 +1799,51 @@ public class SessionTest {
     public void testStateFlagsAreResetOnLogout() throws Exception {
 
         final UnitTestApplication application = new UnitTestApplication();
-        final Session session = setUpSession(application, false,
-                new UnitTestResponder());
-        final Message logout = new Logout();
-        logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
-        logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
-        logout.getHeader().setString(SendingTime.FIELD,
-                UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
-        logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
-
-        logonTo(session);
-        assertFalse(session.isLogoutSent());
-        assertFalse(session.isLogoutReceived());
-        assertTrue(session.isLogonReceived());
-        assertTrue(session.isLogonSent());
-
-        /*
-         * Setting the responder to NULL here was formerly causing that the
-         * flags logoutReceived and logoutSent (amongst others) were not reset
-         * to false because the Session.disconnect() method returned too early
-         * since no responder was set anymore.
-         */
-        session.setResponder(null);
-        session.next(logout);
-
-        assertFalse(session.isLogoutReceived());
-        assertFalse(session.isLogoutSent());
-        assertFalse(session.isLogonReceived());
-        assertFalse(session.isLogonSent());
-
-        session.setResponder(new UnitTestResponder());
-        logonTo(session, 3);
-        assertFalse(session.isLogoutSent());
-        assertFalse(session.isLogoutReceived());
-        assertTrue(session.isLogonReceived());
-        assertTrue(session.isLogonSent());
-
-        session.disconnect("Forced by UnitTest", true);
-        assertFalse(session.isLogoutReceived());
-        assertFalse(session.isLogoutSent());
-        assertFalse(session.isLogonReceived());
-        assertFalse(session.isLogonSent());
-
-        // onLogout was called
-        assertTrue(application.logoutSessions.size() == 1);
-
-        session.close();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+            final Message logout = new Logout();
+            logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
+            logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
+            logout.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
+            
+            logonTo(session);
+            assertFalse(session.isLogoutSent());
+            assertFalse(session.isLogoutReceived());
+            assertTrue(session.isLogonReceived());
+            assertTrue(session.isLogonSent());
+            
+            /*
+            * Setting the responder to NULL here was formerly causing that the
+            * flags logoutReceived and logoutSent (amongst others) were not reset
+            * to false because the Session.disconnect() method returned too early
+            * since no responder was set anymore.
+            */
+            session.setResponder(null);
+            session.next(logout);
+            
+            assertFalse(session.isLogoutReceived());
+            assertFalse(session.isLogoutSent());
+            assertFalse(session.isLogonReceived());
+            assertFalse(session.isLogonSent());
+            
+            session.setResponder(new UnitTestResponder());
+            logonTo(session, 3);
+            assertFalse(session.isLogoutSent());
+            assertFalse(session.isLogoutReceived());
+            assertTrue(session.isLogonReceived());
+            assertTrue(session.isLogonSent());
+            
+            session.disconnect("Forced by UnitTest", true);
+            assertFalse(session.isLogoutReceived());
+            assertFalse(session.isLogoutSent());
+            assertFalse(session.isLogonReceived());
+            assertFalse(session.isLogonSent());
+            
+            // onLogout was called
+            assertTrue(application.logoutSessions.size() == 1);
+        }
     }
 
     @Test
@@ -1892,26 +1860,25 @@ public class SessionTest {
         settings.setString(Session.SETTING_END_TIME, "00:00:00");
         settings.setBool(Session.SETTING_CHECK_LATENCY, false);
 
-        Session session = new DefaultSessionFactory(new ApplicationAdapter(),
+        try (Session session = new DefaultSessionFactory(new ApplicationAdapter(),
                 new MemoryStoreFactory(), new SLF4JLogFactory(settings))
-                .create(sessionID, settings);
+                .create(sessionID, settings)) {
 
-        session.setResponder(new UnitTestResponder());
-
-        session.next();
-        session.setNextSenderMsgSeqNum(177);
-        session.setNextTargetMsgSeqNum(223);
-        String[] messages = {
+            session.setResponder(new UnitTestResponder());
+            
+            session.next();
+            session.setNextSenderMsgSeqNum(177);
+            session.setNextTargetMsgSeqNum(223);
+            String[] messages = {
                 "8=FIX.4.2\0019=0081\00135=A\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=227\00198=0\001108=30\00110=36\001",
                 "8=FIX.4.2\0019=0107\00135=z\001115=THEM\00149=THEM\00156=US\001369=177\00152=20100908-17:59:30.551\00134=228\001336=1\001340=2\00176=US\001439=USS\00110=133\001",
                 "8=FIX.4.2\0019=0113\00135=4\00134=223\00143=Y\001122=20100908-17:59:30.642\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\001123=Y\00136=225\00110=110\001",
                 "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=225\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001" };
-        for (String message : messages)
-            session.next(MessageUtils.parse(session, message));
-
-        assertEquals(226, session.getStore().getNextTargetMsgSeqNum());
-
-        session.close();
+            for (String message : messages)
+                session.next(MessageUtils.parse(session, message));
+            
+            assertEquals(226, session.getStore().getNextTargetMsgSeqNum());
+        }
     }
 
     @Test
@@ -1993,61 +1960,60 @@ public class SessionTest {
 
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
-        Session session = new Session(new UnitTestApplication(),
+        try (Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, false, false, true, false, true, false, null, true,
-                chunkSize, false, false);
+                chunkSize, false, false)) {
 
-        UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-        final SessionState state = getSessionState(session);
-
-        session.logon();
-        session.next();
-
-        assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
-
-        Message logonRequest = new Message(responder.sentMessageData);
-
-        // Deliver Logon response with too high sequence 20 instead of 1.
-        session.next(createLogonResponse(sessionID, logonRequest, 20));
-
-        assertTrue(state.isResendRequested());
-        // The expected target sequence should still be 1.
-        assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
-
-        // Deliver the missing message #1.
-        session.next(createAppMessage(1));
-        assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
-
-        // Deliver the missing message #2.
-        session.next(createAppMessage(2));
-        assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
-
-        // Deliver SequenceReset-GapFill from 3 to 5
-        session.next(createSequenceReset(3, 5, true));
-
-        // Deliver the missing message #5.
-        session.next(createAppMessage(5));
-        /*
-         * The expected target sequence number should be 6 now.
-         */
-        assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
-        assertTrue(session.isLoggedOn());
-        assertTrue(state.isResendRequested());
-        for (int i = 6; i <= 19; i++) {
-            session.next(createAppMessage(i));
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            final SessionState state = getSessionState(session);
+            
+            session.logon();
+            session.next();
+            
+            assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+            
+            Message logonRequest = new Message(responder.sentMessageData);
+            
+            // Deliver Logon response with too high sequence 20 instead of 1.
+            session.next(createLogonResponse(sessionID, logonRequest, 20));
+            
+            assertTrue(state.isResendRequested());
+            // The expected target sequence should still be 1.
+            assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+            
+            // Deliver the missing message #1.
+            session.next(createAppMessage(1));
+            assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+            
+            // Deliver the missing message #2.
+            session.next(createAppMessage(2));
+            assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
+            
+            // Deliver SequenceReset-GapFill from 3 to 5
+            session.next(createSequenceReset(3, 5, true));
+            
+            // Deliver the missing message #5.
+            session.next(createAppMessage(5));
+            /*
+            * The expected target sequence number should be 6 now.
+            */
+            assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
+            assertTrue(session.isLoggedOn());
+            assertTrue(state.isResendRequested());
+            for (int i = 6; i <= 19; i++) {
+                session.next(createAppMessage(i));
+            }
+            assertFalse(state.isResendRequested());
+            assertTrue(session.isLoggedOn());
+            // seqnum 20 will be retrieved from the queue, so we should be at 21 now
+            assertEquals(21, session.getStore().getNextTargetMsgSeqNum());
         }
-        assertFalse(state.isResendRequested());
-        assertTrue(session.isLoggedOn());
-        // seqnum 20 will be retrieved from the queue, so we should be at 21 now
-        assertEquals(21, session.getStore().getNextTargetMsgSeqNum());
-
-        session.close();
     }
 
 	@Test
@@ -2153,31 +2119,30 @@ public class SessionTest {
 
         final boolean disconnectOnError = true;
 
-        Session session = new Session(new UnitTestApplication(),
+        try (Session session = new Session(new UnitTestApplication(),
                 new MemoryStoreFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, true, false, true, false,
-                null, true, 0, false, false);
+                null, true, 0, false, false)) {
 
-        UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.logon();
-        session.next();
-
-        // Deliver Logon response with too high sequence number 100
-        Message logonRequest = new Message(responder.sentMessageData);
-        session.next(createLogonResponse(sessionID, logonRequest, 100));
-
-        // Deliver application message with too high sequence number 101
-        session.next(createAppMessage(101));
-        // Check, if session is still connected.
-        assertEquals(true, session.hasResponder());
-
-        session.close();
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.logon();
+            session.next();
+            
+            // Deliver Logon response with too high sequence number 100
+            Message logonRequest = new Message(responder.sentMessageData);
+            session.next(createLogonResponse(sessionID, logonRequest, 100));
+            
+            // Deliver application message with too high sequence number 101
+            session.next(createAppMessage(101));
+            // Check, if session is still connected.
+            assertEquals(true, session.hasResponder());
+        }
     }
 
     @Test
@@ -2190,26 +2155,26 @@ public class SessionTest {
         final boolean disconnectOnError = true;
         UnitTestApplication unitTestApplication = new UnitTestApplication();
 
-        Session session = new Session(unitTestApplication,
+        try (Session session = new Session(unitTestApplication,
                 new MemoryStoreFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, true, false, true, false,
-                null, true, 0, false, false);
+                null, true, 0, false, false)) {
 
-        UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-
-        session.logon();
-        session.next();
-        String sendingTimeField = unitTestApplication.toAdminMessages.get(0).getHeader().getString(SendingTime.FIELD);
-        assertTrue("SendingTime should have NANOS precision (27 characters total)", sendingTimeField.length() == 27);
-        String substring = sendingTimeField.substring(sendingTimeField.lastIndexOf(".") + 1);
-        assertTrue("SendingTime should have NANOS precision (9 digits after dot)", substring.length() == 9);
-        Long.parseLong(substring);
-        session.close();
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            
+            session.logon();
+            session.next();
+            String sendingTimeField = unitTestApplication.toAdminMessages.get(0).getHeader().getString(SendingTime.FIELD);
+            assertTrue("SendingTime should have NANOS precision (27 characters total)", sendingTimeField.length() == 27);
+            String substring = sendingTimeField.substring(sendingTimeField.lastIndexOf(".") + 1);
+            assertTrue("SendingTime should have NANOS precision (9 digits after dot)", substring.length() == 9);
+            Long.parseLong(substring);
+        }
     }
 
     @Test
