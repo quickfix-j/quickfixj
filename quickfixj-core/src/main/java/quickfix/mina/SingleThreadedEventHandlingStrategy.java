@@ -20,11 +20,7 @@
 
 package quickfix.mina;
 
-import quickfix.LogUtil;
-import quickfix.Message;
-import quickfix.Session;
-import quickfix.SessionID;
-import quickfix.SystemTime;
+import quickfix.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +30,16 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static quickfix.mina.QueueTrackers.newDefaultQueueTracker;
+import static quickfix.mina.QueueTrackers.newMultiSessionWatermarkTracker;
+
 /**
  * Processes messages for all sessions in a single thread.
  */
 public class SingleThreadedEventHandlingStrategy implements EventHandlingStrategy {
     public static final String MESSAGE_PROCESSOR_THREAD_NAME = "QFJ Message Processor";
     private final BlockingQueue<SessionMessageEvent> eventQueue;
+    private final QueueTracker<SessionMessageEvent> queueTracker;
     private final SessionConnector sessionConnector;
     private volatile ThreadAdapter messageProcessingThread;
     private volatile boolean isStopped;
@@ -49,6 +49,14 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
         eventQueue = new LinkedBlockingQueue<>(queueCapacity);
+        queueTracker = newDefaultQueueTracker(eventQueue);
+    }
+
+    public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueLowerWatermark, int queueUpperWatermark) {
+        sessionConnector = connector;
+        eventQueue = new LinkedBlockingQueue<>();
+        queueTracker = newMultiSessionWatermarkTracker(eventQueue, queueLowerWatermark, queueUpperWatermark,
+                evt -> evt.quickfixSession);
     }
 
     public void setExecutor(Executor executor) {
@@ -61,7 +69,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             return;
         }
         try {
-            eventQueue.put(new SessionMessageEvent(quickfixSession, message));
+            queueTracker.put(new SessionMessageEvent(quickfixSession, message));
         } catch (InterruptedException e) {
             isStopped = true;
             throw new RuntimeException(e);
@@ -79,7 +87,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
                         final List<SessionMessageEvent> tempList = new ArrayList<>();
-                        eventQueue.drainTo(tempList);
+                        queueTracker.drainTo(tempList);
                         for (SessionMessageEvent event : tempList) {
                             event.processMessage();
                         }
@@ -107,7 +115,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     }
 
     private SessionMessageEvent getMessage() throws InterruptedException {
-        return eventQueue.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
+        return queueTracker.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
     /**

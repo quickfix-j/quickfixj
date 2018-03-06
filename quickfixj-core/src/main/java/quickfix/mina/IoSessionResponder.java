@@ -95,4 +95,7 @@ public class IoSessionResponder implements Responder {
         return null;
     }
 
+    IoSession getIoSession() {
+        return ioSession;
+    }
 }

@@ -31,6 +31,34 @@ public class SocketInitiator extends AbstractSocketInitiator {
     private volatile Boolean isStarted = Boolean.FALSE;
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
+    private SocketInitiator(Builder builder) throws ConfigError {
+        super(builder.application, builder.messageStoreFactory, builder.settings,
+                builder.logFactory, builder.messageFactory);
+
+        if (builder.queueCapacity >= 0) {
+            eventHandlingStrategy
+                    = new SingleThreadedEventHandlingStrategy(this, builder.queueCapacity);
+        } else {
+            eventHandlingStrategy
+                    = new SingleThreadedEventHandlingStrategy(this, builder.queueLowerWatermark, builder.queueUpperWatermark);
+        }
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends AbstractSessionConnectorBuilder<Builder, SocketInitiator> {
+        private Builder() {
+            super(Builder.class);
+        }
+
+        @Override
+        protected SocketInitiator doBuild() throws ConfigError {
+            return new SocketInitiator(this);
+        }
+    }
+
     public SocketInitiator(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, MessageFactory messageFactory, int queueCapacity) throws ConfigError {
         super(application, messageStoreFactory, settings, new ScreenLogFactory(settings),
