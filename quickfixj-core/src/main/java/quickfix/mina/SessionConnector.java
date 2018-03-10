@@ -50,6 +50,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.service.IoService;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
@@ -423,4 +425,33 @@ public abstract class SessionConnector implements Connector {
     protected IoFilterChainBuilder getIoFilterChainBuilder() {
         return ioFilterChainBuilder;
     }
+    
+    /**
+     * Closes all managed sessions of an Initiator/Acceptor.
+     *
+     * @param ioService Acceptor or Initiator implementation
+     * @param awaitTermination whether to wait for underlying ExecutorService to terminate
+     * @param logger used for logging WARNING when IoSession could not be closed
+     */
+    public static void closeManagedSessionsAndDispose(IoService ioService, boolean awaitTermination, Logger logger) {
+        Map<Long, IoSession> managedSessions = ioService.getManagedSessions();
+        for (IoSession ioSession : managedSessions.values()) {
+            if (!ioSession.isClosing()) {
+                CloseFuture closeFuture = ioSession.closeNow();
+                boolean completed = false;
+                try {
+                    completed = closeFuture.await(1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+                if (!completed) {
+                    logger.warn("Could not close IoSession {}", ioSession);
+                }
+            }
+        }
+        if (!ioService.isDisposing()) {
+            ioService.dispose(awaitTermination);
+        }
+    }
+
 }

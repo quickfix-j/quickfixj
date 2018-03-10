@@ -248,7 +248,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             IoAcceptor ioAcceptor = ioIt.next();
             SocketAddress localAddress = ioAcceptor.getLocalAddress();
             ioAcceptor.unbind();
-            ioAcceptor.dispose(true);
+            closeManagedSessionsAndDispose(ioAcceptor, true, log);
             log.info("No longer accepting connections on {}", localAddress);
             ioIt.remove();
         }
