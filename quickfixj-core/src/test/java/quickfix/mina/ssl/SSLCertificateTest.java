@@ -545,11 +545,11 @@ public class SSLCertificateTest {
 
         private SessionConnector prepareConnector(SessionSettings sessionSettings) throws ConfigError {
             SessionConnector sessionConnector = createConnector(sessionSettings);
-            sessionConnector.setIoFilterChainBuilder(chain -> chain.addLast("SSL exception handler", new IoFilterAdapter() {
+            sessionConnector.setIoFilterChainBuilder(chain -> chain.addFirst("Exception handler", new IoFilterAdapter() {
                 @Override
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause)
                         throws Exception {
-                    LOGGER.info("SSL exception", cause);
+                    LOGGER.info("exceptionCaught", cause);
                     exceptionThrownLatch.countDown();
                     nextFilter.exceptionCaught(session, cause);
                 }
