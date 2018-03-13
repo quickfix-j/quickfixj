@@ -812,6 +812,18 @@ public class DataDictionary {
         }
     }
 
+    private int countElementNodes(NodeList nodes) {
+        int elementNodesCount = 0;
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            if (nodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                elementNodesCount++;
+            }
+        }
+
+        return elementNodesCount;
+    }
+
     private void read(String location) throws ConfigError {
         final InputStream inputStream = FileUtil.open(getClass(), location, URL, FILESYSTEM,
                 CONTEXT_RESOURCE, CLASSLOADER_RESOURCE);
@@ -885,7 +897,7 @@ public class DataDictionary {
         }
 
         final NodeList fieldNodes = fieldsNode.item(0).getChildNodes();
-        if (fieldNodes.getLength() == 0) {
+        if (countElementNodes(fieldNodes) == 0) {
             throw new ConfigError("No fields defined");
         }
 
@@ -964,7 +976,7 @@ public class DataDictionary {
         }
 
         final NodeList messageNodes = messagesNode.item(0).getChildNodes();
-        if (messageNodes.getLength() == 0) {
+        if (countElementNodes(messageNodes) == 0) {
             throw new ConfigError("No messages defined");
         }
 
@@ -1000,7 +1012,7 @@ public class DataDictionary {
     private void load(Document document, String msgtype, Node node) throws ConfigError {
         String name;
         final NodeList fieldNodes = node.getChildNodes();
-        if (fieldNodes.getLength() == 0) {
+        if (countElementNodes(fieldNodes) == 0) {
             throw new ConfigError("No fields found: msgType=" + msgtype);
         }
 
