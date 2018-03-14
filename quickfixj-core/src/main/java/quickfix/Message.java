@@ -819,7 +819,7 @@ public class Message extends FieldMap {
             try {
                 fieldLength = fields.getInt(lengthField);
             } catch (final FieldNotFound e) {
-                throw new InvalidMessage("Tag " + e.field + " not found in " + messageData);
+                throw new InvalidMessage("Did not find length field " + e.field + " required to parse data field " + tag + " in " + messageData);
             }
 
             // since length is in bytes but data is a string, and it may also contain an SOH,
