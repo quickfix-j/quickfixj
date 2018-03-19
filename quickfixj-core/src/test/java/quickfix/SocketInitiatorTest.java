@@ -376,10 +376,11 @@ public class SocketInitiatorTest {
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
 
+                clientApplication.setUpLogoutExpectation();
                 initiator.stop();
-                assertFalse(clientSession.isLoggedOn());
+                assertLoggedOut(clientApplication, clientSession);
                 assertFalse(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 0);
+                assertTrue(initiator.getSessions().isEmpty());
                 if (messageLog != null) {
                     messageLogLength = messageLog.length();
                     assertTrue(messageLog.length() > 0);
@@ -482,9 +483,6 @@ public class SocketInitiatorTest {
         }
 
         final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS); 
-        if (!await) {
-            ReflectionUtil.dumpStackTraces();
-        }
         assertTrue("Expected logon did not occur", await); 
         assertTrue("client session not logged in", clientSession.isLoggedOn());
     }

@@ -1,7 +1,6 @@
 package quickfix.mina;
 
 import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 interface QueueTracker<E> {
