@@ -83,6 +83,15 @@ public abstract class FieldMap implements Serializable {
         groups.clear();
     }
 
+    public void reset() {
+        fields.clear();
+        for(List<Group> groupList : groups.values()) {
+            for(Group group : groupList)
+                group.reset();
+        }
+        groups.clear();
+    }
+
     public boolean isEmpty() {
         return fields.isEmpty();
     }
