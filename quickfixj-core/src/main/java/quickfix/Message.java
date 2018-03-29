@@ -365,6 +365,12 @@ public class Message extends FieldMap {
         position = 0;
     }
 
+    @Override
+    public void reset() {
+        super.reset();
+        this.position = 0;
+    }
+
     public static class Header extends FieldMap {
         static final long serialVersionUID = -3193357271891865972L;
         private static final int[] EXCLUDED_HEADER_FIELDS = { BeginString.FIELD, BodyLength.FIELD,
