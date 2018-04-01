@@ -476,7 +476,7 @@ public abstract class FieldMap implements Serializable {
                 final List<Group> groups = entry.getValue();
                 int groupCount = groups.size();
                 if (groupCount > 0) {
-                    buffer.append(NumbersCache.get(groupCountTag.intValue())).append('=');
+                    buffer.append(NumbersCache.get(groupCountTag)).append('=');
                     buffer.append(NumbersCache.get(groupCount)).append('\001');
                     for (int i = 0; i < groups.size(); i++) {
                         groups.get(i).calculateString(buffer, preFields, postFields);
@@ -492,7 +492,7 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
-    private static final boolean isStringEquivalent = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+    private static final boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
 
     int calculateLength() {
         int result = 0;
@@ -507,7 +507,7 @@ public abstract class FieldMap implements Serializable {
         for (Entry<Integer, List<Group>> entry : groups.entrySet()) {
             final List<Group> groupList = entry.getValue();
             if (!groupList.isEmpty()) {
-                if(isStringEquivalent) {
+                if(IS_STRING_EQUIVALENT) {
                     result += getStringLength(entry.getKey()) + getStringLength(groupList.size()) + 2;
                 } else {
                     result += MessageUtils.length(CharsetSupport.getCharsetInstance(), NumbersCache.get(entry.getKey()));
@@ -539,7 +539,7 @@ public abstract class FieldMap implements Serializable {
         for (Entry<Integer, List<Group>> entry : groups.entrySet()) {
             final List<Group> groupList = entry.getValue();
             if (!groupList.isEmpty()) {
-                if(isStringEquivalent) {
+                if(IS_STRING_EQUIVALENT) {
                     String value = NumbersCache.get(entry.getKey());
                     for (int i = value.length(); i-- != 0;)
                         result += value.charAt(i);
