@@ -130,7 +130,7 @@ public class SessionSettings {
      * @throws ConfigError
      * @throws FieldConvertError
      */
-    public String getString(String key) throws ConfigError, FieldConvertError {
+    public String getString(String key) throws ConfigError {
         return getString(DEFAULT_SESSION_ID, key);
     }
 
@@ -143,7 +143,7 @@ public class SessionSettings {
      * @throws ConfigError configuration error, probably a missing setting.
      * @throws FieldConvertError error during field type conversion.
      */
-    public String getString(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
+    public String getString(SessionID sessionID, String key) throws ConfigError {
         final String value = interpolate(getSessionProperties(sessionID).getProperty(key));
         if (value == null) {
             throw new ConfigError(key + " not defined");
