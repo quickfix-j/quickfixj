@@ -91,9 +91,9 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
             assertEquals("wrong target", "TARGET", sessionID1.getTargetCompID());
             assertEquals("wrong targetSub", "TARGETSUB", sessionID1.getTargetSubID());
             assertEquals("wrong targetLoc", "TARGETLOC", sessionID1.getTargetLocationID());
-            assertEquals("wrong setting", false, session1.getResetOnLogout());
-            assertEquals("wrong setting", false, session1.getRefreshOnLogon());
-            assertEquals("wrong setting", false, session1.getCheckCompID());
+            assertFalse("wrong setting", session1.getResetOnLogout());
+            assertFalse("wrong setting", session1.getRefreshOnLogon());
+            assertFalse("wrong setting", session1.getCheckCompID());
         }
 
         try (Session session2 = provider.getSession(new SessionID("FIX.4.4", "S1", "T"), null)) {
@@ -101,9 +101,9 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
             assertEquals("wrong FIX version", "FIX.4.4", sessionID2.getBeginString());
             assertEquals("wrong sender", "S1", sessionID2.getSenderCompID());
             assertEquals("wrong target", "T", sessionID2.getTargetCompID());
-            assertEquals("wrong setting", true, session2.getResetOnLogout());
-            assertEquals("wrong setting", false, session2.getRefreshOnLogon());
-            assertEquals("wrong setting", true, session2.getCheckCompID());
+            assertTrue("wrong setting", session2.getResetOnLogout());
+            assertFalse("wrong setting", session2.getRefreshOnLogon());
+            assertTrue("wrong setting", session2.getCheckCompID());
         }
 
         try (Session session3 = provider.getSession(new SessionID("FIX.4.4", "X", "Y"), null)) {
@@ -111,9 +111,9 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
             assertEquals("wrong FIX version", "FIX.4.4", sessionID3.getBeginString());
             assertEquals("wrong sender", "X", sessionID3.getSenderCompID());
             assertEquals("wrong target", "Y", sessionID3.getTargetCompID());
-            assertEquals("wrong setting", false, session3.getResetOnLogout());
-            assertEquals("wrong setting", true, session3.getRefreshOnLogon());
-            assertEquals("wrong setting", true, session3.getCheckCompID());
+            assertFalse("wrong setting", session3.getResetOnLogout());
+            assertTrue("wrong setting", session3.getRefreshOnLogon());
+            assertTrue("wrong setting", session3.getCheckCompID());
         }
     }
 

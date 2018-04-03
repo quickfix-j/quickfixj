@@ -725,7 +725,7 @@ public class MessageTest {
         try {
             message = new Message("8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001");
         } catch (final InvalidMessage e) {
-            assertTrue("Message should be valid (" + e.getMessage() + ")", false);
+            fail("Message should be valid (" + e.getMessage() + ")");
         }
         assertEquals("8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001", message.toString());
     }
@@ -937,7 +937,7 @@ public class MessageTest {
 
         try {
             message.getString(5);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -946,12 +946,12 @@ public class MessageTest {
         try {
             assertEquals("string5", message.getString(5));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
 
         try {
             message.setString(100, null);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final NullPointerException e) {
         }
     }
@@ -962,16 +962,16 @@ public class MessageTest {
 
         try {
             message.getBoolean(7);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
         message.setBoolean(7, true);
 
         try {
-            assertEquals(true, message.getBoolean(7));
+            assertTrue(message.getBoolean(7));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -981,7 +981,7 @@ public class MessageTest {
 
         try {
             message.getChar(12);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -990,7 +990,7 @@ public class MessageTest {
         try {
             assertEquals('a', message.getChar(12));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1000,7 +1000,7 @@ public class MessageTest {
 
         try {
             message.getInt(56);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -1009,7 +1009,7 @@ public class MessageTest {
         try {
             assertEquals(23, message.getInt(56));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1019,7 +1019,7 @@ public class MessageTest {
 
         try {
             message.getDouble(9812);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -1028,7 +1028,7 @@ public class MessageTest {
         try {
             assertEquals(12.3443, message.getDouble(9812), 1e-10);
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1038,7 +1038,7 @@ public class MessageTest {
 
         try {
             message.getUtcTimeStamp(8);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -1053,7 +1053,7 @@ public class MessageTest {
         try {
             assertEquals(message.getUtcTimeStamp(8), time);
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1070,7 +1070,7 @@ public class MessageTest {
     public void testMessageIterator() {
         Message message = new Message();
         java.util.Iterator<Field<?>> i = message.iterator();
-        assertEquals(false, i.hasNext());
+        assertFalse(i.hasNext());
         try {
             assertNull(i.next());
             fail("exception not thrown");
@@ -1085,7 +1085,7 @@ public class MessageTest {
             assertEquals(108, field.getField());
             assertEquals("30", field.getValue());
 
-            assertEquals(false, i.hasNext());
+            assertFalse(i.hasNext());
             try {
                 assertNull(i.next());
                 fail("exception not thrown");
@@ -1104,7 +1104,7 @@ public class MessageTest {
             assertEquals(35, field.getField());
             assertEquals("A", field.getValue());
 
-            assertEquals(false, j.hasNext());
+            assertFalse(j.hasNext());
             try {
                 assertNull(j.next());
                 fail("exception not thrown");

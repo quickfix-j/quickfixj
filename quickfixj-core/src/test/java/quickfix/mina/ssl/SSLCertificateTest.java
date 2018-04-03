@@ -568,9 +568,8 @@ public class SSLCertificateTest {
 
             IoFilterChain filterChain = ioSession.getFilterChain();
             SSLFilter sslFilter = (SSLFilter) filterChain.get(SSLSupport.FILTER_NAME);
-            SSLSession sslSession = sslFilter.getSslSession(ioSession);
 
-            return sslSession;
+            return sslFilter.getSslSession(ioSession);
         }
 
         private Session findSession(SessionID sessionID) {
@@ -591,9 +590,7 @@ public class SSLCertificateTest {
             Field field = IoSessionResponder.class.getDeclaredField("ioSession");
             field.setAccessible(true);
 
-            IoSession ioSession = (IoSession) field.get(ioSessionResponder);
-
-            return ioSession;
+            return (IoSession) field.get(ioSessionResponder);
         }
 
         public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) throws Exception {
@@ -681,10 +678,8 @@ public class SSLCertificateTest {
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
 
-            ThreadedSocketAcceptor socketAcceptor = new ThreadedSocketAcceptor(new ApplicationAdapter(),
+            return new ThreadedSocketAcceptor(new ApplicationAdapter(),
                     messageStoreFactory, sessionSettings, messageFactory);
-
-            return socketAcceptor;
         }
     }
 
@@ -702,10 +697,8 @@ public class SSLCertificateTest {
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
 
-            ThreadedSocketInitiator socketInitiator = new ThreadedSocketInitiator(new ApplicationAdapter(),
+            return new ThreadedSocketInitiator(new ApplicationAdapter(),
                     messageStoreFactory, sessionSettings, messageFactory);
-
-            return socketInitiator;
         }
 
     }

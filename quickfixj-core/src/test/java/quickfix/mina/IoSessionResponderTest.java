@@ -66,7 +66,7 @@ public class IoSessionResponderTest extends TestCase {
 
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
         stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
-        stubVoid(mockWriteFuture).toThrow(new RuntimeException("TEST")).on().awaitUninterruptibly(timeout);
+        doThrow(new RuntimeException("TEST")).when(mockWriteFuture).awaitUninterruptibly(timeout);
         IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");

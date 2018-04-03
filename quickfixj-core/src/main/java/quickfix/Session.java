@@ -604,13 +604,11 @@ public class Session implements Closeable {
     }
 
     private static String getTargetCompIDFromMessage(final Message message) throws FieldNotFound {
-        final String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
-        return targetCompID;
+        return message.getHeader().getString(TargetCompID.FIELD);
     }
 
     private static String getSenderCompIDFromMessage(final Message message) throws FieldNotFound {
-        final String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
-        return senderCompID;
+        return message.getHeader().getString(SenderCompID.FIELD);
     }
 
     /**
@@ -1316,14 +1314,13 @@ public class Session implements Closeable {
             throws FieldNotFound {
         final Message sequenceReset = messageFactory.create(sessionID.getBeginString(),
                 MsgType.SEQUENCE_RESET);
-        final int newSeqNo = endSeqNo;
         final Header header = sequenceReset.getHeader();
         header.setBoolean(PossDupFlag.FIELD, true);
         initializeHeader(header);
         header.setUtcTimeStamp(OrigSendingTime.FIELD, header.getUtcTimeStamp(SendingTime.FIELD),
                 getTimestampPrecision());
         header.setInt(MsgSeqNum.FIELD, beginSeqNo);
-        sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
+        sequenceReset.setInt(NewSeqNo.FIELD, endSeqNo);
         sequenceReset.setBoolean(GapFillFlag.FIELD, true);
         if (receivedMessage != null && enableLastMsgSeqNumProcessed) {
             try {
@@ -1335,7 +1332,7 @@ public class Session implements Closeable {
             }
         }
         sendRaw(sequenceReset, beginSeqNo);
-        getLog().onEvent("Sent SequenceReset TO: " + newSeqNo);
+        getLog().onEvent("Sent SequenceReset TO: " + endSeqNo);
     }
 
     private boolean resendApproved(Message message) throws FieldNotFound {
@@ -2149,13 +2146,12 @@ public class Session implements Closeable {
         }
         getLog().onEvent("Received logon");
         if (!state.isInitiator()) {
-            final int nextMsgFromTargetWeExpect = state.getMessageStore().getNextTargetMsgSeqNum();
             /*
              * If we got one too high they need messages resent use the first message they missed (as we gap fill with that).
              * If we reset on logon, the current value will be 1 and we always send 2 (we haven't inc'd for current message yet +1)
              * If happy path (we haven't inc'd for current message yet so its current +1)
              */
-            int nextExpectedTargetNum = nextMsgFromTargetWeExpect;
+            int nextExpectedTargetNum = state.getMessageStore().getNextTargetMsgSeqNum();
             // we increment for the logon later (after Logon response sent) in this method if and only if in sequence
             if (isLogonInNormalSequence) {
                 // logon was fine take account of it in 789
@@ -2192,11 +2188,10 @@ public class Session implements Closeable {
         // Do we have a 789
         if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
             final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
-            final int actualNextNum = nextSenderMsgNumAtLogonReceived;
 
             // is the 789 lower (we checked for higher previously) than our next message after receiving the logon
-            if (targetWantsNextSeqNumToBe != actualNextNum) {
-                int endSeqNo = actualNextNum;
+            if (targetWantsNextSeqNumToBe != nextSenderMsgNumAtLogonReceived) {
+                int endSeqNo = nextSenderMsgNumAtLogonReceived;
 
                 // Just do a gap fill when messages aren't persisted
                 if (!persistMessages) {
@@ -2207,7 +2202,7 @@ public class Session implements Closeable {
                     }
                     getLog().onEvent(
                             "Received implicit ResendRequest via Logon FROM: "
-                                    + targetWantsNextSeqNumToBe + " TO: " + actualNextNum
+                                    + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
                                     + " will be reset");
                     generateSequenceReset(logon, targetWantsNextSeqNumToBe, // 34=
                             endSeqNo); // (NewSeqNo 36=)
@@ -2215,7 +2210,7 @@ public class Session implements Closeable {
                     // resend missed messages
                     getLog().onEvent(
                             "Received implicit ResendRequest via Logon FROM: "
-                                    + targetWantsNextSeqNumToBe + " TO: " + actualNextNum
+                                    + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
                                     + " will be resent");
                     resendMessages(logon, targetWantsNextSeqNumToBe, endSeqNo);
                 }

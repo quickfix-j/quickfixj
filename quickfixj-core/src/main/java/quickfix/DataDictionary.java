@@ -62,8 +62,8 @@ public class DataDictionary {
     public static final String ANY_VALUE = "__ANY__";
     public static final String HEADER_ID = "HEADER";
     public static final String TRAILER_ID = "TRAILER";
-    private static final String MESSAGE_CATEGORY_ADMIN = "admin".intern();
-    private static final String MESSAGE_CATEGORY_APP = "app".intern();
+    private static final String MESSAGE_CATEGORY_ADMIN = "admin";
+    private static final String MESSAGE_CATEGORY_APP = "app";
 
     private static final int USER_DEFINED_TAG_MIN = 5000;
     private static final String NO = "N";
@@ -944,7 +944,7 @@ public class DataDictionary {
 
                 if (fieldValues.containsKey(num)) {
                     final String allowOtherValues = getAttribute(fieldNode, "allowOtherValues");
-                    if (allowOtherValues != null && Boolean.parseBoolean(allowOtherValues)) {
+                    if (Boolean.parseBoolean(allowOtherValues)) {
                         addFieldValue(num, ANY_VALUE);
                     }
                 }
@@ -1224,7 +1224,7 @@ public class DataDictionary {
          */
         @Override
         public String toString() {
-            return new StringBuilder('(').append(intValue).append(',').append(stringValue).append(')').toString();
+            return '(' + intValue + ',' + stringValue + ')';
         }
     }
 

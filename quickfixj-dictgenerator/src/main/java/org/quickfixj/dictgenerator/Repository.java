@@ -48,9 +48,7 @@ public class Repository {
         requiredFiles.add("MsgContents.xml");
         requiredFiles.add("MsgType.xml");
         for (File file : repository.listFiles()) {
-            if (requiredFiles.contains(file.getName())) {
-                requiredFiles.remove(file.getName());
-            }
+            requiredFiles.remove(file.getName());
         }
         if (!requiredFiles.isEmpty()) {
             throw new Exception("Invalid repository: Missing required files: " + requiredFiles);

@@ -53,8 +53,6 @@ import java.util.TimeZone;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
-import quickfix.field.CheckSum;
-import quickfix.field.NextExpectedMsgSeqNum;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -172,16 +170,16 @@ public class SessionTest {
             assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
             
             session.next(createHeartbeatMessage(1002));
-            assertFalse(ResendRequest.MSGTYPE.equals(application
-                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+            assertNotEquals(ResendRequest.MSGTYPE, application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD));
             
             session.next(createHeartbeatMessage(1003));
-            assertFalse(ResendRequest.MSGTYPE.equals(application
-                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+            assertNotEquals(ResendRequest.MSGTYPE, application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD));
             
             session.next(createHeartbeatMessage(1001));
-            assertFalse(ResendRequest.MSGTYPE.equals(application
-                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD)));
+            assertNotEquals(ResendRequest.MSGTYPE, application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD));
         }
     }
 
@@ -215,8 +213,8 @@ public class SessionTest {
         News newsMessage = createAppMessage(2);
         newsMessage.getHeader().setBoolean(PossDupFlag.FIELD, true);
         session.next(newsMessage);
-        assertTrue(Reject.MSGTYPE.equals(application.lastToAdminMessage()
-                .getHeader().getString(MsgType.FIELD)));
+        assertEquals(Reject.MSGTYPE, application.lastToAdminMessage()
+                .getHeader().getString(MsgType.FIELD));
         assertNull(application.lastFromAppMessage());
 
         // test that the message is NOT rejected when
@@ -245,11 +243,11 @@ public class SessionTest {
         newsMessage = createAppMessage(2);
         newsMessage.getHeader().setBoolean(PossDupFlag.FIELD, true);
         session.next(newsMessage);
-        assertTrue(Logon.MSGTYPE.equals(application.lastToAdminMessage()
-                .getHeader().getString(MsgType.FIELD)));
+        assertEquals(Logon.MSGTYPE, application.lastToAdminMessage()
+                .getHeader().getString(MsgType.FIELD));
         assertNull(application.lastToAppMessage());
-        assertTrue(News.MSGTYPE.equals(application.lastFromAppMessage()
-                .getHeader().getString(MsgType.FIELD)));
+        assertEquals(News.MSGTYPE, application.lastFromAppMessage()
+                .getHeader().getString(MsgType.FIELD));
 
         session.close();
     }
@@ -580,8 +578,8 @@ public class SessionTest {
             // time window
             int delta = 60000;
             systemTimeSource.increment(delta);
-            assertTrue(SystemTime.getDate().getTime()
-                    - state.getCreationTime().getTime() == delta);
+            assertEquals(SystemTime.getDate().getTime()
+                    - state.getCreationTime().getTime(), delta);
             session.next();
             assertTrue("Session should be connected", session.isLoggedOn());
         }
@@ -1034,15 +1032,15 @@ public class SessionTest {
             assertEquals(1, state.getNextTargetMsgSeqNum());
             
             logonTo(session);
-            
-            assertEquals(false, state.isLogonSent());
-            assertEquals(false, state.isLogonReceived());
-            assertEquals(false, state.isLogonAlreadySent());
-            assertEquals(false, state.isLogonSendNeeded());
-            assertEquals(false, state.isLogonTimedOut());
-            assertEquals(false, state.isLogoutSent());
-            assertEquals(false, state.isLogoutReceived());
-            assertEquals(false, state.isLogoutTimedOut());
+
+            assertFalse(state.isLogonSent());
+            assertFalse(state.isLogonReceived());
+            assertFalse(state.isLogonAlreadySent());
+            assertFalse(state.isLogonSendNeeded());
+            assertFalse(state.isLogonTimedOut());
+            assertFalse(state.isLogoutSent());
+            assertFalse(state.isLogoutReceived());
+            assertFalse(state.isLogoutTimedOut());
             
             assertEquals(2, state.getNextSenderMsgSeqNum());
             assertEquals(2, state.getNextTargetMsgSeqNum());
@@ -1306,8 +1304,8 @@ public class SessionTest {
             processMessage(session, createSequenceReset(1, 6, true));
             assertEquals(8, state.getNextTargetMsgSeqNum());
             // we need to satisfy the resendrequest of the opposing side
-            assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils
-                    .getMessageType(application.lastToAdminMessage().toString())));
+            assertEquals(MsgType.SEQUENCE_RESET, MessageUtils
+                    .getMessageType(application.lastToAdminMessage().toString()));
             assertTrue(state.isResendRequested());
             processMessage(session, createHeartbeatMessage(8));
             assertFalse(state.isResendRequested());
@@ -1400,8 +1398,8 @@ public class SessionTest {
             assertTrue(session.isLoggedOn());
             
             // we need to satisfy the resendrequest of the opposing side
-            assertTrue(MsgType.SEQUENCE_RESET.equals(MessageUtils
-                    .getMessageType(application.lastToAdminMessage().toString())));
+            assertEquals(MsgType.SEQUENCE_RESET, MessageUtils
+                    .getMessageType(application.lastToAdminMessage().toString()));
             assertEquals(9, state.getNextTargetMsgSeqNum());
             processMessage(session, createHeartbeatMessage(9));
             processMessage(session, createHeartbeatMessage(10));
@@ -1430,8 +1428,8 @@ public class SessionTest {
             for (int i = from; i < to; i++) {
                 assertTrue(state.getQueuedSeqNums().contains(i));
             }
-            
-            assertTrue(state.getQueuedSeqNums().size() == numberOfMsgs);
+
+            assertEquals(state.getQueuedSeqNums().size(), numberOfMsgs);
             assertTrue(application.fromAppMessages.isEmpty());
             // Create a sequence reset which will cause deletion of almost all
             // messages
@@ -1440,7 +1438,7 @@ public class SessionTest {
             // app.
             final int two = 2;
             processMessage(session, createSequenceReset(2, to - two, true));
-            assertTrue(application.fromAppMessages.size() == two);
+            assertEquals(application.fromAppMessages.size(), two);
             assertFalse(state.isResendRequested());
             assertTrue(session.isLoggedOn());
             assertTrue(state.getQueuedSeqNums().isEmpty());
@@ -1789,8 +1787,8 @@ public class SessionTest {
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertFalse(Logout.MSGTYPE.equals(lastToAdminMessage.getHeader()
-                    .getString(MsgType.FIELD)));
+            assertNotEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
+                    .getString(MsgType.FIELD));
         }
     }
 
@@ -1842,7 +1840,7 @@ public class SessionTest {
             assertFalse(session.isLogonSent());
             
             // onLogout was called
-            assertTrue(application.logoutSessions.size() == 1);
+            assertEquals(1, application.logoutSessions.size());
         }
     }
 
@@ -2141,7 +2139,7 @@ public class SessionTest {
             // Deliver application message with too high sequence number 101
             session.next(createAppMessage(101));
             // Check, if session is still connected.
-            assertEquals(true, session.hasResponder());
+            assertTrue(session.hasResponder());
         }
     }
 
@@ -2170,9 +2168,9 @@ public class SessionTest {
             session.logon();
             session.next();
             String sendingTimeField = unitTestApplication.toAdminMessages.get(0).getHeader().getString(SendingTime.FIELD);
-            assertTrue("SendingTime should have NANOS precision (27 characters total)", sendingTimeField.length() == 27);
+            assertEquals("SendingTime should have NANOS precision (27 characters total)", 27, sendingTimeField.length());
             String substring = sendingTimeField.substring(sendingTimeField.lastIndexOf(".") + 1);
-            assertTrue("SendingTime should have NANOS precision (9 digits after dot)", substring.length() == 9);
+            assertEquals("SendingTime should have NANOS precision (9 digits after dot)", 9, substring.length());
             Long.parseLong(substring);
         }
     }
@@ -2388,14 +2386,14 @@ public class SessionTest {
         session.setResponder(responder);
         final SessionState state = getSessionState(session);
         assertEquals(isInitiator, state.isInitiator());
-        assertEquals(false, state.isLogonSent());
-        assertEquals(false, state.isLogonReceived());
-        assertEquals(false, state.isLogonAlreadySent());
+        assertFalse(state.isLogonSent());
+        assertFalse(state.isLogonReceived());
+        assertFalse(state.isLogonAlreadySent());
         assertEquals(isInitiator, state.isLogonSendNeeded());
-        assertEquals(false, state.isLogonTimedOut());
-        assertEquals(false, state.isLogoutSent());
-        assertEquals(false, state.isLogoutReceived());
-        assertEquals(false, state.isLogoutTimedOut());
+        assertFalse(state.isLogonTimedOut());
+        assertFalse(state.isLogoutSent());
+        assertFalse(state.isLogoutReceived());
+        assertFalse(state.isLogoutTimedOut());
         return session;
     }
 
@@ -2412,14 +2410,14 @@ public class SessionTest {
         session.setResponder(responder);
         final SessionState state = getSessionState(session);
         assertEquals(isInitiator, state.isInitiator());
-        assertEquals(false, state.isLogonSent());
-        assertEquals(false, state.isLogonReceived());
-        assertEquals(false, state.isLogonAlreadySent());
+        assertFalse(state.isLogonSent());
+        assertFalse(state.isLogonReceived());
+        assertFalse(state.isLogonAlreadySent());
         assertEquals(isInitiator, state.isLogonSendNeeded());
-        assertEquals(false, state.isLogonTimedOut());
-        assertEquals(false, state.isLogoutSent());
-        assertEquals(false, state.isLogoutReceived());
-        assertEquals(false, state.isLogoutTimedOut());
+        assertFalse(state.isLogonTimedOut());
+        assertFalse(state.isLogoutSent());
+        assertFalse(state.isLogoutReceived());
+        assertFalse(state.isLogoutTimedOut());
         return session;
     }
 
