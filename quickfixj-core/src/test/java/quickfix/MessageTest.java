@@ -21,6 +21,7 @@ package quickfix;
 
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
+
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
@@ -129,6 +130,7 @@ import quickfix.field.TradeDate;
 import quickfix.field.TradeReportID;
 import quickfix.fix44.TradeCaptureReport;
 
+
 public class MessageTest {
 
     @Test
@@ -186,6 +188,67 @@ public class MessageTest {
         myMessage.getHeader().setField(new TargetCompID("bar"));
 
         assertTrue(myMessage.toString().contains("52=20120922-11:00:00\00134=22\00149=foo\00156=bar"));
+    }
+    
+    
+    @Test
+    public void testHeaderFieldWithCustomTransportDictionaryConstructorReadsHeaderField() throws Exception {
+
+        final DataDictionary customSessionDictionary = new DataDictionary("FIXT11_Custom_Test.xml");
+        customSessionDictionary.setAllowUnknownMessageFields(false);
+
+        final DataDictionary standardSessionDictionary = new DataDictionary("FIXT11.xml");
+        standardSessionDictionary.setAllowUnknownMessageFields(false);
+
+        final DataDictionary applicationDictionary = new DataDictionary("FIX50.xml");
+        applicationDictionary.setAllowUnknownMessageFields(false);
+
+        final String sep = "\001";
+        final StringBuilder sb = new StringBuilder();
+        sb.append("8=FIXT1.1");
+        sb.append(sep);
+        sb.append("9=112");
+        sb.append(sep);
+        sb.append("35=6");
+        sb.append(sep);
+        sb.append("49=SENDER_COMP_ID");
+        sb.append(sep);
+        sb.append("56=TARGET_COMP_ID");
+        sb.append(sep);
+        sb.append("34=20");
+        sb.append(sep);
+        sb.append("52=20120922-11:00:00");
+        sb.append(sep);
+        sb.append("12312=foo");
+        sb.append(sep);
+        sb.append("23=123456");
+        sb.append(sep);
+        sb.append("28=N");
+        sb.append(sep);
+        sb.append("55=[N/A]");
+        sb.append(sep);
+        sb.append("54=1");
+        sb.append(sep);
+        sb.append("27=U");
+        sb.append(sep);
+        sb.append("10=52");
+        sb.append(sep);
+        final String messageData = sb.toString();
+
+        final Message standardMessage = new Message(messageData, standardSessionDictionary, applicationDictionary, true);
+
+        // Test that field is in body not the header
+        assertTrue(standardMessage.toString().contains("12312=foo"));
+        assertFalse(standardMessage.getHeader().isSetField(12312));
+        assertTrue(standardMessage.isSetField(12312));
+        assertEquals("foo", standardMessage.getString(12312));
+
+        // Test that field is correctly classified in header with customSessionDictionary
+        final Message customMessage = new Message(messageData, customSessionDictionary, applicationDictionary, true);
+        assertTrue(customMessage.toString().contains("12312=foo"));
+        assertTrue(customMessage.getHeader().isSetField(12312));
+        assertEquals("foo", customMessage.getHeader().getString(12312));
+        assertFalse(customMessage.isSetField(12312));
     }
 
     @Test
