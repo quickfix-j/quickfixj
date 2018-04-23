@@ -258,51 +258,52 @@ public class SessionDisconnectConcurrentlyTest extends TestCase {
         };
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final Session session = new SessionFactoryTestSupport.Builder()
+        try (Session session = new SessionFactoryTestSupport.Builder()
                 .setSessionId(sessionID)
                 .setApplication(application)
                 .setLogFactory(null)
                 .setResetOnLogon(false)
                 .setIsInitiator(true)
-                .build();
-        final UnitTestResponder responder = new UnitTestResponder();
-        session.setResponder(responder);
-        session.addStateListener(responder);
-        session.logon();
-        session.next();
-
-        final Message logonRequest = new Message(responder.sentMessageData);
-
-        final Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
-        logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
-        logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
-
-        final Message.Header header = logonResponse.getHeader();
-        header.setString(BeginString.FIELD, sessionID.getBeginString());
-        header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
-        header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
-        header.setInt(MsgSeqNum.FIELD, 1);
-        header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
-
-        final PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
-        ptpe.pause();
-
-        for (int j=0; j<1000; j++) {
-            final Thread thread = new Thread(() -> {
-                try {
-                    session.disconnect("No reason", false);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }, "disconnectThread"+j);
-            thread.setDaemon(true);
-            ptpe.submit(thread);
+                .build()) {
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            session.addStateListener(responder);
+            session.logon();
+            session.next();
+            
+            final Message logonRequest = new Message(responder.sentMessageData);
+            
+            final Message logonResponse = new DefaultMessageFactory().create(sessionID.getBeginString(), MsgType.LOGON);
+            logonResponse.setInt(EncryptMethod.FIELD, EncryptMethod.NONE_OTHER);
+            logonResponse.setInt(HeartBtInt.FIELD, logonRequest.getInt(HeartBtInt.FIELD));
+            
+            final Message.Header header = logonResponse.getHeader();
+            header.setString(BeginString.FIELD, sessionID.getBeginString());
+            header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
+            header.setString(TargetCompID.FIELD, sessionID.getTargetCompID());
+            header.setInt(MsgSeqNum.FIELD, 1);
+            header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
+            
+            final PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor();
+            ptpe.pause();
+            
+            for (int j=0; j<1000; j++) {
+                final Thread thread = new Thread(() -> {
+                    try {
+                        session.disconnect("No reason", false);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }, "disconnectThread"+j);
+                thread.setDaemon(true);
+                ptpe.submit(thread);
+            }
+            
+            ptpe.resume();
+            ptpe.awaitTermination(2, TimeUnit.SECONDS);
+            ptpe.shutdownNow();
+            assertEquals(1, onLogoutCount.intValue());
         }
-
-        ptpe.resume();
-        ptpe.awaitTermination(2, TimeUnit.SECONDS);
-        ptpe.shutdownNow();
-        assertEquals(1, onLogoutCount.intValue());
     }
 
     private class UnitTestResponder implements Responder, SessionStateListener {

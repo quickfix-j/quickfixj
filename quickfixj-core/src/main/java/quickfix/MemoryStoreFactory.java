@@ -30,7 +30,7 @@ public class MemoryStoreFactory implements MessageStoreFactory {
 
     public MessageStore create(SessionID sessionID) {
         try {
-            return new MemoryStore();
+            return new MemoryStore(sessionID);
         } catch (IOException e) {
             throw new RuntimeError(e);
         }

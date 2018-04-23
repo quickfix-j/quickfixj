@@ -19,34 +19,34 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
 import org.slf4j.Marker;
 import org.slf4j.spi.LocationAwareLogger;
 
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.List;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import org.junit.Before;
+import org.junit.Test;
 
-public class SLF4JLogTest extends TestCase {
-    public SLF4JLogTest(String name) {
-        super(name);
-    }
+public class SLF4JLogTest {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         SystemTime.setTimeSource(null);
-        super.tearDown();
     }
 
+    @Test
     public void testLog() throws Exception {
         final SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis());
@@ -58,19 +58,19 @@ public class SLF4JLogTest extends TestCase {
 
         final String loggedText = "TEST123";
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY, sessionID);
         log.onEvent(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY, loggedText);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, sessionID);
         log.onErrorEvent(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, loggedText);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID);
         log.onIncoming(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID);
         log.onOutgoing(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
 
@@ -80,23 +80,24 @@ public class SLF4JLogTest extends TestCase {
         settings.setString(sessionID, SLF4JLogFactory.SETTING_OUTMSG_CATEGORY, "out");
         log = factory.create(sessionID);
 
-        setUpLoggerForTest("event");
+        setUpLoggerForTest("event", sessionID);
         log.onEvent(loggedText);
         assertMessageLogged(sessionID, "event", loggedText);
 
-        setUpLoggerForTest("errorEvent");
+        setUpLoggerForTest("errorEvent", sessionID);
         log.onErrorEvent(loggedText);
         assertMessageLogged(sessionID, "errorEvent", loggedText);
 
-        setUpLoggerForTest("in");
+        setUpLoggerForTest("in", sessionID);
         log.onIncoming(loggedText);
         assertMessageLogged(sessionID, "in", loggedText);
 
-        setUpLoggerForTest("out");
+        setUpLoggerForTest("out", sessionID);
         log.onOutgoing(loggedText);
         assertMessageLogged(sessionID, "out", loggedText);
     }
 
+    @Test
     public void testLogHeartbeatFiltering() throws Exception {
         final SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis());
@@ -108,26 +109,27 @@ public class SLF4JLogTest extends TestCase {
 
         final String loggedText = "HEARTBEAT\00135=0\001";
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID);
         log.onIncoming(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, loggedText);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID);
         log.onOutgoing(loggedText);
         assertMessageLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, loggedText);
 
         settings.setBool(sessionID, SLF4JLogFactory.SETTING_LOG_HEARTBEATS, false);
         log = (SLF4JLog) factory.create(sessionID);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID);
         log.onIncoming(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
+    @Test
     public void testLogFilteredByLevel() throws Exception {
         final SessionID sessionID = new SessionID("FIX.4.2", "SENDER" + System.currentTimeMillis(),
                 "TARGET" + System.currentTimeMillis());
@@ -139,23 +141,23 @@ public class SLF4JLogTest extends TestCase {
 
         final String loggedText = "TEST123";
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
-        getTestHandler(SLF4JLog.DEFAULT_EVENT_CATEGORY).setLevel(Level.WARNING);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY, sessionID);
+        getTestHandler(SLF4JLog.DEFAULT_EVENT_CATEGORY, sessionID).setLevel(Level.WARNING);
         log.onEvent(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
-        getTestHandler(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY).setLevel(Level.SEVERE);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, sessionID);
+        getTestHandler(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, sessionID).setLevel(Level.SEVERE);
         log.onErrorEvent(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
-        getTestHandler(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY).setLevel(Level.WARNING);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID);
+        getTestHandler(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID).setLevel(Level.WARNING);
         log.onIncoming(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
 
-        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
-        getTestHandler(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY).setLevel(Level.WARNING);
+        setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID);
+        getTestHandler(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID).setLevel(Level.WARNING);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(sessionID, SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
@@ -165,6 +167,7 @@ public class SLF4JLogTest extends TestCase {
      * the right wrapper function so that the appropriate calling location shows up
      * instead of our wrapper SLF4JLog class itself
      */
+    @Test
     public void testLog4j_correctFQCN() throws Exception {
         final MyLog4JLog myLog4j = new MyLog4JLog();
         final SLF4JLog slf4jLog = new MySLF4JLog(new SessionID("FIX.4.2", "sender", "target"),
@@ -179,25 +182,25 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private void assertMessageNotLogged(SessionID sessionID, String categoryName) {
-        final TestHandler testHandler = getTestHandler(categoryName);
+        final TestHandler testHandler = getTestHandler(categoryName, sessionID);
         assertEquals(0, testHandler.records.size());
     }
 
     private void assertMessageLogged(SessionID sessionID, String categoryName, String message) {
-        final TestHandler testHandler = getTestHandler(categoryName);
+        final TestHandler testHandler = getTestHandler(categoryName, sessionID);
         assertEquals(1, testHandler.records.size());
         final LogRecord r = testHandler.records.get(0);
         if (r.getLoggerName() != null) {
             // The conditional is required because of a bug in SLF4J 1.0
             // when used with JDK 1.4 logging. The wrapper does not pass
             // the logger name.
-            assertEquals(categoryName, r.getLoggerName());
+            assertEquals(categoryName + sessionID + ": ", r.getLoggerName());
         }
-        assertEquals(sessionID + ": " + message, r.getMessage());
+        assertEquals(message, r.getMessage());
     }
 
-    private TestHandler getTestHandler(String categoryName) {
-        final Logger logger = Logger.getLogger(categoryName);
+    private TestHandler getTestHandler(String categoryName, SessionID sessionID) {
+        final Logger logger = Logger.getLogger(categoryName + sessionID + ": ");
         TestHandler testHandler = null;
         final Handler[] handlers = logger.getHandlers();
         for (final Handler handler : handlers) {
@@ -210,8 +213,8 @@ public class SLF4JLogTest extends TestCase {
         return testHandler;
     }
 
-    private TestHandler setUpLoggerForTest(String category) {
-        final Logger logger = Logger.getLogger(category);
+    private TestHandler setUpLoggerForTest(String category, SessionID sessionID) {
+        final Logger logger = Logger.getLogger(category + sessionID + ": ");
         logger.setUseParentHandlers(false);
         final Handler[] handlers = logger.getHandlers();
         for (final Handler handler : handlers) {
@@ -258,8 +261,8 @@ public class SLF4JLogTest extends TestCase {
     }
 
     private class MyLog4JLog extends DummySLF4JLogger implements LocationAwareLogger {
-        final Vector<String> messages = new Vector<>();
-        final Vector<String> fqcns = new Vector<>();
+        final List<String> messages = new ArrayList<>();
+        final List<String> fqcns = new ArrayList<>();
 
         public void log(Marker marker, String fqcn, int level, String message, Object[] params,
                 Throwable t) {

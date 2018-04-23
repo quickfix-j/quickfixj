@@ -498,11 +498,29 @@
     <TD>"TCP" </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketConnectPort&lt;n&gt;</I> </TD>
+    <TD> Alternate socket port(s) for connecting to a session for failover or load balancing,
+         where <B>n</B> is a positive integer, i.e. SocketConnectPort1, SocketConnectPort2, etc.
+         Must be consecutive and have a matching SocketConnectHost&lt;n&gt;
+    </TD>
+    <TD> positive integer </TD>
+    <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
 
     <TD> <I>SocketConnectHost&lt;n&gt;</I> </TD>
-    <TD> Alternate socket hosts for connecting to a session for failover, where <B>n</B> is a
-         positive integer. (i.e.) SocketConnectHost1, SocketConnectHost2... must be consecutive
-         and have a matching SocketConnectPort[n]</TD>
+    <TD> Alternate socket host(s) for connecting to a session for failover or load balancing,
+         where <B>n</B> is a positive integer, i.e. SocketConnectHost1, SocketConnectHost2, etc.
+         Must be consecutive and have a matching SocketConnectPort&lt;n&gt;
+         <p>
+      Connection list iteration rules:
+      <ul>
+        <li>Connections are tried one after another until one is successful: SocketConnectHost:SocketConnectPort,
+          SocketConnectHost1:SocketConnectPort1, etc.</li>
+        <li>Next connection attempt after a successful connection will start at first defined connection again:
+          SocketConnectHost:SocketConnectPort.</li>
+      </ul>
+    </TD>
     <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
 
     <TD>&nbsp; </TD>

@@ -81,37 +81,40 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
 
     public void testSessionCreation() throws Exception {
 
-        Session session1 = provider.getSession(new SessionID("FIX.4.2", "SENDER", "SENDERSUB",
-                "SENDERLOC", "TARGET", "TARGETSUB", "TARGETLOC", null), null);
-        SessionID sessionID1 = session1.getSessionID();
-        assertEquals("wrong FIX version", "FIX.4.2", sessionID1.getBeginString());
-        assertEquals("wrong sender", "SENDER", sessionID1.getSenderCompID());
-        assertEquals("wrong senderSub", "SENDERSUB", sessionID1.getSenderSubID());
-        assertEquals("wrong senderLoc", "SENDERLOC", sessionID1.getSenderLocationID());
-        assertEquals("wrong target", "TARGET", sessionID1.getTargetCompID());
-        assertEquals("wrong targetSub", "TARGETSUB", sessionID1.getTargetSubID());
-        assertEquals("wrong targetLoc", "TARGETLOC", sessionID1.getTargetLocationID());
-        assertEquals("wrong setting", false, session1.getResetOnLogout());
-        assertEquals("wrong setting", false, session1.getRefreshOnLogon());
-        assertEquals("wrong setting", false, session1.getCheckCompID());
+        try (Session session1 = provider.getSession(new SessionID("FIX.4.2", "SENDER", "SENDERSUB",
+                "SENDERLOC", "TARGET", "TARGETSUB", "TARGETLOC", null), null)) {
+            SessionID sessionID1 = session1.getSessionID();
+            assertEquals("wrong FIX version", "FIX.4.2", sessionID1.getBeginString());
+            assertEquals("wrong sender", "SENDER", sessionID1.getSenderCompID());
+            assertEquals("wrong senderSub", "SENDERSUB", sessionID1.getSenderSubID());
+            assertEquals("wrong senderLoc", "SENDERLOC", sessionID1.getSenderLocationID());
+            assertEquals("wrong target", "TARGET", sessionID1.getTargetCompID());
+            assertEquals("wrong targetSub", "TARGETSUB", sessionID1.getTargetSubID());
+            assertEquals("wrong targetLoc", "TARGETLOC", sessionID1.getTargetLocationID());
+            assertEquals("wrong setting", false, session1.getResetOnLogout());
+            assertEquals("wrong setting", false, session1.getRefreshOnLogon());
+            assertEquals("wrong setting", false, session1.getCheckCompID());
+        }
 
-        Session session2 = provider.getSession(new SessionID("FIX.4.4", "S1", "T"), null);
-        SessionID sessionID2 = session2.getSessionID();
-        assertEquals("wrong FIX version", "FIX.4.4", sessionID2.getBeginString());
-        assertEquals("wrong sender", "S1", sessionID2.getSenderCompID());
-        assertEquals("wrong target", "T", sessionID2.getTargetCompID());
-        assertEquals("wrong setting", true, session2.getResetOnLogout());
-        assertEquals("wrong setting", false, session2.getRefreshOnLogon());
-        assertEquals("wrong setting", true, session2.getCheckCompID());
+        try (Session session2 = provider.getSession(new SessionID("FIX.4.4", "S1", "T"), null)) {
+            SessionID sessionID2 = session2.getSessionID();
+            assertEquals("wrong FIX version", "FIX.4.4", sessionID2.getBeginString());
+            assertEquals("wrong sender", "S1", sessionID2.getSenderCompID());
+            assertEquals("wrong target", "T", sessionID2.getTargetCompID());
+            assertEquals("wrong setting", true, session2.getResetOnLogout());
+            assertEquals("wrong setting", false, session2.getRefreshOnLogon());
+            assertEquals("wrong setting", true, session2.getCheckCompID());
+        }
 
-        Session session3 = provider.getSession(new SessionID("FIX.4.4", "X", "Y"), null);
-        SessionID sessionID3 = session3.getSessionID();
-        assertEquals("wrong FIX version", "FIX.4.4", sessionID3.getBeginString());
-        assertEquals("wrong sender", "X", sessionID3.getSenderCompID());
-        assertEquals("wrong target", "Y", sessionID3.getTargetCompID());
-        assertEquals("wrong setting", false, session3.getResetOnLogout());
-        assertEquals("wrong setting", true, session3.getRefreshOnLogon());
-        assertEquals("wrong setting", true, session3.getCheckCompID());
+        try (Session session3 = provider.getSession(new SessionID("FIX.4.4", "X", "Y"), null)) {
+            SessionID sessionID3 = session3.getSessionID();
+            assertEquals("wrong FIX version", "FIX.4.4", sessionID3.getBeginString());
+            assertEquals("wrong sender", "X", sessionID3.getSenderCompID());
+            assertEquals("wrong target", "Y", sessionID3.getTargetCompID());
+            assertEquals("wrong setting", false, session3.getResetOnLogout());
+            assertEquals("wrong setting", true, session3.getRefreshOnLogon());
+            assertEquals("wrong setting", true, session3.getCheckCompID());
+        }
     }
 
     private void setUpSettings(SessionID templateID, String key, String value) {
@@ -137,9 +140,10 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
     public void testSimpleConstructor() throws Exception {
         provider = new DynamicAcceptorSessionProvider(settings, new SessionID("FIX.4.2", "ANY",
                 "ANY"), application, messageStoreFactory, logFactory, messageFactory);
-
         // Should actually throw an exception if it fails (see previous test)
-        assertNotNull(provider.getSession(new SessionID("FIX.4.2", "S", "T"), null));
+        try (Session session = provider.getSession(new SessionID("FIX.4.2", "S", "T"), null)) {
+            assertNotNull(session);
+        }
     }
 
     /**
@@ -150,16 +154,18 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
 
         SessionID id1 = new SessionID("FIX.4.2", "me", "SENDERSUB",
                 "SENDERLOC", "you", "TARGETSUB", "TARGETLOC", null);
-        provider.getSession(id1, connector);
+        Session session = provider.getSession(id1, connector);
         assertEquals(1, connector.sessions.size());
         // try again with same sesionID - should still be 1
-        provider.getSession(id1, connector);
+        session = provider.getSession(id1, connector);
         assertEquals(1, connector.sessions.size());
+        session.close();
 
         SessionID id2 = new SessionID("FIX.4.2", "SENDER2", "SENDERSUB",
                 "SENDERLOC", "TARGET2", "TARGETSUB", "TARGETLOC", null);
-        provider.getSession(id2, connector);
+        Session session2 = provider.getSession(id2, connector);
         assertEquals(2, connector.sessions.size());
+        session2.close();
     }
 
     private static class MySessionConnector extends SessionConnector {

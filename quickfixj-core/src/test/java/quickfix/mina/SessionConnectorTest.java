@@ -19,7 +19,6 @@
 
 package quickfix.mina;
 
-import junit.framework.TestCase;
 import quickfix.Acceptor;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
@@ -42,10 +41,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
-public class SessionConnectorTest extends TestCase {
+public class SessionConnectorTest {
     private final List<PropertyChangeEvent> propertyChangeEvents = new ArrayList<>();
 
+    @Test
     public void testConnector() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionSettings settings = setUpSessionSettings(sessionID);
@@ -88,6 +93,7 @@ public class SessionConnectorTest extends TestCase {
         assertEquals(settings, connector.getSettings());
     }
 
+    @Test
     public void testOneSessionLoggedOnOneSessionNotLoggedOne() throws Exception {
         SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionSettings settings = setUpSessionSettings(sessionID1);
@@ -96,47 +102,50 @@ public class SessionConnectorTest extends TestCase {
 
         SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
 
-        Session session1 = connector.createSession(sessionID1);
-        assertNotNull(session1);
+        try (Session session1 = connector.createSession(sessionID1)) {
+            assertNotNull(session1);
 
-        // test add/remove
-        SessionConnectorListener connectorListener = new SessionConnectorListener();
-        connector.addPropertyChangeListener(connectorListener);
-        connector.removePropertyChangeListener(connectorListener);
+            // test add/remove
+            SessionConnectorListener connectorListener = new SessionConnectorListener();
+            connector.addPropertyChangeListener(connectorListener);
+            connector.removePropertyChangeListener(connectorListener);
 
-        Map<SessionID, Session> sessions = new HashMap<>();
-        sessions.put(session1.getSessionID(), session1);
-        connector.setSessions(sessions);
+            Map<SessionID, Session> sessions = new HashMap<>();
+            sessions.put(session1.getSessionID(), session1);
+            connector.setSessions(sessions);
 
-        assertEquals(0, propertyChangeEvents.size());
+            assertEquals(0, propertyChangeEvents.size());
 
-        assertEquals(1, connector.getManagedSessions().size());
-        assertEquals(session1, connector.getManagedSessions().get(0));
+            assertEquals(1, connector.getManagedSessions().size());
+            assertEquals(session1, connector.getManagedSessions().get(0));
 
-        assertFalse(connector.isLoggedOn());
+            assertFalse(connector.isLoggedOn());
 
-        Field stateField = session1.getClass().getDeclaredField("state");
-        stateField.setAccessible(true);
-        SessionState state = (SessionState) stateField.get(session1);
+            Field stateField = session1.getClass().getDeclaredField("state");
+            stateField.setAccessible(true);
+            SessionState state = (SessionState) stateField.get(session1);
 
-        state.setLogonSent(true);
-        state.setLogonReceived(true);
-        assertTrue(connector.isLoggedOn());
+            state.setLogonSent(true);
+            state.setLogonReceived(true);
+            assertTrue(connector.isLoggedOn());
 
-        SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD1");
-        settings.setString(sessionID2, SessionFactory.SETTING_CONNECTION_TYPE,
-                SessionFactory.ACCEPTOR_CONNECTION_TYPE);
-        Session session2 = connector.createSession(sessionID2);
-        assertNotNull(session2);
-        sessions.put(session2.getSessionID(), session2);
-        assertFalse(connector.isLoggedOn());
-        assertTrue(connector.anyLoggedOn());
+            SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD1");
+            settings.setString(sessionID2, SessionFactory.SETTING_CONNECTION_TYPE,
+                    SessionFactory.ACCEPTOR_CONNECTION_TYPE);
+            try (Session session2 = connector.createSession(sessionID2)) {
+                assertNotNull(session2);
+                sessions.put(session2.getSessionID(), session2);
+                assertFalse(connector.isLoggedOn());
+                assertTrue(connector.anyLoggedOn());
+            }
+        }
     }
 
     /**
      * Test that adding/removing dynamic sessions works correctly
      */
-    public void testAddingRemovingDymaicSessions() throws Exception {
+    @Test
+    public void testAddingRemovingDynamicSessions() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "me", "you");
         SessionSettings settings = setUpSessionSettings(sessionID);
@@ -173,6 +182,9 @@ public class SessionConnectorTest extends TestCase {
         assertEquals(session2, connector.getManagedSessions().get(0));
         connector.removeDynamicSession(session2.getSessionID());
         assertEquals(0, connector.getManagedSessions().size());
+        
+        session.close();
+        session2.close();
     }
 
     private SessionSettings setUpSessionSettings(SessionID sessionID) {

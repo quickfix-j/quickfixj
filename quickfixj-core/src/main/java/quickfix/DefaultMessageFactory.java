@@ -19,9 +19,11 @@
 
 package quickfix;
 
+import quickfix.field.ApplVerID;
 import quickfix.field.MsgType;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static quickfix.FixVersions.BEGINSTRING_FIX40;
@@ -40,6 +42,8 @@ import static quickfix.FixVersions.FIX50SP2;
 public class DefaultMessageFactory implements MessageFactory {
     private final Map<String, MessageFactory> messageFactories = new ConcurrentHashMap<>();
 
+    private final ApplVerID defaultApplVerID;
+
     /**
      * Constructs a DefaultMessageFactory, which dynamically loads and delegates to
      * the default version-specific message factories, if they are available at runtime.
@@ -47,8 +51,28 @@ public class DefaultMessageFactory implements MessageFactory {
      * Callers can set the {@link Thread#setContextClassLoader context classloader},
      * which will be used to load the classes if {@link Class#forName Class.forName}
      * fails to do so (e.g. in an OSGi environment).
+     * <p>
+     * Equivalent to {@link #DefaultMessageFactory(String) DefaultMessageFactory}({@link ApplVerID#FIX50 ApplVerID.FIX50}).
      */
     public DefaultMessageFactory() {
+        this(ApplVerID.FIX50);
+    }
+
+    /**
+     * Constructs a DefaultMessageFactory, which dynamically loads and delegates to
+     * the default version-specific message factories, if they are available at runtime.
+     * <p>
+     * Callers can set the {@link Thread#setContextClassLoader context classloader},
+     * which will be used to load the classes if {@link Class#forName Class.forName}
+     * fails to do so (e.g. in an OSGi environment).
+     *
+     * @param defaultApplVerID ApplVerID value used by default for {@link #create(String, ApplVerID, String)}
+     */
+    public DefaultMessageFactory(String defaultApplVerID) {
+        Objects.requireNonNull(defaultApplVerID, "defaultApplVerID");
+
+        this.defaultApplVerID = new ApplVerID(defaultApplVerID);
+
         // To loosen the coupling between this factory and generated code, the
         // message factories are discovered at run time using reflection
         addFactory(BEGINSTRING_FIX40);
@@ -118,27 +142,23 @@ public class DefaultMessageFactory implements MessageFactory {
         }
     }
 
+    @Override
     public Message create(String beginString, String msgType) {
+        return create(beginString, defaultApplVerID, msgType);
+    }
+
+    @Override
+    public Message create(String beginString, ApplVerID applVerID, String msgType) {
         MessageFactory messageFactory = messageFactories.get(beginString);
-        if (beginString.equals(BEGINSTRING_FIXT11)) {
-            // The default message factory assumes that only FIX 5.0 will be
-            // used with FIXT 1.1 sessions. A more flexible approach will require
-            // an extension to the QF JNI API. Until then, you will need a custom
-            // message factory if you want to use application messages prior to
-            // FIX 5.0 with a FIXT 1.1 session.
-            //
-            // TODO: how do we support 50/50SP1/50SP2 concurrently?
-            //
-            // If you need to determine admin message category based on a data
-            // dictionary, then use a custom message factory and don't use the
-            // static method used below.
-            if (!MessageUtils.isAdminMessage(msgType)) {
-                messageFactory = messageFactories.get(FIX50);
+        if (beginString.equals(BEGINSTRING_FIXT11) && !MessageUtils.isAdminMessage(msgType)) {
+            if (applVerID == null) {
+                applVerID = new ApplVerID(defaultApplVerID.getValue());
             }
+            messageFactory = messageFactories.get(MessageUtils.toBeginString(applVerID));
         }
 
         if (messageFactory != null) {
-            return messageFactory.create(beginString, msgType);
+            return messageFactory.create(beginString, applVerID, msgType);
         }
 
         Message message = new Message();

@@ -61,22 +61,23 @@ class JdbcLog extends AbstractLog {
                 ? JdbcUtil.getDataSource(settings, sessionID)
                 : ds;
 
-        logHeartbeats = !settings.isSetting(SETTING_JDBC_LOG_HEARTBEATS) || settings.getBool(SETTING_JDBC_LOG_HEARTBEATS);
+        logHeartbeats = !settings.isSetting(sessionID, SETTING_JDBC_LOG_HEARTBEATS)
+                || settings.getBool(sessionID, SETTING_JDBC_LOG_HEARTBEATS);
         setLogHeartbeats(logHeartbeats);
 
-        if (settings.isSetting(SETTING_LOG_OUTGOING_TABLE)) {
+        if (settings.isSetting(sessionID, SETTING_LOG_OUTGOING_TABLE)) {
             outgoingMessagesTableName = settings.getString(sessionID, SETTING_LOG_OUTGOING_TABLE);
         } else {
             outgoingMessagesTableName = DEFAULT_MESSAGES_LOG_TABLE;
         }
 
-        if (settings.isSetting(SETTING_LOG_INCOMING_TABLE)) {
+        if (settings.isSetting(sessionID, SETTING_LOG_INCOMING_TABLE)) {
             incomingMessagesTableName = settings.getString(sessionID, SETTING_LOG_INCOMING_TABLE);
         } else {
             incomingMessagesTableName = DEFAULT_MESSAGES_LOG_TABLE;
         }
 
-        if (settings.isSetting(SETTING_LOG_EVENT_TABLE)) {
+        if (settings.isSetting(sessionID, SETTING_LOG_EVENT_TABLE)) {
             eventTableName = settings.getString(sessionID, SETTING_LOG_EVENT_TABLE);
         } else {
             eventTableName = DEFAULT_EVENT_LOG_TABLE;

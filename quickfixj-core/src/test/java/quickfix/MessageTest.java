@@ -24,6 +24,7 @@ import org.quickfixj.CharsetSupport;
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
+import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.AvgPx;
 import quickfix.field.BeginString;
@@ -586,6 +587,11 @@ public class MessageTest {
     public void testFix5HeaderFields() {
         assertTrue(Message.isHeaderField(ApplVerID.FIELD));
         assertTrue(Message.isHeaderField(CstmApplVerID.FIELD));
+    }
+
+    @Test
+    public void testApplExtIDIsHeaderField() {
+        assertTrue(Message.isHeaderField(ApplExtID.FIELD));
     }
 
     @Test
@@ -1713,6 +1719,24 @@ public class MessageTest {
         // but we still should have the repeating group set and not ignore it
         assertEquals(1, parsed.getGroupCount(555));
     }
+    
+    // QFJ-533
+    @Test
+    public void testRepeatingGroupCountWithNonIntegerValues() throws Exception {
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        Message ioi = new quickfix.fix50.IOI();
+        ioi.setString(quickfix.field.NoPartyIDs.FIELD, "abc");
+        final String invalidCountMessage = ioi.toString();
+        try {
+            Message message =  new Message(invalidCountMessage, dictionary);
+        } catch (final InvalidMessage im) {
+            assertNotNull("InvalidMessage correctly thrown", im);
+        } catch (final Throwable e) {
+            e.printStackTrace();
+            fail("InvalidMessage expected, got " + e.getClass().getName());
+        }
+    }
+    
 
     // QFJ-770/QFJ-792
     @Test
@@ -1729,6 +1753,22 @@ public class MessageTest {
         Group group = message.getGroup(1, 711);
         String underlyingSymbol = group.getString(311);
         assertEquals("780508", underlyingSymbol);
+    }
+
+    @Test
+    // QFJ-940
+    public void testRawString() throws Exception {
+
+        String test = "8=FIX.4.4|9=431|35=d|49=1|34=2|52=20140117-18:20:26.629|56=3|57=21|322=388721|"
+                + "323=4|320=1|393=42|82=1|67=1|711=1|311=780508|309=text|305=8|463=FXXXXX|307=text|542=20140716|"
+                + "436=10.0|9013=1.0|9014=1.0|9017=10|9022=1|9024=1.0|9025=Y|916=20140701|917=20150731|9201=23974|"
+                + "9200=17|9202=text|9300=727|9301=text|9302=text|9303=text|998=text|9100=text|9101=text|9085=text|"
+                + "9083=0|9084=0|9061=579|9062=text|9063=text|9032=10.0|9002=F|9004=780415|9005=780503|10=223|";
+        
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        Message message = new Message();
+        message.fromString(test.replaceAll("\\|", "\001"), dictionary, true);
+        assertEquals(test, message.toRawString().replaceAll("\001", "\\|"));
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)

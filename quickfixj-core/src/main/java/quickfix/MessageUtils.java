@@ -142,7 +142,7 @@ public class MessageUtils {
         final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
                 .getApplicationDataDictionary(applVerID);
 
-        final quickfix.Message message = messageFactory.create(beginString, msgType);
+        final quickfix.Message message = messageFactory.create(beginString, applVerID, msgType);
         final DataDictionary payloadDictionary = MessageUtils.isAdminMessage(msgType)
                 ? sessionDataDictionary
                 : applicationDataDictionary;

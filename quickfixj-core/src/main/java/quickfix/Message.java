@@ -33,6 +33,8 @@ import org.quickfixj.CharsetSupport;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
@@ -127,6 +129,10 @@ public class Message extends FieldMap {
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
      * since FieldMap.calculateString() is iterating over the TreeMap of fields.
+     * 
+     * Use toRawString() to get the raw message data.
+     * 
+     * @return Message as String with calculated body length and checksum.
      */
     @Override
     public String toString() {
@@ -140,6 +146,21 @@ public class Message extends FieldMap {
         trailer.calculateString(sb, null, null);
 
         return sb.toString();
+    }
+
+    /**
+     * Return the raw message data as it was passed to the Message class.
+     * 
+     * This is only available after Message has been parsed via constructor or Message.fromString().
+     * Otherwise this method will return NULL.
+     * 
+     * This method neither does change fields nor calculate body length or checksum.
+     * Use toString() for that purpose.
+     * 
+     * @return Message as String without recalculating body length and checksum.
+     */
+    public String toRawString() {
+        return messageData;
     }
 
     public int bodyLength() {
@@ -342,6 +363,12 @@ public class Message extends FieldMap {
         header.clear();
         trailer.clear();
         position = 0;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        this.position = 0;
     }
 
     public static class Header extends FieldMap {
@@ -578,7 +605,13 @@ public class Message extends FieldMap {
         final int[] fieldOrder = groupDataDictionary.getOrderedFields();
         int previousOffset = -1;
         final int groupCountTag = field.getField();
-        final int declaredGroupCount = Integer.parseInt(field.getValue());
+        // QFJ-533
+        int declaredGroupCount = 0;
+        try {
+            declaredGroupCount = Integer.parseInt(field.getValue());
+        } catch (final NumberFormatException e) {
+            throw new InvalidMessage("Repeating group count requires an Integer but found: " + field.getValue(), e);
+        }
         parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimiterField();
         boolean firstFieldFound = false;
@@ -714,6 +747,7 @@ public class Message extends FieldMap {
         case OnBehalfOfSendingTime.FIELD:
         case ApplVerID.FIELD:
         case CstmApplVerID.FIELD:
+        case ApplExtID.FIELD:
         case NoHops.FIELD:
             return true;
         default:
@@ -791,7 +825,7 @@ public class Message extends FieldMap {
             try {
                 fieldLength = fields.getInt(lengthField);
             } catch (final FieldNotFound e) {
-                throw new InvalidMessage("Tag " + e.field + " not found in " + messageData);
+                throw new InvalidMessage("Did not find length field " + e.field + " required to parse data field " + tag + " in " + messageData);
             }
 
             // since length is in bytes but data is a string, and it may also contain an SOH,
