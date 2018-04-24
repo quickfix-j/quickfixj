@@ -1,8 +1,0 @@
-Order of code generation : git diff   ea30acce 4d463f04 quickfixj-core/pom.xml
-
-Update tests : git diff  4d463f04  926f1933
-
-QFJ defect - contribute back ... git diff    44c6010e 85a7e3f1
-
-
-
