@@ -22,40 +22,29 @@ package quickfix;
 import java.util.ArrayList;
 
 /**
- * A cache for commonly used string representing numbers.
- * Hold values from 0 to 999999 and from 1000 to 200 000 000 by step of 1000
+ * A cache for commonly used strings representing numbers.
+ * Holds values from 0 to 99999.
  */
 public final class NumbersCache {
 
-    private static final int littleNumbersLength = 1000000;
-    private static final int bigNumbersLength = 200000;
-    private static final int bigNumbersOffset = 1000;
-    private static final int bigNumbersMax = bigNumbersLength * bigNumbersOffset;
-
-    public static final ArrayList<String> littleNumbers;
-    public static final ArrayList<String> bigNumbers;
+    private static final int LITTLE_NUMBERS_LENGTH = 100000;
+    private static final ArrayList<String> LITTLE_NUMBERS;
 
     static {
-        littleNumbers = new ArrayList<String>(littleNumbersLength);
-        bigNumbers = new ArrayList<String>(bigNumbersLength);
-        for (int i = 0; i < littleNumbersLength; i++)
-            littleNumbers.add(Integer.toString(i));
-        for (long i = 0; i < bigNumbersLength;)
-            bigNumbers.add(Long.toString(++i * bigNumbersOffset));
-
+        LITTLE_NUMBERS = new ArrayList<>(LITTLE_NUMBERS_LENGTH);
+        for (int i = 0; i < LITTLE_NUMBERS_LENGTH; i++)
+            LITTLE_NUMBERS.add(Integer.toString(i));
     }
 
     /**
-     * Get the string representing the given number
+     * Get the String representing the given number
      *
      * @param i the long to convert
      * @return the String representing the long
      */
-    public static String get(long i) {
-        if (i < littleNumbersLength)
-            return littleNumbers.get((int)i);
-        if (i <= bigNumbersMax && i % bigNumbersOffset == 0)
-            return bigNumbers.get((int)(i/bigNumbersOffset)-1);
+    public static String get(int i) {
+        if (i < LITTLE_NUMBERS_LENGTH)
+            return LITTLE_NUMBERS.get(i);
         return String.valueOf(i);
     }
 

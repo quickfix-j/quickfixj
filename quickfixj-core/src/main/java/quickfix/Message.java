@@ -138,7 +138,7 @@ public class Message extends FieldMap {
         }
     };
 
-    private static final boolean isStringEquivalent = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+    private static final boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
 
     /**
      * Do not call this method concurrently while modifying the contents of the message.
@@ -152,7 +152,7 @@ public class Message extends FieldMap {
     @Override
     public String toString() {
         Context context = stringContexts.get();
-        if(isStringEquivalent) { // length & checksum can easily be calculated after message is built
+        if (IS_STRING_EQUIVALENT) { // length & checksum can easily be calculated after message is built
             header.setField(context.bodyLength);
             trailer.setField(context.checkSum);
         } else {
@@ -164,7 +164,7 @@ public class Message extends FieldMap {
             header.calculateString(stringBuilder, null, null);
             calculateString(stringBuilder, null, null);
             trailer.calculateString(stringBuilder, null, null);
-            if(isStringEquivalent) {
+            if (IS_STRING_EQUIVALENT) {
                 setBodyLength(stringBuilder);
                 setChecksum(stringBuilder);
             }
@@ -174,40 +174,27 @@ public class Message extends FieldMap {
         }
     }
 
-    private static final String beginStringField = String.valueOf(BeginString.FIELD);
-    private static final String separatorFix = String.valueOf('\001');
-    private static final String bodyLengthField = separatorFix + String.valueOf(BodyLength.FIELD) + '=';
-    private static final String checkSumField = separatorFix + String.valueOf(CheckSum.FIELD) + '=';
+    private static final String SOH = String.valueOf('\001');
+    private static final String BODY_LENGTH_FIELD = SOH + String.valueOf(BodyLength.FIELD) + '=';
+    private static final String CHECKSUM_FIELD = SOH + String.valueOf(CheckSum.FIELD) + '=';
 
     private static void setBodyLength(StringBuilder stringBuilder) {
-        int index = indexOf(stringBuilder, beginStringField, 0);
-        if(index != 0)
-            throw new IllegalArgumentException("Malformed FIX message");
-        int bodyLengthIndex = getIndex(stringBuilder, bodyLengthField, 0);
-        index = getIndex(stringBuilder, separatorFix, bodyLengthIndex + 1);
-        int checkSumIndex = lastIndexOf(stringBuilder, checkSumField);
-        if(checkSumIndex < 0)
-            throw new IllegalArgumentException("Malformed FIX message");
-        int length = checkSumIndex - index;
-        bodyLengthIndex += bodyLengthField.length();
+        int bodyLengthIndex = indexOf(stringBuilder, BODY_LENGTH_FIELD, 0);
+        int sohIndex = indexOf(stringBuilder, SOH, bodyLengthIndex + 1);
+        int checkSumIndex = lastIndexOf(stringBuilder, CHECKSUM_FIELD);
+        int length = checkSumIndex - sohIndex;
+        bodyLengthIndex += BODY_LENGTH_FIELD.length();
         stringBuilder.replace(bodyLengthIndex, bodyLengthIndex + 3, NumbersCache.get(length));
     }
 
     private static void setChecksum(StringBuilder stringBuilder) {
-        int checkSumIndex = lastIndexOf(stringBuilder, checkSumField);
+        int checkSumIndex = lastIndexOf(stringBuilder, CHECKSUM_FIELD);
         int checkSum = 0;
         for(int i = checkSumIndex; i-- != 0;)
             checkSum += stringBuilder.charAt(i);
-        String checkSumValue = NumbersCache.get((checkSum + 1) % 256);
-        checkSumIndex += checkSumField.length();
+        String checkSumValue = NumbersCache.get((checkSum + 1) & 0xFF); // better than sum % 256 since it avoids overflow issues
+        checkSumIndex += CHECKSUM_FIELD.length();
         stringBuilder.replace(checkSumIndex + (3 - checkSumValue.length()), checkSumIndex + 3, checkSumValue);
-    }
-
-    private static int getIndex(StringBuilder stringBuilder, String value, int fromIndex) {
-        int index = indexOf(stringBuilder, value, fromIndex);
-        if(index < 0)
-            throw new IllegalArgumentException("Malformed FIX message");
-        return index;
     }
 
     // return index of a string in a stringbuilder without performing allocations
@@ -236,7 +223,7 @@ public class Message extends FieldMap {
     }
 
     // return last index of a string in a stringbuilder without performing allocations
-    static int lastIndexOf(StringBuilder source, String target) {
+    private static int lastIndexOf(StringBuilder source, String target) {
         int rightIndex = source.length() - target.length();
         int fromIndex = source.length();
         if (fromIndex > rightIndex)
