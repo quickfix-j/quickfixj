@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import java.lang.reflect.Modifier;
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 import quickfix.field.Account;
@@ -103,14 +102,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
-import java.util.List;
 import java.util.TimeZone;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -249,24 +241,15 @@ public class MessageTest {
     private void doTestMessageWithEncodedField(String charset, String text) throws Exception {
         CharsetSupport.setCharset(charset);
         NewOrderSingle order = createNewOrderSingle();
-        java.lang.reflect.Field declaredField = Message.class.getDeclaredField("IS_STRING_EQUIVALENT");
+        NewOrderSingle.IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
         try {
-            // Some reflection magic to overwrite static final field in Message.class...
-            // We want to keep the field static final since its value does not change through
-            // the lifetime of the application but this test tests several charsets.
-            declaredField.setAccessible(true);
-            java.lang.reflect.Field modifiersField = java.lang.reflect.Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(declaredField, declaredField.getModifiers() & ~Modifier.FINAL);
-            declaredField.set(null, CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance()));
-
             order.set(new EncodedTextLen(MessageUtils.length(CharsetSupport.getCharsetInstance(), text)));
             order.set(new EncodedText(text));
             final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary());
             assertEquals(charset + " encoded field", text, msg.getString(EncodedText.FIELD));
         } finally {
             CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
-            declaredField.set(null, CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance()));
+            NewOrderSingle.IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
         }
     }
 
@@ -279,7 +262,7 @@ public class MessageTest {
         doTestMessageWithEncodedField("ISO-2022-JP", text);
         doTestMessageWithEncodedField("Shift_JIS", text);
         doTestMessageWithEncodedField("GBK", text);
-        //doTestMessageWithEncodedField("UTF-16", text); // double-byte charset not supported yet
+//        doTestMessageWithEncodedField("UTF-16", text); // double-byte charset not supported yet
     }
 
     @Test

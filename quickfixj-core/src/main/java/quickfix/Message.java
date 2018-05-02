@@ -138,7 +138,7 @@ public class Message extends FieldMap {
         }
     };
 
-    private static final boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+    protected static boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
 
     /**
      * Do not call this method concurrently while modifying the contents of the message.
