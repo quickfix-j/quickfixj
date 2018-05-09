@@ -48,16 +48,18 @@ public final class NumbersCache {
         return String.valueOf(i);
     }
 
-    /**
-     * Get the string representing the given double if it's an integer
-     *
-     * @param d the double to convert
-     * @return the String representing the double or null if the double is not an integer
-     */
+
+     /**
+      * Get the string representing the given double if it's an integer
+      *
+      * @param d the double to convert
+      * @return the String representing the double or null if the double is not an integer
+      */
     public static String get(double d) {
         long l = (long)d;
         if (d == (double)l)
             return get(l);
         return null;
-    }
+	  }
+
 }
