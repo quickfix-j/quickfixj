@@ -65,7 +65,7 @@ import static org.junit.Assert.assertTrue;
 public class DataDictionaryTest {
 
     @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    public final ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testDictionary() throws Exception {

@@ -310,7 +310,7 @@ public class SerializationTest extends TestCase {
     private void checkSerialVersionUID(String baseDirectory, String path) throws ClassNotFoundException {
         File classesDir = new File(baseDirectory + "/" + path);
         File[] files = classesDir.listFiles();
-        assertTrue("no files in " + classesDir, files != null);
+        assertNotNull("no files in " + classesDir, files);
         for (File file : files) {
             if (file.isDirectory() || !file.getName().endsWith(".class")) {
                 continue;

@@ -82,11 +82,8 @@ public class SSLConfig {
 		if (!Arrays.equals(trustStorePassword, other.trustStorePassword))
 			return false;
 		if (trustStoreType == null) {
-			if (other.trustStoreType != null)
-				return false;
-		} else if (!trustStoreType.equals(other.trustStoreType))
-			return false;
-		return true;
+			return other.trustStoreType == null;
+		} else return trustStoreType.equals(other.trustStoreType);
 	}
 
 	public String[] getEnabledCipherSuites() {

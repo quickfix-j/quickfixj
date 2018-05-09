@@ -35,8 +35,9 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class FieldTest {
 
@@ -140,16 +141,16 @@ public class FieldTest {
         BooleanField field = new BooleanField(11);
         field.setValue(true);
         assertEquals(11, field.getTag());
-        assertEquals(true, field.getValue());
+        assertTrue(field.getValue());
         field.setValue(Boolean.FALSE);
         assertEquals(11, field.getTag());
-        assertEquals(false, field.getValue());
+        assertFalse(field.getValue());
         field = new BooleanField(22, true);
         assertEquals(22, field.getTag());
-        assertEquals(true, field.getValue());
+        assertTrue(field.getValue());
         field = new BooleanField(33, Boolean.TRUE);
         assertEquals(33, field.getTag());
-        assertEquals(true, field.getValue());
+        assertTrue(field.getValue());
     }
 
     @Test

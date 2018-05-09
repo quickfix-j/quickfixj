@@ -33,7 +33,7 @@ import java.util.HashSet;
 
 class ATMessageCracker extends quickfix.MessageCracker {
 
-    private HashSet<Pair> orderIDs = new HashSet<>();
+    private final HashSet<Pair> orderIDs = new HashSet<>();
 
     public void reset() {
         orderIDs.clear();

@@ -53,7 +53,7 @@ import java.util.logging.Logger;
  */
 public class SingleThreadedEventHandlingStrategyTest {
 
-    DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
+    final DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
             new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
     SingleThreadedEventHandlingStrategy ehs = null;
 
@@ -291,10 +291,8 @@ public class SingleThreadedEventHandlingStrategyTest {
         acceptorSettings.setString(acceptorSessionId, "BeginString", FixVersions.BEGINSTRING_FIX44);
         acceptorSettings.setString(acceptorSessionId, "DataDictionary", "FIX44.xml");
 
-        SocketAcceptor acceptor = new SocketAcceptor(Mockito.mock(Application.class), new MemoryStoreFactory(),
+        return new SocketAcceptor(Mockito.mock(Application.class), new MemoryStoreFactory(),
                 acceptorSettings, new DefaultMessageFactory());
-
-        return acceptor;
     }
 
     private SocketInitiator createInitiator(int i) throws ConfigError {
@@ -316,10 +314,8 @@ public class SingleThreadedEventHandlingStrategyTest {
         acceptorSettings.setString(acceptorSessionId, "BeginString", FixVersions.BEGINSTRING_FIX44);
         acceptorSettings.setString(acceptorSessionId, "DataDictionary", "FIX44.xml");
 
-        SocketInitiator initiator = new SocketInitiator(Mockito.mock(Application.class), new MemoryStoreFactory(),
+        return new SocketInitiator(Mockito.mock(Application.class), new MemoryStoreFactory(),
                 acceptorSettings, new DefaultMessageFactory());
-
-        return initiator;
     }
 
     private void assertQFJMessageProcessorThreads(int expected) {

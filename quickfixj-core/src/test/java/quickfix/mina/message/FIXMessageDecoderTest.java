@@ -447,7 +447,7 @@ public class FIXMessageDecoderTest {
         byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x54, 0x2E, 0x31, 0x2E, 0x31, 0x01, 0x39};
         IoBuffer in = IoBuffer.wrap(incompleteHeader);
         long bufPos = HEADER_PATTERN.find(in, 0);
-        Assert.assertTrue("There should be no header detected", bufPos == -1);
+        Assert.assertEquals("There should be no header detected", bufPos, -1);
     }
 
     @Test
@@ -474,7 +474,7 @@ public class FIXMessageDecoderTest {
         byte[] incompleteHeader = {0x38, 0x3D, 0x46, 0x49, 0x58, 0x2E, 0x34, 0x2E, 0x34, 0x01, 0x39};
         IoBuffer in = IoBuffer.wrap(incompleteHeader);
         long bufPos = HEADER_PATTERN.find(in, 0);
-        Assert.assertTrue("There should be no header detected", bufPos == -1);
+        Assert.assertEquals("There should be no header detected", bufPos, -1);
     }
 
     

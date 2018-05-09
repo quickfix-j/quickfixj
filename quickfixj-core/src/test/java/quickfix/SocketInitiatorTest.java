@@ -335,12 +335,7 @@ public class SocketInitiatorTest {
             }
         };
 
-        LogFactory logFactory = new LogFactory() {
-            @Override
-            public Log create(SessionID sessionID) {
-                return logSessionStateListener;
-            }
-        };
+        LogFactory logFactory = sessionID -> logSessionStateListener;
 
         final SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
                 logFactory, new DefaultMessageFactory());
@@ -371,7 +366,7 @@ public class SocketInitiatorTest {
                 clientApplication.setUpLogonExpectation();
                 initiator.start();
                 assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertEquals(1, initiator.getSessions().size());
 
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
@@ -393,7 +388,7 @@ public class SocketInitiatorTest {
                 clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
                 assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertEquals(1, initiator.getSessions().size());
 
                 if (messageLog != null) {
                     // QFJ-698: check that we were still able to write to the messageLog after the restart
@@ -423,7 +418,7 @@ public class SocketInitiatorTest {
 
                 initiator.start();
                 assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertEquals(1, initiator.getSessions().size());
 
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
