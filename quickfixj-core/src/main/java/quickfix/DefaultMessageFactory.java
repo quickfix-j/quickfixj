@@ -55,7 +55,7 @@ public class DefaultMessageFactory implements MessageFactory {
      * Equivalent to {@link #DefaultMessageFactory(String) DefaultMessageFactory}({@link ApplVerID#FIX50 ApplVerID.FIX50}).
      */
     public DefaultMessageFactory() {
-        this(ApplVerID.FIX50);
+        this(ApplVerID.FIX50SP2);
     }
 
     /**
