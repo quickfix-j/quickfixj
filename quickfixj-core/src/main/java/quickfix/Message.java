@@ -103,6 +103,10 @@ public class Message extends FieldMap {
     public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
         fromString(string, dd, validate);
     }
+    
+    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, boolean validate) throws InvalidMessage {
+        fromString(string, sessionDictionary, applicationDictionary, validate);
+    }
 
     public static boolean InitializeXML(String url) {
         throw new UnsupportedOperationException();
