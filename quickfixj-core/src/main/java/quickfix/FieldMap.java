@@ -279,8 +279,16 @@ public abstract class FieldMap implements Serializable {
     }
 
     public BigDecimal getDecimal(int field) throws FieldNotFound {
+        return getDecimalFromString(field, getString(field));
+    }
+
+    public Optional<BigDecimal> getOptionalDecimal(int field) {
+        return getOptionalString(field).map(s -> getDecimalFromString(field, s));
+    }
+
+    private BigDecimal getDecimalFromString(int field, String s) {
         try {
-            return DecimalConverter.convert(getString(field));
+            return DecimalConverter.convert(s);
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
