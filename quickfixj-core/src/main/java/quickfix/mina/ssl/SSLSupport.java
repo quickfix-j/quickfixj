@@ -20,7 +20,6 @@
 package quickfix.mina.ssl;
 
 import quickfix.ConfigError;
-import quickfix.FieldConvertError;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
@@ -89,7 +88,7 @@ public class SSLSupport {
     public static String[] getSupportedProtocols(SSLContext sslContext) {
         try {
             return ((SSLSocket) sslContext.getSocketFactory().createSocket()).getSupportedProtocols();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
 
         return null;
@@ -121,7 +120,7 @@ public class SSLSupport {
         if (sessionSettings.isSetting(sessionID, key)) {
             try {
                 propertyValue = sessionSettings.getString(sessionID, key);
-            } catch (ConfigError | FieldConvertError ignored) {
+            } catch (ConfigError ignored) {
             }
         }
         return propertyValue;
