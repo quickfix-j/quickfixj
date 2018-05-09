@@ -1,5 +1,6 @@
 package quickfix;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
@@ -101,6 +102,14 @@ public class FieldMapTest extends TestCase {
         assertFalse(map.getOptionalString(129).isPresent());
     }
 
+    public void testOptionalDecimal() {
+        FieldMap map = new Message();
+        map.setField(new DecimalField(44, new BigDecimal("1565.10")));
+        Optional<BigDecimal> optValue = map.getOptionalDecimal(44);
+        assertTrue(optValue.isPresent());
+        assertEquals(0, optValue.get().compareTo(new BigDecimal("1565.10")));
+        assertFalse(map.getOptionalDecimal(6).isPresent());
+    }
 
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
