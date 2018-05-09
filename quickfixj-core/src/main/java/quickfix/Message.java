@@ -125,6 +125,21 @@ public class Message extends FieldMap {
         return message;
     }
 
+    private static final class Context {
+        private final BodyLength bodyLength = new BodyLength(100);
+        private final CheckSum checkSum = new CheckSum("000");
+        private final StringBuilder stringBuilder = new StringBuilder(1024);
+    }
+
+    private static final ThreadLocal<Context> stringContexts = new ThreadLocal<Context>() {
+        @Override
+        protected Context initialValue() {
+            return new Context();
+        }
+    };
+
+    protected static boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+
     /**
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
@@ -136,16 +151,105 @@ public class Message extends FieldMap {
      */
     @Override
     public String toString() {
-        final int bodyLength = bodyLength();
-        header.setInt(BodyLength.FIELD, bodyLength);
-        trailer.setString(CheckSum.FIELD, checksum());
+        Context context = stringContexts.get();
+        if (IS_STRING_EQUIVALENT) { // length & checksum can easily be calculated after message is built
+            header.setField(context.bodyLength);
+            trailer.setField(context.checkSum);
+        } else {
+            header.setInt(BodyLength.FIELD, bodyLength());
+            trailer.setString(CheckSum.FIELD, checksum());
+        }
+        StringBuilder stringBuilder = context.stringBuilder;
+        try {
+            header.calculateString(stringBuilder, null, null);
+            calculateString(stringBuilder, null, null);
+            trailer.calculateString(stringBuilder, null, null);
+            if (IS_STRING_EQUIVALENT) {
+                setBodyLength(stringBuilder);
+                setChecksum(stringBuilder);
+            }
+            return stringBuilder.toString();
+        } finally {
+            stringBuilder.setLength(0);
+        }
+    }
 
-        final StringBuilder sb = new StringBuilder(bodyLength);
-        header.calculateString(sb, null, null);
-        calculateString(sb, null, null);
-        trailer.calculateString(sb, null, null);
+    private static final String SOH = String.valueOf('\001');
+    private static final String BODY_LENGTH_FIELD = SOH + String.valueOf(BodyLength.FIELD) + '=';
+    private static final String CHECKSUM_FIELD = SOH + String.valueOf(CheckSum.FIELD) + '=';
 
-        return sb.toString();
+    private static void setBodyLength(StringBuilder stringBuilder) {
+        int bodyLengthIndex = indexOf(stringBuilder, BODY_LENGTH_FIELD, 0);
+        int sohIndex = indexOf(stringBuilder, SOH, bodyLengthIndex + 1);
+        int checkSumIndex = lastIndexOf(stringBuilder, CHECKSUM_FIELD);
+        int length = checkSumIndex - sohIndex;
+        bodyLengthIndex += BODY_LENGTH_FIELD.length();
+        stringBuilder.replace(bodyLengthIndex, bodyLengthIndex + 3, NumbersCache.get(length));
+    }
+
+    private static void setChecksum(StringBuilder stringBuilder) {
+        int checkSumIndex = lastIndexOf(stringBuilder, CHECKSUM_FIELD);
+        int checkSum = 0;
+        for(int i = checkSumIndex; i-- != 0;)
+            checkSum += stringBuilder.charAt(i);
+        String checkSumValue = NumbersCache.get((checkSum + 1) & 0xFF); // better than sum % 256 since it avoids overflow issues
+        checkSumIndex += CHECKSUM_FIELD.length();
+        stringBuilder.replace(checkSumIndex + (3 - checkSumValue.length()), checkSumIndex + 3, checkSumValue);
+    }
+
+    // return index of a string in a stringbuilder without performing allocations
+    private static int indexOf(StringBuilder source, String target, int fromIndex) {
+        if (fromIndex >= source.length())
+            return (target.length() == 0 ? source.length() : -1);
+        if (fromIndex < 0)
+            fromIndex = 0;
+        if (target.length() == 0)
+            return fromIndex;
+        char first = target.charAt(0);
+        int max = source.length() - target.length();
+        for (int i = fromIndex; i <= max; i++) {
+            if (source.charAt(i) != first)
+                while (++i <= max && source.charAt(i) != first);
+            if (i <= max) {
+                int j = i + 1;
+                int end = j + target.length() - 1;
+                for (int k = 1; j < end && source.charAt(j)
+                                           == target.charAt(k); j++, k++);
+                if (j == end)
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+    // return last index of a string in a stringbuilder without performing allocations
+    private static int lastIndexOf(StringBuilder source, String target) {
+        int rightIndex = source.length() - target.length();
+        int fromIndex = source.length();
+        if (fromIndex > rightIndex)
+            fromIndex = rightIndex;
+        if (target.length() == 0)
+            return fromIndex;
+        int strLastIndex = target.length() - 1;
+        char strLastChar = target.charAt(strLastIndex);
+        int min = target.length() - 1;
+        int i = min + fromIndex;
+        startSearchForLastChar:
+        while (true) {
+            while (i >= min && source.charAt(i) != strLastChar)
+                i--;
+            if (i < min)
+                return -1;
+            int j = i - 1;
+            int start = j - (target.length() - 1);
+            int k = strLastIndex - 1;
+            while (j > start)
+                if (source.charAt(j--) != target.charAt(k--)) {
+                    i--;
+                    continue startSearchForLastChar;
+                }
+            return start + 1;
+        }
     }
 
     /**
@@ -883,4 +987,5 @@ public class Message extends FieldMap {
         }
     }
 
+    
 }
