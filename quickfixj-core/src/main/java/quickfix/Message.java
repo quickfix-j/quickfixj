@@ -183,77 +183,22 @@ public class Message extends FieldMap {
     private static final String CHECKSUM_FIELD = SOH + String.valueOf(CheckSum.FIELD) + '=';
 
     private static void setBodyLength(StringBuilder stringBuilder) {
-        int bodyLengthIndex = indexOf(stringBuilder, BODY_LENGTH_FIELD, 0);
-        int sohIndex = indexOf(stringBuilder, SOH, bodyLengthIndex + 1);
-        int checkSumIndex = lastIndexOf(stringBuilder, CHECKSUM_FIELD);
+        int bodyLengthIndex = stringBuilder.indexOf(BODY_LENGTH_FIELD, 0);
+        int sohIndex = stringBuilder.indexOf(SOH, bodyLengthIndex + 1);
+        int checkSumIndex = stringBuilder.lastIndexOf(CHECKSUM_FIELD);
         int length = checkSumIndex - sohIndex;
         bodyLengthIndex += BODY_LENGTH_FIELD.length();
         stringBuilder.replace(bodyLengthIndex, bodyLengthIndex + 3, NumbersCache.get(length));
     }
 
     private static void setChecksum(StringBuilder stringBuilder) {
-        int checkSumIndex = lastIndexOf(stringBuilder, CHECKSUM_FIELD);
+        int checkSumIndex = stringBuilder.lastIndexOf(CHECKSUM_FIELD);
         int checkSum = 0;
         for(int i = checkSumIndex; i-- != 0;)
             checkSum += stringBuilder.charAt(i);
         String checkSumValue = NumbersCache.get((checkSum + 1) & 0xFF); // better than sum % 256 since it avoids overflow issues
         checkSumIndex += CHECKSUM_FIELD.length();
         stringBuilder.replace(checkSumIndex + (3 - checkSumValue.length()), checkSumIndex + 3, checkSumValue);
-    }
-
-    // return index of a string in a stringbuilder without performing allocations
-    private static int indexOf(StringBuilder source, String target, int fromIndex) {
-        if (fromIndex >= source.length())
-            return (target.length() == 0 ? source.length() : -1);
-        if (fromIndex < 0)
-            fromIndex = 0;
-        if (target.length() == 0)
-            return fromIndex;
-        char first = target.charAt(0);
-        int max = source.length() - target.length();
-        for (int i = fromIndex; i <= max; i++) {
-            if (source.charAt(i) != first)
-                while (++i <= max && source.charAt(i) != first);
-            if (i <= max) {
-                int j = i + 1;
-                int end = j + target.length() - 1;
-                for (int k = 1; j < end && source.charAt(j)
-                                           == target.charAt(k); j++, k++);
-                if (j == end)
-                    return i;
-            }
-        }
-        return -1;
-    }
-
-    // return last index of a string in a stringbuilder without performing allocations
-    private static int lastIndexOf(StringBuilder source, String target) {
-        int rightIndex = source.length() - target.length();
-        int fromIndex = source.length();
-        if (fromIndex > rightIndex)
-            fromIndex = rightIndex;
-        if (target.length() == 0)
-            return fromIndex;
-        int strLastIndex = target.length() - 1;
-        char strLastChar = target.charAt(strLastIndex);
-        int min = target.length() - 1;
-        int i = min + fromIndex;
-        startSearchForLastChar:
-        while (true) {
-            while (i >= min && source.charAt(i) != strLastChar)
-                i--;
-            if (i < min)
-                return -1;
-            int j = i - 1;
-            int start = j - (target.length() - 1);
-            int k = strLastIndex - 1;
-            while (j > start)
-                if (source.charAt(j--) != target.charAt(k--)) {
-                    i--;
-                    continue startSearchForLastChar;
-                }
-            return start + 1;
-        }
     }
 
     /**
