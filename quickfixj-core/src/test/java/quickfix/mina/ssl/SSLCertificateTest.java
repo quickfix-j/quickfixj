@@ -569,6 +569,9 @@ public class SSLCertificateTest {
             IoFilterChain filterChain = ioSession.getFilterChain();
             SSLFilter sslFilter = (SSLFilter) filterChain.get(SSLSupport.FILTER_NAME);
 
+            if (sslFilter == null)
+                return null;
+
             return sslFilter.getSslSession(ioSession);
         }
 
