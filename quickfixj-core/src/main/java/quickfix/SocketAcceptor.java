@@ -99,19 +99,15 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     @Override
     public void start() throws ConfigError, RuntimeError {
-        initialize(true);
+        initialize();
     }
 
-    private void initialize(boolean blockInThread) throws ConfigError {
+    private void initialize() throws ConfigError {
         if (isStarted.equals(Boolean.FALSE)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             startAcceptingConnections();
             isStarted = Boolean.TRUE;
-            if (blockInThread) {
-                eventHandlingStrategy.blockInThread();
-            } else {
-                eventHandlingStrategy.block();
-            }
+            eventHandlingStrategy.blockInThread();
         } else {
             log.warn("Ignored attempt to start already running SocketAcceptor.");
         }

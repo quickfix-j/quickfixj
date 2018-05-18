@@ -108,7 +108,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void start() throws ConfigError, RuntimeError {
-        initialize(true);
+        initialize();
     }
 
     @Override
@@ -131,7 +131,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
         }
     }
 
-    private void initialize(boolean blockInThread) throws ConfigError {
+    private void initialize() throws ConfigError {
         if (isStarted.equals(Boolean.FALSE)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             createSessionInitiators();
@@ -140,11 +140,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
             }
             startInitiators();
             isStarted = Boolean.TRUE;
-            if (blockInThread) {
-                eventHandlingStrategy.blockInThread();
-            } else {
-                eventHandlingStrategy.block();
-            }
+            eventHandlingStrategy.blockInThread();
         } else {
             log.warn("Ignored attempt to start already running SocketInitiator.");
         }

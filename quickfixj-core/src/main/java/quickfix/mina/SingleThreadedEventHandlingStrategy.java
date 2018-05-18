@@ -81,7 +81,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         return sessionConnector;
     }
 
-    public void block() {
+    private void block() {
         while (true) {
             synchronized (this) {
                 if (isStopped) {
