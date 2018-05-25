@@ -19,7 +19,6 @@
 
 package quickfix.mina.acceptor;
 
-import junit.framework.TestCase;
 import org.quickfixj.QFJException;
 import quickfix.Application;
 import quickfix.ConfigError;
@@ -40,11 +39,23 @@ import quickfix.mina.SessionConnector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import quickfix.FileStoreFactory;
+import quickfix.Message;
+import quickfix.fix42.NewOrderSingle;
 
 import static quickfix.mina.acceptor.DynamicAcceptorSessionProvider.TemplateMapping;
 import static quickfix.mina.acceptor.DynamicAcceptorSessionProvider.WILDCARD;
 
-public class DynamicAcceptorSessionProviderTest extends TestCase {
+public class DynamicAcceptorSessionProviderTest {
     private DynamicAcceptorSessionProvider provider;
     private SessionSettings settings;
     private List<TemplateMapping> templateMappings;
@@ -52,9 +63,11 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
     private MessageStoreFactory messageStoreFactory;
     private LogFactory logFactory;
     private MessageFactory messageFactory;
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         settings = new SessionSettings();
         templateMappings = new ArrayList<>();
         application = new UnitTestApplication();
@@ -79,6 +92,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
                 messageStoreFactory, logFactory, messageFactory);
     }
 
+    @Test
     public void testSessionCreation() throws Exception {
 
         try (Session session1 = provider.getSession(new SessionID("FIX.4.2", "SENDER", "SENDERSUB",
@@ -124,6 +138,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         settings.setString(templateID, key, value);
     }
 
+    @Test
     public void testSessionTemplateNotFound() throws Exception {
         try {
             provider.getSession(new SessionID("FIX.4.3", "S", "T"), null);
@@ -133,10 +148,12 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
         }
     }
 
+    @Test
     public void testToString() throws Exception {
         templateMappings.toString(); // be sure there are no NPEs, etc.
     }
-
+    
+    @Test
     public void testSimpleConstructor() throws Exception {
         provider = new DynamicAcceptorSessionProvider(settings, new SessionID("FIX.4.2", "ANY",
                 "ANY"), application, messageStoreFactory, logFactory, messageFactory);
@@ -149,6 +166,7 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
     /**
      * Verify that if a new session comes in it gets added to the list in session connector
      */
+    @Test    
     public void testDynamicSessionIsAddedToSessionConnector() throws Exception {
         MySessionConnector connector = new MySessionConnector(settings, null);
 
@@ -165,6 +183,44 @@ public class DynamicAcceptorSessionProviderTest extends TestCase {
                 "SENDERLOC", "TARGET2", "TARGETSUB", "TARGETLOC", null);
         Session session2 = provider.getSession(id2, connector);
         assertEquals(2, connector.sessions.size());
+        session2.close();
+    }
+
+    @Test    
+    public void testDynamicSessionIsAddedToSessionConnectorAndFileStoreIsKept() throws Exception {
+        SessionID id = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        SessionID templateId = new SessionID("FIX.4.4", "ANY", "ANY");
+        SessionSettings ownSettings = new SessionSettings();
+        ownSettings.setString(id, "FileStorePath", tempFolder.getRoot().getAbsolutePath());
+        ownSettings.setString(templateId, "ConnectionType", "acceptor");
+        ownSettings.setString(templateId, "StartTime", "00:00:00");
+        ownSettings.setString(templateId, "EndTime", "00:00:00");
+
+        templateMappings.clear();   // only use own template
+        templateMappings.add(new TemplateMapping(new SessionID("FIX.4.4", WILDCARD, WILDCARD,
+                WILDCARD, WILDCARD, WILDCARD, WILDCARD, WILDCARD), templateId));
+
+        MessageStoreFactory ownMessageStoreFactory = new FileStoreFactory(ownSettings);
+        provider = new DynamicAcceptorSessionProvider(ownSettings, templateMappings, application,
+                ownMessageStoreFactory, logFactory, messageFactory);
+
+        MySessionConnector connector = new MySessionConnector(ownSettings, null);
+        Session session2 = provider.getSession(id, connector);
+        assertEquals(1, connector.sessions.size());
+        
+        assertEquals(1, session2.getStore().getNextSenderMsgSeqNum() );
+        Message message = new NewOrderSingle();
+        session2.send(message);
+        assertEquals(2, session2.getStore().getNextSenderMsgSeqNum() );
+        session2.close();
+        
+        session2 = provider.getSession(id, connector);
+        assertEquals(1, connector.sessions.size());
+
+        assertEquals(2, session2.getStore().getNextSenderMsgSeqNum() );
+        message = new NewOrderSingle();
+        session2.send(message);
+        assertEquals(3, session2.getStore().getNextSenderMsgSeqNum() );
         session2.close();
     }
 

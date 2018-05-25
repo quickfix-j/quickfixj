@@ -53,6 +53,7 @@ import java.util.TimeZone;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static quickfix.SessionFactoryTestSupport.createSession;
+import quickfix.field.NextExpectedMsgSeqNum;
 
 /**
  * Note: most session tests are in the form of acceptance tests.
@@ -898,7 +899,7 @@ public class SessionTest {
             session.setResponder(responder);
             session.logon();
             session.next();
-            setUpHeader(session.getSessionID(), logonRequest, true, 3);
+            setUpHeader(session.getSessionID(), logonRequest, true, 4);
             logonRequest.setString(EncryptMethod.FIELD, "99");
             logonRequest.toString();    // calculate length and checksum
             session.next(logonRequest);
@@ -909,6 +910,21 @@ public class SessionTest {
             assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
             assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
+            session.setResponder(responder);
+            session.logon();
+            session.next();
+            setUpHeader(session.getSessionID(), logonRequest, true, 5);
+            logonRequest.setString(EncryptMethod.FIELD, "0");
+            logonRequest.setString(NextExpectedMsgSeqNum.FIELD, "XXX");
+            logonRequest.toString();    // calculate length and checksum
+            session.next(logonRequest);
+            // session should not be logged on due to IncorrectTagValue
+            assertFalse(session.isLoggedOn());
+
+            assertEquals(5, application.lastToAdminMessage().getHeader().getInt(MsgSeqNum.FIELD));
+            assertEquals(MsgType.LOGOUT, application.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+            assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(6, session.getStore().getNextSenderMsgSeqNum());
         }
     }
 
