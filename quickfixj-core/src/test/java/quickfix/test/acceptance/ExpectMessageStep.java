@@ -34,6 +34,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +49,7 @@ public class ExpectMessageStep implements TestStep {
     private static final Pattern FIELD_PATTERN = Pattern.compile("(\\d+)=([^\\001]+)\\001");
     private int clientId = 0;
     private static final int heartBeatOverride;
+    private final ExecutorService newSingleThreadExecutor = Executors.newSingleThreadExecutor();
 
     static {
         final String hbi = System.getProperty("atest.heartbeat");
@@ -74,32 +78,55 @@ public class ExpectMessageStep implements TestStep {
 
     public void run(TestResult result, final TestConnection connection) throws InterruptedException {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
+        Runnable command = () -> {
+            try {
+                int numberOfThreadDumps = 0;
+                while (numberOfThreadDumps <= 5) {
+                    Thread.sleep(1000);
+                    log.info("XXXX Dumping threads before timeout when expecting a message...");
+                    dumpThreads();
+                    numberOfThreadDumps++;
+                }
+            } catch (InterruptedException ex) {
+                // ignore
+            }
+        };
+
+        Future<?> submit = newSingleThreadExecutor.submit(command);
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
             log.info("Dumping threads due to timeout when expecting a message...");
-            ReflectionUtil.dumpStackTraces();
-            final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-            long[] threadIds = bean.findDeadlockedThreads();
-
-            final List<String> deadlockedThreads = new ArrayList<>();
-            if (threadIds != null) {
-                for (long threadId : threadIds) {
-                    final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
-                    deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
-                            + " state: " + threadInfo.getThreadState());
-                }
-            }
-            if (!deadlockedThreads.isEmpty()) {
-                log.error("Showing deadlocked threads:");
-                for (String deadlockedThread : deadlockedThreads) {
-                    log.error(deadlockedThread);
-                }
-            }
+            dumpThreads();
+            submit.cancel(true);
+            newSingleThreadExecutor.shutdownNow();
             Assert.fail("message timeout: expected=" + expectedFields);
         }
+        submit.cancel(true);
+        newSingleThreadExecutor.shutdownNow();
         Map<String, String> actualFields = simpleParse(message.toString());
         log.debug("actual: " + message);
         assertMessageEqual(actualFields);
+    }
+
+    private void dumpThreads() {
+        ReflectionUtil.dumpStackTraces();
+        final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        long[] threadIds = bean.findDeadlockedThreads();
+        
+        final List<String> deadlockedThreads = new ArrayList<>();
+        if (threadIds != null) {
+            for (long threadId : threadIds) {
+                final ThreadInfo threadInfo = bean.getThreadInfo(threadId);
+                deadlockedThreads.add(threadInfo.getThreadId() + ": " + threadInfo.getThreadName()
+                        + " state: " + threadInfo.getThreadState());
+            }
+        }
+        if (!deadlockedThreads.isEmpty()) {
+            log.error("Showing deadlocked threads:");
+            for (String deadlockedThread : deadlockedThreads) {
+                log.error(deadlockedThread);
+            }
+        }
     }
 
     private static final HashSet<String> timeFields = new HashSet<>();
