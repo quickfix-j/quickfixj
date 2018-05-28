@@ -89,6 +89,7 @@ public class TestConnection {
             SessionConnector.closeManagedSessionsAndDispose(connector, true, log);
         }
 
+        System.out.println("quickfix.test.acceptance.TestConnection.connect() 1");
         SocketAddress address;
         if (transportType == ProtocolFactory.SOCKET) {
             connector = new NioSocketConnector();
@@ -101,13 +102,16 @@ public class TestConnection {
         }
         connectors.put(Integer.toString(clientId), connector);
 
+        System.out.println("quickfix.test.acceptance.TestConnection.connect() 2");
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {
             ioHandlers.put(clientId, testIoHandler);
             connector.setHandler(testIoHandler);
             ConnectFuture future = connector.connect(address);
+            System.out.println("quickfix.test.acceptance.TestConnection.connect() 3");
             future.awaitUninterruptibly(5000L);
             Assert.assertTrue("connection to server failed", future.isConnected());
+            System.out.println("quickfix.test.acceptance.TestConnection.connect() 4");
         }
     }
 

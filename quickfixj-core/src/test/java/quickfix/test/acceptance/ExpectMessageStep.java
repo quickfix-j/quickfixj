@@ -80,7 +80,10 @@ public class ExpectMessageStep implements TestStep {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
         Runnable command = () -> {
             try {
-                final long timeout = TIMEOUT_IN_MS - 5000;
+                final long initialWait = TIMEOUT_IN_MS - 5000;
+                if (initialWait > 0) {
+                    Thread.sleep(initialWait);
+                }
                 int numberOfThreadDumps = 0;
                 while (numberOfThreadDumps <= 5) {
                     log.info("XXXX Dumping threads before timeout when expecting a message...");
