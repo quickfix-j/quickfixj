@@ -86,7 +86,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
             synchronized (this) {
                 if (isStopped) {
                     if (!eventQueue.isEmpty()) {
-                        final List<SessionMessageEvent> tempList = new ArrayList<>();
+                        final List<SessionMessageEvent> tempList = new ArrayList<>(eventQueue.size());
                         queueTracker.drainTo(tempList);
                         for (SessionMessageEvent event : tempList) {
                             event.processMessage();
@@ -176,7 +176,7 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     public void stopHandlingMessages(boolean join) {
         stopHandlingMessages();
-
+        messageProcessingThread.interrupt();
         if (join) {
             try {
                 messageProcessingThread.join();
@@ -207,25 +207,31 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 		private final RunnableWrapper wrapper;
 
 		ThreadAdapter(Runnable command, String name, Executor executor) {
-			wrapper = new RunnableWrapper(command, name);
-			this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
+                    wrapper = new RunnableWrapper(command, name);
+                    this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
 		}
 
 		public void join() throws InterruptedException {
-			wrapper.join();
+                    wrapper.join();
 		}
 
 		public void setDaemon(boolean b) {
-			/* No-Op. Already set for DedicatedThreadExecutor. Not relevant for externally supplied Executors. */
+                    /* No-Op. Already set for DedicatedThreadExecutor. Not relevant for externally supplied Executors. */
 		}
 
 		public boolean isAlive() {
-			return wrapper.isAlive();
+                    return wrapper.isAlive();
 		}
 
 		public void start() {
-			executor.execute(wrapper);
+                    executor.execute(wrapper);
 		}
+                
+                public void interrupt() {
+                    if (executor instanceof DedicatedThreadExecutor) {
+                        ((DedicatedThreadExecutor)executor).interrupt();
+                    }
+                }
 
 		/**
 		 * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
@@ -263,16 +269,16 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 			public boolean isAlive() {
                             return latch.getCount() > 0;
 			}
-
 		}
 
 		/**
-		 * An Executor that uses it's own dedicated Thread.
+		 * An Executor that uses its own dedicated Thread.
 		 * Provides equivalent behavior to the prior non-Executor approach.
 		 */
 		static final class DedicatedThreadExecutor implements Executor {
 
 			private final String name;
+                        private Thread thread;
 			
 			DedicatedThreadExecutor(String name) {
 				this.name = name;
@@ -280,11 +286,16 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
 			@Override
 			public void execute(Runnable command) {
-				Thread thread = new Thread(command, name);
+				thread = new Thread(command, name);
 				thread.setDaemon(true);
 				thread.start();
 			}
-
+                        
+                        public void interrupt() {
+                            if (thread != null) {
+                                thread.interrupt();
+                            }
+                        }
 		}
 
 	}
