@@ -40,8 +40,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -383,7 +381,6 @@ public class SocketInitiatorTest {
                 assertEquals("Client application should receive logout", 1, clientApplication.logoutCounter);
 
                 clientApplication.setUpLogonExpectation();
-
                 initiator.start();
                 clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
@@ -460,26 +457,27 @@ public class SocketInitiatorTest {
             throws InterruptedException {
         assertNotNull("no client session", clientSession);
         
-        final ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
-            executor.execute(() -> {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ex) {
-                    // ignore
-                }
-                if ( clientApplication.logonLatch.getCount() > 0 ) {
-                    System.err.println("XXX Dumping threads since latch count is not zero...");
-                    ReflectionUtil.dumpStackTraces();
-                }
-            });
-        } finally {
-            executor.shutdown();
-        }
+//        final ExecutorService executor = Executors.newSingleThreadExecutor();
+//        try {
+//            executor.execute(() -> {
+//                try {
+//                    Thread.sleep(5000);
+//                } catch (InterruptedException ex) {
+//                    // ignore
+//                }
+//                if ( clientApplication.logonLatch.getCount() > 0 ) {
+//                    System.err.println("XXX Dumping threads since latch count is not zero...");
+//                    ReflectionUtil.dumpStackTraces();
+//                }
+//            });
+//        } finally {
+//            executor.shutdown();
+//        }
 
         final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS); 
         assertTrue("Expected logon did not occur", await); 
         assertTrue("client session not logged in", clientSession.isLoggedOn());
+//        executor.shutdownNow();
     }
 
     private void assertLoggedOut(ClientApplication clientApplication, Session clientSession)
