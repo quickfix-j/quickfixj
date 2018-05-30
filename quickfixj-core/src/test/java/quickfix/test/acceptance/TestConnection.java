@@ -136,7 +136,7 @@ public class TestConnection {
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
-            System.out.println("XXXXXXXXX quickfix.test.acceptance.TestConnection.TestIoHandler.messageReceived() " + message);
+            System.out.println("XXXX recvd from client  : " + message);
             messages.add(message);
         }
 
