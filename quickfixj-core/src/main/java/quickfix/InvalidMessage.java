@@ -32,4 +32,9 @@ public class InvalidMessage extends Exception {
     public InvalidMessage(String message) {
         super(message);
     }
+    
+    public InvalidMessage(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

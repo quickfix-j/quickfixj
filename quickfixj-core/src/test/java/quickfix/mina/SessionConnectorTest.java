@@ -19,7 +19,6 @@
 
 package quickfix.mina;
 
-import org.junit.Test;
 import quickfix.Acceptor;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
@@ -47,12 +46,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class SessionConnectorTest {
     private final List<PropertyChangeEvent> propertyChangeEvents = new ArrayList<>();
@@ -193,10 +192,11 @@ public class SessionConnectorTest {
         session.close();
         session2.close();
     }
-        /**
-         * Test dynamic initiator sessions
-         */
-        @Test
+
+    /**
+     * Test dynamic initiator sessions
+     */
+    @Test
     public void testDynamicInitiatorSession() throws Exception {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
         SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "me", "you");
@@ -238,7 +238,6 @@ public class SessionConnectorTest {
         for(Session s:sessions){
             s.close();
         }
-
     }
 
     private SessionSettings setUpSessionSettings(SessionID sessionID) {

@@ -545,11 +545,11 @@ public class SSLCertificateTest {
 
         private SessionConnector prepareConnector(SessionSettings sessionSettings) throws ConfigError {
             SessionConnector sessionConnector = createConnector(sessionSettings);
-            sessionConnector.setIoFilterChainBuilder(chain -> chain.addLast("SSL exception handler", new IoFilterAdapter() {
+            sessionConnector.setIoFilterChainBuilder(chain -> chain.addFirst("Exception handler", new IoFilterAdapter() {
                 @Override
                 public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause)
                         throws Exception {
-                    LOGGER.info("SSL exception", cause);
+                    LOGGER.info("exceptionCaught", cause);
                     exceptionThrownLatch.countDown();
                     nextFilter.exceptionCaught(session, cause);
                 }
@@ -568,9 +568,11 @@ public class SSLCertificateTest {
 
             IoFilterChain filterChain = ioSession.getFilterChain();
             SSLFilter sslFilter = (SSLFilter) filterChain.get(SSLSupport.FILTER_NAME);
-            SSLSession sslSession = sslFilter.getSslSession(ioSession);
 
-            return sslSession;
+            if (sslFilter == null)
+                return null;
+
+            return sslFilter.getSslSession(ioSession);
         }
 
         private Session findSession(SessionID sessionID) {
@@ -591,9 +593,7 @@ public class SSLCertificateTest {
             Field field = IoSessionResponder.class.getDeclaredField("ioSession");
             field.setAccessible(true);
 
-            IoSession ioSession = (IoSession) field.get(ioSessionResponder);
-
-            return ioSession;
+            return (IoSession) field.get(ioSessionResponder);
         }
 
         public void assertAuthenticated(SessionID sessionID, BigInteger serialNumber) throws Exception {
@@ -621,7 +621,7 @@ public class SSLCertificateTest {
             try {
                 X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
 
-                if (peerCertificateChain != null & peerCertificateChain.length > 0) {
+                if (peerCertificateChain != null && peerCertificateChain.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
             } catch (SSLPeerUnverifiedException e) {
@@ -681,10 +681,8 @@ public class SSLCertificateTest {
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
 
-            ThreadedSocketAcceptor socketAcceptor = new ThreadedSocketAcceptor(new ApplicationAdapter(),
+            return new ThreadedSocketAcceptor(new ApplicationAdapter(),
                     messageStoreFactory, sessionSettings, messageFactory);
-
-            return socketAcceptor;
         }
     }
 
@@ -702,10 +700,8 @@ public class SSLCertificateTest {
             MessageStoreFactory messageStoreFactory = new MemoryStoreFactory();
             MessageFactory messageFactory = new DefaultMessageFactory();
 
-            ThreadedSocketInitiator socketInitiator = new ThreadedSocketInitiator(new ApplicationAdapter(),
+            return new ThreadedSocketInitiator(new ApplicationAdapter(),
                     messageStoreFactory, sessionSettings, messageFactory);
-
-            return socketInitiator;
         }
 
     }

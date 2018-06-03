@@ -151,8 +151,8 @@ public class FieldConvertersTest extends TestCase {
     public void testBooleanConversion() throws Exception {
         assertEquals("Y", BooleanConverter.convert(true));
         assertEquals("N", BooleanConverter.convert(false));
-        assertEquals(true, BooleanConverter.convert("Y"));
-        assertEquals(false, BooleanConverter.convert("N"));
+        assertTrue(BooleanConverter.convert("Y"));
+        assertFalse(BooleanConverter.convert("N"));
         try {
             BooleanConverter.convert("D");
             fail();

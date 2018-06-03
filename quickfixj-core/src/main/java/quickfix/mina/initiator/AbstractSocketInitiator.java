@@ -77,9 +77,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected void createSessionInitiators()
             throws ConfigError {
         try {
-            // QFJ698: clear() is needed on restart, otherwise the set gets filled up with
-            // more and more initiators which are not equal because the local port differs
-            initiators.clear();
             createSessions();
             for (final Session session : getSessionMap().values()) {
                 createInitiator(session);
@@ -295,8 +292,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     protected void stopInitiators() {
-        for (final IoSessionInitiator initiator : initiators) {
-            initiator.stop();
+        for (Iterator<IoSessionInitiator> iterator = initiators.iterator(); iterator.hasNext();) {
+            iterator.next().stop();
+            iterator.remove();
         }
         super.stopSessionTimer();
     }

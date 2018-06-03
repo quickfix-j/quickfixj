@@ -162,10 +162,9 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     }
 
     private static long getTimeOffsetSeconds(String value) {
-        long timeOffset = (parseLong(value.substring(9, 11)) * 3600000L)
+        return (parseLong(value.substring(9, 11)) * 3600000L)
                 + (parseLong(value.substring(12, 14)) * 60000L)
                 + (parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
-        return timeOffset;
     }
 
     private static void verifyFormat(String value) throws FieldConvertError {

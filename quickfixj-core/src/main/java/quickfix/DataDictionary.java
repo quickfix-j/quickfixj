@@ -62,8 +62,8 @@ public class DataDictionary {
     public static final String ANY_VALUE = "__ANY__";
     public static final String HEADER_ID = "HEADER";
     public static final String TRAILER_ID = "TRAILER";
-    private static final String MESSAGE_CATEGORY_ADMIN = "admin".intern();
-    private static final String MESSAGE_CATEGORY_APP = "app".intern();
+    private static final String MESSAGE_CATEGORY_ADMIN = "admin";
+    private static final String MESSAGE_CATEGORY_APP = "app";
 
     private static final int USER_DEFINED_TAG_MIN = 5000;
     private static final String NO = "N";
@@ -812,6 +812,18 @@ public class DataDictionary {
         }
     }
 
+    private int countElementNodes(NodeList nodes) {
+        int elementNodesCount = 0;
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            if (nodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                elementNodesCount++;
+            }
+        }
+
+        return elementNodesCount;
+    }
+
     private void read(String location) throws ConfigError {
         final InputStream inputStream = FileUtil.open(getClass(), location, URL, FILESYSTEM,
                 CONTEXT_RESOURCE, CLASSLOADER_RESOURCE);
@@ -885,7 +897,7 @@ public class DataDictionary {
         }
 
         final NodeList fieldNodes = fieldsNode.item(0).getChildNodes();
-        if (fieldNodes.getLength() == 0) {
+        if (countElementNodes(fieldNodes) == 0) {
             throw new ConfigError("No fields defined");
         }
 
@@ -932,7 +944,7 @@ public class DataDictionary {
 
                 if (fieldValues.containsKey(num)) {
                     final String allowOtherValues = getAttribute(fieldNode, "allowOtherValues");
-                    if (allowOtherValues != null && Boolean.parseBoolean(allowOtherValues)) {
+                    if (Boolean.parseBoolean(allowOtherValues)) {
                         addFieldValue(num, ANY_VALUE);
                     }
                 }
@@ -964,7 +976,7 @@ public class DataDictionary {
         }
 
         final NodeList messageNodes = messagesNode.item(0).getChildNodes();
-        if (messageNodes.getLength() == 0) {
+        if (countElementNodes(messageNodes) == 0) {
             throw new ConfigError("No messages defined");
         }
 
@@ -1000,7 +1012,7 @@ public class DataDictionary {
     private void load(Document document, String msgtype, Node node) throws ConfigError {
         String name;
         final NodeList fieldNodes = node.getChildNodes();
-        if (fieldNodes.getLength() == 0) {
+        if (countElementNodes(fieldNodes) == 0) {
             throw new ConfigError("No fields found: msgType=" + msgtype);
         }
 
@@ -1212,7 +1224,7 @@ public class DataDictionary {
          */
         @Override
         public String toString() {
-            return new StringBuilder('(').append(intValue).append(',').append(stringValue).append(')').toString();
+            return '(' + intValue + ',' + stringValue + ')';
         }
     }
 

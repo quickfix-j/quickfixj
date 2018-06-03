@@ -28,7 +28,6 @@ import quickfix.SessionID;
  * it only handles message reception events.
  */
 public interface EventHandlingStrategy {
-
     /**
      * Constant indicating how long we wait for an incoming message. After
      * thread has been asked to stop, it can take up to this long to terminate.

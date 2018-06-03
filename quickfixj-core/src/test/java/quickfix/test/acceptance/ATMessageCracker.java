@@ -33,7 +33,7 @@ import java.util.HashSet;
 
 class ATMessageCracker extends quickfix.MessageCracker {
 
-    private HashSet<Pair> orderIDs = new HashSet<>();
+    private final HashSet<Pair> orderIDs = new HashSet<>();
 
     public void reset() {
         orderIDs.clear();
@@ -61,6 +61,16 @@ class ATMessageCracker extends quickfix.MessageCracker {
     }
 
     public void onMessage(quickfix.fix50.NewOrderSingle message, SessionID sessionID)
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        process(message, sessionID);
+    }
+
+    public void onMessage(quickfix.fix50sp1.NewOrderSingle message, SessionID sessionID)
+            throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
+        process(message, sessionID);
+    }
+
+    public void onMessage(quickfix.fix50sp2.NewOrderSingle message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         process(message, sessionID);
     }

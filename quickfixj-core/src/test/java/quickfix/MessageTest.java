@@ -21,9 +21,11 @@ package quickfix;
 
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
+
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
+import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.AvgPx;
 import quickfix.field.BeginString;
@@ -128,6 +130,7 @@ import quickfix.field.TradeDate;
 import quickfix.field.TradeReportID;
 import quickfix.fix44.TradeCaptureReport;
 
+
 public class MessageTest {
 
     @Test
@@ -151,8 +154,8 @@ public class MessageTest {
 
     private NewOrderSingle createNewOrderSingle() {
         return new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
-                HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC), new Symbol("ORCL"),
-                new Side(Side.BUY), new TransactTime(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)), new OrdType(OrdType.LIMIT));
+			HandlInst.AUTOMATED_EXECUTION_ORDER_PUBLIC_BROKER_INTERVENTION_OK), new Symbol("ORCL"),
+			new Side(Side.BUY), new TransactTime(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)), new OrdType(OrdType.LIMIT));
     }
 
     @Test
@@ -185,6 +188,67 @@ public class MessageTest {
         myMessage.getHeader().setField(new TargetCompID("bar"));
 
         assertTrue(myMessage.toString().contains("52=20120922-11:00:00\00134=22\00149=foo\00156=bar"));
+    }
+    
+    
+    @Test
+    public void testHeaderFieldWithCustomTransportDictionaryConstructorReadsHeaderField() throws Exception {
+
+        final DataDictionary customSessionDictionary = new DataDictionary("FIXT11_Custom_Test.xml");
+        customSessionDictionary.setAllowUnknownMessageFields(false);
+
+        final DataDictionary standardSessionDictionary = new DataDictionary("FIXT11.xml");
+        standardSessionDictionary.setAllowUnknownMessageFields(false);
+
+        final DataDictionary applicationDictionary = new DataDictionary("FIX50.xml");
+        applicationDictionary.setAllowUnknownMessageFields(false);
+
+        final String sep = "\001";
+        final StringBuilder sb = new StringBuilder();
+        sb.append("8=FIXT1.1");
+        sb.append(sep);
+        sb.append("9=112");
+        sb.append(sep);
+        sb.append("35=6");
+        sb.append(sep);
+        sb.append("49=SENDER_COMP_ID");
+        sb.append(sep);
+        sb.append("56=TARGET_COMP_ID");
+        sb.append(sep);
+        sb.append("34=20");
+        sb.append(sep);
+        sb.append("52=20120922-11:00:00");
+        sb.append(sep);
+        sb.append("12312=foo");
+        sb.append(sep);
+        sb.append("23=123456");
+        sb.append(sep);
+        sb.append("28=N");
+        sb.append(sep);
+        sb.append("55=[N/A]");
+        sb.append(sep);
+        sb.append("54=1");
+        sb.append(sep);
+        sb.append("27=U");
+        sb.append(sep);
+        sb.append("10=52");
+        sb.append(sep);
+        final String messageData = sb.toString();
+
+        final Message standardMessage = new Message(messageData, standardSessionDictionary, applicationDictionary, true);
+
+        // Test that field is in body not the header
+        assertTrue(standardMessage.toString().contains("12312=foo"));
+        assertFalse(standardMessage.getHeader().isSetField(12312));
+        assertTrue(standardMessage.isSetField(12312));
+        assertEquals("foo", standardMessage.getString(12312));
+
+        // Test that field is correctly classified in header with customSessionDictionary
+        final Message customMessage = new Message(messageData, customSessionDictionary, applicationDictionary, true);
+        assertTrue(customMessage.toString().contains("12312=foo"));
+        assertTrue(customMessage.getHeader().isSetField(12312));
+        assertEquals("foo", customMessage.getHeader().getString(12312));
+        assertFalse(customMessage.isSetField(12312));
     }
 
     @Test
@@ -239,14 +303,16 @@ public class MessageTest {
 
     private void doTestMessageWithEncodedField(String charset, String text) throws Exception {
         CharsetSupport.setCharset(charset);
+        NewOrderSingle order = createNewOrderSingle();
+        NewOrderSingle.IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
         try {
-            NewOrderSingle order = createNewOrderSingle();
             order.set(new EncodedTextLen(MessageUtils.length(CharsetSupport.getCharsetInstance(), text)));
             order.set(new EncodedText(text));
             final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary());
             assertEquals(charset + " encoded field", text, msg.getString(EncodedText.FIELD));
         } finally {
             CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+            NewOrderSingle.IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
         }
     }
 
@@ -259,7 +325,7 @@ public class MessageTest {
         doTestMessageWithEncodedField("ISO-2022-JP", text);
         doTestMessageWithEncodedField("Shift_JIS", text);
         doTestMessageWithEncodedField("GBK", text);
-        //doTestMessageWithEncodedField("UTF-16", text); // double-byte charset not supported yet
+//        doTestMessageWithEncodedField("UTF-16", text); // double-byte charset not supported yet
     }
 
     @Test
@@ -589,6 +655,11 @@ public class MessageTest {
     }
 
     @Test
+    public void testApplExtIDIsHeaderField() {
+        assertTrue(Message.isHeaderField(ApplExtID.FIELD));
+    }
+
+    @Test
     public void testCalculateStringWithNestedGroups() throws Exception {
         final NewOrderCross noc = new NewOrderCross();
         noc.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIX44);
@@ -605,7 +676,7 @@ public class MessageTest {
         noc.setString(TransactTime.FIELD, "20060319-09:08:19");
         noc.setString(CrossID.FIELD, "184214");
         noc.setInt(CrossType.FIELD,
-                CrossType.CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED);
+                CrossType.CROSS_IOC_CROSS_TRADE_WHICH_IS_EXECUTED_PARTIALLY_AND_THE_REST_IS_CANCELLED_ONE_SIDE_IS_FULLY_EXECUTED_THE_OTHER_SIDE_IS_PARTIALLY_EXECUTED_WITH_THE_REMAINDER_BEING_CANCELLED_THIS_IS_EQUIVALENT_TO_AN_IOC_ON_THE_OTHER_SIDE_NOTE_CROSSPRIORITIZATION_FIELD_MAY_BE_USED_TO_INDICATE_WHICH_SIDE_SHOULD_FULLY_EXECUTE_IN_THIS_SCENARIO_);
         noc.setInt(CrossPrioritization.FIELD, CrossPrioritization.NONE);
 
         final NewOrderCross.NoSides side = new NewOrderCross.NoSides();
@@ -719,7 +790,7 @@ public class MessageTest {
         try {
             message = new Message("8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001");
         } catch (final InvalidMessage e) {
-            assertTrue("Message should be valid (" + e.getMessage() + ")", false);
+            fail("Message should be valid (" + e.getMessage() + ")");
         }
         assertEquals("8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001", message.toString());
     }
@@ -789,7 +860,7 @@ public class MessageTest {
         final Message message = new quickfix.fix44.NewOrderSingle();
         final quickfix.fix44.NewOrderSingle.NoPartyIDs partyIdGroup = new quickfix.fix44.NewOrderSingle.NoPartyIDs();
         partyIdGroup.set(new PartyID("PARTY_1"));
-        partyIdGroup.set(new PartyIDSource(PartyIDSource.DIRECTED_BROKER));
+        partyIdGroup.set(new PartyIDSource(PartyIDSource.DIRECTED_BROKER_THREE_CHARACTER_ACRONYM_AS_DEFINED_IN_ISITC_ETC_BEST_PRACTICE_GUIDELINES_DOCUMENT));
         partyIdGroup.set(new PartyRole(PartyRole.INTRODUCING_FIRM));
         message.addGroup(partyIdGroup);
         final Message clonedMessage = (Message) message.clone();
@@ -931,7 +1002,7 @@ public class MessageTest {
 
         try {
             message.getString(5);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -940,12 +1011,12 @@ public class MessageTest {
         try {
             assertEquals("string5", message.getString(5));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
 
         try {
             message.setString(100, null);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final NullPointerException e) {
         }
     }
@@ -956,16 +1027,16 @@ public class MessageTest {
 
         try {
             message.getBoolean(7);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
         message.setBoolean(7, true);
 
         try {
-            assertEquals(true, message.getBoolean(7));
+            assertTrue(message.getBoolean(7));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -975,7 +1046,7 @@ public class MessageTest {
 
         try {
             message.getChar(12);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -984,7 +1055,7 @@ public class MessageTest {
         try {
             assertEquals('a', message.getChar(12));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -994,7 +1065,7 @@ public class MessageTest {
 
         try {
             message.getInt(56);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -1003,7 +1074,7 @@ public class MessageTest {
         try {
             assertEquals(23, message.getInt(56));
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1013,7 +1084,7 @@ public class MessageTest {
 
         try {
             message.getDouble(9812);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -1022,7 +1093,7 @@ public class MessageTest {
         try {
             assertEquals(12.3443, message.getDouble(9812), 1e-10);
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1032,7 +1103,7 @@ public class MessageTest {
 
         try {
             message.getUtcTimeStamp(8);
-            assertTrue("exception not thrown", false);
+            fail("exception not thrown");
         } catch (final FieldNotFound e) {
         }
 
@@ -1047,7 +1118,7 @@ public class MessageTest {
         try {
             assertEquals(message.getUtcTimeStamp(8), time);
         } catch (final FieldNotFound e) {
-            assertTrue("exception thrown", false);
+            fail("exception thrown");
         }
     }
 
@@ -1064,7 +1135,7 @@ public class MessageTest {
     public void testMessageIterator() {
         Message message = new Message();
         java.util.Iterator<Field<?>> i = message.iterator();
-        assertEquals(false, i.hasNext());
+        assertFalse(i.hasNext());
         try {
             assertNull(i.next());
             fail("exception not thrown");
@@ -1079,7 +1150,7 @@ public class MessageTest {
             assertEquals(108, field.getField());
             assertEquals("30", field.getValue());
 
-            assertEquals(false, i.hasNext());
+            assertFalse(i.hasNext());
             try {
                 assertNull(i.next());
                 fail("exception not thrown");
@@ -1098,7 +1169,7 @@ public class MessageTest {
             assertEquals(35, field.getField());
             assertEquals("A", field.getValue());
 
-            assertEquals(false, j.hasNext());
+            assertFalse(j.hasNext());
             try {
                 assertNull(j.next());
                 fail("exception not thrown");
@@ -1747,6 +1818,22 @@ public class MessageTest {
         Group group = message.getGroup(1, 711);
         String underlyingSymbol = group.getString(311);
         assertEquals("780508", underlyingSymbol);
+    }
+
+    @Test
+    // QFJ-940
+    public void testRawString() throws Exception {
+
+        String test = "8=FIX.4.4|9=431|35=d|49=1|34=2|52=20140117-18:20:26.629|56=3|57=21|322=388721|"
+                + "323=4|320=1|393=42|82=1|67=1|711=1|311=780508|309=text|305=8|463=FXXXXX|307=text|542=20140716|"
+                + "436=10.0|9013=1.0|9014=1.0|9017=10|9022=1|9024=1.0|9025=Y|916=20140701|917=20150731|9201=23974|"
+                + "9200=17|9202=text|9300=727|9301=text|9302=text|9303=text|998=text|9100=text|9101=text|9085=text|"
+                + "9083=0|9084=0|9061=579|9062=text|9063=text|9032=10.0|9002=F|9004=780415|9005=780503|10=223|";
+        
+        DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        Message message = new Message();
+        message.fromString(test.replaceAll("\\|", "\001"), dictionary, true);
+        assertEquals(test, message.toRawString().replaceAll("\001", "\\|"));
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)

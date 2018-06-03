@@ -33,6 +33,8 @@ import org.quickfixj.CharsetSupport;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
@@ -101,6 +103,10 @@ public class Message extends FieldMap {
     public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
         fromString(string, dd, validate);
     }
+    
+    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, boolean validate) throws InvalidMessage {
+        fromString(string, sessionDictionary, applicationDictionary, validate);
+    }
 
     public static boolean InitializeXML(String url) {
         throw new UnsupportedOperationException();
@@ -123,23 +129,91 @@ public class Message extends FieldMap {
         return message;
     }
 
+    private static final class Context {
+        private final BodyLength bodyLength = new BodyLength(100);
+        private final CheckSum checkSum = new CheckSum("000");
+        private final StringBuilder stringBuilder = new StringBuilder(1024);
+    }
+
+    private static final ThreadLocal<Context> stringContexts = new ThreadLocal<Context>() {
+        @Override
+        protected Context initialValue() {
+            return new Context();
+        }
+    };
+
+    protected static boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+
     /**
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
      * since FieldMap.calculateString() is iterating over the TreeMap of fields.
+     * 
+     * Use toRawString() to get the raw message data.
+     * 
+     * @return Message as String with calculated body length and checksum.
      */
     @Override
     public String toString() {
-        final int bodyLength = bodyLength();
-        header.setInt(BodyLength.FIELD, bodyLength);
-        trailer.setString(CheckSum.FIELD, checksum());
+        Context context = stringContexts.get();
+        if (IS_STRING_EQUIVALENT) { // length & checksum can easily be calculated after message is built
+            header.setField(context.bodyLength);
+            trailer.setField(context.checkSum);
+        } else {
+            header.setInt(BodyLength.FIELD, bodyLength());
+            trailer.setString(CheckSum.FIELD, checksum());
+        }
+        StringBuilder stringBuilder = context.stringBuilder;
+        try {
+            header.calculateString(stringBuilder, null, null);
+            calculateString(stringBuilder, null, null);
+            trailer.calculateString(stringBuilder, null, null);
+            if (IS_STRING_EQUIVALENT) {
+                setBodyLength(stringBuilder);
+                setChecksum(stringBuilder);
+            }
+            return stringBuilder.toString();
+        } finally {
+            stringBuilder.setLength(0);
+        }
+    }
 
-        final StringBuilder sb = new StringBuilder(bodyLength);
-        header.calculateString(sb, null, null);
-        calculateString(sb, null, null);
-        trailer.calculateString(sb, null, null);
+    private static final String SOH = String.valueOf('\001');
+    private static final String BODY_LENGTH_FIELD = SOH + String.valueOf(BodyLength.FIELD) + '=';
+    private static final String CHECKSUM_FIELD = SOH + String.valueOf(CheckSum.FIELD) + '=';
 
-        return sb.toString();
+    private static void setBodyLength(StringBuilder stringBuilder) {
+        int bodyLengthIndex = stringBuilder.indexOf(BODY_LENGTH_FIELD, 0);
+        int sohIndex = stringBuilder.indexOf(SOH, bodyLengthIndex + 1);
+        int checkSumIndex = stringBuilder.lastIndexOf(CHECKSUM_FIELD);
+        int length = checkSumIndex - sohIndex;
+        bodyLengthIndex += BODY_LENGTH_FIELD.length();
+        stringBuilder.replace(bodyLengthIndex, bodyLengthIndex + 3, NumbersCache.get(length));
+    }
+
+    private static void setChecksum(StringBuilder stringBuilder) {
+        int checkSumIndex = stringBuilder.lastIndexOf(CHECKSUM_FIELD);
+        int checkSum = 0;
+        for(int i = checkSumIndex; i-- != 0;)
+            checkSum += stringBuilder.charAt(i);
+        String checkSumValue = NumbersCache.get((checkSum + 1) & 0xFF); // better than sum % 256 since it avoids overflow issues
+        checkSumIndex += CHECKSUM_FIELD.length();
+        stringBuilder.replace(checkSumIndex + (3 - checkSumValue.length()), checkSumIndex + 3, checkSumValue);
+    }
+
+    /**
+     * Return the raw message data as it was passed to the Message class.
+     * 
+     * This is only available after Message has been parsed via constructor or Message.fromString().
+     * Otherwise this method will return NULL.
+     * 
+     * This method neither does change fields nor calculate body length or checksum.
+     * Use toString() for that purpose.
+     * 
+     * @return Message as String without recalculating body length and checksum.
+     */
+    public String toRawString() {
+        return messageData;
     }
 
     public int bodyLength() {
@@ -342,6 +416,12 @@ public class Message extends FieldMap {
         header.clear();
         trailer.clear();
         position = 0;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        this.position = 0;
     }
 
     public static class Header extends FieldMap {
@@ -583,9 +663,7 @@ public class Message extends FieldMap {
         try {
             declaredGroupCount = Integer.parseInt(field.getValue());
         } catch (final NumberFormatException e) {
-            InvalidMessage invalidMessage = new InvalidMessage("Repeating group count requires an Integer but found:" +field.getValue());
-            invalidMessage.initCause(e);
-            throw invalidMessage;
+            throw new InvalidMessage("Repeating group count requires an Integer but found: " + field.getValue(), e);
         }
         parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimiterField();
@@ -722,6 +800,7 @@ public class Message extends FieldMap {
         case OnBehalfOfSendingTime.FIELD:
         case ApplVerID.FIELD:
         case CstmApplVerID.FIELD:
+        case ApplExtID.FIELD:
         case NoHops.FIELD:
             return true;
         default:
@@ -799,7 +878,7 @@ public class Message extends FieldMap {
             try {
                 fieldLength = fields.getInt(lengthField);
             } catch (final FieldNotFound e) {
-                throw new InvalidMessage("Tag " + e.field + " not found in " + messageData);
+                throw new InvalidMessage("Did not find length field " + e.field + " required to parse data field " + tag + " in " + messageData);
             }
 
             // since length is in bytes but data is a string, and it may also contain an SOH,
@@ -857,4 +936,5 @@ public class Message extends FieldMap {
         }
     }
 
+    
 }

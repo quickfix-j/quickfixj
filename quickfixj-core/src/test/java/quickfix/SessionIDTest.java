@@ -28,6 +28,8 @@ import quickfix.field.TargetCompID;
 import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
 
+import static org.junit.Assert.assertNotEquals;
+
 public class SessionIDTest extends TestCase {
     public void testAllFieldConstructor() throws Exception {
         SessionID sessionID = new SessionID(new BeginString("FIX.4.2"), new SenderCompID("SENDER"),
@@ -135,8 +137,8 @@ public class SessionIDTest extends TestCase {
         SessionID sessionID2 = new SessionID("FIX.4.2:SENDER->TARGET:QUALIFIER");
         SessionID sessionID3 = new SessionID("FIX.4.2:SENDER2->TARGET2:QUALIFIER");
         assertEquals(sessionID1, sessionID2);
-        assertFalse(sessionID1.equals(sessionID3));
-        assertFalse(sessionID2.equals(sessionID3));
+        assertNotEquals(sessionID1, sessionID3);
+        assertNotEquals(sessionID2, sessionID3);
         assertFalse(sessionID1.equals(null));
     }
 

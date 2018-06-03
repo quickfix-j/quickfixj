@@ -604,13 +604,11 @@ public class Session implements Closeable {
     }
 
     private static String getTargetCompIDFromMessage(final Message message) throws FieldNotFound {
-        final String targetCompID = message.getHeader().getString(TargetCompID.FIELD);
-        return targetCompID;
+        return message.getHeader().getString(TargetCompID.FIELD);
     }
 
     private static String getSenderCompIDFromMessage(final Message message) throws FieldNotFound {
-        final String senderCompID = message.getHeader().getString(SenderCompID.FIELD);
-        return senderCompID;
+        return message.getHeader().getString(SenderCompID.FIELD);
     }
 
     /**
@@ -676,15 +674,23 @@ public class Session implements Closeable {
         sessions.put(session.getSessionID(), session);
     }
 
-    static void unregisterSessions(List<SessionID> sessionIds) {
+    static void unregisterSessions(List<SessionID> sessionIds, boolean doClose) {
         for (final SessionID sessionId : sessionIds) {
-            final Session session = sessions.remove(sessionId);
-            if (session != null) {
-                try {
+            unregisterSession(sessionId, doClose);
+        }
+    }
+
+    static void unregisterSession(SessionID sessionId, boolean doClose) {
+        final Session session = sessions.get(sessionId);
+        if (session != null) {
+            try {
+                if (doClose) {
                     session.close();
-                } catch (final IOException e) {
-                    LOG.error("Failed to close session resources", e);
                 }
+            } catch (final IOException e) {
+                LOG.error("Failed to close session resources", e);
+            } finally {
+                sessions.remove(sessionId);
             }
         }
     }
@@ -929,7 +935,7 @@ public class Session implements Closeable {
         // QFJ-650
         if (!header.isSetField(MsgSeqNum.FIELD)) {
             generateLogout("Received message without MsgSeqNum");
-            disconnect("Received message without MsgSeqNum: " + message, true);
+            disconnect("Received message without MsgSeqNum: " + getMessageToLog(message), true);
             return;
         }
 
@@ -975,7 +981,7 @@ public class Session implements Closeable {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incoming message with " + e + ": " + message);
+                        getLog().onErrorEvent("Warn: incoming message with " + e + ": " + getMessageToLog(message));
                     }
                 } catch (final FieldException e) {
                     if (message.isSetField(e.getField())) {
@@ -984,7 +990,7 @@ public class Session implements Closeable {
                         } else {
                             getLog().onErrorEvent(
                                     "Warn: incoming message with incorrect field: "
-                                            + message.getField(e.getField()) + ": " + message);
+                                            + message.getField(e.getField()) + ": " + getMessageToLog(message));
                         }
                     } else {
                         if (rejectInvalidMessage) {
@@ -992,14 +998,14 @@ public class Session implements Closeable {
                         } else {
                             getLog().onErrorEvent(
                                     "Warn: incoming message with missing field: " + e.getField()
-                                            + ": " + e.getMessage() + ": " + message);
+                                            + ": " + e.getMessage() + ": " + getMessageToLog(message));
                         }
                     }
                 } catch (final FieldNotFound e) {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incoming " + e + ": " + message);
+                        getLog().onErrorEvent("Warn: incoming " + e + ": " + getMessageToLog(message));
                     }
                 }
             }
@@ -1059,7 +1065,7 @@ public class Session implements Closeable {
                ignore the message and let the problem correct itself (optimistic approach).
                Target sequence number is not incremented, so it will trigger a ResendRequest
                on the next message that is received. */
-            getLog().onErrorEvent("Skipping invalid message: " + e + ": " + message);
+            getLog().onErrorEvent("Skipping invalid message: " + e + ": " + getMessageToLog(message));
             if (resetOrDisconnectIfRequired(message)) {
                 return;
             }
@@ -1073,7 +1079,10 @@ public class Session implements Closeable {
                     generateLogout(e.getMessage());
                 }
             }
-            state.incrNextTargetMsgSeqNum();
+            // Only increment seqnum if we are at the expected seqnum
+            if (getExpectedTargetNum() == header.getInt(MsgSeqNum.FIELD)) {
+                state.incrNextTargetMsgSeqNum();
+            }
             disconnect("Logon rejected: " + e, true);
         } catch (final UnsupportedMessageType e) {
             if (logErrorAndDisconnectIfRequired(e, message)) {
@@ -1099,7 +1108,7 @@ public class Session implements Closeable {
                 disconnect("Incorrect BeginString: " + e, true);
             }
         } catch (final IOException e) {
-            LogUtil.logThrowable(sessionID, "Error processing message: " + message, e);
+            LogUtil.logThrowable(sessionID, "Error processing message: " + getMessageToLog(message), e);
             if (resetOrDisconnectIfRequired(message)) {
                 return;
             }
@@ -1107,7 +1116,7 @@ public class Session implements Closeable {
             // If there are any other Throwables we might catch them here if desired.
             // They were most probably thrown out of fromCallback().
             if (rejectMessageOnUnhandledException) {
-                getLog().onErrorEvent("Rejecting message: " + t + ": " + message);
+                getLog().onErrorEvent("Rejecting message: " + t + ": " + getMessageToLog(message));
                 if (resetOrDisconnectIfRequired(message)) {
                     return;
                 }
@@ -1144,7 +1153,7 @@ public class Session implements Closeable {
         if (MsgType.LOGON.equals(msgType)) {
             logoutWithErrorMessage(e.getMessage());
         } else {
-            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + message);
+            getLog().onErrorEvent("Rejecting invalid message: " + e + ": " + getMessageToLog(message));
             generateReject(message, e.getMessage(), e.getSessionRejectReason(), e.getField());
         }
     }
@@ -1159,7 +1168,7 @@ public class Session implements Closeable {
     private boolean logErrorAndDisconnectIfRequired(final Exception e, Message message) {
         final boolean resetOrDisconnectIfRequired = resetOrDisconnectIfRequired(message);
         if (resetOrDisconnectIfRequired) {
-            getLog().onErrorEvent("Encountered invalid message: " + e + ": " + message);
+            getLog().onErrorEvent("Encountered invalid message: " + e + ": " + getMessageToLog(message));
         }
         return resetOrDisconnectIfRequired;
     }
@@ -1305,14 +1314,13 @@ public class Session implements Closeable {
             throws FieldNotFound {
         final Message sequenceReset = messageFactory.create(sessionID.getBeginString(),
                 MsgType.SEQUENCE_RESET);
-        final int newSeqNo = endSeqNo;
         final Header header = sequenceReset.getHeader();
         header.setBoolean(PossDupFlag.FIELD, true);
         initializeHeader(header);
         header.setUtcTimeStamp(OrigSendingTime.FIELD, header.getUtcTimeStamp(SendingTime.FIELD),
                 getTimestampPrecision());
         header.setInt(MsgSeqNum.FIELD, beginSeqNo);
-        sequenceReset.setInt(NewSeqNo.FIELD, newSeqNo);
+        sequenceReset.setInt(NewSeqNo.FIELD, endSeqNo);
         sequenceReset.setBoolean(GapFillFlag.FIELD, true);
         if (receivedMessage != null && enableLastMsgSeqNumProcessed) {
             try {
@@ -1320,11 +1328,11 @@ public class Session implements Closeable {
                         receivedMessage.getHeader().getInt(MsgSeqNum.FIELD));
             } catch (final FieldNotFound e) {
                 // should not happen as MsgSeqNum must be present
-                getLog().onErrorEvent("Received message without MsgSeqNum " + receivedMessage);
+                getLog().onErrorEvent("Received message without MsgSeqNum " + getMessageToLog(receivedMessage));
             }
         }
         sendRaw(sequenceReset, beginSeqNo);
-        getLog().onEvent("Sent SequenceReset TO: " + newSeqNo);
+        getLog().onEvent("Sent SequenceReset TO: " + endSeqNo);
     }
 
     private boolean resendApproved(Message message) throws FieldNotFound {
@@ -1505,7 +1513,7 @@ public class Session implements Closeable {
 
         reject.setString(Text.FIELD, str);
         sendRaw(reject, 0);
-        getLog().onErrorEvent("Reject sent for Message " + msgSeqNum + ": " + str);
+        getLog().onErrorEvent("Reject sent for message " + msgSeqNum + ": " + str);
     }
 
     private boolean isPossibleDuplicate(Message message) throws FieldNotFound {
@@ -1528,7 +1536,7 @@ public class Session implements Closeable {
         }
         if (!state.isLogonReceived()) {
             final String errorMessage = "Tried to send a reject while not logged on: " + reason
-                    + " (field " + field + ")";
+                    + (reason.endsWith("" + field) ? "" : " (field " + field + ")");
             throw new SessionException(errorMessage);
         }
 
@@ -1585,16 +1593,15 @@ public class Session implements Closeable {
         } finally {
             state.unlockTargetMsgSeqNum();
         }
-
+        final String logMessage = "Reject sent for message " + msgSeqNum;
         if (reason != null && (field > 0 || err == SessionRejectReason.INVALID_TAG_NUMBER)) {
             setRejectReason(reject, field, reason, true);
-            getLog().onErrorEvent(
-                    "Reject sent for Message " + msgSeqNum + ": " + reason + ":" + field);
+            getLog().onErrorEvent(logMessage + ": " + reason + (reason.endsWith("" + field) ? "" : ":" + field));
         } else if (reason != null) {
             setRejectReason(reject, reason);
-            getLog().onErrorEvent("Reject sent for Message " + msgSeqNum + ": " + reason);
+            getLog().onErrorEvent(logMessage + ": " + reason);
         } else {
-            getLog().onErrorEvent("Reject sent for Message " + msgSeqNum);
+            getLog().onErrorEvent(logMessage);
         }
 
         if (enableLastMsgSeqNumProcessed) {
@@ -1648,7 +1655,7 @@ public class Session implements Closeable {
         final String reason = BusinessRejectReasonText.getMessage(err);
         setRejectReason(reject, field, reason, field != 0);
         getLog().onErrorEvent(
-                "Reject sent for Message " + msgSeqNum + (reason != null ? (": " + reason) : "")
+                "Reject sent for message " + msgSeqNum + (reason != null ? (": " + reason) : "")
                         + (field != 0 ? (": tag=" + field) : ""));
 
         sendRaw(reject, 0);
@@ -2139,13 +2146,12 @@ public class Session implements Closeable {
         }
         getLog().onEvent("Received logon");
         if (!state.isInitiator()) {
-            final int nextMsgFromTargetWeExpect = state.getMessageStore().getNextTargetMsgSeqNum();
             /*
              * If we got one too high they need messages resent use the first message they missed (as we gap fill with that).
              * If we reset on logon, the current value will be 1 and we always send 2 (we haven't inc'd for current message yet +1)
              * If happy path (we haven't inc'd for current message yet so its current +1)
              */
-            int nextExpectedTargetNum = nextMsgFromTargetWeExpect;
+            int nextExpectedTargetNum = state.getMessageStore().getNextTargetMsgSeqNum();
             // we increment for the logon later (after Logon response sent) in this method if and only if in sequence
             if (isLogonInNormalSequence) {
                 // logon was fine take account of it in 789
@@ -2182,11 +2188,10 @@ public class Session implements Closeable {
         // Do we have a 789
         if (logon.isSetField(NextExpectedMsgSeqNum.FIELD) && enableNextExpectedMsgSeqNum) {
             final int targetWantsNextSeqNumToBe = logon.getInt(NextExpectedMsgSeqNum.FIELD);
-            final int actualNextNum = nextSenderMsgNumAtLogonReceived;
 
             // is the 789 lower (we checked for higher previously) than our next message after receiving the logon
-            if (targetWantsNextSeqNumToBe != actualNextNum) {
-                int endSeqNo = actualNextNum;
+            if (targetWantsNextSeqNumToBe != nextSenderMsgNumAtLogonReceived) {
+                int endSeqNo = nextSenderMsgNumAtLogonReceived;
 
                 // Just do a gap fill when messages aren't persisted
                 if (!persistMessages) {
@@ -2197,7 +2202,7 @@ public class Session implements Closeable {
                     }
                     getLog().onEvent(
                             "Received implicit ResendRequest via Logon FROM: "
-                                    + targetWantsNextSeqNumToBe + " TO: " + actualNextNum
+                                    + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
                                     + " will be reset");
                     generateSequenceReset(logon, targetWantsNextSeqNumToBe, // 34=
                             endSeqNo); // (NewSeqNo 36=)
@@ -2205,7 +2210,7 @@ public class Session implements Closeable {
                     // resend missed messages
                     getLog().onEvent(
                             "Received implicit ResendRequest via Logon FROM: "
-                                    + targetWantsNextSeqNumToBe + " TO: " + actualNextNum
+                                    + targetWantsNextSeqNumToBe + " TO: " + nextSenderMsgNumAtLogonReceived
                                     + " will be resent");
                     resendMessages(logon, targetWantsNextSeqNumToBe, endSeqNo);
                 }
@@ -2280,7 +2285,7 @@ public class Session implements Closeable {
                     if (begin != 0) {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
-                    getLog().onEvent("Resending Message: " + msgSeqNum);
+                    getLog().onEvent("Resending message: " + msgSeqNum);
                     send(msg.toString());
                     begin = 0;
                     appMessageJustSent = true;
@@ -2574,7 +2579,7 @@ public class Session implements Closeable {
 
             return result;
         } catch (final IOException e) {
-            logThrowable(getLog(), "Error Reading/Writing in MessageStore", e);
+            logThrowable(getLog(), "Error reading/writing in MessageStore", e);
             return false;
         } catch (final FieldNotFound e) {
             logThrowable(state.getLog(), "Error accessing message fields", e);
@@ -2909,13 +2914,15 @@ public class Session implements Closeable {
     }
 
     /**
-     * Closes session resources. This is for internal use and should typically
-     * not be called by an user application.
+     * Closes session resources and unregisters session. This is for internal
+     * use and should typically not be called by an user application.
      */
     @Override
     public void close() throws IOException {
         closeIfCloseable(getLog());
         closeIfCloseable(getStore());
+        // clean up session just in case close() was not called from Session.unregisterSession()
+        unregisterSession(this.sessionID, false);
     }
 
     private void closeIfCloseable(Object resource) throws IOException {
@@ -2929,6 +2936,10 @@ public class Session implements Closeable {
             getLog().onEvent("Session state is not current; resetting " + sessionID);
             reset();
         }
+    }
+
+    private String getMessageToLog(final Message message) {
+        return (message.toRawString() != null ? message.toRawString() : message.toString());
     }
 
 }

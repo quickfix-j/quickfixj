@@ -50,11 +50,14 @@ import java.util.Arrays;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IoSessionInitiator {
     private final static long CONNECT_POLL_TIMEOUT = 2000L;
     private final ScheduledExecutorService executor;
     private final ConnectTask reconnectTask;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private Future<?> reconnectFuture;
 
@@ -74,7 +77,7 @@ public class IoSessionInitiator {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress,
                     userIoFilterChainBuilder, fixSession, reconnectIntervalInMillis,
                     networkingOptions, eventHandlingStrategy, sslConfig,
-                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
+                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation, log);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
         }
@@ -93,6 +96,7 @@ public class IoSessionInitiator {
         private final NetworkingOptions networkingOptions;
         private final EventHandlingStrategy eventHandlingStrategy;
         private final SSLConfig sslConfig;
+        private final Logger log;
 
         private IoSession ioSession;
         private long lastReconnectAttemptTime;
@@ -116,7 +120,7 @@ public class IoSessionInitiator {
                 NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig,
                 String proxyType, String proxyVersion, String proxyHost,
                 int proxyPort, String proxyUser, String proxyPassword, String proxyDomain,
-                String proxyWorkstation) throws ConfigError, GeneralSecurityException {
+                String proxyWorkstation, Logger log) throws ConfigError, GeneralSecurityException {
             this.sslEnabled = sslEnabled;
             this.socketAddresses = socketAddresses;
             this.localAddress = localAddress;
@@ -126,6 +130,7 @@ public class IoSessionInitiator {
             this.networkingOptions = networkingOptions;
             this.eventHandlingStrategy = eventHandlingStrategy;
             this.sslConfig = sslConfig;
+            this.log = log;
 
             this.proxyType = proxyType;
             this.proxyVersion = proxyVersion;
@@ -173,7 +178,7 @@ public class IoSessionInitiator {
             }
 
             if (ioConnector != null) {
-                ioConnector.dispose();
+                SessionConnector.closeManagedSessionsAndDispose(ioConnector, true, log);
             }
             ioConnector = newConnector;
         }
@@ -338,6 +343,9 @@ public class IoSessionInitiator {
                         connectFuture.cancel();
                     }
                     connectFuture = null;
+                    if (!ioSession.isClosing()) {
+                        ioSession.closeNow();
+                    }
                     ioSession = null;
                 } catch (Throwable e) {
                     LogUtil.logThrowable(fixSession.getLog(), "Exception during resetIoConnector call", e);
@@ -361,7 +369,6 @@ public class IoSessionInitiator {
             reconnectFuture.cancel(true);
             reconnectFuture = null;
         }
-        // QFJ-849: clean up resources of MINA connector
-        reconnectTask.ioConnector.dispose();
+        SessionConnector.closeManagedSessionsAndDispose(reconnectTask.ioConnector, true, log);
     }
 }
