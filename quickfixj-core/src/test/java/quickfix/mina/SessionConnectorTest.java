@@ -232,10 +232,13 @@ public class SessionConnectorTest {
         connector.createSessionInitiators();
         sessions=connector.getManagedSessions();
         initiators=connector.getInitiators();
-        //Sessions re created during session initiatore re creation
+        //Sessions re created during session initiatore re creation, initiators are stacked
         assertEquals(2, sessions.size());
-        assertEquals(2,initiators.size());
+        assertEquals(4,initiators.size());
+        //This should remove initiators
         connector.stopInitiators();
+        assertEquals(0,connector.getInitiators().size());
+        //Tear down
         for(Session s:sessions){
             s.close();
         }
