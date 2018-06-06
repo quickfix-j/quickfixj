@@ -116,4 +116,11 @@ public interface Initiator extends Connector {
      * type is "initiator".
      */
     String SETTING_PROXY_WORKSTATION = "ProxyWorkstation";
+
+    /**
+     * Leave the corresponding session disconnected until
+     * AbstractSocketInitiator.createDynamicSession is called
+     */
+    String SETTING_DYNAMIC_SESSION = "DynamicSession";
+
 }

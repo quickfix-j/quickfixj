@@ -23,6 +23,7 @@ import quickfix.Acceptor;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
 import quickfix.FixVersions;
+import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
 import quickfix.RuntimeError;
 import quickfix.SLF4JLogFactory;
@@ -31,7 +32,11 @@ import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SessionState;
+import quickfix.SocketInitiator;
 import quickfix.UnitTestApplication;
+import quickfix.mina.initiator.AbstractSocketInitiator;
+import quickfix.mina.initiator.IoSessionInitiator;
+import quickfix.mina.ssl.SSLSupport;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -41,6 +46,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -187,6 +194,56 @@ public class SessionConnectorTest {
         session2.close();
     }
 
+    /**
+     * Test dynamic initiator sessions
+     */
+    @Test
+    public void testDynamicInitiatorSession() throws Exception {
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX40, "TW", "ISLD");
+        SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX40, "me", "you");
+        SessionSettings settings = setUpInitiatorSessionSettings(sessionID);
+        DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
+                new MemoryStoreFactory(), new SLF4JLogFactory(new SessionSettings()));
+
+        AbstractSocketInitiatorUnderTest connector = new AbstractSocketInitiatorUnderTest(settings, sessionFactory);
+        connector.setSessions(new HashMap<>());
+        //Two sessions to test dynamic sessions while check initializers
+        connector.createDynamicSession(sessionID);
+        connector.createDynamicSession(sessionID2);
+        List<Session> sessions = connector.getManagedSessions();
+        //Check sessions created and available
+        assertEquals(2,sessions.size());
+        HashMap<SessionID, Session> map = new HashMap<>();
+        for (Session s : sessions) {
+            map.put(s.getSessionID(), s);
+        }
+        assertNotNull(map.get(sessionID));
+        assertNotNull(map.get(sessionID2));
+        //Check initiators created and not null
+        assertEquals(2,  connector.getInitiators().size());
+        Set<IoSessionInitiator> initiators =  connector.getInitiators();
+        for(IoSessionInitiator initiator: initiators){
+            assertNotNull(initiator);
+        }
+        connector.removeDynamicSession(sessionID);
+        connector.removeDynamicSession(sessionID2);
+        //Check if initiators are re - created for this sessions but not sessions available
+        assertEquals(0,  connector.getManagedSessions().size());
+        connector.createSessionInitiators();
+        sessions=connector.getManagedSessions();
+        initiators=connector.getInitiators();
+        //Sessions re created during session initiatore re creation, initiators are stacked
+        assertEquals(2, sessions.size());
+        assertEquals(4,initiators.size());
+        //This should remove initiators
+        connector.stopInitiators();
+        assertEquals(0,connector.getInitiators().size());
+        //Tear down
+        for(Session s:sessions){
+            s.close();
+        }
+    }
+
     private SessionSettings setUpSessionSettings(SessionID sessionID) {
         SessionSettings settings = new SessionSettings();
         settings.setString(Session.SETTING_USE_DATA_DICTIONARY, "N");
@@ -195,6 +252,34 @@ public class SessionConnectorTest {
         settings.setString(Acceptor.SETTING_SOCKET_ACCEPT_PORT, "9999");
         settings.setString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE,
                 SessionFactory.ACCEPTOR_CONNECTION_TYPE);
+        return settings;
+    }
+    private SessionSettings setUpInitiatorSessionSettings(SessionID sessionID) {
+        SessionSettings settings = new SessionSettings();
+        settings.setString(Session.SETTING_USE_DATA_DICTIONARY, "N");
+        settings.setString(Session.SETTING_START_TIME, "00:00:00");
+        settings.setString(Session.SETTING_END_TIME, "00:00:00");
+        settings.setString(Acceptor.SETTING_SOCKET_ACCEPT_PORT, "9999");
+        settings.setLong(Session.SETTING_HEARTBTINT,100L);
+        settings.setString(SocketInitiator.SETTING_SOCKET_CONNECT_HOST,"127.0.0.1");
+        settings.setString(SocketInitiator.SETTING_SOCKET_CONNECT_PORT,"54321");
+        settings.setString(SessionFactory.SETTING_CONNECTION_TYPE,
+                SessionFactory.INITIATOR_CONNECTION_TYPE);
+        settings.setBool( SSLSupport.SETTING_USE_SSL,true);
+        settings.setString(Initiator.SETTING_PROXY_TYPE,"socks");
+        settings.setString(Initiator.SETTING_PROXY_VERSION,"5");
+        settings.setString(Initiator.SETTING_PROXY_USER,"Test Proxy User");
+        settings.setString(Initiator.SETTING_PROXY_PASSWORD,"Test Proxy User Password");
+        settings.setString(Initiator.SETTING_PROXY_WORKSTATION,"Test Proxy Workstation");
+        settings.setString(Initiator.SETTING_PROXY_DOMAIN,"Test Proxy Domain");
+        settings.setString(Initiator.SETTING_PROXY_HOST,"Test Proxy Host");
+        settings.setString(Initiator.SETTING_PROXY_PORT,"888");
+
+
+
+        settings.setBool(Initiator.SETTING_DYNAMIC_SESSION,false);
+        settings.setString(sessionID, SessionFactory.SETTING_CONNECTION_TYPE,
+                SessionFactory.INITIATOR_CONNECTION_TYPE);
         return settings;
     }
 
@@ -222,6 +307,37 @@ public class SessionConnectorTest {
         }
 
         public void block() throws ConfigError, RuntimeError {
+        }
+    }
+    private static class AbstractSocketInitiatorUnderTest extends AbstractSocketInitiator {
+
+        public AbstractSocketInitiatorUnderTest(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
+            super(settings, sessionFactory);
+        }
+
+        public void start() throws ConfigError, RuntimeError {
+        }
+        public void createDynamicSession(SessionID sessionID) throws ConfigError {
+            super.createDynamicSession(sessionID);
+        }
+        public void stop() {
+        }
+        public void stopInitiators(){
+            super.stopInitiators();
+        }
+        public void stop(boolean force) {
+        }
+
+        public void block() throws ConfigError, RuntimeError {
+        }
+        @Override
+        protected void createSessionInitiators() throws ConfigError {
+            super.createSessionInitiators();
+        }
+
+        @Override
+        protected EventHandlingStrategy getEventHandlingStrategy() {
+            return null;
         }
     }
 }

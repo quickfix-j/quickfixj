@@ -78,75 +78,81 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             throws ConfigError {
         try {
             createSessions();
-            SessionSettings settings = getSettings();
             for (final Session session : getSessionMap().values()) {
-                final SessionID sessionID = session.getSessionID();
-                final int[] reconnectingIntervals = getReconnectIntervalInSeconds(sessionID);
-
-                final SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
-                if (socketAddresses.length == 0) {
-                    throw new ConfigError("Must specify at least one socket address");
-                }
-
-                SocketAddress localAddress = getLocalAddress(settings, sessionID);
-
-                final NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
-                        .getSessionProperties(sessionID, true));
-
-                boolean sslEnabled = false;
-                SSLConfig sslConfig = null;
-                if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)
-                        && BooleanConverter.convert(getSettings().getString(sessionID, SSLSupport.SETTING_USE_SSL))) {
-                    sslEnabled = true;
-                    sslConfig = SSLSupport.getSslConfig(getSettings(), sessionID);
-                }
-
-                String proxyUser = null;
-                String proxyPassword = null;
-                String proxyHost = null;
-
-                String proxyType = null;
-                String proxyVersion = null;
-
-                String proxyWorkstation = null;
-                String proxyDomain = null;
-
-                int proxyPort = -1;
-
-                if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_TYPE)) {
-                    proxyType = settings.getString(sessionID, Initiator.SETTING_PROXY_TYPE);
-                    if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_VERSION)) {
-                        proxyVersion = settings.getString(sessionID,
-                                                          Initiator.SETTING_PROXY_VERSION);
-                    }
-
-                    if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_USER)) {
-                        proxyUser = settings.getString(sessionID, Initiator.SETTING_PROXY_USER);
-                        proxyPassword = settings.getString(sessionID,
-                                                           Initiator.SETTING_PROXY_PASSWORD);
-                    }
-                    if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_WORKSTATION)
-                            && getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_DOMAIN)) {
-                        proxyWorkstation = settings.getString(sessionID,
-                                                              Initiator.SETTING_PROXY_WORKSTATION);
-                        proxyDomain = settings.getString(sessionID, Initiator.SETTING_PROXY_DOMAIN);
-                    }
-
-                    proxyHost = settings.getString(sessionID, Initiator.SETTING_PROXY_HOST);
-                    proxyPort = (int) settings.getLong(sessionID, Initiator.SETTING_PROXY_PORT);
-                }
-
-                final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
-                        socketAddresses, localAddress, reconnectingIntervals,
-                        getScheduledExecutorService(), networkingOptions,
-                        getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
-                        proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
-
-                initiators.add(ioSessionInitiator);
+                createInitiator(session);
             }
         } catch (final FieldConvertError e) {
             throw new ConfigError(e);
         }
+    }
+
+    private void createInitiator(final Session session) throws ConfigError, FieldConvertError {
+                
+        SessionSettings settings = getSettings();
+        final SessionID sessionID = session.getSessionID();
+        final int[] reconnectingIntervals = getReconnectIntervalInSeconds(sessionID);
+
+        final SocketAddress[] socketAddresses = getSocketAddresses(sessionID);
+        if (socketAddresses.length == 0) {
+            throw new ConfigError("Must specify at least one socket address");
+        }
+
+        SocketAddress localAddress = getLocalAddress(settings, sessionID);
+
+        final NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
+                .getSessionProperties(sessionID, true));
+
+        boolean sslEnabled = false;
+        SSLConfig sslConfig = null;
+        if (getSettings().isSetting(sessionID, SSLSupport.SETTING_USE_SSL)
+                && BooleanConverter.convert(getSettings().getString(sessionID, SSLSupport.SETTING_USE_SSL))) {
+            sslEnabled = true;
+            sslConfig = SSLSupport.getSslConfig(getSettings(), sessionID);
+        }
+
+        String proxyUser = null;
+        String proxyPassword = null;
+        String proxyHost = null;
+
+        String proxyType = null;
+        String proxyVersion = null;
+
+        String proxyWorkstation = null;
+        String proxyDomain = null;
+
+        int proxyPort = -1;
+
+        if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_TYPE)) {
+            proxyType = settings.getString(sessionID, Initiator.SETTING_PROXY_TYPE);
+            if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_VERSION)) {
+                proxyVersion = settings.getString(sessionID,
+                                                  Initiator.SETTING_PROXY_VERSION);
+            }
+
+            if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_USER)) {
+                proxyUser = settings.getString(sessionID, Initiator.SETTING_PROXY_USER);
+                proxyPassword = settings.getString(sessionID,
+                                                   Initiator.SETTING_PROXY_PASSWORD);
+            }
+            if (getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_WORKSTATION)
+                    && getSettings().isSetting(sessionID, Initiator.SETTING_PROXY_DOMAIN)) {
+                proxyWorkstation = settings.getString(sessionID,
+                                                      Initiator.SETTING_PROXY_WORKSTATION);
+                proxyDomain = settings.getString(sessionID, Initiator.SETTING_PROXY_DOMAIN);
+            }
+
+            proxyHost = settings.getString(sessionID, Initiator.SETTING_PROXY_HOST);
+            proxyPort = (int) settings.getLong(sessionID, Initiator.SETTING_PROXY_PORT);
+        }
+
+        final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
+                socketAddresses, localAddress, reconnectingIntervals,
+                getScheduledExecutorService(), networkingOptions,
+                getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
+                proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
+
+        initiators.add(ioSessionInitiator);
+
     }
 
     // QFJ-482
@@ -181,8 +187,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             final SessionID sessionID = i.next();
             if (isInitiatorSession(sessionID)) {
                 try {
-                    final Session quickfixSession = createSession(sessionID);
-                    initiatorSessions.put(sessionID, quickfixSession);
+                    if (!settings.isSetting(sessionID, SETTING_DYNAMIC_SESSION) || !settings.getBool(sessionID, SETTING_DYNAMIC_SESSION)) {
+                        final Session quickfixSession = createSession(sessionID);
+                        initiatorSessions.put(sessionID, quickfixSession);
+                    }
                 } catch (final Throwable e) {
                     if (continueInitOnError) {
                         log.error("error during session initialization, continuing...", e);
@@ -193,10 +201,19 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 }
             }
         }
-        if (initiatorSessions.isEmpty()) {
-            throw new ConfigError("no initiators in settings");
-        }
         setSessions(initiatorSessions);
+    }
+    
+    public void createDynamicSession(SessionID sessionID) throws ConfigError {
+
+        try {
+            Session session = createSession(sessionID);
+            super.addDynamicSession(session);
+            createInitiator(session);
+            startInitiators();
+        } catch (final FieldConvertError e) {
+            throw new ConfigError(e);
+        }
     }
 
     private int[] getReconnectIntervalInSeconds(SessionID sessionID) throws ConfigError {
