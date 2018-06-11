@@ -19,20 +19,28 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
+import org.junit.After;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 
-public class LogUtilTest extends TestCase {
+public class LogUtilTest {
 
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
     }
 
+    @After
+    public void tearDown() throws Exception {
+        SystemTime.setTimeSource(null);
+    }
+    
+    @Test
     public void testLogThrowable() throws ConfigError, FieldConvertError {
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         LogFactory mockLogFactory = createLogFactory(data);
