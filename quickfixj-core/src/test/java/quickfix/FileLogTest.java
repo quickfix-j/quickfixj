@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
+import org.junit.After;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,11 @@ public class FileLogTest {
     @Before
     public void setUp() throws Exception {
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        SystemTime.setTimeSource(null);
     }
 
     @Test
