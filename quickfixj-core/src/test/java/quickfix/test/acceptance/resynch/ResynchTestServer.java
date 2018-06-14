@@ -95,9 +95,10 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     public void stop() {
         shutdownLatch.countDown();
         try {
+            serverThread.interrupt();
             serverThread.join();
         } catch (InterruptedException ex) {
-            // ignore on stop
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -136,11 +137,11 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
                 try {
                     shutdownLatch.await();
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
 
                 log.info("ResynchTestServer shutting down.");
             } finally {
-//                acceptor.stop(true);
                 acceptor.stop();
             }
         } catch (Throwable e) {
