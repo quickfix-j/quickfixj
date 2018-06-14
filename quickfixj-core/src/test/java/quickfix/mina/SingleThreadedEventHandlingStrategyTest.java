@@ -44,8 +44,7 @@ import java.lang.management.ThreadMXBean;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.junit.AfterClass;
 
 /**
  *
@@ -64,9 +63,15 @@ public class SingleThreadedEventHandlingStrategyTest {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
-                Logger.getLogger(SingleThreadedEventHandlingStrategyTest.class.getName()).log(Level.SEVERE, null, ex);
+                // ignored
             }
         }
+    }
+    
+    
+    @AfterClass
+    public static void afterClass() {
+        assertQFJMessageProcessorThreads(0);
     }
 
     @Test
@@ -159,7 +164,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // ignored
                 } finally {
                     acceptor.stop();
                 }
@@ -193,7 +198,7 @@ public class SingleThreadedEventHandlingStrategyTest {
 
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // ignored
                 } finally {
                     initiator.stop();
                 }
@@ -223,7 +228,7 @@ public class SingleThreadedEventHandlingStrategyTest {
                 try {
                     acceptor.start();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // ignored
                 } finally {
                     acceptor.stop();
                 }
@@ -253,7 +258,7 @@ public class SingleThreadedEventHandlingStrategyTest {
                 try {
                     initiator.start();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // ignored
                 } finally {
                     initiator.stop();
                 }
@@ -318,7 +323,7 @@ public class SingleThreadedEventHandlingStrategyTest {
                 acceptorSettings, new DefaultMessageFactory());
     }
 
-    private void assertQFJMessageProcessorThreads(int expected) {
+    private static void assertQFJMessageProcessorThreads(int expected) {
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
         int qfjMPThreads = getMessageProcessorThreads(dumpAllThreads);
@@ -328,7 +333,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                Logger.getLogger(SingleThreadedEventHandlingStrategyTest.class.getName()).log(Level.SEVERE, null, ex);
+                // ignored
             }
             dumpAllThreads = bean.dumpAllThreads(false, false);
             qfjMPThreads = getMessageProcessorThreads(dumpAllThreads);
@@ -342,7 +347,7 @@ public class SingleThreadedEventHandlingStrategyTest {
         Assert.assertEquals("Expected " + expected + " 'QFJ Message Processor' thread(s)", expected, qfjMPThreads);
     }
 
-    private int getMessageProcessorThreads(ThreadInfo[] dumpAllThreads) {
+    private static int getMessageProcessorThreads(ThreadInfo[] dumpAllThreads) {
         int qfjMPThreads = 0;
         for (ThreadInfo threadInfo : dumpAllThreads) {
             if (SingleThreadedEventHandlingStrategy.MESSAGE_PROCESSOR_THREAD_NAME.equals(threadInfo
@@ -353,7 +358,7 @@ public class SingleThreadedEventHandlingStrategyTest {
         return qfjMPThreads;
     }
 
-    private void printStackTraces(ThreadInfo threadInfo) {
+    private static void printStackTraces(ThreadInfo threadInfo) {
         System.out.println( threadInfo.getThreadName() + " " + threadInfo.getThreadState());
         StackTraceElement[] stackTrace = threadInfo.getStackTrace();
         for (StackTraceElement stackTrace1 : stackTrace) {
