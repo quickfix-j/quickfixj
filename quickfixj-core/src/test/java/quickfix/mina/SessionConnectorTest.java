@@ -314,10 +314,8 @@ public class SessionConnectorTest {
         public void stop(boolean force) {
             super.stopSessionTimer();
         }
-
-        public void block() throws ConfigError, RuntimeError {
-        }
     }
+
     private static class AbstractSocketInitiatorUnderTest extends AbstractSocketInitiator {
 
         public AbstractSocketInitiatorUnderTest(SessionSettings settings, SessionFactory sessionFactory) throws ConfigError {
@@ -336,9 +334,6 @@ public class SessionConnectorTest {
         }
 
         public void stop(boolean force) {
-        }
-
-        public void block() throws ConfigError, RuntimeError {
         }
 
         @Override
