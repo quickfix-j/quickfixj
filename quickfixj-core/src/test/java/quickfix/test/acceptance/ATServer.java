@@ -215,6 +215,7 @@ public class ATServer implements Runnable {
                     }
                 }
             } catch (InterruptedException e1) {
+                Thread.currentThread().interrupt();
                 log.info("server exiting");
                 Thread.currentThread().interrupt();
             } finally {

@@ -97,6 +97,7 @@ public class InitiateMessageStep implements TestStep {
             message += "10=" + CHECKSUM_FORMAT.format(MessageUtils.checksum(message)) + '\001';
         }
         log.debug("sending to client " + clientId + ": " + message);
+        System.out.println("XXXX sending to client " + clientId + ": " + message);
         try {
             connection.sendMessage(clientId, message);
         } catch (IOException e) {

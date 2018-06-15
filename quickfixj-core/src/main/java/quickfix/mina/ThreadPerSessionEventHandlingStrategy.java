@@ -148,7 +148,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 		abstract void doRun();
 
 		/**
-		 * An Executor that uses it's own dedicated Thread.
+		 * An Executor that uses its own dedicated Thread.
 		 * Provides equivalent behavior to the prior non-Executor approach.
 		 */
 		static final class DedicatedThreadExecutor implements Executor {
@@ -226,7 +226,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 }
             }
             if (!messages.isEmpty()) {
-                final List<Message> tempList = new ArrayList<>();
+                final List<Message> tempList = new ArrayList<>(messages.size());
                 queueTracker.drainTo(tempList);
                 for (Message message : tempList) {
                     try {

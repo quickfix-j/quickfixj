@@ -136,6 +136,7 @@ public class TestConnection {
         }
 
         public void messageReceived(IoSession session, Object message) throws Exception {
+            System.out.println("XXXX recvd from client  : " + message);
             messages.add(message);
         }
 
