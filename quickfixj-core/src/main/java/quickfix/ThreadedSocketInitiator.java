@@ -99,26 +99,20 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
     	eventHandlingStrategy.setExecutor(longLivedExecutor);
         createSessionInitiators();
         startInitiators();
     }
 
-    public void stop() {
-        stop(false);
-    }
-
+    @Override
     public void stop(boolean forceDisconnect) {
         logoutAllSessions(forceDisconnect);
         stopInitiators();
         eventHandlingStrategy.stopDispatcherThreads();
         Session.unregisterSessions(getSessions(), true);
         clearConnectorSessions();
-    }
-
-    public void block() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: " + getClass());
     }
 
     @Override

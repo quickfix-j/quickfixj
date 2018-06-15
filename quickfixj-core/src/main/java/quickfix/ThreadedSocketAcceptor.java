@@ -97,30 +97,20 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
     	eventHandlingStrategy.setExecutor(longLivedExecutor);
         startAcceptingConnections();
     }
 
-    public void stop() {
-        stop(false);
-    }
-
+    @Override
     public void stop(boolean forceDisconnect) {
-        try {
-            logoutAllSessions(forceDisconnect);
-            stopAcceptingConnections();
-        } catch (ConfigError e) {
-            log.error("Error when stopping acceptor.", e);
-        }
+        logoutAllSessions(forceDisconnect);
+        stopAcceptingConnections();
         stopSessionTimer();
         eventHandlingStrategy.stopDispatcherThreads();
         Session.unregisterSessions(getSessions(), true);
         clearConnectorSessions();
-    }
-
-    public void block() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: " + getClass());
     }
 
     @Override

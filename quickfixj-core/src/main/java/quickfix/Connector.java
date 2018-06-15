@@ -41,7 +41,9 @@ public interface Connector {
      * connections.
      * This method must not be called by several threads concurrently.
      */
-    void stop();
+    default void stop() {
+        stop(false);
+    }
 
     /**
      * Stops all sessions, optionally waiting for logout completion.

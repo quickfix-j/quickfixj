@@ -106,34 +106,28 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         if (isStarted.equals(Boolean.FALSE)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             startAcceptingConnections();
-            isStarted = Boolean.TRUE;
             eventHandlingStrategy.blockInThread();
+            isStarted = Boolean.TRUE;
         } else {
             log.warn("Ignored attempt to start already running SocketAcceptor.");
         }
     }
 
     @Override
-    public void stop() {
-        stop(false);
-    }
-
-    @Override
     public void stop(boolean forceDisconnect) {
         if (isStarted.equals(Boolean.TRUE)) {
             try {
-                try {
-                    logoutAllSessions(forceDisconnect);
-                    stopAcceptingConnections();
-                } catch (ConfigError e) {
-                    log.error("Error when stopping acceptor.", e);
-                }
+                logoutAllSessions(forceDisconnect);
+                stopAcceptingConnections();
                 stopSessionTimer();
             } finally {
-                eventHandlingStrategy.stopHandlingMessages();
-                Session.unregisterSessions(getSessions(), true);
-                clearConnectorSessions();
-                isStarted = Boolean.FALSE;
+                try {
+                    eventHandlingStrategy.stopHandlingMessages();
+                } finally {
+                    Session.unregisterSessions(getSessions(), true);
+                    clearConnectorSessions();
+                    isStarted = Boolean.FALSE;
+                }
             }
         }
     }
