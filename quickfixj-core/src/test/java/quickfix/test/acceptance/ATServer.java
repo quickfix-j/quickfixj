@@ -229,7 +229,7 @@ public class ATServer implements Runnable {
                     acceptor.stop(true);
                 }
             } catch (RuntimeException e) {
-                e.printStackTrace();
+                log.warn("Encountered Exception on stop", e);
             } finally {
                 tearDownLatch.countDown();
             }
