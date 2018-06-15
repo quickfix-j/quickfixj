@@ -127,11 +127,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
 
     @Override
-    public void stop() {
-        stop(false);
-    }
-
-    @Override
     public void stop(boolean forceDisconnect) {
         if (isStarted.equals(Boolean.TRUE)) {
             try {

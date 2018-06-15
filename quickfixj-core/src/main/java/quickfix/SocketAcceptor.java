@@ -114,11 +114,6 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     @Override
-    public void stop() {
-        stop(false);
-    }
-
-    @Override
     public void stop(boolean forceDisconnect) {
         if (isStarted.equals(Boolean.TRUE)) {
             try {

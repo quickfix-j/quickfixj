@@ -97,15 +97,13 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
     	eventHandlingStrategy.setExecutor(longLivedExecutor);
         startAcceptingConnections();
     }
 
-    public void stop() {
-        stop(false);
-    }
-
+    @Override
     public void stop(boolean forceDisconnect) {
         logoutAllSessions(forceDisconnect);
         stopAcceptingConnections();
