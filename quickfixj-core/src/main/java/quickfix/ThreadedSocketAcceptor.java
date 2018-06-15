@@ -119,10 +119,6 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         clearConnectorSessions();
     }
 
-    public void block() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: " + getClass());
-    }
-
     @Override
     protected EventHandlingStrategy getEventHandlingStrategy() {
         return eventHandlingStrategy;
