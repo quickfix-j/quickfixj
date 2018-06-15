@@ -122,12 +122,8 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     public void stop(boolean forceDisconnect) {
         if (isStarted.equals(Boolean.TRUE)) {
             try {
-                try {
-                    logoutAllSessions(forceDisconnect);
-                    stopAcceptingConnections();
-                } catch (ConfigError e) {
-                    log.error("Error when stopping acceptor.", e);
-                }
+                logoutAllSessions(forceDisconnect);
+                stopAcceptingConnections();
                 stopSessionTimer();
             } finally {
                 try {
