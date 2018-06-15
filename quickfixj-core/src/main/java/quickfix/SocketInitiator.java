@@ -110,6 +110,21 @@ public class SocketInitiator extends AbstractSocketInitiator {
     public void start() throws ConfigError, RuntimeError {
         initialize();
     }
+    
+    private void initialize() throws ConfigError {
+        if (isStarted.equals(Boolean.FALSE)) {
+            eventHandlingStrategy.setExecutor(longLivedExecutor);
+            createSessionInitiators();
+            for (Session session : getSessionMap().values()) {
+                Session.registerSession(session);
+            }
+            startInitiators();
+            isStarted = Boolean.TRUE;
+            eventHandlingStrategy.blockInThread();
+        } else {
+            log.warn("Ignored attempt to start already running SocketInitiator.");
+        }
+    }
 
     @Override
     public void stop() {
@@ -123,26 +138,14 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 logoutAllSessions(forceDisconnect);
                 stopInitiators();
             } finally {
-                eventHandlingStrategy.stopHandlingMessages();
-                Session.unregisterSessions(getSessions(), true);
-                clearConnectorSessions();
-                isStarted = Boolean.FALSE;
+                try {
+                    eventHandlingStrategy.stopHandlingMessages();
+                } finally {
+                    Session.unregisterSessions(getSessions(), true);
+                    clearConnectorSessions();
+                    isStarted = Boolean.FALSE;
+                }
             }
-        }
-    }
-
-    private void initialize() throws ConfigError {
-        if (isStarted.equals(Boolean.FALSE)) {
-            eventHandlingStrategy.setExecutor(longLivedExecutor);
-            createSessionInitiators();
-            for (Session session : getSessionMap().values()) {
-                Session.registerSession(session);
-            }
-            startInitiators();
-            isStarted = Boolean.TRUE;
-            eventHandlingStrategy.blockInThread();
-        } else {
-            log.warn("Ignored attempt to start already running SocketInitiator.");
         }
     }
 

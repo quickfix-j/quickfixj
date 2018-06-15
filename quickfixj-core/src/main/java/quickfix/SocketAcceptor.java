@@ -130,10 +130,13 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 }
                 stopSessionTimer();
             } finally {
-                eventHandlingStrategy.stopHandlingMessages();
-                Session.unregisterSessions(getSessions(), true);
-                clearConnectorSessions();
-                isStarted = Boolean.FALSE;
+                try {
+                    eventHandlingStrategy.stopHandlingMessages();
+                } finally {
+                    Session.unregisterSessions(getSessions(), true);
+                    clearConnectorSessions();
+                    isStarted = Boolean.FALSE;
+                }
             }
         }
     }
