@@ -106,8 +106,8 @@ public class SocketAcceptorTest {
                     log.error(e.getMessage(), e);
                 }
             }
-            assertEquals("application should receive logout", 1, testAcceptorApplication.logoutCounter);
-            assertEquals("application should receive logout", 1, testInitiatorApplication.logoutCounter);
+            testAcceptorApplication.waitForLogout();
+            testInitiatorApplication.waitForLogout();
         }
     }
 
@@ -209,10 +209,11 @@ public class SocketAcceptorTest {
     private static class TestAcceptorApplication extends ApplicationAdapter {
 
         private final CountDownLatch logonLatch;
-        public volatile int logoutCounter = 0;
+        private final CountDownLatch logoutLatch;
 
         public TestAcceptorApplication() {
             logonLatch = new CountDownLatch(1);
+            logoutLatch = new CountDownLatch(1);
         }
 
         @Override
@@ -229,11 +230,19 @@ public class SocketAcceptorTest {
             }
         }
         
+        public void waitForLogout() {
+            try {
+                assertTrue("Logout timed out", logoutLatch.await(10, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                fail(e.getMessage());
+            }
+        }
+
         @Override
         public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             try {
                 if (MsgType.LOGOUT.equals(MessageUtils.getMessageType(message.toString()))) {
-                    logoutCounter++;
+                    logoutLatch.countDown();
                 }
             } catch (InvalidMessage ex) {
                 // ignore
@@ -244,10 +253,11 @@ public class SocketAcceptorTest {
     private static class TestInitiatorApplication extends ApplicationAdapter {
 
         private final CountDownLatch logonLatch;
-        public volatile int logoutCounter = 0;
+        private final CountDownLatch logoutLatch;
 
         public TestInitiatorApplication() {
             logonLatch = new CountDownLatch(1);
+            logoutLatch = new CountDownLatch(1);
         }
 
         @Override
@@ -263,12 +273,20 @@ public class SocketAcceptorTest {
                 fail(e.getMessage());
             }
         }
-        
+
+        public void waitForLogout() {
+            try {
+                assertTrue("Logout timed out", logoutLatch.await(10, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                fail(e.getMessage());
+            }
+        }
+
         @Override
         public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             try {
                 if (MsgType.LOGOUT.equals(MessageUtils.getMessageType(message.toString()))) {
-                    logoutCounter++;
+                    logoutLatch.countDown();
                 }
             } catch (InvalidMessage ex) {
                 // ignore
