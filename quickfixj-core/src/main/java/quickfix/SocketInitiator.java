@@ -119,8 +119,8 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 Session.registerSession(session);
             }
             startInitiators();
-            isStarted = Boolean.TRUE;
             eventHandlingStrategy.blockInThread();
+            isStarted = Boolean.TRUE;
         } else {
             log.warn("Ignored attempt to start already running SocketInitiator.");
         }

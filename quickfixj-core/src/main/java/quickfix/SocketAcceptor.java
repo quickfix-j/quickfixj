@@ -106,8 +106,8 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
         if (isStarted.equals(Boolean.FALSE)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             startAcceptingConnections();
-            isStarted = Boolean.TRUE;
             eventHandlingStrategy.blockInThread();
+            isStarted = Boolean.TRUE;
         } else {
             log.warn("Ignored attempt to start already running SocketAcceptor.");
         }
