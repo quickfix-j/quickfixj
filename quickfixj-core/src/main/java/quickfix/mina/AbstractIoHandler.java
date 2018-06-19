@@ -114,8 +114,8 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         } catch (Exception e) {
             throw e;
         } finally {
-            ioSession.closeNow();
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
+            ioSession.closeNow();
         }
     }
 
