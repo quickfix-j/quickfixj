@@ -134,7 +134,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 stopInitiators();
             } finally {
                 try {
-                    eventHandlingStrategy.stopHandlingMessages();
+                    eventHandlingStrategy.stopHandlingMessages(true);
                 } finally {
                     Session.unregisterSessions(getSessions(), true);
                     clearConnectorSessions();
