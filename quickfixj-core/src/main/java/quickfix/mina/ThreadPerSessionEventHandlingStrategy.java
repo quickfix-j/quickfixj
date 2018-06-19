@@ -113,59 +113,58 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
     }
 
-	/**
-	 * A stand-in for the Thread class that delegates to an Executor.
-	 * Implements all the API required by pre-existing QFJ code.
-	 */
-	protected static abstract class ThreadAdapter implements Runnable {
+    /**
+     * A stand-in for the Thread class that delegates to an Executor.
+     * Implements all the API required by pre-existing QFJ code.
+     */
+    protected static abstract class ThreadAdapter implements Runnable {
 
-		private final Executor executor;
-		private final String name;
+        private final Executor executor;
+        private final String name;
 
-		public ThreadAdapter(String name, Executor executor) {
-			this.name = name;
-			this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
-		}
+        public ThreadAdapter(String name, Executor executor) {
+            this.name = name;
+            this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
+        }
 
-		public void start() {
-			executor.execute(this);
-		}
+        public void start() {
+            executor.execute(this);
+        }
 
-		@Override
-		public final void run() {
-			Thread currentThread = Thread.currentThread();
-			String threadName = currentThread.getName();
-			try {
-				if (!name.equals(threadName)) {
-					currentThread.setName(name + " (" + threadName + ")");
-				}
-				doRun();
-			} finally {
-				currentThread.setName(threadName);
-			}
-		}
+        @Override
+        public final void run() {
+            Thread currentThread = Thread.currentThread();
+            String threadName = currentThread.getName();
+            try {
+                if (!name.equals(threadName)) {
+                    currentThread.setName(name + " (" + threadName + ")");
+                }
+                doRun();
+            } finally {
+                currentThread.setName(threadName);
+            }
+        }
 
-		abstract void doRun();
+        abstract void doRun();
 
-		/**
-		 * An Executor that uses it's own dedicated Thread.
-		 * Provides equivalent behavior to the prior non-Executor approach.
-		 */
-		static final class DedicatedThreadExecutor implements Executor {
+        /**
+         * An Executor that uses its own dedicated Thread. Provides equivalent
+         * behavior to the prior non-Executor approach.
+         */
+        static final class DedicatedThreadExecutor implements Executor {
 
-			private final String name;
-			
-			DedicatedThreadExecutor(String name) {
-				this.name = name;
-			}
+            private final String name;
 
-			@Override
-			public void execute(Runnable command) {
-				new Thread(command, name).start();
-			}
+            DedicatedThreadExecutor(String name) {
+                this.name = name;
+            }
 
-		}
+            @Override
+            public void execute(Runnable command) {
+                new Thread(command, name).start();
+            }
 
+        }
 	}
 
 	protected class MessageDispatchingThread extends ThreadAdapter {
@@ -226,7 +225,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 }
             }
             if (!messages.isEmpty()) {
-                final List<Message> tempList = new ArrayList<>();
+                final List<Message> tempList = new ArrayList<>(messages.size());
                 queueTracker.drainTo(tempList);
                 for (Message message : tempList) {
                     try {
