@@ -167,6 +167,12 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = false;
     }
 
+    /**
+     * Stops processing of messages without waiting for message processing
+     * thread to finish.
+     * 
+     * It is advised to call stopHandlingMessages(true) instead of this method.
+     */
     public synchronized void stopHandlingMessages() {
         for (Session session : sessionConnector.getSessionMap().values()) {
             onMessage(session, END_OF_STREAM);
@@ -174,6 +180,12 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = true;
     }
 
+    /**
+     * Stops processing of messages and optionally waits for message processing
+     * thread to finish.
+     *
+     * @param join true to wait for thread to finish
+     */
     public void stopHandlingMessages(boolean join) {
         stopHandlingMessages();
         if (join) {

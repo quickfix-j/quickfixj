@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -146,6 +147,23 @@ public class SingleThreadedEventHandlingStrategyTest {
                     ehs.stopHandlingMessages(true);
                 }
             }
+        }
+    }
+
+    /**
+     * During quick restarts: make sure that session timer is started and not stopped via
+     * block() method called from Message Processor thread.
+     */
+    @Test
+    public void testMultipleStartSessionTimer() throws Exception {
+        SessionSettings settings = new SessionSettings();
+        SessionConnector connector = new SessionConnectorUnderTest(settings, sessionFactory);
+        ehs = new SingleThreadedEventHandlingStrategy(connector, 1000);
+        for (int i = 0; i < 1000; i++) {
+            connector.startSessionTimer();
+            ehs.blockInThread();
+            assertTrue(connector.checkSessionTimerRunning());
+            ehs.stopHandlingMessages(true);
         }
     }
 
