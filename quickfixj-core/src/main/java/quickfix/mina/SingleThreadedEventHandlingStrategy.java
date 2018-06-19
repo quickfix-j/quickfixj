@@ -176,7 +176,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 
     public void stopHandlingMessages(boolean join) {
         stopHandlingMessages();
-        messageProcessingThread.interrupt();
         if (join) {
             try {
                 messageProcessingThread.join();
@@ -227,12 +226,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                     executor.execute(wrapper);
 		}
                 
-                public void interrupt() {
-                    if (executor instanceof DedicatedThreadExecutor) {
-                        ((DedicatedThreadExecutor)executor).interrupt();
-                    }
-                }
-
 		/**
 		 * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
 		 */
@@ -290,12 +283,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 				thread.setDaemon(true);
 				thread.start();
 			}
-                        
-                        public void interrupt() {
-                            if (thread != null) {
-                                thread.interrupt();
-                            }
-                        }
 		}
 
 	}
