@@ -99,8 +99,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                         sessionConnector.stopSessionTimer();
                         // reset the stoptime
                         stopTime = 0;
-                        return;
                     }
+                    return;
                 }
             }
             try {
