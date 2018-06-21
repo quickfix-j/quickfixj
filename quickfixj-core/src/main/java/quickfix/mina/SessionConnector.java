@@ -328,6 +328,14 @@ public abstract class SessionConnector implements Connector {
         }
     }
 
+    // visible for testing
+    boolean checkSessionTimerRunning() {
+        if ( sessionTimerFuture != null ) {
+            return !sessionTimerFuture.isDone();
+        }
+        return false;
+    }
+
     protected ScheduledExecutorService getScheduledExecutorService() {
         return scheduledExecutorService;
     }

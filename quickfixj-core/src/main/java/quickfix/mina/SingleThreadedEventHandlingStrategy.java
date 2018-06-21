@@ -99,8 +99,8 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                         sessionConnector.stopSessionTimer();
                         // reset the stoptime
                         stopTime = 0;
-                        return;
                     }
+                    return;
                 }
             }
             try {
@@ -167,6 +167,12 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = false;
     }
 
+    /**
+     * Stops processing of messages without waiting for message processing
+     * thread to finish.
+     * 
+     * It is advised to call stopHandlingMessages(true) instead of this method.
+     */
     public synchronized void stopHandlingMessages() {
         for (Session session : sessionConnector.getSessionMap().values()) {
             onMessage(session, END_OF_STREAM);
@@ -174,9 +180,14 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         isStopped = true;
     }
 
+    /**
+     * Stops processing of messages and optionally waits for message processing
+     * thread to finish.
+     *
+     * @param join true to wait for thread to finish
+     */
     public void stopHandlingMessages(boolean join) {
         stopHandlingMessages();
-        messageProcessingThread.interrupt();
         if (join) {
             try {
                 messageProcessingThread.join();
@@ -227,12 +238,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
                     executor.execute(wrapper);
 		}
                 
-                public void interrupt() {
-                    if (executor instanceof DedicatedThreadExecutor) {
-                        ((DedicatedThreadExecutor)executor).interrupt();
-                    }
-                }
-
 		/**
 		 * Provides the Thread::join and Thread::isAlive semantics on the nested Runnable.
 		 */
@@ -290,12 +295,6 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
 				thread.setDaemon(true);
 				thread.start();
 			}
-                        
-                        public void interrupt() {
-                            if (thread != null) {
-                                thread.interrupt();
-                            }
-                        }
 		}
 
 	}

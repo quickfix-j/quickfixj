@@ -122,7 +122,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 stopSessionTimer();
             } finally {
                 try {
-                    eventHandlingStrategy.stopHandlingMessages();
+                    eventHandlingStrategy.stopHandlingMessages(true);
                 } finally {
                     Session.unregisterSessions(getSessions(), true);
                     clearConnectorSessions();
