@@ -340,9 +340,15 @@ public abstract class SessionConnector implements Connector {
         return scheduledExecutorService;
     }
 
+    long lastLogged = 0;
     private class SessionTimerTask implements Runnable {
         public void run() {
             try {
+                long now = System.currentTimeMillis();
+                if ( now - lastLogged > 2000 ) {
+                    System.out.println("XXXXX SessionTimerTask: checked sessions: " + sessions.keySet());
+                    lastLogged = now;
+                }
                 for (Session session : sessions.values()) {
                     try {
                         session.next();
