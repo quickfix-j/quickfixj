@@ -333,6 +333,15 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM = "EnableNextExpectedMsgSeqNum";
 
+    /**
+     * Reject garbled messages instead of ignoring them.
+     * This is only working for messages that pass the FIX decoder and reach the engine.
+     * Messages that cannot be considered a real FIX message (i.e. not starting with
+     * 8=FIX or not ending with 10=xxx) will be ignored in any case.
+     * Default is "N".
+     */
+    public static final String SETTING_REJECT_GARBLED_MESSAGE = "RejectGarbledMessage";
+
     public static final String SETTING_REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
 
     public static final String SETTING_REJECT_MESSAGE_ON_UNHANDLED_EXCEPTION = "RejectMessageOnUnhandledException";
@@ -389,6 +398,7 @@ public class Session implements Closeable {
     private final boolean checkCompID;
     private final boolean useClosedRangeForResend;
     private boolean disableHeartBeatCheck = false;
+    private boolean rejectGarbledMessage = false;
     private boolean rejectInvalidMessage = false;
     private boolean rejectMessageOnUnhandledException = false;
     private boolean requiresOrigSendingTime = false;
@@ -434,7 +444,7 @@ public class Session implements Closeable {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
+                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -447,7 +457,7 @@ public class Session implements Closeable {
             boolean useClosedRangeForResend, double testRequestDelayMultiplier,
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
             int[] logonIntervals, boolean resetOnError, boolean disconnectOnError,
-            boolean disableHeartBeatCheck, boolean rejectInvalidMessage,
+            boolean disableHeartBeatCheck, boolean rejectGarbledMessage, boolean rejectInvalidMessage,
             boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
@@ -473,6 +483,7 @@ public class Session implements Closeable {
         this.resetOnError = resetOnError;
         this.disconnectOnError = disconnectOnError;
         this.disableHeartBeatCheck = disableHeartBeatCheck;
+        this.rejectGarbledMessage = rejectGarbledMessage;
         this.rejectInvalidMessage = rejectInvalidMessage;
         this.rejectMessageOnUnhandledException = rejectMessageOnUnhandledException;
         this.requiresOrigSendingTime = requiresOrigSendingTime;
@@ -2783,6 +2794,10 @@ public class Session implements Closeable {
         return state.isLogoutTimedOut();
     }
 
+    public boolean isRejectGarbledMessage() {
+        return rejectGarbledMessage;
+    }
+
     public boolean isUsingDataDictionary() {
         return dataDictionaryProvider != null;
     }
@@ -2890,6 +2905,10 @@ public class Session implements Closeable {
 
     public void setIgnoreHeartBeatFailure(boolean ignoreHeartBeatFailure) {
         disableHeartBeatCheck = ignoreHeartBeatFailure;
+    }
+
+    public void setRejectGarbledMessage(boolean rejectGarbledMessage) {
+        this.rejectGarbledMessage = rejectGarbledMessage;
     }
 
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {

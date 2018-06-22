@@ -115,7 +115,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     timestampPrecision, resetOnLogon, resetOnLogout, resetOnDisconnect, refreshMessageStoreAtLogon,
                     checkCompID, redundantResentRequestsAllowed, persistMessages, useClosedRangeForResend,
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers, logonIntervals,
-                    resetOnError, disconnectOnError, disableHeartBeatCheck, rejectInvalidMessage,
+                    resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
                     enableLastMsgSeqNumProcessed);

@@ -81,6 +81,9 @@ public class DefaultSessionFactory implements SessionFactory {
         try {
             String connectionType = null;
 
+            final boolean rejectGarbledMessage = getSetting(settings, sessionID,
+                    Session.SETTING_REJECT_GARBLED_MESSAGE, false);
+
             final boolean rejectInvalidMessage = getSetting(settings, sessionID,
                     Session.SETTING_REJECT_INVALID_MESSAGE, true);
 
@@ -209,7 +212,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
-                    logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck,
+                    logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck, rejectGarbledMessage,
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed);
