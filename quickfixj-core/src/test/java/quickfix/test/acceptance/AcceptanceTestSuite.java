@@ -72,7 +72,7 @@ public class AcceptanceTestSuite extends TestSuite {
             result.startTest(this);
             TestConnection connection = null;
             String failureString = "test " + filename + " failed with message: ";
-            System.out.println("Running test " + filename);
+            System.out.println(System.currentTimeMillis() + " Running test " + filename);
             try {
                 connection = new TestConnection();
                 List<TestStep> testSteps = load(filename);
