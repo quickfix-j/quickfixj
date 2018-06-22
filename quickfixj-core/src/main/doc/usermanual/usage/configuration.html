@@ -421,6 +421,14 @@
 
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>RejectGarbledMessage</I> </TD>
+    <TD> If RejectGarbledMessage is set to Y, garbled messages will be rejected instead of ignored.<br>
+        This is only working for messages that pass the FIX decoder and reach the engine.<br>
+        Messages that cannot be considered a real FIX message (i.e. not starting with 8=FIX or not ending with 10=xxx) will be ignored in any case.</TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>RejectInvalidMessage</I> </TD>
     <TD> If RejectInvalidMessage is set to N, only a warning will be logged on reception of message that fails data dictionary validation.</TD>
     <TD> Y<br>N</TD>
