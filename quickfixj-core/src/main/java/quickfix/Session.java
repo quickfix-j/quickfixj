@@ -1076,6 +1076,8 @@ public class Session implements Closeable {
                ignore the message and let the problem correct itself (optimistic approach).
                Target sequence number is not incremented, so it will trigger a ResendRequest
                on the next message that is received. */
+            
+            // TODO configure
             getLog().onErrorEvent("Skipping invalid message: " + e + ": " + getMessageToLog(message));
             if (resetOrDisconnectIfRequired(message)) {
                 return;
@@ -1225,7 +1227,7 @@ public class Session implements Closeable {
     }
 
     private boolean isStateRefreshNeeded(String msgType) {
-        return refreshMessageStoreAtLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType));
+        return refreshMessageStoreAtLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -1517,7 +1519,7 @@ public class Session implements Closeable {
         reject.setString(RefSeqNum.FIELD, msgSeqNum);
 
         // QFJ-557: Only advance the sequence number if we are at the expected number.
-        if (!MsgType.LOGON.equals(msgType) && !MsgType.SEQUENCE_RESET.equals(msgType))
+        if (!MsgType.LOGON.equals(msgType) && !MsgType.SEQUENCE_RESET.equals(msgType)
                 && Integer.parseInt(msgSeqNum) == getExpectedTargetNum()) {
             state.incrNextTargetMsgSeqNum();
         }
@@ -1597,7 +1599,7 @@ public class Session implements Closeable {
         state.lockTargetMsgSeqNum();
         try {
             // QFJ-557: Only advance the sequence number if we are at the expected number.
-            if (!MsgType.LOGON.equals(msgType) && !MsgType.SEQUENCE_RESET.equals(msgType))
+            if (!MsgType.LOGON.equals(msgType) && !MsgType.SEQUENCE_RESET.equals(msgType)
                     && msgSeqNum == getExpectedTargetNum()) {
                 state.incrNextTargetMsgSeqNum();
             }
