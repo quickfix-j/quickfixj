@@ -29,18 +29,19 @@ Pull requests are always welcome! Best is if you added a unit test to show that 
 
 Fastest: clone the repo and issue the following command.
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests
+$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
 ```
 
 Slower: if you only want to skip the acceptance test suite:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true
+$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin
 ```
 
 Slow: if you want to run all tests:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true
+$ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
 ```
+NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
 ## configuration options
 https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
