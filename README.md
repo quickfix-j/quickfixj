@@ -23,7 +23,6 @@ For asking questions please use the mailing list: https://lists.sourceforge.net/
 Please report issues at http://www.quickfixj.org/jira.
 
 ## contributions
-
 Pull requests are always welcome! Best is if you added a unit test to show that a certain bug has been fixed or a new feature works as expected.
 
 ## build instructions
@@ -42,6 +41,9 @@ Slow: if you want to run all tests:
 ```
 $ mvn clean package -Dmaven.javadoc.skip=true
 ```
+
+## configuration options
+https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
 ## basics
 
