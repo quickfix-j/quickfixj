@@ -34,6 +34,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,7 +78,22 @@ public class ExpectMessageStep implements TestStep {
     public void run(TestResult result, final TestConnection connection) throws InterruptedException {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
         System.out.println(System.currentTimeMillis() + " expecting from client " + clientId + ": " + data + " " + expectedFields);
+        Runnable command = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ex) {
+                    // ignore
+                }
+                System.out.println("XXXXXXXXXX");
+                ReflectionUtil.dumpStackTraces();
+            }
+        };
+        Future<?> submit = newSingleThreadExecutor.submit(command);
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
+        submit.cancel(true);
+        newSingleThreadExecutor.shutdownNow();
         if (message == null) {
             log.info("Dumping threads due to timeout when expecting a message...");
             ReflectionUtil.dumpStackTraces();
