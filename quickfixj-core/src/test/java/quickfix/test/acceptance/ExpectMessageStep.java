@@ -86,6 +86,7 @@ public class ExpectMessageStep implements TestStep {
                     Thread.sleep(5000);
                 } catch (InterruptedException ex) {
                     // ignore
+                    return;
                 }
                 System.out.println("XXXXXXXXXX");
                 ReflectionUtil.dumpStackTraces();
