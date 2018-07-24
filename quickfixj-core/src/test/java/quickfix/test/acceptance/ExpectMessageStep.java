@@ -78,6 +78,7 @@ public class ExpectMessageStep implements TestStep {
     public void run(TestResult result, final TestConnection connection) throws InterruptedException {
         log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
         System.out.println(System.currentTimeMillis() + " expecting from client " + clientId + ": " + data + " " + expectedFields);
+        ExecutorService newSingleThreadExecutor = Executors.newSingleThreadExecutor();
         Runnable command = new Runnable() {
             @Override
             public void run() {
