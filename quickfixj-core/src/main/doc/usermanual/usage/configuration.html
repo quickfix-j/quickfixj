@@ -422,7 +422,7 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>RejectGarbledMessage</I> </TD>
-    <TD> If RejectGarbledMessage is set to Y, garbled messages will be rejected instead of ignored.<br>
+    <TD> If RejectGarbledMessage is set to Y, garbled messages will be rejected (with a generic error message in 58/Text field) instead of ignored.<br>
         This is only working for messages that pass the FIX decoder and reach the engine.<br>
         Messages that cannot be considered a real FIX message (i.e. not starting with 8=FIX or not ending with 10=xxx) will be ignored in any case.</TD>
     <TD> Y<br>N</TD>
