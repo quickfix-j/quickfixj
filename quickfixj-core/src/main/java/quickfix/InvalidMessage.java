@@ -25,16 +25,42 @@ package quickfix;
  */
 public class InvalidMessage extends Exception {
 
+    Message fixMessage;
+
     public InvalidMessage() {
         super();
+    }
+
+    public InvalidMessage(Message fixMessage) {
+        super();
+        setGarbledFixMessage(fixMessage);
     }
 
     public InvalidMessage(String message) {
         super(message);
     }
+
+    public InvalidMessage(String message, Message fixMessage) {
+        super(message);
+        setGarbledFixMessage(fixMessage);
+    }
     
     public InvalidMessage(String message, Throwable cause) {
         super(message, cause);
+    }
+
+    public InvalidMessage(String message, Throwable cause, Message fixMessage) {
+        super(message, cause);
+        setGarbledFixMessage(fixMessage);
+    }
+    
+    public Message getFixMessage() {
+        return fixMessage;
+    }
+    
+    private void setGarbledFixMessage(Message fixMessage) {
+        this.fixMessage = fixMessage;
+        this.fixMessage.setGarbled(true);
     }
 
 }
