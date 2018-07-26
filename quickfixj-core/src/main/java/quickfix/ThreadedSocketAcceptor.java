@@ -29,6 +29,34 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
 public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
     private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy;
 
+    private ThreadedSocketAcceptor(Builder builder) throws ConfigError {
+        super(builder.application, builder.messageStoreFactory, builder.settings,
+                builder.logFactory, builder.messageFactory);
+
+        if (builder.queueCapacity >= 0) {
+            eventHandlingStrategy
+                    = new ThreadPerSessionEventHandlingStrategy(this, builder.queueCapacity);
+        } else {
+            eventHandlingStrategy
+                    = new ThreadPerSessionEventHandlingStrategy(this, builder.queueLowerWatermark, builder.queueUpperWatermark);
+        }
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends AbstractSessionConnectorBuilder<Builder, ThreadedSocketAcceptor> {
+        private Builder() {
+            super(Builder.class);
+        }
+
+        @Override
+        protected ThreadedSocketAcceptor doBuild() throws ConfigError {
+            return new ThreadedSocketAcceptor(this);
+        }
+    }
+
     public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
                                   SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory,
                                   int queueCapacity )
@@ -69,29 +97,20 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
         eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
     	eventHandlingStrategy.setExecutor(longLivedExecutor);
         startAcceptingConnections();
     }
 
-    public void stop() {
-        stop(false);
-    }
-
+    @Override
     public void stop(boolean forceDisconnect) {
-        try {
-            logoutAllSessions(forceDisconnect);
-            stopAcceptingConnections();
-        } catch (ConfigError e) {
-            log.error("Error when stopping acceptor.", e);
-        }
+        logoutAllSessions(forceDisconnect);
+        stopAcceptingConnections();
         stopSessionTimer();
         eventHandlingStrategy.stopDispatcherThreads();
-        Session.unregisterSessions(getSessions());
-    }
-
-    public void block() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: " + getClass());
+        Session.unregisterSessions(getSessions(), true);
+        clearConnectorSessions();
     }
 
     @Override

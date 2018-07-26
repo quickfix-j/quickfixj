@@ -26,14 +26,25 @@ import java.sql.Statement;
 
 import javax.sql.DataSource;
 
-import junit.framework.TestCase;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
+import org.junit.After;
+import org.junit.Test;
 
-public class JdbcLogTest extends TestCase {
+public class JdbcLogTest {
     private JdbcLog log;
     private JdbcLogFactory logFactory;
     private Connection connection;
     private SessionID sessionID;
 
+    @After
+    public void tearDown() {
+        Session.unregisterSession(sessionID, true);
+    }
+
+    @Test
     public void testLog() throws Exception {
         doLogTest(null);
     }
@@ -60,6 +71,7 @@ public class JdbcLogTest extends TestCase {
         assertEquals(0, getRowCount(connection, "event_log"));
     }
 
+    @Test
     public void testLogWithHeartbeatFiltering() throws Exception {
         setUpJdbcLog(false, null);
 
@@ -83,6 +95,7 @@ public class JdbcLogTest extends TestCase {
      * (such as we can't connect ot the DB, or the tables are missing) and doesn't try
      * to print failing exceptions recursively until the stack overflows
      */
+    @Test
     public void testHandlesRecursivelyFailingException() throws Exception {
         setUpJdbcLog(false, null);
 

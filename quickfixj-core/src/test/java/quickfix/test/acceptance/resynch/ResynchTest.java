@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import quickfix.ConfigError;
 import quickfix.SessionNotFound;
+import quickfix.SystemTime;
 
 /**
  * This is testing the test framework rather than QFJ functionality per se
@@ -32,6 +33,17 @@ import quickfix.SessionNotFound;
 public class ResynchTest {
 
     ResynchTestServer server;
+
+    @Before
+    public void setUp() throws Exception {
+        SystemTime.setTimeSource(null);
+        server = new ResynchTestServer();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        server.stop();
+    }
 
     @Test(timeout=30000)
     public void testAcceptorTimerSync() throws ConfigError, SessionNotFound, InterruptedException {
@@ -63,13 +75,4 @@ public class ResynchTest {
         client.run();
     }
 
-    @Before
-    public void setUp() throws Exception {
-        server = new ResynchTestServer();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        server.stop();
-    }
 }

@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.ApplVerID;
+
 /**
  * Used by a Session to create a Message.
  *
@@ -34,6 +36,18 @@ public interface MessageFactory {
      * @return a message instance
      */
     Message create(String beginString, String msgType);
+
+    /**
+     * Creates a message for a specified type, FIX version, and ApplVerID.
+     *
+     * @param beginString the FIX version (for example, "FIX.4.2")
+     * @param applVerID the ApplVerID (for example "6" for FIX44)
+     * @param msgType the FIX message type (for example, "D" for an order)
+     * @return a message instance
+     */
+    default Message create(String beginString, ApplVerID applVerID, String msgType) {
+        return create(beginString, msgType);
+    }
 
     /**
      * Creates a group for the specified parent message type and

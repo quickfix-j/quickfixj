@@ -48,6 +48,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import quickfix.mina.SessionConnector;
 
 public class TestConnection {
     private static final HashMap<String, IoConnector> connectors = new HashMap<>();
@@ -85,27 +86,20 @@ public class TestConnection {
             throws IOException {
         IoConnector connector = connectors.get(Integer.toString(clientId));
         if (connector != null) {
-            log.info("Disposing connector for clientId " + clientId);
-            connector.dispose();
+            SessionConnector.closeManagedSessionsAndDispose(connector, true, log);
         }
-
-        if (transportType == ProtocolFactory.SOCKET) {
-            connector = new NioSocketConnector();
-        } else if (transportType == ProtocolFactory.VM_PIPE) {
-            connector = new VmPipeConnector();
-        } else {
-            throw new RuntimeException("Unsupported transport type: " + transportType);
-        }
-        connectors.put(Integer.toString(clientId), connector);
 
         SocketAddress address;
         if (transportType == ProtocolFactory.SOCKET) {
+            connector = new NioSocketConnector();
             address = new InetSocketAddress("localhost", port);
         } else if (transportType == ProtocolFactory.VM_PIPE) {
+            connector = new VmPipeConnector();
             address = new VmPipeAddress(port);
         } else {
             throw new RuntimeException("Unsupported transport type: " + transportType);
         }
+        connectors.put(Integer.toString(clientId), connector);
 
         TestIoHandler testIoHandler = new TestIoHandler();
         synchronized (ioHandlers) {

@@ -29,6 +29,34 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
 public class ThreadedSocketInitiator extends AbstractSocketInitiator {
     private final ThreadPerSessionEventHandlingStrategy eventHandlingStrategy;
 
+    private ThreadedSocketInitiator(Builder builder) throws ConfigError {
+        super(builder.application, builder.messageStoreFactory, builder.settings,
+                builder.logFactory, builder.messageFactory);
+
+        if (builder.queueCapacity >= 0) {
+            eventHandlingStrategy
+                    = new ThreadPerSessionEventHandlingStrategy(this, builder.queueCapacity);
+        } else {
+            eventHandlingStrategy
+                    = new ThreadPerSessionEventHandlingStrategy(this, builder.queueLowerWatermark, builder.queueUpperWatermark);
+        }
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends AbstractSessionConnectorBuilder<Builder, ThreadedSocketInitiator> {
+        private Builder() {
+            super(Builder.class);
+        }
+
+        @Override
+        protected ThreadedSocketInitiator doBuild() throws ConfigError {
+            return new ThreadedSocketInitiator(this);
+        }
+    }
+
     public ThreadedSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory, int queueCapacity) throws ConfigError {
@@ -71,25 +99,20 @@ public class ThreadedSocketInitiator extends AbstractSocketInitiator {
         eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 
+    @Override
     public void start() throws ConfigError, RuntimeError {
     	eventHandlingStrategy.setExecutor(longLivedExecutor);
         createSessionInitiators();
         startInitiators();
     }
 
-    public void stop() {
-        stop(false);
-    }
-
+    @Override
     public void stop(boolean forceDisconnect) {
         logoutAllSessions(forceDisconnect);
         stopInitiators();
         eventHandlingStrategy.stopDispatcherThreads();
-        Session.unregisterSessions(getSessions());
-    }
-
-    public void block() throws ConfigError, RuntimeError {
-        throw new UnsupportedOperationException("Blocking not supported: " + getClass());
+        Session.unregisterSessions(getSessions(), true);
+        clearConnectorSessions();
     }
 
     @Override

@@ -31,6 +31,7 @@ import quickfix.field.converter.IntConverter;
 import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
+import org.quickfixj.CharsetSupport;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -80,6 +81,15 @@ public abstract class FieldMap implements Serializable {
 
     public void clear() {
         fields.clear();
+        groups.clear();
+    }
+
+    public void reset() {
+        fields.clear();
+        for(List<Group> groupList : groups.values()) {
+            for(Group group : groupList)
+                group.reset();
+        }
         groups.clear();
     }
 
@@ -269,8 +279,16 @@ public abstract class FieldMap implements Serializable {
     }
 
     public BigDecimal getDecimal(int field) throws FieldNotFound {
+        return getDecimalFromString(field, getString(field));
+    }
+
+    public Optional<BigDecimal> getOptionalDecimal(int field) {
+        return getOptionalString(field).map(s -> getDecimalFromString(field, s));
+    }
+
+    private BigDecimal getDecimalFromString(int field, String s) {
         try {
-            return DecimalConverter.convert(getString(field));
+            return DecimalConverter.convert(s);
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }
@@ -462,8 +480,9 @@ public abstract class FieldMap implements Serializable {
             } else if (isGroupField(tag) && isOrderedField(tag, fieldOrder)
                     && getGroupCount(tag) > 0) {
                 appendField(buffer, field);
-                for (Group group : getGroups(tag)) {
-                    group.calculateString(buffer, preFields, postFields);
+                List<Group> groups = getGroups(tag);
+                for (int i = 0; i < groups.size(); i++) {
+                    groups.get(i).calculateString(buffer, preFields, postFields);
                 }
             }
         }
@@ -474,10 +493,10 @@ public abstract class FieldMap implements Serializable {
                 final List<Group> groups = entry.getValue();
                 int groupCount = groups.size();
                 if (groupCount > 0) {
-                    final IntField countField = new IntField(groupCountTag.intValue(), groupCount);
-                    appendField(buffer, countField);
-                    for (Group group : groups) {
-                        group.calculateString(buffer, preFields, postFields);
+                    buffer.append(NumbersCache.get(groupCountTag)).append('=');
+                    buffer.append(NumbersCache.get(groupCount)).append('\001');
+                    for (int i = 0; i < groups.size(); i++) {
+                        groups.get(i).calculateString(buffer, preFields, postFields);
                     }
                 }
             }
@@ -489,6 +508,8 @@ public abstract class FieldMap implements Serializable {
             }
         }
     }
+
+    private static final boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
 
     int calculateLength() {
         int result = 0;
@@ -503,15 +524,25 @@ public abstract class FieldMap implements Serializable {
         for (Entry<Integer, List<Group>> entry : groups.entrySet()) {
             final List<Group> groupList = entry.getValue();
             if (!groupList.isEmpty()) {
-                final IntField groupField = new IntField(entry.getKey());
-                groupField.setValue(groupList.size());
-                result += groupField.getLength();
-                for (final Group group : groupList) {
-                    result += group.calculateLength();
+                if(IS_STRING_EQUIVALENT) {
+                    result += getStringLength(entry.getKey()) + getStringLength(groupList.size()) + 2;
+                } else {
+                    result += MessageUtils.length(CharsetSupport.getCharsetInstance(), NumbersCache.get(entry.getKey()));
+                    result += MessageUtils.length(CharsetSupport.getCharsetInstance(), NumbersCache.get(groupList.size()));
+                    result += 2;
+                }
+                for (int i = 0; i < groupList.size(); i++) {
+                    result += groupList.get(i).calculateLength();
                 }
             }
         }
         return result;
+    }
+
+    private static int getStringLength(int num) {
+        if(num == 0)
+            return 1;
+        return (int)(num > 0 ? Math.log10(num) + 1 : Math.log10(-num) + 2);
     }
 
     int calculateChecksum() {
@@ -525,11 +556,21 @@ public abstract class FieldMap implements Serializable {
         for (Entry<Integer, List<Group>> entry : groups.entrySet()) {
             final List<Group> groupList = entry.getValue();
             if (!groupList.isEmpty()) {
-                final IntField groupField = new IntField(entry.getKey());
-                groupField.setValue(groupList.size());
-                result += groupField.getChecksum();
-                for (final Group group : groupList) {
-                    result += group.calculateChecksum();
+                if(IS_STRING_EQUIVALENT) {
+                    String value = NumbersCache.get(entry.getKey());
+                    for (int i = value.length(); i-- != 0;)
+                        result += value.charAt(i);
+                    value = NumbersCache.get(groupList.size());
+                    for (int i = value.length(); i-- != 0;)
+                        result += value.charAt(i);
+                    result += '=' + 1;
+                } else {
+                    final IntField groupField = new IntField(entry.getKey());
+                    groupField.setValue(groupList.size());
+                    result += groupField.getChecksum();
+                }
+                for (int i = 0; i < groupList.size(); i++) {
+                    result += groupList.get(i).calculateChecksum();
                 }
             }
         }
@@ -653,4 +694,5 @@ public abstract class FieldMap implements Serializable {
         return hasGroup(group.getFieldTag());
     }
 
+    
 }

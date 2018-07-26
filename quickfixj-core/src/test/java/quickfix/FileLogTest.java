@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
+import org.junit.After;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,11 @@ public class FileLogTest {
     @Before
     public void setUp() throws Exception {
         SystemTime.setTimeSource(new MockSystemTimeSource(System.currentTimeMillis()));
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        SystemTime.setTimeSource(null);
     }
 
     @Test
@@ -202,14 +208,15 @@ public class FileLogTest {
         settings.setBool(sessionID, FileLogFactory.SETTING_INCLUDE_MILLIS_IN_TIMESTAMP, false);
         FileLogFactory factory = new FileLogFactory(settings);
 
-        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+        try (Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
                 sessionID, new DefaultDataDictionaryProvider(), null, factory,
-                new DefaultMessageFactory(), 0);
-        Session.registerSession(session);
-
-        FileLog log = (FileLog) session.getLog();
-        log.close();
-        log.logIncoming("test");
-        // no stack overflow exception thrown
+                new DefaultMessageFactory(), 0)) {
+            Session.registerSession(session);
+            
+            FileLog log = (FileLog) session.getLog();
+            log.close();
+            log.logIncoming("test");
+            // no stack overflow exception thrown
+        }
     }
 }

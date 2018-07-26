@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import quickfix.SystemTime;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
@@ -153,6 +154,8 @@ public class AcceptanceTestSuite extends TestSuite {
     public AcceptanceTestSuite(String testDirectory, boolean multithreaded, Map<Object, Object> overridenProperties) {
         this.multithreaded = multithreaded;
         this.overridenProperties = overridenProperties;
+        SystemTime.setTimeSource(null);
+
         String name = testDirectory.substring(testDirectory.lastIndexOf(File.separatorChar) + 1);
         this.setName(name + (multithreaded ? "-threaded" : ""));
         Long timeout = Long.getLong(ATEST_TIMEOUT_KEY);

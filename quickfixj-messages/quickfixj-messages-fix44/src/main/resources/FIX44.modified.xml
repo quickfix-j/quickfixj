@@ -2393,7 +2393,6 @@
       <field name="AllocSettlCurrency" required="N"/>
       <field name="SettlCurrFxRate" required="N"/>
       <field name="SettlCurrFxRateCalc" required="N"/>
-      <field name="AccruedInterestAmt" required="N"/>
       <field name="AllocAccruedInterestAmt" required="N"/>
       <field name="AllocInterestAtMaturity" required="N"/>
       <field name="SettlInstMode" required="N"/>
@@ -2726,7 +2725,6 @@
     <field name="Text" required="N"/>
     <field name="EncodedTextLen" required="N"/>
     <field name="EncodedText" required="N"/>
-    <field name="SettlInstSource" required="N"/>
     <field name="ClOrdID" required="N"/>
     <field name="TransactTime" required="Y"/>
     <group name="NoSettlInst" required="N">

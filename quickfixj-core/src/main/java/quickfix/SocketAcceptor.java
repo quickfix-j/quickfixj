@@ -31,6 +31,34 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     private volatile Boolean isStarted = Boolean.FALSE;
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
+    private SocketAcceptor(Builder builder) throws ConfigError {
+        super(builder.application, builder.messageStoreFactory, builder.settings,
+                builder.logFactory, builder.messageFactory);
+
+        if (builder.queueCapacity >= 0) {
+            eventHandlingStrategy
+                    = new SingleThreadedEventHandlingStrategy(this, builder.queueCapacity);
+        } else {
+            eventHandlingStrategy
+                    = new SingleThreadedEventHandlingStrategy(this, builder.queueLowerWatermark, builder.queueUpperWatermark);
+        }
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends AbstractSessionConnectorBuilder<Builder, SocketAcceptor> {
+        private Builder() {
+            super(Builder.class);
+        }
+
+        @Override
+        protected SocketAcceptor doBuild() throws ConfigError {
+            return new SocketAcceptor(this);
+        }
+    }
+
     public SocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory,
             int queueCapacity)
@@ -71,44 +99,35 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     @Override
     public void start() throws ConfigError, RuntimeError {
-        initialize(true);
+        initialize();
     }
 
-    private void initialize(boolean blockInThread) throws ConfigError {
+    private void initialize() throws ConfigError {
         if (isStarted.equals(Boolean.FALSE)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             startAcceptingConnections();
+            eventHandlingStrategy.blockInThread();
             isStarted = Boolean.TRUE;
-            if (blockInThread) {
-                eventHandlingStrategy.blockInThread();
-            } else {
-                eventHandlingStrategy.block();
-            }
         } else {
             log.warn("Ignored attempt to start already running SocketAcceptor.");
         }
     }
 
     @Override
-    public void stop() {
-        stop(false);
-    }
-
-    @Override
     public void stop(boolean forceDisconnect) {
         if (isStarted.equals(Boolean.TRUE)) {
             try {
-                try {
-                    logoutAllSessions(forceDisconnect);
-                    stopAcceptingConnections();
-                } catch (ConfigError e) {
-                    log.error("Error when stopping acceptor.", e);
-                }
+                logoutAllSessions(forceDisconnect);
+                stopAcceptingConnections();
                 stopSessionTimer();
             } finally {
-                eventHandlingStrategy.stopHandlingMessages();
-                Session.unregisterSessions(getSessions());
-                isStarted = Boolean.FALSE;
+                try {
+                    eventHandlingStrategy.stopHandlingMessages(true);
+                } finally {
+                    Session.unregisterSessions(getSessions(), true);
+                    clearConnectorSessions();
+                    isStarted = Boolean.FALSE;
+                }
             }
         }
     }

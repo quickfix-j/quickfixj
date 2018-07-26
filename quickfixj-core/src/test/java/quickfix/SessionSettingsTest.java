@@ -125,8 +125,8 @@ public class SessionSettingsTest extends TestCase {
 
         // Only defined in defaults
         assertEquals("1234", settings.getSessionProperties(sessionID, true).get("TestLong"));
-        assertEquals(null, settings.getSessionProperties(sessionID, false).get("TestLong"));
-        assertEquals(null, settings.getDefaultProperties().get("TargetCompID"));
+        assertNull(settings.getSessionProperties(sessionID, false).get("TestLong"));
+        assertNull(settings.getDefaultProperties().get("TargetCompID"));
     }
 
     private SessionSettings setUpSession() throws ConfigError {
@@ -187,7 +187,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("acceptor", settings.getString("ConnectionType"));
         assertEquals(1234, settings.getLong("TestLong"));
         assertEquals(12.34, settings.getDouble("TestDouble"), 0);
-        assertEquals(true, settings.getBool("TestBoolTrue"));
+        assertTrue(settings.getBool("TestBoolTrue"));
         assertTrue(settings.isSetting("ConnectionType"));
         assertFalse(settings.isSetting("bogus"));
     }
@@ -229,7 +229,7 @@ public class SessionSettingsTest extends TestCase {
     public void testDefaultSetters() throws Exception {
         final SessionSettings settings = setUpSession();
         settings.setBool("bool", true);
-        assertEquals("wrong default value", true, settings.getBool("bool"));
+        assertTrue("wrong default value", settings.getBool("bool"));
         settings.setDouble("double", 10.00);
         assertEquals("wrong default value", 10.00, settings.getDouble("double"), 0);
         settings.setLong("long", 1000L);

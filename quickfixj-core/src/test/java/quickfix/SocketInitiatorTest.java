@@ -58,6 +58,8 @@ import quickfix.test.util.ReflectionUtil;
 
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
+    // store static Session count before the test to check cleanup
+    private static final int SESSION_COUNT = Session.numSessions();
 
     @Before
     public void setUp() throws Exception {
@@ -333,12 +335,7 @@ public class SocketInitiatorTest {
             }
         };
 
-        LogFactory logFactory = new LogFactory() {
-            @Override
-            public Log create(SessionID sessionID) {
-                return logSessionStateListener;
-            }
-        };
+        LogFactory logFactory = sessionID -> logSessionStateListener;
 
         final SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
                 logFactory, new DefaultMessageFactory());
@@ -369,15 +366,16 @@ public class SocketInitiatorTest {
                 clientApplication.setUpLogonExpectation();
                 initiator.start();
                 assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertEquals(1, initiator.getSessions().size());
 
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
 
+                clientApplication.setUpLogoutExpectation();
                 initiator.stop();
-                assertFalse(clientSession.isLoggedOn());
-                assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertLoggedOut(clientApplication, clientSession);
+                assertFalse(initiator.getSessions().contains(clientSessionID));
+                assertTrue(initiator.getSessions().isEmpty());
                 if (messageLog != null) {
                     messageLogLength = messageLog.length();
                     assertTrue(messageLog.length() > 0);
@@ -390,7 +388,7 @@ public class SocketInitiatorTest {
                 clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
                 assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertEquals(1, initiator.getSessions().size());
 
                 if (messageLog != null) {
                     // QFJ-698: check that we were still able to write to the messageLog after the restart
@@ -404,6 +402,8 @@ public class SocketInitiatorTest {
             serverThread.join();
         }
         assertEquals("Client application should receive logout", 2, clientApplication.logoutCounter);
+        assertTrue("After stop() the Session count should not be higher than before the test", Session.numSessions() <= SESSION_COUNT );
+        assertEquals("After stop() the Session count should be zero in Connector", 0, initiator.getSessions().size() );
     }
 
     private void doTestOfStop(SessionID clientSessionID, ClientApplication clientApplication,
@@ -418,7 +418,7 @@ public class SocketInitiatorTest {
 
                 initiator.start();
                 assertTrue(initiator.getSessions().contains(clientSessionID));
-                assertTrue(initiator.getSessions().size() == 1);
+                assertEquals(1, initiator.getSessions().size());
 
                 Session clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
@@ -478,9 +478,6 @@ public class SocketInitiatorTest {
         }
 
         final boolean await = clientApplication.logonLatch.await(20, TimeUnit.SECONDS); 
-        if (!await) {
-            ReflectionUtil.dumpStackTraces();
-        }
         assertTrue("Expected logon did not occur", await); 
         assertTrue("client session not logged in", clientSession.isLoggedOn());
     }

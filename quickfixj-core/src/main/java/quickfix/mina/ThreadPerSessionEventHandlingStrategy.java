@@ -20,10 +20,7 @@
 
 package quickfix.mina;
 
-import quickfix.LogUtil;
-import quickfix.Message;
-import quickfix.Session;
-import quickfix.SessionID;
+import quickfix.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,19 +32,32 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static quickfix.mina.QueueTrackers.newDefaultQueueTracker;
+import static quickfix.mina.QueueTrackers.newSingleSessionWatermarkTracker;
+
 /**
  * Processes messages in a session-specific thread.
  */
 public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrategy {
-
     private final ConcurrentMap<SessionID, MessageDispatchingThread> dispatchers = new ConcurrentHashMap<>();
     private final SessionConnector sessionConnector;
     private final int queueCapacity;
+    private final int queueLowerWatermark;
+    private final int queueUpperWatermark;
     private volatile Executor executor;
 
     public ThreadPerSessionEventHandlingStrategy(SessionConnector connector, int queueCapacity) {
         sessionConnector = connector;
         this.queueCapacity = queueCapacity;
+        this.queueLowerWatermark = -1;
+        this.queueUpperWatermark = -1;
+    }
+
+    public ThreadPerSessionEventHandlingStrategy(SessionConnector connector, int queueLowerWatermark, int queueUpperWatermark) {
+        sessionConnector = connector;
+        this.queueCapacity = -1;
+        this.queueLowerWatermark = queueLowerWatermark;
+        this.queueUpperWatermark = queueUpperWatermark;
     }
 
     public void setExecutor(Executor executor) {
@@ -59,7 +69,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
             dispatcher = dispatchers.computeIfAbsent(quickfixSession.getSessionID(), sessionID -> {
-               final MessageDispatchingThread newDispatcher = new MessageDispatchingThread(quickfixSession, queueCapacity, executor);
+                final MessageDispatchingThread newDispatcher = new MessageDispatchingThread(quickfixSession, executor);
                 startDispatcherThread(newDispatcher);
                 return newDispatcher;
             });
@@ -103,71 +113,78 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         }
     }
 
-	/**
-	 * A stand-in for the Thread class that delegates to an Executor.
-	 * Implements all the API required by pre-existing QFJ code.
-	 */
-	protected static abstract class ThreadAdapter implements Runnable {
+    /**
+     * A stand-in for the Thread class that delegates to an Executor.
+     * Implements all the API required by pre-existing QFJ code.
+     */
+    protected static abstract class ThreadAdapter implements Runnable {
 
-		private final Executor executor;
-		private final String name;
+        private final Executor executor;
+        private final String name;
 
-		public ThreadAdapter(String name, Executor executor) {
-			this.name = name;
-			this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
-		}
+        public ThreadAdapter(String name, Executor executor) {
+            this.name = name;
+            this.executor = executor != null ? executor : new DedicatedThreadExecutor(name);
+        }
 
-		public void start() {
-			executor.execute(this);
-		}
+        public void start() {
+            executor.execute(this);
+        }
 
-		@Override
-		public final void run() {
-			Thread currentThread = Thread.currentThread();
-			String threadName = currentThread.getName();
-			try {
-				if (!name.equals(threadName)) {
-					currentThread.setName(name + " (" + threadName + ")");
-				}
-				doRun();
-			} finally {
-				currentThread.setName(threadName);
-			}
-		}
+        @Override
+        public final void run() {
+            Thread currentThread = Thread.currentThread();
+            String threadName = currentThread.getName();
+            try {
+                if (!name.equals(threadName)) {
+                    currentThread.setName(name + " (" + threadName + ")");
+                }
+                doRun();
+            } finally {
+                currentThread.setName(threadName);
+            }
+        }
 
-		abstract void doRun();
+        abstract void doRun();
 
-		/**
-		 * An Executor that uses it's own dedicated Thread.
-		 * Provides equivalent behavior to the prior non-Executor approach.
-		 */
-		static final class DedicatedThreadExecutor implements Executor {
+        /**
+         * An Executor that uses its own dedicated Thread. Provides equivalent
+         * behavior to the prior non-Executor approach.
+         */
+        static final class DedicatedThreadExecutor implements Executor {
 
-			private final String name;
-			
-			DedicatedThreadExecutor(String name) {
-				this.name = name;
-			}
+            private final String name;
 
-			@Override
-			public void execute(Runnable command) {
-				new Thread(command, name).start();
-			}
+            DedicatedThreadExecutor(String name) {
+                this.name = name;
+            }
 
-		}
+            @Override
+            public void execute(Runnable command) {
+                new Thread(command, name).start();
+            }
 
+        }
 	}
 
 	protected class MessageDispatchingThread extends ThreadAdapter {
         private final Session quickfixSession;
         private final BlockingQueue<Message> messages;
+        private final QueueTracker<Message> queueTracker;
         private volatile boolean stopped;
         private volatile boolean stopping;
 
-        private MessageDispatchingThread(Session session, int queueCapacity, Executor executor) {
+        private MessageDispatchingThread(Session session, Executor executor) {
             super("QF/J Session dispatcher: " + session.getSessionID(), executor);
             quickfixSession = session;
-            messages = new LinkedBlockingQueue<>(queueCapacity);
+            if (queueCapacity >= 0) {
+                messages = new LinkedBlockingQueue<>(queueCapacity);
+                queueTracker = newDefaultQueueTracker(messages);
+            } else {
+                messages = new LinkedBlockingQueue<>();
+                queueTracker = newSingleSessionWatermarkTracker(messages, queueLowerWatermark, queueUpperWatermark,
+                        quickfixSession);
+            }
         }
 
         public void enqueue(Message message) {
@@ -175,7 +192,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 return;
             }
             try {
-                messages.put(message);
+                queueTracker.put(message);
             } catch (final InterruptedException e) {
                 quickfixSession.getLog().onErrorEvent(e.toString());
             }
@@ -189,7 +206,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
         void doRun() {
             while (!stopping) {
                 try {
-                    final Message message = getNextMessage(messages);
+                    final Message message = getNextMessage(queueTracker);
                     if (message == null) {
                         // no message available in polling interval
                         continue;
@@ -208,8 +225,8 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 }
             }
             if (!messages.isEmpty()) {
-                final List<Message> tempList = new ArrayList<>();
-                messages.drainTo(tempList);
+                final List<Message> tempList = new ArrayList<>(messages.size());
+                queueTracker.drainTo(tempList);
                 for (Message message : tempList) {
                     try {
                         quickfixSession.next(message);
@@ -245,12 +262,12 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
      * We do not block indefinitely as that would prevent this thread from ever stopping
      *
      * @see #THREAD_WAIT_FOR_MESSAGE_MS
-     * @param messages
+     * @param queueTracker
      * @return next message or null if nothing arrived within the timeout period
      * @throws InterruptedException
      */
-    protected Message getNextMessage(BlockingQueue<Message> messages) throws InterruptedException {
-        return messages.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
+    protected Message getNextMessage(QueueTracker<Message> queueTracker) throws InterruptedException {
+        return queueTracker.poll(THREAD_WAIT_FOR_MESSAGE_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override

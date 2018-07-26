@@ -50,6 +50,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.service.IoService;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
@@ -84,27 +86,27 @@ public abstract class SessionConnector implements Connector {
         }
     }
 
-	/**
-	 * <p>
-	 * Supplies the Executors to be used for all message processing and timer activities. This will override the default
-	 * behavior which uses internally created Threads. This enables scenarios such as a ResourceAdapter to supply the
-	 * WorkManager (when adapted to the Executor API) so that all Application call-backs occur on container managed
-	 * threads.
-	 * </p>
-	 * <p>
-	 * If using external Executors, this method should be called immediately after the constructor. Once set, the
-	 * Executors cannot be changed.
-	 * </p>
-	 * 
-	 * @param executorFactory See {@link ExecutorFactory} for detailed requirements.
-	 */
-	public void setExecutorFactory(ExecutorFactory executorFactory) {
-		if (longLivedExecutor != null || shortLivedExecutor!=null) {
-			throw new IllegalStateException("Optional ExecutorFactory has already been set.  It cannot be changed once set.");
-		}
-		longLivedExecutor = executorFactory.getLongLivedExecutor();
-		shortLivedExecutor = executorFactory.getShortLivedExecutor();
-	}
+    /**
+     * <p>
+     * Supplies the Executors to be used for all message processing and timer activities. This will override the default
+     * behavior which uses internally created Threads. This enables scenarios such as a ResourceAdapter to supply the
+     * WorkManager (when adapted to the Executor API) so that all Application call-backs occur on container managed
+     * threads.
+     * </p>
+     * <p>
+     * If using external Executors, this method should be called immediately after the constructor. Once set, the
+     * Executors cannot be changed.
+     * </p>
+     * 
+     * @param executorFactory See {@link ExecutorFactory} for detailed requirements.
+     */
+    public void setExecutorFactory(ExecutorFactory executorFactory) {
+        if (longLivedExecutor != null || shortLivedExecutor != null) {
+            throw new IllegalStateException("Optional ExecutorFactory has already been set.  It cannot be changed once set.");
+        }
+        longLivedExecutor = executorFactory.getLongLivedExecutor();
+        shortLivedExecutor = executorFactory.getShortLivedExecutor();
+    }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.addPropertyChangeListener(listener);
@@ -117,6 +119,15 @@ public abstract class SessionConnector implements Connector {
     protected void setSessions(Map<SessionID, Session> sessions) {
         this.sessions = sessions;
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
+    }
+
+    /**
+     * Will remove all Sessions from the SessionConnector's Session map.
+     * Please make sure that these Sessions were unregistered before via
+     * Session.unregisterSessions().
+     */
+    protected void clearConnectorSessions() {
+        this.sessions.clear();
     }
 
     /**
@@ -301,11 +312,11 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void startSessionTimer() {
-		Runnable timerTask = new SessionTimerTask();
-		if (shortLivedExecutor != null) {
-			timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
-		}
-		sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
+        Runnable timerTask = new SessionTimerTask();
+        if (shortLivedExecutor != null) {
+            timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
+        }
+        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
                 TimeUnit.MILLISECONDS);
         log.info("SessionTimer started");
     }
@@ -315,6 +326,14 @@ public abstract class SessionConnector implements Connector {
             if (sessionTimerFuture.cancel(true))
                 log.info("SessionTimer canceled");
         }
+    }
+
+    // visible for testing
+    boolean checkSessionTimerRunning() {
+        if ( sessionTimerFuture != null ) {
+            return !sessionTimerFuture.isDone();
+        }
+        return false;
     }
 
     protected ScheduledExecutorService getScheduledExecutorService() {
@@ -341,54 +360,52 @@ public abstract class SessionConnector implements Connector {
      * Delegates QFJ Timer Task to an Executor and blocks the QFJ Timer Thread until
      * the Task execution completes.
      */
-	static final class DelegatingTask implements Runnable {
+    static final class DelegatingTask implements Runnable {
 
-		private final BlockingSupportTask delegate;
-		private final Executor executor;
+        private final BlockingSupportTask delegate;
+        private final Executor executor;
 
-		DelegatingTask(Runnable delegate, Executor executor) {
-			this.delegate = new BlockingSupportTask(delegate);
-			this.executor = executor;
-		}
+        DelegatingTask(Runnable delegate, Executor executor) {
+            this.delegate = new BlockingSupportTask(delegate);
+            this.executor = executor;
+        }
 
-		@Override
-		public void run() {
-			executor.execute(delegate);
-			try {
-				delegate.await();
-			} catch (InterruptedException e) {
-			}
-		}
+        @Override
+        public void run() {
+            executor.execute(delegate);
+            try {
+                delegate.await();
+            } catch (InterruptedException e) {
+            }
+        }
 
-		static final class BlockingSupportTask implements Runnable {
+        static final class BlockingSupportTask implements Runnable {
 
-			private final CountDownLatch latch = new CountDownLatch(1);
-			private final Runnable delegate;
+            private final CountDownLatch latch = new CountDownLatch(1);
+            private final Runnable delegate;
 
-			BlockingSupportTask(Runnable delegate) {
-				this.delegate = delegate;
-			}
+            BlockingSupportTask(Runnable delegate) {
+                this.delegate = delegate;
+            }
 
-			@Override
-			public void run() {
-				Thread currentThread = Thread.currentThread();
-				String threadName = currentThread.getName();
-				try {
-					currentThread.setName("QFJ Timer (" + threadName + ")");
-					delegate.run();
-				} finally {
-					latch.countDown();
-					currentThread.setName(threadName);
-				}
-			}
+            @Override
+            public void run() {
+                Thread currentThread = Thread.currentThread();
+                String threadName = currentThread.getName();
+                try {
+                    currentThread.setName("QFJ Timer (" + threadName + ")");
+                    delegate.run();
+                } finally {
+                    latch.countDown();
+                    currentThread.setName(threadName);
+                }
+            }
 
-			void await() throws InterruptedException {
-				latch.await();
-			}
-
-		}
-
-	}
+            void await() throws InterruptedException {
+                latch.await();
+            }
+        }
+    }
 
     private static class QFTimerThreadFactory implements ThreadFactory {
 
@@ -414,4 +431,33 @@ public abstract class SessionConnector implements Connector {
     protected IoFilterChainBuilder getIoFilterChainBuilder() {
         return ioFilterChainBuilder;
     }
+    
+    /**
+     * Closes all managed sessions of an Initiator/Acceptor.
+     *
+     * @param ioService Acceptor or Initiator implementation
+     * @param awaitTermination whether to wait for underlying ExecutorService to terminate
+     * @param logger used for logging WARNING when IoSession could not be closed
+     */
+    public static void closeManagedSessionsAndDispose(IoService ioService, boolean awaitTermination, Logger logger) {
+        Map<Long, IoSession> managedSessions = ioService.getManagedSessions();
+        for (IoSession ioSession : managedSessions.values()) {
+            if (!ioSession.isClosing()) {
+                CloseFuture closeFuture = ioSession.closeNow();
+                boolean completed = false;
+                try {
+                    completed = closeFuture.await(1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+                if (!completed) {
+                    logger.warn("Could not close IoSession {}", ioSession);
+                }
+            }
+        }
+        if (!ioService.isDisposing()) {
+            ioService.dispose(awaitTermination);
+        }
+    }
+
 }

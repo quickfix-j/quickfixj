@@ -216,6 +216,7 @@ public class ATServer implements Runnable {
                 }
             } catch (InterruptedException e1) {
                 log.info("server exiting");
+                Thread.currentThread().interrupt();
             } finally {
                 shutdownLatch.countDown();
             }
@@ -228,7 +229,7 @@ public class ATServer implements Runnable {
                     acceptor.stop(true);
                 }
             } catch (RuntimeException e) {
-                e.printStackTrace();
+                log.warn("Encountered Exception on stop", e);
             } finally {
                 tearDownLatch.countDown();
             }
