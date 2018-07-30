@@ -1075,12 +1075,17 @@ public class Session implements Closeable {
             /* InvalidMessage means a low-level error (e.g. checksum problem) and we should
                ignore the message and let the problem correct itself (optimistic approach).
                Target sequence number is not incremented, so it will trigger a ResendRequest
-               on the next message that is received. */
-            
-            // TODO configure
-            getLog().onErrorEvent("Skipping invalid message: " + e + ": " + getMessageToLog(message));
-            if (resetOrDisconnectIfRequired(message)) {
-                return;
+               on the next message that is received.
+               If the message should get rejected and the seqnum get incremented,
+               then setting RejectGarbledMessage=Y needs to be used. */
+            if (rejectGarbledMessage) {
+                getLog().onErrorEvent("Processing garbled message: " + e.getMessage());
+                generateReject(message, "Message failed basic validity check");
+            } else {
+                getLog().onErrorEvent("Skipping invalid message: " + e + ": " + getMessageToLog(message));
+                if (resetOrDisconnectIfRequired(message)) {
+                    return;
+                }
             }
         } catch (final RejectLogon e) {
             final String rejectMessage = e.getMessage() != null ? (": " + e) : "";
@@ -1192,6 +1197,10 @@ public class Session implements Closeable {
     public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
+        if (rejectGarbledMessage && message.isGarbled()) {
+            generateReject(message, "Message failed basic validity check");
+            return;
+        }
         next(message, false);
     }
 
@@ -1511,9 +1520,9 @@ public class Session implements Closeable {
         reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
 
-        final String msgType = header.getString(MsgType.FIELD);
-        final String msgSeqNum = header.getString(MsgSeqNum.FIELD);
-        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+        final String msgType = (header.isSetField(MsgType.FIELD) ? header.getString(MsgType.FIELD) : null);
+        final String msgSeqNum = (header.isSetField(MsgSeqNum.FIELD) ? header.getString(MsgSeqNum.FIELD) : NumbersCache.get(0));
+        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0 && msgType != null) {
             reject.setString(RefMsgType.FIELD, msgType);
         }
         reject.setString(RefSeqNum.FIELD, msgSeqNum);

@@ -19,18 +19,21 @@
 
 package quickfix.mina;
 
+import java.io.IOException;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.*;
-import quickfix.field.MsgType;
-
-import java.io.IOException;
-
+import quickfix.InvalidMessage;
+import quickfix.Log;
+import quickfix.LogUtil;
+import quickfix.Message;
+import quickfix.MessageUtils;
 import static quickfix.MessageUtils.parse;
+import quickfix.Session;
+import quickfix.SessionID;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.
@@ -125,13 +128,22 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
         SessionID remoteSessionID = MessageUtils.getReverseSessionID(messageString);
         Session quickFixSession = findQFSession(ioSession, remoteSessionID);
         if (quickFixSession != null) {
+            final boolean rejectGarbledMessage = quickFixSession.isRejectGarbledMessage();
             final Log sessionLog = quickFixSession.getLog();
             sessionLog.onIncoming(messageString);
             try {
                 Message fixMessage = parse(quickFixSession, messageString);
                 processMessage(ioSession, fixMessage);
             } catch (InvalidMessage e) {
-                if (MsgType.LOGON.equals(MessageUtils.getMessageType(messageString))) {
+                if (rejectGarbledMessage) {
+                    final Message fixMessage = e.getFixMessage();
+                    if ( fixMessage != null ) {
+                        sessionLog.onErrorEvent("Processing garbled message: " + e.getMessage());
+                        processMessage(ioSession, fixMessage);
+                        return;
+                    }
+                }
+                if (MessageUtils.isLogon(messageString)) {
                     sessionLog.onErrorEvent("Invalid LOGON message, disconnecting: " + e.getMessage());
                     ioSession.closeNow();
                 } else {
