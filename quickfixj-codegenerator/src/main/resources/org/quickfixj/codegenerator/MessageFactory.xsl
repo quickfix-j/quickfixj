@@ -75,7 +75,7 @@ public class MessageFactory implements quickfix.MessageFactory {
 
 <xsl:template name="group-switch-statement">
 		switch (msgType) {
-	<xsl:for-each-group select="//fix/messages/message[group or component]" group-by="@name">
+	<xsl:for-each select="//fix/messages/message[group or component]">
 			case <xsl:value-of select="$messagePackage"/>.<xsl:value-of select="@name"/>.MSGTYPE:
 				switch (correspondingFieldID) {
 			<xsl:apply-templates mode="group-factories" select="group">
@@ -86,7 +86,7 @@ public class MessageFactory implements quickfix.MessageFactory {
 			</xsl:apply-templates>
 				}
 				break;
-	</xsl:for-each-group>
+	</xsl:for-each>
 		}
 </xsl:template>
 
