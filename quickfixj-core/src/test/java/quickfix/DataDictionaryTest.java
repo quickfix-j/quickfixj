@@ -1265,7 +1265,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
         newSingle.setField(new StringField(EffectiveTime.FIELD));
