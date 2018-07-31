@@ -697,6 +697,9 @@ public class DataDictionary {
         if (fieldType == null) {
             return;
         }
+        if (field.getValue().length() == 0 && !checkFieldsHaveValues) {
+            return;
+        }
         try {
             switch (fieldType) {
                 case STRING:
