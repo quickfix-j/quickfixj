@@ -22,31 +22,7 @@ package quickfix;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import quickfix.field.Account;
-import quickfix.field.AvgPx;
-import quickfix.field.BodyLength;
-import quickfix.field.CheckSum;
-import quickfix.field.ClOrdID;
-import quickfix.field.HandlInst;
-import quickfix.field.LastMkt;
-import quickfix.field.MsgSeqNum;
-import quickfix.field.MsgType;
-import quickfix.field.NoHops;
-import quickfix.field.NoPartyIDs;
-import quickfix.field.NoRelatedSym;
-import quickfix.field.OrdType;
-import quickfix.field.OrderQty;
-import quickfix.field.Price;
-import quickfix.field.QuoteReqID;
-import quickfix.field.SenderCompID;
-import quickfix.field.SenderSubID;
-import quickfix.field.SendingTime;
-import quickfix.field.SessionRejectReason;
-import quickfix.field.Side;
-import quickfix.field.Symbol;
-import quickfix.field.TargetCompID;
-import quickfix.field.TimeInForce;
-import quickfix.field.TransactTime;
+import quickfix.field.*;
 import quickfix.fix44.NewOrderSingle;
 import quickfix.test.util.ExpectedTestFailure;
 
@@ -57,10 +33,7 @@ import java.net.URLClassLoader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DataDictionaryTest {
 
@@ -1273,6 +1246,30 @@ public class DataDictionaryTest {
         expectedException.expect(hasProperty("field", is(Symbol.FIELD)));
 
         dictionary.validate(quoteRequest, true);
+    }
+
+    /**
+     * Field EffectiveTime(168) is defined as UTCTIMESTAMP so an empty string value is invalid but if we allow blank values that should not fail
+     * validation
+     * @throws Exception
+     */
+    @Test
+    public void testAllowingBlankValuesDisablesFieldValidation() throws Exception {
+        final DataDictionary dictionary = getDictionary();
+        dictionary.setCheckFieldsHaveValues(false);
+
+        final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(OrdType.LIMIT)
+        );
+        newSingle.setField(new OrderQty(42));
+        newSingle.setField(new Price(42.37));
+        newSingle.setField(new HandlInst());
+        newSingle.setField(new Symbol("QFJ"));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new TimeInForce(TimeInForce.DAY));
+        newSingle.setField(new Account("testAccount"));
+        newSingle.setField(new StringField(EffectiveTime.FIELD));
+        dictionary.validate(newSingle, true);
     }
 
     //
