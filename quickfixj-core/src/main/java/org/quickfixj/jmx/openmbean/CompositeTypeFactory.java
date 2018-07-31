@@ -53,7 +53,7 @@ public class CompositeTypeFactory {
 
     public CompositeType createCompositeType() throws OpenDataException {
         return new CompositeType(name, description, itemNames
-                .toArray(new String[itemNames.size()]), itemNames
+                .toArray(new String[itemNames.size()]), itemDescriptions
                 .toArray(new String[itemDescriptions.size()]), itemTypes
                 .toArray(new OpenType[itemTypes.size()]));
     }
