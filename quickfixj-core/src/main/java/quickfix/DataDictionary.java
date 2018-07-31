@@ -697,7 +697,7 @@ public class DataDictionary {
         if (fieldType == null) {
             return;
         }
-        if (field.getValue().length() == 0 && !checkFieldsHaveValues) {
+        if (!checkFieldsHaveValues && field.getValue().length() == 0) {
             return;
         }
         try {
