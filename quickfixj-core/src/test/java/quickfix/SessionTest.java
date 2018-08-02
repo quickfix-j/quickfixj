@@ -85,7 +85,7 @@ public class SessionTest {
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
-                new int[] { 5 }, false, false, false, true, false, true, false,
+                new int[] { 5 }, false, false, false, false, true, false, true, false,
                 null, true, 0, false, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
@@ -126,7 +126,7 @@ public class SessionTest {
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
-                new int[] { 5 }, false, false, false, true, false, true, false,
+                new int[] { 5 }, false, false, false, false, true, false, true, false,
                 null, true, 0, false, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
@@ -1980,7 +1980,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
-                false, false, false, true, false, true, false, null, true,
+                false, false, false, false, true, false, true, false, null, true,
                 chunkSize, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
@@ -2042,7 +2042,7 @@ public class SessionTest {
 				sessionID, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-				new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
 				false, false);
 
 		Responder mockResponder = mock(Responder.class);
@@ -2090,7 +2090,7 @@ public class SessionTest {
 				sessionID, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-				new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
 				enableNextExpectedMsgSeqNum, false);
 
 		Responder mockResponder = mock(Responder.class);
@@ -2139,7 +2139,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
-                false, disconnectOnError, false, true, false, true, false,
+                false, disconnectOnError, false, false, true, false, true, false,
                 null, true, 0, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
@@ -2175,7 +2175,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
-                false, disconnectOnError, false, true, false, true, false,
+                false, disconnectOnError, false, false, true, false, true, false,
                 null, true, 0, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
@@ -2227,7 +2227,7 @@ public class SessionTest {
                 sessionID, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-                new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+                new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
                 false, false);
 
         UnitTestResponder responder = new UnitTestResponder();
@@ -2343,7 +2343,7 @@ public class SessionTest {
                 sessionID, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-                new int[]{5}, false, false, false, true, false, true, false, null, true, 0,
+                new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
                 enableNextExpectedMsgSeqNum, false);
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);

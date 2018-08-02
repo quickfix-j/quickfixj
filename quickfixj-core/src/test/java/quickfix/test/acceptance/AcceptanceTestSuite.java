@@ -273,6 +273,11 @@ public class AcceptanceTestSuite extends TestSuite {
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", true, timestampProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("timestamps", false, timestampProperties)));
 
+        Map<Object, Object> rejectGarbledMessagesProperties = new HashMap<>();
+        rejectGarbledMessagesProperties.put(Session.SETTING_REJECT_GARBLED_MESSAGE, "Y");
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("rejectGarbledMessages", true, rejectGarbledMessagesProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("rejectGarbledMessages", false, rejectGarbledMessagesProperties)));
+
         return acceptanceTests;
     }
 

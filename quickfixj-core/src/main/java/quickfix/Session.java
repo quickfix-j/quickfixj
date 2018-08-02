@@ -333,6 +333,15 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM = "EnableNextExpectedMsgSeqNum";
 
+    /**
+     * Reject garbled messages instead of ignoring them.
+     * This is only working for messages that pass the FIX decoder and reach the engine.
+     * Messages that cannot be considered a real FIX message (i.e. not starting with
+     * 8=FIX or not ending with 10=xxx) will be ignored in any case.
+     * Default is "N".
+     */
+    public static final String SETTING_REJECT_GARBLED_MESSAGE = "RejectGarbledMessage";
+
     public static final String SETTING_REJECT_INVALID_MESSAGE = "RejectInvalidMessage";
 
     public static final String SETTING_REJECT_MESSAGE_ON_UNHANDLED_EXCEPTION = "RejectMessageOnUnhandledException";
@@ -389,6 +398,7 @@ public class Session implements Closeable {
     private final boolean checkCompID;
     private final boolean useClosedRangeForResend;
     private boolean disableHeartBeatCheck = false;
+    private boolean rejectGarbledMessage = false;
     private boolean rejectInvalidMessage = false;
     private boolean rejectMessageOnUnhandledException = false;
     private boolean requiresOrigSendingTime = false;
@@ -434,7 +444,7 @@ public class Session implements Closeable {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
+                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -447,7 +457,7 @@ public class Session implements Closeable {
             boolean useClosedRangeForResend, double testRequestDelayMultiplier,
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
             int[] logonIntervals, boolean resetOnError, boolean disconnectOnError,
-            boolean disableHeartBeatCheck, boolean rejectInvalidMessage,
+            boolean disableHeartBeatCheck, boolean rejectGarbledMessage, boolean rejectInvalidMessage,
             boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
@@ -473,6 +483,7 @@ public class Session implements Closeable {
         this.resetOnError = resetOnError;
         this.disconnectOnError = disconnectOnError;
         this.disableHeartBeatCheck = disableHeartBeatCheck;
+        this.rejectGarbledMessage = rejectGarbledMessage;
         this.rejectInvalidMessage = rejectInvalidMessage;
         this.rejectMessageOnUnhandledException = rejectMessageOnUnhandledException;
         this.requiresOrigSendingTime = requiresOrigSendingTime;
@@ -947,7 +958,7 @@ public class Session implements Closeable {
                         + "' does not match the session version '" + sessionBeginString + "'");
             }
 
-            if (msgType.equals(MsgType.LOGON)) {
+            if (MsgType.LOGON.equals(msgType)) {
                 if (sessionID.isFIXT()) {
                     targetDefaultApplVerID.set(new ApplVerID(message
                             .getString(DefaultApplVerID.FIELD)));
@@ -1053,7 +1064,7 @@ public class Session implements Closeable {
                 generateBusinessReject(message,
                         BusinessRejectReason.CONDITIONALLY_REQUIRED_FIELD_MISSING, e.field);
             } else {
-                if (msgType.equals(MsgType.LOGON)) {
+                if (MsgType.LOGON.equals(msgType)) {
                     getLog().onErrorEvent("Required field missing from logon");
                     disconnect("Required field missing from logon", true);
                 } else {
@@ -1064,10 +1075,17 @@ public class Session implements Closeable {
             /* InvalidMessage means a low-level error (e.g. checksum problem) and we should
                ignore the message and let the problem correct itself (optimistic approach).
                Target sequence number is not incremented, so it will trigger a ResendRequest
-               on the next message that is received. */
-            getLog().onErrorEvent("Skipping invalid message: " + e + ": " + getMessageToLog(message));
-            if (resetOrDisconnectIfRequired(message)) {
-                return;
+               on the next message that is received.
+               If the message should get rejected and the seqnum get incremented,
+               then setting RejectGarbledMessage=Y needs to be used. */
+            if (rejectGarbledMessage) {
+                getLog().onErrorEvent("Processing garbled message: " + e.getMessage());
+                generateReject(message, "Message failed basic validity check");
+            } else {
+                getLog().onErrorEvent("Skipping invalid message: " + e + ": " + getMessageToLog(message));
+                if (resetOrDisconnectIfRequired(message)) {
+                    return;
+                }
             }
         } catch (final RejectLogon e) {
             final String rejectMessage = e.getMessage() != null ? (": " + e) : "";
@@ -1097,7 +1115,7 @@ public class Session implements Closeable {
             if (logErrorAndDisconnectIfRequired(e, message)) {
                 return;
             }
-            if (msgType.equals(MsgType.LOGOUT)) {
+            if (MsgType.LOGOUT.equals(msgType)) {
                 nextLogout(message);
             } else {
                 generateLogout("Incorrect BeginString: " + e.getMessage());
@@ -1125,7 +1143,7 @@ public class Session implements Closeable {
                     generateBusinessReject(message, BusinessRejectReason.APPLICATION_NOT_AVAILABLE,
                             0);
                 } else {
-                    if (msgType.equals(MsgType.LOGON)) {
+                    if (MsgType.LOGON.equals(msgType)) {
                         disconnect("Problem processing Logon message", true);
                     } else {
                         generateReject(message, SessionRejectReason.OTHER, 0);
@@ -1179,6 +1197,10 @@ public class Session implements Closeable {
     public void next(Message message) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
+        if (rejectGarbledMessage && message.isGarbled()) {
+            generateReject(message, "Message failed basic validity check");
+            return;
+        }
         next(message, false);
     }
 
@@ -1214,7 +1236,7 @@ public class Session implements Closeable {
     }
 
     private boolean isStateRefreshNeeded(String msgType) {
-        return refreshMessageStoreAtLogon && !state.isInitiator() && msgType.equals(MsgType.LOGON);
+        return refreshMessageStoreAtLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -1498,15 +1520,15 @@ public class Session implements Closeable {
         reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
 
-        final String msgType = header.getString(MsgType.FIELD);
-        final String msgSeqNum = header.getString(MsgSeqNum.FIELD);
-        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
+        final String msgType = (header.isSetField(MsgType.FIELD) ? header.getString(MsgType.FIELD) : null);
+        final String msgSeqNum = (header.isSetField(MsgSeqNum.FIELD) ? header.getString(MsgSeqNum.FIELD) : NumbersCache.get(0));
+        if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0 && msgType != null) {
             reject.setString(RefMsgType.FIELD, msgType);
         }
         reject.setString(RefSeqNum.FIELD, msgSeqNum);
 
         // QFJ-557: Only advance the sequence number if we are at the expected number.
-        if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
+        if (!MsgType.LOGON.equals(msgType) && !MsgType.SEQUENCE_RESET.equals(msgType)
                 && Integer.parseInt(msgSeqNum) == getExpectedTargetNum()) {
             state.incrNextTargetMsgSeqNum();
         }
@@ -1559,7 +1581,7 @@ public class Session implements Closeable {
         }
 
         if (beginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0) {
-            if (!msgType.equals("")) {
+            if (!"".equals(msgType)) {
                 reject.setString(RefMsgType.FIELD, msgType);
             }
             if (beginString.compareTo(FixVersions.BEGINSTRING_FIX44) > 0) {
@@ -1586,7 +1608,7 @@ public class Session implements Closeable {
         state.lockTargetMsgSeqNum();
         try {
             // QFJ-557: Only advance the sequence number if we are at the expected number.
-            if (!msgType.equals(MsgType.LOGON) && !msgType.equals(MsgType.SEQUENCE_RESET)
+            if (!MsgType.LOGON.equals(msgType) && !MsgType.SEQUENCE_RESET.equals(msgType)
                     && msgSeqNum == getExpectedTargetNum()) {
                 state.incrNextTargetMsgSeqNum();
             }
@@ -1827,12 +1849,12 @@ public class Session implements Closeable {
     }
 
     private synchronized boolean validLogonState(String msgType) {
-        return msgType.equals(MsgType.LOGON) && state.isResetSent() || state.isResetReceived() ||
-                msgType.equals(MsgType.LOGON) && !state.isLogonReceived() ||
-                !msgType.equals(MsgType.LOGON) && state.isLogonReceived() ||
-                msgType.equals(MsgType.LOGOUT) && state.isLogonSent() ||
-                !msgType.equals(MsgType.LOGOUT) && state.isLogoutSent() ||
-                msgType.equals(MsgType.SEQUENCE_RESET) || msgType.equals(MsgType.REJECT);
+        return MsgType.LOGON.equals(msgType) && state.isResetSent() || state.isResetReceived() ||
+                MsgType.LOGON.equals(msgType) && !state.isLogonReceived() ||
+                !MsgType.LOGON.equals(msgType) && state.isLogonReceived() ||
+                MsgType.LOGOUT.equals(msgType) && state.isLogonSent() ||
+                !MsgType.LOGOUT.equals(msgType) && state.isLogoutSent() ||
+                MsgType.SEQUENCE_RESET.equals(msgType) || MsgType.REJECT.equals(msgType);
     }
 
     private boolean verify(Message message) throws RejectLogon, FieldNotFound, IncorrectDataFormat,
@@ -2347,7 +2369,7 @@ public class Session implements Closeable {
             getLog().onEvent("Processing queued message: " + num);
 
             final String msgType = msg.getHeader().getString(MsgType.FIELD);
-            if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.RESEND_REQUEST)) {
+            if (MsgType.LOGON.equals(msgType) || MsgType.RESEND_REQUEST.equals(msgType)) {
                 // Logon and ResendRequest processing has already been done, so we just need to increment the target seqnum.
                 state.incrNextTargetMsgSeqNum();
             } else {
@@ -2437,7 +2459,7 @@ public class Session implements Closeable {
         final Message.Header header = msg.getHeader();
         final String msgType = header.getString(MsgType.FIELD);
 
-        if (!msgType.equals(MsgType.SEQUENCE_RESET)) {
+        if (!MsgType.SEQUENCE_RESET.equals(msgType)) {
             if (header.isSetField(OrigSendingTime.FIELD)) {
                 final LocalDateTime origSendingTime = header.getUtcTimeStamp(OrigSendingTime.FIELD);
                 final LocalDateTime sendingTime = header.getUtcTimeStamp(SendingTime.FIELD);
@@ -2535,7 +2557,7 @@ public class Session implements Closeable {
                     logApplicationException("toAdmin()", t);
                 }
 
-                if (msgType.equals(MsgType.LOGON)) {
+                if (MsgType.LOGON.equals(msgType)) {
                     if (!state.isResetReceived()) {
                         boolean resetSeqNumFlag = false;
                         if (message.isSetField(ResetSeqNumFlag.FIELD)) {
@@ -2550,9 +2572,9 @@ public class Session implements Closeable {
                 }
 
                 messageString = message.toString();
-                if (msgType.equals(MsgType.LOGON) || msgType.equals(MsgType.LOGOUT)
-                        || msgType.equals(MsgType.RESEND_REQUEST)
-                        || msgType.equals(MsgType.SEQUENCE_RESET) || isLoggedOn()) {
+                if (MsgType.LOGON.equals(msgType) || MsgType.LOGOUT.equals(msgType)
+                        || MsgType.RESEND_REQUEST.equals(msgType)
+                        || MsgType.SEQUENCE_RESET.equals(msgType) || isLoggedOn()) {
                     result = send(messageString);
                 }
             } else {
@@ -2783,6 +2805,10 @@ public class Session implements Closeable {
         return state.isLogoutTimedOut();
     }
 
+    public boolean isRejectGarbledMessage() {
+        return rejectGarbledMessage;
+    }
+
     public boolean isUsingDataDictionary() {
         return dataDictionaryProvider != null;
     }
@@ -2890,6 +2916,10 @@ public class Session implements Closeable {
 
     public void setIgnoreHeartBeatFailure(boolean ignoreHeartBeatFailure) {
         disableHeartBeatCheck = ignoreHeartBeatFailure;
+    }
+
+    public void setRejectGarbledMessage(boolean rejectGarbledMessage) {
+        this.rejectGarbledMessage = rejectGarbledMessage;
     }
 
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {

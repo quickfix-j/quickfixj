@@ -76,6 +76,7 @@
     <LI><A HREF="#Storage">Storage</A></LI>
     <LI><A HREF="#Logging">Logging</A></LI>
     <LI><A HREF="#Miscellaneous">Miscellaneous</A></LI>
+    <LI><A HREF="#Invalid vs Garbled Messages">Invalid vs Garbled Messages</A></LI>
     <LI><A HREF="#Sample Settings File">Sample Settings File</A></LI>
   </UL>
   <TABLE class="settings" cellspacing="0">
@@ -421,8 +422,20 @@
 
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>RejectGarbledMessage</I> </TD>
+    <TD> If RejectGarbledMessage is set to Y, garbled messages will be rejected (with a generic error message in 58/Text field) instead of ignored.<br>
+        This is only working for messages that pass the FIX decoder and reach the engine.<br>
+        Messages that cannot be considered a real FIX message (i.e. not starting with 8=FIX or not ending with 10=xxx) will be ignored in any case.<br>
+        See <A HREF="#Invalid vs Garbled Messages">Invalid vs Garbled Messages</A> for further explanation.
+    </TD>
+    <TD> Y<br>N</TD>
+    <TD> N </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>RejectInvalidMessage</I> </TD>
-    <TD> If RejectInvalidMessage is set to N, only a warning will be logged on reception of message that fails data dictionary validation.</TD>
+    <TD> If RejectInvalidMessage is set to N, only a warning will be logged on reception of message that fails data dictionary validation.<br>
+         See <A HREF="#Invalid vs Garbled Messages">Invalid vs Garbled Messages</A> for further explanation.
+    </TD>
     <TD> Y<br>N</TD>
     <TD> Y </TD>
   </TR>
@@ -1250,6 +1263,82 @@
   </TR>
   </tbody>
   </TABLE>
+
+  <H3><A NAME="Invalid vs Garbled Messages">Rejecting Invalid vs Garbled Messages</A></H3>
+  
+  <p>
+      There are mainly two settings that influence QFJ's rejection behaviour:
+  </p>
+  <ul>
+      <li>RejectInvalidMessage</li>
+      <li>RejectGarbledMessage</li>
+  </ul>
+
+  <p>
+      While the first applies to messages that fail data dictionary validation,
+      the latter applies to messages that fail basic validity checks on the FIX protocol level.
+  </p>
+  
+  <H4>Setting RejectInvalidMessage</H4>
+  
+  <p>
+      If RejectInvalidMessage is set to
+  </p>
+  <ul>
+      <li>Y, the problematic message will be rejected (this is the default setting).</li>
+      <li>N, only a warning will be logged on reception of a message that fails data dictionary validation.
+          The message will then be handed over to the application level code.</li>
+  </ul>
+
+  <H4>Setting RejectGarbledMessage</H4>
+
+  <p>
+      If RejectGarbledMessage is set to
+  </p>
+  <ul>
+      <li>Y, garbled messages will be rejected (with a generic error message in 58/Text field) instead of ignored.</li>
+      <li>N, garbled messages will be ignored and the sequence number not be incremented (this is the default setting).</li>
+  </ul>
+
+  <H5>Information on garbled messages</H5>
+  <p>
+      In FIX it is legal to ignore a message under certain circumstances. Since FIX is an optimistic protocol
+      it expects that some errors are transient and will correct themselves with the next message transmission.
+      Therefore the sequence number is not incremented and a resend request is issued on the next received
+      message that has a higher sequence number than expected.
+  </p>
+
+  <p>
+      In the case that the error is not transient, the default behaviour is not optimal because not consuming a
+      message sequence number can lead to follow-up problems since QFJ will wait for the message to be resent
+      and queue all subsequent messages until the resend request has been satisfied (i.e. infinite resend loop).
+  </p>
+
+  What constitutes a garbled message (taken from the FIX protocol specification):
+  <blockquote>
+      <li>BeginString (tag #8) is not the first tag in a message or is not of the format 8=FIXT.n.m.</li>
+      <li>BodyLength (tag #9) is not the second tag in a message or does not contain the correct byte count.</li>
+      <li>MsgType (tag #35) is not the third tag in a message.</li>
+      <li>Checksum (tag #10) is not the last tag or contains an incorrect value.</li>
+
+      If the MsgSeqNum(tag #34) is missing a logout message should be sent terminating the FIX Connection, as this
+      indicates a serious application error that is likely only circumvented by software modification.
+  </blockquote>
+
+  <p>
+      You have the possibility to adapt QFJ's behaviour for some of the cases mentioned above.<br>
+  </p>
+  <li>If an incoming message does neither start with the BeginString tag nor does it end with the Checksum tag, the message
+      cannot be passed to the session and will be discarded by the FIX decoder right away.</li>
+  <li>Examples where the message will be rejected instead of ignored when RejectGarbledMessage=Y:
+      <ul>
+          <li>incorrect checksum</li>
+          <li>repeating group count field contains no valid integer</li>
+          <li>no SOH delimiter found in field</li>
+          <li>missing MsgType</li>
+          <li>invalid tags, e.g. 49foo=bar</li>
+      </ul>
+  </li>
 
   <H3><A NAME="Sample Settings File">Sample Settings File</A></H3>
 

@@ -92,7 +92,7 @@ public class MessageUtils {
     }
 
     /**
-     * Utility method for parsing a mesasge. This should only be used for parsing messages from
+     * Utility method for parsing a message. This should only be used for parsing messages from
      * FIX versions 4.4 or earlier.
      *
      * @param messageFactory
@@ -175,7 +175,7 @@ public class MessageUtils {
         }
 
         if (applVerID == null) {
-            throw new InvalidMessage("Can't determine ApplVerID for message");
+            throw newInvalidMessageException("Can't determine ApplVerID from message " + messageString, getMinimalMessage(messageString));
         }
 
         return applVerID;
@@ -204,9 +204,30 @@ public class MessageUtils {
     public static String getMessageType(String messageString) throws InvalidMessage {
         final String value = getStringField(messageString, 35);
         if (value == null) {
-            throw new InvalidMessage("Missing or garbled message type in " + messageString);
+            throw newInvalidMessageException("Missing or garbled message type in " + messageString, getMinimalMessage(messageString));
         }
         return value;
+    }
+
+    /**
+     * Tries to set MsgSeqNum and MsgType from a FIX string to a new Message.
+     * These fields are referenced on the outgoing Reject message.
+     *
+     * @param messageString FIX message as String
+     * @return New quickfix.Message with optionally set header fields MsgSeqNum
+     * and MsgType.
+     */
+    static Message getMinimalMessage(String messageString) {
+        final Message tempMessage = new Message();
+        final String seqNum = getStringField(messageString, 34);
+        if (seqNum != null) {
+            tempMessage.getHeader().setString(34, seqNum);
+        }
+        final String msgType = getStringField(messageString, 35);
+        if (msgType != null) {
+            tempMessage.getHeader().setString(35, msgType);
+        }
+        return tempMessage;
     }
 
     public static String getStringField(String messageString, int tag) {
@@ -361,5 +382,19 @@ public class MessageUtils {
      */
     public static int length(Charset charset, String data) {
         return CharsetSupport.isStringEquivalent(charset) ? data.length() : data.getBytes(charset).length;
+    }
+    
+    /**
+     * Returns an InvalidMessage Exception with optionally attached FIX message.
+     *
+     * @param errorMessage error description
+     * @param fixMessage  problematic FIX message
+     * @return InvalidMessage Exception
+     */
+    static InvalidMessage newInvalidMessageException(String errorMessage, Message fixMessage) {
+        if (fixMessage != null) {
+            return new InvalidMessage(errorMessage, fixMessage);
+        }
+        return new InvalidMessage(errorMessage);
     }
 }
