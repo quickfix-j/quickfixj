@@ -16,6 +16,10 @@ FIX is a public-domain specification owned and maintained by FIX Protocol, Ltd (
 
 For more information see the project website at http://www.quickfixj.org.
 
+## release notes
+
+Check out the wiki: https://github.com/quickfix-j/quickfixj/wiki
+
 ## questions
 For asking questions please use the mailing list: https://lists.sourceforge.net/lists/listinfo/quickfixj-users
 
