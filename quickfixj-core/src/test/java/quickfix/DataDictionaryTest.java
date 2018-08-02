@@ -27,6 +27,7 @@ import quickfix.field.AvgPx;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.ClOrdID;
+import quickfix.field.EffectiveTime;
 import quickfix.field.HandlInst;
 import quickfix.field.LastMkt;
 import quickfix.field.MsgSeqNum;
@@ -1273,6 +1274,29 @@ public class DataDictionaryTest {
         expectedException.expect(hasProperty("field", is(Symbol.FIELD)));
 
         dictionary.validate(quoteRequest, true);
+    }
+
+    /**
+     * Field EffectiveTime(168) is defined as UTCTIMESTAMP so an empty string value is invalid but if we allow blank values that should not fail
+     * validation
+     * @throws Exception
+     */
+    @Test
+    public void testAllowingBlankValuesDisablesFieldValidation() throws Exception {
+        final DataDictionary dictionary = getDictionary();
+        dictionary.setCheckFieldsHaveValues(false);
+        final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
+                new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(OrdType.LIMIT)
+        );
+        newSingle.setField(new OrderQty(42));
+        newSingle.setField(new Price(42.37));
+        newSingle.setField(new HandlInst());
+        newSingle.setField(new Symbol("QFJ"));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new TimeInForce(TimeInForce.DAY));
+        newSingle.setField(new Account("testAccount"));
+        newSingle.setField(new StringField(EffectiveTime.FIELD));
+        dictionary.validate(newSingle, true);
     }
 
     //
