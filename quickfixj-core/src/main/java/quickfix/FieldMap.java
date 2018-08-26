@@ -139,9 +139,27 @@ public abstract class FieldMap implements Serializable {
         component.copyTo(this);
     }
 
+    protected void setComponent(MessageComponent component, boolean includeAllFields, boolean includeAllGroups) {
+        component.copyTo(this, includeAllFields, includeAllGroups);
+    }
+
+    protected void setComponent(MessageComponent component, int[] includeFields, int[] includeGroups) {
+        component.copyTo(this, includeFields, includeGroups);
+    }
+
     protected void getComponent(MessageComponent component) {
         component.clear();
         component.copyFrom(this);
+    }
+
+    protected void getComponent(MessageComponent component, boolean includeAllFields, boolean includeAllGroups) {
+        component.clear();
+        component.copyFrom(this, includeAllFields, includeAllGroups);
+    }
+
+    protected void getComponent(MessageComponent component, int[] includeFields, int[] includeGroups) {
+        component.clear();
+        component.copyFrom(this, includeFields, includeGroups);
     }
 
     public void setGroups(FieldMap fieldMap) {
@@ -244,6 +262,28 @@ public abstract class FieldMap implements Serializable {
         } else {
             return Optional.of(f.getValue());
         }
+    }
+
+    protected int[] getAllFields() {
+        int[] allFields = new int[fields.size()];
+        Integer[] allFieldsBoxed = fields.keySet().toArray(new Integer[allFields.length]);
+
+        for (int i = 0; i < allFields.length; i++) {
+            allFields[i] = allFieldsBoxed[i].intValue();
+        }
+
+       return allFields;
+    }
+
+    protected int[] getAllGroups() {
+        int[] allGroups = new int[groups.size()];
+        Integer[] allGroupsBoxed = groups.keySet().toArray(new Integer[allGroups.length]);
+
+        for (int i = 0; i < allGroups.length; i++) {
+            allGroups[i] = allGroupsBoxed[i].intValue();
+        }
+
+        return allGroups;
     }
 
     public boolean getBoolean(int field) throws FieldNotFound {

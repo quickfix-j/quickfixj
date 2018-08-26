@@ -271,18 +271,44 @@ import quickfix.Group;</xsl:if>
 
 <xsl:template name="component-accessor-template">
 	<xsl:variable name="type" select="concat($messagePackage,'.component.',@name)"/>
-	public void set(<xsl:value-of select="$type"/> component) {
-		setComponent(component);
-	}
+`    public void set(<xsl:value-of select="$type"/> component) {
+        setComponent(component);
+    }
 
-	public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/> component) throws FieldNotFound {
-		getComponent(component);
-		return component;
-	}
+    public void set(<xsl:value-of select="$type"/> component, boolean includeAllFields, boolean includeAllGroups) {
+        setComponent(component, includeAllFields, includeAllGroups);
+    }
 
-	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
-		return get(new <xsl:value-of select="$type"/>());
-	}
+    public void set(<xsl:value-of select="$type"/> component, int[] includeFields, int[] includeGroups) {
+        setComponent(component, includeFields, includeGroups);
+    }
+
+    public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/> component) throws FieldNotFound {
+        getComponent(component);
+        return component;
+    }
+
+    public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/> component, boolean includeAllFields, boolean includeAllGroups) throws FieldNotFound {
+        getComponent(component, includeAllFields, includeAllGroups);
+        return component;
+    }
+
+    public <xsl:value-of select="$type"/> get(<xsl:value-of select="$type"/> component, int[] includeFields, int[] includeGroups) throws FieldNotFound {
+        getComponent(component, includeFields, includeGroups);
+        return component;
+    }
+
+    public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
+        return get(new <xsl:value-of select="$type"/>());
+    }
+
+    public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>(boolean includeAllFields, boolean includeAllGroups) throws FieldNotFound {
+        return get(new <xsl:value-of select="$type"/>(), includeAllFields, includeAllGroups);
+    }
+
+    public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>(int[] includeFields, int[] includeGroups) throws FieldNotFound {
+        return get(new <xsl:value-of select="$type"/>(), includeFields, includeGroups);
+    }
 </xsl:template>
 
 <xsl:template mode="field-accessors" match="component">
