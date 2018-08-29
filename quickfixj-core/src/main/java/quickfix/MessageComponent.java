@@ -20,7 +20,7 @@ public abstract class MessageComponent extends FieldMap {
     }
 
     public void copyFrom(FieldMap fields) {
-        copyFrom(fields, false, false);
+        copyFrom(fields, true, true);
     }
 
     public void copyFrom(FieldMap fields, boolean includeAllFields, boolean includeAllGroups) {
@@ -46,7 +46,7 @@ public abstract class MessageComponent extends FieldMap {
     }
 
     public void copyTo(FieldMap fields) {
-        copyTo(fields, false, false);
+        copyTo(fields, true, true);
     }
 
     public void copyTo(FieldMap fields, boolean includeAllFields, boolean includeAllGroups) {

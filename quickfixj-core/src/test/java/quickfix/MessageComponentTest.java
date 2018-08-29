@@ -18,50 +18,50 @@ import static org.junit.Assert.assertEquals;
 public class MessageComponentTest {
 
     @Test
-    public void shouldNotCopyToCustomComponentFieldsAndGroupsWhenUsingDefaultMethod() throws FieldNotFound {
+    public void shouldNotCopyToCustomComponentFieldsAndGroupsWhenFlagsAreDisabled() throws FieldNotFound {
+        Instrument srcInstrument = createInstrumentComponent();
+        Instrument dstInstrument = new Instrument();
+        srcInstrument.copyTo(dstInstrument, false, false);
+
+        assertEquals("EUR/USD", dstInstrument.getSymbol().getValue());
+        assertEquals(false, dstInstrument.isSetField(10_000));
+        assertEquals(false, dstInstrument.isSetField(10_001));
+
+        assertEquals(1, dstInstrument.getGroups(454).size());
+        assertEquals("security-id", dstInstrument.getGroups(454).get(0).getString(455));
+        assertEquals("ccc", dstInstrument.getGroups(454).get(0).getString(20_000));
+        assertEquals("ddd", dstInstrument.getGroups(454).get(0).getString(20_001));
+
+        assertEquals(0, dstInstrument.getGroups(30_000).size());
+
+        assertEquals(0, dstInstrument.getGroups(40_000).size());
+    }
+
+    @Test
+    public void shouldNotCopyFromCustomComponentFieldsAndGroupsWhenFlagsAreDisabled() throws FieldNotFound {
+        Instrument srcInstrument = createInstrumentComponent();
+        Instrument dstInstrument = new Instrument();
+        dstInstrument.copyFrom(srcInstrument, false, false);
+
+        assertEquals("EUR/USD", dstInstrument.getSymbol().getValue());
+        assertEquals(false, dstInstrument.isSetField(10_000));
+        assertEquals(false, dstInstrument.isSetField(10_001));
+
+        assertEquals(1, dstInstrument.getGroups(454).size());
+        assertEquals("security-id", dstInstrument.getGroups(454).get(0).getString(455));
+        assertEquals("ccc", dstInstrument.getGroups(454).get(0).getString(20_000));
+        assertEquals("ddd", dstInstrument.getGroups(454).get(0).getString(20_001));
+
+        assertEquals(0, dstInstrument.getGroups(30_000).size());
+
+        assertEquals(0, dstInstrument.getGroups(40_000).size());
+    }
+
+    @Test
+    public void shouldCopyToAllComponentFieldsAndGroupsWhenUsingDefaultMethod() throws FieldNotFound {
         Instrument srcInstrument = createInstrumentComponent();
         Instrument dstInstrument = new Instrument();
         srcInstrument.copyTo(dstInstrument);
-
-        assertEquals("EUR/USD", dstInstrument.getSymbol().getValue());
-        assertEquals(false, dstInstrument.isSetField(10_000));
-        assertEquals(false, dstInstrument.isSetField(10_001));
-
-        assertEquals(1, dstInstrument.getGroups(454).size());
-        assertEquals("security-id", dstInstrument.getGroups(454).get(0).getString(455));
-        assertEquals("ccc", dstInstrument.getGroups(454).get(0).getString(20_000));
-        assertEquals("ddd", dstInstrument.getGroups(454).get(0).getString(20_001));
-
-        assertEquals(0, dstInstrument.getGroups(30_000).size());
-
-        assertEquals(0, dstInstrument.getGroups(40_000).size());
-    }
-
-    @Test
-    public void shouldNotCopyFromCustomComponentFieldsAndGroupsWhenUsingDefaultMethod() throws FieldNotFound {
-        Instrument srcInstrument = createInstrumentComponent();
-        Instrument dstInstrument = new Instrument();
-        dstInstrument.copyFrom(srcInstrument);
-
-        assertEquals("EUR/USD", dstInstrument.getSymbol().getValue());
-        assertEquals(false, dstInstrument.isSetField(10_000));
-        assertEquals(false, dstInstrument.isSetField(10_001));
-
-        assertEquals(1, dstInstrument.getGroups(454).size());
-        assertEquals("security-id", dstInstrument.getGroups(454).get(0).getString(455));
-        assertEquals("ccc", dstInstrument.getGroups(454).get(0).getString(20_000));
-        assertEquals("ddd", dstInstrument.getGroups(454).get(0).getString(20_001));
-
-        assertEquals(0, dstInstrument.getGroups(30_000).size());
-
-        assertEquals(0, dstInstrument.getGroups(40_000).size());
-    }
-
-    @Test
-    public void shouldCopyToAllComponentFieldsAndGroupsWhenFlagsAreEnabled() throws FieldNotFound {
-        Instrument srcInstrument = createInstrumentComponent();
-        Instrument dstInstrument = new Instrument();
-        srcInstrument.copyTo(dstInstrument, true, true);
 
         assertEquals("EUR/USD", dstInstrument.getSymbol().getValue());
         assertEquals("aaa", dstInstrument.getString(10_000));
@@ -84,10 +84,10 @@ public class MessageComponentTest {
     }
 
     @Test
-    public void shouldCopyFromAllComponentFieldsAndGroupsWhenFlagsAreEnabled() throws FieldNotFound {
+    public void shouldCopyFromAllComponentFieldsAndGroupsWhenUsingDefaultMethod() throws FieldNotFound {
         Instrument srcInstrument = createInstrumentComponent();
         Instrument dstInstrument = new Instrument();
-        dstInstrument.copyFrom(srcInstrument, true, true);
+        dstInstrument.copyFrom(srcInstrument);
 
         assertEquals("EUR/USD", dstInstrument.getSymbol().getValue());
         assertEquals("aaa", dstInstrument.getString(10_000));
@@ -150,10 +150,10 @@ public class MessageComponentTest {
     }
 
     @Test
-    public void shouldGetAndSetAllComponentFieldsAndGroupsWhenFlagsAreEnabled() throws FieldNotFound {
+    public void shouldGetAndSetAllComponentFieldsAndGroupsWhenUsingDefaultMethod() throws FieldNotFound {
         NoRelatedSym noRelatedSym = new NoRelatedSym();
-        noRelatedSym.set(createInstrumentComponent(), true, true);
-        Instrument instrument = noRelatedSym.getInstrument(true, true);
+        noRelatedSym.set(createInstrumentComponent());
+        Instrument instrument = noRelatedSym.getInstrument();
 
         assertEquals("EUR/USD", instrument.getSymbol().getValue());
         assertEquals("aaa", instrument.getString(10_000));
@@ -196,10 +196,10 @@ public class MessageComponentTest {
     }
 
     @Test
-    public void shouldNotGetAndSetAllComponentFieldsAndGroupsWhenUsingDefaultMethod() throws FieldNotFound {
+    public void shouldNotGetAndSetAllComponentFieldsAndGroupsWhenFlagsAreDisabled() throws FieldNotFound {
         NoRelatedSym noRelatedSym = new NoRelatedSym();
-        noRelatedSym.set(createInstrumentComponent());
-        Instrument instrument = noRelatedSym.getInstrument();
+        noRelatedSym.set(createInstrumentComponent(), false, false);
+        Instrument instrument = noRelatedSym.getInstrument(false, false);
 
         assertEquals("EUR/USD", instrument.getSymbol().getValue());
         assertEquals(false, instrument.isSetField(10_000));
