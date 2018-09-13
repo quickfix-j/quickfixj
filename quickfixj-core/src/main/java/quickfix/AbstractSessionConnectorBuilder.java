@@ -41,10 +41,10 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
         return derived.cast(this);
     }
 
-    public Derived withQueueCapacity(int val) throws  ConfigError {
+    public Derived withQueueCapacity(int val) throws ConfigError {
         if (queueLowerWatermark >= 0) {
             throw new ConfigError("queue capacity and watermarks may not be configured together");
-        } else if (queueCapacity < 0) {
+        } else if (val < 0) {
             throw new ConfigError("negative queue capacity");
         }
         queueCapacity = val;
@@ -54,7 +54,7 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
     public Derived withQueueWatermarks(int lower, int upper) throws ConfigError {
         if (queueCapacity >= 0) {
             throw new ConfigError("queue capacity and watermarks may not be configured together");
-        } else if (queueLowerWatermark < 0 || queueUpperWatermark <= queueLowerWatermark) {
+        } else if (lower < 0 || upper <= lower) {
             throw new ConfigError("invalid queue watermarks, required: 0 <= lower watermark < upper watermark");
         }
         queueLowerWatermark = lower;
