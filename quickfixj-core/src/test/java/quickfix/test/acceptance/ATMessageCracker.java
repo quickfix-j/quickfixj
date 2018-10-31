@@ -70,7 +70,7 @@ class ATMessageCracker extends quickfix.MessageCracker {
         process(message, sessionID);
     }
 
-    public void onMessage(quickfix.fix50sp2.NewOrderSingle  message, SessionID sessionID)
+    public void onMessage(quickfix.fix50sp2.NewOrderSingle message, SessionID sessionID)
             throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {
         process(message, sessionID);
     }
