@@ -1,5 +1,7 @@
 package quickfix;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -12,20 +14,30 @@ import java.util.function.Consumer;
  * <ol>
  *     <li>Support multiple listeners of the same operation, e.g. onLogon. The method of the listeners will be invoked
  *     in the same order of when add method was invoked, i.e. FIFO</li>
+ *     <li>Support type safe listeners to be registered. However, FIFO order is maintained separated for type safe and
+ *     generic Message listeners</li>
  *     <li>Support fail fast exception propagation for fromAdmin, toApp, and fromApp. The exception will be thrown for
  *     the first encountered exception.</li>
- *     <li>Provides a thread-safe way to delegate to, add and remove listeners, by the means of CopyOnWriteArrayList,
- *     under the assumption that adding and removing listeners are rare.</li>
+ *     <li>Provides a thread-safe way to delegate to, add and remove listeners, by the means of concurrent and immutable
+ *     collections, under the assumption that adding and removing listeners are rare.</li>
  * </ol>
  */
 public class ApplicationFunctionalAdapter implements Application {
     private final CopyOnWriteArrayList<Consumer<SessionID>> onCreateListeners = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<Consumer<SessionID>> onLogonListeners = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<Consumer<SessionID>> onLogoutListeners = new CopyOnWriteArrayList<>();
+
     private final CopyOnWriteArrayList<BiConsumer<Message, SessionID>> toAdminListeners = new CopyOnWriteArrayList<>();
-    private final CopyOnWriteArrayList<FromAdminListener> fromAdminListeners = new CopyOnWriteArrayList<>();
-    private final CopyOnWriteArrayList<ToAppListener> toAppListeners = new CopyOnWriteArrayList<>();
-    private final CopyOnWriteArrayList<FromAppListener> fromAppListeners = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<Class, ConcurrentLinkedQueue<BiConsumer>> toAdminTypeSafeListeners = new ConcurrentHashMap<>();
+
+    private final CopyOnWriteArrayList<FromAdminListener<Message>> fromAdminListeners = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<Class, ConcurrentLinkedQueue<FromAdminListener>> fromAdminTypeSafeListeners = new ConcurrentHashMap<>();
+
+    private final CopyOnWriteArrayList<ToAppListener<Message>> toAppListeners = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<Class, ConcurrentLinkedQueue<ToAppListener>> toAppTypeSafeListeners = new ConcurrentHashMap<>();
+
+    private final CopyOnWriteArrayList<FromAppListener<Message>> fromAppListeners = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<Class, ConcurrentLinkedQueue<FromAppListener>> fromAppTypeSafeListeners = new ConcurrentHashMap<>();
 
     /**
      * Add a Consumer of SessionID to listen to onCreate operation.
@@ -91,12 +103,26 @@ public class ApplicationFunctionalAdapter implements Application {
     }
 
     /**
+     * Add a type-safe BiConsumer of SessionID to listen to toAdmin operation.
+     *
+     * @param clazz the specific Message class the listener expects
+     * @param toAdminListener the BiConsumer of Session for toAdmin operation.
+     */
+    public <T extends Message> void addToAdminListener(Class<T> clazz, BiConsumer<T, SessionID> toAdminListener) {
+        getQueue(toAdminTypeSafeListeners, clazz)
+                .add(toAdminListener);
+    }
+
+    /**
      * Remove a BiConsumer of SessionID from toAdmin operation.
      *
      * @param toAdminListener the BiConsumer of Session for toAdmin operation.
      */
-    public void removeToAdminListener(BiConsumer<Message, SessionID> toAdminListener) {
+    public <T extends Message> void removeToAdminListener(BiConsumer<T, SessionID> toAdminListener) {
         toAdminListeners.remove(toAdminListener);
+        toAdminTypeSafeListeners
+                .values()
+                .forEach(queue -> queue.remove(toAdminListener));
     }
 
     /**
@@ -104,8 +130,19 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param fromAdminListener the listener of fromAdmin operation.
      */
-    public void addFromAdminListener(FromAdminListener fromAdminListener) {
+    public void addFromAdminListener(FromAdminListener<Message> fromAdminListener) {
         fromAdminListeners.add(fromAdminListener);
+    }
+
+    /**
+     * Add a listener of fromAdmin operation.
+     *
+     * @param clazz the specific Message class the listener expects
+     * @param fromAdminListener the listener of fromAdmin operation.
+     */
+    public <T extends Message> void addFromAdminListener(Class<T> clazz, FromAdminListener<T> fromAdminListener) {
+        getQueue(fromAdminTypeSafeListeners, clazz)
+                .add(fromAdminListener);
     }
 
     /**
@@ -113,8 +150,11 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param fromAdminListener the listener of fromAdmin operation.
      */
-    public void removeFromAdminListener(FromAdminListener fromAdminListener) {
+    public <T extends Message> void removeFromAdminListener(FromAdminListener<T> fromAdminListener) {
         fromAdminListeners.remove(fromAdminListener);
+        fromAdminTypeSafeListeners
+                .values()
+                .forEach(queue -> queue.remove(fromAdminListener));
     }
 
     /**
@@ -122,8 +162,19 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param toAppListener the listener of fromAdmin operation.
      */
-    public void addToAppListener(ToAppListener toAppListener) {
+    public void addToAppListener(ToAppListener<Message> toAppListener) {
         toAppListeners.add(toAppListener);
+    }
+
+    /**
+     * Add a listener of toApp operation.
+     *
+     * @param clazz the specific Message class the listener expects
+     * @param toAppListener the listener of fromAdmin operation.
+     */
+    public <T extends Message> void addToAppListener(Class<T> clazz, ToAppListener<T> toAppListener) {
+        getQueue(toAppTypeSafeListeners, clazz)
+                .add(toAppListener);
     }
 
     /**
@@ -131,8 +182,11 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param toAppListener the listener of toApp operation.
      */
-    public void removeToAppListener(ToAppListener toAppListener) {
+    public <T extends Message> void removeToAppListener(ToAppListener<T> toAppListener) {
         toAppListeners.remove(toAppListener);
+        toAppTypeSafeListeners
+                .values()
+                .forEach(queue -> queue.remove(toAppListener));
     }
 
     /**
@@ -140,8 +194,19 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param fromAppListener the listener of fromApp operation.
      */
-    public void addFromAppListener(FromAppListener fromAppListener) {
+    public void addFromAppListener(FromAppListener<Message> fromAppListener) {
         fromAppListeners.add(fromAppListener);
+    }
+
+    /**
+     * Add a listener of fromApp operation.
+     *
+     * @param clazz the specific Message class the listener expects
+     * @param fromAppListener the listener of fromApp operation.
+     */
+    public <T extends Message> void addFromAppListener(Class<T> clazz, FromAppListener<T> fromAppListener) {
+        getQueue(fromAppTypeSafeListeners, clazz)
+                .add(fromAppListener);
     }
 
     /**
@@ -149,8 +214,11 @@ public class ApplicationFunctionalAdapter implements Application {
      *
      * @param fromAppListener the listener of fromApp operation.
      */
-    public void removeFromAppListener(FromAppListener fromAppListener) {
+    public <T extends Message> void removeFromAppListener(FromAppListener<T> fromAppListener) {
         fromAppListeners.remove(fromAppListener);
+        fromAppTypeSafeListeners
+                .values()
+                .forEach(queue -> queue.remove(fromAppListener));
     }
 
     @Override
@@ -171,27 +239,55 @@ public class ApplicationFunctionalAdapter implements Application {
     @Override
     public void toAdmin(Message message, SessionID sessionId) {
         toAdminListeners.forEach(c -> c.accept(message, sessionId));
+        getQueue(toAdminTypeSafeListeners, message.getClass())
+                .forEach(c -> c.accept(message, sessionId));
     }
 
     @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-        for (FromAdminListener listener : fromAdminListeners) {
+        for (FromAdminListener<Message> listener : fromAdminListeners) {
             listener.accept(message, sessionId);
         }
+
+        for (FromAdminListener listener : getQueue(fromAdminTypeSafeListeners, message.getClass())) {
+            listener.accept(message, sessionId);
+        }
+
     }
 
     @Override
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
-        for (ToAppListener listener : toAppListeners) {
+        for (ToAppListener<Message> listener : toAppListeners) {
+            listener.accept(message, sessionId);
+        }
+
+        for (ToAppListener listener : getQueue(toAppTypeSafeListeners, message.getClass()))
+        {
             listener.accept(message, sessionId);
         }
     }
 
     @Override
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
-        for (FromAppListener listener : fromAppListeners) {
+        for (FromAppListener<Message> listener : fromAppListeners) {
             listener.accept(message, sessionId);
         }
+
+        for (FromAppListener listener : getQueue(fromAppTypeSafeListeners, message.getClass())) {
+            listener.accept(message, sessionId);
+        }
+    }
+
+    private <T> ConcurrentLinkedQueue<T> getQueue(ConcurrentHashMap<Class, ConcurrentLinkedQueue<T>> multimap, Class clazz) {
+        ConcurrentLinkedQueue<T> queue = multimap.get(clazz);
+
+        while (queue == null)
+        {
+            multimap.putIfAbsent(clazz, new ConcurrentLinkedQueue<>());
+            queue = multimap.get(clazz);
+        }
+
+        return queue;
     }
 
 }

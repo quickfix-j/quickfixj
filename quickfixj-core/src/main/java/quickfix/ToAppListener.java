@@ -1,5 +1,5 @@
 package quickfix;
 
-public interface ToAppListener {
-    void accept(Message message, SessionID sessionId) throws DoNotSend;
+public interface ToAppListener<T extends Message> {
+    void accept(T message, SessionID sessionId) throws DoNotSend;
 }

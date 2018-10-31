@@ -1,5 +1,5 @@
 package quickfix;
 
-public interface FromAppListener {
-    void accept(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType;
+public interface FromAppListener<T extends Message> {
+    void accept(T message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType;
 }
