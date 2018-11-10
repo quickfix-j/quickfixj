@@ -55,8 +55,12 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
     public SingleThreadedEventHandlingStrategy(SessionConnector connector, int queueLowerWatermark, int queueUpperWatermark) {
         sessionConnector = connector;
         eventQueue = new LinkedBlockingQueue<>();
-        queueTracker = newMultiSessionWatermarkTracker(eventQueue, queueLowerWatermark, queueUpperWatermark,
-                evt -> evt.quickfixSession);
+        if (queueLowerWatermark > 0 && queueUpperWatermark > 0) {
+            queueTracker = newMultiSessionWatermarkTracker(eventQueue, queueLowerWatermark, queueUpperWatermark,
+                    evt -> evt.quickfixSession);
+        } else {
+            queueTracker = newDefaultQueueTracker(eventQueue);
+        }
     }
 
     public void setExecutor(Executor executor) {
