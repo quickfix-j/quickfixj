@@ -184,9 +184,9 @@ The generated classes define handlers for all messages defined by that version o
 
 #### Functional interfaces for receiving messages
 
-If you prefer to using lambda expressions in handling received messages, then<code>ApplicationFunctionalAdapter</code> or <code>ApplicationExtendedFunctionalAdapter</code> can be used to register reaction to events the application is interested in.
+If you prefer using lambda expressions in handling received messages, then <code>ApplicationFunctionalAdapter</code> or <code>ApplicationExtendedFunctionalAdapter</code> can be used to register reactions to events the application is interested in.
 
-They also allows registering the interests to a given message type in a type-safe manner.
+They also allow registering the interests in a given message type in a type-safe manner.
 
 ```
 import quickfix.ApplicationFunctionalAdapter;
@@ -207,7 +207,7 @@ public class EmailForwarder {
     }
 }
 ```
-<code>ApplicationFunctionalAdapter</code> and <code>ApplicationExtendedFunctionalAdapter</code> support multiple registration of the same event, and the registered callbacks are invoked in the FIFO manner. 
+<code>ApplicationFunctionalAdapter</code> and <code>ApplicationExtendedFunctionalAdapter</code> support multiple registration to the same event, and the registered callbacks are invoked in the FIFO manner. 
 
 However FIFO cannot be guaranteed between registration with specific message type (e.g. <code>quickfix.fix44.Email</code>) and that without specific message type. For example, there is no invocation order guarantee between the following two callbacks:
 

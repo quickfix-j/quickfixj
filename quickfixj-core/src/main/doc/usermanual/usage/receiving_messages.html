@@ -152,9 +152,9 @@ a FIX version so loading all the messages classes is excessive overhead in those
 
 <H3>Support for Functional Interfaces</H3>
 <p>
-    If you prefer to using lambda expressions in handling received messages, then
+    If you prefer using lambda expressions in handling received messages, then
     <code>ApplicationFunctionalAdapter</code> or <code>ApplicationExtendedFunctionalAdapter</code> can be used to
-    register reaction to events the application is interested in. They also allows registering the interests to a given
+    register reactions to events the application is interested in. They also allow registering the interests in a given
     message type in a type-safe manner.
 <p>
 
@@ -179,7 +179,7 @@ public class EmailForwarder {
 </pre>
 <p>
     <code>ApplicationFunctionalAdapter</code> and <code>ApplicationExtendedFunctionalAdapter</code> support multiple
-    registration of the same event, and the registered callbacks are invoked in the FIFO manner. However FIFO
+    registration to the same event, and the registered callbacks are invoked in the FIFO manner. However FIFO
     cannot be guaranteed between registration with specific message type (e.g. <code>quickfix.fix44.Email</code>) and
     that without specific message type. For example, there is no invocation order guarantee between the following two
     callbacks:
