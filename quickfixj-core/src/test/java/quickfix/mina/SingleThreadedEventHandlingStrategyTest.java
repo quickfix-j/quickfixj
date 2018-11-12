@@ -45,7 +45,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import org.junit.AfterClass;
+import quickfix.test.util.ReflectionUtil;
+
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static quickfix.test.util.ReflectionUtil.getField;
 
 /**
  *
@@ -293,6 +297,24 @@ public class SingleThreadedEventHandlingStrategyTest {
         assertQFJMessageProcessorThreads(0);
 
         initiatorThread.join();
+    }
+
+    @Test
+    public void shouldCreateCorrectTypeOfQueueTracker() throws Exception {
+        assertFalse(getField(
+                new SingleThreadedEventHandlingStrategy(null, 42),
+                "queueTracker",
+                QueueTracker.class) instanceof WatermarkTracker);
+
+        assertTrue(getField(
+                new SingleThreadedEventHandlingStrategy(null, 42, 43),
+                "queueTracker",
+                QueueTracker.class) instanceof WatermarkTracker);
+
+        assertFalse(getField(
+                new SingleThreadedEventHandlingStrategy(null, -1, -1),
+                "queueTracker",
+                QueueTracker.class) instanceof WatermarkTracker);
     }
 
     private SocketAcceptor createAcceptor(int i) throws ConfigError {
