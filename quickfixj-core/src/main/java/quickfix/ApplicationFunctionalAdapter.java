@@ -123,7 +123,7 @@ public class ApplicationFunctionalAdapter implements Application {
         toAdminListeners.remove(toAdminListener);
         toAdminTypeSafeListeners
                 .values()
-                .forEach(queue -> queue.remove(toAdminListener));
+                .forEach(list -> list.remove(toAdminListener));
     }
 
     /**
@@ -155,7 +155,7 @@ public class ApplicationFunctionalAdapter implements Application {
         fromAdminListeners.remove(fromAdminListener);
         fromAdminTypeSafeListeners
                 .values()
-                .forEach(queue -> queue.remove(fromAdminListener));
+                .forEach(list -> list.remove(fromAdminListener));
     }
 
     /**
@@ -187,7 +187,7 @@ public class ApplicationFunctionalAdapter implements Application {
         toAppListeners.remove(toAppListener);
         toAppTypeSafeListeners
                 .values()
-                .forEach(queue -> queue.remove(toAppListener));
+                .forEach(list -> list.remove(toAppListener));
     }
 
     /**
@@ -219,7 +219,7 @@ public class ApplicationFunctionalAdapter implements Application {
         fromAppListeners.remove(fromAppListener);
         fromAppTypeSafeListeners
                 .values()
-                .forEach(queue -> queue.remove(fromAppListener));
+                .forEach(list -> list.remove(fromAppListener));
     }
 
     @Override
