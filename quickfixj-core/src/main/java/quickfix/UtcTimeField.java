@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 
 /**
  * A LocalTime-valued message field with up to nanosecond precision.
@@ -29,7 +30,7 @@ public class UtcTimeField extends Field<LocalTime> {
     protected UtcTimestampPrecision precision = UtcTimestampPrecision.MILLIS;
 
     protected UtcTimeField(int field) {
-        super(field, LocalTime.now());
+        super(field, LocalTime.now(ZoneOffset.UTC));
     }
 
     protected UtcTimeField(int field, LocalTime data) {
