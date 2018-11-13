@@ -1,8 +1,8 @@
 package quickfix;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -29,16 +29,16 @@ public class ApplicationFunctionalAdapter implements Application {
     private final List<Consumer<SessionID>> onLogoutListeners = new CopyOnWriteArrayList<>();
 
     private final List<BiConsumer<Message, SessionID>> toAdminListeners = new CopyOnWriteArrayList<>();
-    private final Map<Class, List<BiConsumer>> toAdminTypeSafeListeners = new HashMap<>();
+    private final ConcurrentMap<Class, List<BiConsumer>> toAdminTypeSafeListeners = new ConcurrentHashMap<>();
 
     private final List<FromAdminListener<Message>> fromAdminListeners = new CopyOnWriteArrayList<>();
-    private final Map<Class, List<FromAdminListener>> fromAdminTypeSafeListeners = new HashMap<>();
+    private final ConcurrentMap<Class, List<FromAdminListener>> fromAdminTypeSafeListeners = new ConcurrentHashMap<>();
 
     private final List<ToAppListener<Message>> toAppListeners = new CopyOnWriteArrayList<>();
-    private final Map<Class, List<ToAppListener>> toAppTypeSafeListeners = new HashMap<>();
+    private final ConcurrentMap<Class, List<ToAppListener>> toAppTypeSafeListeners = new ConcurrentHashMap<>();
 
     private final List<FromAppListener<Message>> fromAppListeners = new CopyOnWriteArrayList<>();
-    private final Map<Class, List<FromAppListener>> fromAppTypeSafeListeners = new HashMap<>();
+    private final ConcurrentMap<Class, List<FromAppListener>> fromAppTypeSafeListeners = new ConcurrentHashMap<>();
 
     /**
      * Add a Consumer of SessionID to listen to onCreate operation.
@@ -278,24 +278,8 @@ public class ApplicationFunctionalAdapter implements Application {
         }
     }
 
-    private <T> List<T> getList(Map<Class, List<T>> multimap, Class clazz) {
-        List<T> list = multimap.get(clazz);
-
-        if (list != null) {
-            // Return without synchronization if the list was found
-            return list;
-        }
-
-        synchronized (multimap) {
-            list = multimap.get(clazz);
-
-            if (list == null) {
-                list = new CopyOnWriteArrayList<>();
-                multimap.put(clazz, list);
-            }
-
-            return list;
-        }
+    private <T> List<T> getList(ConcurrentMap<Class, List<T>> multimap, Class clazz) {
+        return multimap.computeIfAbsent(clazz, k -> new CopyOnWriteArrayList<>());
     }
 
 }
