@@ -19,17 +19,16 @@
 
 package quickfix;
 
+import junit.framework.TestCase;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidParameterException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Properties;
-import java.util.Set;
-
-import junit.framework.TestCase;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SessionSettingsTest extends TestCase {
 
@@ -388,6 +387,122 @@ public class SessionSettingsTest extends TestCase {
         } catch (final InvalidParameterException ex) {
             // OK
         }
+    }
+
+    public void testConcurrentAccess() throws ConfigError, InterruptedException {
+        final Map<Object, Object> defaultSettings = createDefaultSettings();
+
+        final Map<Object, Object> pricingSection = createPricingSection();
+        final SessionID pricingSessionID = new SessionID("FIX.4.2:FOOBAR_PRICING->*");
+
+        final Map<Object, Object> tradingSection = createTradingSection();
+        final SessionID tradingSessionID = new SessionID("FIX.4.2:FOOBAR_TRADING->*");
+
+        final SessionSettings sessionSettings = new SessionSettings();
+        sessionSettings.set(new Dictionary(null, defaultSettings));
+        sessionSettings.set(pricingSessionID, new Dictionary("sessions", pricingSection));
+        sessionSettings.set(tradingSessionID, new Dictionary("sessions", tradingSection));
+
+
+        final int numClients = 500;
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch countDownLatch = new CountDownLatch(numClients);
+
+        final AtomicBoolean testHasPassed = new AtomicBoolean(true);
+        final Random random = new Random();
+        for (int i = 0; i < numClients; i++) {
+            final String clientPricingSessionIDString = "FIX.4.2:FOOBAR_PRICING->CLIENT" + i;
+            final String clientTradingSessionIDString = "FIX.4.2:FOOBAR_TRADING->CLIENT" + i;
+            new Thread(() -> {
+                final Map<Object, Object> expectedClientPricingSettings = new HashMap<>();
+                expectedClientPricingSettings.putAll(defaultSettings);
+                expectedClientPricingSettings.putAll(pricingSection);
+
+                final Map<Object, Object> expectedClientTradingSettings = new HashMap<>();
+                expectedClientTradingSettings.putAll(defaultSettings);
+                expectedClientTradingSettings.putAll(tradingSection);
+
+                int randomSleep = random.nextInt(50);
+                try {
+                    // wait for everyone to be ready
+                    startLatch.await();
+
+                    // individual thread to sleep at random interval, to simulate spread connection attempt
+                    Thread.sleep(randomSleep);
+
+                    final SessionID clientPricingSessionID = new SessionID(clientPricingSessionIDString);
+                    sessionSettings.set(clientPricingSessionID, new Dictionary(clientPricingSessionIDString, expectedClientPricingSettings));
+
+                    final SessionID clientTradingSessionID = new SessionID(clientTradingSessionIDString);
+                    sessionSettings.set(clientTradingSessionID, new Dictionary(clientTradingSessionIDString, expectedClientTradingSettings ));
+
+                    // sleep at the end, before we verify the outcome
+                    Thread.sleep(randomSleep);
+
+                    assertEquals("Default settings must be correct", defaultSettings, sessionSettings.get().toMap());
+                    assertEquals("Client pricing settings must be correct", expectedClientPricingSettings, sessionSettings.get(clientPricingSessionID).toMap());
+                    assertEquals("Client trading settings must be correct",expectedClientTradingSettings, sessionSettings.get(clientTradingSessionID).toMap());
+                } catch (Exception exception) {
+                    testHasPassed.set(false);
+                    exception.printStackTrace();
+                } finally {
+                    countDownLatch.countDown();
+                }
+            }).start();
+        }
+
+        // go go go , everyone!
+        startLatch.countDown();
+
+        // ok.. wait for everyone to finish
+        countDownLatch.await();
+
+        // verify test has passed
+        assertTrue(testHasPassed.get());
+    }
+
+    private Map<Object, Object> createTradingSection() {
+        final Map<Object, Object> tradingSection = new HashMap<>();
+        tradingSection.put("PersistMessages","Y");
+        tradingSection.put("SocketAcceptPort","7566");
+        tradingSection.put("DataDictionary","fix/FIX42-TRADING-2.4.xml");
+        tradingSection.put("ResetOnLogon","N");
+        tradingSection.put("MaxLatency","1");
+        return tradingSection;
+    }
+
+    private Map<Object, Object> createPricingSection() {
+        final Map<Object, Object> pricingSection = new HashMap<>();
+        pricingSection.put("PersistMessages","N");
+        pricingSection.put("SocketAcceptPort","7565");
+        pricingSection.put("DataDictionary","fix/FIX42-PRICING-2.4.xml");
+        pricingSection.put("ResetOnLogon","Y");
+        pricingSection.put("MaxLatency","120");
+        return pricingSection;
+    }
+
+    private Map<Object, Object> createDefaultSettings() {
+        final Map<Object, Object> defaultSettings = new HashMap<>();
+        defaultSettings.put("TimeZone", "UTC");
+        defaultSettings.put("StartDay", "Sunday");
+        defaultSettings.put("StartTime", "7:00:00");
+        defaultSettings.put("EndDay", "Friday");
+        defaultSettings.put("EndTime", "17:00:00");
+        defaultSettings.put("NonStopSession", "N");
+        defaultSettings.put("ConnectionType", "acceptor");
+        defaultSettings.put("HeartBtInt", "30");
+        defaultSettings.put("UseDataDictionary", "Y");
+        defaultSettings.put("ThreadModel", "ThreadPerSession");
+        defaultSettings.put("UseJmx", "Y");
+        defaultSettings.put("FileStorePath", "/home/wibowoa/var/lib/myApp");
+        defaultSettings.put("FileLogPath", "logs/fixlog");
+        defaultSettings.put("FileIncludeTimeStampForMessages", "Y");
+        defaultSettings.put("FileIncludeMilliseconds", "Y");
+        defaultSettings.put("CheckLatency", "Y");
+        defaultSettings.put("BeginString", "FIX.4.2");
+        defaultSettings.put("AcceptorTemplate", "Y");
+        defaultSettings.put("TargetCompID", "*");
+        return defaultSettings;
     }
 
 }

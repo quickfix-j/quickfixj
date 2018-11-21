@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -365,7 +366,7 @@ public class SessionSettings {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
     }
 
-    private final HashMap<SessionID, Properties> sections = new HashMap<>();
+    private final ConcurrentHashMap<SessionID, Properties> sections = new ConcurrentHashMap<>();
 
     public Iterator<SessionID> sectionIterator() {
         final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
