@@ -19,6 +19,7 @@
 
 package quickfix.mina;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import quickfix.*;
 import quickfix.Dictionary;
@@ -33,7 +34,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 public class SessionConnectorTest {
@@ -301,7 +301,7 @@ public class SessionConnectorTest {
         // ok.. wait for everyone to finish
         countDownLatch.await();
 
-        assertThat("We should have all sessions exported. Failure here means initialisation has failed somewhere", exportedSessionIDs.size(), equalTo(1002));
+        assertThat("We should have all sessions exported. Failure here means initialisation has failed somewhere", exportedSessionIDs.size(), Matchers.equalTo(1002));
         assertTrue(exportedSessionIDs.contains(new SessionID("FIX.4.2:FOOBAR_PRICING->*")));
         assertTrue(exportedSessionIDs.contains(new SessionID("FIX.4.2:FOOBAR_TRADING->*")));
         for (int clientIndex = 0; clientIndex < numClients; clientIndex++) {
