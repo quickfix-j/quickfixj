@@ -422,7 +422,7 @@ public class SessionSettingsTest extends TestCase {
                 expectedClientTradingSettings.putAll(defaultSettings);
                 expectedClientTradingSettings.putAll(tradingSection);
 
-                int randomSleep = random.nextInt(50);
+                int randomSleep = random.nextInt(20);
                 try {
                     // wait for everyone to be ready
                     startLatch.await();
@@ -442,9 +442,9 @@ public class SessionSettingsTest extends TestCase {
                     assertEquals("Default settings must be correct", defaultSettings, sessionSettings.get().toMap());
                     assertEquals("Client pricing settings must be correct", expectedClientPricingSettings, sessionSettings.get(clientPricingSessionID).toMap());
                     assertEquals("Client trading settings must be correct",expectedClientTradingSettings, sessionSettings.get(clientTradingSessionID).toMap());
-                } catch (Exception exception) {
+                } catch (final Throwable throwable) {
                     testHasPassed.set(false);
-                    exception.printStackTrace();
+                    throwable.printStackTrace();
                 } finally {
                     countDownLatch.countDown();
                 }
