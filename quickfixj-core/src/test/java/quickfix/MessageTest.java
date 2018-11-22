@@ -303,16 +303,14 @@ public class MessageTest {
 
     private void doTestMessageWithEncodedField(String charset, String text) throws Exception {
         CharsetSupport.setCharset(charset);
-        NewOrderSingle order = createNewOrderSingle();
-        NewOrderSingle.IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
         try {
+            NewOrderSingle order = createNewOrderSingle();
             order.set(new EncodedTextLen(MessageUtils.length(CharsetSupport.getCharsetInstance(), text)));
             order.set(new EncodedText(text));
             final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary());
             assertEquals(charset + " encoded field", text, msg.getString(EncodedText.FIELD));
         } finally {
             CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
-            NewOrderSingle.IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
         }
     }
 

@@ -142,8 +142,6 @@ public class Message extends FieldMap {
         }
     };
 
-    protected static boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
-
     /**
      * Do not call this method concurrently while modifying the contents of the message.
      * This is likely to produce unexpected results or will fail with a ConcurrentModificationException
@@ -156,7 +154,7 @@ public class Message extends FieldMap {
     @Override
     public String toString() {
         Context context = stringContexts.get();
-        if (IS_STRING_EQUIVALENT) { // length & checksum can easily be calculated after message is built
+        if (CharsetSupport.isStringEquivalent()) { // length & checksum can easily be calculated after message is built
             header.setField(context.bodyLength);
             trailer.setField(context.checkSum);
         } else {
@@ -168,7 +166,7 @@ public class Message extends FieldMap {
             header.calculateString(stringBuilder, null, null);
             calculateString(stringBuilder, null, null);
             trailer.calculateString(stringBuilder, null, null);
-            if (IS_STRING_EQUIVALENT) {
+            if (CharsetSupport.isStringEquivalent()) {
                 setBodyLength(stringBuilder);
                 setChecksum(stringBuilder);
             }
