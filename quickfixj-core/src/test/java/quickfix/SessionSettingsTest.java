@@ -19,7 +19,7 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,12 +30,11 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class SessionSettingsTest extends TestCase {
+import static org.junit.Assert.*;
 
-    public SessionSettingsTest(String name) {
-        super(name);
-    }
+public class SessionSettingsTest {
 
+    @Test
     public void testExtendedSettings() throws ConfigError {
         String settingsString = "";
         settingsString += "[SESSION]\n";
@@ -58,6 +57,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("NYC", id.getTargetLocationID());
     }
 
+    @Test
     public void testSettings() throws Exception {
         final SessionSettings settings = setUpSession();
 
@@ -118,6 +118,7 @@ public class SessionSettingsTest extends TestCase {
         assertFalse(sectionIterator.hasNext());
     }
 
+    @Test
     public void testMergedProperties() throws Exception {
         final SessionSettings settings = setUpSession();
         final SessionID sessionID = new SessionID("FIX.4.2", "TW", "CLIENT1");
@@ -171,6 +172,7 @@ public class SessionSettingsTest extends TestCase {
         return new SessionSettings(cfg);
     }
 
+    @Test
     public void testSessionKeyIterator() throws Exception {
         final SessionSettings settings = setUpSession();
         final Iterator<SessionID> itr = settings.sectionIterator();
@@ -181,6 +183,7 @@ public class SessionSettingsTest extends TestCase {
         }
     }
 
+    @Test
     public void testMethodsForDefaults() throws Exception {
         final SessionSettings settings = setUpSession();
         assertEquals("acceptor", settings.getString("ConnectionType"));
@@ -191,6 +194,7 @@ public class SessionSettingsTest extends TestCase {
         assertFalse(settings.isSetting("bogus"));
     }
 
+    @Test
     public void testDefaultsSet() throws Exception {
         final SessionSettings settings = setUpSession();
         final Properties defaults = new Properties();
@@ -204,6 +208,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("bargle", settings.getString("FileStorePath"));
     }
 
+    @Test
     public void testSpecialCharactersInKeys() throws Exception {
         final SessionSettings settings = setUpSession("$$$foo bar.baz@@@=value\n");
         final SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
@@ -211,6 +216,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("value", settings.getString(sessionID2, "$$$foo bar.baz@@@"));
     }
 
+    @Test
     public void testStrangeCharactersInValues() throws Exception {
         final SessionSettings settings = setUpSession("label=   This is a test? Yes, it is.\n");
         final SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
@@ -218,6 +224,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("This is a test? Yes, it is.", settings.getString(sessionID2, "label"));
     }
 
+    @Test
     public void testFinalCommentWithoutTrailingNewline() throws Exception {
         final SessionSettings settings = setUpSession("label=no trailing newline\n# a comment without trailing newline");
         final SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");
@@ -225,6 +232,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("no trailing newline", settings.getString(sessionID2, "label"));
     }
 
+    @Test
     public void testDefaultSetters() throws Exception {
         final SessionSettings settings = setUpSession();
         settings.setBool("bool", true);
@@ -237,6 +245,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("wrong default value", "xyz", settings.getString("string"));
     }
 
+    @Test
     public void testVariableInterpolationWithDefaultValueSource() throws Exception {
         System.setProperty("test.1", "FOO");
         System.setProperty("test.2", "BAR");
@@ -250,6 +259,7 @@ public class SessionSettingsTest extends TestCase {
     }
 
     // QFJ-204
+    @Test
     public void testVariableInterpolationInDefaultSection() throws Exception {
         System.setProperty("sender", "SENDER");
         System.setProperty("target", "TARGET");
@@ -266,6 +276,7 @@ public class SessionSettingsTest extends TestCase {
         assertEquals("wrong value", "TARGET", settings.getString(sessionID, "TargetCompID"));
     }
 
+    @Test
     public void testVariableInterpolationWithNoSysProps() throws Exception {
         System.setProperty("test.1", "FOO");
         System.setProperty("test.2", "BAR");
@@ -276,6 +287,7 @@ public class SessionSettingsTest extends TestCase {
                 settings.getString("VariableTest"));
     }
 
+    @Test
     public void testVariableInterpolationWithProps() throws Exception {
         System.setProperty("test.2", "BAR");
         final Properties properties = new Properties(System.getProperties());
@@ -290,11 +302,13 @@ public class SessionSettingsTest extends TestCase {
                 settings.getString("VariableTest"));
     }
 
+    @Test
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
     }
 
+    @Test
     public void testConfigError() throws Exception {
         final InputStream cfg = new InputStream() {
 
@@ -312,6 +326,7 @@ public class SessionSettingsTest extends TestCase {
         }
     }
 
+    @Test
     public void testSettingsToStream() throws Exception {
         final SessionSettings expectedSettings = setUpSession();
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -344,12 +359,14 @@ public class SessionSettingsTest extends TestCase {
         }
     }
 
+    @Test
     public void testToString() throws Exception {
         final SessionSettings expectedSettings = setUpSession();
         final String actualString = expectedSettings.toString();
         assertSettingsEqual(expectedSettings, actualString);
     }
 
+    @Test
     public void testParseSettingReconnectInterval() {
         assertTrue(Arrays.equals(null, SessionSettings.parseSettingReconnectInterval("")));
         assertTrue(Arrays.equals(null, SessionSettings.parseSettingReconnectInterval(null)));
@@ -389,6 +406,7 @@ public class SessionSettingsTest extends TestCase {
         }
     }
 
+    @Test
     public void testConcurrentAccess() throws ConfigError, InterruptedException {
         final Map<Object, Object> defaultSettings = createDefaultSettings();
 
