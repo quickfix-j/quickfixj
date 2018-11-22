@@ -23,27 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.field.converter.BooleanConverter;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -366,7 +352,7 @@ public class SessionSettings {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
     }
 
-    private final ConcurrentHashMap<SessionID, Properties> sections = new ConcurrentHashMap<>();
+    private final ConcurrentMap<SessionID, Properties> sections = new ConcurrentHashMap<>();
 
     public Iterator<SessionID> sectionIterator() {
         final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
