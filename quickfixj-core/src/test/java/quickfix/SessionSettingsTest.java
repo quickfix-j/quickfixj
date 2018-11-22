@@ -410,10 +410,11 @@ public class SessionSettingsTest extends TestCase {
 
         final AtomicBoolean testHasPassed = new AtomicBoolean(true);
         final Random random = new Random();
+
         for (int i = 0; i < numClients; i++) {
             final String clientPricingSessionIDString = "FIX.4.2:FOOBAR_PRICING->CLIENT" + i;
             final String clientTradingSessionIDString = "FIX.4.2:FOOBAR_TRADING->CLIENT" + i;
-            new Thread(() -> {
+            final Thread clientThread = new Thread(() -> {
                 final Map<Object, Object> expectedClientPricingSettings = new HashMap<>();
                 expectedClientPricingSettings.putAll(defaultSettings);
                 expectedClientPricingSettings.putAll(pricingSection);
@@ -434,21 +435,23 @@ public class SessionSettingsTest extends TestCase {
                     sessionSettings.set(clientPricingSessionID, new Dictionary(clientPricingSessionIDString, expectedClientPricingSettings));
 
                     final SessionID clientTradingSessionID = new SessionID(clientTradingSessionIDString);
-                    sessionSettings.set(clientTradingSessionID, new Dictionary(clientTradingSessionIDString, expectedClientTradingSettings ));
+                    sessionSettings.set(clientTradingSessionID, new Dictionary(clientTradingSessionIDString, expectedClientTradingSettings));
 
                     // sleep at the end, before we verify the outcome
                     Thread.sleep(randomSleep);
 
                     assertEquals("Default settings must be correct", defaultSettings, sessionSettings.get().toMap());
                     assertEquals("Client pricing settings must be correct", expectedClientPricingSettings, sessionSettings.get(clientPricingSessionID).toMap());
-                    assertEquals("Client trading settings must be correct",expectedClientTradingSettings, sessionSettings.get(clientTradingSessionID).toMap());
+                    assertEquals("Client trading settings must be correct", expectedClientTradingSettings, sessionSettings.get(clientTradingSessionID).toMap());
                 } catch (final Throwable throwable) {
                     testHasPassed.set(false);
                     throwable.printStackTrace();
                 } finally {
                     countDownLatch.countDown();
                 }
-            }).start();
+            }, "CLIENT_THREAD_" + i);
+            clientThread.setDaemon(true);
+            clientThread.start();
         }
 
         // go go go , everyone!
