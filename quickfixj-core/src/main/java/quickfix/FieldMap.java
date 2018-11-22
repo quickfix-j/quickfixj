@@ -442,6 +442,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     protected void initializeFrom(FieldMap source) {
+        fieldOrder = source.getFieldOrder();
         fields.clear();
         fields.putAll(source.fields);
         for (Entry<Integer, List<Group>> entry : source.groups.entrySet()) {
