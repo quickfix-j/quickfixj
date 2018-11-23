@@ -19,6 +19,7 @@
 
 package quickfix;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.field.converter.BooleanConverter;
