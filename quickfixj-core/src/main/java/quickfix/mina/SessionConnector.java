@@ -50,6 +50,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.service.IoService;
 
@@ -67,7 +68,7 @@ public abstract class SessionConnector implements Connector {
 
     protected final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
-    private Map<SessionID, Session> sessions = Collections.emptyMap();
+    private final Map<SessionID, Session> sessions = new ConcurrentHashMap<>();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
     private final static ScheduledExecutorService scheduledExecutorService = Executors
@@ -117,7 +118,8 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void setSessions(Map<SessionID, Session> sessions) {
-        this.sessions = sessions;
+        clearConnectorSessions();
+        this.sessions.putAll(sessions);
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 

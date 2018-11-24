@@ -22,6 +22,7 @@ package quickfix.mina;
 import quickfix.Acceptor;
 import quickfix.ConfigError;
 import quickfix.DefaultSessionFactory;
+import quickfix.Dictionary;
 import quickfix.FixVersions;
 import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
@@ -47,12 +48,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Random;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.hamcrest.Matchers;
 
 public class SessionConnectorTest {
     private final List<PropertyChangeEvent> propertyChangeEvents = new ArrayList<>();
@@ -144,7 +152,7 @@ public class SessionConnectorTest {
                     SessionFactory.ACCEPTOR_CONNECTION_TYPE);
             try (Session session2 = connector.createSession(sessionID2)) {
                 assertNotNull(session2);
-                sessions.put(session2.getSessionID(), session2);
+                connector.addDynamicSession(session2);
                 assertFalse(connector.isLoggedOn());
                 assertTrue(connector.anyLoggedOn());
             }
@@ -252,6 +260,124 @@ public class SessionConnectorTest {
             s.close();
         }
         connector.stop();
+    }
+
+    @Test
+    public void testConcurrentAccess() throws ConfigError, InterruptedException {
+        final SessionSettings sessionSettings = new SessionSettings();
+        sessionSettings.set(new Dictionary(null, createDefaultSettings()));
+        sessionSettings.set(new SessionID("FIX.4.2:FOOBAR_PRICING->*"), new Dictionary("sessions", createPricingSection()));
+        sessionSettings.set(new SessionID("FIX.4.2:FOOBAR_TRADING->*"), new Dictionary("sessions", createTradingSection()));
+
+        final DefaultSessionFactory sessionFactory = new DefaultSessionFactory(new UnitTestApplication(),
+                new MemoryStoreFactory(), new SLF4JLogFactory(sessionSettings));
+        final SessionConnector connector = new SessionConnectorUnderTest(sessionSettings, sessionFactory);
+
+        // connector is initialised with the wildcard sessions.
+        final Map<SessionID, Session> sessions = new HashMap<>();
+        for (final Iterator<SessionID> sessionIterator = sessionSettings.sectionIterator(); sessionIterator.hasNext();) {
+            final SessionID sessionID = sessionIterator.next();
+            sessions.put(sessionID, sessionFactory.create(sessionID, sessionSettings));
+        }
+        connector.setSessions(sessions);
+
+        // register a listener on the connector, e.g. to simulate MBean registration
+        final Set<SessionID> exportedSessionIDs = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        connector.addPropertyChangeListener(evt -> {
+            exportedSessionIDs.addAll(connector.getSessions());
+        });
+
+        final int numClients = 500;
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch countDownLatch = new CountDownLatch(numClients);
+
+        final Random random = new Random();
+        for (int clientIndex = 0; clientIndex < numClients; clientIndex++) {
+            final String clientPricingSessionIDString = "FIX.4.2:FOOBAR_PRICING->CLIENT" + clientIndex;
+            final String clientTradingSessionIDString = "FIX.4.2:FOOBAR_TRADING->CLIENT" + clientIndex;
+
+            int randomSleep = random.nextInt(20);
+            final Thread clientThread = new Thread(() -> {
+                try {
+                    // wait for everyone to be ready
+                    startLatch.await();
+
+                    // individual thread to sleep at random interval, to simulate spread connection attempt
+                    Thread.sleep(randomSleep);
+
+                    connector.addDynamicSession(connector.createSession(new SessionID(clientPricingSessionIDString)));
+                    connector.addDynamicSession(connector.createSession(new SessionID(clientTradingSessionIDString)));
+
+                    // sleep at the end, before we verify the outcome
+                    Thread.sleep(randomSleep);
+                } catch (final Throwable throwable) {
+                    throwable.printStackTrace();
+                    fail("Well.. this operation shouldnt fail");
+                } finally {
+                    countDownLatch.countDown();
+                }
+            },"Client_"+clientIndex);
+            clientThread.setDaemon(true);
+            clientThread.start();
+        }
+
+        // go go go , everyone!
+        startLatch.countDown();
+
+        // ok.. wait for everyone to finish
+        countDownLatch.await();
+
+        assertThat("We should have all sessions exported. Failure here means initialisation has failed somewhere", exportedSessionIDs.size(), Matchers.equalTo(1002));
+        assertTrue(exportedSessionIDs.contains(new SessionID("FIX.4.2:FOOBAR_PRICING->*")));
+        assertTrue(exportedSessionIDs.contains(new SessionID("FIX.4.2:FOOBAR_TRADING->*")));
+        for (int clientIndex = 0; clientIndex < numClients; clientIndex++) {
+            assertTrue(exportedSessionIDs.contains(new SessionID("FIX.4.2:FOOBAR_PRICING->CLIENT" + clientIndex)));
+            assertTrue(exportedSessionIDs.contains(new SessionID("FIX.4.2:FOOBAR_TRADING->CLIENT" + clientIndex)));
+        }
+    }
+
+    private Map<Object, Object> createTradingSection() {
+        final Map<Object, Object> tradingSection = new HashMap<>();
+        tradingSection.put("PersistMessages","Y");
+        tradingSection.put("SocketAcceptPort","7566");
+        tradingSection.put("DataDictionary","FIX44_Custom_Test.xml");
+        tradingSection.put("ResetOnLogon","N");
+        tradingSection.put("MaxLatency","1");
+        return tradingSection;
+    }
+
+    private Map<Object, Object> createPricingSection() {
+        final Map<Object, Object> pricingSection = new HashMap<>();
+        pricingSection.put("PersistMessages","N");
+        pricingSection.put("SocketAcceptPort","7565");
+        pricingSection.put("DataDictionary","FIX44_Custom_Test.xml");
+        pricingSection.put("ResetOnLogon","Y");
+        pricingSection.put("MaxLatency","120");
+        return pricingSection;
+    }
+
+    private Map<Object, Object> createDefaultSettings() {
+        final Map<Object, Object> defaultSettings = new HashMap<>();
+        defaultSettings.put("TimeZone", "UTC");
+        defaultSettings.put("StartDay", "Sunday");
+        defaultSettings.put("StartTime", "07:00:00");
+        defaultSettings.put("EndDay", "Friday");
+        defaultSettings.put("EndTime", "17:00:00");
+        defaultSettings.put("NonStopSession", "N");
+        defaultSettings.put("ConnectionType", "acceptor");
+        defaultSettings.put("HeartBtInt", "30");
+        defaultSettings.put("UseDataDictionary", "Y");
+        defaultSettings.put("ThreadModel", "ThreadPerSession");
+        defaultSettings.put("UseJmx", "Y");
+        defaultSettings.put("FileStorePath", "/home/wibowoa/var/lib/myApp");
+        defaultSettings.put("FileLogPath", "logs/fixlog");
+        defaultSettings.put("FileIncludeTimeStampForMessages", "Y");
+        defaultSettings.put("FileIncludeMilliseconds", "Y");
+        defaultSettings.put("CheckLatency", "Y");
+        defaultSettings.put("BeginString", "FIX.4.2");
+        defaultSettings.put("AcceptorTemplate", "Y");
+        defaultSettings.put("TargetCompID", "*");
+        return defaultSettings;
     }
 
     private SessionSettings setUpSessionSettings(SessionID sessionID) {
