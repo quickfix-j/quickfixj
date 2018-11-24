@@ -19,6 +19,7 @@
 
 package quickfix;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.field.converter.BooleanConverter;
@@ -36,7 +37,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -365,7 +367,7 @@ public class SessionSettings {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
     }
 
-    private final HashMap<SessionID, Properties> sections = new HashMap<>();
+    private final ConcurrentMap<SessionID, Properties> sections = new ConcurrentHashMap<>();
 
     public Iterator<SessionID> sectionIterator() {
         final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
