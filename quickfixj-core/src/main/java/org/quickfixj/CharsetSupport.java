@@ -29,6 +29,7 @@ public class CharsetSupport {
 
     private static String charset = getDefaultCharset();
     private static Charset charsetInstance = Charset.forName(charset);
+    private static boolean isStringEquivalent = isStringEquivalent(charsetInstance);
 
     public static String getDefaultCharset() {
         return "ISO-8859-1";
@@ -47,9 +48,20 @@ public class CharsetSupport {
         return charset.equals(CHARSET_ISO_8859_1) || charset.equals(CHARSET_ASCII);
     }
 
+    /**
+     * Returns whether the current charset's byte representation of a string
+     * is equivalent (as unsigned values) to the string characters themselves.
+     *
+     * @return whether the charset encoding is string-equivalent
+     */
+    public static boolean isStringEquivalent() {
+        return isStringEquivalent;
+    }
+
     public static void setCharset(String charset) throws UnsupportedEncodingException {
         CharsetSupport.charset = validate(charset);
         CharsetSupport.charsetInstance = Charset.forName(charset);
+        CharsetSupport.isStringEquivalent = isStringEquivalent(charsetInstance);
     }
 
     public static String getCharset() {
