@@ -182,6 +182,40 @@ Message crackers for each FIX version are still generated for backward compatibi
 
 The generated classes define handlers for all messages defined by that version of FIX. This requires the JVM to load those classes when the cracker is loaded. Most applications only need to handle a small subset of the messages defined by a FIX version so loading all the messages classes is excessive overhead in those cases.
 
+#### Functional interfaces for receiving messages
+
+If you prefer using lambda expressions in handling received messages, then <code>ApplicationFunctionalAdapter</code> or <code>ApplicationExtendedFunctionalAdapter</code> can be used to register reactions to events the application is interested in.
+
+They also allow registering the interests in a given message type in a type-safe manner.
+
+```
+import quickfix.ApplicationFunctionalAdapter;
+import quickfix.SessionID;
+
+public class EmailForwarder {
+    public void init(ApplicationFunctionalAdapter adapter) {
+        adapter.addOnLogonListener(this::captureUsername);
+        adapter.addFromAppListener(quickfix.fix44.Email.class, (e , s) -> forward(e));
+    }
+
+    private void forward(quickfix.fix44.Email email) {
+        // implementation
+    }
+
+    private void captureUsername(SessionID sessionID) {
+        // implementation
+    }
+}
+```
+<code>ApplicationFunctionalAdapter</code> and <code>ApplicationExtendedFunctionalAdapter</code> support multiple registration to the same event, and the registered callbacks are invoked in the FIFO manner. 
+
+However FIFO cannot be guaranteed between registration with specific message type (e.g. <code>quickfix.fix44.Email</code>) and that without specific message type. For example, there is no invocation order guarantee between the following two callbacks:
+
+```
+    adapter.addFromAppListener((e , s) -> handleGeneral(e));
+
+    adapter.addFromAppListener(quickfix.fix44.Email.class, (e , s) -> handleSpecific(e));
+```
 
 ### Sending messages
 
