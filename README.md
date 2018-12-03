@@ -77,7 +77,7 @@ Here are explanations of what these functions provide for you.
 
 The sample code below shows how you might start up a FIX acceptor which listens on a socket. If you wanted an initiator, you would simply replace the acceptor in this code fragment with a `SocketInitiator`. `ThreadedSocketInitiator` and `ThreadedSocketAcceptor` classes are also available. These will supply a thread to each session that is created. If you use these you must make sure your application is thread safe.
 
-```
+```Java
 import quickfix.*;
 import java.io.FileInputStream;
 
@@ -113,7 +113,7 @@ Keep in mind that all messages have a header and a trailer. If you want to see f
 
 QuickFIX/J has message classes that correlate to all the messages defined in the spec. They are, just like the field classes, generated directly off of the FIX specifications. To take advantage of this, you must break the messages out with the supplied `MessageCracker`. 
 
-```
+```Java
 import quickfix.*;
 import quickfix.field.*;
 
@@ -152,7 +152,7 @@ Any function you do not overload will by default throw an `UnsupportedMessageTyp
 
 Define your application like this:
 
-```
+```Java
 import quickfix.Application;
 import quickfix.MessageCracker;
 
@@ -188,7 +188,7 @@ If you prefer using lambda expressions in handling received messages, then <code
 
 They also allow registering the interests in a given message type in a type-safe manner.
 
-```
+```Java
 import quickfix.ApplicationFunctionalAdapter;
 import quickfix.SessionID;
 
@@ -211,7 +211,7 @@ public class EmailForwarder {
 
 However FIFO cannot be guaranteed between registration with specific message type (e.g. <code>quickfix.fix44.Email</code>) and that without specific message type. For example, there is no invocation order guarantee between the following two callbacks:
 
-```
+```Java
     adapter.addFromAppListener((e , s) -> handleGeneral(e));
 
     adapter.addFromAppListener(quickfix.fix44.Email.class, (e , s) -> handleSpecific(e));
@@ -221,7 +221,7 @@ However FIFO cannot be guaranteed between registration with specific message typ
 
 Messages can be sent to a counter party with one of the static `Session.sendToTarget` methods. This method has several signatures. They are:
 
-```
+```Java
 package quickfix;
 
 public static boolean sendToTarget(Message message)
@@ -239,7 +239,7 @@ The highly recommended method is to use the type safe message classes. This shou
 
 Here the constructor takes in all the required fields and adds the correct `MsgType` and `BeginString` for you. What's more, by using the `set` method instead of `setField`, the compiler will not let you add a field that is not a part of a `OrderCancelRequest` based on the FIX4.1 specs. Keep in mind that you can still use `setField` if you want to force any field you want into the message.
 
-```
+```Java
 import quickfix.*;
 
 void sendOrderCancelRequest() throws SessionNotFound {
