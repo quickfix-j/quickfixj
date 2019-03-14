@@ -84,8 +84,8 @@ public class DataDictionary {
     private final Map<Integer, Set<String>> fieldValues = new HashMap<>();
     private final Map<Integer, String> fieldNames = new HashMap<>();
     private final Map<String, Integer> names = new HashMap<>();
-    private final Map<IntStringPair, String> valueNames = new HashMap<>();
-    private final Map<IntStringPair, GroupInfo> groups = new HashMap<>();
+    private final IntegerStringMap<String> valueNames = new IntegerStringMap<>();
+    private final StringIntegerMap<GroupInfo> groups = new StringIntegerMap<>();
     private final Map<String, Node> components = new HashMap<>();
 
     private DataDictionary() {
@@ -156,7 +156,7 @@ public class DataDictionary {
     }
 
     private void addValueName(int field, String value, String name) {
-        valueNames.put(new IntStringPair(field, value), name);
+        valueNames.put(field, value, name);
     }
 
     /**
@@ -167,7 +167,7 @@ public class DataDictionary {
      * @return the value's name
      */
     public String getValueName(int field, String value) {
-        return valueNames.get(new IntStringPair(field, value));
+        return valueNames.get(field, value);
     }
 
     /**
@@ -377,7 +377,7 @@ public class DataDictionary {
     }
 
     private void addGroup(String msg, int field, int delim, DataDictionary dataDictionary) {
-        groups.put(new IntStringPair(field, msg), new GroupInfo(delim, dataDictionary));
+        groups.put(msg, field, new GroupInfo(delim, dataDictionary));
     }
 
     /**
@@ -389,7 +389,7 @@ public class DataDictionary {
      * @return true if field starts a repeating group, false otherwise
      */
     public boolean isGroup(String msg, int field) {
-        return groups.containsKey(new IntStringPair(field, msg));
+        return groups.contains(msg, field);
     }
 
     /**
@@ -399,7 +399,7 @@ public class DataDictionary {
      * @return true if field starts a repeating group, false otherwise
      */
     public boolean isHeaderGroup(int field) {
-        return groups.containsKey(new IntStringPair(field, HEADER_ID));
+        return groups.contains(HEADER_ID, field);
     }
 
     /**
@@ -410,7 +410,7 @@ public class DataDictionary {
      * @return an object containing group-related metadata
      */
     public GroupInfo getGroup(String msg, int field) {
-        return groups.get(new IntStringPair(field, msg));
+        return groups.get(msg, field);
     }
 
     /**
@@ -464,8 +464,10 @@ public class DataDictionary {
      */
     public void setCheckUnorderedGroupFields(boolean flag) {
         checkUnorderedGroupFields = flag;
-        for (GroupInfo gi : groups.values()) {
-            gi.getDataDictionary().setCheckUnorderedGroupFields(flag);
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setCheckUnorderedGroupFields(flag);
+            }
         }
     }
 
@@ -476,8 +478,10 @@ public class DataDictionary {
      */
     public void setCheckFieldsHaveValues(boolean flag) {
         checkFieldsHaveValues = flag;
-        for (GroupInfo gi : groups.values()) {
-            gi.getDataDictionary().setCheckFieldsHaveValues(flag);
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setCheckFieldsHaveValues(flag);
+            }
         }
     }
 
@@ -488,15 +492,19 @@ public class DataDictionary {
      */
     public void setCheckUserDefinedFields(boolean flag) {
         checkUserDefinedFields = flag;
-        for (GroupInfo gi : groups.values()) {
-            gi.getDataDictionary().setCheckUserDefinedFields(flag);
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setCheckUserDefinedFields(flag);
+            }
         }
     }
 
     public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
         allowUnknownMessageFields = allowUnknownFields;
-        for (GroupInfo gi : groups.values()) {
-            gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
+            }
         }
     }
 
@@ -545,15 +553,18 @@ public class DataDictionary {
     }
 
     /** copy groups including their data dictionaries and validation settings
-     * 
+     *
      * @param lhs target
      * @param rhs source
      */
-    private static void copyGroups(Map<IntStringPair, GroupInfo> lhs, Map<IntStringPair, GroupInfo> rhs) {
+    private static void copyGroups(StringIntegerMap<GroupInfo> lhs, StringIntegerMap<GroupInfo> rhs) {
         lhs.clear();
-        for (Map.Entry<IntStringPair, GroupInfo> entry : rhs.entrySet()) {
-            GroupInfo value = new GroupInfo(entry.getValue().getDelimiterField(), new DataDictionary(entry.getValue().getDataDictionary()));
-            lhs.put(entry.getKey(), value);
+        for (Map.Entry<String, Map<Integer, GroupInfo>> outer : rhs.entrySet()) {
+            for (Map.Entry<Integer, GroupInfo> entry : outer.getValue().entrySet()) {
+                GroupInfo value = new GroupInfo(entry.getValue().getDelimiterField(),
+                        new DataDictionary(entry.getValue().getDataDictionary()));
+                lhs.put(outer.getKey(), entry.getKey(), value);
+            }
         }
     }
 
@@ -1199,36 +1210,42 @@ public class DataDictionary {
         return defaultValue;
     }
 
-    private static final class IntStringPair {
-        private final int intValue;
+    private static class StringIntegerMap<V> extends HashMap<String, Map<Integer, V>> {
 
-        private final String stringValue;
-
-        public IntStringPair(int value, String value2) {
-            intValue = value;
-            stringValue = value2;
+        public boolean contains(String group, int field) {
+            Map<Integer, V> map = get(group);
+            return map != null && map.containsKey(field);
         }
 
-        @Override
-        public boolean equals(Object other) {
-            return this == other
-                    || other instanceof IntStringPair
-                       && intValue == ((IntStringPair) other).intValue
-                       && stringValue.equals(((IntStringPair) other).stringValue);
+        public V get(String group, int field) {
+            Map<Integer, V> map = get(group);
+            return map == null ? null : map.get(field);
         }
 
-        @Override
-        public int hashCode() {
-            return stringValue.hashCode() + intValue;
+        public void put(String group, int field, V value) {
+            computeIfAbsent(group, __ -> new HashMap<>())
+                    .put(field, value);
         }
 
-        /**
-         * For debugging
-         */
-        @Override
-        public String toString() {
-            return '(' + intValue + ',' + stringValue + ')';
+    }
+
+    private static class IntegerStringMap<V> extends HashMap<Integer, Map<String, V>> {
+
+        public boolean contains(int field, String group) {
+            Map<String, V> map = get(field);
+            return map != null && map.containsKey(group);
         }
+
+        public V get(int field, String group) {
+            Map<String, V> map = get(field);
+            return map == null ? null : map.get(group);
+        }
+
+        public void put(int field, String group, V value) {
+            computeIfAbsent(field, __ -> new HashMap<>())
+                    .put(group, value);
+        }
+
     }
 
     /**
