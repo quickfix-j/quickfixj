@@ -1720,7 +1720,7 @@ public class MessageTest {
         // When
         nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
 
-        // Than
+        // Then
         FieldException e = nos.getException();
         assertEquals(e.getMessage(), SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, e
                 .getSessionRejectReason());
