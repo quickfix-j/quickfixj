@@ -745,6 +745,10 @@ public class Message extends FieldMap {
                     throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getTag());
                 }
             }
+            if (group == null) {
+                throw new FieldException(
+                        SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, field.getTag());
+            }
             group.setField(field);
             return true;
         }
