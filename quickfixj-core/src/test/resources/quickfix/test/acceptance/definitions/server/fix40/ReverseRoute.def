@@ -25,8 +25,8 @@ I8=FIX.4.035=D34=549=TW52=<TIME>56=ISLD128=JCD129=CS11=ID21=338=10040
 # Expect to see reverse route OnBehalfOfCompID (115) and OnBehalfOfSubID (116) set
 E8=FIX.4.09=12035=334=549=ISLD52=00000000-00:00:0056=TW115=JCD116=CS45=558=Value is incorrect (out of range) for this tag, field=4010=0
 
-# Send an order with OnBehalfOfCompID (115) and OnBehalfOfSubID (116) and OnBehalfOfLocationID (144) set with bad field value 40=w
-I8=FIX.4.035=D34=649=TW52=<TIME>56=ISLD115=JCD116=CS144=CHI11=ID21=338=10040=w54=155=INTC60=<TIME>
+# Send an order with OnBehalfOfCompID (115) and OnBehalfOfSubID (116) set with bad field value 40=w
+I8=FIX.4.035=D34=649=TW52=<TIME>56=ISLD115=JCD116=CS11=ID21=338=10040=w54=155=INTC60=<TIME>
 # Expect to see reverse route DeliverToCompID (128) and DeliverToSubID (129) set
 E8=FIX.4.09=9335=334=649=ISLD52=00000000-00:00:0056=TW128=JCD129=CS45=658=Invalid tag number, field=14410=0
 
