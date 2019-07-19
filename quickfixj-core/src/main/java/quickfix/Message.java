@@ -218,10 +218,10 @@ public class Message extends FieldMap {
         return header.calculateLength() + calculateLength() + trailer.calculateLength();
     }
 
-    private static final DecimalFormat checksumFormat = new DecimalFormat("000");
+    private static final ThreadLocal<DecimalFormat> checksumFormat = ThreadLocal.withInitial(() -> new DecimalFormat("000"));
 
     private String checksum() {
-        return checksumFormat.format(
+        return checksumFormat.get().format(
             (header.calculateChecksum() + calculateChecksum() + trailer.calculateChecksum()) & 0xFF);
     }
 
