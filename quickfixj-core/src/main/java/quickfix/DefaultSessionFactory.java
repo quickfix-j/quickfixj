@@ -252,6 +252,12 @@ public class DefaultSessionFactory implements SessionFactory {
         final String path = getDictionaryPath(sessionID, settings, settingsKey, beginString);
         final DataDictionary dataDictionary = getDataDictionary(path);
 
+        addValidationSettings(settings, sessionID, dataDictionary);
+
+        return dataDictionary;
+    }
+
+    private void addValidationSettings(SessionSettings settings, SessionID sessionID, final DataDictionary dataDictionary) throws ConfigError, FieldConvertError {
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
             dataDictionary.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
@@ -276,8 +282,6 @@ public class DefaultSessionFactory implements SessionFactory {
             dataDictionary.setAllowUnknownMessageFields(settings.getBool(sessionID,
                     Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
         }
-
-        return dataDictionary;
     }
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,
@@ -315,6 +319,12 @@ public class DefaultSessionFactory implements SessionFactory {
                 }
             }
         }
+        
+        /* QFJ-981: make sure validation settings get applied when using
+           the default application data dictionary. */
+        final ApplVerID applVerID = toApplVerID(settings.getString(sessionID,
+                Session.SETTING_DEFAULT_APPL_VER_ID));
+        addValidationSettings(settings, sessionID, dataDictionaryProvider.getApplicationDataDictionary(applVerID));
     }
 
     private ApplVerID toApplVerID(String value) {
