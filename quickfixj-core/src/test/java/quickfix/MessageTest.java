@@ -1703,6 +1703,31 @@ public class MessageTest {
     }
 
     @Test
+    public void testUnknownTagBeforeFirstFieldInRepeatingGroup()
+            throws Exception {
+
+        // Given
+        String newOrdersSingleString = "8=FIX.4.4|9=265|35=D|34=62|49=sender|52=20160803-12:55:42.094|"
+                + "56=target|11=16H03A0000021|15=CHF|22=4|38=13|40=2|44=132|48=CH000000000|54=1|55=[N/A]|59=0|"
+                + "60=20160803-12:55:41.866|207=XXXX|423=2|526=foo|528=P|"
+                // tag 20000 is not defined for NewOrderSingle
+                + "453=1|20000=0|448=test|447=D|452=7|802=1|523=test|803=25|10=244|";
+
+        quickfix.fix44.NewOrderSingle nos = new quickfix.fix44.NewOrderSingle();
+        final DataDictionary dataDictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+        dataDictionary.setCheckUserDefinedFields(false);
+
+        // When
+        nos.fromString(newOrdersSingleString.replaceAll("\\|", "\001"), dataDictionary, true);
+
+        // Then
+        FieldException e = nos.getException();
+        assertEquals(e.getMessage(), SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, e
+                .getSessionRejectReason());
+        assertEquals(20000, e.getField());
+    }
+
+    @Test
     // QFJ-169/QFJ-791
     public void testNestedRepeatingSubGroup()
             throws Exception {
