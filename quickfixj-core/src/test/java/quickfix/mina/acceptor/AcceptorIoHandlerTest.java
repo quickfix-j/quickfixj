@@ -19,29 +19,38 @@
 
 package quickfix.mina.acceptor;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
 import quickfix.FixVersions;
+import quickfix.Message;
+import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
+import quickfix.SessionSettingsTest;
 import quickfix.UnitTestApplication;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.EncryptMethod;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
+import quickfix.field.MsgType;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
+import quickfix.field.Text;
 import quickfix.fix44.Logout;
 import quickfix.fixt11.Logon;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
+import quickfix.mina.SessionConnector;
+import quickfix.mina.SessionConnectorStub;
+import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor.StaticAcceptorSessionProvider;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -50,16 +59,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import quickfix.ConfigError;
-import quickfix.Message;
-import quickfix.Responder;
-import quickfix.RuntimeError;
-import quickfix.SessionSettings;
-import quickfix.SessionSettingsTest;
-import quickfix.field.MsgType;
-import quickfix.field.Text;
-import quickfix.mina.SessionConnector;
-import quickfix.mina.SingleThreadedEventHandlingStrategy;
 
 public class AcceptorIoHandlerTest {
 
@@ -217,13 +216,7 @@ public class AcceptorIoHandlerTest {
     @Test
     public void testRejectGarbledMessage() throws Exception {
         SessionSettings settings = SessionSettingsTest.setUpSession(null);
-        SessionConnector connector = new SessionConnector(settings, null) {
-            @Override
-            public void start() throws ConfigError, RuntimeError {}
-            
-            @Override
-            public void stop(boolean force) {}
-        };
+        SessionConnector connector = new SessionConnectorStub(settings);
         SingleThreadedEventHandlingStrategy eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(connector, 1000);
         IoSession mockIoSession = mock(IoSession.class);
 
