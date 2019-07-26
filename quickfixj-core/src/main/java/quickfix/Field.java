@@ -24,11 +24,9 @@ import org.quickfixj.CharsetSupport;
 import java.io.Serializable;
 
 /**
- * Base class for FIX message fields. This class should be
- * abstract but that would break compatibility with the QF JNI
- * classes.
+ * Base class for FIX message fields.
  */
-public /*abstract*/ class Field<T> implements Serializable {
+public abstract class Field<T> implements Serializable {
     static final long serialVersionUID = 7098326013456432197L;
     private int tag;
     private T object;
@@ -152,4 +150,7 @@ public /*abstract*/ class Field<T> implements Serializable {
         isCalculated = false;
         calculate();
     }
+
+    public abstract String convertToString();
+
 }

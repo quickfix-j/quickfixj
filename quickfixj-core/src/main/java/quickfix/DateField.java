@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
 import java.util.Date;
 
 /**
@@ -45,4 +47,10 @@ public class DateField extends Field<Date> {
     public boolean valueEquals(Date value) {
         return getValue().equals(value);
     }
+
+    @Override
+    public String convertToString() {
+        return UtcTimestampConverter.convert(getValue(), true);
+    }
+
 }

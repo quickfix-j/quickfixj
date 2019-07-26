@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.BooleanConverter;
+
 import java.lang.Boolean;
 
 public class BooleanField extends Field<Boolean> {
@@ -54,4 +56,10 @@ public class BooleanField extends Field<Boolean> {
     public boolean valueEquals(boolean value) {
         return getObject().equals(value);
     }
+
+    @Override
+    public String convertToString() {
+        return BooleanConverter.convert(getValue());
+    }
+
 }

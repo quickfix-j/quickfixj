@@ -1,9 +1,5 @@
 package quickfix;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -11,8 +7,15 @@ import quickfix.field.EffectiveTime;
 import quickfix.field.MDEntryTime;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Iterator;
 import java.util.Optional;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertThat;
 
 /**
  * Tests the {@link FieldMap} class.
@@ -34,7 +37,8 @@ public class FieldMapTest extends TestCase {
         FieldMap map = new Message();
         LocalDateTime aDate = LocalDateTime.now();
         map.setField(new UtcTimeStampField(EffectiveTime.FIELD, aDate, false));
-        assertEquals("milliseconds should not be preserved", epochMilliOfLocalDate(aDate) - (epochMilliOfLocalDate(aDate) % 1000),
+        assertEquals("milliseconds should not be preserved",
+                epochMilliOfLocalDate(aDate) - (epochMilliOfLocalDate(aDate) % 1000),
                 epochMilliOfLocalDate(map.getField(new EffectiveTime()).getValue()));
 
         // now set it with preserving millis
@@ -47,13 +51,17 @@ public class FieldMapTest extends TestCase {
         FieldMap map = new Message();
         LocalTime aDate = LocalTime.now();
         map.setField(new UtcTimeOnlyField(MDEntryTime.FIELD, aDate, false));
-        assertEquals("milliseconds should not be preserved", UtcTimeOnlyConverter.convert(aDate, UtcTimestampPrecision.SECONDS),
-                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.SECONDS));
+        assertEquals("milliseconds should not be preserved",
+                UtcTimeOnlyConverter.convert(aDate, UtcTimestampPrecision.SECONDS),
+                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(),
+                        UtcTimestampPrecision.SECONDS));
 
         // now set it with preserving millis
         map.setField(new UtcTimeOnlyField(MDEntryTime.FIELD, aDate, true));
-        assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aDate, UtcTimestampPrecision.MILLIS),
-                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
+        assertEquals("milliseconds should be preserved",
+                UtcTimeOnlyConverter.convert(aDate, UtcTimestampPrecision.MILLIS),
+                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(),
+                        UtcTimestampPrecision.MILLIS));
     }
 
     /**
@@ -67,8 +75,10 @@ public class FieldMapTest extends TestCase {
                 epochMilliOfLocalDate(map.getField(new EffectiveTime()).getValue()));
         LocalTime aTime = LocalTime.now();
         map.setField(new MDEntryTime(aTime));
-        assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aTime, UtcTimestampPrecision.MILLIS),
-                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
+        assertEquals("milliseconds should be preserved",
+                UtcTimeOnlyConverter.convert(aTime, UtcTimestampPrecision.MILLIS),
+                UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(),
+                        UtcTimestampPrecision.MILLIS));
     }
 
     private void testOrdering(int[] vals, int[] order, int[] expected) {
@@ -114,4 +124,26 @@ public class FieldMapTest extends TestCase {
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
+
+    // QFJ-962
+    public void testSetFieldWithBytesField() throws FieldNotFound {
+        final BytesField bytesField = new BytesField(1111, new byte[] { 1, 2, 3, 4 });
+        FieldMap map = new Message();
+        map.setField(bytesField.getTag(), bytesField);
+
+        final BytesField returnedField = map.getField(bytesField);
+
+        assertEquals(bytesField, returnedField);
+    }
+
+    // QFJ-962
+    public void testSetFieldWithDecimalField() {
+        final DecimalField decimalField = new DecimalField(1111, new BigDecimal("0.00000000000001"));
+
+        FieldMap map = new Message();
+        map.setField(decimalField.getTag(), decimalField);
+
+        assertThat(map.toString(), containsString("1111=0.00000000000001"));
+    }
+
 }

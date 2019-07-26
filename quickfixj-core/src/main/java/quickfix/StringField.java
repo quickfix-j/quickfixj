@@ -43,4 +43,10 @@ public class StringField extends Field<String> {
     public boolean valueEquals(String value) {
         return getValue().equals(value);
     }
+
+    @Override
+    public String convertToString() {
+        return getValue();
+    }
+
 }

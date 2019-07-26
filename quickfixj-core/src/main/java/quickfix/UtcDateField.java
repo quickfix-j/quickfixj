@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.UtcDateOnlyConverter;
+
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
@@ -46,5 +48,10 @@ public class UtcDateField extends Field<LocalDate> {
     public boolean valueEquals(LocalDate value) {
         return getValue().equals(value);
     }
-    
+
+    @Override
+    public String convertToString() {
+        return UtcDateOnlyConverter.convert(getValue());
+    }
+
 }

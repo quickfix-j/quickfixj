@@ -19,9 +19,7 @@
 
 package quickfix;
 
-import java.io.UnsupportedEncodingException;
-
-import org.quickfixj.QFJException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * BytesField enables better handling of binary data. With BytesFields binary data can
@@ -47,11 +45,12 @@ public class BytesField extends Field<byte[]> {
 
     @Override
     protected String objectAsString() {
-        try {
-            return new String(getObject(), "UTF8");
-        } catch (UnsupportedEncodingException e) {
-            throw new QFJException(e);
-        }
+        return new String(getObject(), StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public String convertToString() {
+        return objectAsString();
     }
 
 }

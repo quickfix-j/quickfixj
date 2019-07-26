@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.UtcTimestampConverter;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -56,11 +58,11 @@ public class UtcTimeStampField extends Field<LocalDateTime> {
         super(field, data);
         this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
-    
+
     public UtcTimestampPrecision getPrecision() {
         return precision;
     }
-    
+
     public void setValue(LocalDateTime value) {
         setObject(value);
     }
@@ -71,6 +73,11 @@ public class UtcTimeStampField extends Field<LocalDateTime> {
 
     public boolean valueEquals(LocalDateTime value) {
         return getValue().equals(value);
+    }
+
+    @Override
+    public String convertToString() {
+        return UtcTimestampConverter.convert(getValue(), getPrecision());
     }
 
 }

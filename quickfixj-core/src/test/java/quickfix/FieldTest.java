@@ -53,7 +53,7 @@ public class FieldTest {
     }
 
     private void testFieldCalcuations(String value, int checksum, int length) {
-        Field<String> field = new Field<>(12, value);
+        Field<String> field = new StringField(12, value);
         field.setObject(value);
         assertEquals("12=" + value, field.toString());
         assertEquals(checksum, field.getChecksum());

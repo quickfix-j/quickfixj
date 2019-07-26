@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.DoubleConverter;
+
 /**
  * A double-values message field.
  */
@@ -78,4 +80,10 @@ public class DoubleField extends Field<Double> {
             throw new NumberFormatException("Tried to set NaN or infinite value.");
         }
     }
+
+    @Override
+    public String convertToString() {
+        return DoubleConverter.convert(getValue(), getPadding());
+    }
+
 }

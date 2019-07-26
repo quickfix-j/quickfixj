@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.UtcTimeOnlyConverter;
+
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 
@@ -26,7 +28,7 @@ import java.time.ZoneOffset;
  * A time-valued message field.
  */
 public class UtcTimeOnlyField extends Field<LocalTime> {
-    
+
     private UtcTimestampPrecision precision = UtcTimestampPrecision.MILLIS;
 
     public UtcTimeOnlyField(int field) {
@@ -51,11 +53,11 @@ public class UtcTimeOnlyField extends Field<LocalTime> {
         super(field, data);
         this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
-    
+
     public UtcTimestampPrecision getPrecision() {
         return precision;
     }
-    
+
     public void setValue(LocalTime value) {
         setObject(value);
     }
@@ -66,6 +68,11 @@ public class UtcTimeOnlyField extends Field<LocalTime> {
 
     public boolean valueEquals(LocalTime value) {
         return getValue().equals(value);
+    }
+
+    @Override
+    public String convertToString() {
+        return UtcTimeOnlyConverter.convert(getValue(), getPrecision());
     }
 
 }

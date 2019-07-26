@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.DecimalConverter;
+
 import java.math.BigDecimal;
 
 /**
@@ -68,4 +70,10 @@ public class DecimalField extends Field<BigDecimal> {
     public boolean valueEquals(double value) {
         return getValue().compareTo(new BigDecimal(value)) == 0;
     }
+
+    @Override
+    public String convertToString() {
+        return DecimalConverter.convert(getValue(), getPadding());
+    }
+
 }
