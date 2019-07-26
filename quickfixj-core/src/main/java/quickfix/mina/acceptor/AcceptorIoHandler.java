@@ -19,12 +19,7 @@
 
 package quickfix.mina.acceptor;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
 import org.apache.mina.core.session.IoSession;
-
 import quickfix.Log;
 import quickfix.Message;
 import quickfix.MessageUtils;
@@ -39,6 +34,11 @@ import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.IoSessionResponder;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Optional;
 
 class AcceptorIoHandler extends AbstractIoHandler {
     private final EventHandlingStrategy eventHandlingStrategy;
@@ -61,7 +61,8 @@ class AcceptorIoHandler extends AbstractIoHandler {
     protected void processMessage(IoSession protocolSession, Message message) throws Exception {
         Session qfSession = (Session) protocolSession.getAttribute(SessionConnector.QF_SESSION);
         if (qfSession == null) {
-            if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
+            final Optional<String> msgTypeField = message.getHeader().getOptionalString(MsgType.FIELD);
+            if (msgTypeField.isPresent() && msgTypeField.get().equals(MsgType.LOGON)) {
                 final SessionID sessionID = MessageUtils.getReverseSessionID(message);
                 qfSession = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
                 if (qfSession != null) {

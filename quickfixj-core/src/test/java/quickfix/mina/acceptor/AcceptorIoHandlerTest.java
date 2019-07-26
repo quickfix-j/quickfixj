@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.verify;
@@ -77,14 +78,14 @@ public class AcceptorIoHandlerTest {
         try (Session session = SessionFactoryTestSupport.createSession(sessionID,
                 new UnitTestApplication(), false)) {
             stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
-            
+
             final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
             acceptorSessions.put(sessionID, session);
             final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
-            
+
             final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
                     new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
-            
+
             final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
             final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
                     new HeartBtInt(30), defaultApplVerID);
@@ -92,7 +93,7 @@ public class AcceptorIoHandlerTest {
             message.getHeader().setString(SenderCompID.FIELD, sessionID.getTargetCompID());
             message.getHeader().setField(new SendingTime(LocalDateTime.now()));
             message.getHeader().setInt(MsgSeqNum.FIELD, 1);
-            
+
             handler.processMessage(mockIoSession, message);
             assertEquals(defaultApplVerID.getValue(), session.getTargetDefaultApplicationVersionID()
                     .getValue());
@@ -127,22 +128,22 @@ public class AcceptorIoHandlerTest {
 
         try (Session qfSession = SessionFactoryTestSupport.createSession()) {
             stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(qfSession);
-            
+
             EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
-            
+
             Logout logout = new Logout();
             logout.getHeader()
                     .setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
             logout.getHeader()
                     .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
-            
+
             HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
-            
+
             AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                     new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
-            
+
             handler.processMessage(mockIoSession, logout);
-            
+
             verify(mockIoSession).getAttribute("QF_SESSION");
             verify(mockEventHandlingStrategy).onMessage(qfSession, logout);
         }
@@ -163,17 +164,17 @@ public class AcceptorIoHandlerTest {
                     .setString(SenderCompID.FIELD, qfSession.getSessionID().getSenderCompID());
             logout.getHeader()
                     .setString(TargetCompID.FIELD, qfSession.getSessionID().getTargetCompID());
-            
+
             // Expect that onMessage will not be called
             //mockEventHandlingStrategy.onMessage(qfSession, logout);
-            
+
             HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
             acceptorSessions.put(qfSession.getSessionID(), qfSession);
             AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
                     new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
-            
+
             handler.processMessage(mockIoSession, logout);
-            
+
             verify(mockIoSession).getAttribute("QF_SESSION");
             verifyNoMoreInteractions(mockEventHandlingStrategy);
         }
@@ -243,12 +244,12 @@ public class AcceptorIoHandlerTest {
             message.getHeader().setString(SenderCompID.FIELD, sessionID.getTargetCompID());
             message.getHeader().setField(new SendingTime(LocalDateTime.now(ZoneOffset.UTC)));
             message.getHeader().setInt(MsgSeqNum.FIELD, 1);
-            
+
             handler.messageReceived(mockIoSession, message.toString());
             session.setResponder(responder);
             // wait some time for EventHandlingStrategy to poll the message
             Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
-            
+
             assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
             stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(session);
@@ -258,25 +259,25 @@ public class AcceptorIoHandlerTest {
             handler.messageReceived(mockIoSession, fixString);
             // wait some time for EventHandlingStrategy to poll the message
             Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
-            
+
             // ensure that seqnums are incremented (i.e. message is not ignored)
             assertEquals(3, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(3, session.getStore().getNextSenderMsgSeqNum());
-            
+
             Message lastToAdminMessage = unitTestApplication.lastToAdminMessage();
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
             assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
-            
+
             // garbled: missing msgtype
             fixString = "8=FIXT.1.19=6834=349=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=a10=248";
             handler.messageReceived(mockIoSession, fixString);
             // wait some time for EventHandlingStrategy to poll the message
             Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
-            
+
             // ensure that seqnums are incremented (i.e. message is not ignored)
             assertEquals(4, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(4, session.getStore().getNextSenderMsgSeqNum());
-            
+
             lastToAdminMessage = unitTestApplication.lastToAdminMessage();
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
             assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
@@ -286,11 +287,11 @@ public class AcceptorIoHandlerTest {
             handler.messageReceived(mockIoSession, fixString);
             // wait some time for EventHandlingStrategy to poll the message
             Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
-            
+
             // ensure that seqnums are incremented (i.e. message is not ignored)
             assertEquals(5, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(5, session.getStore().getNextSenderMsgSeqNum());
-            
+
             lastToAdminMessage = unitTestApplication.lastToAdminMessage();
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
             assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
@@ -300,15 +301,58 @@ public class AcceptorIoHandlerTest {
             handler.messageReceived(mockIoSession, fixString);
             // wait some time for EventHandlingStrategy to poll the message
             Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
-            
+
             // ensure that seqnums are incremented (i.e. message is not ignored)
             assertEquals(6, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(6, session.getStore().getNextSenderMsgSeqNum());
-            
+
             lastToAdminMessage = unitTestApplication.lastToAdminMessage();
             assertEquals(MsgType.REJECT, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
             assertEquals("Message failed basic validity check", lastToAdminMessage.getString(Text.FIELD));
 
+        } finally {
+            eventHandlingStrategy.stopHandlingMessages(true);
+        }
+    }
+
+    // QFJ-976
+    @Test
+    public void testRejectGarbledMessageWithoutMsgTypeBeforeSessionIsCreated() throws Exception {
+        SessionSettings settings = SessionSettingsTest.setUpSession(null);
+        SessionConnector connector = new SessionConnectorStub(settings);
+        SingleThreadedEventHandlingStrategy eventHandlingStrategy = new SingleThreadedEventHandlingStrategy(connector, 1000);
+        IoSession mockIoSession = mock(IoSession.class);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
+                "TARGET");
+        final UnitTestApplication unitTestApplication = new UnitTestApplication();
+
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, unitTestApplication, false, true, true, true, new DefaultApplVerID(ApplVerID.FIX50SP2))) {
+            session.setRejectGarbledMessage(true);
+            eventHandlingStrategy.blockInThread();
+            Responder responder = new UnitTestResponder();
+            stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
+
+            final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
+            acceptorSessions.put(sessionID, session);
+            final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
+
+            final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
+                    new NetworkingOptions(new Properties()), eventHandlingStrategy);
+
+            // garbled: missing msgtype
+            String fixString = "8=FIXT.1.19=6834=349=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=a10=248";
+
+            handler.messageReceived(mockIoSession, fixString);
+            session.setResponder(responder);
+            // wait some time for EventHandlingStrategy to poll the message
+            Thread.sleep(EventHandlingStrategy.THREAD_WAIT_FOR_MESSAGE_MS * 2);
+
+            assertEquals(1, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(1, session.getStore().getNextSenderMsgSeqNum());
+
+            Message lastToAdminMessage = unitTestApplication.lastToAdminMessage();
+            assertNull(lastToAdminMessage);
         } finally {
             eventHandlingStrategy.stopHandlingMessages(true);
         }
