@@ -92,27 +92,27 @@ public class Message extends FieldMap {
 
     public Message(String string) throws InvalidMessage {
         initializeHeader();
-        fromString(string, null, true);
+        fromString(string, null, true, true);
     }
 
     public Message(String string, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, null, validate);
+        fromString(string, null, validate, true);
     }
 
     public Message(String string, DataDictionary dd) throws InvalidMessage {
         initializeHeader();
-        fromString(string, dd, true);
+        fromString(string, dd, true, true);
     }
 
     public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, dd, validate);
+        fromString(string, dd, validate, true);
     }
     
     public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, sessionDictionary, applicationDictionary, validate);
+        fromString(string, sessionDictionary, applicationDictionary, validate, true);
     }
 
     private void initializeHeader() {
@@ -543,26 +543,38 @@ public class Message extends FieldMap {
 
     public void fromString(String messageData, DataDictionary dd, boolean doValidation)
             throws InvalidMessage {
-        parse(messageData, dd, dd, doValidation);
+        parse(messageData, dd, dd, doValidation, true);
+    }
+
+    public void fromString(String messageData, DataDictionary dd, boolean doValidation,
+            boolean validateChecksum) throws InvalidMessage {
+        parse(messageData, dd, dd, doValidation, validateChecksum);
     }
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
             DataDictionary applicationDictionary, boolean doValidation) throws InvalidMessage {
+        fromString(messageData, sessionDictionary, applicationDictionary, doValidation, true);
+    }
+
+    public void fromString(String messageData, DataDictionary sessionDictionary,
+            DataDictionary applicationDictionary, boolean doValidation, boolean validateChecksum)
+            throws InvalidMessage {
         if (sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
             applicationDictionary = sessionDictionary;
         }
-        parse(messageData, sessionDictionary, applicationDictionary, doValidation);
+        parse(messageData, sessionDictionary, applicationDictionary, doValidation, validateChecksum);
     }
 
     void parse(String messageData, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, boolean doValidation) throws InvalidMessage {
+            DataDictionary applicationDataDictionary, boolean doValidation,
+            boolean validateChecksum) throws InvalidMessage {
         this.messageData = messageData;
 
         try {
             parseHeader(sessionDataDictionary, doValidation);
             parseBody(applicationDataDictionary, doValidation);
             parseTrailer(sessionDataDictionary);
-            if (doValidation) {
+            if (doValidation && validateChecksum) {
                 validateCheckSum(messageData);
             }
         } catch (final FieldException e) {
