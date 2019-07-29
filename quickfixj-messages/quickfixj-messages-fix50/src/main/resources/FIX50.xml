@@ -3055,6 +3055,11 @@
         <field name="AllocQty" required="N"/>
         <field name="IndividualAllocID" required="N"/>
         <field name="ProcessCode" required="N"/>
+        <field name="SecondaryIndividualAllocID" required="N"/>
+        <field name="AllocMethod" required="N"/>
+        <field name="AllocCustomerCapacity" required="N"/>
+        <field name="AllocPositionEffect" required="N"/>
+        <field name="IndividualAllocType" required="N"/>
         <component name="NestedParties"/>
         <field name="NotifyBrokerOfCredit" required="N"/>
         <field name="AllocHandlInst" required="N"/>
@@ -3074,14 +3079,9 @@
         <field name="AllocInterestAtMaturity" required="N"/>
         <component name="MiscFeesGrp"/>
         <component name="ClrInstGrp"/>
+        <field name="ClearingFeeIndicator" required="N"/>
         <field name="AllocSettlInstType" required="N"/>
         <component name="SettlInstructionsData"/>
-        <field name="SecondaryIndividualAllocID" required="N"/>
-        <field name="AllocMethod" required="N"/>
-        <field name="AllocCustomerCapacity" required="N"/>
-        <field name="IndividualAllocType" required="N"/>
-        <field name="AllocPositionEffect" required="N"/>
-        <field name="ClearingFeeIndicator" required="N"/>
       </group>
     </component>
     <component name="BidCompReqGrp">
