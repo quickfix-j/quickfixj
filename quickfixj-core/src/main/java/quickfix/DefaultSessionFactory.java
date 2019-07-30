@@ -89,7 +89,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
             if (rejectGarbledMessage && processMessageWithInvalidChecksum) {
                 throw new ConfigError("Not possible to reject garbled message and process " +
-                        "messages with invalid cheksum at the same time.");
+                        "messages with invalid checksum at the same time.");
             }
 
             final boolean rejectInvalidMessage = getSetting(settings, sessionID,
