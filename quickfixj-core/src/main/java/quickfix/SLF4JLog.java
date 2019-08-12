@@ -62,9 +62,9 @@ public class SLF4JLog extends AbstractLog {
     }
 
     private Logger getLogger(SessionID sessionID, String category, String defaultCategory, String logPrefix) {
-        return LoggerFactory.getLogger((category != null
+        return LoggerFactory.getLogger(logPrefix + (category != null
                 ? substituteVariables(sessionID, category)
-                : defaultCategory) + logPrefix);
+                : defaultCategory));
     }
 
     private static final String FIX_MAJOR_VERSION_VAR = "\\$\\{fixMajorVersion}";

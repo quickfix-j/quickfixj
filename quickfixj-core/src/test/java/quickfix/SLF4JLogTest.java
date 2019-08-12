@@ -194,13 +194,13 @@ public class SLF4JLogTest {
             // The conditional is required because of a bug in SLF4J 1.0
             // when used with JDK 1.4 logging. The wrapper does not pass
             // the logger name.
-            assertEquals(categoryName + sessionID + ": ", r.getLoggerName());
+            assertEquals(sessionID + ": " + categoryName, r.getLoggerName());
         }
         assertEquals(message, r.getMessage());
     }
 
     private TestHandler getTestHandler(String categoryName, SessionID sessionID) {
-        final Logger logger = Logger.getLogger(categoryName + sessionID + ": ");
+        final Logger logger = Logger.getLogger(sessionID + ": " + categoryName);
         TestHandler testHandler = null;
         final Handler[] handlers = logger.getHandlers();
         for (final Handler handler : handlers) {
@@ -214,7 +214,7 @@ public class SLF4JLogTest {
     }
 
     private TestHandler setUpLoggerForTest(String category, SessionID sessionID) {
-        final Logger logger = Logger.getLogger(category + sessionID + ": ");
+        final Logger logger = Logger.getLogger(sessionID + ": " + category);
         logger.setUseParentHandlers(false);
         final Handler[] handlers = logger.getHandlers();
         for (final Handler handler : handlers) {
