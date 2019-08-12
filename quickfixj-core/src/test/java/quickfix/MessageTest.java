@@ -21,7 +21,6 @@ package quickfix;
 
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
-
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
 import quickfix.field.AllocShares;
@@ -48,10 +47,17 @@ import quickfix.field.HandlInst;
 import quickfix.field.Headline;
 import quickfix.field.HopCompID;
 import quickfix.field.IOIID;
+import quickfix.field.LastPx;
+import quickfix.field.LastQty;
 import quickfix.field.LeavesQty;
+import quickfix.field.LegPrice;
+import quickfix.field.LegQty;
+import quickfix.field.LegRefID;
+import quickfix.field.LegSymbol;
 import quickfix.field.ListID;
 import quickfix.field.ListSeqNo;
 import quickfix.field.MDEntryPx;
+import quickfix.field.MaturityMonthYear;
 import quickfix.field.MsgDirection;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
@@ -63,13 +69,19 @@ import quickfix.field.OrderQty;
 import quickfix.field.PartyID;
 import quickfix.field.PartyIDSource;
 import quickfix.field.PartyRole;
+import quickfix.field.PreviouslyReported;
 import quickfix.field.Price;
+import quickfix.field.PutOrCall;
+import quickfix.field.QuoteAckStatus;
 import quickfix.field.RawData;
 import quickfix.field.RawDataLength;
 import quickfix.field.RefMsgType;
 import quickfix.field.SecureData;
 import quickfix.field.SecurityID;
 import quickfix.field.SecurityIDSource;
+import quickfix.field.SecurityReqID;
+import quickfix.field.SecurityRequestResult;
+import quickfix.field.SecurityResponseID;
 import quickfix.field.SecurityType;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
@@ -77,10 +89,14 @@ import quickfix.field.SessionRejectReason;
 import quickfix.field.Side;
 import quickfix.field.Signature;
 import quickfix.field.SignatureLength;
+import quickfix.field.StrikePrice;
 import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
 import quickfix.field.TargetSubID;
+import quickfix.field.Text;
 import quickfix.field.TotNoOrders;
+import quickfix.field.TradeDate;
+import quickfix.field.TradeReportID;
 import quickfix.field.TransactTime;
 import quickfix.field.UnderlyingCurrency;
 import quickfix.field.UnderlyingSymbol;
@@ -94,6 +110,7 @@ import quickfix.fix44.Logon.NoMsgTypes;
 import quickfix.fix44.NewOrderCross;
 import quickfix.fix44.NewOrderSingle.NoPartyIDs;
 import quickfix.fix44.News;
+import quickfix.fix44.TradeCaptureReport;
 import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
@@ -111,24 +128,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import quickfix.field.LastPx;
-import quickfix.field.LastQty;
-import quickfix.field.LegPrice;
-import quickfix.field.LegQty;
-import quickfix.field.LegRefID;
-import quickfix.field.LegSymbol;
-import quickfix.field.MaturityMonthYear;
-import quickfix.field.PreviouslyReported;
-import quickfix.field.PutOrCall;
-import quickfix.field.QuoteAckStatus;
-import quickfix.field.SecurityReqID;
-import quickfix.field.SecurityRequestResult;
-import quickfix.field.SecurityResponseID;
-import quickfix.field.StrikePrice;
-import quickfix.field.Text;
-import quickfix.field.TradeDate;
-import quickfix.field.TradeReportID;
-import quickfix.fix44.TradeCaptureReport;
 
 
 public class MessageTest {
@@ -1857,6 +1856,50 @@ public class MessageTest {
         Message message = new Message();
         message.fromString(test.replaceAll("\\|", "\001"), dictionary, true);
         assertEquals(test, message.toRawString().replaceAll("\001", "\\|"));
+    }
+
+    // QFJ-722
+    @Test
+    public void testIfMessageHeaderIsOverwritten() {
+        final Message fix42Message = new quickfix.fix42.Message();
+        assertEquals(quickfix.fix42.Message.Header.class, fix42Message.getHeader().getClass());
+
+        final Message fix44Message = new quickfix.fix44.Message();
+        assertEquals(quickfix.fix44.Message.Header.class, fix44Message.getHeader().getClass());
+
+        final Message fix50Message = new quickfix.fix50.Message();
+        assertEquals(quickfix.fix50.Message.Header.class, fix50Message.getHeader().getClass());
+
+        final Message fixt11Message = new quickfix.fixt11.Message();
+        assertEquals(quickfix.fixt11.Message.Header.class, fixt11Message.getHeader().getClass());
+    }
+
+    // QFJ-722
+    @Test
+    public void testIfMessageHeaderIsCreatedWithEveryConstructor() throws Exception {
+        final String rawMessage = "8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001";
+        final DataDictionary dataDictionary = new DataDictionary(DataDictionaryTest.getDictionary());
+
+        final Message emptyConstructor = new Message();
+        assertNotNull(emptyConstructor.getHeader());
+
+        final Message secondConstructor = new Message(new int[] {});
+        assertNotNull(secondConstructor.getHeader());
+
+        final Message thirdConstructor = new Message(rawMessage);
+        assertNotNull(thirdConstructor.getHeader());
+
+        final Message fourthConstructor = new Message(rawMessage, false);
+        assertNotNull(fourthConstructor.getHeader());
+
+        final Message fifthConstructor = new Message(rawMessage, dataDictionary);
+        assertNotNull(fifthConstructor.getHeader());
+
+        final Message sixthConstructor = new Message(rawMessage, dataDictionary, false);
+        assertNotNull(sixthConstructor.getHeader());
+
+        final Message seventhConstructor = new Message(rawMessage, dataDictionary, dataDictionary, false);
+        assertNotNull(seventhConstructor.getHeader());
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)

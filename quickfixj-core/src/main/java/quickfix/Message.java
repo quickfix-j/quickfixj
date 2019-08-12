@@ -19,21 +19,10 @@
 
 package quickfix;
 
-import java.io.ByteArrayOutputStream;
-import java.text.DecimalFormat;
-import java.util.Iterator;
-import java.util.List;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import org.quickfixj.CharsetSupport;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import quickfix.field.ApplExtID;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
@@ -69,43 +58,69 @@ import quickfix.field.TargetSubID;
 import quickfix.field.XmlData;
 import quickfix.field.XmlDataLen;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Represents a FIX message.
  */
 public class Message extends FieldMap {
 
     static final long serialVersionUID = -3193357271891865972L;
-    protected Header header = new Header();
+
+    protected Header header;
     protected Trailer trailer = new Trailer();
 
     private volatile FieldException exception;
 
     public Message() {
-        // empty
+        initializeHeader();
     }
 
     protected Message(int[] fieldOrder) {
         super(fieldOrder);
+        initializeHeader();
     }
 
     public Message(String string) throws InvalidMessage {
+        initializeHeader();
         fromString(string, null, true);
     }
 
     public Message(String string, boolean validate) throws InvalidMessage {
+        initializeHeader();
         fromString(string, null, validate);
     }
 
     public Message(String string, DataDictionary dd) throws InvalidMessage {
+        initializeHeader();
         fromString(string, dd, true);
     }
 
     public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
+        initializeHeader();
         fromString(string, dd, validate);
     }
     
     public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, boolean validate) throws InvalidMessage {
+        initializeHeader();
         fromString(string, sessionDictionary, applicationDictionary, validate);
+    }
+
+    private void initializeHeader() {
+        header = newHeader();
+    }
+
+    protected Header newHeader() {
+        return new Header();
     }
 
     public static boolean InitializeXML(String url) {
