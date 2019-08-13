@@ -37,6 +37,7 @@ import quickfix.fix50.Email;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.when;
@@ -215,11 +216,14 @@ public class MessageUtilsTest extends TestCase {
     // QFJ-973
     public void testParseMessageWithoutChecksumValidation() throws InvalidMessage {
         Session mockSession = mock(Session.class);
-        when(mockSession.isProcessMessageWithInvalidChecksum()).thenReturn(Boolean.TRUE);
+        when(mockSession.isValidateChecksum()).thenReturn(Boolean.FALSE);
 
+        DataDictionary dataDictionary = mock(DataDictionary.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
+        when(mockDataDictionaryProvider.getSessionDataDictionary(any(String.class))).thenReturn(dataDictionary);
         stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
         stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
+
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
                 "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=283\001";
 

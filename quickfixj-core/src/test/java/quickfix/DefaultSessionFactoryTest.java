@@ -261,9 +261,9 @@ public class DefaultSessionFactoryTest {
 
     // QFJ-973
     @Test
-    public void testRejectGarbledMessageAndProcessInvalidChecksumError() {
+    public void testRejectGarbledMessageAndNotValidateChecksumError() {
         settings.setString(Session.SETTING_REJECT_GARBLED_MESSAGE, "Y");
-        settings.setString(Session.SETTING_PROCESS_MESSAGE_WITH_INVALID_CHECKSUM, "Y");
+        settings.setString(Session.SETTING_VALIDATE_CHECKSUM, "N");
         createSessionAndAssertConfigError("no exception", ".*Not possible to reject " +
                 "garbled message and process messages with invalid checksum at the same time.*");
     }

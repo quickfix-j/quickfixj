@@ -152,7 +152,7 @@ public class MessageUtils {
                 : applicationDataDictionary;
 
         final boolean doValidation = payloadDictionary != null;
-        final boolean validateChecksum = !session.isProcessMessageWithInvalidChecksum();
+        final boolean validateChecksum = session.isValidateChecksum();
 
         message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
                 validateChecksum);

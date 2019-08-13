@@ -278,10 +278,10 @@ public class AcceptanceTestSuite extends TestSuite {
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("rejectGarbledMessages", true, rejectGarbledMessagesProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("rejectGarbledMessages", false, rejectGarbledMessagesProperties)));
 
-        Map<Object, Object> processMessageWithInvalidChecksumProperties = new HashMap<>();
-        processMessageWithInvalidChecksumProperties.put(Session.SETTING_PROCESS_MESSAGE_WITH_INVALID_CHECKSUM, "Y");
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("processMessageWithInvalidChecksum", true, processMessageWithInvalidChecksumProperties)));
-        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("processMessageWithInvalidChecksum", false, processMessageWithInvalidChecksumProperties)));
+        Map<Object, Object> validateChecksumProperties = new HashMap<>();
+        validateChecksumProperties.put(Session.SETTING_VALIDATE_CHECKSUM, "N");
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("validateChecksum", true, validateChecksumProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("validateChecksum", false, validateChecksumProperties)));
 
         return acceptanceTests;
     }

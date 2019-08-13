@@ -360,7 +360,7 @@ public class Session implements Closeable {
 
     public static final String SETTING_MAX_SCHEDULED_WRITE_REQUESTS = "MaxScheduledWriteRequests";
 
-    public static final String SETTING_PROCESS_MESSAGE_WITH_INVALID_CHECKSUM = "ProcessMessageWithInvalidChecksum";
+    public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
 
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
@@ -407,7 +407,7 @@ public class Session implements Closeable {
     private boolean forceResendWhenCorruptedStore = false;
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
-    private boolean processMessageWithInvalidChecksum = false;
+    private boolean validateChecksum = true;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -465,7 +465,7 @@ public class Session implements Closeable {
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
-            boolean processMessageWithInvalidChecksum) {
+            boolean validateChecksum) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -498,7 +498,7 @@ public class Session implements Closeable {
         this.resendRequestChunkSize = resendRequestChunkSize;
         this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
-        this.processMessageWithInvalidChecksum = processMessageWithInvalidChecksum;
+        this.validateChecksum = validateChecksum;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2810,8 +2810,8 @@ public class Session implements Closeable {
         return state.isLogoutTimedOut();
     }
 
-    public boolean isProcessMessageWithInvalidChecksum() {
-        return processMessageWithInvalidChecksum;
+    public boolean isValidateChecksum() {
+        return validateChecksum;
     }
 
     public boolean isRejectGarbledMessage() {
@@ -2931,9 +2931,9 @@ public class Session implements Closeable {
         this.rejectGarbledMessage = rejectGarbledMessage;
     }
 
-    public void setProcessMessageWithInvalidChecksum(
-            final boolean processMessageWithInvalidChecksum) {
-        this.processMessageWithInvalidChecksum = processMessageWithInvalidChecksum;
+    public void setValidateChecksum(
+            final boolean validateChecksum) {
+        this.validateChecksum = validateChecksum;
     }
 
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {
