@@ -2449,7 +2449,7 @@ public class Session implements Closeable {
         resendRequest.setInt(EndSeqNo.FIELD, endSeqNo);
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
-        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + lastEndSeqNoSent);
+        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + (endSeqNo == 0 ? "infinity" : endSeqNo));
         state.setResendRange(beginSeqNo, msgSeqNum - 1, resendRequestChunkSize == 0
                 ? 0
                 : lastEndSeqNoSent);
