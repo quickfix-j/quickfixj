@@ -85,7 +85,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_REJECT_GARBLED_MESSAGE, false);
 
             final boolean validateChecksum = getSetting(settings, sessionID,
-                    Session.SETTING_VALIDATE_CHECKSUM, false);
+                    Session.SETTING_VALIDATE_CHECKSUM, true);
 
             if (rejectGarbledMessage && !validateChecksum) {
                 throw new ConfigError("Not possible to reject garbled message and process " +
