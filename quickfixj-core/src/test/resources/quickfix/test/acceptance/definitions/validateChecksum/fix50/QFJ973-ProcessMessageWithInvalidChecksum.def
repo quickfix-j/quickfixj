@@ -1,4 +1,4 @@
-# If message has invalid checksum and setting ProcessMessageWithInvalidChecksum=Y, then msg should not be rejected
+# If message has invalid checksum and setting ValidateChecksum=N, then msg should not be rejected
 
 iCONNECT
 I8=FIXT.1.135=A34=149=TW52=<TIME>56=ISLD98=0108=301137=7
