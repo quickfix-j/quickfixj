@@ -13,6 +13,7 @@ import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Session;
+import quickfix.SystemTime;
 import quickfix.mina.ProtocolFactory;
 
 import java.io.BufferedReader;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import quickfix.SystemTime;
 
 public class AcceptanceTestSuite extends TestSuite {
     private static final String ATEST_TIMEOUT_KEY = "atest.timeout";
@@ -277,6 +277,11 @@ public class AcceptanceTestSuite extends TestSuite {
         rejectGarbledMessagesProperties.put(Session.SETTING_REJECT_GARBLED_MESSAGE, "Y");
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("rejectGarbledMessages", true, rejectGarbledMessagesProperties)));
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("rejectGarbledMessages", false, rejectGarbledMessagesProperties)));
+
+        Map<Object, Object> validateChecksumProperties = new HashMap<>();
+        validateChecksumProperties.put(Session.SETTING_VALIDATE_CHECKSUM, "N");
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("validateChecksum", true, validateChecksumProperties)));
+        acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("validateChecksum", false, validateChecksumProperties)));
 
         return acceptanceTests;
     }

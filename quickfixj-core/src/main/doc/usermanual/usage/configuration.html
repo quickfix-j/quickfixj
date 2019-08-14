@@ -390,6 +390,14 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+      <TD> <I>ValidateChecksum</I> </TD>
+      <TD> If ValidateChecksum is set to N, checksum validation will not be executed on messages.<br>
+          This setting cannot be set to N together with RejectGarbledMessage set to Y, in this case Config Error will be thrown.
+      </TD>
+      <TD> Y<br>N</TD>
+      <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD><I>AllowUnknownMsgFields</I></TD>
     <TD>If set to Y, non user defined fields (field with tag < 5000) will not be rejected if they are not
       defined in the data dictionary, or are present in messages they do not

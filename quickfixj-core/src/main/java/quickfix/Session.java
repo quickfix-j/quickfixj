@@ -360,6 +360,8 @@ public class Session implements Closeable {
 
     public static final String SETTING_MAX_SCHEDULED_WRITE_REQUESTS = "MaxScheduledWriteRequests";
 
+    public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -405,6 +407,7 @@ public class Session implements Closeable {
     private boolean forceResendWhenCorruptedStore = false;
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
+    private boolean validateChecksum = true;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -444,7 +447,7 @@ public class Session implements Closeable {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
+                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -461,7 +464,8 @@ public class Session implements Closeable {
             boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
-            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed) {
+            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
+            boolean validateChecksum) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -494,6 +498,7 @@ public class Session implements Closeable {
         this.resendRequestChunkSize = resendRequestChunkSize;
         this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
+        this.validateChecksum = validateChecksum;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2805,6 +2810,10 @@ public class Session implements Closeable {
         return state.isLogoutTimedOut();
     }
 
+    public boolean isValidateChecksum() {
+        return validateChecksum;
+    }
+
     public boolean isRejectGarbledMessage() {
         return rejectGarbledMessage;
     }
@@ -2920,6 +2929,11 @@ public class Session implements Closeable {
 
     public void setRejectGarbledMessage(boolean rejectGarbledMessage) {
         this.rejectGarbledMessage = rejectGarbledMessage;
+    }
+
+    public void setValidateChecksum(
+            final boolean validateChecksum) {
+        this.validateChecksum = validateChecksum;
     }
 
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {

@@ -19,13 +19,8 @@
 
 package quickfix;
 
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.quickfixj.CharsetSupport;
 import org.quickfixj.QFJException;
-
 import quickfix.Message.Header;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
@@ -37,6 +32,10 @@ import quickfix.field.SenderSubID;
 import quickfix.field.TargetCompID;
 import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
+
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MessageUtils {
 
@@ -91,6 +90,11 @@ public class MessageUtils {
         }
     }
 
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+            String messageString) throws InvalidMessage {
+        return parse(messageFactory, dataDictionary, messageString, true);
+    }
+
     /**
      * Utility method for parsing a message. This should only be used for parsing messages from
      * FIX versions 4.4 or earlier.
@@ -102,7 +106,7 @@ public class MessageUtils {
      * @throws InvalidMessage
      */
     public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
-            String messageString) throws InvalidMessage {
+            String messageString, boolean validateChecksum) throws InvalidMessage {
         final int index = messageString.indexOf(FIELD_SEPARATOR);
         if (index < 0) {
             throw new InvalidMessage("Message does not contain any field separator");
@@ -110,7 +114,7 @@ public class MessageUtils {
         final String beginString = messageString.substring(2, index);
         final String messageType = getMessageType(messageString);
         final quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(messageString, dataDictionary, dataDictionary != null);
+        message.fromString(messageString, dataDictionary, dataDictionary != null, validateChecksum);
         return message;
     }
 
@@ -147,8 +151,11 @@ public class MessageUtils {
                 ? sessionDataDictionary
                 : applicationDataDictionary;
 
-        message.parse(messageString, sessionDataDictionary, payloadDictionary,
-                payloadDictionary != null);
+        final boolean doValidation = payloadDictionary != null;
+        final boolean validateChecksum = session.isValidateChecksum();
+
+        message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
+                validateChecksum);
 
         return message;
     }
