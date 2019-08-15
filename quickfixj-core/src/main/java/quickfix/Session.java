@@ -2411,9 +2411,10 @@ public class Session implements Closeable {
             final ResendRange range = state.getResendRange();
 
             if (!redundantResentRequestsAllowed && msgSeqNum >= range.getBeginSeqNo()) {
-
+                int endSeqNo = range.getEndSeqNo();
+                String end = endSeqNo == 0 ? "infinity" : Integer.toString(endSeqNo);
                 getLog().onEvent(
-                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + range.getEndSeqNo()
+                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + end
                                 + ".  Not sending another.");
                 return;
             }
