@@ -47,24 +47,26 @@ public class SLF4JLog extends AbstractLog {
 
     private final Logger outgoingMsgLog;
 
+    private final String logPrefix;
+
     private final String callerFQCN;
 
     public SLF4JLog(SessionID sessionID, String eventCategory, String errorEventCategory,
-                    String incomingMsgCategory, String outgoingMsgCategory, boolean prependSessionID,
-                    boolean logHeartbeats, String inCallerFQCN) {
+            String incomingMsgCategory, String outgoingMsgCategory, boolean prependSessionID,
+            boolean logHeartbeats, String inCallerFQCN) {
         setLogHeartbeats(logHeartbeats);
-        String logPrefix = prependSessionID ? (sessionID + ": ") : "";
-        eventLog = getLogger(sessionID, eventCategory, DEFAULT_EVENT_CATEGORY, logPrefix);
-        errorEventLog = getLogger(sessionID, errorEventCategory, DEFAULT_ERROR_EVENT_CATEGORY, logPrefix);
-        incomingMsgLog = getLogger(sessionID, incomingMsgCategory, DEFAULT_INCOMING_MSG_CATEGORY, logPrefix);
-        outgoingMsgLog = getLogger(sessionID, outgoingMsgCategory, DEFAULT_OUTGOING_MSG_CATEGORY, logPrefix);
+        logPrefix = prependSessionID ? (sessionID + ": ") : null;
+        eventLog = getLogger(sessionID, eventCategory, DEFAULT_EVENT_CATEGORY);
+        errorEventLog = getLogger(sessionID, errorEventCategory, DEFAULT_ERROR_EVENT_CATEGORY);
+        incomingMsgLog = getLogger(sessionID, incomingMsgCategory, DEFAULT_INCOMING_MSG_CATEGORY);
+        outgoingMsgLog = getLogger(sessionID, outgoingMsgCategory, DEFAULT_OUTGOING_MSG_CATEGORY);
         callerFQCN = inCallerFQCN;
     }
 
-    private Logger getLogger(SessionID sessionID, String category, String defaultCategory, String logPrefix) {
-        return LoggerFactory.getLogger(logPrefix + (category != null
+    private Logger getLogger(SessionID sessionID, String category, String defaultCategory) {
+        return LoggerFactory.getLogger(category != null
                 ? substituteVariables(sessionID, category)
-                : defaultCategory));
+                : defaultCategory);
     }
 
     private static final String FIX_MAJOR_VERSION_VAR = "\\$\\{fixMajorVersion}";
@@ -132,23 +134,23 @@ public class SLF4JLog extends AbstractLog {
      */
     protected void log(org.slf4j.Logger log, String text) {
         if (log.isInfoEnabled()) {
+            final String message = logPrefix != null ? (logPrefix + text) : text;
             if (log instanceof LocationAwareLogger) {
                 final LocationAwareLogger la = (LocationAwareLogger) log;
-                la.log(null, callerFQCN, LocationAwareLogger.INFO_INT, text, null, null);
+                la.log(null, callerFQCN, LocationAwareLogger.INFO_INT, message, null, null);
             } else {
-                log.info(text);
+                log.info(message);
             }
         }
     }
 
     protected void logError(org.slf4j.Logger log, String text) {
-        log.error(text);
+        final String message = logPrefix != null ? (logPrefix + text) : text;
+        log.error(message);
     }
 
-    private final String clearString = "Log clear operation is not supported: " + getClass().getName();
-
     public void clear() {
-        onEvent(clearString);
+        onEvent("Log clear operation is not supported: " + getClass().getName());
     }
 
 }
