@@ -1769,7 +1769,7 @@ public class Session implements Closeable {
                 return false;
             }
 
-            if ((checkTooHigh) && state.isResendRequested()) {
+            if (checkTooHigh && state.isResendRequested()) {
                 final ResendRange range;
                 synchronized (state.getLock()) {
                     range = state.getResendRange();
@@ -2416,8 +2416,10 @@ public class Session implements Closeable {
             final ResendRange range = state.getResendRange();
 
             if (!redundantResentRequestsAllowed && msgSeqNum >= range.getBeginSeqNo()) {
+                int endSeqNo = range.getEndSeqNo();
+                String end = endSeqNo == 0 ? "infinity" : Integer.toString(endSeqNo);
                 getLog().onEvent(
-                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + range.getEndSeqNo()
+                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + end
                                 + ".  Not sending another.");
                 return;
             }
@@ -2426,12 +2428,24 @@ public class Session implements Closeable {
         generateResendRequest(beginString, msgSeqNum);
     }
 
+    /**
+     * Generate a resend request between the current expected sequence number up to the given msgSeqNum.
+     */
     private void generateResendRequest(String beginString, int msgSeqNum) {
         final int beginSeqNo = getExpectedTargetNum();
         final int endSeqNo = msgSeqNum - 1;
         sendResendRequest(beginString, msgSeqNum, beginSeqNo, endSeqNo);
     }
 
+    /**
+     * Sends a resend request
+     * @param beginString The begin string of the session.
+     *                    FIX 4.1 and earlier get sent 999999 as the upper bound for unbounded requests.
+     *                    FIX 4.2 and later get sent 0
+     * @param msgSeqNum   The sequence number up to which to request
+     * @param beginSeqNo  The sequence number to first request
+     * @param endSeqNo    The highest sequence number to at most request
+     */
     private void sendResendRequest(String beginString, int msgSeqNum, int beginSeqNo, int endSeqNo) {
 
         int lastEndSeqNoSent = resendRequestChunkSize == 0 ? endSeqNo : beginSeqNo
@@ -2454,7 +2468,7 @@ public class Session implements Closeable {
         resendRequest.setInt(EndSeqNo.FIELD, endSeqNo);
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
-        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + lastEndSeqNoSent);
+        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + (endSeqNo == 0 ? "infinity" : endSeqNo));
         state.setResendRange(beginSeqNo, msgSeqNum - 1, resendRequestChunkSize == 0
                 ? 0
                 : lastEndSeqNoSent);
