@@ -48,7 +48,7 @@ public abstract class FieldMap implements Serializable {
 
     static final long serialVersionUID = -3193357271891865972L;
 
-    private final int[] fieldOrder;
+    private int[] fieldOrder;
 
     private final Map<Integer, Field<?>> fields;
 
