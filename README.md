@@ -24,7 +24,7 @@ Check out the wiki: https://github.com/quickfix-j/quickfixj/wiki
 For asking questions please use the mailing list: https://lists.sourceforge.net/lists/listinfo/quickfixj-users
 
 ## issues
-Please report issues at http://www.quickfixj.org/jira.
+Please report issues here: https://github.com/quickfix-j/quickfixj/issues
 
 ## contributions
 Pull requests are always welcome! Best is if you added a unit test to show that a certain bug has been fixed or a new feature works as expected.
