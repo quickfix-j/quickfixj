@@ -48,9 +48,9 @@ public abstract class FieldMap implements Serializable {
 
     static final long serialVersionUID = -3193357271891865972L;
 
-    private final int[] fieldOrder;
+    private int[] fieldOrder;
 
-    private final TreeMap<Integer, Field<?>> fields;
+    private final Map<Integer, Field<?>> fields;
 
     private final TreeMap<Integer, List<Group>> groups = new TreeMap<>();
 
@@ -62,7 +62,9 @@ public abstract class FieldMap implements Serializable {
      */
     protected FieldMap(int[] fieldOrder) {
         this.fieldOrder = fieldOrder;
-        fields = new TreeMap<>(fieldOrder != null ? new FieldOrderComparator() : null);
+        fields = (fieldOrder != null) ?
+                new TreeMap<>(new FieldOrderComparator()) :
+                new LinkedHashMap<>();
     }
 
     protected FieldMap() {
@@ -440,6 +442,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     protected void initializeFrom(FieldMap source) {
+        fieldOrder = source.getFieldOrder();
         fields.clear();
         fields.putAll(source.fields);
         for (Entry<Integer, List<Group>> entry : source.groups.entrySet()) {

@@ -87,6 +87,8 @@ public class DataDictionary {
     private final IntegerStringMap<String> valueNames = new IntegerStringMap<>();
     private final StringIntegerMap<GroupInfo> groups = new StringIntegerMap<>();
     private final Map<String, Node> components = new HashMap<>();
+    private int[] orderedFieldsArray;
+
 
     private DataDictionary() {
     }
@@ -243,7 +245,7 @@ public class DataDictionary {
     }
 
     private void addMsgField(String msgType, int field) {
-        messageFields.computeIfAbsent(msgType, k -> new HashSet<>()).add(field);
+        messageFields.computeIfAbsent(msgType, k -> new LinkedHashSet<>()).add(field);
     }
 
     /**
@@ -294,7 +296,7 @@ public class DataDictionary {
     }
 
     private void addRequiredField(String msgType, int field) {
-        requiredFields.computeIfAbsent(msgType, k -> new HashSet<>()).add(field);
+        requiredFields.computeIfAbsent(msgType, k -> new LinkedHashSet<>()).add(field);
     }
 
     /**
@@ -330,7 +332,7 @@ public class DataDictionary {
     }
 
     private void addFieldValue(int field, String value) {
-        fieldValues.computeIfAbsent(field, k -> new HashSet<>()).add(value);
+        fieldValues.computeIfAbsent(field, k -> new LinkedHashSet<>()).add(value);
     }
 
     /**
@@ -1069,8 +1071,6 @@ public class DataDictionary {
         }
     }
 
-    private int[] orderedFieldsArray;
-
     public int[] getOrderedFields() {
         if (orderedFieldsArray == null) {
             orderedFieldsArray = new int[fields.size()];
@@ -1082,6 +1082,68 @@ public class DataDictionary {
 
         return orderedFieldsArray;
     }
+
+    /**
+     * Concatenates the Integer Sets into a single int[], with the header followed
+     * by the fields and finally the trailer.
+     * @param fieldsCollection
+     * @param headerCollection
+     * @param trailerCollection
+     * @return
+     */
+    private int[] getOrderedFieldsFrom(Set<Integer> fieldsCollection,
+                                       Set<Integer> headerCollection, Set<Integer> trailerCollection) {
+
+        if (fieldsCollection == null) {
+            fieldsCollection = new LinkedHashSet<Integer>();
+        }
+        if (headerCollection == null) {
+            headerCollection = new LinkedHashSet<Integer>();
+        }
+        if (trailerCollection == null) {
+            trailerCollection = new LinkedHashSet<Integer>();
+        }
+
+        int[] fields = new int[fieldsCollection.size() + headerCollection.size() + trailerCollection.size()];
+        Integer[] headerArray = headerCollection.toArray(new Integer[headerCollection.size()]);
+        Integer[] fieldsArray = fieldsCollection.toArray(new Integer[fieldsCollection.size()]);
+        Integer[] trailerArray = trailerCollection.toArray(new Integer[trailerCollection.size()]);
+
+        int overallIndex = 0;
+
+        for (; overallIndex < headerArray.length; overallIndex++)
+            fields[overallIndex] = headerArray[overallIndex].intValue();
+
+        for (int i = 0; i < fieldsArray.length; i++, overallIndex++)
+            fields[overallIndex] = fieldsArray[i].intValue();
+
+        for (int i = 0; i < trailerArray.length; i++, overallIndex++)
+            fields[overallIndex] = trailerArray[i].intValue();
+
+        return fields;
+    }
+
+    /**
+     * Returns the required ordered fields for a message type, including the Header and Trailer.
+     * @param messageType
+     * @return
+     */
+    public int[] getOrderedRequiredFieldsForMessage(String messageType){
+        return getOrderedFieldsFrom(
+                requiredFields.get(messageType), requiredFields.get(HEADER_ID), requiredFields.get(TRAILER_ID));
+    }
+
+    /**
+     * Returns the ordered fields for a message type, including the Header and Trailer.
+     * @param messageType
+     * @return
+     */
+    public int[] getOrderedFieldsForMessage(String messageType){
+        return getOrderedFieldsFrom(
+                messageFields.get(messageType), messageFields.get(HEADER_ID), messageFields.get(TRAILER_ID));
+    }
+
+
 
     private int lookupXMLFieldNumber(Document document, Node node) throws ConfigError {
         final Element element = (Element) node;

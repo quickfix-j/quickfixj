@@ -30,6 +30,13 @@ public class FieldMapTest extends TestCase {
         return new TestSuite(FieldMapTest.class);
     }
 
+    public void testDefaultFieldOrderIsInsertionOrdering()  {
+        FieldMap map = new Message();
+        map.setString(2, "A");
+        map.setString(1, "B");
+        assertEquals("9=82=A1=B10=017",map.toString());
+    }
+
     public void testSetUtcTimeStampField() throws Exception {
         FieldMap map = new Message();
         LocalDateTime aDate = LocalDateTime.now();
@@ -82,7 +89,7 @@ public class FieldMapTest extends TestCase {
 
     public void testOrdering() {
         testOrdering(new int[] { 1, 2, 3 }, null, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 3, 2, 1 }, null, new int[] { 1, 2, 3 });
+        testOrdering(new int[] { 3, 2, 1 }, null, new int[] { 3, 2, 1 });
         testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
         testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
         testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });

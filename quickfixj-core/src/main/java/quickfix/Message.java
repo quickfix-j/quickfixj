@@ -85,7 +85,7 @@ public class Message extends FieldMap {
         initializeHeader();
     }
 
-    protected Message(int[] fieldOrder) {
+    public Message(int[] fieldOrder) {
         super(fieldOrder);
         initializeHeader();
     }
