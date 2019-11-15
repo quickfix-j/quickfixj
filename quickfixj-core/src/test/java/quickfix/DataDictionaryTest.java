@@ -34,9 +34,15 @@ import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
 import quickfix.field.NoPartyIDs;
+import quickfix.field.NoPartySubIDs;
 import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
+import quickfix.field.PartyID;
+import quickfix.field.PartyIDSource;
+import quickfix.field.PartyRole;
+import quickfix.field.PartySubID;
+import quickfix.field.PartySubIDType;
 import quickfix.field.Price;
 import quickfix.field.QuoteReqID;
 import quickfix.field.SenderCompID;
@@ -58,6 +64,7 @@ import java.net.URLClassLoader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -973,6 +980,8 @@ public class DataDictionaryTest {
         assertEquals(ddCopy.isCheckFieldsOutOfOrder(),dataDictionary.isCheckFieldsOutOfOrder());
         assertEquals(ddCopy.isCheckUnorderedGroupFields(),dataDictionary.isCheckUnorderedGroupFields());
         assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
+        assertArrayEquals(getDictionary().getOrderedFields(),ddCopy.getOrderedFields());
+        assertArrayEquals(getDictionary().getOrderedFields(),dataDictionary.getOrderedFields());
 
         DataDictionary.GroupInfo groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
         assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
@@ -984,6 +993,31 @@ public class DataDictionaryTest {
         assertTrue(ddCopy.isAllowUnknownMessageFields());
         groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
         assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
+
+        DataDictionary originalGroupDictionary = getDictionary().getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        DataDictionary groupDictionary = dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        DataDictionary copyGroupDictionary = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        assertArrayEquals(originalGroupDictionary.getOrderedFields(), groupDictionary.getOrderedFields());
+        assertArrayEquals(originalGroupDictionary.getOrderedFields(), copyGroupDictionary.getOrderedFields());
+
+        DataDictionary originalNestedGroupDictionary = originalGroupDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        DataDictionary nestedGroupDictionary = groupDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        DataDictionary copyNestedGroupDictionary = copyGroupDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        assertArrayEquals(originalNestedGroupDictionary.getOrderedFields(), nestedGroupDictionary.getOrderedFields());
+        assertArrayEquals(originalNestedGroupDictionary.getOrderedFields(), copyNestedGroupDictionary.getOrderedFields());
+    }
+
+    @Test
+    public void testOrderedFields() throws Exception {
+        final DataDictionary dataDictionary = getDictionary();
+
+        final DataDictionary partyIDsDictionary = dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        int[] expectedPartyIDsFieldOrder = new int[] {PartyID.FIELD, PartyIDSource.FIELD, PartyRole.FIELD, NoPartySubIDs.FIELD};
+        assertArrayEquals(expectedPartyIDsFieldOrder, partyIDsDictionary.getOrderedFields());
+
+        final DataDictionary partySubIDsDictionary = partyIDsDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        int[] expectedPartySubIDsFieldOrder = new int[] {PartySubID.FIELD, PartySubIDType.FIELD};
+        assertArrayEquals(expectedPartySubIDsFieldOrder, partySubIDsDictionary.getOrderedFields());
     }
 
     /**

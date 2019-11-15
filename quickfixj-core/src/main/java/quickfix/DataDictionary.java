@@ -87,6 +87,7 @@ public class DataDictionary {
     private final IntegerStringMap<String> valueNames = new IntegerStringMap<>();
     private final StringIntegerMap<GroupInfo> groups = new StringIntegerMap<>();
     private final Map<String, Node> components = new HashMap<>();
+    private int[] orderedFieldsArray;
 
     private DataDictionary() {
     }
@@ -529,6 +530,8 @@ public class DataDictionary {
         setCheckUserDefinedFields(rhs.checkUserDefinedFields);
         setCheckUnorderedGroupFields(rhs.checkUnorderedGroupFields);
         setAllowUnknownMessageFields(rhs.allowUnknownMessageFields);
+
+        calculateOrderedFields();
     }
 
     @SuppressWarnings("unchecked")
@@ -1017,6 +1020,8 @@ public class DataDictionary {
                 load(document, msgtype, messageNode);
             }
         }
+
+        calculateOrderedFields();
     }
 
     public int getNumMessageCategories() {
@@ -1069,18 +1074,22 @@ public class DataDictionary {
         }
     }
 
-    private int[] orderedFieldsArray;
-
     public int[] getOrderedFields() {
-        if (orderedFieldsArray == null) {
-            orderedFieldsArray = new int[fields.size()];
-            int i = 0;
-            for (Integer field : fields) {
-                orderedFieldsArray[i++] = field;
-            }
+        return orderedFieldsArray;
+    }
+
+    private void calculateOrderedFields() {
+        orderedFieldsArray = new int[fields.size()];
+        int i = 0;
+        for (Integer field : fields) {
+            orderedFieldsArray[i++] = field;
         }
 
-        return orderedFieldsArray;
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.dataDictionary.calculateOrderedFields();
+            }
+        }
     }
 
     private int lookupXMLFieldNumber(Document document, Node node) throws ConfigError {
