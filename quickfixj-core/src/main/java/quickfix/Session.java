@@ -2538,6 +2538,16 @@ public class Session implements Closeable {
         state.setLogonSent(true);
     }
 
+    private void persist(Header header, String messageString, int num) throws IOException, FieldNotFound {
+      if (num == 0) {
+          if (persistMessages) {
+              final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
+              state.set(msgSeqNum, messageString);
+          }
+          state.incrNextSenderMsgSeqNum();
+      }
+    }
+
     /**
      * Send the message
      *
@@ -2591,6 +2601,7 @@ public class Session implements Closeable {
                 }
 
                 messageString = message.toString();
+                persist(message.getHeader(), messageString, num);
                 if (MsgType.LOGON.equals(msgType) || MsgType.LOGOUT.equals(msgType)
                         || MsgType.RESEND_REQUEST.equals(msgType)
                         || MsgType.SEQUENCE_RESET.equals(msgType) || isLoggedOn()) {
@@ -2605,17 +2616,10 @@ public class Session implements Closeable {
                     logApplicationException("toApp()", t);
                 }
                 messageString = message.toString();
+                persist(message.getHeader(), messageString, num);
                 if (isLoggedOn()) {
                     result = send(messageString);
                 }
-            }
-
-            if (num == 0) {
-                final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
-                if (persistMessages) {
-                    state.set(msgSeqNum, messageString);
-                }
-                state.incrNextSenderMsgSeqNum();
             }
 
             return result;
