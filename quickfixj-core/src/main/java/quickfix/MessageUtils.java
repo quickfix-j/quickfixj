@@ -90,9 +90,9 @@ public class MessageUtils {
         }
     }
 
-    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary, DataDictionarySettings dataDictionarySettings,
             String messageString) throws InvalidMessage {
-        return parse(messageFactory, dataDictionary, messageString, true);
+        return parse(messageFactory, dataDictionary, dataDictionarySettings, messageString, true);
     }
 
     /**
@@ -105,7 +105,7 @@ public class MessageUtils {
      * @return the parsed message
      * @throws InvalidMessage
      */
-    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary, DataDictionarySettings dataDictionarySettings,
             String messageString, boolean validateChecksum) throws InvalidMessage {
         final int index = messageString.indexOf(FIELD_SEPARATOR);
         if (index < 0) {
@@ -114,7 +114,7 @@ public class MessageUtils {
         final String beginString = messageString.substring(2, index);
         final String messageType = getMessageType(messageString);
         final quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(messageString, dataDictionary, dataDictionary != null, validateChecksum);
+        message.fromString(messageString, dataDictionary, dataDictionarySettings, dataDictionary != null, validateChecksum);
         return message;
     }
 
@@ -141,6 +141,7 @@ public class MessageUtils {
         final MessageFactory messageFactory = session.getMessageFactory();
 
         final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
+        final DataDictionarySettings dataDictionarySettings = session.getDataDictionarySettings();
         final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
                 .getSessionDataDictionary(beginString);
         final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
@@ -154,7 +155,7 @@ public class MessageUtils {
         final boolean doValidation = payloadDictionary != null;
         final boolean validateChecksum = session.isValidateChecksum();
 
-        message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
+        message.parse(messageString, sessionDataDictionary, payloadDictionary, dataDictionarySettings, doValidation,
                 validateChecksum);
 
         return message;

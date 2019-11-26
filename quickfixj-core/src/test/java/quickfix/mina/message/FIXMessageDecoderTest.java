@@ -29,6 +29,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
+import quickfix.DataDictionarySettings;
 import quickfix.DataDictionaryTest;
 import quickfix.InvalidMessage;
 import quickfix.Message;
@@ -121,7 +122,7 @@ public class FIXMessageDecoderTest {
         decoder.decode(null, byteBuffer, decoderOutput);
 
         Message decodedMessage = new Message(decoderOutput.getMessage(), DataDictionaryTest
-                .getDictionary(), true);
+                .getDictionary(), new DataDictionarySettings(), true);
 
         assertEquals("wrong text", headline, decodedMessage.getString(Headline.FIELD));
     }

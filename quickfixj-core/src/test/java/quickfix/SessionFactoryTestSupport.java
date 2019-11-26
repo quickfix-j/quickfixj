@@ -76,6 +76,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<Application> applicationSupplier = UnitTestApplication::new;
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
+        private Supplier<DataDictionarySettings> dataDictionarySettingsSupplier = () -> null;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
         private Supplier<MessageFactory> messageFactorySupplier = DefaultMessageFactory::new;
@@ -111,7 +112,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), sessionIDSupplier.get(),
-                    dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
+                    dataDictionaryProviderSupplier.get(), dataDictionarySettingsSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
                     messageFactorySupplier.get(), sessionHeartbeatIntervalSupplier.get(), checkLatency, maxLatency,
                     timestampPrecision, resetOnLogon, resetOnLogout, resetOnDisconnect, refreshMessageStoreAtLogon,
                     checkCompID, redundantResentRequestsAllowed, persistMessages, useClosedRangeForResend,
@@ -156,6 +157,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setDataDictionaryProvider(final DataDictionaryProvider dataDictionaryProvider) {
             this.dataDictionaryProviderSupplier = () -> dataDictionaryProvider;
+            return this;
+        }
+
+        public Builder setDataDictionarySettings(final DataDictionarySettings dataDictionarySettings) {
+            this.dataDictionarySettingsSupplier = () -> dataDictionarySettings;
             return this;
         }
 

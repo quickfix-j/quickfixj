@@ -272,7 +272,7 @@ public class FieldTest {
         md.addGroup(value);
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(md);
+        dd.validate(md, new DataDictionarySettings());
     }
 
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {

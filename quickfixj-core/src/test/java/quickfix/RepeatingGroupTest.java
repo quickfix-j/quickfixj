@@ -281,26 +281,28 @@ public class RepeatingGroupTest {
 
     // Testing Message validation
     private static DataDictionary defaultDataDictionary = null;
-    private static DataDictionary defaultDataDictionaryWithIgnoreOutOfOrder = null;
+    private static DataDictionarySettings defaultDDSettings = null;
+    private static DataDictionarySettings ignoreOutOfOrderSettings = null;
     private static DataDictionary customDataDictionary = null;
     private final DefaultMessageFactory messageFactory = new DefaultMessageFactory();
 
     static {
         try {
             defaultDataDictionary = new DataDictionary("FIX44.xml");
-            defaultDataDictionaryWithIgnoreOutOfOrder = new DataDictionary("FIX44.xml");
-            defaultDataDictionaryWithIgnoreOutOfOrder.setCheckUnorderedGroupFields(false);
+            defaultDDSettings = new DataDictionarySettings();
+            ignoreOutOfOrderSettings = new DataDictionarySettings();
+            ignoreOutOfOrderSettings.setCheckUnorderedGroupFields(false);
             customDataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         } catch (final ConfigError e) {
             e.printStackTrace();
         }
     }
 
-    private Message buildValidatedMessage(String sourceFIXString, DataDictionary dd)
+    private Message buildValidatedMessage(String sourceFIXString, DataDictionary dd, DataDictionarySettings dataDictionarySettings)
             throws InvalidMessage {
         final Message message = messageFactory.create(MessageUtils.getStringField(sourceFIXString,
                 BeginString.FIELD), MessageUtils.getMessageType(sourceFIXString));
-        message.fromString(sourceFIXString, dd, true);
+        message.fromString(sourceFIXString, dd, dataDictionarySettings, true);
         return message;
     }
 
@@ -321,7 +323,7 @@ public class RepeatingGroupTest {
         final String sourceFIXString = quoteRequest.toString();
 
         final quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest) buildValidatedMessage(
-                sourceFIXString, defaultDataDictionary);
+                sourceFIXString, defaultDataDictionary, defaultDDSettings);
         String validateFIXString = null;
         if (validatedMessage != null) {
             validateFIXString = validatedMessage.toString();
@@ -348,7 +350,7 @@ public class RepeatingGroupTest {
         final String sourceFIXString = quoteRequest.toString();
         final DataDictionary fix50sp2DataDictionary = new DataDictionary("FIX50SP2.xml");
         final quickfix.fix50sp2.QuoteRequest validatedMessage = (quickfix.fix50sp2.QuoteRequest) messageFactory.create(FixVersions.FIX50SP2, QuoteRequest.MSGTYPE);
-        validatedMessage.fromString(sourceFIXString, fix50sp2DataDictionary, true);
+        validatedMessage.fromString(sourceFIXString, fix50sp2DataDictionary, new DataDictionarySettings(), true);
 
         String validateFIXString = validatedMessage.toString();
 
@@ -371,7 +373,7 @@ public class RepeatingGroupTest {
 
         final String sourceFIXString = quoteRequest.toString();
 
-        Message buildValidatedMessage = buildValidatedMessage(sourceFIXString, defaultDataDictionary);
+        Message buildValidatedMessage = buildValidatedMessage(sourceFIXString, defaultDataDictionary, defaultDDSettings);
         assertEquals("The group 146 must set the delimiter field 55", buildValidatedMessage.getException().getMessage());
     }
 
@@ -406,7 +408,7 @@ public class RepeatingGroupTest {
 
         final String sourceFIXString = quoteRequest.toString();
         final quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest) buildValidatedMessage(
-                sourceFIXString, customDataDictionary);
+                sourceFIXString, customDataDictionary, new DataDictionarySettings());
 
         assertNull("Invalid message", validatedMessage.getException());
 
@@ -421,9 +423,9 @@ public class RepeatingGroupTest {
             "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=<TIME>\00156=ISLD\00111=ID\001" +
             "21=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00180=50\00179=acct1\001" +
             "80=150\00179=acct2\00160=<TIME>\00110=000\001",
-            defaultDataDictionary, false);
+            defaultDataDictionary, defaultDDSettings, false);
         try {
-            defaultDataDictionary.validate(m);
+            defaultDataDictionary.validate(m, defaultDDSettings);
             Assert.fail("No exception");
         } catch (final FieldException e) {
             // expected
@@ -439,9 +441,9 @@ public class RepeatingGroupTest {
             "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=<TIME>\00156=ISLD\00111=ID\001" +
             "21=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00180=50\00179=acct1\001" +
             "80=150\00179=acct2\00160=<TIME>\00110=000\001",
-            defaultDataDictionaryWithIgnoreOutOfOrder, false);
+            defaultDataDictionary, ignoreOutOfOrderSettings,false);
         try {
-            defaultDataDictionaryWithIgnoreOutOfOrder.validate(m);
+            defaultDataDictionary.validate(m, ignoreOutOfOrderSettings);
             Assert.fail("No exception");
         } catch (final FieldException e) {
             // expected
@@ -457,9 +459,9 @@ public class RepeatingGroupTest {
             "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=20080203-00:29:51.453\00156=ISLD\001" +
             "11=ID\00121=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00179=acct1\00180=50\001" +
             "661=X\00179=acct2\00180=150\001661=X\00160=20080203-00:29:51.453\00110=000\001",
-            defaultDataDictionary, false);
+            defaultDataDictionary, defaultDDSettings, false);
         try {
-            defaultDataDictionary.validate(m);
+            defaultDataDictionary.validate(m, defaultDDSettings);
             Assert.fail("No exception");
         } catch (final FieldException e) {
             // expected
@@ -475,9 +477,9 @@ public class RepeatingGroupTest {
             "8=FIX.4.4\0019=0\00135=D\00134=2\00149=TW\00152=20080203-00:29:51.453\00156=ISLD\001" +
             "11=ID\00121=1\00140=1\00154=1\00138=200.00\00155=INTC\00178=2\00179=acct1\00180=50\001" +
             "661=10\00179=acct2\00180=150\001661=11\00160=20080203-00:29:51.453\00110=000\001",
-            defaultDataDictionaryWithIgnoreOutOfOrder, false);
+            defaultDataDictionary, ignoreOutOfOrderSettings,false);
         try {
-            defaultDataDictionaryWithIgnoreOutOfOrder.validate(m);
+            defaultDataDictionary.validate(m, ignoreOutOfOrderSettings);
         } catch (final FieldException e) {
             Assert.fail("Exception");
         }
@@ -488,9 +490,9 @@ public class RepeatingGroupTest {
         // Missing group tag 304
         final Message m = new Message("8=FIX.4.4\0019=0\00135=i\00134=2\00149=TW\001" +
             "52=20080203-00:29:51.453\00156=ISLD\001117=ID\001296=1\001302=X\00110=000\001",
-            defaultDataDictionary, false);
+            defaultDataDictionary, defaultDDSettings,false);
         try {
-            defaultDataDictionary.validate(m);
+            defaultDataDictionary.validate(m, defaultDDSettings);
             Assert.fail("No exception");
         } catch (final FieldException e) {
             // expected
@@ -506,9 +508,9 @@ public class RepeatingGroupTest {
         final Message m = new Message("8=FIX.4.4\0019=0\00135=i\00134=2\00149=TW\001" +
             "52=20080203-00:29:51.453\00156=ISLD\001117=ID\001296=1\001302=X\001" +
             "304=5\001295=50\001299=QID\00110=085\001",
-            defaultDataDictionary, true);
+            defaultDataDictionary, defaultDDSettings,true);
         try {
-            defaultDataDictionary.validate(m);
+            defaultDataDictionary.validate(m, defaultDDSettings);
             Assert.fail("No exception");
         } catch (final FieldException e) {
             // expected
@@ -525,9 +527,9 @@ public class RepeatingGroupTest {
         final Message m = new Message(
             "8=FIX.4.4\0019=0\00135=A\00134=2\00152=20080203-00:29:51.453\00156=ISLD\001" +
             "49=TW\001108=10\001384=1\001372=D\001385=X\00198=0\00110=129\001",
-            defaultDataDictionary, false);
+            defaultDataDictionary, defaultDDSettings, false);
         try {
-            defaultDataDictionary.validate(m);
+            defaultDataDictionary.validate(m, defaultDDSettings);
             Assert.fail("No exception");
         } catch (final IncorrectTagValue e) {
             // expected
@@ -541,9 +543,9 @@ public class RepeatingGroupTest {
             "8=FIX.4.4\0019=87\00135=0\00134=2\00152=20080203-00:29:51.453\00156=ISLD\001" +
             "49=TW\001627=2\001628=_TED02A\001629=20090717-13:25:31.896\001628=_GWSURV\001" +
             "629=20090717-13:25:31.928\00110=012\001",
-            defaultDataDictionary, false);
+            defaultDataDictionary, defaultDDSettings, false);
         try {
-            defaultDataDictionary.validate(m);
+            defaultDataDictionary.validate(m, defaultDDSettings);
         } catch (final IncorrectTagValue e) {
             // not expected
             Assert.fail("Exception occured");

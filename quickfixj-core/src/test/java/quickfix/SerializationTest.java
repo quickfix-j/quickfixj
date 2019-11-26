@@ -49,7 +49,7 @@ public class SerializationTest extends TestCase {
     public void testSerializationWithDataDictionary() throws Exception {
         Message message = new Message("8=FIX.4.2\0019=40\00135=A\001"
                 + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=96\001",
-                DataDictionaryTest.getDictionary());
+                DataDictionaryTest.getDictionary(), new DataDictionarySettings());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream outs = new ObjectOutputStream(out);
         outs.writeObject(message);
