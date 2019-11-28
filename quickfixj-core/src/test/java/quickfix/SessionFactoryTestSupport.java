@@ -76,7 +76,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<Application> applicationSupplier = UnitTestApplication::new;
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
-        private Supplier<DataDictionarySettings> dataDictionarySettingsSupplier = () -> null;
+        private Supplier<DataDictionarySettings> dataDictionarySettingsSupplier = DataDictionarySettings::new;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
         private Supplier<MessageFactory> messageFactorySupplier = DefaultMessageFactory::new;
