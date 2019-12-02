@@ -80,7 +80,7 @@ public class DataDictionaryTest {
         assertEquals("incorrectly validates values", false, dd.isFieldValue(15, "10"));
         assertEquals("incorrectly validates valid value", true, dd.isFieldValue(4, "B"));
         assertEquals("incorrectly validates invalid value", false, dd.isFieldValue(4, "C"));
-        assertEquals("incorrectly validates multiple value", false, dd.isFieldValue(277, "A K"));
+        assertEquals("incorrectly validates multiple values", true, dd.isFieldValue(277, "A K"));
         assertFalse("unexpected field values existence", dd.hasFieldValue(1));
         assertTrue("unexpected field values nonexistence", dd.hasFieldValue(4));
         assertFalse("unexpected field existence", dd.isField(9999));
