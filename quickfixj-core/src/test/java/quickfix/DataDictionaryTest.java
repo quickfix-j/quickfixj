@@ -73,9 +73,14 @@ public class DataDictionaryTest {
         DataDictionary dd = getDictionary();
 
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
+        assertEquals("wrong field tag", 15, dd.getFieldTag("Currency"));
         assertEquals("wrong value description", "BUY", dd.getValueName(4, "B"));
         assertEquals("wrong value type", FieldType.STRING, dd.getFieldType(1));
         assertEquals("wrong version", FixVersions.BEGINSTRING_FIX44, dd.getVersion());
+        assertEquals("incorrectly validates values", false, dd.isFieldValue(15, "10"));
+        assertEquals("incorrectly validates valid value", true, dd.isFieldValue(4, "B"));
+        assertEquals("incorrectly validates invalid value", false, dd.isFieldValue(4, "C"));
+        assertEquals("incorrectly validates multiple value", false, dd.isFieldValue(277, "A K"));
         assertFalse("unexpected field values existence", dd.hasFieldValue(1));
         assertTrue("unexpected field values nonexistence", dd.hasFieldValue(4));
         assertFalse("unexpected field existence", dd.isField(9999));

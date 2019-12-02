@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 
 public class DataDictionarySettingsTest {
     @Test
-    public void copy() {
+    public void copyConstructor_retains_settings() {
         final DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
 
         dataDictionarySettings.setAllowUnknownMessageFields(true);
