@@ -33,7 +33,6 @@ import quickfix.field.LastMkt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
-import quickfix.field.NoPartyIDs;
 import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
@@ -751,11 +750,11 @@ public class DataDictionaryTest {
         new ExpectedTestFailure(FieldException.class, "field=") {
             @Override
             protected void execute() throws Throwable {
-                dd.validate(newSingle, new DataDictionarySettings());
+                dd.validate(newSingle, new ValidationSettings());
             }
         }.run();
 
-        dd.validate(newSingle, true, new DataDictionarySettings());
+        dd.validate(newSingle, true, new ValidationSettings());
     }
 
     @Test
@@ -774,13 +773,13 @@ public class DataDictionaryTest {
                 "Message version 'FIX.4.3' does not match the data dictionary version 'FIX.4.4'") {
             @Override
             protected void execute() throws Throwable {
-                dd.validate(newSingle, new DataDictionarySettings());
+                dd.validate(newSingle, new ValidationSettings());
             }
         }.run();
 
         // TODO: This is unexpected for pre-FIX 5.0 messages:
         //   If bodyOnly is true, the correct data dictionary is not checked.
-        dd.validate(newSingle, true, new DataDictionarySettings());
+        dd.validate(newSingle, true, new ValidationSettings());
     }
 
     // QF C++ treats the string argument as a filename although it's
@@ -849,38 +848,38 @@ public class DataDictionaryTest {
         newSingle.setField(new LastMkt("FOO"));
 
         final DataDictionary dictionary = new DataDictionary(getDictionary());
-        final DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
+        final ValidationSettings validationSettings = new ValidationSettings();
 
         new ExpectedTestFailure(FieldException.class, "field=") {
             @Override
             protected void execute() throws Throwable {
-                dictionary.validate(newSingle, dataDictionarySettings);
+                dictionary.validate(newSingle, validationSettings);
             }
         }.run();
 
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dictionary.validate(newSingle, dataDictionarySettings);
+        validationSettings.setAllowUnknownMessageFields(true);
+        dictionary.validate(newSingle, validationSettings);
     }
 
     // QFJ-535
     @Test
     public void testValidateFieldsOutOfOrderForGroups() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
-        final DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setCheckUnorderedGroupFields(false);
+        final ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUnorderedGroupFields(false);
         Message messageWithGroupLevel1 = new Message(
             "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
             "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
-            dictionary, dataDictionarySettings);
-        dictionary.validate(messageWithGroupLevel1, dataDictionarySettings);
+            dictionary, validationSettings);
+        dictionary.validate(messageWithGroupLevel1, validationSettings);
 
         Message messageWithGroupLevel2 = new Message(
             "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
             "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
-            dictionary, dataDictionarySettings);
-        dictionary.validate(messageWithGroupLevel2, dataDictionarySettings);
+            dictionary, validationSettings);
+        dictionary.validate(messageWithGroupLevel2, validationSettings);
     }
 
     // QFJ-535
@@ -888,8 +887,8 @@ public class DataDictionaryTest {
     public void testNewOrderSingleWithCorrectTag50() throws Exception {
 
         final DataDictionary dataDictionary = new DataDictionary(getDictionary());
-        final DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setCheckFieldsOutOfOrder(true);
+        final ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckFieldsOutOfOrder(true);
 
         String correctFixMessage = "8=FIX.4.4\0019=218\00135=D\00149=cust\00150=trader\001" +
             "56=FixGateway\00134=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\001" +
@@ -899,28 +898,28 @@ public class DataDictionaryTest {
         // in any case, it must be validated as the message is correct
         //doValidation and checkFieldsOutOfOrder
         final NewOrderSingle nos1 = new NewOrderSingle();
-        nos1.fromString(correctFixMessage, dataDictionary, dataDictionarySettings, true);
-        dataDictionary.validate(nos1, dataDictionarySettings);
+        nos1.fromString(correctFixMessage, dataDictionary, validationSettings, true);
+        dataDictionary.validate(nos1, validationSettings);
         assertTrue(nos1.getHeader().isSetField(new SenderSubID()));
 
         //doNotValidation and checkFieldsOutOfOrder
         final NewOrderSingle nos2 = new NewOrderSingle();
-        nos2.fromString(correctFixMessage, dataDictionary, dataDictionarySettings, false);
-        dataDictionary.validate(nos2, dataDictionarySettings);
+        nos2.fromString(correctFixMessage, dataDictionary, validationSettings, false);
+        dataDictionary.validate(nos2, validationSettings);
         assertTrue(nos2.getHeader().isSetField(new SenderSubID()));
 
-        dataDictionarySettings.setCheckFieldsOutOfOrder(false);
+        validationSettings.setCheckFieldsOutOfOrder(false);
 
         //doValidation and no checkFieldsOutOfOrder
         final NewOrderSingle nos3 = new NewOrderSingle();
-        nos3.fromString(correctFixMessage, dataDictionary, dataDictionarySettings, true);
-        dataDictionary.validate(nos3, dataDictionarySettings);
+        nos3.fromString(correctFixMessage, dataDictionary, validationSettings, true);
+        dataDictionary.validate(nos3, validationSettings);
         assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
 
         //doNotValidation and no checkFieldsOutOfOrder
         final NewOrderSingle nos4 = new NewOrderSingle();
-        nos4.fromString(correctFixMessage, dataDictionary, dataDictionarySettings, false);
-        dataDictionary.validate(nos4, dataDictionarySettings);
+        nos4.fromString(correctFixMessage, dataDictionary, validationSettings, false);
+        dataDictionary.validate(nos4, validationSettings);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
     }
 
@@ -928,8 +927,8 @@ public class DataDictionaryTest {
     public void testNewOrderSingleWithMisplacedTag50() throws Exception {
 
         final DataDictionary dataDictionary = new DataDictionary(getDictionary());
-        final DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setCheckFieldsOutOfOrder(true);
+        final ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckFieldsOutOfOrder(true);
 
         String incorrectFixMessage = "8=FIX.4.4\0019=218\00135=D\00149=cust\00156=FixGateway\001" +
             "34=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\00159=6\00140=2\001" +
@@ -939,29 +938,29 @@ public class DataDictionaryTest {
         //doValidation and checkFieldsOutOfOrder -> should fail
         final NewOrderSingle nos1 = new NewOrderSingle();
         try {
-            nos1.fromString(incorrectFixMessage, dataDictionary, dataDictionarySettings, true);
+            nos1.fromString(incorrectFixMessage, dataDictionary, validationSettings, true);
         } catch (FieldException fe) {
             // expected exception
         }
 
         //doNotValidation and checkFieldsOutOfOrder -> should NOT fail
         final NewOrderSingle nos2 = new NewOrderSingle();
-        nos2.fromString(incorrectFixMessage, dataDictionary, dataDictionarySettings, false);
-        dataDictionary.validate(nos2, dataDictionarySettings);
+        nos2.fromString(incorrectFixMessage, dataDictionary, validationSettings, false);
+        dataDictionary.validate(nos2, validationSettings);
         assertTrue(nos2.getHeader().isSetField(new SenderSubID()));
 
-        dataDictionarySettings.setCheckFieldsOutOfOrder(false);
+        validationSettings.setCheckFieldsOutOfOrder(false);
 
         //doValidation and no checkFieldsOutOfOrder -> should NOT fail
         final NewOrderSingle nos3 = new NewOrderSingle();
-        nos3.fromString(incorrectFixMessage, dataDictionary, dataDictionarySettings, true);
-        dataDictionary.validate(nos3, dataDictionarySettings);
+        nos3.fromString(incorrectFixMessage, dataDictionary, validationSettings, true);
+        dataDictionary.validate(nos3, validationSettings);
         assertTrue(nos3.getHeader().isSetField(new SenderSubID()));
 
         //doNotValidation and no checkFieldsOutOfOrder -> should NOT fail
         final NewOrderSingle nos4 = new NewOrderSingle();
-        nos4.fromString(incorrectFixMessage, dataDictionary, dataDictionarySettings, false);
-        dataDictionary.validate(nos4, dataDictionarySettings);
+        nos4.fromString(incorrectFixMessage, dataDictionary, validationSettings, false);
+        dataDictionary.validate(nos4, validationSettings);
         assertTrue(nos4.getHeader().isSetField(new SenderSubID()));
     }
 
@@ -983,13 +982,13 @@ public class DataDictionaryTest {
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(false);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=6");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -998,13 +997,13 @@ public class DataDictionaryTest {
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(true);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=6");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1013,11 +1012,11 @@ public class DataDictionaryTest {
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(false);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1026,11 +1025,11 @@ public class DataDictionaryTest {
         quoteRequest.setDecimal(AvgPx.FIELD, new BigDecimal(1.2345));
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(true);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     /**
@@ -1051,11 +1050,11 @@ public class DataDictionaryTest {
         quoteRequest.setInt(5000, 555);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(false);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1064,13 +1063,13 @@ public class DataDictionaryTest {
         quoteRequest.setInt(5000, 555);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(true);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=5000");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1079,11 +1078,11 @@ public class DataDictionaryTest {
         quoteRequest.setInt(5000, 555);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(false);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1092,13 +1091,13 @@ public class DataDictionaryTest {
         quoteRequest.setInt(5000, 555);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(true);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Tag not defined for this message type, field=5000");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     /**
@@ -1119,13 +1118,13 @@ public class DataDictionaryTest {
         quoteRequest.setInt(1000, 111);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(false);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=1000");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1134,13 +1133,13 @@ public class DataDictionaryTest {
         quoteRequest.setInt(1000, 111);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(true);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=1000");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1149,11 +1148,11 @@ public class DataDictionaryTest {
         quoteRequest.setInt(1000, 111);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(false);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1162,11 +1161,11 @@ public class DataDictionaryTest {
         quoteRequest.setInt(1000, 111);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(true);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     /**
@@ -1187,11 +1186,11 @@ public class DataDictionaryTest {
         quoteRequest.setInt(6000, 666);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(false);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1200,13 +1199,13 @@ public class DataDictionaryTest {
         quoteRequest.setInt(6000, 666);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(false);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
+        validationSettings.setCheckUserDefinedFields(true);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=6000");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1215,11 +1214,11 @@ public class DataDictionaryTest {
         quoteRequest.setInt(6000, 666);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(false);
 
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     @Test
@@ -1228,13 +1227,13 @@ public class DataDictionaryTest {
         quoteRequest.setInt(6000, 666);
 
         DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setAllowUnknownMessageFields(true);
-        dataDictionarySettings.setCheckUserDefinedFields(true);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(true);
+        validationSettings.setCheckUserDefinedFields(true);
 
         expectedException.expect(FieldException.class);
         expectedException.expectMessage("Invalid tag number, field=6000");
-        dataDictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dataDictionary.validate(quoteRequest, true, validationSettings);
     }
 
     private Message createQuoteRequest() {
@@ -1263,13 +1262,13 @@ public class DataDictionaryTest {
         final Message quoteRequest = createQuoteRequest();
         quoteRequest.getGroup(1, NoRelatedSym.FIELD).removeField(Symbol.FIELD);
         final DataDictionary dictionary = getDictionary();
-        final DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
+        final ValidationSettings validationSettings = new ValidationSettings();
 
         expectedException.expect(FieldException.class);
         expectedException.expect(hasProperty("sessionRejectReason", is(SessionRejectReason.REQUIRED_TAG_MISSING)));
         expectedException.expect(hasProperty("field", is(Symbol.FIELD)));
 
-        dictionary.validate(quoteRequest, true, dataDictionarySettings);
+        dictionary.validate(quoteRequest, true, validationSettings);
     }
 
     /**
@@ -1280,8 +1279,8 @@ public class DataDictionaryTest {
     @Test
     public void testAllowingBlankValuesDisablesFieldValidation() throws Exception {
         final DataDictionary dictionary = getDictionary();
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
-        dataDictionarySettings.setCheckFieldsHaveValues(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckFieldsHaveValues(false);
         final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
                 new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(OrdType.LIMIT)
         );
@@ -1293,7 +1292,7 @@ public class DataDictionaryTest {
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
         newSingle.setField(new StringField(EffectiveTime.FIELD));
-        dictionary.validate(newSingle, true, dataDictionarySettings);
+        dictionary.validate(newSingle, true, validationSettings);
     }
 
     //

@@ -152,7 +152,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     processPreFixtDataDictionary(sessionID, settings, dataDictionaryProvider);
                 }
             }
-            DataDictionarySettings dataDictionarySettings = createDataDictionarySettings(sessionID, settings);
+            ValidationSettings validationSettings = createDataDictionarySettings(sessionID, settings);
 
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
@@ -216,7 +216,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final SessionSchedule sessionSchedule = sessionScheduleFactory.create(sessionID, settings);
 
             final Session session = new Session(application, messageStoreFactory, sessionID,
-                    dataDictionaryProvider, dataDictionarySettings, sessionSchedule, logFactory,
+                    dataDictionaryProvider, validationSettings, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
@@ -263,35 +263,35 @@ public class DefaultSessionFactory implements SessionFactory {
         return getDataDictionary(path);
     }
 
-    private DataDictionarySettings createDataDictionarySettings(SessionID sessionID, SessionSettings settings) throws FieldConvertError, ConfigError {
-        DataDictionarySettings dataDictionarySettings = new DataDictionarySettings();
+    private ValidationSettings createDataDictionarySettings(SessionID sessionID, SessionSettings settings) throws FieldConvertError, ConfigError {
+        ValidationSettings validationSettings = new ValidationSettings();
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
-            dataDictionarySettings.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
+            validationSettings.setCheckFieldsOutOfOrder(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES)) {
-            dataDictionarySettings.setCheckFieldsHaveValues(settings.getBool(sessionID,
+            validationSettings.setCheckFieldsHaveValues(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_FIELDS_HAVE_VALUES));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS)) {
-            dataDictionarySettings.setCheckUnorderedGroupFields(settings.getBool(sessionID,
+            validationSettings.setCheckUnorderedGroupFields(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_USER_DEFINED_FIELDS)) {
-            dataDictionarySettings.setCheckUserDefinedFields(settings.getBool(sessionID,
+            validationSettings.setCheckUserDefinedFields(settings.getBool(sessionID,
                     Session.SETTING_VALIDATE_USER_DEFINED_FIELDS));
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS)) {
-            dataDictionarySettings.setAllowUnknownMessageFields(settings.getBool(sessionID,
+            validationSettings.setAllowUnknownMessageFields(settings.getBool(sessionID,
                     Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
         }
 
-        return dataDictionarySettings;
+        return validationSettings;
     }
 
     private void processFixtDataDictionaries(SessionID sessionID, SessionSettings settings,

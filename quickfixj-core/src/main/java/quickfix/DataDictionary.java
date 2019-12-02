@@ -490,7 +490,7 @@ public class DataDictionary {
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
-    public void validate(Message message, DataDictionarySettings settings) throws IncorrectTagValue, FieldNotFound,
+    public void validate(Message message, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
         validate(message, false, settings);
     }
@@ -504,13 +504,13 @@ public class DataDictionary {
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
-    public void validate(Message message, boolean bodyOnly, DataDictionarySettings settings) throws IncorrectTagValue,
+    public void validate(Message message, boolean bodyOnly, ValidationSettings settings) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
         validate(message, bodyOnly ? null : this, this, settings);
     }
 
     static void validate(Message message, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, DataDictionarySettings settings) throws IncorrectTagValue, FieldNotFound,
+            DataDictionary applicationDataDictionary, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
         final boolean bodyOnly = sessionDataDictionary == null;
 
@@ -546,7 +546,7 @@ public class DataDictionary {
         return dd != null && dd.hasVersion;
     }
 
-    private void iterate(DataDictionarySettings settings, FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
+    private void iterate(ValidationSettings settings, FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
             IncorrectDataFormat {
         final Iterator<Field<?>> iterator = map.iterator();
         while (iterator.hasNext()) {
@@ -588,7 +588,7 @@ public class DataDictionary {
     }
 
     /** Check if field tag is defined for message or group **/
-    void checkField(DataDictionarySettings settings, Field<?> field, String msgType, boolean message) {
+    void checkField(ValidationSettings settings, Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
         boolean fail = checkFieldFailure(settings, field.getField(), messageField);
@@ -602,7 +602,7 @@ public class DataDictionary {
         }
     }
 
-    boolean checkFieldFailure(DataDictionarySettings settings, int field, boolean messageField) {
+    boolean checkFieldFailure(ValidationSettings settings, int field, boolean messageField) {
         boolean fail;
         if (field < USER_DEFINED_TAG_MIN) {
             fail = !messageField && !settings.allowUnknownMessageFields;
@@ -612,7 +612,7 @@ public class DataDictionary {
         return fail;
     }
 
-    private void checkValidFormat(DataDictionarySettings settings, StringField field) throws IncorrectDataFormat {
+    private void checkValidFormat(ValidationSettings settings, StringField field) throws IncorrectDataFormat {
         FieldType fieldType = getFieldType(field.getTag());
         if (fieldType == null) {
             return;
@@ -679,7 +679,7 @@ public class DataDictionary {
     }
 
     /** Check if a field has a value. **/
-    private void checkHasValue(DataDictionarySettings settings, StringField field) {
+    private void checkHasValue(ValidationSettings settings, StringField field) {
         if (settings.checkFieldsHaveValues && field.getValue().length() == 0) {
             throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
                     field.getField());

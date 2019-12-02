@@ -385,7 +385,7 @@ public class Session implements Closeable {
     private long lastSessionLogon = 0;
 
     private final DataDictionaryProvider dataDictionaryProvider;
-    private final DataDictionarySettings dataDictionarySettings;
+    private final ValidationSettings validationSettings;
     private final boolean checkLatency;
     private final int maxLatency;
     private int resendRequestChunkSize = 0;
@@ -442,10 +442,10 @@ public class Session implements Closeable {
 
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
-            DataDictionaryProvider dataDictionaryProvider, DataDictionarySettings dataDictionarySettings,
+            DataDictionaryProvider dataDictionaryProvider, ValidationSettings validationSettings,
             SessionSchedule sessionSchedule,
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval) {
-        this(application, messageStoreFactory, sessionID, dataDictionaryProvider, dataDictionarySettings, sessionSchedule,
+        this(application, messageStoreFactory, sessionID, dataDictionaryProvider, validationSettings, sessionSchedule,
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
@@ -453,7 +453,7 @@ public class Session implements Closeable {
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
-            DataDictionaryProvider dataDictionaryProvider, DataDictionarySettings dataDictionarySettings,
+            DataDictionaryProvider dataDictionaryProvider, ValidationSettings validationSettings,
             SessionSchedule sessionSchedule,
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
             boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
@@ -480,7 +480,7 @@ public class Session implements Closeable {
         this.timestampPrecision = timestampPrecision;
         this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
         this.dataDictionaryProvider = dataDictionaryProvider;
-        this.dataDictionarySettings = dataDictionarySettings;
+        this.validationSettings = validationSettings;
         this.messageFactory = messageFactory;
         this.checkCompID = checkCompID;
         this.redundantResentRequestsAllowed = redundantResentRequestsAllowed;
@@ -996,7 +996,7 @@ public class Session implements Closeable {
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {
                     DataDictionary.validate(message, sessionDataDictionary,
-                            applicationDataDictionary, dataDictionarySettings);
+                            applicationDataDictionary, validationSettings);
                 } catch (final IncorrectTagValue e) {
                     if (rejectInvalidMessage) {
                         throw e;
@@ -2708,8 +2708,8 @@ public class Session implements Closeable {
         return dataDictionaryProvider;
     }
 
-    public DataDictionarySettings getDataDictionarySettings() {
-        return dataDictionarySettings;
+    public ValidationSettings getValidationSettings() {
+        return validationSettings;
     }
 
     public SessionID getSessionID() {

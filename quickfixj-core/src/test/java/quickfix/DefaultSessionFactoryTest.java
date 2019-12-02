@@ -111,8 +111,8 @@ public class DefaultSessionFactoryTest {
                     is(notNullValue()));
             assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX40)),
                     is(notNullValue()));
-            assertTrue(session.getDataDictionarySettings().isAllowUnknownMessageFields());
-            assertFalse(session.getDataDictionarySettings().isCheckUnorderedGroupFields());
+            assertTrue(session.getValidationSettings().isAllowUnknownMessageFields());
+            assertFalse(session.getValidationSettings().isCheckUnorderedGroupFields());
         }
     }
 
@@ -140,8 +140,8 @@ public class DefaultSessionFactoryTest {
                     is(notNullValue()));
             assertThat(provider.getApplicationDataDictionary(new ApplVerID(ApplVerID.FIX40)),
                     is(notNullValue()));
-            assertTrue(session.getDataDictionarySettings().isAllowUnknownMessageFields());
-            assertFalse(session.getDataDictionarySettings().isCheckUnorderedGroupFields());
+            assertTrue(session.getValidationSettings().isAllowUnknownMessageFields());
+            assertFalse(session.getValidationSettings().isCheckUnorderedGroupFields());
         }
     }
 

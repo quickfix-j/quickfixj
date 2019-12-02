@@ -281,16 +281,16 @@ public class RepeatingGroupTest {
 
     // Testing Message validation
     private static DataDictionary defaultDataDictionary = null;
-    private static DataDictionarySettings defaultDDSettings = null;
-    private static DataDictionarySettings ignoreOutOfOrderSettings = null;
+    private static ValidationSettings defaultDDSettings = null;
+    private static ValidationSettings ignoreOutOfOrderSettings = null;
     private static DataDictionary customDataDictionary = null;
     private final DefaultMessageFactory messageFactory = new DefaultMessageFactory();
 
     static {
         try {
             defaultDataDictionary = new DataDictionary("FIX44.xml");
-            defaultDDSettings = new DataDictionarySettings();
-            ignoreOutOfOrderSettings = new DataDictionarySettings();
+            defaultDDSettings = new ValidationSettings();
+            ignoreOutOfOrderSettings = new ValidationSettings();
             ignoreOutOfOrderSettings.setCheckUnorderedGroupFields(false);
             customDataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
         } catch (final ConfigError e) {
@@ -298,11 +298,11 @@ public class RepeatingGroupTest {
         }
     }
 
-    private Message buildValidatedMessage(String sourceFIXString, DataDictionary dd, DataDictionarySettings dataDictionarySettings)
+    private Message buildValidatedMessage(String sourceFIXString, DataDictionary dd, ValidationSettings validationSettings)
             throws InvalidMessage {
         final Message message = messageFactory.create(MessageUtils.getStringField(sourceFIXString,
                 BeginString.FIELD), MessageUtils.getMessageType(sourceFIXString));
-        message.fromString(sourceFIXString, dd, dataDictionarySettings, true);
+        message.fromString(sourceFIXString, dd, validationSettings, true);
         return message;
     }
 
@@ -350,7 +350,7 @@ public class RepeatingGroupTest {
         final String sourceFIXString = quoteRequest.toString();
         final DataDictionary fix50sp2DataDictionary = new DataDictionary("FIX50SP2.xml");
         final quickfix.fix50sp2.QuoteRequest validatedMessage = (quickfix.fix50sp2.QuoteRequest) messageFactory.create(FixVersions.FIX50SP2, QuoteRequest.MSGTYPE);
-        validatedMessage.fromString(sourceFIXString, fix50sp2DataDictionary, new DataDictionarySettings(), true);
+        validatedMessage.fromString(sourceFIXString, fix50sp2DataDictionary, new ValidationSettings(), true);
 
         String validateFIXString = validatedMessage.toString();
 
@@ -408,7 +408,7 @@ public class RepeatingGroupTest {
 
         final String sourceFIXString = quoteRequest.toString();
         final quickfix.fix44.QuoteRequest validatedMessage = (quickfix.fix44.QuoteRequest) buildValidatedMessage(
-                sourceFIXString, customDataDictionary, new DataDictionarySettings());
+                sourceFIXString, customDataDictionary, new ValidationSettings());
 
         assertNull("Invalid message", validatedMessage.getException());
 

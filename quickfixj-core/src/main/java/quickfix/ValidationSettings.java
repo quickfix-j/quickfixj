@@ -1,22 +1,20 @@
 package quickfix;
 
-import java.util.Map;
-
-public class DataDictionarySettings {
+public class ValidationSettings {
     boolean checkFieldsOutOfOrder = true;
     boolean checkFieldsHaveValues = true;
     boolean checkUserDefinedFields = true;
     boolean checkUnorderedGroupFields = true;
     boolean allowUnknownMessageFields = false;
 
-    public DataDictionarySettings() {}
+    public ValidationSettings() {}
 
-    public DataDictionarySettings(DataDictionarySettings dataDictionarySettings) {
-        this.checkFieldsOutOfOrder = dataDictionarySettings.checkFieldsOutOfOrder;
-        this.checkFieldsHaveValues = dataDictionarySettings.checkFieldsHaveValues;
-        this.checkUserDefinedFields = dataDictionarySettings.checkUserDefinedFields;
-        this.checkUnorderedGroupFields = dataDictionarySettings.checkUnorderedGroupFields;
-        this.allowUnknownMessageFields = dataDictionarySettings.allowUnknownMessageFields;
+    public ValidationSettings(ValidationSettings validationSettings) {
+        this.checkFieldsOutOfOrder = validationSettings.checkFieldsOutOfOrder;
+        this.checkFieldsHaveValues = validationSettings.checkFieldsHaveValues;
+        this.checkUserDefinedFields = validationSettings.checkUserDefinedFields;
+        this.checkUnorderedGroupFields = validationSettings.checkUnorderedGroupFields;
+        this.allowUnknownMessageFields = validationSettings.allowUnknownMessageFields;
     }
 
     /**

@@ -76,7 +76,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<Application> applicationSupplier = UnitTestApplication::new;
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
-        private Supplier<DataDictionarySettings> dataDictionarySettingsSupplier = DataDictionarySettings::new;
+        private Supplier<ValidationSettings> dataDictionarySettingsSupplier = ValidationSettings::new;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
         private Supplier<MessageFactory> messageFactorySupplier = DefaultMessageFactory::new;
@@ -160,8 +160,8 @@ public class SessionFactoryTestSupport implements SessionFactory {
             return this;
         }
 
-        public Builder setDataDictionarySettings(final DataDictionarySettings dataDictionarySettings) {
-            this.dataDictionarySettingsSupplier = () -> dataDictionarySettings;
+        public Builder setDataDictionarySettings(final ValidationSettings validationSettings) {
+            this.dataDictionarySettingsSupplier = () -> validationSettings;
             return this;
         }
 

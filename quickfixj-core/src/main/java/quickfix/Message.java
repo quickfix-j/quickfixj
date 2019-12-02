@@ -100,18 +100,18 @@ public class Message extends FieldMap {
         fromString(string, null, null, validate, true);
     }
 
-    public Message(String string, DataDictionary dd, DataDictionarySettings dds) throws InvalidMessage {
+    public Message(String string, DataDictionary dd, ValidationSettings dds) throws InvalidMessage {
         initializeHeader();
         fromString(string, dd, dds, true, true);
     }
 
-    public Message(String string, DataDictionary dd, DataDictionarySettings dds, boolean validate) throws InvalidMessage {
+    public Message(String string, DataDictionary dd, ValidationSettings dds, boolean validate) throws InvalidMessage {
         initializeHeader();
         fromString(string, dd, dds, validate, true);
     }
-    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, DataDictionarySettings dataDictionarySettings, boolean validate) throws InvalidMessage {
+    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, sessionDictionary, applicationDictionary, dataDictionarySettings, validate, true);
+        fromString(string, sessionDictionary, applicationDictionary, validationSettings, validate, true);
     }
 
     private void initializeHeader() {
@@ -540,38 +540,38 @@ public class Message extends FieldMap {
         }
     }
 
-    public void fromString(String messageData, DataDictionary dd, DataDictionarySettings dataDictionarySettings, boolean doValidation)
+    public void fromString(String messageData, DataDictionary dd, ValidationSettings validationSettings, boolean doValidation)
             throws InvalidMessage {
-        parse(messageData, dd, dd, dataDictionarySettings, doValidation, true);
+        parse(messageData, dd, dd, validationSettings, doValidation, true);
     }
 
-    public void fromString(String messageData, DataDictionary dd, DataDictionarySettings dds, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
+    public void fromString(String messageData, DataDictionary dd, ValidationSettings dds, boolean doValidation,
+                           boolean validateChecksum) throws InvalidMessage {
         parse(messageData, dd, dd, dds, doValidation, validateChecksum);
     }
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
-            DataDictionary applicationDictionary, DataDictionarySettings dataDictionarySettings, boolean doValidation) throws InvalidMessage {
-        fromString(messageData, sessionDictionary, applicationDictionary, dataDictionarySettings, doValidation, true);
+                           DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean doValidation) throws InvalidMessage {
+        fromString(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, true);
     }
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
-            DataDictionary applicationDictionary, DataDictionarySettings dataDictionarySettings, boolean doValidation, boolean validateChecksum)
+                           DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean doValidation, boolean validateChecksum)
             throws InvalidMessage {
         if (sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
             applicationDictionary = sessionDictionary;
         }
-        parse(messageData, sessionDictionary, applicationDictionary, dataDictionarySettings, doValidation, validateChecksum);
+        parse(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, validateChecksum);
     }
 
     void parse(String messageData, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, DataDictionarySettings dataDictionarySettings, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
+               DataDictionary applicationDataDictionary, ValidationSettings validationSettings, boolean doValidation,
+               boolean validateChecksum) throws InvalidMessage {
         this.messageData = messageData;
 
         try {
-            parseHeader(sessionDataDictionary, dataDictionarySettings, doValidation);
-            parseBody(applicationDataDictionary, dataDictionarySettings, doValidation);
+            parseHeader(sessionDataDictionary, validationSettings, doValidation);
+            parseBody(applicationDataDictionary, validationSettings, doValidation);
             parseTrailer(sessionDataDictionary);
             if (doValidation && validateChecksum) {
                 validateCheckSum(messageData);
@@ -595,7 +595,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseHeader(DataDictionary dd, DataDictionarySettings dds, boolean doValidation) throws InvalidMessage {
+    private void parseHeader(DataDictionary dd, ValidationSettings dds, boolean doValidation) throws InvalidMessage {
         if (doValidation) {
             final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
                     && isNextField(dd, header, BodyLength.FIELD)
@@ -637,7 +637,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseBody(DataDictionary dd, DataDictionarySettings dds, boolean doValidation) throws InvalidMessage {
+    private void parseBody(DataDictionary dd, ValidationSettings dds, boolean doValidation) throws InvalidMessage {
         StringField field = extractField(dd, this);
         while (field != null) {
             if (isTrailerField(field.getField())) {
@@ -675,7 +675,7 @@ public class Message extends FieldMap {
         fields.setField(field);
     }
 
-    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, DataDictionarySettings dds, FieldMap parent, boolean doValidation)
+    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, ValidationSettings dds, FieldMap parent, boolean doValidation)
             throws InvalidMessage {
         final DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
         final DataDictionary groupDataDictionary = rg.getDataDictionary();
@@ -762,7 +762,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, DataDictionarySettings dds, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
+    private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, ValidationSettings dds, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
         boolean isField = (parent instanceof Group) ? parentDD.isField(field.getTag()) : parentDD.isMsgField(msgType, field.getTag());
         if (!isField) {
             if (doValidation) {
