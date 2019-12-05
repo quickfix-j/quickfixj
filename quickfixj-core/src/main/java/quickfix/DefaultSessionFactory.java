@@ -152,7 +152,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     processPreFixtDataDictionary(sessionID, settings, dataDictionaryProvider);
                 }
             }
-            ValidationSettings validationSettings = createDataDictionarySettings(sessionID, settings);
+            ValidationSettings validationSettings = createValidationSettings(sessionID, settings);
 
             int heartbeatInterval = 0;
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
@@ -263,7 +263,7 @@ public class DefaultSessionFactory implements SessionFactory {
         return getDataDictionary(path);
     }
 
-    private ValidationSettings createDataDictionarySettings(SessionID sessionID, SessionSettings settings) throws FieldConvertError, ConfigError {
+    private ValidationSettings createValidationSettings(SessionID sessionID, SessionSettings settings) throws FieldConvertError, ConfigError {
         ValidationSettings validationSettings = new ValidationSettings();
 
         if (settings.isSetting(sessionID, Session.SETTING_VALIDATE_FIELDS_OUT_OF_ORDER)) {
