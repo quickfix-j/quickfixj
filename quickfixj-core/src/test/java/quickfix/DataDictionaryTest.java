@@ -61,6 +61,11 @@ import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
@@ -1332,6 +1337,52 @@ public class DataDictionaryTest {
         newSingle.setField(new StringField(EffectiveTime.FIELD));
         dictionary.validate(newSingle, true);
     }
+
+
+    // QFJ-971
+    @Test
+    public void testConcurrentValidationFailure() throws Exception {
+        final String data = "8=FIX.4.4|9=284|35=F|49=TEST_49|56=TEST_56|34=420|52=20190302-07:31:57.079|"
+                + "115=TEST3|116=TEST_116|11=TEST_11|41=TEST_41|55=TEST_55|48=TEST_48|22=4|54=2|"
+                + "60=20190302-07:31:56.933|38=100|207=TEST_207|453=1|448=TEST_448|447=D|452=3|10=204|";
+        final String msgString = data.replace('|', (char) 1);
+
+        // use some more threads to make it more likely that the problem will occur
+        final int noOfThreads = 8;
+        final int noOfIterations = 500;
+
+        for (int i = 0; i < noOfIterations; i++) {
+            final DataDictionary dd = new DataDictionary("FIX44.xml");
+            final MessageFactory messageFactory = new quickfix.fix44.MessageFactory();
+            PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor(noOfThreads);
+            // submit threads to pausable executor and try to let them start at the same time
+            ptpe.pause();
+            List<Future> resultList = new ArrayList<>();
+            for (int j = 0; j < noOfThreads; j++) {
+                final Callable messageParser = (Callable) () -> {
+                    Message msg = MessageUtils.parse(messageFactory, dd, msgString);
+                    Group partyGroup = msg.getGroups(quickfix.field.NoPartyIDs.FIELD).get(0);
+                    char partyIdSource = partyGroup.getChar(PartyIDSource.FIELD);
+                    assertEquals(PartyIDSource.PROPRIETARY_CUSTOM_CODE, partyIdSource);
+                    return msg;
+                };
+                resultList.add(ptpe.submit(messageParser));
+            }
+
+            // start all threads
+            ptpe.resume();
+            ptpe.shutdown();
+            ptpe.awaitTermination(10, TimeUnit.MILLISECONDS);
+
+            // validate results
+            for (Future future : resultList) {
+                // if unsuccessful, this will throw an ExecutionException
+                future.get();
+            }
+        }
+    }
+
+
 
     //
     // Group Validation Tests in RepeatingGroupTest
