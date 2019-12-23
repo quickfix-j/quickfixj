@@ -15,6 +15,11 @@ class PausableThreadPoolExecutor extends ThreadPoolExecutor {
         super(2, 2, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10000));
     }
 
+    public PausableThreadPoolExecutor(int noOfThreads) {
+        super(noOfThreads, noOfThreads, 20, TimeUnit.SECONDS, new ArrayBlockingQueue<>(10000));
+    }
+
+    @Override
     protected void beforeExecute(Thread t, Runnable r) {
         super.beforeExecute(t, r);
         pauseLock.lock();
