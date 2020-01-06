@@ -26,7 +26,7 @@ For asking questions please use the mailing list: https://lists.sourceforge.net/
 ## issues
 Please report issues here: https://github.com/quickfix-j/quickfixj/issues
 
-# security
+## security
 QuickFIXJ welcomes and appreciates responsible disclosure. Contributors are given appropriate credit in release notes and Git logs.
 
 For security issues in QuickFIXJ itself contact the project maintainer: christoph.john-at-macd.com
