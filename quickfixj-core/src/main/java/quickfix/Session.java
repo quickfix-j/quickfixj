@@ -372,7 +372,11 @@ public class Session implements Closeable {
     // @GuardedBy(this)
     private final SessionState state;
 
-    private boolean enabled;
+    /*
+     * Controls whether it is possible to log on to this Session (if Acceptor)
+     * or if Logon is sent out respectively (if Initiator).
+     */
+    private volatile boolean enabled;
 
     private final Object responderLock = new Object(); // unique instance
     // @GuardedBy(responderLock)
@@ -729,7 +733,7 @@ public class Session implements Closeable {
         setEnabled(true);
     }
 
-    private synchronized void setEnabled(boolean enabled) {
+    private void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
@@ -786,7 +790,7 @@ public class Session implements Closeable {
      *
      * @return true if session is enabled, false otherwise.
      */
-    public synchronized boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 

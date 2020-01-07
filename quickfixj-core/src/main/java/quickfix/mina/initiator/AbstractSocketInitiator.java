@@ -51,6 +51,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Abstract base class for socket initiators.
@@ -59,6 +63,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = new HashSet<>();
+    private static final ScheduledExecutorService SCHEDULED_RECONNECT_EXECUTOR = Executors
+            .newScheduledThreadPool(3, new QFScheduledReconnectThreadFactory());
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -72,6 +78,19 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         super(settings, sessionFactory);
         IoBuffer.setAllocator(new SimpleBufferAllocator());
         IoBuffer.setUseDirectBuffer(false);
+    }
+
+    
+    private static class QFScheduledReconnectThreadFactory implements ThreadFactory {
+
+        private static final AtomicInteger COUNTER = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread thread = new Thread(runnable, "QFJ ReconnectTask-" + COUNTER.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        }
     }
 
     protected void createSessionInitiators()
@@ -147,7 +166,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
         final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                 socketAddresses, localAddress, reconnectingIntervals,
-                getScheduledExecutorService(), networkingOptions,
+                SCHEDULED_RECONNECT_EXECUTOR, networkingOptions,
                 getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
                 proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
 

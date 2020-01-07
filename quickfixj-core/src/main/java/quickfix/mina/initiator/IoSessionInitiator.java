@@ -196,7 +196,8 @@ public class IoSessionInitiator {
             return sslFilter;
         }
 
-        public synchronized void run() {
+        @Override
+        public void run() {
             resetIoConnector();
             try {
                 if (connectFuture == null) {
