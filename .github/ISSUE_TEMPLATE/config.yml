@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: QuickFIX/J mailing list
+    url: https://sourceforge.net/projects/quickfixj/lists/quickfixj-users
+    about: Please ask usage related questions here.
