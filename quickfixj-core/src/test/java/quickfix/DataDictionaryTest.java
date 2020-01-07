@@ -979,32 +979,12 @@ public class DataDictionaryTest {
     public void testCopy() throws Exception {
         final DataDictionary dataDictionary = new DataDictionary(getDictionary());
 
-        dataDictionary.setAllowUnknownMessageFields(true);
-        dataDictionary.setCheckFieldsHaveValues(false);
-        dataDictionary.setCheckFieldsOutOfOrder(false);
-        dataDictionary.setCheckUnorderedGroupFields(false);
-        dataDictionary.setCheckUserDefinedFields(false);
-
         DataDictionary ddCopy = new DataDictionary(dataDictionary);
 
-        assertEquals(ddCopy.isAllowUnknownMessageFields(),dataDictionary.isAllowUnknownMessageFields());
-        assertEquals(ddCopy.isCheckFieldsHaveValues(),dataDictionary.isCheckFieldsHaveValues());
-        assertEquals(ddCopy.isCheckFieldsOutOfOrder(),dataDictionary.isCheckFieldsOutOfOrder());
-        assertEquals(ddCopy.isCheckUnorderedGroupFields(),dataDictionary.isCheckUnorderedGroupFields());
-        assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
         assertArrayEquals(getDictionary().getOrderedFields(),ddCopy.getOrderedFields());
         assertArrayEquals(getDictionary().getOrderedFields(),dataDictionary.getOrderedFields());
 
         DataDictionary.GroupInfo groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
-        assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
-        // set to false on ORIGINAL DD
-        dataDictionary.setAllowUnknownMessageFields(false);
-        assertFalse(dataDictionary.isAllowUnknownMessageFields());
-        assertFalse(dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary().isAllowUnknownMessageFields());
-        // should be still true on COPIED DD and its group
-        assertTrue(ddCopy.isAllowUnknownMessageFields());
-        groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
-        assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
 
         DataDictionary originalGroupDictionary = getDictionary().getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
         DataDictionary groupDictionary = dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
