@@ -33,6 +33,8 @@ import quickfix.field.LastMkt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
+import quickfix.field.NoPartyIDs;
+import quickfix.field.NoPartySubIDs;
 import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
@@ -1365,7 +1367,7 @@ public class DataDictionaryTest {
             List<Future> resultList = new ArrayList<>();
             for (int j = 0; j < noOfThreads; j++) {
                 final Callable messageParser = (Callable) () -> {
-                    Message msg = MessageUtils.parse(messageFactory, dd, msgString);
+                    Message msg = MessageUtils.parse(messageFactory, dd, new ValidationSettings(), msgString);
                     Group partyGroup = msg.getGroups(quickfix.field.NoPartyIDs.FIELD).get(0);
                     char partyIdSource = partyGroup.getChar(PartyIDSource.FIELD);
                     assertEquals(PartyIDSource.PROPRIETARY_CUSTOM_CODE, partyIdSource);
