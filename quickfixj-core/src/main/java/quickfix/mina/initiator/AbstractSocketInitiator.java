@@ -80,7 +80,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         IoBuffer.setUseDirectBuffer(false);
     }
 
-    
+
     private static class QFScheduledReconnectThreadFactory implements ThreadFactory {
 
         private static final AtomicInteger COUNTER = new AtomicInteger(1);
