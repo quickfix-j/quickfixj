@@ -552,17 +552,13 @@ public class BanzaiApplication implements Application {
     }
 
     private static class ObservableLogon extends Observable {
-        private final HashSet<SessionID> set = new HashSet<>();
-
         public void logon(SessionID sessionID) {
-            set.add(sessionID);
             setChanged();
             notifyObservers(new LogonEvent(sessionID, true));
             clearChanged();
         }
 
         public void logoff(SessionID sessionID) {
-            set.remove(sessionID);
             setChanged();
             notifyObservers(new LogonEvent(sessionID, false));
             clearChanged();
