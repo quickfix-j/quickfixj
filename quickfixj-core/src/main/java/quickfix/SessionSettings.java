@@ -111,6 +111,12 @@ public class SessionSettings {
             }
         }
         load(in);
+
+        try {
+            in.close();
+        } catch (IOException ex) {
+            // ignore on close
+        }
     }
 
     /**
@@ -376,11 +382,11 @@ public class SessionSettings {
     }
 
     private void load(InputStream inputStream) throws ConfigError {
+        final Reader reader = new InputStreamReader(inputStream);
         try {
             Properties currentSection = null;
             String currentSectionId = null;
             final Tokenizer tokenizer = new Tokenizer();
-            final Reader reader = new InputStreamReader(inputStream);
             Tokenizer.Token token = tokenizer.getToken(reader);
             while (token != null) {
                 if (token.getType() == Tokenizer.SECTION_TOKEN) {
@@ -404,8 +410,13 @@ public class SessionSettings {
             storeSection(currentSectionId, currentSection);
         } catch (final IOException e) {
             final ConfigError configError = new ConfigError(e.getMessage());
-            configError.fillInStackTrace();
             throw configError;
+        } finally {
+            try {
+                reader.close();
+            } catch (IOException ex) {
+                // ignore on close
+            }
         }
     }
 
