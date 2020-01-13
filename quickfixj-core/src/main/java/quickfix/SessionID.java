@@ -163,9 +163,9 @@ public class SessionID implements Serializable {
     @Override
     public boolean equals(Object object) {
 	if (!(object instanceof SessionID)) {
-                return false;
-        }
-        return toString().equals(object.toString());
+	    return false;
+	}
+	return toString().equals(object.toString());
     }
 
     @Override
