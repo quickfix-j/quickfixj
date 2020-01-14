@@ -99,23 +99,20 @@ public class SessionSettings {
      * Loads session settings from a file.
      *
      * @param filename the path to the file containing the session settings
+     * @throws quickfix.ConfigError when file could not be loaded
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
-        InputStream in = getClass().getClassLoader().getResourceAsStream(filename);
-        if (in == null) {
-            try {
-                in = new FileInputStream(filename);
-            } catch (final IOException e) {
-                throw new ConfigError(e.getMessage());
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
+            if (in != null) {
+                load(in);
+            } else {
+                try (InputStream in2 = new FileInputStream(filename)) {
+                    load(in2);
+                }
             }
-        }
-        load(in);
-
-        try {
-            in.close();
-        } catch (IOException ex) {
-            // ignore on close
+        } catch (final IOException ex) {
+            throw new ConfigError(ex.getMessage());
         }
     }
 
@@ -382,8 +379,7 @@ public class SessionSettings {
     }
 
     private void load(InputStream inputStream) throws ConfigError {
-        final Reader reader = new InputStreamReader(inputStream);
-        try {
+        try (final Reader reader = new InputStreamReader(inputStream)) {
             Properties currentSection = null;
             String currentSectionId = null;
             final Tokenizer tokenizer = new Tokenizer();
@@ -411,12 +407,6 @@ public class SessionSettings {
         } catch (final IOException e) {
             final ConfigError configError = new ConfigError(e.getMessage());
             throw configError;
-        } finally {
-            try {
-                reader.close();
-            } catch (IOException ex) {
-                // ignore on close
-            }
         }
     }
 
