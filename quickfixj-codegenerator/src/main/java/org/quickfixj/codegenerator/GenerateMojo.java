@@ -126,6 +126,7 @@ public class GenerateMojo extends AbstractMojo {
                 task.setSpecification(dictFile);
             } else {
                 getLog().error("Cannot find file " + dictFile);
+                throw new MojoExecutionException("File could not be found or was NULL!");
             }
 
             log("Processing " + dictFile);

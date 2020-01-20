@@ -691,7 +691,6 @@ public class Message extends FieldMap {
         }
         parent.setField(groupCountTag, field);
         final int firstField = rg.getDelimiterField();
-        boolean firstFieldFound = false;
         Group group = null;
         boolean inGroupParse = true;
         while (inGroupParse) {
@@ -705,32 +704,37 @@ public class Message extends FieldMap {
                 addGroupRefToParent(group, parent);
                 group = new Group(groupCountTag, firstField, groupDataDictionary.getOrderedFields());
                 group.setField(field);
-                firstFieldFound = true;
                 previousOffset = -1;
                 // QFJ-742
                 if (groupDataDictionary.isGroup(msgType, tag)) {
                     parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
                 }
             } else if (groupDataDictionary.isGroup(msgType, tag)) {
-                // QFJ-934: message should be rejected and not ignored when first field not found
-                checkFirstFieldFound(firstFieldFound, groupCountTag, firstField, tag);
-                parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
-            } else if (groupDataDictionary.isField(tag)) {
-                checkFirstFieldFound(firstFieldFound, groupCountTag, firstField, tag);
-                if (fieldOrder != null && dds.isCheckUnorderedGroupFields()) {
-                    final int offset = indexOf(tag, fieldOrder);
-                    if (offset > -1) {
-                        if (offset <= previousOffset) {
-                            // QFJ-792: add what we've already got and leave the rest to the validation (if enabled)
-                            group.setField(field);
-                            addGroupRefToParent(group, parent);
-                            throw new FieldException(
-                                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
-                        }
-                        previousOffset = offset;
-                    }
+                if (group != null) {
+                    parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
+                } else {
+                    // QFJ-934: message should be rejected and not ignored when first field not found
+                    throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
                 }
-                group.setField(field);
+            } else if (groupDataDictionary.isField(tag)) {
+                if (group != null) {
+                    if (fieldOrder != null && dds.isCheckUnorderedGroupFields()) {
+                        final int offset = indexOf(tag, fieldOrder);
+                        if (offset > -1) {
+                            if (offset <= previousOffset) {
+                                // QFJ-792: add what we've already got and leave the rest to the validation (if enabled)
+                                group.setField(field);
+                                addGroupRefToParent(group, parent);
+                                throw new FieldException(
+                                        SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, tag);
+                            }
+                            previousOffset = offset;
+                        }
+                    }
+                    group.setField(field);
+                } else {
+                    throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
+                }
             } else {
                 // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
                 if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType))) {
@@ -754,12 +758,10 @@ public class Message extends FieldMap {
         }
     }
 
-    private void checkFirstFieldFound(boolean firstFieldFound, final int groupCountTag, final int firstField, int tag) throws FieldException {
-        if (!firstFieldFound) {
-            throw new FieldException(
-                    SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, "The group " + groupCountTag
-                    + " must set the delimiter field " + firstField, tag);
-        }
+    private FieldException newFieldExceptionMissingDelimiter(final int groupCountTag, final int firstField, int tag) throws FieldException {
+        return new FieldException(
+                SessionRejectReason.REPEATING_GROUP_FIELDS_OUT_OF_ORDER, "The group " + groupCountTag
+                + " must set the delimiter field " + firstField, tag);
     }
 
     private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, ValidationSettings dds, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
