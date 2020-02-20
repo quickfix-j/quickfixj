@@ -103,17 +103,7 @@ public class SessionSettings {
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
-            if (in != null) {
-                load(in);
-            } else {
-                try (InputStream in2 = new FileInputStream(filename)) {
-                    load(in2);
-                }
-            }
-        } catch (final IOException ex) {
-            throw new ConfigError(ex.getMessage());
-        }
+        loadFromFile(filename);
     }
 
     /**
@@ -376,6 +366,20 @@ public class SessionSettings {
         final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
         nondefaultSessions.remove(DEFAULT_SESSION_ID);
         return nondefaultSessions.iterator();
+    }
+
+    private void loadFromFile(String filename) throws ConfigError {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
+            if (in != null) {
+                load(in);
+            } else {
+                try (InputStream in2 = new FileInputStream(filename)) {
+                    load(in2);
+                }
+            }
+        } catch (final IOException ex) {
+            throw new ConfigError(ex.getMessage());
+        }
     }
 
     private void load(InputStream inputStream) throws ConfigError {

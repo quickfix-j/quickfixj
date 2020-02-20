@@ -314,6 +314,35 @@ public class SessionSettingsTest {
     }
 
     @Test
+    public void testVariableInterpolationWithCustomPropsInSourceFileForSessionId() throws Exception {
+        // GIVEN
+        System.setProperty("test.2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("test.1", "FOO");
+
+        String settingsString = "";
+        settingsString += "\n";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "TargetCompID=CLIENT3_${test.1}_${test.2}\n";
+        settingsString += "DataDictionary=../spec/FIX42.xml\n";
+
+        // WHEN
+        final SessionSettings settings = setUpSession(settingsString);
+        settings.setVariableValues(properties);
+        // THEN
+        Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
+        while (sessionIDIterator.hasNext()){
+            SessionID sessionID = sessionIDIterator.next();
+            if (sessionID.getTargetCompID().startsWith("CLIENT3")){
+                assertEquals("wrong value", "CLIENT3_FOO_BAR", sessionID.getTargetCompID());
+                return;
+            }
+        }
+        fail("Settings for CLIENT3 are not found");
+    }
+
+    @Test
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
