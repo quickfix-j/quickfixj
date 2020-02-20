@@ -354,6 +354,28 @@ public class SessionSettingsTest {
     }
 
     @Test
+    public void testVariableInterpolationWithCustomPropsForSessionIdFromFile() throws Exception {
+        // GIVEN
+        System.setProperty("CLIENT_PLACEHOLDER2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("CLIENT_PLACEHOLDER1", "FOO");
+
+        // WHEN
+        final SessionSettings settings = new SessionSettings(getConfigurationFileName(), properties);
+
+        // THEN
+        Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
+        while (sessionIDIterator.hasNext()) {
+            SessionID sessionID = sessionIDIterator.next();
+            if (sessionID.getTargetCompID().startsWith("CLIENT3")) {
+                assertEquals("wrong value", "CLIENT3_FOO_BAR", sessionID.getTargetCompID());
+                return;
+            }
+        }
+        fail("Settings for CLIENT3 are not found");
+    }
+
+    @Test
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
@@ -575,6 +597,10 @@ public class SessionSettingsTest {
         defaultSettings.put("AcceptorTemplate", "Y");
         defaultSettings.put("TargetCompID", "*");
         return defaultSettings;
+    }
+
+    protected String getConfigurationFileName() {
+        return "configWithSessionVariables.ini";
     }
 
 }
