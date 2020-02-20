@@ -145,6 +145,14 @@ public class SessionSettingsTest {
     }
 
     public static SessionSettings setUpSession(String extra) throws ConfigError {
+        String settingsString = getDefaultSettingString();
+        if (extra != null) {
+            settingsString += extra;
+        }
+        return createSettingsFromString(settingsString);
+    }
+
+    private static String getDefaultSettingString() {
         String settingsString = "";
         settingsString += "#comment\n";
         settingsString += "[DEFAULT]\n";
@@ -171,16 +179,19 @@ public class SessionSettingsTest {
         settingsString += "BeginString=FIX.4.2\n";
         settingsString += "TargetCompID=CLIENT2\n";
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
-        if (extra != null) {
-            settingsString += extra;
-        }
-        return createSettingsFromString(settingsString);
+        return settingsString;
     }
 
     private static SessionSettings createSettingsFromString(String settingsString)
             throws ConfigError {
         final ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
         return new SessionSettings(cfg);
+    }
+
+    private static SessionSettings createSettingsFromString(String settingsString, Properties variableValues)
+            throws ConfigError {
+        final ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
+        return new SessionSettings(cfg, variableValues);
     }
 
     @Test
@@ -314,13 +325,13 @@ public class SessionSettingsTest {
     }
 
     @Test
-    public void testVariableInterpolationWithCustomPropsInSourceFileForSessionId() throws Exception {
+    public void testVariableInterpolationWithCustomPropsForSessionIdFromInputStream() throws Exception {
         // GIVEN
         System.setProperty("test.2", "BAR");
         final Properties properties = new Properties(System.getProperties());
         properties.setProperty("test.1", "FOO");
 
-        String settingsString = "";
+        String settingsString = getDefaultSettingString();
         settingsString += "\n";
         settingsString += "[SESSION]\n";
         settingsString += "BeginString=FIX.4.2\n";
@@ -328,13 +339,13 @@ public class SessionSettingsTest {
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
 
         // WHEN
-        final SessionSettings settings = setUpSession(settingsString);
-        settings.setVariableValues(properties);
+        final SessionSettings settings = createSettingsFromString(settingsString, properties);
+
         // THEN
         Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
-        while (sessionIDIterator.hasNext()){
+        while (sessionIDIterator.hasNext()) {
             SessionID sessionID = sessionIDIterator.next();
-            if (sessionID.getTargetCompID().startsWith("CLIENT3")){
+            if (sessionID.getTargetCompID().startsWith("CLIENT3")) {
                 assertEquals("wrong value", "CLIENT3_FOO_BAR", sessionID.getTargetCompID());
                 return;
             }
