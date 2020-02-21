@@ -326,7 +326,6 @@ public class SessionSettingsTest {
 
     @Test
     public void testVariableInterpolationWithCustomPropsForSessionIdFromInputStream() throws Exception {
-        // GIVEN
         System.setProperty("test.2", "BAR");
         final Properties properties = new Properties(System.getProperties());
         properties.setProperty("test.1", "FOO");
@@ -338,42 +337,36 @@ public class SessionSettingsTest {
         settingsString += "TargetCompID=CLIENT3_${test.1}_${test.2}\n";
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
 
-        // WHEN
         final SessionSettings settings = createSettingsFromString(settingsString, properties);
 
-        // THEN
+        SessionID sessionId = findSessionId(settings, "CLIENT3");
+        assertNotNull("Settings for CLIENT3 are not found", sessionId);
+        assertEquals("Wrong TargetCompID", "CLIENT3_FOO_BAR", sessionId.getTargetCompID());
+    }
+
+    private SessionID findSessionId(SessionSettings settings, String targetCompIdPrefix) {
         Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
         while (sessionIDIterator.hasNext()) {
             SessionID sessionID = sessionIDIterator.next();
-            if (sessionID.getTargetCompID().startsWith("CLIENT3")) {
-                assertEquals("wrong value", "CLIENT3_FOO_BAR", sessionID.getTargetCompID());
-                return;
+            if (sessionID.getTargetCompID().startsWith(targetCompIdPrefix)) {
+                return sessionID;
             }
         }
-        fail("Settings for CLIENT3 are not found");
+        return null;
     }
 
     @Test
     public void testVariableInterpolationWithCustomPropsForSessionIdFromFile() throws Exception {
-        // GIVEN
         System.setProperty("CLIENT_PLACEHOLDER2", "BAR");
         final Properties properties = new Properties(System.getProperties());
         properties.setProperty("CLIENT_PLACEHOLDER1", "FOO");
 
-        // WHEN
         final SessionSettings settings = new SessionSettings(getConfigurationFileName(), properties);
 
-        // THEN
-        Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
-        while (sessionIDIterator.hasNext()) {
-            SessionID sessionID = sessionIDIterator.next();
-            if (sessionID.getTargetCompID().startsWith("CLIENT3")) {
-                assertEquals("wrong value", "CLIENT3_FOO_BAR", sessionID.getTargetCompID());
-                return;
-            }
-        }
-        fail("Settings for CLIENT3 are not found");
-    }
+        SessionID sessionId = findSessionId(settings, "CLIENT3");
+        assertNotNull("Settings for CLIENT3 are not found", sessionId);
+        assertEquals("Wrong TargetCompID", "CLIENT3_FOO_BAR", sessionId.getTargetCompID());
+}
 
     @Test
     public void testDefaultConstructor() {
