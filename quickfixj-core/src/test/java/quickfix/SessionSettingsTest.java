@@ -599,7 +599,7 @@ public class SessionSettingsTest {
         return defaultSettings;
     }
 
-    protected String getConfigurationFileName() {
+    private String getConfigurationFileName() {
         return "configWithSessionVariables.ini";
     }
 
