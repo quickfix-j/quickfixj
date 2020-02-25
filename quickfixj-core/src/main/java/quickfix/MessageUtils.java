@@ -132,11 +132,15 @@ public class MessageUtils {
 
         ApplVerID applVerID;
 
-        if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
-            applVerID = getApplVerID(session, messageString);
-        } else {
-            applVerID = toApplVerID(beginString);
-        }
+        if (!isAdminMessage(msgType) || isLogon(messageString)) {
+            if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
+                applVerID = getApplVerID(session, messageString);
+            } else {
+                applVerID = toApplVerID(beginString);
+            }
+       } else {
+           applVerID = null;
+       }
 
         final MessageFactory messageFactory = session.getMessageFactory();
 
