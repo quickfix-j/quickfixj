@@ -27,13 +27,7 @@ import org.w3c.dom.NodeList;
 import quickfix.field.BeginString;
 import quickfix.field.MsgType;
 import quickfix.field.SessionRejectReason;
-import quickfix.field.converter.BooleanConverter;
-import quickfix.field.converter.CharConverter;
-import quickfix.field.converter.DoubleConverter;
-import quickfix.field.converter.IntConverter;
-import quickfix.field.converter.UtcDateOnlyConverter;
-import quickfix.field.converter.UtcTimeOnlyConverter;
-import quickfix.field.converter.UtcTimestampConverter;
+import quickfix.field.converter.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -426,7 +420,8 @@ public class DataDictionary {
 
     private boolean isMultipleValueStringField(int field) {
         final FieldType fieldType = fieldTypes.get(field);
-        return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE;
+        return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE ||
+               fieldType == FieldType.MULTIPLECHARVALUE;
     }
 
     /**
@@ -726,6 +721,9 @@ public class DataDictionary {
                 case DAYOFMONTH:
                 case COUNTRY:
                     // String
+                    break;
+                case MULTIPLECHARVALUE:
+                    CharArrayConverter.convert(field.getValue());
                     break;
                 case INT:
                 case NUMINGROUP:

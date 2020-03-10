@@ -28,13 +28,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import quickfix.field.converter.BooleanConverter;
-import quickfix.field.converter.CharConverter;
-import quickfix.field.converter.DoubleConverter;
-import quickfix.field.converter.IntConverter;
-import quickfix.field.converter.UtcDateOnlyConverter;
-import quickfix.field.converter.UtcTimeOnlyConverter;
-import quickfix.field.converter.UtcTimestampConverter;
+import quickfix.field.converter.*;
 
 import junit.framework.TestCase;
 
@@ -142,6 +136,23 @@ public class FieldConvertersTest extends TestCase {
         }
         try {
             CharConverter.convert("a1");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+    }
+
+    public void testCharArrayConversion() throws Exception {
+        assertEquals("a 2 Z", CharArrayConverter.convert('a', '2', 'Z'));
+
+        try {
+            CharArrayConverter.convert("");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            CharArrayConverter.convert("a B cD");
             fail();
         } catch (FieldConvertError e) {
             // expected

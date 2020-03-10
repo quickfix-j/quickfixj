@@ -38,6 +38,7 @@ public enum FieldType {
     CURRENCY,
     MULTIPLEVALUESTRING,
     MULTIPLESTRINGVALUE, // QFJ-881
+    MULTIPLECHARVALUE,
     EXCHANGE,
     UTCTIMESTAMP(LocalDateTime.class),
     BOOLEAN(Boolean.class),
