@@ -50,9 +50,9 @@ public abstract class FieldMap implements Serializable {
 
     private final int[] fieldOrder;
 
-    private final TreeMap<Integer, Field<?>> fields;
+    protected final TreeMap<Integer, Field<?>> fields;
 
-    private final TreeMap<Integer, List<Group>> groups = new TreeMap<>();
+    protected final TreeMap<Integer, List<Group>> groups = new TreeMap<>();
 
     /**
      * Constructs a FieldMap with the given field order.
@@ -694,5 +694,5 @@ public abstract class FieldMap implements Serializable {
         return hasGroup(group.getFieldTag());
     }
 
-    
+
 }
