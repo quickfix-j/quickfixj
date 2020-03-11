@@ -9938,5 +9938,11 @@
       <value enum="2" description="REJECTED"/>
       <value enum="3" description="TERMINATE_UNASSIGN"/>
     </field>
+    <field number="1687" name="ShortSaleRestriction" type="INT">
+	  <value enum="0" description="NO_RESTRICTIONS"/>
+      <value enum="1" description="SECURITY_NOT_SHORTABLE"/>
+      <value enum="2" description="SECURITY_NOT_SHORTABLE_AT_OR_BELOW_BEST_BID"/>
+      <value enum="3" description="SECURITY_NOT_SHORTABLE_WITHOUT_PREBORROW"/>
+    </field>	
   </fields>
 </fix>
