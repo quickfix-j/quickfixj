@@ -55,6 +55,8 @@ import quickfix.field.TargetCompID;
 import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 import quickfix.fix44.NewOrderSingle;
+import quickfix.fix44.Quote;
+import quickfix.fix44.QuoteRequest;
 import quickfix.test.util.ExpectedTestFailure;
 
 import java.io.ByteArrayInputStream;
@@ -1313,6 +1315,17 @@ public class DataDictionaryTest {
         expectedException.expect(hasProperty("field", is(Symbol.FIELD)));
 
         dictionary.validate(quoteRequest, true);
+    }
+
+    @Test
+    public void testRequiredFieldInsideComponentWithinRepeatingGroup() throws Exception {
+        DataDictionary dictionary = getDictionary();
+
+        assertTrue(dictionary.isRequiredField(Quote.MSGTYPE, Symbol.FIELD));
+        assertFalse(dictionary.isRequiredField(QuoteRequest.MSGTYPE, Symbol.FIELD));
+
+        DataDictionary.GroupInfo quoteRequestGroupInfo = dictionary.getGroup(QuoteRequest.MSGTYPE, NoRelatedSym.FIELD);
+        assertTrue(quoteRequestGroupInfo.getDataDictionary().isRequiredField(QuoteRequest.MSGTYPE, Symbol.FIELD));
     }
 
     /**
