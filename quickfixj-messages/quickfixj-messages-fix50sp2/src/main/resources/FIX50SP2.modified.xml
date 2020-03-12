@@ -5380,7 +5380,7 @@
       <field name="DatedDate" required="N"/>
       <field name="InterestAccrualDate" required="N"/>
       <component name="InstrumentParties" required="N"/>
-	  <field name="ShortSaleRestriction" required="N"/>
+      <field name="ShortSaleRestriction" required="N"/>
       <component name="ComplexEvents" required="N"/>
     </component>
   </components>
@@ -9359,7 +9359,7 @@
     <field number="1182" name="ApplBegSeqNum" type="SEQNUM"/>
     <field number="1183" name="ApplEndSeqNum" type="SEQNUM"/>
     <field number="1184" name="SecurityXMLLen" type="LENGTH"/>
-	<!-- MODIFIED: SecurityXML renamed to SecurityXMLData to prevent duplicate value -->
+    <!-- MODIFIED: SecurityXML renamed to SecurityXMLData to prevent duplicate value -->
     <field number="1185" name="SecurityXMLData" type="XMLDATA"/>
     <field number="1186" name="SecurityXMLSchema" type="STRING"/>
     <field number="1187" name="RefreshIndicator" type="BOOLEAN"/>
@@ -9483,7 +9483,7 @@
     <field number="1280" name="DerivativeEncodedSecurityDescLen" type="LENGTH"/>
     <field number="1281" name="DerivativeEncodedSecurityDesc" type="DATA"/>
     <field number="1282" name="DerivativeSecurityXMLLen" type="LENGTH"/>
-	<!-- MODIFIED: DerivativeSecurityXML renamed to DerivativeSecurityXMLData to prevent duplicate value -->
+    <!-- MODIFIED: DerivativeSecurityXML renamed to DerivativeSecurityXMLData to prevent duplicate value -->
     <field number="1283" name="DerivativeSecurityXMLData" type="DATA"/>
     <field number="1284" name="DerivativeSecurityXMLSchema" type="STRING"/>
     <field number="1285" name="DerivativeContractSettlMonth" type="MONTHYEAR"/>
@@ -9940,10 +9940,10 @@
       <value enum="3" description="TERMINATE_UNASSIGN"/>
     </field>
     <field number="1687" name="ShortSaleRestriction" type="INT">
-	  <value enum="0" description="NO_RESTRICTIONS"/>
+      <value enum="0" description="NO_RESTRICTIONS"/>
       <value enum="1" description="SECURITY_NOT_SHORTABLE"/>
       <value enum="2" description="SECURITY_NOT_SHORTABLE_AT_OR_BELOW_BEST_BID"/>
       <value enum="3" description="SECURITY_NOT_SHORTABLE_WITHOUT_PREBORROW"/>
-    </field>	
+    </field>
   </fields>
 </fix>
