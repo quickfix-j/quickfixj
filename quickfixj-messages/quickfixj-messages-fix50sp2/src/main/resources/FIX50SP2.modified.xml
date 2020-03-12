@@ -5380,6 +5380,7 @@
       <field name="DatedDate" required="N"/>
       <field name="InterestAccrualDate" required="N"/>
       <component name="InstrumentParties" required="N"/>
+	  <field name="ShortSaleRestriction" required="N"/>
       <component name="ComplexEvents" required="N"/>
     </component>
   </components>
