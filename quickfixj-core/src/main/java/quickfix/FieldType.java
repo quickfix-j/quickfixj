@@ -20,68 +20,63 @@
 package quickfix;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * A field type enum class.
  */
 public enum FieldType {
 
-    UNKNOWN,
-    STRING,
-    CHAR,
-    PRICE(Double.class),
-    INT(Integer.class),
-    AMT(Double.class),
-    QTY(Double.class),
-    CURRENCY,
-    MULTIPLEVALUESTRING,
-    MULTIPLESTRINGVALUE, // QFJ-881
-    MULTIPLECHARVALUE,
-    EXCHANGE,
-    UTCTIMESTAMP(LocalDateTime.class),
-    BOOLEAN(Boolean.class),
-    LOCALMKTDATE,
-    DATA,
-    FLOAT(Double.class),
-    PRICEOFFSET(Double.class),
-    MONTHYEAR,
-    DAYOFMONTH(Integer.class),
-    UTCDATEONLY(LocalDate.class),
-    UTCDATE(LocalDate.class),
-    UTCTIMEONLY(LocalTime.class),
-    TIME,
-    NUMINGROUP(Integer.class),
-    PERCENTAGE(Double.class),
-    SEQNUM(Integer.class),
-    LENGTH(Integer.class),
-    COUNTRY;
+  UNKNOWN,
+  STRING,
+  CHAR,
+  PRICE(Double.class),
+  INT(Integer.class),
+  AMT(Double.class),
+  QTY(Double.class),
+  CURRENCY,
+  MULTIPLEVALUESTRING,
+  MULTIPLESTRINGVALUE, // QFJ-881
+  MULTIPLECHARVALUE,
+  EXCHANGE,
+  UTCTIMESTAMP(LocalDateTime.class),
+  BOOLEAN(Boolean.class),
+  LOCALMKTDATE,
+  DATA,
+  FLOAT(Double.class),
+  PRICEOFFSET(Double.class),
+  MONTHYEAR,
+  DAYOFMONTH(Integer.class),
+  UTCDATEONLY(LocalDate.class),
+  UTCDATE(LocalDate.class),
+  UTCTIMEONLY(LocalTime.class),
+  TIME,
+  NUMINGROUP(Integer.class),
+  PERCENTAGE(Double.class),
+  SEQNUM(Integer.class),
+  LENGTH(Integer.class),
+  COUNTRY;
 
-    private final Class<?> javaType;
+  private final Class<?> javaType;
 
-    FieldType(Class<?> javaType) {
-        this.javaType = javaType;
+  FieldType(Class<?> javaType) { this.javaType = javaType; }
+
+  FieldType() { this(String.class); }
+
+  public Class<?> getJavaType() { return javaType; }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "[" + name() + "," + javaType + "," +
+        ordinal() + "]";
+  }
+
+  public static FieldType fromName(String fixVersion, String name) {
+    try {
+      return FieldType.valueOf(name);
+    } catch (IllegalArgumentException iae) {
+      return UNKNOWN;
     }
-
-    FieldType() {
-        this(String.class);
-    }
-
-    public Class<?> getJavaType() {
-        return javaType;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "[" + name() + "," + javaType + "," + ordinal() + "]";
-    }
-
-    public static FieldType fromName(String fixVersion, String name) {
-        try {
-            return FieldType.valueOf(name);
-        } catch (IllegalArgumentException iae) {
-            return UNKNOWN;
-        }
-    }
+  }
 }
