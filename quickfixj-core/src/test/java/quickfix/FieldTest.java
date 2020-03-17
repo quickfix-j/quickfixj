@@ -21,7 +21,14 @@ package quickfix;
 
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
-import quickfix.field.*;
+import quickfix.field.ClOrdID;
+import quickfix.field.ExecInst;
+import quickfix.field.MDUpdateAction;
+import quickfix.field.OrdType;
+import quickfix.field.RawData;
+import quickfix.field.Side;
+import quickfix.field.TradeCondition;
+import quickfix.field.TransactTime;
 import quickfix.fix50.MarketDataIncrementalRefresh;
 import quickfix.fix50.NewOrderSingle;
 

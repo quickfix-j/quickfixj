@@ -23,7 +23,15 @@ import quickfix.field.BeginString;
 import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.SessionRejectReason;
-import quickfix.field.converter.*;
+import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharArrayConverter;
+import quickfix.field.converter.CharConverter;
+import quickfix.field.converter.DecimalConverter;
+import quickfix.field.converter.DoubleConverter;
+import quickfix.field.converter.IntConverter;
+import quickfix.field.converter.UtcDateOnlyConverter;
+import quickfix.field.converter.UtcTimeOnlyConverter;
+import quickfix.field.converter.UtcTimestampConverter;
 import org.quickfixj.CharsetSupport;
 
 import java.io.Serializable;
