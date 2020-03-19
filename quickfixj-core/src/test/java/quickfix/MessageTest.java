@@ -1078,7 +1078,7 @@ public class MessageTest {
     @Test
     public void testMessageSetGetCharsInvalidFormatException() throws FieldNotFound {
         expectedException.expect(FieldException.class);
-        expectedException.expectMessage("invalid char array value: A b 05");
+        expectedException.expectMessage("invalid char array: [65, 32, 98, 32, 48, 53]");
 
         final Message message = new Message();
         message.setString(123, "A b 05");
