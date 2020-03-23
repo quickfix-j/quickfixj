@@ -28,6 +28,7 @@ import quickfix.field.BeginString;
 import quickfix.field.MsgType;
 import quickfix.field.SessionRejectReason;
 import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharArrayConverter;
 import quickfix.field.converter.CharConverter;
 import quickfix.field.converter.DoubleConverter;
 import quickfix.field.converter.IntConverter;
@@ -426,7 +427,8 @@ public class DataDictionary {
 
     private boolean isMultipleValueStringField(int field) {
         final FieldType fieldType = fieldTypes.get(field);
-        return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE;
+        return fieldType == FieldType.MULTIPLEVALUESTRING || fieldType == FieldType.MULTIPLESTRINGVALUE ||
+               fieldType == FieldType.MULTIPLECHARVALUE;
     }
 
     /**
@@ -726,6 +728,9 @@ public class DataDictionary {
                 case DAYOFMONTH:
                 case COUNTRY:
                     // String
+                    break;
+                case MULTIPLECHARVALUE:
+                    CharArrayConverter.convert(field.getValue());
                     break;
                 case INT:
                 case NUMINGROUP:

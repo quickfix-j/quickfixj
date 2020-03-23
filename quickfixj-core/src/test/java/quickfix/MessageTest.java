@@ -19,7 +19,9 @@
 
 package quickfix;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.quickfixj.CharsetSupport;
 import quickfix.field.Account;
 import quickfix.field.AllocAccount;
@@ -122,6 +124,7 @@ import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -129,8 +132,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
 public class MessageTest {
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void testRepeatingField() throws Exception {
@@ -1054,6 +1059,30 @@ public class MessageTest {
         } catch (final FieldNotFound e) {
             fail("exception thrown");
         }
+    }
+
+    @Test
+    public void testMessageSetGetChars() throws FieldNotFound {
+        final Message message = new Message();
+
+        try {
+            message.getChars(18);
+            fail("exception not thrown");
+        } catch (final FieldNotFound e) {
+        }
+
+        message.setChars(18, 'a', 'b', '4');
+        assertArrayEquals(new char[] {'a', 'b', '4'}, message.getChars(18));
+    }
+
+    @Test
+    public void testMessageSetGetCharsInvalidFormatException() throws FieldNotFound {
+        expectedException.expect(FieldException.class);
+        expectedException.expectMessage("invalid char array: [65, 32, 98, 32, 48, 53]");
+
+        final Message message = new Message();
+        message.setString(123, "A b 05");
+        message.getChars(123);
     }
 
     @Test
