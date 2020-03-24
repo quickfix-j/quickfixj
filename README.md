@@ -23,7 +23,7 @@ For more information see the project website at http://www.quickfixj.org.
 Check out the wiki: https://github.com/quickfix-j/quickfixj/wiki
 
 ## questions
-For asking questions please use the mailing list: https://lists.sourceforge.net/lists/listinfo/quickfixj-users
+For asking questions please either use the mailing list https://lists.sourceforge.net/lists/listinfo/quickfixj-users or ask on Stack Overflow https://stackoverflow.com/questions/ask and tag your question with `quickfixj`.
 
 ## issues
 Please report issues here: https://github.com/quickfix-j/quickfixj/issues
