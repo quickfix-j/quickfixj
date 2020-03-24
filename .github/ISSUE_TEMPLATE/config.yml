@@ -3,3 +3,6 @@ contact_links:
   - name: QuickFIX/J mailing list
     url: https://sourceforge.net/projects/quickfixj/lists/quickfixj-users
     about: Please ask usage related questions here.
+  - name:  Stack Overflow
+    url: https://stackoverflow.com/questions/ask
+    about: Please ask usage releated questions here and tag your question with "quickfixj".
