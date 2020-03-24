@@ -4,5 +4,5 @@ contact_links:
     url: https://sourceforge.net/projects/quickfixj/lists/quickfixj-users
     about: Please ask usage related questions here.
   - name:  Stack Overflow
-    url: https://stackoverflow.com/questions/ask
+    url: https://stackoverflow.com/questions/ask?tags=quickfixj
     about: Please ask usage releated questions here and tag your question with "quickfixj".
