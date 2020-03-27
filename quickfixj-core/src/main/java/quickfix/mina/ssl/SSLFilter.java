@@ -19,15 +19,24 @@
 
 package quickfix.mina.ssl;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import javax.net.ssl.SSLContext;
 
+import javax.net.ssl.SSLException;
+import org.apache.mina.core.filterchain.IoFilterChain;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An extended SSL filter based on MINA {@link SslFilter} that disables setting
  * enabled cipher suites via default method.
  */
 public class SSLFilter extends SslFilter {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public SSLFilter(SSLContext sslContext, boolean autoStart) {
         super(sslContext, autoStart);
@@ -48,5 +57,21 @@ public class SSLFilter extends SslFilter {
 
     public void setCipherSuites(String[] cipherSuites) {
         super.setEnabledCipherSuites(cipherSuites);
+    }
+
+    @Override
+    public void onPreAdd(IoFilterChain parent, String name, NextFilter nextFilter)
+        throws SSLException {
+
+        IoSession session = parent.getSession();
+        SocketAddress remoteAddress = session.getRemoteAddress();
+
+        if(remoteAddress instanceof InetSocketAddress) {
+            // activate the SNI support in the JSSE SSLEngine
+            log.info("activating TLS SNI support");
+            session.setAttribute(PEER_ADDRESS, remoteAddress);
+        }
+
+        super.onPreAdd(parent, name, nextFilter);
     }
 }
