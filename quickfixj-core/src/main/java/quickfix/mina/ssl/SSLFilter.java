@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 public class SSLFilter extends SslFilter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private boolean useSNI;
 
     public SSLFilter(SSLContext sslContext, boolean autoStart) {
         super(sslContext, autoStart);
@@ -63,15 +64,21 @@ public class SSLFilter extends SslFilter {
     public void onPreAdd(IoFilterChain parent, String name, NextFilter nextFilter)
         throws SSLException {
 
-        IoSession session = parent.getSession();
-        SocketAddress remoteAddress = session.getRemoteAddress();
+        if (useSNI) {
+            IoSession session = parent.getSession();
+            SocketAddress remoteAddress = session.getRemoteAddress();
 
-        if(remoteAddress instanceof InetSocketAddress) {
-            // activate the SNI support in the JSSE SSLEngine
-            log.info("activating TLS SNI support for peer address: " + remoteAddress);
-            session.setAttribute(PEER_ADDRESS, remoteAddress);
+            if (remoteAddress instanceof InetSocketAddress) {
+                // activate the SNI support in the JSSE SSLEngine
+                log.info("activating TLS SNI support for peer address: " + remoteAddress);
+                session.setAttribute(PEER_ADDRESS, remoteAddress);
+            }
         }
 
         super.onPreAdd(parent, name, nextFilter);
+    }
+
+    public void setUseSNI(boolean useSNI) {
+        this.useSNI = useSNI;
     }
 }
