@@ -70,7 +70,7 @@ public class SSLFilter extends SslFilter {
 
             if (remoteAddress instanceof InetSocketAddress) {
                 // activate the SNI support in the JSSE SSLEngine
-                log.info("activating TLS SNI support for peer address: " + remoteAddress);
+                log.info("activating TLS SNI support for peer address: {}", remoteAddress);
                 session.setAttribute(PEER_ADDRESS, remoteAddress);
             }
         }
