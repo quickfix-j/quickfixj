@@ -1,7 +1,4 @@
 extraction:
-  javascript:
+  java:
     index:
-      filters:
-        - exclude: "**/*.html"
-        - exclude: "**/*.js"
-        - exclude: "**/*.yml"
+      java_version: "9"
