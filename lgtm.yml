@@ -4,7 +4,7 @@ extraction:
       exclude:
         - quickfixj-core
         - quickfixj-codegenerator
-        - /opt/dist/tools
+        - ../dist/tools
       filters:
         - exclude: "*.html"
         - exclude: "*.js"
