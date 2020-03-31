@@ -1,7 +1,5 @@
 extraction:
   javascript:
-    after_prepare:
-      - export LGTM_TRAP_CACHE=
     index:
       exclude:
         - quickfixj-core
