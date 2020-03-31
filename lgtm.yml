@@ -1,10 +1,11 @@
 extraction:
   javascript:
+    after_prepare:
+      - export LGTM_TRAP_CACHE=
     index:
       exclude:
         - quickfixj-core
         - quickfixj-codegenerator
-        - ../dist/tools
       filters:
         - exclude: "*.html"
         - exclude: "*.js"
@@ -12,3 +13,4 @@ extraction:
         - exclude: "**/*.html"
         - exclude: "**/*.js"
         - exclude: "**/*.yml"
+      typescript: none
