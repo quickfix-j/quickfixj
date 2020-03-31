@@ -3,8 +3,8 @@ extraction:
     index:
       exclude:
         - quickfixj-core
-        - tools
         - quickfixj-codegenerator
+        - /opt/dist/tools
       filters:
         - exclude: "*.html"
         - exclude: "*.js"
