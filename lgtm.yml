@@ -2,7 +2,4 @@ extraction:
   javascript:
     index:
       exclude:
-        - /
-      filters:
-        - exclude: "**/*.html"
-        - exclude: "**/*.js"
+        - "**/*"
