@@ -1,0 +1,14 @@
+extraction:
+  javascript:
+    index:
+      exclude:
+        - quickfixj-core
+        - tools
+        - quickfixj-codegenerator
+      filters:
+        - exclude: "*.html"
+        - exclude: "*.js"
+        - exclude: "*.yml"
+        - exclude: "**/*.html"
+        - exclude: "**/*.js"
+        - exclude: "**/*.yml"
