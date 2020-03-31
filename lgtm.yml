@@ -1,5 +1,8 @@
-path_classifiers:
-  js:
-    - exclude: "**/*.js"
-  html:
-    - exclude: "**/*.html"
+extraction:
+  javascript:
+    index:
+      exclude:
+        - /
+      filters:
+        - exclude: "**/*.html"
+        - exclude: "**/*.js"
