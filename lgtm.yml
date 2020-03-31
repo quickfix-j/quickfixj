@@ -1,5 +1,5 @@
-extraction:
-  javascript:
-    index:
-      exclude:
-        - "*"
+path_classifiers:
+  js:
+    - exclude: "**/*.js"
+  html:
+    - exclude: "**/*.html"
