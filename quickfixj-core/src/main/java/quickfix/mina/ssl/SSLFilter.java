@@ -31,8 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An extended SSL filter based on MINA {@link SslFilter} that disables setting
- * enabled cipher suites via default method.
+ * An extended SSL filter based on MINA {@link SslFilter} that applies
+ * some adaptations.
  */
 public class SSLFilter extends SslFilter {
 
@@ -48,8 +48,8 @@ public class SSLFilter extends SslFilter {
     }
 
     /**
-     * This method is called from {@link SslFilter#onPreAdd} every time new
-     * session is created which makes impossible to override enabled cipher
+     * Called from {@link SslFilter#onPreAdd} every time a new
+     * session is created which makes it impossible to override enabled cipher
      * suites configuration.
      */
     @Override
@@ -60,6 +60,10 @@ public class SSLFilter extends SslFilter {
         super.setEnabledCipherSuites(cipherSuites);
     }
 
+    /**
+     * Called before filter is added into the chain.
+     * We activate Server Name Indication if it is enabled in the session config.
+     */
     @Override
     public void onPreAdd(IoFilterChain parent, String name, NextFilter nextFilter)
         throws SSLException {
@@ -70,7 +74,7 @@ public class SSLFilter extends SslFilter {
 
             if (remoteAddress instanceof InetSocketAddress) {
                 // activate the SNI support in the JSSE SSLEngine
-                log.info("activating TLS SNI support for peer address: {}", remoteAddress);
+                log.info("Activating TLS SNI support for peer address: {}", remoteAddress);
                 session.setAttribute(PEER_ADDRESS, remoteAddress);
             }
         }
