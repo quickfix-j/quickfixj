@@ -36,6 +36,7 @@ public class SSLConfig {
 	private String[] enabledProtocols;
 	private String[] enabledCipherSuites;
 	private boolean needClientAuth;
+	private boolean useSNI;
 
 	@Override
 	public boolean equals(Object obj) {
@@ -80,6 +81,8 @@ public class SSLConfig {
 		} else if (!trustStoreName.equals(other.trustStoreName))
 			return false;
 		if (!Arrays.equals(trustStorePassword, other.trustStorePassword))
+			return false;
+		if(useSNI != other.useSNI)
 			return false;
 		if (trustStoreType == null) {
 			return other.trustStoreType == null;
@@ -149,6 +152,10 @@ public class SSLConfig {
 		return needClientAuth;
 	}
 
+	public boolean isUseSNI() {
+		return useSNI;
+	}
+
 	public void setEnabledCipherSuites(String[] enabledCipherSuites) {
 		this.enabledCipherSuites = enabledCipherSuites;
 	}
@@ -175,6 +182,10 @@ public class SSLConfig {
 
 	public void setNeedClientAuth(boolean needClientAuth) {
 		this.needClientAuth = needClientAuth;
+	}
+
+	public void setUseSNI(boolean useSNI) {
+		this.useSNI = useSNI;
 	}
 
 	public void setTrustManagerFactoryAlgorithm(String trustManagerFactoryAlgorithm) {
