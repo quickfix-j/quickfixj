@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -63,8 +64,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<IoSessionInitiator> initiators = new HashSet<>();
-    private static final ScheduledExecutorService SCHEDULED_RECONNECT_EXECUTOR = Executors
-            .newScheduledThreadPool(3, new QFScheduledReconnectThreadFactory());
+    private final ScheduledExecutorService scheduledReconnectExecutor;
+    public static final String QFJ_RECONNECT_THREAD_PREFIX = "QFJ Reconnect Thread-";
 
     protected AbstractSocketInitiator(Application application,
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
@@ -75,19 +76,37 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
+        this(settings, sessionFactory, 0);
+    }
+
+    protected AbstractSocketInitiator(Application application,
+            MessageStoreFactory messageStoreFactory, SessionSettings settings,
+            LogFactory logFactory, MessageFactory messageFactory, int numReconnectThreads) throws ConfigError {
+        this(settings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
+                messageFactory), numReconnectThreads);
+    }
+
+    protected AbstractSocketInitiator(SessionSettings settings, SessionFactory sessionFactory, int numReconnectThreads)
+            throws ConfigError {
         super(settings, sessionFactory);
         IoBuffer.setAllocator(new SimpleBufferAllocator());
         IoBuffer.setUseDirectBuffer(false);
+        if (numReconnectThreads > 0) {
+            scheduledReconnectExecutor = Executors.newScheduledThreadPool(numReconnectThreads, new QFScheduledReconnectThreadFactory());
+            ((ThreadPoolExecutor)scheduledReconnectExecutor).setMaximumPoolSize(numReconnectThreads);
+        } else {
+            scheduledReconnectExecutor = null;
+        }
     }
 
-
+    // TODO move to end of class
     private static class QFScheduledReconnectThreadFactory implements ThreadFactory {
 
         private static final AtomicInteger COUNTER = new AtomicInteger(1);
 
         @Override
         public Thread newThread(Runnable runnable) {
-            Thread thread = new Thread(runnable, "QFJ ReconnectTask-" + COUNTER.getAndIncrement());
+            Thread thread = new Thread(runnable, QFJ_RECONNECT_THREAD_PREFIX + COUNTER.getAndIncrement());
             thread.setDaemon(true);
             return thread;
         }
@@ -164,9 +183,10 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             proxyPort = (int) settings.getLong(sessionID, Initiator.SETTING_PROXY_PORT);
         }
 
+        ScheduledExecutorService scheduledExecutorService = (scheduledReconnectExecutor != null ? scheduledReconnectExecutor : getScheduledExecutorService());
         final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
                 socketAddresses, localAddress, reconnectingIntervals,
-                SCHEDULED_RECONNECT_EXECUTOR, networkingOptions,
+                scheduledExecutorService, networkingOptions,
                 getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
                 proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
 
