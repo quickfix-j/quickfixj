@@ -93,22 +93,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         IoBuffer.setUseDirectBuffer(false);
         if (numReconnectThreads > 0) {
             scheduledReconnectExecutor = Executors.newScheduledThreadPool(numReconnectThreads, new QFScheduledReconnectThreadFactory());
-            ((ThreadPoolExecutor)scheduledReconnectExecutor).setMaximumPoolSize(numReconnectThreads);
+            ((ThreadPoolExecutor) scheduledReconnectExecutor).setMaximumPoolSize(numReconnectThreads);
         } else {
             scheduledReconnectExecutor = null;
-        }
-    }
-
-    // TODO move to end of class
-    private static class QFScheduledReconnectThreadFactory implements ThreadFactory {
-
-        private static final AtomicInteger COUNTER = new AtomicInteger(1);
-
-        @Override
-        public Thread newThread(Runnable runnable) {
-            Thread thread = new Thread(runnable, QFJ_RECONNECT_THREAD_PREFIX + COUNTER.getAndIncrement());
-            thread.setDaemon(true);
-            return thread;
         }
     }
 
@@ -348,4 +335,18 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     protected abstract EventHandlingStrategy getEventHandlingStrategy();
+    
+    
+    private static class QFScheduledReconnectThreadFactory implements ThreadFactory {
+
+        private static final AtomicInteger COUNTER = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread thread = new Thread(runnable, QFJ_RECONNECT_THREAD_PREFIX + COUNTER.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        }
+    }
+
 }
