@@ -360,6 +360,8 @@ public class Session implements Closeable {
 
     public static final String SETTING_MAX_SCHEDULED_WRITE_REQUESTS = "MaxScheduledWriteRequests";
 
+    public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -405,6 +407,7 @@ public class Session implements Closeable {
     private boolean forceResendWhenCorruptedStore = false;
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
+    private boolean validateChecksum = true;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -444,7 +447,7 @@ public class Session implements Closeable {
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
                 DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false);
+                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -461,7 +464,8 @@ public class Session implements Closeable {
             boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
-            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed) {
+            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
+            boolean validateChecksum) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -494,6 +498,7 @@ public class Session implements Closeable {
         this.resendRequestChunkSize = resendRequestChunkSize;
         this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
+        this.validateChecksum = validateChecksum;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -1764,7 +1769,7 @@ public class Session implements Closeable {
                 return false;
             }
 
-            if ((checkTooHigh) && state.isResendRequested()) {
+            if (checkTooHigh && state.isResendRequested()) {
                 final ResendRange range;
                 synchronized (state.getLock()) {
                     range = state.getResendRange();
@@ -2411,8 +2416,10 @@ public class Session implements Closeable {
             final ResendRange range = state.getResendRange();
 
             if (!redundantResentRequestsAllowed && msgSeqNum >= range.getBeginSeqNo()) {
+                int endSeqNo = range.getEndSeqNo();
+                String end = endSeqNo == 0 ? "infinity" : Integer.toString(endSeqNo);
                 getLog().onEvent(
-                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + range.getEndSeqNo()
+                        "Already sent ResendRequest FROM: " + range.getBeginSeqNo() + " TO: " + end
                                 + ".  Not sending another.");
                 return;
             }
@@ -2421,12 +2428,24 @@ public class Session implements Closeable {
         generateResendRequest(beginString, msgSeqNum);
     }
 
+    /**
+     * Generate a resend request between the current expected sequence number up to the given msgSeqNum.
+     */
     private void generateResendRequest(String beginString, int msgSeqNum) {
         final int beginSeqNo = getExpectedTargetNum();
         final int endSeqNo = msgSeqNum - 1;
         sendResendRequest(beginString, msgSeqNum, beginSeqNo, endSeqNo);
     }
 
+    /**
+     * Sends a resend request
+     * @param beginString The begin string of the session.
+     *                    FIX 4.1 and earlier get sent 999999 as the upper bound for unbounded requests.
+     *                    FIX 4.2 and later get sent 0
+     * @param msgSeqNum   The sequence number up to which to request
+     * @param beginSeqNo  The sequence number to first request
+     * @param endSeqNo    The highest sequence number to at most request
+     */
     private void sendResendRequest(String beginString, int msgSeqNum, int beginSeqNo, int endSeqNo) {
 
         int lastEndSeqNoSent = resendRequestChunkSize == 0 ? endSeqNo : beginSeqNo
@@ -2449,7 +2468,7 @@ public class Session implements Closeable {
         resendRequest.setInt(EndSeqNo.FIELD, endSeqNo);
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
-        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + lastEndSeqNoSent);
+        getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + (endSeqNo == 0 ? "infinity" : endSeqNo));
         state.setResendRange(beginSeqNo, msgSeqNum - 1, resendRequestChunkSize == 0
                 ? 0
                 : lastEndSeqNoSent);
@@ -2519,6 +2538,16 @@ public class Session implements Closeable {
         state.setLogonSent(true);
     }
 
+    private void persist(Header header, String messageString, int num) throws IOException, FieldNotFound {
+      if (num == 0) {
+          if (persistMessages) {
+              final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
+              state.set(msgSeqNum, messageString);
+          }
+          state.incrNextSenderMsgSeqNum();
+      }
+    }
+
     /**
      * Send the message
      *
@@ -2572,6 +2601,7 @@ public class Session implements Closeable {
                 }
 
                 messageString = message.toString();
+                persist(message.getHeader(), messageString, num);
                 if (MsgType.LOGON.equals(msgType) || MsgType.LOGOUT.equals(msgType)
                         || MsgType.RESEND_REQUEST.equals(msgType)
                         || MsgType.SEQUENCE_RESET.equals(msgType) || isLoggedOn()) {
@@ -2586,17 +2616,10 @@ public class Session implements Closeable {
                     logApplicationException("toApp()", t);
                 }
                 messageString = message.toString();
+                persist(message.getHeader(), messageString, num);
                 if (isLoggedOn()) {
                     result = send(messageString);
                 }
-            }
-
-            if (num == 0) {
-                final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
-                if (persistMessages) {
-                    state.set(msgSeqNum, messageString);
-                }
-                state.incrNextSenderMsgSeqNum();
             }
 
             return result;
@@ -2805,6 +2828,10 @@ public class Session implements Closeable {
         return state.isLogoutTimedOut();
     }
 
+    public boolean isValidateChecksum() {
+        return validateChecksum;
+    }
+
     public boolean isRejectGarbledMessage() {
         return rejectGarbledMessage;
     }
@@ -2920,6 +2947,11 @@ public class Session implements Closeable {
 
     public void setRejectGarbledMessage(boolean rejectGarbledMessage) {
         this.rejectGarbledMessage = rejectGarbledMessage;
+    }
+
+    public void setValidateChecksum(
+            final boolean validateChecksum) {
+        this.validateChecksum = validateChecksum;
     }
 
     public void setRejectInvalidMessage(boolean rejectInvalidMessage) {

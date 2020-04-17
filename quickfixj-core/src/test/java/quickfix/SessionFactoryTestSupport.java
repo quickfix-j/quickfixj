@@ -107,6 +107,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final int resendRequestChunkSize = 0;
         private boolean enableNextExpectedMsgSeqNum = false;
         private final boolean enableLastMsgSeqNumProcessed = false;
+        private final boolean validateChecksum = true;
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), sessionIDSupplier.get(),
@@ -118,7 +119,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed);
+                    enableLastMsgSeqNumProcessed, validateChecksum);
         }
 
         public Builder setBeginString(final String beginString) {

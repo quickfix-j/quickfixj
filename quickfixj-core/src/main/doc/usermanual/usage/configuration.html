@@ -390,6 +390,14 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+      <TD> <I>ValidateChecksum</I> </TD>
+      <TD> If ValidateChecksum is set to N, checksum validation will not be executed on messages.<br>
+          This setting cannot be set to N together with RejectGarbledMessage set to Y, in this case Config Error will be thrown.
+      </TD>
+      <TD> Y<br>N</TD>
+      <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD><I>AllowUnknownMsgFields</I></TD>
     <TD>If set to Y, non user defined fields (field with tag < 5000) will not be rejected if they are not
       defined in the data dictionary, or are present in messages they do not
@@ -676,13 +684,19 @@
     <TD valign="top"> <I>EnabledProtocols</I></TD>
     <TD>Protocols enabled for use with the SSL engine.</TD>
     <TD></TD>
-    <TD><a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html">Java supported protocols</a></TD>
+    <TD><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">Java supported protocols</a></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD valign="top"> <I>CipherSuites</I></TD>
     <TD>Cipher suites enabled for use with the SSL engine.</TD>
     <TD></TD>
-    <TD><a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html">Java default cipher suites</a></TD>
+    <TD><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">Java default cipher suites</a></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>UseSNI</I></TD>
+    <TD>Configures the SSL engine to use Server Name Indication. This option is only useful to initiators.</TD>
+    <TD>Y<BR>N</TD>
+    <TD>N</TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
@@ -1271,7 +1285,7 @@
   </TABLE>
 
   <H3><A NAME="Invalid vs Garbled Messages">Rejecting Invalid vs Garbled Messages</A></H3>
-  
+
   <p>
       There are mainly two settings that influence QFJ's rejection behaviour:
   </p>
@@ -1284,9 +1298,9 @@
       While the first applies to messages that fail data dictionary validation,
       the latter applies to messages that fail basic validity checks on the FIX protocol level.
   </p>
-  
+
   <H4>Setting RejectInvalidMessage</H4>
-  
+
   <p>
       If RejectInvalidMessage is set to
   </p>

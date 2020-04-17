@@ -69,9 +69,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>1.7.25</slf4j.version>
+		<slf4j.version>1.7.30</slf4j.version>
 		<junit.version>4.12</junit.version>
-		<mainClass />
+		<mainClass/>
 
 		<maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.8.0</maven-compiler-plugin-version>
@@ -248,7 +248,7 @@
 				        <artifactId>maven-bundle-plugin</artifactId>
                         <executions>
                             <execution>
-                                <phase />
+                                <phase/>
                             </execution>
                         </executions>
 			        </plugin>

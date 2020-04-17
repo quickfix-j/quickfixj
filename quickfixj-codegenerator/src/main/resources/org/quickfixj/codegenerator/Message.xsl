@@ -65,8 +65,6 @@ public class Message extends quickfix.Message {
 
 	protected Message(int[] fieldOrder) {
 		super(fieldOrder);
-		header = new Header(this);
-		trailer = new Trailer();
 		<xsl:choose>
 			<xsl:when test="//fix/@major='4'">
 		getHeader().setField(new BeginString("FIX.<xsl:value-of select="//fix/@major"/>.<xsl:value-of select="//fix/@minor"/>"));
@@ -76,6 +74,11 @@ public class Message extends quickfix.Message {
 			</xsl:when>
 		</xsl:choose>
 	}
+
+    @Override
+    protected Header newHeader() {
+        return new Header(this);
+    }
 
 	public static class Header extends quickfix.Message.Header {
 

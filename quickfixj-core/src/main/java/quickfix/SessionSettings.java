@@ -99,18 +99,21 @@ public class SessionSettings {
      * Loads session settings from a file.
      *
      * @param filename the path to the file containing the session settings
+     * @throws quickfix.ConfigError when file could not be loaded
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
-        InputStream in = getClass().getClassLoader().getResourceAsStream(filename);
-        if (in == null) {
-            try {
-                in = new FileInputStream(filename);
-            } catch (final IOException e) {
-                throw new ConfigError(e.getMessage());
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
+            if (in != null) {
+                load(in);
+            } else {
+                try (InputStream in2 = new FileInputStream(filename)) {
+                    load(in2);
+                }
             }
+        } catch (final IOException ex) {
+            throw new ConfigError(ex.getMessage());
         }
-        load(in);
     }
 
     /**
@@ -376,11 +379,10 @@ public class SessionSettings {
     }
 
     private void load(InputStream inputStream) throws ConfigError {
-        try {
+        try (final Reader reader = new InputStreamReader(inputStream)) {
             Properties currentSection = null;
             String currentSectionId = null;
             final Tokenizer tokenizer = new Tokenizer();
-            final Reader reader = new InputStreamReader(inputStream);
             Tokenizer.Token token = tokenizer.getToken(reader);
             while (token != null) {
                 if (token.getType() == Tokenizer.SECTION_TOKEN) {
@@ -404,7 +406,6 @@ public class SessionSettings {
             storeSection(currentSectionId, currentSection);
         } catch (final IOException e) {
             final ConfigError configError = new ConfigError(e.getMessage());
-            configError.fillInStackTrace();
             throw configError;
         }
     }

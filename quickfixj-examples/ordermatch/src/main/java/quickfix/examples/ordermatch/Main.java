@@ -28,13 +28,14 @@ import quickfix.SocketAcceptor;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class Main {
     public static void main(String[] args) {
+        InputStream inputStream = null;
         try {
-            InputStream inputStream = null;
             if (args.length == 0) {
                 inputStream = OrderMatcher.class.getResourceAsStream("ordermatch.cfg");
             } else if (args.length == 1) {
@@ -75,6 +76,14 @@ public class Main {
             System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException ex) {
+                // ignore on close
+            }
         }
     }
 

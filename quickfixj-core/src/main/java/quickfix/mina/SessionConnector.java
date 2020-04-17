@@ -239,10 +239,6 @@ public abstract class SessionConnector implements Connector {
 
     protected void logoutAllSessions(boolean forceDisconnect) {
         log.info("Logging out all sessions");
-        if (sessions == null) {
-            log.error("Attempt to logout all sessions before initialization is complete.");
-            return;
-        }
         for (Session session : sessions.values()) {
             try {
                 session.logout();

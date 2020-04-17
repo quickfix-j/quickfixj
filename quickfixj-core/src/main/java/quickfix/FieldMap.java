@@ -24,6 +24,7 @@ import quickfix.field.BodyLength;
 import quickfix.field.CheckSum;
 import quickfix.field.SessionRejectReason;
 import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharArrayConverter;
 import quickfix.field.converter.CharConverter;
 import quickfix.field.converter.DecimalConverter;
 import quickfix.field.converter.DoubleConverter;
@@ -169,6 +170,10 @@ public abstract class FieldMap implements Serializable {
         setField(new StringField(field, CharConverter.convert(value)));
     }
 
+    public void setChars(int field, char... value) {
+        setField(field, new StringField(field, CharArrayConverter.convert(value)));
+    }
+
     public void setInt(int field, int value) {
         setField(new StringField(field, IntConverter.convert(value)));
     }
@@ -257,6 +262,14 @@ public abstract class FieldMap implements Serializable {
     public char getChar(int field) throws FieldNotFound {
         try {
             return CharConverter.convert(getString(field));
+        } catch (final FieldConvertError e) {
+            throw newIncorrectDataException(e, field);
+        }
+    }
+
+    public char[] getChars(int field) throws FieldNotFound {
+        try {
+            return CharArrayConverter.convert(getString(field));
         } catch (final FieldConvertError e) {
             throw newIncorrectDataException(e, field);
         }

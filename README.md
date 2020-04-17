@@ -1,8 +1,10 @@
 QuickFIX/J
 ==========
 
-[![Build Status](https://travis-ci.org/quickfix-j/quickfixj.svg?branch=master)](https://travis-ci.org/quickfix-j/quickfixj)
+[![Build Status](https://travis-ci.com/quickfix-j/quickfixj.svg?branch=master)](https://travis-ci.com/quickfix-j/quickfixj)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/alerts/)
+[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/context:java)
 
 This is the official QuickFIX/J project repository.
 
@@ -21,10 +23,19 @@ For more information see the project website at http://www.quickfixj.org.
 Check out the wiki: https://github.com/quickfix-j/quickfixj/wiki
 
 ## questions
-For asking questions please use the mailing list: https://lists.sourceforge.net/lists/listinfo/quickfixj-users
+For asking questions please either use the mailing list https://lists.sourceforge.net/lists/listinfo/quickfixj-users or ask on Stack Overflow https://stackoverflow.com/questions/ask?tags=quickfixj .
 
 ## issues
-Please report issues at http://www.quickfixj.org/jira.
+Please report issues here: https://github.com/quickfix-j/quickfixj/issues
+
+## security
+QuickFIX/J welcomes and appreciates responsible disclosure. Contributors are given appropriate credit in release notes and Git logs.
+
+For security issues in QuickFIX/J itself contact the project maintainer: christoph.john-at-macd.com
+
+For security issues in libraries used by QuickFIX/J contact the relevant project team (e.g. for Apache MINA: https://www.apache.org/security/ ). If you feel they are particularly exploitable via QuickFIX/J also feel free to follow up with the project maintainer as above so that we upgrade to the new version in a timely fashion.
+
+Once a security issue is fixed in QuickFIX/J it will be communicated via the user mailing list and other appropriate channels.
 
 ## contributions
 Pull requests are always welcome! Best is if you added a unit test to show that a certain bug has been fixed or a new feature works as expected.

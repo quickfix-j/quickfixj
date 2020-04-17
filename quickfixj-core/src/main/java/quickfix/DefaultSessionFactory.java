@@ -84,6 +84,14 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean rejectGarbledMessage = getSetting(settings, sessionID,
                     Session.SETTING_REJECT_GARBLED_MESSAGE, false);
 
+            final boolean validateChecksum = getSetting(settings, sessionID,
+                    Session.SETTING_VALIDATE_CHECKSUM, true);
+
+            if (rejectGarbledMessage && !validateChecksum) {
+                throw new ConfigError("Not possible to reject garbled message and process " +
+                        "messages with invalid checksum at the same time.");
+            }
+
             final boolean rejectInvalidMessage = getSetting(settings, sessionID,
                     Session.SETTING_REJECT_INVALID_MESSAGE, true);
 
@@ -215,7 +223,8 @@ public class DefaultSessionFactory implements SessionFactory {
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck, rejectGarbledMessage,
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
-                    resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed);
+                    resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
+                    validateChecksum);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);

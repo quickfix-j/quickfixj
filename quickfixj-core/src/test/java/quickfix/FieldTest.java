@@ -21,11 +21,16 @@ package quickfix;
 
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
+import quickfix.field.ClOrdID;
+import quickfix.field.ExecInst;
 import quickfix.field.MDUpdateAction;
+import quickfix.field.OrdType;
 import quickfix.field.RawData;
 import quickfix.field.Side;
 import quickfix.field.TradeCondition;
+import quickfix.field.TransactTime;
 import quickfix.fix50.MarketDataIncrementalRefresh;
+import quickfix.fix50.NewOrderSingle;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -261,18 +266,32 @@ public class FieldTest {
     // QFJ-881
     @Test
     public void testMultipleStringValue() throws Exception {
-
         assertEquals(FieldType.MULTIPLESTRINGVALUE, FieldType.fromName("notused", "MULTIPLESTRINGVALUE"));
         assertEquals(FieldType.MULTIPLEVALUESTRING, FieldType.fromName("notused", "MULTIPLEVALUESTRING"));
 
         MarketDataIncrementalRefresh md = new MarketDataIncrementalRefresh();
         MarketDataIncrementalRefresh.NoMDEntries value = new MarketDataIncrementalRefresh.NoMDEntries();
         value.set(new MDUpdateAction(MDUpdateAction.NEW));
-        value.set(new TradeCondition("A B"));
+        value.set(new TradeCondition("A B AF AG"));
         md.addGroup(value);
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
         dd.validate(md);
+    }
+
+    @Test
+    public void testMultipleCharValue() throws Exception {
+        assertEquals(FieldType.MULTIPLECHARVALUE, FieldType.fromName("notused", "MULTIPLECHARVALUE"));
+
+        NewOrderSingle nos = new NewOrderSingle();
+        nos.set(new ClOrdID("ORDER-1"));
+        nos.set(new Side(Side.BUY));
+        nos.set(new OrdType(OrdType.MARKET));
+        nos.set(new ExecInst("i V 7"));
+        nos.set(new TransactTime(LocalDateTime.of(2020, 3, 10, 12, 23, 44)));
+
+        DataDictionary dd = new DataDictionary("FIX50.xml");
+        dd.validate(nos);
     }
 
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {
