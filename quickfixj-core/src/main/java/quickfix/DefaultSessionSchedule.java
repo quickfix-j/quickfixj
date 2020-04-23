@@ -41,10 +41,17 @@ public class DefaultSessionSchedule implements SessionSchedule {
     private final int[] weekdayOffsets;
     protected static final Logger LOG = LoggerFactory.getLogger(DefaultSessionSchedule.class);
 
+    //Cache recent time data to reduce creation of calendar objects
+    private ThreadLocal<Calendar> threadLocalCalendar;
+    private ThreadLocal<TimeInterval> threadLocalRecentTimeInterval;
+
     public DefaultSessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
+        threadLocalCalendar = ThreadLocal.withInitial(SystemTime::getUtcCalendar);
+        threadLocalRecentTimeInterval = new ThreadLocal<>();
+        isNonStopSession = settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION)
+            && settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
 
-        isNonStopSession = settings.isSetting(sessionID, Session.SETTING_NON_STOP_SESSION) && settings.getBool(sessionID, Session.SETTING_NON_STOP_SESSION);
         TimeZone defaultTimeZone = getDefaultTimeZone(settings, sessionID);
         if (isNonStopSession) {
             isWeekdaySession = false;
@@ -104,7 +111,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
     }
 
     private TimeZone getDefaultTimeZone(SessionSettings settings, SessionID sessionID)
-            throws ConfigError, FieldConvertError {
+            throws ConfigError {
         TimeZone sessionTimeZone;
         if (settings.isSetting(sessionID, Session.SETTING_TIMEZONE)) {
             String sessionTimeZoneID = settings.getString(sessionID, Session.SETTING_TIMEZONE);
@@ -300,9 +307,16 @@ public class DefaultSessionSchedule implements SessionSchedule {
         if(isNonStopSession()) {
             return true;
         }
-        Calendar now = SystemTime.getUtcCalendar();
-        TimeInterval interval = theMostRecentIntervalBefore(now);
-        return interval.isContainingTime(now);
+        Calendar now = threadLocalCalendar.get();
+        now.setTimeInMillis(SystemTime.currentTimeMillis());
+        TimeInterval mostRecentInterval = threadLocalRecentTimeInterval.get();
+        if (mostRecentInterval != null && mostRecentInterval.isContainingTime(now)) {
+            return true;
+        }
+        mostRecentInterval = theMostRecentIntervalBefore(now);
+        boolean result = mostRecentInterval.isContainingTime(now);
+        threadLocalRecentTimeInterval.set(mostRecentInterval);
+        return result;
     }
 
     public String toString() {

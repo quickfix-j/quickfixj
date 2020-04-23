@@ -153,6 +153,14 @@ public class FileStore implements MessageStore, Closeable {
         return cache.getCreationTime();
     }
 
+    /* (non-Javadoc)
+     * @see quickfix.MessageStore#getCreationTimeCalendar()
+     */
+    @Override
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return cache.getCreationTimeCalendar();
+    }
+
     private void initializeSequenceNumbers() throws IOException {
         senderSequenceNumberFile.seek(0);
         if (senderSequenceNumberFile.length() > 0) {
