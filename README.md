@@ -9,7 +9,7 @@ QuickFIX/J
 This is the official QuickFIX/J project repository.
 
 ## intro
-QuickFIX/J is a full featured messaging engine for the FIX protocol.
+QuickFIX/J is a full featured messaging engine for the FIX protocol (FIX versions 4.0 - 5.0SP2/FIXT1.1).
 It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
 
 The Financial Information eXchange (FIX) protocol is a messaging standard developed
