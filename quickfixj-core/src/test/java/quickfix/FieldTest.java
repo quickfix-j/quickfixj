@@ -276,7 +276,7 @@ public class FieldTest {
         md.addGroup(value);
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(md);
+        dd.validate(md, new ValidationSettings());
     }
 
     @Test
