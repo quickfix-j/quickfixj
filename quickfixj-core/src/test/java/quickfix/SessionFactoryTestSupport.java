@@ -3,6 +3,8 @@ package quickfix;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -108,6 +110,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean enableNextExpectedMsgSeqNum = false;
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
+        private List<StringField> logonTags = new ArrayList<>();
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), sessionIDSupplier.get(),
@@ -119,7 +122,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags);
         }
 
         public Builder setBeginString(final String beginString) {
@@ -166,6 +169,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setLogFactory(final LogFactory logFactory) {
             this.logFactorySupplier = () -> logFactory;
+            return this;
+        }
+
+        public Builder setLogonTags(final List<StringField> logonTags) {
+            this.logonTags = logonTags;
             return this;
         }
 

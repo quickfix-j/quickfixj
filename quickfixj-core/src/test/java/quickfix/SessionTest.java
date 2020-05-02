@@ -48,11 +48,26 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import static quickfix.SessionFactoryTestSupport.createSession;
 
 /**
@@ -86,7 +101,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true)) {
+                null, true, 0, false, false, true, new ArrayList<>())) {
             // Simulate socket disconnect
             session.setResponder(null);
         }
@@ -127,7 +142,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true)) {
+                null, true, 0, false, false, true, new ArrayList<>())) {
             // Simulate socket disconnect
             session.setResponder(null);
             
@@ -1024,6 +1039,84 @@ public class SessionTest {
         }
     }
 
+    @Test
+    public void testLogonTagsInitiator() throws Exception {
+        int logonTag1 = 553;    // body field
+        int logonTag2 = 50;    // header field
+        String logonTagValue1 = "foo123=bar";
+        String logonTagValue2 = "barsubid";
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "foo", "bar");
+        String settingsString = "";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.4\n";
+        settingsString += "ConnectionType=initiator\n";
+        settingsString += "SocketConnectPort=5001\n";
+        settingsString += "SocketConnectHost=localhost\n";
+        settingsString += "StartTime=00:00:00\n";
+        settingsString += "EndTime=00:00:00\n";
+        settingsString += "SenderCompID=foo\n";
+        settingsString += "TargetCompID=bar\n";
+        settingsString += "HeartBtInt=30\n";
+        settingsString += "LogonTag=" + logonTag1 + "=" + logonTagValue1 + "\n";
+        settingsString += "LogonTag1=" + logonTag2 + "=" + logonTagValue2 + "\n";
+
+        SessionSettings settings = SessionSettingsTest.setUpSession(settingsString);
+        UnitTestApplication application = new UnitTestApplication();
+        DefaultSessionFactory sessionFactory = new DefaultSessionFactory(application, new MemoryStoreFactory(), new ScreenLogFactory());
+        try (Session session = sessionFactory.create(sessionID, settings)) {
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            session.logon();
+            session.next();
+            Message logonMessage = application.toAdminMessages.get(0);
+            assertTrue(logonMessage.isSetField(logonTag1));
+            assertTrue(logonMessage.getHeader().isSetField(logonTag2));
+            assertEquals(logonTagValue1, logonMessage.getString(logonTag1));
+            assertEquals(logonTagValue2, logonMessage.getHeader().getString(logonTag2));
+            session.getDataDictionary().validate(logonMessage);
+        }
+    }
+    
+
+    @Test
+    public void testLogonTagsAcceptor() throws Exception {
+        int logonTag1 = 553;    // body field
+        int logonTag2 = 50;    // header field
+        String logonTagValue1 = "foo123=bar";
+        String logonTagValue2 = "barsubid";
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "foo", "bar");
+        String settingsString = "";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.4\n";
+        settingsString += "ConnectionType=acceptor\n";
+        settingsString += "SocketAcceptPort=5001\n";
+        settingsString += "StartTime=00:00:00\n";
+        settingsString += "EndTime=00:00:00\n";
+        settingsString += "SenderCompID=foo\n";
+        settingsString += "TargetCompID=bar\n";
+        settingsString += "HeartBtInt=30\n";
+        settingsString += "DataDictionary=FIX44.xml\n";
+        settingsString += "LogonTag=" + logonTag1 + "=" + logonTagValue1 + "\n";
+        settingsString += "LogonTag1=" + logonTag2 + "=" + logonTagValue2 + "\n";
+
+        SessionSettings settings = SessionSettingsTest.setUpSession(settingsString);
+        UnitTestApplication application = new UnitTestApplication();
+        DefaultSessionFactory sessionFactory = new DefaultSessionFactory(application, new MemoryStoreFactory(), new ScreenLogFactory());
+        try (Session session = sessionFactory.create(sessionID, settings)) {
+            UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+            logonTo(session);
+            session.next();
+            assertTrue(session.isLoggedOn());
+            Message logonMessage = application.toAdminMessages.get(0);
+            assertTrue(logonMessage.isSetField(logonTag1));
+            assertTrue(logonMessage.getHeader().isSetField(logonTag2));
+            assertEquals(logonTagValue1, logonMessage.getString(logonTag1));
+            assertEquals(logonTagValue2, logonMessage.getHeader().getString(logonTag2));
+            session.getDataDictionary().validate(logonMessage);
+        }
+    }
+    
     // QFJ-60
     @Test
     public void testRejectLogon() throws Exception {
@@ -1981,7 +2074,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, false, false, false, true, false, true, false, null, true,
-                chunkSize, false, false, true)) {
+                chunkSize, false, false, true, new ArrayList<>())) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2043,7 +2136,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				false, false, true);
+				false, false, true, new ArrayList<>());
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2091,7 +2184,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				enableNextExpectedMsgSeqNum, false, true);
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>());
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2140,7 +2233,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true)) {
+                null, true, 0, false, false, true, new ArrayList<>())) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2176,7 +2269,7 @@ public class SessionTest {
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true)) {
+                null, true, 0, false, false, true, new ArrayList<>())) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2228,7 +2321,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true);
+                false, false, true, new ArrayList<>());
 
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -2344,7 +2437,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true);
+                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>());
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
 
@@ -2466,6 +2559,8 @@ public class SessionTest {
         final Logon receivedLogon = new Logon();
         setUpHeader(session.getSessionID(), receivedLogon, true, sequence);
         receivedLogon.setInt(HeartBtInt.FIELD, 30);
+        receivedLogon.setInt(EncryptMethod.FIELD, 0);
+        receivedLogon.toString();   // calculate length and checksum
         session.next(receivedLogon);
     }
 

@@ -1192,7 +1192,29 @@
 
     <TD COLSPAN="4" class="subsection"><A NAME="Miscellaneous">Miscellaneous</A></TD>
   </TR>
-<TR ALIGN="left" VALIGN="middle">
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogonTag</I> </TD>
+    <TD> Tag/value pair which will be set on sent or received Logon message. </TD>
+    <TD> &lt;tag&gt;=&lt;value&gt;, where "tag" has to be a positive integer and "value" a String <br>
+        Example: <br>
+                 LogonTag=553=foo
+                 </TD>
+    <TD> </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogonTag&lt;n&gt;</I> </TD>
+    <TD> Additional tag/value pairs which will be set on sent or received Logon message,<br>
+         where <b>n</b> is a positive integer, i.e. LogonTag1, LogonTag2, etc.
+         Must be consecutive.
+    </TD>
+    <TD> &lt;tag&gt;=&lt;value&gt;, where "tag" has to be a positive integer and "value" a String <br>
+        Example: <br>
+                 LogonTag=553=user<br>
+                 LogonTag1=554=password
+                 </TD>
+    <TD> </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnLogon</I> </TD>
     <TD> Determines if sequence numbers should be reset before sending/receiving a logon request. </TD>
     <TD> Y<br>N</TD>
@@ -1202,13 +1224,11 @@
     <TD> <I>ResetOnLogout</I> </TD>
     <TD> Determines if sequence numbers should be reset to 1 after a normal logout termination. </TD>
     <TD> Y<br>N</TD>
-
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnDisconnect</I> </TD>
     <TD> Determines if sequence numbers should be reset to 1 after an abnormal termination. </TD>
-
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>

@@ -25,8 +25,10 @@ import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -214,6 +216,8 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final SessionSchedule sessionSchedule = sessionScheduleFactory.create(sessionID, settings);
 
+            final List<StringField> logonTags = getLogonTags(settings, sessionID);
+
             final Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionaryProvider, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
@@ -224,7 +228,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum);
+                    validateChecksum, logonTags);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -425,6 +429,23 @@ public class DefaultSessionFactory implements SessionFactory {
         } else {
             return defaultValue;
         }
+    }
+
+    private List<StringField> getLogonTags(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
+        List<StringField> logonTags = new ArrayList<>();
+        for (int index = 0;; index++) {
+            final String logonTagSetting = Session.SETTING_LOGON_TAG
+                    + (index == 0 ? "" : NumbersCache.get(index));
+            if (settings.isSetting(sessionID, logonTagSetting)) {
+                String tag = settings.getString(sessionID, logonTagSetting);
+                String[] split = tag.split("=", 2);
+                StringField stringField = new StringField(Integer.valueOf(split[0]), split[1]);
+                logonTags.add(stringField);
+            } else {
+                break;
+            }
+        }
+        return logonTags;
     }
 
 }

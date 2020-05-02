@@ -80,10 +80,11 @@ public /*abstract*/ class Field<T> implements Serializable {
     }
 
     /**
-     * Return's the formatted field (tag=value<SOH>)
+     * Returns the formatted field (tag=value<SOH>)
      *
      * @return the formatted field
      */
+    @Override
     public String toString() {
         calculate();
         return data;
