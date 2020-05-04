@@ -131,11 +131,11 @@ public class MessageUtils {
         final String msgType = getMessageType(messageString);
         final MessageFactory messageFactory = session.getMessageFactory();
         final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
-        ApplVerID applVerID = null;
+        final ApplVerID applVerID;
         final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
                 .getSessionDataDictionary(beginString);
-        quickfix.Message message;
-        DataDictionary payloadDictionary;
+        final quickfix.Message message;
+        final DataDictionary payloadDictionary;
 
         if (!isAdminMessage(msgType) || isLogon(messageString)) {
             if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
@@ -145,18 +145,18 @@ public class MessageUtils {
             }
             final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
                     .getApplicationDataDictionary(applVerID);
-            message = messageFactory.create(beginString, applVerID, msgType);
             payloadDictionary = MessageUtils.isAdminMessage(msgType)
                     ? sessionDataDictionary
                     : applicationDataDictionary;
-       } else {
-            message = messageFactory.create(beginString, applVerID, msgType);
+        } else {
+            applVerID = null;
             payloadDictionary = sessionDataDictionary;
-       }
+        }
 
         final boolean doValidation = payloadDictionary != null;
         final boolean validateChecksum = session.isValidateChecksum();
 
+        message = messageFactory.create(beginString, applVerID, msgType);
         message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
                 validateChecksum);
 
