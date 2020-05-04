@@ -400,7 +400,7 @@ public class Session implements Closeable {
     private final boolean resetOnError;
     private final boolean disconnectOnError;
     private final UtcTimestampPrecision timestampPrecision;
-    private final boolean refreshMessageStoreOnLogon;
+    private final boolean refreshOnLogon;
     private final boolean redundantResentRequestsAllowed;
     private final boolean persistMessages;
     private final boolean checkCompID;
@@ -463,7 +463,7 @@ public class Session implements Closeable {
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
             boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
             boolean resetOnLogon, boolean resetOnLogout, boolean resetOnDisconnect,
-            boolean refreshMessageStoreOnLogon, boolean checkCompID,
+            boolean refreshOnLogon, boolean checkCompID,
             boolean redundantResentRequestsAllowed, boolean persistMessages,
             boolean useClosedRangeForResend, double testRequestDelayMultiplier,
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
@@ -483,7 +483,7 @@ public class Session implements Closeable {
         this.resetOnLogout = resetOnLogout;
         this.resetOnDisconnect = resetOnDisconnect;
         this.timestampPrecision = timestampPrecision;
-        this.refreshMessageStoreOnLogon = refreshMessageStoreOnLogon;
+        this.refreshOnLogon = refreshOnLogon;
         this.dataDictionaryProvider = dataDictionaryProvider;
         this.messageFactory = messageFactory;
         this.checkCompID = checkCompID;
@@ -1250,7 +1250,7 @@ public class Session implements Closeable {
     }
 
     private boolean isStateRefreshNeeded(String msgType) {
-        return refreshMessageStoreOnLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
+        return refreshOnLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -2798,7 +2798,7 @@ public class Session implements Closeable {
     }
 
     public boolean getRefreshOnLogon() {
-        return refreshMessageStoreOnLogon;
+        return refreshOnLogon;
     }
 
     public boolean getResetOnDisconnect() {
