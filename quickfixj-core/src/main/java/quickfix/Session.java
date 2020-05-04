@@ -289,7 +289,7 @@ public class Session implements Closeable {
 
     /**
      * Requests that state and message data be refreshed from the message store at
-     * logon, if possible. This supports simple failover behavior for acceptors
+     * logon, if possible. This supports simple failover behavior for acceptors.
      */
     public static final String SETTING_REFRESH_ON_LOGON = "RefreshOnLogon";
 
@@ -400,7 +400,7 @@ public class Session implements Closeable {
     private final boolean resetOnError;
     private final boolean disconnectOnError;
     private final UtcTimestampPrecision timestampPrecision;
-    private final boolean refreshMessageStoreAtLogon;
+    private final boolean refreshMessageStoreOnLogon;
     private final boolean redundantResentRequestsAllowed;
     private final boolean persistMessages;
     private final boolean checkCompID;
@@ -463,7 +463,7 @@ public class Session implements Closeable {
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
             boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
             boolean resetOnLogon, boolean resetOnLogout, boolean resetOnDisconnect,
-            boolean refreshMessageStoreAtLogon, boolean checkCompID,
+            boolean refreshMessageStoreOnLogon, boolean checkCompID,
             boolean redundantResentRequestsAllowed, boolean persistMessages,
             boolean useClosedRangeForResend, double testRequestDelayMultiplier,
             DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
@@ -483,7 +483,7 @@ public class Session implements Closeable {
         this.resetOnLogout = resetOnLogout;
         this.resetOnDisconnect = resetOnDisconnect;
         this.timestampPrecision = timestampPrecision;
-        this.refreshMessageStoreAtLogon = refreshMessageStoreAtLogon;
+        this.refreshMessageStoreOnLogon = refreshMessageStoreOnLogon;
         this.dataDictionaryProvider = dataDictionaryProvider;
         this.messageFactory = messageFactory;
         this.checkCompID = checkCompID;
@@ -1250,7 +1250,7 @@ public class Session implements Closeable {
     }
 
     private boolean isStateRefreshNeeded(String msgType) {
-        return refreshMessageStoreAtLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
+        return refreshMessageStoreOnLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
     }
 
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
@@ -2009,7 +2009,7 @@ public class Session implements Closeable {
             logon.setField(DefaultApplVerID.FIELD, senderDefaultApplVerID);
         }
         if (isStateRefreshNeeded(MsgType.LOGON)) {
-            getLog().onEvent("Refreshing message/state store at logon");
+            getLog().onEvent("Refreshing message/state store on Logon");
             getStore().refresh();
             stateListener.onRefresh();
         }
@@ -2798,7 +2798,7 @@ public class Session implements Closeable {
     }
 
     public boolean getRefreshOnLogon() {
-        return refreshMessageStoreAtLogon;
+        return refreshMessageStoreOnLogon;
     }
 
     public boolean getResetOnDisconnect() {
