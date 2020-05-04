@@ -1249,10 +1249,6 @@ public class Session implements Closeable {
         return false;
     }
 
-    private boolean isStateRefreshNeeded(String msgType) {
-        return refreshOnLogon && !state.isInitiator() && MsgType.LOGON.equals(msgType);
-    }
-
     private void nextReject(Message reject) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
         if (!verify(reject, false, validateSequenceNumbers)) {
@@ -2008,10 +2004,8 @@ public class Session implements Closeable {
         if (sessionID.isFIXT()) {
             logon.setField(DefaultApplVerID.FIELD, senderDefaultApplVerID);
         }
-        if (isStateRefreshNeeded(MsgType.LOGON)) {
-            getLog().onEvent("Refreshing message/state store on Logon");
-            getStore().refresh();
-            stateListener.onRefresh();
+        if (refreshOnLogon) {
+            refreshState();
         }
         if (resetOnLogon) {
             resetState();
@@ -2112,10 +2106,8 @@ public class Session implements Closeable {
         // QFJ-926 - reset session before accepting Logon
         resetIfSessionNotCurrent(sessionID, SystemTime.currentTimeMillis());
 
-        if (isStateRefreshNeeded(MsgType.LOGON)) {
-            getLog().onEvent("Refreshing message/state store at logon");
-            getStore().refresh();
-            stateListener.onRefresh();
+        if (refreshOnLogon) {
+            refreshState();
         }
 
         if (logon.isSetField(ResetSeqNumFlag.FIELD)) {
@@ -3028,4 +3020,9 @@ public class Session implements Closeable {
         }
     }
 
+    private void refreshState() throws IOException {
+        getLog().onEvent("Refreshing message/state store on Logon");
+        getStore().refresh();
+        stateListener.onRefresh();
+    }
 }
