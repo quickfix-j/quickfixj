@@ -87,8 +87,8 @@ public abstract class FieldMap implements Serializable {
 
     public void reset() {
         fields.clear();
-        for(List<Group> groupList : groups.values()) {
-            for(Group group : groupList)
+        for (List<Group> groupList : groups.values()) {
+            for (Group group : groupList)
                 group.reset();
         }
         groups.clear();
@@ -199,7 +199,9 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setUtcTimeStamp(int field, LocalDateTime value, boolean includeMilliseconds) {
-        setField(new StringField(field, UtcTimestampConverter.convert(value, includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS)));
+        setField(new StringField(field, UtcTimestampConverter.convert(value, includeMilliseconds ?
+                UtcTimestampPrecision.MILLIS :
+                UtcTimestampPrecision.SECONDS)));
     }
 
     public void setUtcTimeStamp(int field, LocalDateTime value, UtcTimestampPrecision precision) {
@@ -211,7 +213,9 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setUtcTimeOnly(int field, LocalTime value, boolean includeMilliseconds) {
-        setField(new StringField(field, UtcTimeOnlyConverter.convert(value, includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS)));
+        setField(new StringField(field, UtcTimeOnlyConverter.convert(value, includeMilliseconds ?
+                UtcTimestampPrecision.MILLIS :
+                UtcTimestampPrecision.SECONDS)));
     }
 
     public void setUtcTimeOnly(int field, LocalTime value, UtcTimestampPrecision precision) {
@@ -332,6 +336,10 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void setField(int key, Field<?> field) {
+        setString(key, field.convertToString());
+    }
+
+    public void setField(int key, BytesField field) {
         fields.put(key, field);
     }
 
@@ -522,7 +530,8 @@ public abstract class FieldMap implements Serializable {
         }
     }
 
-    private static final boolean IS_STRING_EQUIVALENT = CharsetSupport.isStringEquivalent(CharsetSupport.getCharsetInstance());
+    private static final boolean IS_STRING_EQUIVALENT = CharsetSupport
+            .isStringEquivalent(CharsetSupport.getCharsetInstance());
 
     int calculateLength() {
         int result = 0;
@@ -537,11 +546,14 @@ public abstract class FieldMap implements Serializable {
         for (Entry<Integer, List<Group>> entry : groups.entrySet()) {
             final List<Group> groupList = entry.getValue();
             if (!groupList.isEmpty()) {
-                if(IS_STRING_EQUIVALENT) {
-                    result += getStringLength(entry.getKey()) + getStringLength(groupList.size()) + 2;
+                if (IS_STRING_EQUIVALENT) {
+                    result +=
+                            getStringLength(entry.getKey()) + getStringLength(groupList.size()) + 2;
                 } else {
-                    result += MessageUtils.length(CharsetSupport.getCharsetInstance(), NumbersCache.get(entry.getKey()));
-                    result += MessageUtils.length(CharsetSupport.getCharsetInstance(), NumbersCache.get(groupList.size()));
+                    result += MessageUtils.length(CharsetSupport.getCharsetInstance(),
+                            NumbersCache.get(entry.getKey()));
+                    result += MessageUtils.length(CharsetSupport.getCharsetInstance(),
+                            NumbersCache.get(groupList.size()));
                     result += 2;
                 }
                 for (int i = 0; i < groupList.size(); i++) {
@@ -553,9 +565,10 @@ public abstract class FieldMap implements Serializable {
     }
 
     private static int getStringLength(int num) {
-        if(num == 0)
+        if (num == 0) {
             return 1;
-        return (int)(num > 0 ? Math.log10(num) + 1 : Math.log10(-num) + 2);
+        }
+        return (int) (num > 0 ? Math.log10(num) + 1 : Math.log10(-num) + 2);
     }
 
     int calculateChecksum() {
@@ -569,12 +582,12 @@ public abstract class FieldMap implements Serializable {
         for (Entry<Integer, List<Group>> entry : groups.entrySet()) {
             final List<Group> groupList = entry.getValue();
             if (!groupList.isEmpty()) {
-                if(IS_STRING_EQUIVALENT) {
+                if (IS_STRING_EQUIVALENT) {
                     String value = NumbersCache.get(entry.getKey());
-                    for (int i = value.length(); i-- != 0;)
+                    for (int i = value.length(); i-- != 0; )
                         result += value.charAt(i);
                     value = NumbersCache.get(groupList.size());
-                    for (int i = value.length(); i-- != 0;)
+                    for (int i = value.length(); i-- != 0; )
                         result += value.charAt(i);
                     result += '=' + 1;
                 } else {
@@ -707,5 +720,4 @@ public abstract class FieldMap implements Serializable {
         return hasGroup(group.getFieldTag());
     }
 
-    
 }

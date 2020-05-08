@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import quickfix.field.converter.UtcTimeOnlyConverter;
+
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 
@@ -53,8 +55,14 @@ public class UtcTimeField extends Field<LocalTime> {
     public boolean valueEquals(LocalTime value) {
         return getValue().equals(value);
     }
-    
+
     public UtcTimestampPrecision getPrecision() {
         return precision;
     }
+
+    @Override
+    public String convertToString() {
+        return UtcTimeOnlyConverter.convert(getValue(), getPrecision());
+    }
+
 }
