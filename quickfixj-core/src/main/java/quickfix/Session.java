@@ -225,6 +225,12 @@ public class Session implements Closeable {
     public static final String SETTING_LOGOUT_TIMEOUT = "LogoutTimeout";
 
     /**
+     * Session setting for custom logon tags. Single entry or consecutive list of
+     * tag=value pairs, e.g. LogonTag=553=user and LogonTag1=554=password.
+     */
+    public static final String SETTING_LOGON_TAG = "LogonTag";
+
+    /**
      * Session setting for doing an automatic sequence number reset on logout.
      * Valid values are "Y" or "N". Default is "N".
      */
@@ -437,6 +443,8 @@ public class Session implements Closeable {
     private static final String BAD_ORIG_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, OrigSendingTime.FIELD).getMessage();
     private static final String BAD_TIME_TEXT = new FieldException(BAD_TIME_REJ_REASON, SendingTime.FIELD).getMessage();
 
+    private final List<StringField> logonTags;
+
     protected static final Logger LOG = LoggerFactory.getLogger(Session.class);
 
 
@@ -446,8 +454,8 @@ public class Session implements Closeable {
         this(application, messageStoreFactory, sessionID, dataDictionaryProvider, sessionSchedule,
                 logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
                 false, false, false, false, true, false, true, false,
-                DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
-                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false, false);
+                DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[]{5}, false, false,
+                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false, false, new ArrayList<StringField>());
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -465,7 +473,7 @@ public class Session implements Closeable {
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
-            boolean validateChecksum) {
+            boolean validateChecksum, List<StringField> logonTags) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -499,6 +507,7 @@ public class Session implements Closeable {
         this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
         this.validateChecksum = validateChecksum;
+        this.logonTags = logonTags;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2020,6 +2029,8 @@ public class Session implements Closeable {
             logon.setInt(NextExpectedMsgSeqNum.FIELD, nextExpectedMsgNum);
             state.setLastExpectedLogonNextSeqNum(nextExpectedMsgNum);
         }
+        
+        setLogonTags(logon);
         return sendRaw(logon, 0);
     }
 
@@ -2534,6 +2545,8 @@ public class Session implements Closeable {
         } else {
             getLog().onEvent("Responding to Logon request");
         }
+        
+        setLogonTags(logon);
         sendRaw(logon, 0);
         state.setLogonSent(true);
     }
@@ -3002,6 +3015,17 @@ public class Session implements Closeable {
 
     private String getMessageToLog(final Message message) {
         return (message.toRawString() != null ? message.toRawString() : message.toString());
+    }
+
+    private void setLogonTags(final Message logon) {
+        for (StringField field : logonTags) {
+            if (dataDictionaryProvider != null
+                    && dataDictionaryProvider.getSessionDataDictionary(sessionID.getBeginString()).isHeaderField(field.getTag())) {
+                logon.getHeader().setField(field);
+                continue;
+            }
+            logon.setField(field);
+        }
     }
 
 }
