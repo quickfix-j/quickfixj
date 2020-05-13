@@ -173,6 +173,17 @@ public class DataDictionary {
     }
 
     /**
+     * Get the value, if any, for an enumerated value name.
+     *
+     * @param field the tag
+     * @param name the value name
+     * @return the value assigned to passed name
+     */
+    public String getValue(int field, String name) {
+        return valueNames.getValue(field, name);
+    }
+
+    /**
      * Predicate for determining if a tag is a defined field.
      *
      * @param field the tag
@@ -1253,6 +1264,18 @@ public class DataDictionary {
         public V get(int field, String group) {
             Map<String, V> map = get(field);
             return map == null ? null : map.get(group);
+        }
+
+        public String getValue(int field, String name) {
+            Map<String, V> map = get(field);
+            if (map != null) {
+                for (Entry<String, V> entry : map.entrySet()) {
+                    if (entry.getValue().equals(name)) {
+                        return entry.getKey();
+                    }
+                }
+            }
+            return null;
         }
 
         public void put(int field, String group, V value) {

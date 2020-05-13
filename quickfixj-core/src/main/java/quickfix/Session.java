@@ -3025,4 +3025,5 @@ public class Session implements Closeable {
         getStore().refresh();
         stateListener.onRefresh();
     }
+
 }
