@@ -94,6 +94,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean persistMessages = false;
         private final boolean useClosedRangeForResend = false;
         private final double testRequestDelayMultiplier = 1.5;
+        private final double heartBeatTimeoutMultiplier = 2.5;
         private DefaultApplVerID senderDefaultApplVerID = null;
         private boolean validateSequenceNumbers = true;
         private final int[] logonIntervals = new int[]{5};
@@ -122,7 +123,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier);
         }
 
         public Builder setBeginString(final String beginString) {
