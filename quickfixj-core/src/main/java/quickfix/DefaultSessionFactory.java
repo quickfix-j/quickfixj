@@ -170,6 +170,9 @@ public class DefaultSessionFactory implements SessionFactory {
             final double testRequestDelayMultiplier = getSetting(settings, sessionID,
                     Session.SETTING_TEST_REQUEST_DELAY_MULTIPLIER,
                     Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
+            final double heartBeatTimeoutMultiplier = getSetting(settings, sessionID,
+                    Session.SETTING_HEARTBEAT_TIMEOUT_MULTIPLIER,
+                    Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
 
             final UtcTimestampPrecision timestampPrecision = getTimestampPrecision(settings, sessionID,
                     UtcTimestampPrecision.MILLIS);
@@ -228,7 +231,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum, logonTags);
+                    validateChecksum, logonTags, heartBeatTimeoutMultiplier);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);

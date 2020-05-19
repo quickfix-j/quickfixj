@@ -1285,10 +1285,20 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>TestRequestDelayMultiplier</I></TD>
     <TD>Fraction of the heartbeat interval which defines the additional time to wait
-    if a TestRequest sent after a missing heartbeat times out.
+    if a TestRequest sent after a missing heartbeat times out (final coefficient value is equal to
+    TestRequestDelayMultiplier + 1.0).
     </TD>
-    <TD>0..1</TD>
+    <TD>any non-negative value</TD>
     <TD>0.5</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+      <TD><I>HeartBeatTimeoutMultiplier</I></TD>
+      <TD>Fraction of the heartbeat interval which defines the additional time to wait
+      since the last message was received before disconnecting (final coefficient value is equal to
+      HeartBeatTimeoutMultiplier + 1.0).
+      </TD>
+      <TD>any non-negative value</TD>
+      <TD>1.4</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>DisableHeartBeatCheck</I></TD>

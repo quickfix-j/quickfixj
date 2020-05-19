@@ -40,7 +40,7 @@ public class MockSystemTimeSource implements SystemTimeSource {
         systemTimes = times;
     }
 
-    private void setSystemTimes(long time) {
+    void setSystemTimes(long time) {
         systemTimes = new long[] { time };
     }
 
