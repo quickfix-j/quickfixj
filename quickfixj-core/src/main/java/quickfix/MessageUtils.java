@@ -129,31 +129,34 @@ public class MessageUtils {
     public static Message parse(Session session, String messageString) throws InvalidMessage {
         final String beginString = getStringField(messageString, BeginString.FIELD);
         final String msgType = getMessageType(messageString);
-
-        ApplVerID applVerID;
-
-        if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
-            applVerID = getApplVerID(session, messageString);
-        } else {
-            applVerID = toApplVerID(beginString);
-        }
-
         final MessageFactory messageFactory = session.getMessageFactory();
-
         final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
+        final ApplVerID applVerID;
         final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
                 .getSessionDataDictionary(beginString);
-        final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
-                .getApplicationDataDictionary(applVerID);
+        final quickfix.Message message;
+        final DataDictionary payloadDictionary;
 
-        final quickfix.Message message = messageFactory.create(beginString, applVerID, msgType);
-        final DataDictionary payloadDictionary = MessageUtils.isAdminMessage(msgType)
-                ? sessionDataDictionary
-                : applicationDataDictionary;
+        if (!isAdminMessage(msgType) || isLogon(messageString)) {
+            if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
+                applVerID = getApplVerID(session, messageString);
+            } else {
+                applVerID = toApplVerID(beginString);
+            }
+            final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
+                    .getApplicationDataDictionary(applVerID);
+            payloadDictionary = MessageUtils.isAdminMessage(msgType)
+                    ? sessionDataDictionary
+                    : applicationDataDictionary;
+        } else {
+            applVerID = null;
+            payloadDictionary = sessionDataDictionary;
+        }
 
         final boolean doValidation = payloadDictionary != null;
         final boolean validateChecksum = session.isValidateChecksum();
 
+        message = messageFactory.create(beginString, applVerID, msgType);
         message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
                 validateChecksum);
 

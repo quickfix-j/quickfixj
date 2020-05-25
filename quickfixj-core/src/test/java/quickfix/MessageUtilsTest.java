@@ -196,6 +196,20 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(quickfix.fixt11.Logon.class));
     }
 
+    public void testParseFixtLogout() throws Exception {
+        Session mockSession = mock(Session.class);
+        DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
+        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
+        stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
+
+        quickfix.fixt11.Logout logout = new quickfix.fixt11.Logout();
+
+        Message message = MessageUtils.parse(mockSession, logout.toString());
+
+        assertThat(message, is(notNullValue()));
+        assertThat(message, is(quickfix.fixt11.Logout.class));
+    }
+
     public void testParseFix50() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
