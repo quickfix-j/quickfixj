@@ -145,6 +145,14 @@ public class SessionSettingsTest {
     }
 
     public static SessionSettings setUpSession(String extra) throws ConfigError {
+        String settingsString = getDefaultSettingString();
+        if (extra != null) {
+            settingsString += extra;
+        }
+        return createSettingsFromString(settingsString);
+    }
+
+    private static String getDefaultSettingString() {
         String settingsString = "";
         settingsString += "#comment\n";
         settingsString += "[DEFAULT]\n";
@@ -171,16 +179,19 @@ public class SessionSettingsTest {
         settingsString += "BeginString=FIX.4.2\n";
         settingsString += "TargetCompID=CLIENT2\n";
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
-        if (extra != null) {
-            settingsString += extra;
-        }
-        return createSettingsFromString(settingsString);
+        return settingsString;
     }
 
     private static SessionSettings createSettingsFromString(String settingsString)
             throws ConfigError {
         final ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
         return new SessionSettings(cfg);
+    }
+
+    private static SessionSettings createSettingsFromString(String settingsString, Properties variableValues)
+            throws ConfigError {
+        final ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
+        return new SessionSettings(cfg, variableValues);
     }
 
     @Test
@@ -312,6 +323,50 @@ public class SessionSettingsTest {
         assertEquals("wrong default value", "ABC FOO XYZ FOOBAR 123",
                 settings.getString("VariableTest"));
     }
+
+    @Test
+    public void testVariableInterpolationWithCustomPropsForSessionIdFromInputStream() throws Exception {
+        System.setProperty("test.2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("test.1", "FOO");
+
+        String settingsString = getDefaultSettingString();
+        settingsString += "\n";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "TargetCompID=CLIENT3_${test.1}_${test.2}\n";
+        settingsString += "DataDictionary=../spec/FIX42.xml\n";
+
+        final SessionSettings settings = createSettingsFromString(settingsString, properties);
+
+        SessionID sessionId = findSessionId(settings, "CLIENT3");
+        assertNotNull("Settings for CLIENT3 are not found", sessionId);
+        assertEquals("Wrong TargetCompID", "CLIENT3_FOO_BAR", sessionId.getTargetCompID());
+    }
+
+    private SessionID findSessionId(SessionSettings settings, String targetCompIdPrefix) {
+        Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
+        while (sessionIDIterator.hasNext()) {
+            SessionID sessionID = sessionIDIterator.next();
+            if (sessionID.getTargetCompID().startsWith(targetCompIdPrefix)) {
+                return sessionID;
+            }
+        }
+        return null;
+    }
+
+    @Test
+    public void testVariableInterpolationWithCustomPropsForSessionIdFromFile() throws Exception {
+        System.setProperty("CLIENT_PLACEHOLDER2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("CLIENT_PLACEHOLDER1", "FOO");
+
+        final SessionSettings settings = new SessionSettings(getConfigurationFileName(), properties);
+
+        SessionID sessionId = findSessionId(settings, "CLIENT3");
+        assertNotNull("Settings for CLIENT3 are not found", sessionId);
+        assertEquals("Wrong TargetCompID", "CLIENT3_FOO_BAR", sessionId.getTargetCompID());
+}
 
     @Test
     public void testDefaultConstructor() {
@@ -535,6 +590,10 @@ public class SessionSettingsTest {
         defaultSettings.put("AcceptorTemplate", "Y");
         defaultSettings.put("TargetCompID", "*");
         return defaultSettings;
+    }
+
+    private String getConfigurationFileName() {
+        return "configWithSessionVariables.ini";
     }
 
 }

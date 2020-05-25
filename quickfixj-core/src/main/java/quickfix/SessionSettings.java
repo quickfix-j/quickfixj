@@ -86,13 +86,34 @@ public class SessionSettings {
     // problems with moving configuration files between *nix and Windows.
     private static final String NEWLINE = "\r\n";
 
-    private Properties variableValues = System.getProperties();
+    private Properties variableValues;
 
     /**
      * Creates an empty session settings object.
      */
     public SessionSettings() {
+        this(System.getProperties());
+    }
+
+    /**
+     * Creates an empty session settings object with custom source of variable values in the settings.
+     * @param variableValues custom source of variable values in the settings
+     */
+    public SessionSettings(Properties variableValues) {
         sections.put(DEFAULT_SESSION_ID, new Properties());
+        this.variableValues = variableValues;
+    }
+
+    /**
+     * Loads session settings from a file with custom source of variable values in the settings.
+     *
+     * @param filename the path to the file containing the session settings
+     * @param variableValues custom source of variable values in the settings
+     * @throws quickfix.ConfigError when file could not be loaded
+     */
+    public SessionSettings(String filename, Properties variableValues) throws ConfigError {
+        this(variableValues);
+        loadFromFile(filename);
     }
 
     /**
@@ -103,17 +124,7 @@ public class SessionSettings {
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
-            if (in != null) {
-                load(in);
-            } else {
-                try (InputStream in2 = new FileInputStream(filename)) {
-                    load(in2);
-                }
-            }
-        } catch (final IOException ex) {
-            throw new ConfigError(ex.getMessage());
-        }
+        loadFromFile(filename);
     }
 
     /**
@@ -124,6 +135,18 @@ public class SessionSettings {
      */
     public SessionSettings(InputStream stream) throws ConfigError {
         this();
+        load(stream);
+    }
+
+    /**
+     * Loads session settings from an input stream with custom source of variable values in the settings.
+     *
+     * @param stream the input stream
+     * @param variableValues custom source of variable values in the settings
+     * @throws ConfigError
+     */
+    public SessionSettings(InputStream stream, Properties variableValues) throws ConfigError {
+        this(variableValues);
         load(stream);
     }
 
@@ -376,6 +399,20 @@ public class SessionSettings {
         final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
         nondefaultSessions.remove(DEFAULT_SESSION_ID);
         return nondefaultSessions.iterator();
+    }
+
+    private void loadFromFile(String filename) throws ConfigError {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
+            if (in != null) {
+                load(in);
+            } else {
+                try (InputStream in2 = new FileInputStream(filename)) {
+                    load(in2);
+                }
+            }
+        } catch (final IOException ex) {
+            throw new ConfigError(ex.getMessage());
+        }
     }
 
     private void load(InputStream inputStream) throws ConfigError {
