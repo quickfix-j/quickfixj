@@ -130,7 +130,7 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertEquals("wrong message", "message2", messages.get(1));
     }
 
-    public void testRefreshableMessageStore() throws Exception {
+    public void testRefreshMessageStore() throws Exception {
         if (!testEnabled) {
             return;
         }
