@@ -11,7 +11,7 @@
 		<p>
 		When using a MessageStore that supports shared data (FileStore, JdbcStore and SleepycatStore),
 			the Session can be configured to refresh the store information upon
-			logon with configuration <span style="color:grey">RefreshMessageStoreAtLogon=Y</span>.
+			logon with configuration <span style="color:grey">RefreshOnLogon=Y</span>.
 			You would typically run two acceptor processes using a
 			shared message store. One process would be the active acceptor
 			and the other would be the standby for any specific session. If
@@ -33,7 +33,7 @@ StartTime=00:00:00
 EndTime=00:00:00
 HeartBtInt=30
 SocketAcceptPort=9877
-<span style="color: red">RefreshMessageStoreAtLogon=Y</span>
+<span style="color: red">RefreshOnLogon=Y</span>
 
 [session]
 SenderCompID=EXEC
