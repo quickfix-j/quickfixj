@@ -574,19 +574,14 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketAcceptPort</I> </TD>
-
-    <TD> Socket port for listening to incomming connections, Only used with a SocketAcceptor </TD>
-    <TD> positive integer, valid open socket port. Currently, this must be defined in the [DEFAULT]
-         section.</TD>
+    <TD> Socket port for listening to incoming connections. Only used with a SocketAcceptor </TD>
+    <TD> positive integer, valid open socket port.</TD>
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketAcceptAddress</I></TD>
-
     <TD> Local IP address to for binding accept port.</TD>
-    <TD> A hostname or IP address parseable by <code>java.net.InetAddress</code>.<BR>
-         Currently, this must be defined in the [DEFAULT] section.
-    </TD>
+    <TD> A hostname or IP address parsable by <code>java.net.InetAddress</code>.</TD>
     <TD>Accept connections on any network interface.</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
@@ -755,12 +750,10 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Socket">Socket Options (Acceptor or Initiator)</A></TD>
   </TR>
   <TR ALIGN="center" VALIGN="middle">
-    <TD COLSPAN="4" >Acceptor socket options must be set in settings default section.<br/> Initiator
-    socket options can be set in either defaults or per-session settings.</TD>
+    <TD COLSPAN="4" >Acceptor and Initiator socket options can be set in either defaults or per-session settings.</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD valign="top"> <I>SocketKeepAlive</I></TD>
-
     <TD>
      When the keepalive option is set for a TCP socket and no data
      has been exchanged across the socket in either direction for
