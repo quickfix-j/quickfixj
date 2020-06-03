@@ -601,16 +601,6 @@
     </TD>
     <TD> empty, ie all remote addresses are allowed </TD>
   </TR>
-  <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>RefreshOnLogon</I></TD>
-
-    <TD>Refresh the session state when a logon is received. This allows a simple form of failover
-    when the message store data is persistent. The
-    option will be ignored for message stores that are not persistent
-    (e.g., MemoryStore).</TD>
-    <TD> Y<br/>N</TD>
-    <TD>N</TD>
-  </TR>
 
   <TR ALIGN="center" VALIGN="middle">
     <TD COLSPAN="4" class="subsection"><A NAME="Security">Secure Communication Options</A></TD>
@@ -1206,6 +1196,15 @@
                  LogonTag1=554=password
                  </TD>
     <TD> </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>RefreshOnLogon</I></TD>
+    <TD>Refresh the session state when a Logon is received. This allows a simple form of failover
+    when the message store data is persistent. The
+    option will be ignored for message stores that are not persistent
+    (e.g., MemoryStore).</TD>
+    <TD> Y<br/>N</TD>
+    <TD>N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnLogon</I> </TD>

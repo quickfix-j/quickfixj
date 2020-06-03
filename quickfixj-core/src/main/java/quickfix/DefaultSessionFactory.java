@@ -186,7 +186,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean resetOnLogon = getSetting(settings, sessionID, Session.SETTING_RESET_ON_LOGON,
                     false);
 
-            final boolean refreshAtLogon = getSetting(settings, sessionID,
+            final boolean refreshOnLogon = getSetting(settings, sessionID,
                     Session.SETTING_REFRESH_ON_LOGON, false);
 
             final boolean checkCompID = getSetting(settings, sessionID, Session.SETTING_CHECK_COMP_ID,
@@ -224,7 +224,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionaryProvider, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
-                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
+                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshOnLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck, rejectGarbledMessage,
