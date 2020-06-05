@@ -141,13 +141,6 @@ public class ProtocolFactory {
         }
 
         ProxyIoSession proxyIoSession = new ProxyIoSession(proxyAddress, req);
-
-        List<HttpAuthenticationMethods> l = new ArrayList<>();
-        l.add(HttpAuthenticationMethods.NO_AUTH);
-        l.add(HttpAuthenticationMethods.DIGEST);
-        l.add(HttpAuthenticationMethods.BASIC);
-
-        proxyIoSession.setPreferedOrder(l);
         connector.setProxyIoSession(proxyIoSession);
 
         return connector;
