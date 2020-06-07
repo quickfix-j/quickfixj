@@ -40,8 +40,8 @@ public class ProtocolFactoryTest {
 
         IoConnector connector = ProtocolFactory.createIoConnector(address);
         ProxyConnector proxyConnector = ProtocolFactory
-                .createIoProxyConnector((SocketConnector) connector, address, proxyAddress, "socks", "5", "user",
-                                        "password", null, null);
+                .createIoProxyConnector((SocketConnector) connector, address, proxyAddress, "http", "1.0", "user",
+                                        "password", "domain", "workstation");
 
         ProxyIoSession proxySession = proxyConnector.getProxyIoSession();
         assertNull(proxySession.getPreferedOrder());
