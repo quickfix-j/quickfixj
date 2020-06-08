@@ -203,10 +203,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
     private void createSessions() throws ConfigError, FieldConvertError {
         final SessionSettings settings = getSettings();
-        boolean continueInitOnError = false;
-        if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
-            continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
-        }
+        boolean continueInitOnError = isContinueInitOnError();
 
         final Map<SessionID, Session> initiatorSessions = new HashMap<>();
         for (final Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
