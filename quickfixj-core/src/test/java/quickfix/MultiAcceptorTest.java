@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -142,8 +143,10 @@ public class MultiAcceptorTest {
         List<SessionID> acceptorSessions = acceptor.getSessions();
         assertEquals(2, acceptorSessions.size());
         SessionID session1 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + 1, "INITIATOR");
+        SessionID session2 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + 2, "INITIATOR");
         SessionID session3 = new SessionID(FixVersions.BEGINSTRING_FIX42, "ACCEPTOR-" + 3, "INITIATOR");
         assertTrue(acceptorSessions.contains(session1));
+        assertFalse(acceptorSessions.contains(session2));
         assertTrue(acceptorSessions.contains(session3));
 
         acceptor.stop(true);
