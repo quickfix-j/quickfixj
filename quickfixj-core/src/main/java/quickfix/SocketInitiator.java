@@ -33,7 +33,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     private SocketInitiator(Builder builder) throws ConfigError {
         super(builder.application, builder.messageStoreFactory, builder.settings,
-                builder.logFactory, builder.messageFactory);
+                builder.logFactory, builder.messageFactory, builder.numReconnectThreads);
 
         if (builder.queueCapacity >= 0) {
             eventHandlingStrategy
@@ -49,8 +49,16 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
 
     public static final class Builder extends AbstractSessionConnectorBuilder<Builder, SocketInitiator> {
+        
+        int numReconnectThreads = 3;
+
         private Builder() {
             super(Builder.class);
+        }
+        
+        public Builder withReconnectThreads(int numReconnectThreads) throws ConfigError {
+            this.numReconnectThreads = numReconnectThreads;
+            return this;
         }
 
         @Override

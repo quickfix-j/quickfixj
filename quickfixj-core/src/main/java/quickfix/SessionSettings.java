@@ -218,7 +218,6 @@ public class SessionSettings {
      * Returns the defaults for the session-level settings.
      *
      * @return the default properties
-     * @throws ConfigError
      */
     public Properties getDefaultProperties() {
         try {
@@ -276,7 +275,7 @@ public class SessionSettings {
      * @param sessionID the session ID
      * @param key       the settings key
      * @return the long integer value for the setting
-     * @throws ConfigError       configurion error, probably a missing setting.
+     * @throws ConfigError       configuration error, probably a missing setting.
      * @throws FieldConvertError error during field type conversion.
      */
     public int getInt(SessionID sessionID, String key) throws ConfigError, FieldConvertError {

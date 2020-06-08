@@ -71,7 +71,7 @@ public abstract class SessionConnector implements Connector {
     private final Map<SessionID, Session> sessions = new ConcurrentHashMap<>();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
-    private final static ScheduledExecutorService scheduledExecutorService = Executors
+    private static final ScheduledExecutorService SCHEDULED_EXECUTOR = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
@@ -314,7 +314,7 @@ public abstract class SessionConnector implements Connector {
         if (shortLivedExecutor != null) {
             timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
         }
-        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
+        sessionTimerFuture = SCHEDULED_EXECUTOR.scheduleAtFixedRate(timerTask, 0, 1000L,
                 TimeUnit.MILLISECONDS);
         log.info("SessionTimer started");
     }
@@ -335,10 +335,11 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected ScheduledExecutorService getScheduledExecutorService() {
-        return scheduledExecutorService;
+        return SCHEDULED_EXECUTOR;
     }
 
     private class SessionTimerTask implements Runnable {
+        @Override
         public void run() {
             try {
                 for (Session session : sessions.values()) {
@@ -407,6 +408,7 @@ public abstract class SessionConnector implements Connector {
 
     private static class QFTimerThreadFactory implements ThreadFactory {
 
+        @Override
         public Thread newThread(Runnable runnable) {
             Thread thread = new Thread(runnable, "QFJ Timer");
             thread.setDaemon(true);
