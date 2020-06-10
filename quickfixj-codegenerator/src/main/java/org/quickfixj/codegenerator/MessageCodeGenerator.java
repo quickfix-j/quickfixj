@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.XMLConstants;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
@@ -218,6 +219,8 @@ public class MessageCodeGenerator {
         Document document = specificationCache.get(task.getName());
         if (document == null) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             DocumentBuilder builder = factory.newDocumentBuilder();
             document = builder.parse(task.getSpecification());
             specificationCache.put(task.getName(), document);

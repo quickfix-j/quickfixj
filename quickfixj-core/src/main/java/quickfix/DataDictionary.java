@@ -48,6 +48,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.XMLConstants;
 
 import static quickfix.FileUtil.Location.CLASSLOADER_RESOURCE;
 import static quickfix.FileUtil.Location.CONTEXT_RESOURCE;
@@ -879,6 +880,8 @@ public class DataDictionary {
 
     private void load(InputStream inputStream) throws ConfigError {
         final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
         Document document;
         try {
             final DocumentBuilder builder = factory.newDocumentBuilder();
