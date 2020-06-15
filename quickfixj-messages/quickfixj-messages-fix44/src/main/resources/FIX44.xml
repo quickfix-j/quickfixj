@@ -6398,6 +6398,7 @@
     <field number="796" name="AllocCancReplaceReason" type="INT">
       <value enum="1" description="ORIGINAL_DETAILS_INCOMPLETE_INCORRECT"/>
       <value enum="2" description="CHANGE_IN_UNDERLYING_ORDER_DETAILS"/>
+      <value enum="99" description="OTHER"/>
     </field>
     <field number="797" name="CopyMsgIndicator" type="BOOLEAN"/>
     <field number="798" name="AllocAccountType" type="INT">
