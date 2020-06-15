@@ -39,6 +39,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Optional;
+import quickfix.Responder;
 
 class AcceptorIoHandler extends AbstractIoHandler {
     private final EventHandlingStrategy eventHandlingStrategy;
@@ -67,10 +68,12 @@ class AcceptorIoHandler extends AbstractIoHandler {
                 qfSession = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
                 if (qfSession != null) {
                     final Log sessionLog = qfSession.getLog();
-                    if (qfSession.hasResponder()) {
+                    Responder responder = qfSession.getResponder();
+                    if (responder != null) {
                         // Session is already bound to another connection
-                        sessionLog
-                                .onErrorEvent("Multiple logons/connections for this session are not allowed");
+                        sessionLog.onErrorEvent("Multiple logons/connections for this session are not allowed."
+                                + " Closing connection from " + protocolSession.getRemoteAddress()
+                                + " since session is already established from " + responder.getRemoteAddress());
                         protocolSession.closeNow();
                         return;
                     }
