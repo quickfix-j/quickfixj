@@ -73,7 +73,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
                         // Session is already bound to another connection
                         sessionLog.onErrorEvent("Multiple logons/connections for this session are not allowed."
                                 + " Closing connection from " + protocolSession.getRemoteAddress()
-                                + " since it is already established from " + responder.getRemoteAddress());
+                                + " since session is already established from " + responder.getRemoteAddress());
                         protocolSession.closeNow();
                         return;
                     }
