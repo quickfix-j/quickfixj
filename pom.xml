@@ -87,6 +87,8 @@
 		<maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+		<coveralls-maven-plugin-version>4.3.0</coveralls-maven-plugin-version>
+		<jacoco-maven-plugin-version>0.8.2</jacoco-maven-plugin-version>
 	</properties>
 
 	<build>
@@ -222,6 +224,24 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin-version}</version>
+					<executions>
+						<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.eluder.coveralls</groupId>
+					<artifactId>coveralls-maven-plugin</artifactId>
+					<version>${coveralls-maven-plugin-version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
