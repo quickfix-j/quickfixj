@@ -68,7 +68,6 @@ import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.XMLConstants;
 
 /**
  * Represents a FIX message.
@@ -331,8 +330,6 @@ public class Message extends FieldMap {
     public String toXML(DataDictionary dataDictionary) {
         try {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             final Document document = factory.newDocumentBuilder()
                     .newDocument();
             final Element message = document.createElement("message");
@@ -344,8 +341,6 @@ public class Message extends FieldMap {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             final StreamResult streamResult = new StreamResult(out);
             final TransformerFactory tf = TransformerFactory.newInstance();
-            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
             final Transformer serializer = tf.newTransformer();
             serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -357,7 +352,7 @@ public class Message extends FieldMap {
     }
 
     private void toXMLFields(Element message, String section, FieldMap fieldMap,
-            DataDictionary dataDictionary) throws FieldNotFound {
+            DataDictionary dataDictionary) {
         final Document document = message.getOwnerDocument();
         final Element fields = document.createElement(section);
         message.appendChild(fields);
