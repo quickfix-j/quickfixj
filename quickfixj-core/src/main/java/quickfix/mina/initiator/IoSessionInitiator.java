@@ -158,6 +158,7 @@ public class IoSessionInitiator {
 
             IoConnector newConnector;
             newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
+            networkingOptions.apply(newConnector);
             newConnector.setHandler(new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy));
             newConnector.setFilterChainBuilder(ioFilterChainBuilder);
 
