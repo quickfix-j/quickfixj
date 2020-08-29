@@ -43,9 +43,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.xml.XMLConstants;
 
 /**
@@ -66,6 +71,9 @@ public class MessageCodeGenerator {
 
     // The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
+
+    private static final Set<String> UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES =
+        Collections.unmodifiableSet(new HashSet<>(Arrays.asList("SECONDS", "MILLIS", "MICROS", "NANOS")));
 
     protected void logInfo(String msg) {
         System.out.println(msg);
@@ -134,6 +142,19 @@ public class MessageCodeGenerator {
                     Map<String, String> parameters = new HashMap<>();
                     parameters.put("fieldName", fieldName);
                     parameters.put("fieldPackage", task.getFieldPackage());
+                    String utcTimestampPrecision = task.getUtcTimestampPrecision();
+                    if (utcTimestampPrecision != null) {
+                        String utcTimestampPrecisionParameterName = "utcTimestampPrecision";
+                        if (!UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES.contains(utcTimestampPrecision)) {
+                            throw new CodeGenerationException(new IllegalArgumentException(String.format(
+                                "Allowed values for parameter %s is %s. Supplied value: \"%s\".",
+                                utcTimestampPrecisionParameterName,
+                                String.join(", ", UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES),
+                                utcTimestampPrecision
+                            )));
+                        }
+                        parameters.put(utcTimestampPrecisionParameterName, utcTimestampPrecision);
+                    }
                     if (task.isDecimalGenerated()) {
                         parameters.put("decimalType", "java.math.BigDecimal");
                         parameters.put("decimalConverter", "Decimal");
@@ -330,6 +351,7 @@ public class MessageCodeGenerator {
         private File outputBaseDirectory;
         private String messagePackage;
         private String fieldPackage;
+        private String utcTimestampPrecision;
         private boolean overwrite = true;
         private File transformDirectory;
         private boolean orderedFields;
@@ -370,6 +392,14 @@ public class MessageCodeGenerator {
 
         public void setFieldPackage(String fieldPackage) {
             this.fieldPackage = fieldPackage;
+        }
+
+        public String getUtcTimestampPrecision() {
+            return utcTimestampPrecision;
+        }
+
+        public void setUtcTimestampPrecision(String utcTimestampPrecision) {
+            this.utcTimestampPrecision = utcTimestampPrecision;
         }
 
         public String getMessageDirectory() {
@@ -447,6 +477,7 @@ public class MessageCodeGenerator {
                 task.setMessagePackage("quickfix." + version.toLowerCase());
                 task.setOutputBaseDirectory(new File(args[2]));
                 task.setFieldPackage("quickfix.field");
+                task.setUtcTimestampPrecision(task.utcTimestampPrecision);
                 task.setOverwrite(overwrite);
                 task.setOrderedFields(orderedFields);
                 task.setDecimalGenerated(useDecimal);

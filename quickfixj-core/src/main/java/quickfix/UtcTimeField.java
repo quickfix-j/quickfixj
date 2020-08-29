@@ -27,7 +27,7 @@ import java.time.ZoneOffset;
  */
 public class UtcTimeField extends Field<LocalTime> {
 
-    protected UtcTimestampPrecision precision = UtcTimestampPrecision.MILLIS;
+    protected UtcTimestampPrecision precision = getDefaultUtcTimestampPrecision();
 
     protected UtcTimeField(int field) {
         super(field, LocalTime.now(ZoneOffset.UTC));
@@ -56,5 +56,9 @@ public class UtcTimeField extends Field<LocalTime> {
     
     public UtcTimestampPrecision getPrecision() {
         return precision;
+    }
+
+    protected UtcTimestampPrecision getDefaultUtcTimestampPrecision() {
+        return UtcTimestampPrecision.MILLIS;
     }
 }

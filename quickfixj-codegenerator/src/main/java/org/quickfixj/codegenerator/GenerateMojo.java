@@ -87,6 +87,13 @@ public class GenerateMojo extends AbstractMojo {
     private String fieldPackage = "quickfix.field";
 
     /**
+     * The default UtcTimestampPrecision to be used during field code generation.
+     *
+     * @parameter
+     */
+    private String utcTimestampPrecision;
+
+    /**
      * The Maven project to act upon.
      *
      * @parameter expression="${project}"
@@ -135,6 +142,7 @@ public class GenerateMojo extends AbstractMojo {
             task.setMessagePackage(packaging);
             task.setOutputBaseDirectory(outputDirectory);
             task.setFieldPackage(fieldPackage);
+            task.setUtcTimestampPrecision(utcTimestampPrecision);
             task.setOverwrite(true);
             task.setOrderedFields(orderedFields);
             task.setDecimalGenerated(decimal);
@@ -299,5 +307,23 @@ public class GenerateMojo extends AbstractMojo {
      */
     public void setFieldPackage(String fieldPackage) {
         this.fieldPackage = fieldPackage;
+    }
+
+    /**
+     * Returns the default UtcTimestampPrecision to be used during field code generation.
+     *
+     * @return the default UtcTimestampPrecision to be used during field code generation.
+     */
+    public String getUtcTimestampPrecision() {
+        return utcTimestampPrecision;
+    }
+    
+    /**
+     * Sets the default UtcTimestampPrecision to be used during field code generation.
+     *
+     * @param utcTimestampPrecision the default UtcTimestampPrecision to be used during field code generation.
+     */
+    public void setUtcTimestampPrecision(String utcTimestampPrecision) {
+        this.utcTimestampPrecision = utcTimestampPrecision;
     }
 }
