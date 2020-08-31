@@ -29,6 +29,7 @@ import org.apache.mina.transport.socket.SocketConnector;
 import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
+import quickfix.SessionID;
 import quickfix.SystemTime;
 import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
@@ -373,5 +374,17 @@ public class IoSessionInitiator {
             reconnectFuture = null;
         }
         SessionConnector.closeManagedSessionsAndDispose(reconnectTask.ioConnector, true, log);
+    }
+
+    public SessionID getSessionID() {
+        return reconnectTask.fixSession.getSessionID();
+    }
+
+    public SocketAddress getLocalAddress() {
+        return reconnectTask.localAddress;
+    }
+
+    public SocketAddress[] getSocketAddresses() {
+        return Arrays.copyOf(reconnectTask.socketAddresses, reconnectTask.socketAddresses.length);
     }
 }
