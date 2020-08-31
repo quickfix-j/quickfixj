@@ -102,13 +102,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     }
 
     @Override
-    public void sessionCreated(IoSession ioSession) throws Exception {
-        super.sessionCreated(ioSession);
-        networkingOptions.apply(ioSession);
-    }
-
-    @Override
-    public void sessionClosed(IoSession ioSession) throws Exception {
+    public void sessionClosed(IoSession ioSession) {
         try {
             Session quickFixSession = findQFSession(ioSession);
             if (quickFixSession != null) {

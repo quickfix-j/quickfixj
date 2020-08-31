@@ -19,7 +19,7 @@
 
 package quickfix.mina;
 
-import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.service.IoService;
 import org.apache.mina.core.session.IoSessionConfig;
 import org.apache.mina.transport.socket.SocketSessionConfig;
 import org.slf4j.Logger;
@@ -28,7 +28,6 @@ import quickfix.FieldConvertError;
 import quickfix.field.converter.BooleanConverter;
 import quickfix.field.converter.IntConverter;
 
-import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -126,8 +125,8 @@ public class NetworkingOptions {
         return value;
     }
 
-    public void apply(IoSession session) throws SocketException {
-        IoSessionConfig sessionConfig = session.getConfig();
+    public void apply(IoService service) {
+        IoSessionConfig sessionConfig = service.getSessionConfig();
         if (sessionConfig instanceof SocketSessionConfig) {
             SocketSessionConfig socketSessionConfig = (SocketSessionConfig) sessionConfig;
             if (keepAlive != null) {
