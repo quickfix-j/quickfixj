@@ -147,7 +147,7 @@ public class MessageCodeGenerator {
                         String utcTimestampPrecisionParameterName = "utcTimestampPrecision";
                         if (!UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES.contains(utcTimestampPrecision)) {
                             throw new CodeGenerationException(new IllegalArgumentException(String.format(
-                                "Allowed values for parameter %s is %s. Supplied value: \"%s\".",
+                                "Allowed values for parameter %s are %s. Supplied value: \"%s\".",
                                 utcTimestampPrecisionParameterName,
                                 String.join(", ", UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES),
                                 utcTimestampPrecision
