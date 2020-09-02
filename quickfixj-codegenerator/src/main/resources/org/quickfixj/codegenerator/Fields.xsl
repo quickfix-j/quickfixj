@@ -84,7 +84,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 	}
 
 	public <xsl:value-of select="@name"/>(<xsl:call-template name="get-type"/> data) {
-		super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'"><xsl:choose><xsl:when test="$utcTimestampPrecision">, UtcTimestampPrecision.<xsl:value-of select="$utcTimestampPrecision"/></xsl:when><xsl:otherwise>, true</xsl:otherwise></xsl:choose></xsl:if><xsl:if test="@type='UTCTIME'"><xsl:choose><xsl:when test="$utcTimestampPrecision">, UtcTimestampPrecision.<xsl:value-of select="$utcTimestampPrecision"/></xsl:when></xsl:choose></xsl:if>);
+		super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'"><xsl:choose><xsl:when test="$utcTimestampPrecision"/><xsl:otherwise>, true</xsl:otherwise></xsl:choose></xsl:if>);
 	}<xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable><xsl:if test="$dataType = 'java.math.BigDecimal'">
 
     public <xsl:value-of select="@name"/>(double data) {
