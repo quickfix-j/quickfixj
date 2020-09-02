@@ -61,20 +61,18 @@
 package <xsl:value-of select="$fieldPackage"/>;
 
 import quickfix.<xsl:call-template name="get-field-type"/>Field;
-<xsl:choose>
-    <xsl:when test="$utcTimestampPrecision">
-        <xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
-import quickfix.UtcTimestampPrecision;
-        </xsl:if>
-    </xsl:when>
-</xsl:choose>
+<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
+<xsl:choose><xsl:when test="$utcTimestampPrecision">import quickfix.UtcTimestampPrecision;
+</xsl:when></xsl:choose></xsl:if>
 <xsl:if test="@type='UTCTIMESTAMP'">
-import java.time.LocalDateTime;</xsl:if>
+import java.time.LocalDateTime;
+</xsl:if>
 <xsl:if test="@type='UTCDATE' or @type='UTCDATEONLY'">
-import java.time.LocalDate;</xsl:if>
+import java.time.LocalDate;
+</xsl:if>
 <xsl:if test="@type='UTCTIME' or @type='UTCTIMEONLY'">
-import java.time.LocalTime;</xsl:if>
-
+import java.time.LocalTime;
+</xsl:if>
 public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get-field-type"/>Field {
 
 	static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
@@ -87,27 +85,18 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 
 	public <xsl:value-of select="@name"/>(<xsl:call-template name="get-type"/> data) {
 		super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'"><xsl:choose><xsl:when test="$utcTimestampPrecision">, UtcTimestampPrecision.<xsl:value-of select="$utcTimestampPrecision"/></xsl:when><xsl:otherwise>, true</xsl:otherwise></xsl:choose></xsl:if><xsl:if test="@type='UTCTIME'"><xsl:choose><xsl:when test="$utcTimestampPrecision">, UtcTimestampPrecision.<xsl:value-of select="$utcTimestampPrecision"/></xsl:when></xsl:choose></xsl:if>);
-	}
-	<xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable>
+	}<xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable><xsl:if test="$dataType = 'java.math.BigDecimal'">
 
-	<xsl:if test="$dataType = 'java.math.BigDecimal'">
-	public <xsl:value-of select="@name"/>(double data) {
+    public <xsl:value-of select="@name"/>(double data) {
 		super(<xsl:value-of select="@number"/>, new <xsl:value-of select="$dataType"/>(data));
-	}
-	</xsl:if>
+	}</xsl:if><xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
+    <xsl:choose><xsl:when test="$utcTimestampPrecision">
 
-    <xsl:choose>
-        <xsl:when test="$utcTimestampPrecision">
-            <xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
     @Override
     protected UtcTimestampPrecision getDefaultUtcTimestampPrecision() {
         return UtcTimestampPrecision.<xsl:value-of select="$utcTimestampPrecision"/>;
-    }
-            </xsl:if>
-        </xsl:when>
-    </xsl:choose>
-}
-</xsl:template>
+    }</xsl:when></xsl:choose></xsl:if>
+}</xsl:template>
 
 <xsl:template name="get-type">
    <xsl:choose>
