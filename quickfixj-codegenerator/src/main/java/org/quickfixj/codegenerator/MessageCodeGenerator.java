@@ -61,6 +61,7 @@ public class MessageCodeGenerator {
     private static final String BIGDECIMAL_TYPE_OPTION = "generator.decimal";
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
+    private static final String UTC_TIMESTAMP_PRECISION_OPTION = "generator.utcTimestampPrecision";
 
     // An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
@@ -461,6 +462,7 @@ public class MessageCodeGenerator {
                 return;
             }
 
+            String utcTimestampPrecision = getOption(UTC_TIMESTAMP_PRECISION_OPTION, null);
             boolean overwrite = getOption(OVERWRITE_OPTION, true);
             boolean orderedFields = getOption(ORDERED_FIELDS_OPTION, false);
             boolean useDecimal = getOption(BIGDECIMAL_TYPE_OPTION, false);
@@ -477,7 +479,7 @@ public class MessageCodeGenerator {
                 task.setMessagePackage("quickfix." + version.toLowerCase());
                 task.setOutputBaseDirectory(new File(args[2]));
                 task.setFieldPackage("quickfix.field");
-                task.setUtcTimestampPrecision(task.utcTimestampPrecision);
+                task.setUtcTimestampPrecision(utcTimestampPrecision);
                 task.setOverwrite(overwrite);
                 task.setOrderedFields(orderedFields);
                 task.setDecimalGenerated(useDecimal);
@@ -491,6 +493,11 @@ public class MessageCodeGenerator {
             codeGenerator.logError("error during code generation", e);
             System.exit(1);
         }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static String getOption(String key, String defaultValue) {
+        return System.getProperties().getProperty(key, defaultValue);
     }
 
     private static boolean getOption(String key, boolean defaultValue) {
