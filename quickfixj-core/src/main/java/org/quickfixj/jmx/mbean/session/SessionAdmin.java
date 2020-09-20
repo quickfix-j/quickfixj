@@ -135,7 +135,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     /* (non-Javadoc)
      * @see quickfix.jmx.SessionMBean#reset()
      */
-    public void reset() throws IOException {
+    public void reset() {
         logInvocation("reset");
         session.reset();
     }

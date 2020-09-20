@@ -55,13 +55,7 @@ public class SessionResetTest {
             header.setInt(MsgSeqNum.FIELD, 1);
             header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
             
-            Thread resetThread = new Thread(() -> {
-                try {
-                    session.reset();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }, "SessionReset");
+            Thread resetThread = new Thread(session::reset, "SessionReset");
             resetThread.setDaemon(true);
             
             Thread messageSender = new Thread(() -> {

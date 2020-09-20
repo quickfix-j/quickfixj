@@ -428,6 +428,7 @@ public class Session implements Closeable {
 
     private final AtomicBoolean isResetting = new AtomicBoolean();
     private final AtomicBoolean isResettingState = new AtomicBoolean();
+    private final AtomicBoolean isResetStatePending = new AtomicBoolean();
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
@@ -867,12 +868,11 @@ public class Session implements Closeable {
     }
 
     /**
-     * Logs out and disconnects session (if logged on) and then resets session state.
+     * Logs out session (if logged on) and then resets session state.
      *
-     * @throws IOException IO error
      * @see SessionState#reset()
      */
-    public void reset() throws IOException {
+    public void reset() {
         if (!isResetting.compareAndSet(false, true)) {
             return;
         }
@@ -881,10 +881,13 @@ public class Session implements Closeable {
                 if (application instanceof ApplicationExtended) {
                     ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
                 }
-                generateLogout();
-                disconnect("Session reset", false);
+                isResetStatePending.set(true);
+                logout("Session reset");
+                getLog().onEvent("Initiated logout request");
+                generateLogout(state.getLogoutReason());
+            } else {
+                resetState();
             }
-            resetState();
         } finally {
             isResetting.set(false);
         }
@@ -1239,12 +1242,8 @@ public class Session implements Closeable {
             return false;
         }
         if (resetOnError) {
-            try {
-                getLog().onErrorEvent("Auto reset");
-                reset();
-            } catch (final IOException e) {
-                LOG.error("Failed resetting: {}", e);
-            }
+            getLog().onErrorEvent("Auto reset");
+            reset();
             return true;
         }
         if (disconnectOnError) {
@@ -1427,7 +1426,7 @@ public class Session implements Closeable {
         if (getExpectedTargetNum() == logout.getHeader().getInt(MsgSeqNum.FIELD)) {
             state.incrNextTargetMsgSeqNum();
         }
-        if (resetOnLogout) {
+        if (resetOnLogout || isResetStatePending.get()) {
             resetState();
         }
 
@@ -1907,8 +1906,10 @@ public class Session implements Closeable {
             if ((now - lastSessionTimeCheck) >= 1000L) {
                 lastSessionTimeCheck = now;
                 if (!isSessionTime()) {
-                    if (state.isResetNeeded()) {
-                        reset(); // only reset if seq nums are != 1
+                    if (state.isResetNeeded() && !isResetStatePending.get()) {
+                        reset(); // only reset if seq nums are != 1 and not isResetStatePending is set
+                    } else if (state.isLogoutTimedOut()) {
+                        disconnect("Timed out waiting for logout response", true);
                     }
                     return; // since we are outside of session time window
                 } else {
@@ -1946,12 +1947,12 @@ public class Session implements Closeable {
             return;
         }
 
-        if (state.getHeartBeatInterval() == 0) {
-            return;
-        }
-
         if (state.isLogoutTimedOut()) {
             disconnect("Timed out waiting for logout response", true);
+        }
+
+        if (state.getHeartBeatInterval() == 0) {
+            return;
         }
 
         if (state.isTimedOut()) {
@@ -2096,7 +2097,7 @@ public class Session implements Closeable {
             state.clearLogoutReason();
             state.setResendRange(0, 0);
 
-            if (resetOnDisconnect) {
+            if (resetOnDisconnect || isResetStatePending.get()) {
                 resetState();
             }
         }
@@ -2662,6 +2663,7 @@ public class Session implements Closeable {
             stateListener.onReset();
         } finally {
             isResettingState.set(false);
+            isResetStatePending.set(false);
         }
     }
 

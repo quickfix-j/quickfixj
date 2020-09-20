@@ -46,11 +46,13 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -556,6 +558,7 @@ public class SessionTest {
             // increment time to force logout and reset
             systemTimeSource.increment(3700000);
             session.next();
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
             assertEquals(SystemTime.getDate(), state.getCreationTime());
             systemTimeSource.increment(10000);
             session.next();
@@ -662,6 +665,7 @@ public class SessionTest {
             // increase time to be out of session time
             systemTimeSource.increment(1900000);
             session.next();
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
             Message logout = application.lastToAdminMessage();
             assertEquals(MsgType.LOGOUT, logout.getHeader()
                     .getString(MsgType.FIELD));
@@ -2468,6 +2472,349 @@ public class SessionTest {
         assertEquals(ResendRequest.MSGTYPE, app.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
         assertEquals(4, app.lastToAdminMessage().getInt(BeginSeqNo.FIELD));
         assertEquals(0, app.lastToAdminMessage().getInt(EndSeqNo.FIELD));
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+
+            logonTo(session);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+
+            session.next();
+
+            logonTo(session);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+
+            session.next();
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            logonTo(session);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            session.next();
+
+            logonTo(session);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            session.next();
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @SuppressWarnings("SameParameterValue")
+    private Session setupFor244(UnitTestApplication application,
+                                UnitTestResponder responder,
+                                MockSystemTimeSource systemTimeSource,
+                                int startTimeEndTimeOffsetHours,
+                                boolean isInitiator)
+        throws ConfigError, FieldConvertError, IOException, NoSuchFieldException, IllegalAccessException {
+
+        final LocalDateTime now = LocalDateTime.now();
+        final ZoneOffset zoneOffset = ZoneOffset.systemDefault()
+            .getRules()
+            .getOffset(now);
+        final Instant nowInstant = now.toInstant(zoneOffset);
+        final long nowEpocMillis = nowInstant.toEpochMilli();
+
+        systemTimeSource.setSystemTimes(nowEpocMillis);
+        SystemTime.setTimeSource(systemTimeSource);
+
+        final LocalTime nowLocalTime = now.toLocalTime();
+        final LocalTime nowLocalTimeMinusStartTimeEndTimeOffsetHours =
+            nowLocalTime.minusHours(startTimeEndTimeOffsetHours);
+        final LocalTime nowLocalTimePlusStartTimeEndTimeOffsetHours =
+            nowLocalTime.plusHours(startTimeEndTimeOffsetHours);
+        final String startTime =
+            UtcTimeOnlyConverter.convert(nowLocalTimeMinusStartTimeEndTimeOffsetHours, UtcTimestampPrecision.SECONDS);
+        final String endTime =
+            UtcTimeOnlyConverter.convert(nowLocalTimePlusStartTimeEndTimeOffsetHours, UtcTimestampPrecision.SECONDS);
+        final String timeZone = TimeZone.getDefault()
+            .getID();
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        final SessionSettings sessionSettings = SessionSettingsTest.setUpSession(null);
+        sessionSettings.setString(Session.SETTING_START_TIME, startTime);
+        sessionSettings.setString(Session.SETTING_END_TIME, endTime);
+        sessionSettings.setString(Session.SETTING_TIMEZONE, timeZone);
+
+        setupFileStoreForQFJ357(sessionID, sessionSettings);
+
+        Session session = setUpFileStoreSession(application, isInitiator, responder, sessionSettings, sessionID);
+        session.addStateListener(application);
+
+        return session;
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @SuppressWarnings("SameParameterValue")
+    private void assertFor244(UnitTestApplication application,
+                              UnitTestResponder responder,
+                              long expectedLogoutMessageSentCount,
+                              long expectedLogoutMessageReceivedCount,
+                              int expectedSessionResetCount,
+                              boolean expectedDisconnectCalled) {
+
+        final long actualLogoutMessageSentCount = application.toAdminMessages.stream()
+            .filter(message -> message instanceof Logout)
+            .count();
+        final long actualLogoutMessageReceivedCount = application.fromAdminMessages.stream()
+            .filter(message -> message instanceof Logout)
+            .count();
+        final int actualSessionResets = application.sessionResets;
+        final boolean actualDisconnectCalled = responder.disconnectCalled;
+
+        assertEquals(
+            String.format("Expected logout message sent count: %d.", expectedLogoutMessageSentCount),
+            expectedLogoutMessageSentCount,
+            actualLogoutMessageSentCount
+        );
+        assertEquals(
+            String.format("Expected logout message received count: %d.", expectedLogoutMessageReceivedCount),
+            expectedLogoutMessageReceivedCount,
+            actualLogoutMessageReceivedCount
+        );
+        assertEquals(
+            String.format("Expected session reset count: %d.", expectedSessionResetCount),
+            expectedSessionResetCount,
+            actualSessionResets
+        );
+        assertEquals(
+            String.format("Expected disconnect called: %b.", expectedDisconnectCalled),
+            expectedDisconnectCalled,
+            actualDisconnectCalled
+        );
     }
 
     private News createPossDupAppMessage(int sequence) {
