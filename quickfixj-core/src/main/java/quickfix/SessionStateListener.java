@@ -37,4 +37,10 @@ public interface SessionStateListener {
 
     void onHeartBeatTimeout();
 
+    void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo);
+
+    void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag);
+
+    void onResendRequestSatisfied(int beginSeqNo, int endSeqNo);
+
 }

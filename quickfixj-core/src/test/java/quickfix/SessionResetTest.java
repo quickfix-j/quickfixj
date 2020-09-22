@@ -137,6 +137,16 @@ public class SessionResetTest {
 
         public void onHeartBeatTimeout() {
         }
+
+        public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        }
+
+        public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        }
+
+        @Override
+        public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+        }
     }
 
 }

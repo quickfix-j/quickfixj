@@ -353,6 +353,15 @@ public class SessionDisconnectConcurrentlyTest {
 
         public void onHeartBeatTimeout() {
         }
+
+        public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        }
+
+        public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        }
+
+        public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+        }
     }
     
 }
