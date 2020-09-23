@@ -173,17 +173,28 @@ class JdbcStore implements MessageStore {
         setNextTargetMsgSeqNum(cache.getNextTargetMsgSeqNum());
     }
 
-    public void reset() throws IOException {
-        cache.reset();
+    public void clearMessages() throws IOException {
         Connection connection = null;
         PreparedStatement deleteMessages = null;
-        PreparedStatement updateTime = null;
         try {
             connection = dataSource.getConnection();
             deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
             setSessionIdParameters(deleteMessages, 1);
             deleteMessages.execute();
+        } catch (SQLException e) {
+            throw new IOException(e.getMessage(), e);
+        } finally {
+            JdbcUtil.close(sessionID, deleteMessages);
+            JdbcUtil.close(sessionID, connection);
+        }
+    }
 
+    public void reset() throws IOException {
+        cache.reset();
+        Connection connection = null;
+        PreparedStatement updateTime = null;
+        try {
+            connection = dataSource.getConnection();
             updateTime = connection.prepareStatement(SQL_UPDATE_SESSION);
             updateTime.setTimestamp(1, new Timestamp(Calendar.getInstance(
                     TimeZone.getTimeZone("UTC")).getTimeInMillis()));
@@ -194,7 +205,6 @@ class JdbcStore implements MessageStore {
         } catch (SQLException e) {
             throw new IOException(e.getMessage(), e);
         } finally {
-            JdbcUtil.close(sessionID, deleteMessages);
             JdbcUtil.close(sessionID, updateTime);
             JdbcUtil.close(sessionID, connection);
         }

@@ -278,6 +278,18 @@ public class SleepycatStore implements MessageStore {
         storeSessionInfo();
     }
 
+    public void clearMessages() throws IOException {
+        try {
+            sequenceDatabase.close();
+            messageDatabase.close();
+            environment.truncateDatabase(null, msgDbName, false);
+            environment.close();
+            open();
+        } catch (DatabaseException e) {
+            convertToIOExceptionAndRethrow(e);
+        }
+    }
+
     public void reset() throws IOException {
         try {
             info = new SessionInfo();
@@ -285,7 +297,6 @@ public class SleepycatStore implements MessageStore {
             sequenceDatabase.close();
             messageDatabase.close();
             environment.truncateDatabase(null, seqDbName, false);
-            environment.truncateDatabase(null, msgDbName, false);
             environment.close();
             open();
         } catch (DatabaseException e) {

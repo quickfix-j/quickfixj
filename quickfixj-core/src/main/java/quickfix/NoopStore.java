@@ -20,6 +20,7 @@
 
 package quickfix;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 
@@ -55,6 +56,10 @@ public class NoopStore implements MessageStore {
 
     public void incrNextTargetMsgSeqNum() {
         nextTargetMsgSeqNum++;
+    }
+
+    public void clearMessages() {
+        //NoOp
     }
 
     public void reset() {

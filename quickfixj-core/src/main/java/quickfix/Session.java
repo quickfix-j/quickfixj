@@ -2658,6 +2658,10 @@ public class Session implements Closeable {
             return;
         }
         try {
+            if(persistMessages)
+            {
+                state.clearMessages();
+            }
             state.reset();
             stateListener.onReset();
         } finally {

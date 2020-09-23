@@ -397,6 +397,14 @@ public class FileStore implements MessageStore, Closeable {
         initialize(false);
     }
 
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#clearMessages()
+     */
+    public void clearMessages() throws IOException {
+        initialize(false);
+    }
+
     /* (non-Javadoc)
      * @see quickfix.MessageStore#reset()
      */
