@@ -22,6 +22,7 @@
  <xsl:output method="text" encoding="UTF-8"/>
  <xsl:param name="fieldName"/>
  <xsl:param name="fieldPackage"/>
+ <xsl:param name="utcTimestampPrecision"/>
  <xsl:param name="decimalType">double</xsl:param>
  <xsl:param name="decimalConverter">Double</xsl:param>
  <xsl:param name="serialVersionUID"/>
@@ -60,13 +61,18 @@
 package <xsl:value-of select="$fieldPackage"/>;
 
 import quickfix.<xsl:call-template name="get-field-type"/>Field;
+<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
+<xsl:choose><xsl:when test="$utcTimestampPrecision">import quickfix.UtcTimestampPrecision;
+</xsl:when></xsl:choose></xsl:if>
 <xsl:if test="@type='UTCTIMESTAMP'">
-import java.time.LocalDateTime;</xsl:if>
+import java.time.LocalDateTime;
+</xsl:if>
 <xsl:if test="@type='UTCDATE' or @type='UTCDATEONLY'">
-import java.time.LocalDate;</xsl:if>
-<xsl:if test="@type='UTCTIMEONLY'">
-import java.time.LocalTime;</xsl:if>
-
+import java.time.LocalDate;
+</xsl:if>
+<xsl:if test="@type='UTCTIME' or @type='UTCTIMEONLY'">
+import java.time.LocalTime;
+</xsl:if>
 public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get-field-type"/>Field {
 
 	static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
@@ -78,17 +84,19 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 	}
 
 	public <xsl:value-of select="@name"/>(<xsl:call-template name="get-type"/> data) {
-		super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'">, true</xsl:if>);
-	}
-	<xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable>
+		super(<xsl:value-of select="@number"/>, data<xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIMEONLY'"><xsl:choose><xsl:when test="$utcTimestampPrecision"/><xsl:otherwise>, true</xsl:otherwise></xsl:choose></xsl:if>);
+	}<xsl:variable name="dataType"><xsl:call-template name="get-type"/></xsl:variable><xsl:if test="$dataType = 'java.math.BigDecimal'">
 
-	<xsl:if test="$dataType = 'java.math.BigDecimal'">
-	public <xsl:value-of select="@name"/>(double data) {
+    public <xsl:value-of select="@name"/>(double data) {
 		super(<xsl:value-of select="@number"/>, new <xsl:value-of select="$dataType"/>(data));
-	}
-	</xsl:if>
-}
-</xsl:template>
+	}</xsl:if><xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
+    <xsl:choose><xsl:when test="$utcTimestampPrecision">
+
+    @Override
+    protected UtcTimestampPrecision getDefaultUtcTimestampPrecision() {
+        return UtcTimestampPrecision.<xsl:value-of select="$utcTimestampPrecision"/>;
+    }</xsl:when></xsl:choose></xsl:if>
+}</xsl:template>
 
 <xsl:template name="get-type">
    <xsl:choose>
@@ -100,6 +108,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='QTY'"><xsl:value-of select="$decimalType"/></xsl:when>
      <xsl:when test="@type='CURRENCY'">String</xsl:when>
      <xsl:when test="@type='UTCTIMESTAMP'">LocalDateTime</xsl:when>
+     <xsl:when test="@type='UTCTIME'">LocalTime</xsl:when>
      <xsl:when test="@type='UTCTIMEONLY'">LocalTime</xsl:when>
      <xsl:when test="@type='UTCDATE'">LocalDate</xsl:when>
      <xsl:when test="@type='UTCDATEONLY'">LocalDate</xsl:when>
@@ -127,6 +136,7 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='QTY'"><xsl:value-of select="$decimalConverter"/></xsl:when>
      <xsl:when test="@type='CURRENCY'">String</xsl:when>
      <xsl:when test="@type='UTCTIMESTAMP'">UtcTimeStamp</xsl:when>
+     <xsl:when test="@type='UTCTIME'">UtcTime</xsl:when>
      <xsl:when test="@type='UTCTIMEONLY'">UtcTimeOnly</xsl:when>
      <xsl:when test="@type='UTCDATE'">UtcDateOnly</xsl:when>
      <xsl:when test="@type='UTCDATEONLY'">UtcDateOnly</xsl:when>
