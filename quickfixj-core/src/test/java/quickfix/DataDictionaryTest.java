@@ -59,7 +59,6 @@ import quickfix.fix44.Quote;
 import quickfix.fix44.QuoteRequest;
 import quickfix.test.util.ExpectedTestFailure;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -77,7 +76,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class DataDictionaryTest {
 
@@ -755,7 +753,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
 
@@ -773,7 +771,7 @@ public class DataDictionaryTest {
     @Test
     public void testMessageDataDictionaryMismatch() throws Exception {
         final quickfix.fix43.NewOrderSingle newSingle = new quickfix.fix43.NewOrderSingle(
-                new ClOrdID("123"), new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION), new Side(Side.BUY), new TransactTime(), new OrdType(
+                new ClOrdID("123"), new HandlInst(HandlInst.MANUAL_ORDER), new Side(Side.BUY), new TransactTime(), new OrdType(
                         OrdType.LIMIT));
         newSingle.setField(new OrderQty(42));
         newSingle.setField(new Price(42.37));
@@ -853,7 +851,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
 
@@ -1347,7 +1345,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
         newSingle.setField(new StringField(EffectiveTime.FIELD));
@@ -1379,7 +1377,7 @@ public class DataDictionaryTest {
                     Message msg = MessageUtils.parse(messageFactory, dd, msgString);
                     Group partyGroup = msg.getGroups(quickfix.field.NoPartyIDs.FIELD).get(0);
                     char partyIdSource = partyGroup.getChar(PartyIDSource.FIELD);
-                    assertEquals(PartyIDSource.PROPRIETARY_CUSTOM_CODE, partyIdSource);
+                    assertEquals(PartyIDSource.PROPRIETARY, partyIdSource);
                     return msg;
                 };
                 resultList.add(ptpe.submit(messageParser));
@@ -1398,20 +1396,7 @@ public class DataDictionaryTest {
         }
     }
 
-    @Test
-    public void shouldLoadDictionaryWhenExternalDTDisEnabled() throws ConfigError {
-        new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
-    }
 
-    @Test
-    public void shouldFailToLoadDictionaryWhenExternalDTDisDisabled() {
-        try {
-            new DataDictionary("FIX_External_DTD.xml");
-            fail("should fail to load dictionary with external DTD");
-        } catch (ConfigError e) {
-            assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
-        }
-    }
 
     //
     // Group Validation Tests in RepeatingGroupTest

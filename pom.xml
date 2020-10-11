@@ -58,11 +58,13 @@
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
+		<module>orchestra2quickfixj</module>
+	<!--
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
 		<module>quickfixj-all</module>
-		<module>quickfixj-distribution</module>
+		<module>quickfixj-distribution</module> -->
 	</modules>
 
 	<properties>
@@ -87,8 +89,23 @@
 		<maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+		<fix.orchestra.version>1.5.1</fix.orchestra.version>
+		<docgen.version>1.5.0</docgen.version>
 	</properties>
-
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.fixprotocol.orchestrations</groupId>
+				<artifactId>fix-standard</artifactId>
+				<version>${fix.orchestra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.fixprotocol.orchestra</groupId>
+				<artifactId>repository-quickfix</artifactId>
+				<version>${docgen.version}</version>
+			</dependency>			
+		</dependencies>
+	</dependencyManagement>
 	<build>
 		<pluginManagement>
 			<plugins>

@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.quickfixj</groupId>
         <artifactId>quickfixj-parent</artifactId>
-        <version>2.2.1-SNAPSHOT</version>
+        <version>2.2.0</version>
     </parent>
 
     <artifactId>quickfixj-core</artifactId>
@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.apache.mina</groupId>
             <artifactId>mina-core</artifactId>
-            <version>2.1.4</version>
+            <version>2.1.3</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -117,12 +117,20 @@
             <version>2.1.30</version>
             <optional>true</optional>
         </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>org.quickfixj.orchestra2quickfixj</groupId>
+            <artifactId>orchestra2quickfixj</artifactId>
+            <version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
     <build>
         <resources>
             <resource>
                 <directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/dependency/dictionary/latest</directory>
             </resource>
             <resource>
                 <directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
@@ -158,6 +166,9 @@
                 <directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
             </testResource>
             <testResource>
+                <directory>${project.build.directory}/dependency/dictionary/latest</directory>
+            </testResource>
+            <testResource>
                 <directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
             </testResource>
             <testResource>
@@ -187,7 +198,29 @@
         </testResources>
 
         <plugins>
-            <plugin>
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-dependencies</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+									<groupId>org.quickfixj.orchestra2quickfixj</groupId>
+									<artifactId>orchestra2quickfixj</artifactId>
+                                    <outputDirectory>${project.build.directory}/dependency/dictionary/latest</outputDirectory>
+                                </artifactItem>            
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
                 <groupId>org.quickfixj</groupId>
                 <artifactId>quickfixj-codegenerator</artifactId>
                 <version>${project.version}</version>
@@ -200,6 +233,18 @@
                         <configuration>
                             <dictFile>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources/FIXT11.xml</dictFile>
                             <packaging>quickfix.fixt11</packaging>
+                            <fieldPackage>quickfix.field</fieldPackage>
+                            <decimal>${generator.decimal}</decimal>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>fix50sp2Latest</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <dictFile>${project.build.directory}/dependency/dictionary/latest</dictFile>
+                            <packaging>quickfix.fix50sp2Latest</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
                         </configuration>

@@ -279,10 +279,18 @@ import quickfix.Group;</xsl:if>
 		getComponent(component);
 		return component;
 	}
-
-	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
+	<xsl:choose>
+	  	<xsl:when test="//fix/@fixLatest ='true'">
+	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>Component() throws FieldNotFound {
 		return get(new <xsl:value-of select="$type"/>());
 	}
+		</xsl:when>
+		<xsl:otherwise>
+	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
+		return get(new <xsl:value-of select="$type"/>());
+	}	
+		</xsl:otherwise>
+	</xsl:choose>
 </xsl:template>
 
 <xsl:template mode="field-accessors" match="component">
