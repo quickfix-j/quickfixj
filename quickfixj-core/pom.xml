@@ -118,7 +118,7 @@
             <optional>true</optional>
         </dependency>
 		<dependency>
-			<groupId>org.quickfixj.orchestra2quickfixj</groupId>
+			<groupId>org.quickfixj</groupId>
             <artifactId>orchestra2quickfixj</artifactId>
             <version>${project.version}</version>
             <type>zip</type>
@@ -205,15 +205,16 @@
                 <executions>
                     <execution>
                         <id>unpack-dependencies</id>
-                        <phase>process-sources</phase>
+                        <phase>initialize</phase>
                         <goals>
                             <goal>unpack</goal>
                         </goals>
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-									<groupId>org.quickfixj.orchestra2quickfixj</groupId>
+									<groupId>org.quickfixj</groupId>
 									<artifactId>orchestra2quickfixj</artifactId>
+									<type>zip</type>
                                     <outputDirectory>${project.build.directory}/dependency/dictionary/latest</outputDirectory>
                                 </artifactItem>            
                             </artifactItems>
@@ -244,7 +245,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <dictFile>${project.build.directory}/dependency/dictionary/latest</dictFile>
+                            <dictFile>${project.build.directory}/dependency/dictionary/latest/FIX50SP2.xml</dictFile>
                             <packaging>quickfix.fix50sp2Latest</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>

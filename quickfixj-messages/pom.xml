@@ -15,13 +15,13 @@
 	<url>http://www.quickfixj.org</url>
 
 	<modules>
-		<!--<module>quickfixj-messages-fix40</module>
+		<module>quickfixj-messages-fix40</module>
 		<module>quickfixj-messages-fix41</module>
 		<module>quickfixj-messages-fix42</module>
 		<module>quickfixj-messages-fix43</module>
 		<module>quickfixj-messages-fix44</module>
 		<module>quickfixj-messages-fix50</module>
-		<module>quickfixj-messages-fix50sp1</module> -->
+		<module>quickfixj-messages-fix50sp1</module>
 		<module>quickfixj-messages-fix50sp2</module>
 		<module>quickfixj-messages-fixt11</module>
 		<module>quickfixj-messages-fix50sp2Latest</module>
