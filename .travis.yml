@@ -6,5 +6,5 @@ before_script:
   - ulimit -n 4096
 before_install:
   - echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > ~/.mavenrc
-install:
+script:
   - travis_wait 60 mvn test -B -V -Djava.util.logging.config.file=logging.properties
