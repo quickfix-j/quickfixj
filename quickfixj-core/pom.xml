@@ -131,6 +131,7 @@
                 <directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
             </resource>
             <resource>
+            	<!-- FIX Latest dictionary is an imported dependency -->
                 <directory>${project.build.directory}/dependency/dictionary/latest</directory>
             </resource>
             <resource>
@@ -167,6 +168,7 @@
                 <directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
             </testResource>
             <testResource>
+            	<!-- FIX Latest dictionary is an imported dependency -->
                 <directory>${project.build.directory}/dependency/dictionary/latest</directory>
             </testResource>
             <testResource>
