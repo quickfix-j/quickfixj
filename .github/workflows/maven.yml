@@ -3,30 +3,11 @@ name: Java CI
 on: [push]
 
 jobs:
-  test-win:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-2016]
-        java: [8, 11, 15]
-      fail-fast: false
-      max-parallel: 4
-    name: Test JDK ${{ matrix.java }}, ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v1
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java }}
-      - name: Test with Maven
-        run: echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > %HOME%\mavenrc_pre.bat; mvn test -B -V -Djava.util.logging.config.file=logging.properties
-
   test:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macOS-latest]
+        os: [ubuntu-18.04, macOS-latest, windows-2016]
         java: [8, 11, 15]
       fail-fast: false
       max-parallel: 4
@@ -39,4 +20,6 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name: Test with Maven
-        run: echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > ~/.mavenrc; mvn test -B -V -Djava.util.logging.config.file=logging.properties
+        env:
+          MAVEN_OPTS: "-Xms2g -Xmx3g"
+        run: mvn test -B -V -Djava.util.logging.config.file=logging.properties
