@@ -270,7 +270,7 @@ public class Session implements Closeable {
     public static final String SETTING_DISCONNECT_ON_ERROR = "DisconnectOnError";
 
     /**
-     * Session setting to control precision in message timestamps. 
+     * Session setting to control precision in message timestamps.
      * Valid values are "SECONDS", "MILLIS", "MICROS", "NANOS". Default is "MILLIS".
      * Only valid for FIX version >= 4.2.
      */
@@ -439,7 +439,7 @@ public class Session implements Closeable {
     private final boolean validateIncomingMessage;
     private final int[] logonIntervals;
     private final Set<InetAddress> allowedRemoteAddresses;
-    
+
     public static final int DEFAULT_MAX_LATENCY = 120;
     public static final int DEFAULT_RESEND_RANGE_CHUNK_SIZE = 0; // no resend range
     public static final double DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER = 0.5;
@@ -1491,7 +1491,7 @@ public class Session implements Closeable {
 
         if (validateSequenceNumbers && sequenceReset.isSetField(NewSeqNo.FIELD)) {
             final int newSequence = sequenceReset.getInt(NewSeqNo.FIELD);
-
+            stateListener.onSequenceResetReceived(newSequence, isGapFill);
             getLog().onEvent(
                     "Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
                             + newSequence);
@@ -1791,6 +1791,7 @@ public class Session implements Closeable {
                         getLog().onEvent(
                                 "ResendRequest for messages FROM " + range.getBeginSeqNo() + " TO " + range.getEndSeqNo()
                                         + " has been satisfied.");
+                        stateListener.onResendRequestSatisfied(range.getBeginSeqNo(), range.getEndSeqNo());
                         state.setResendRange(0, 0, 0);
                     }
                 }
@@ -2032,19 +2033,19 @@ public class Session implements Closeable {
             logon.setInt(NextExpectedMsgSeqNum.FIELD, nextExpectedMsgNum);
             state.setLastExpectedLogonNextSeqNum(nextExpectedMsgNum);
         }
-        
+
         setLogonTags(logon);
         return sendRaw(logon, 0);
     }
 
     /**
      * Logs out from session and closes the network connection.
-     * 
+     *
      * This method should not be called from user-code since it is likely
      * to deadlock when called from a different thread than the Session thread
      * and messages are sent/received concurrently.
      * Instead the logout() method should be used where possible.
-     * 
+     *
      * @param reason the reason why the session is disconnected
      * @param logError set to true if this disconnection is an error
      * @throws IOException IO error
@@ -2085,7 +2086,7 @@ public class Session implements Closeable {
             if (!state.isInitiator()) {
                 setEnabled(true);
             }
-            
+
             state.setLogonReceived(false);
             state.setLogonSent(false);
             state.setLogoutSent(false);
@@ -2481,9 +2482,10 @@ public class Session implements Closeable {
         initializeHeader(resendRequest.getHeader());
         sendRaw(resendRequest, 0);
         getLog().onEvent("Sent ResendRequest FROM: " + beginSeqNo + " TO: " + (endSeqNo == 0 ? "infinity" : endSeqNo));
-        state.setResendRange(beginSeqNo, msgSeqNum - 1, resendRequestChunkSize == 0
-                ? 0
-                : lastEndSeqNoSent);
+        int resendRangeEndSeqNum = msgSeqNum - 1;
+        int resendRangeCurrentSeqNum = resendRequestChunkSize == 0 ? 0 : lastEndSeqNoSent;
+        state.setResendRange(beginSeqNo, resendRangeEndSeqNum, resendRangeCurrentSeqNum);
+        stateListener.onResendRequestSent(beginSeqNo, resendRangeEndSeqNum, resendRangeCurrentSeqNum);
     }
 
     private boolean validatePossDup(Message msg) throws FieldNotFound, IOException {
@@ -2546,7 +2548,7 @@ public class Session implements Closeable {
         } else {
             getLog().onEvent("Responding to Logon request");
         }
-        
+
         setLogonTags(logon);
         sendRaw(logon, 0);
         state.setLogonSent(true);
