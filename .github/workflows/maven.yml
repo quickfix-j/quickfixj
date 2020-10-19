@@ -22,4 +22,4 @@ jobs:
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms2g -Xmx3g"
-        run: mvn test -B -V -Djava.util.logging.config.file=logging.properties
+        run: mvn test -B -V -D"java.util.logging.config.file"="logging.properties"
