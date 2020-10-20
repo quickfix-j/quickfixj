@@ -21,5 +21,5 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Test with Maven
         env:
-          MAVEN_OPTS: "-Xms2g -Xmx3g"
+          MAVEN_OPTS: "-Xms3g -Xmx3g"
         run: mvn test -B -V -D"java.util.logging.config.file"="logging.properties"
