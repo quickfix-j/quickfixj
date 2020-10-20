@@ -1,6 +1,9 @@
 name: Java CI
 
-on: [push]
+on:
+  push:
+  pull_request:
+    types: [reopened]
 
 jobs:
   test:
