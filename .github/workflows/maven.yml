@@ -3,7 +3,7 @@ name: Java CI
 on:
   push:
   pull_request:
-    types: [reopened]
+    types: [reopened, opened, synchronize]
 
 jobs:
   test:
