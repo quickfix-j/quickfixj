@@ -24,7 +24,7 @@
 		<module>quickfixj-messages-fix50sp1</module>
 		<module>quickfixj-messages-fix50sp2</module>
 		<module>quickfixj-messages-fixt11</module>
-		<module>quickfixj-messages-fix50sp2Latest</module>
+		<module>quickfixj-messages-fixLatest</module>
 		<module>quickfixj-messages-all</module>
 	</modules>
 

@@ -7,11 +7,11 @@
 		<version>2.2.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>quickfixj-messages-fix50sp2Latest</artifactId>
+	<artifactId>quickfixj-messages-fixLatest</artifactId>
 	<packaging>jar</packaging>
 
-	<name>QuickFIX/J Message classes for FIX 5.0 SP2 Latest</name>
-	<description>QuickFIX/J Message classes for FIX 5.0 SP2 Latest</description>
+	<name>QuickFIX/J Message classes for FIX Latest</name>
+	<description>QuickFIX/J Message classes for FIX Latest</description>
 	<url>http://www.quickfixj.org</url>
 	
 	<dependencies>
@@ -43,7 +43,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-version}</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -51,11 +50,12 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
+<!--                        <skip>true</skip> Uncomment this to skip execution as this module requires more than 9gb memory -->
                             <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>6g</maxmemory>
+                            <maxmemory>12g</maxmemory>
                             <detectOfflineLinks>false</detectOfflineLinks>
                             <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fix50sp2Latest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
+                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fixLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
                         </configuration>
                     </execution>
                 </executions>
@@ -72,7 +72,7 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix50sp2Latest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixLatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
 								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
@@ -88,9 +88,9 @@
 				<configuration>
 					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
-						<include>FIX50SP2.xml</include>
+						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>
-						<include>quickfix/fix50sp2Latest/**</include>
+						<include>quickfix/fixLatest/**</include>
 					</includes>
 					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -104,8 +104,8 @@
 				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
-						<include>FIX50SP2.xml</include>
-						<include>quickfix/fix50sp2Latest/**</include>
+						<include>FIXLatest.xml</include>
+						<include>quickfix/fixLatest/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
 					<archive>

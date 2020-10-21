@@ -242,13 +242,13 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>fix50sp2Latest</id>
+                        <id>FIXLatest.xml</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
                             <dictFile>${project.build.directory}/dependency/dictionary/latest/FIX50SP2.xml</dictFile>
-                            <packaging>quickfix.fix50sp2Latest</packaging>
+                            <packaging>quickfix.FIXLatest.xml</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
                         </configuration>
@@ -420,6 +420,7 @@
                             quickfix.fix50;resolution:=optional,
                             quickfix.fix50sp1;resolution:=optional,
                             quickfix.fix50sp2;resolution:=optional,
+                            quickfix.fixLatest;resolution:=optional,
                             quickfix.fixt11;resolution:=optional,
                             <!-- add the required imports -->
                             quickfix,quickfix.field,*
