@@ -44,9 +44,10 @@ import quickfix.mina.SessionConnector;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.security.cert.X509Certificate;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -507,10 +508,14 @@ public class SSLCertificateTest {
             Session session = findSession(sessionID);
             SSLSession sslSession = findSSLSession(session);
 
-            X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
+            Certificate[] peerCertificates = sslSession.getPeerCertificates();
 
-            for (X509Certificate certificate : peerCertificateChain) {
-                if (certificate.getSerialNumber().compareTo(serialNumber) == 0) {
+            for (Certificate peerCertificate : peerCertificates) {
+                if (!(peerCertificate instanceof X509Certificate)) {
+                    continue;
+                }
+
+                if (((X509Certificate)peerCertificate).getSerialNumber().compareTo(serialNumber) == 0) {
                     return;
                 }
             }
@@ -526,9 +531,9 @@ public class SSLCertificateTest {
                 return;
 
             try {
-                X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
+                Certificate[] peerCertificates = sslSession.getPeerCertificates();
 
-                if (peerCertificateChain != null && peerCertificateChain.length > 0) {
+                if (peerCertificates != null && peerCertificates.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
             } catch (SSLPeerUnverifiedException e) {

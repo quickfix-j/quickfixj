@@ -21,20 +21,37 @@ package quickfix;
 
 public interface SessionStateListener {
 
-    void onConnect();
+    default void onConnect(){
+    }
 
-    void onDisconnect();
+    default void onDisconnect(){
+    }
 
-    void onLogon();
+    default void onLogon(){
+    }
 
-    void onLogout();
+    default void onLogout(){
+    }
 
-    void onReset();
+    default void onReset(){
+    }
 
-    void onRefresh();
+    default void onRefresh(){
+    }
 
-    void onMissedHeartBeat();
+    default void onMissedHeartBeat(){
+    }
 
-    void onHeartBeatTimeout();
+    default void onHeartBeatTimeout(){
+    }
+
+    default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo){
+    }
+
+    default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag){
+    }
+
+    default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo){
+    }
 
 }
