@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
@@ -28,7 +29,7 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
  * sessions.
  */
 public class SocketAcceptor extends AbstractSocketAcceptor {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
     private SocketAcceptor(Builder builder) throws ConfigError {
@@ -103,11 +104,10 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     private void initialize() throws ConfigError {
-        if (isStarted.equals(Boolean.FALSE)) {
+        if (isStarted.compareAndSet(false, true)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             startAcceptingConnections();
             eventHandlingStrategy.blockInThread();
-            isStarted = Boolean.TRUE;
         } else {
             log.warn("Ignored attempt to start already running SocketAcceptor.");
         }
@@ -115,7 +115,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
 
     @Override
     public void stop(boolean forceDisconnect) {
-        if (isStarted.equals(Boolean.TRUE)) {
+        if (isStarted.get() == true) {
             try {
                 logoutAllSessions(forceDisconnect);
                 stopAcceptingConnections();
@@ -126,7 +126,7 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
                 } finally {
                     Session.unregisterSessions(getSessions(), true);
                     clearConnectorSessions();
-                    isStarted = Boolean.FALSE;
+                    isStarted.set(false);
                 }
             }
         }

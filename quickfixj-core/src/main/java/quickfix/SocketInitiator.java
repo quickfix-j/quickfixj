@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.initiator.AbstractSocketInitiator;
@@ -28,7 +29,7 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
     private SocketInitiator(Builder builder) throws ConfigError {
@@ -120,7 +121,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
     
     private void initialize() throws ConfigError {
-        if (isStarted.equals(Boolean.FALSE)) {
+        if (isStarted.compareAndSet(false, true)) {
             eventHandlingStrategy.setExecutor(longLivedExecutor);
             createSessionInitiators();
             for (Session session : getSessionMap().values()) {
@@ -128,7 +129,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
             }
             startInitiators();
             eventHandlingStrategy.blockInThread();
-            isStarted = Boolean.TRUE;
         } else {
             log.warn("Ignored attempt to start already running SocketInitiator.");
         }
@@ -136,7 +136,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
 
     @Override
     public void stop(boolean forceDisconnect) {
-        if (isStarted.equals(Boolean.TRUE)) {
+        if (isStarted.get() == true) {
             try {
                 logoutAllSessions(forceDisconnect);
                 stopInitiators();
@@ -146,7 +146,7 @@ public class SocketInitiator extends AbstractSocketInitiator {
                 } finally {
                     Session.unregisterSessions(getSessions(), true);
                     clearConnectorSessions();
-                    isStarted = Boolean.FALSE;
+                    isStarted.set(false);
                 }
             }
         }
