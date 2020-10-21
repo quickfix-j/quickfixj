@@ -11,5 +11,4 @@ script:
     - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
     - mvn test -B -V -Djava.util.logging.config.file=logging.properties
     # Killing background sleep loop
-    - kill %1
-    
+    - kill %1    
