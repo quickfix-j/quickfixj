@@ -12,3 +12,4 @@ script:
     - mvn test -B -V -Djava.util.logging.config.file=logging.properties
     # Killing background sleep loop
     - kill %1
+    
