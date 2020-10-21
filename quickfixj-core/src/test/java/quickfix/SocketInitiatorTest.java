@@ -333,6 +333,18 @@ public class SocketInitiatorTest {
             @Override
             public void onHeartBeatTimeout() {
             }
+
+            @Override
+            public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+            }
+
+            @Override
+            public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+            }
+
+            @Override
+            public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+            }
         };
 
         LogFactory logFactory = sessionID -> logSessionStateListener;

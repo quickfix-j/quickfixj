@@ -419,6 +419,18 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
         sendNotification("refresh");
     }
 
+    public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        sendNotification("resendRequestSent");
+    }
+
+    public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        sendNotification("sequenceResetReceived");
+    }
+
+    public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+        sendNotification("resentRequestSatisfied");
+    }
+
     public void onReset() {
         sendNotification("reset");
     }
