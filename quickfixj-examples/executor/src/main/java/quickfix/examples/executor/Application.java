@@ -238,7 +238,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         Price price = getPrice(order);
 
         quickfix.fix41.ExecutionReport accept = new quickfix.fix41.ExecutionReport(genOrderID(), genExecID(),
-                new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.NEW), order
+                new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.TRADE), new OrdStatus(OrdStatus.NEW), order
                         .getSymbol(), order.getSide(), orderQty, new LastShares(0), new LastPx(0), new LeavesQty(0),
                 new CumQty(0), new AvgPx(0));
 
@@ -247,7 +247,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         if (isOrderExecutable(order, price)) {
             quickfix.fix41.ExecutionReport executionReport = new quickfix.fix41.ExecutionReport(genOrderID(),
-                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.FILL), new OrdStatus(
+                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.TRADE), new OrdStatus(
                             OrdStatus.FILLED), order.getSymbol(), order.getSide(), orderQty, new LastShares(orderQty
                             .getValue()), new LastPx(price.getValue()), new LeavesQty(0), new CumQty(orderQty
                             .getValue()), new AvgPx(price.getValue()));
@@ -270,7 +270,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         Price price = getPrice(order);
 
         quickfix.fix42.ExecutionReport accept = new quickfix.fix42.ExecutionReport(genOrderID(), genExecID(),
-                new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.NEW), order
+                new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.TRADE), new OrdStatus(OrdStatus.NEW), order
                         .getSymbol(), order.getSide(), new LeavesQty(0), new CumQty(0), new AvgPx(0));
 
         accept.set(order.getClOrdID());
@@ -278,7 +278,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         if (isOrderExecutable(order, price)) {
             quickfix.fix42.ExecutionReport executionReport = new quickfix.fix42.ExecutionReport(genOrderID(),
-                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.FILL), new OrdStatus(
+                    genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.TRADE), new OrdStatus(
                             OrdStatus.FILLED), order.getSymbol(), order.getSide(), new LeavesQty(0), new CumQty(
                             orderQty.getValue()), new AvgPx(price.getValue()));
 
@@ -315,7 +315,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         Price price = getPrice(order);
 
         quickfix.fix43.ExecutionReport accept = new quickfix.fix43.ExecutionReport(
-                    genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                    genOrderID(), genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(
                             OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
                             .getValue()), new CumQty(0), new AvgPx(0));
 
@@ -325,7 +325,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         if (isOrderExecutable(order, price)) {
             quickfix.fix43.ExecutionReport executionReport = new quickfix.fix43.ExecutionReport(genOrderID(),
-                    genExecID(), new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.FILLED), order.getSide(),
+                    genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(OrdStatus.FILLED), order.getSide(),
                     new LeavesQty(0), new CumQty(orderQty.getValue()), new AvgPx(price.getValue()));
 
             executionReport.set(order.getClOrdID());
@@ -350,7 +350,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
         Price price = getPrice(order);
 
         quickfix.fix44.ExecutionReport accept = new quickfix.fix44.ExecutionReport(
-                    genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                    genOrderID(), genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(
                             OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
                             .getValue()), new CumQty(0), new AvgPx(0));
 
@@ -360,7 +360,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         if (isOrderExecutable(order, price)) {
             quickfix.fix44.ExecutionReport executionReport = new quickfix.fix44.ExecutionReport(genOrderID(),
-                    genExecID(), new ExecType(ExecType.FILL), new OrdStatus(OrdStatus.FILLED), order.getSide(),
+                    genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(OrdStatus.FILLED), order.getSide(),
                     new LeavesQty(0), new CumQty(orderQty.getValue()), new AvgPx(price.getValue()));
 
             executionReport.set(order.getClOrdID());
@@ -385,7 +385,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             Price price = getPrice(order);
 
             quickfix.fix50.ExecutionReport accept = new quickfix.fix50.ExecutionReport(
-                    genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                    genOrderID(), genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(
                             OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
                             .getValue()), new CumQty(0));
 
@@ -395,7 +395,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
             if (isOrderExecutable(order, price)) {
                 quickfix.fix50.ExecutionReport executionReport = new quickfix.fix50.ExecutionReport(
-                        genOrderID(), genExecID(), new ExecType(ExecType.FILL), new OrdStatus(
+                        genOrderID(), genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(
                                 OrdStatus.FILLED), order.getSide(), new LeavesQty(0), new CumQty(
                                 orderQty.getValue()));
 
