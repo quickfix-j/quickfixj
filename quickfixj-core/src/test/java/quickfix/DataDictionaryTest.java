@@ -1396,7 +1396,20 @@ public class DataDictionaryTest {
         }
     }
 
+    @Test
+    public void shouldLoadDictionaryWhenExternalDTDisEnabled() throws ConfigError {
+        new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+    }
 
+    @Test
+    public void shouldFailToLoadDictionaryWhenExternalDTDisDisabled() {
+        try {
+            new DataDictionary("FIX_External_DTD.xml");
+            fail("should fail to load dictionary with external DTD");
+        } catch (ConfigError e) {
+            assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
+        }
+    }
 
     //
     // Group Validation Tests in RepeatingGroupTest
@@ -1434,18 +1447,4 @@ public class DataDictionaryTest {
                 .getResourceAsStream(fileName));
     }
 
-    @Test
-    public void shouldLoadDictionaryWhenExternalDTDisEnabled() throws ConfigError {
-        new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
-    }
-
-    @Test
-    public void shouldFailToLoadDictionaryWhenExternalDTDisDisabled() {
-        try {
-            new DataDictionary("FIX_External_DTD.xml");
-            fail("should fail to load dictionary with external DTD");
-        } catch (ConfigError e) {
-            assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
-        }
-    }
 }
