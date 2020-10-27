@@ -1931,6 +1931,18 @@ public class MessageTest {
         assertNotNull(seventhConstructor.getHeader());
     }
 
+    @Test
+    public void shouldConvertToXmlWhenDataDictionaryLoadedWithExternalDTD() throws ConfigError {
+        DataDictionary dataDictionary = new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+
+        Message message = new Message();
+        message.setString(Account.FIELD, "test-account");
+
+        String xml = message.toXML(dataDictionary);
+        xml = xml.replace("\r", "").replace("\n", " ");
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?> <message> <header/> <body> <field name=\"Account\" tag=\"1\"><![CDATA[test-account]]></field> </body> <trailer/> </message> ", xml);
+    }
+
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));
