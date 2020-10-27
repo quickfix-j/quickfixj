@@ -6,9 +6,15 @@ before_script:
   - ulimit -n 4096
 before_install:
   - echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > ~/.mavenrc
+install:
+    # Output something every 9 minutes or Travis kills the job
+    - while sleep 9m; do echo "=====[ still running ]====="; done &
+    - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+    # Killing background sleep loop
+    - kill %1
 script:
-    # Output something every 10 minutes or Travis kills the job
-    - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
+    # Output something every 9 minutes or Travis kills the job
+    - while sleep 9m; do echo "=====[ still running ]====="; done &
     - mvn test -B -V -Djava.util.logging.config.file=logging.properties
     # Killing background sleep loop
     - kill %1
