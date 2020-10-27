@@ -8,7 +8,7 @@ before_install:
   - echo "MAVEN_OPTS='-Xms2g -Xmx3g'" > ~/.mavenrc
 script:
     # Output something every 10 minutes or Travis kills the job
-    - while sleep 9m; do echo "=====[ $SECONDS seconds still running ]====="; done &
+    - while sleep 540; do echo "=====[ $SECONDS seconds still running ]====="; done &
     - mvn test -B -V -Djava.util.logging.config.file=logging.properties
     # Killing background sleep loop
     - kill %1    
