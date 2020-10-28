@@ -51,6 +51,9 @@
 			<resource>
 				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
 			</resource>
+			<resource>
+				<directory>../quickfixj-orchestra/target/generated-resources/dictionary/</directory>
+			</resource>
 		</resources>
 
 		<plugins>

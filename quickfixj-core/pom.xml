@@ -217,7 +217,7 @@
                         </goals>
                         <configuration>
                             <dictFile>../quickfixj-orchestra/target/generated-resources/dictionary/FIX50SP2.xml</dictFile>
-                            <packaging>quickfix.FIXLatest.xml</packaging>
+                            <packaging>quickfix.FIXLatest</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
                         </configuration>
