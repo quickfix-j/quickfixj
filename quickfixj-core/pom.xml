@@ -211,13 +211,13 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>FIXLatest.xml</id>
+                        <id>fixLatest</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
                             <dictFile>../quickfixj-orchestra/target/generated-resources/dictionary/FIXLatest.xml</dictFile>
-                            <packaging>quickfix.FIXLatest</packaging>
+                            <packaging>quickfix.fixLatest</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
                         </configuration>
