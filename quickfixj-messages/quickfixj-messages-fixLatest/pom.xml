@@ -55,7 +55,7 @@
                             <maxmemory>12g</maxmemory>
                             <detectOfflineLinks>false</detectOfflineLinks>
                             <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fixLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
+                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/FIXLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
                         </configuration>
                     </execution>
                 </executions>
@@ -72,7 +72,7 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixLatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.FIXLatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
 								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
@@ -90,7 +90,7 @@
 					<includes>
 						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>
-						<include>quickfix/fixLatest/**</include>
+						<include>quickfix/FIXLatest/**</include>
 					</includes>
 					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -105,7 +105,7 @@
 				<configuration>
 					<includes>
 						<include>FIXLatest.xml</include>
-						<include>quickfix/fixLatest/**</include>
+						<include>quickfix/FIXLatest/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
 					<archive>

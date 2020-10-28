@@ -117,6 +117,7 @@ import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;

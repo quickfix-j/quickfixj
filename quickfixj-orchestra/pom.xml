@@ -85,7 +85,7 @@
 		            <configuration>
 			          <transformationSets>
 						<transformationSet>
-			              <dir>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest.xml</dir>
+			              <dir>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest</dir>
 			              <outputDir>${project.build.directory}/generated-resources/dictionary</outputDir>
 			              <includes>
 			              	<include>FIX50SP2.xml</include>
@@ -113,7 +113,7 @@
 					<mainClass>io.fixprotocol.orchestra.quickfix.DataDictionaryGenerator</mainClass>
 					<arguments>
 						<argument>${project.build.directory}/generated-resources/repository/${orchestra.file}</argument>
-						<argument>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest.xml</argument>
+						<argument>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest</argument>
 					</arguments>
 				</configuration>
 			</plugin>            

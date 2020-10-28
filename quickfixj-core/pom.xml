@@ -216,7 +216,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <dictFile>../quickfixj-orchestra/target/generated-resources/dictionary/FIX50SP2.xml</dictFile>
+                            <dictFile>../quickfixj-orchestra/target/generated-resources/dictionary/FIXLatest.xml</dictFile>
                             <packaging>quickfix.FIXLatest</packaging>
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
