@@ -54,6 +54,24 @@
                 </executions>
             </plugin>
 			<plugin>
+				<groupId>com.coderplus.maven.plugins</groupId>
+				<artifactId>copy-rename-maven-plugin</artifactId>
+				<version>1.0</version>
+				<executions>
+				  <execution>
+					<id>rename-file</id>
+					<phase>process-resources</phase>
+					<goals>
+					  <goal>rename</goal>
+					</goals>
+					<configuration>
+					  <sourceFile>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest/FIX50SP2.xml</sourceFile>
+					  <destinationFile>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest/FIXLatest.xml</destinationFile>
+					</configuration>
+				  </execution>
+				</executions>
+    	    </plugin>
+			<plugin>
 		        <groupId>org.codehaus.mojo</groupId>
 		        <artifactId>xml-maven-plugin</artifactId>
 		        <executions>
@@ -88,7 +106,7 @@
 			              <dir>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest</dir>
 			              <outputDir>${project.build.directory}/generated-resources/dictionary</outputDir>
 			              <includes>
-			              	<include>FIX50SP2.xml</include>
+			              	<include>*.xml</include>
 			              </includes>
 			              <stylesheet>${project.basedir}/src/main/xsl/setFixLatestInDictionary.xsl</stylesheet>
 			            </transformationSet>
