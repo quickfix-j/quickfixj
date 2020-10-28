@@ -6,11 +6,11 @@
         <version>2.2.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>orchestra2quickfixj</artifactId>
+    <artifactId>quickfixj-orchestra</artifactId>
     <packaging>pom</packaging>
 
-    <name>Orchestra 2 QuickFIX/J</name>
-    <description>Orchestra 2 QuickFIX/J</description>
+    <name>QuickFIX/J from Orchestra</name>
+    <description>QuickFIX/J from FIX Orchestra</description>
     <url>http://www.quickfixj.org</url>
 
     <properties>
@@ -25,7 +25,7 @@
 		<dependency>
 			<groupId>io.fixprotocol.orchestra</groupId>
 			<artifactId>repository-quickfix</artifactId>
-		</dependency>		
+		</dependency>
 	</dependencies>
 
     <build>
@@ -78,7 +78,7 @@
 		          </execution>
 		          <execution>
 		          	<id>updateDictionaryFile</id>
-					<phase>prepare-package</phase>
+					<phase>process-resources</phase>
 					<goals>
 		              <goal>transform</goal>
 		            </goals>
@@ -102,7 +102,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
 					<execution>
-						<phase>process-resources</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>java</goal>
 						</goals>

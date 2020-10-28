@@ -58,7 +58,7 @@
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
-		<module>orchestra2quickfixj</module>
+		<module>quickfixj-orchestra</module>
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
