@@ -128,7 +128,6 @@
                           <goal>single</goal>
                         </goals>
                         <configuration>
-						  <appendAssemblyId>false</appendAssemblyId>
                           <descriptors>
                             <descriptor>${project.basedir}/src/main/assembly/repository-assembly-qfj.xml</descriptor>
                           </descriptors>
@@ -141,7 +140,6 @@
                           <goal>single</goal>
                         </goals>
                         <configuration>
-						  <appendAssemblyId>false</appendAssemblyId>
                           <descriptors>
                             <descriptor>${project.basedir}/src/main/assembly/dictionary-assembly.xml</descriptor>
                           </descriptors>
