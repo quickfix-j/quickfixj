@@ -26,6 +26,17 @@
 			<groupId>io.fixprotocol.orchestra</groupId>
 			<artifactId>repository-quickfix</artifactId>
 		</dependency>
+		<!-- API -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+		</dependency>
+		<!-- Runtime -->
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
     <build>
@@ -130,6 +141,7 @@
 				<configuration>
 					<mainClass>io.fixprotocol.orchestra.quickfix.DataDictionaryGenerator</mainClass>
 					<arguments>
+						<argument>-classpath</argument> <!-- automatically creates the classpath using all project dependencies, also adding the project build directory -->
 						<argument>${project.build.directory}/generated-resources/repository/${orchestra.file}</argument>
 						<argument>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest</argument>
 					</arguments>
