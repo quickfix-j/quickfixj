@@ -105,20 +105,20 @@
 				<artifactId>repository-quickfix</artifactId>
 				<version>${docgen.version}</version>
 			</dependency>			
+			<!-- API -->
+			<dependency>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>${jakarta.version}</version>
+			</dependency>
+			<!-- Runtime -->
+			<dependency>
+				<groupId>com.sun.xml.bind</groupId>
+				<artifactId>jaxb-impl</artifactId>
+				<version>${sun-xml-bind.version}</version>
+				<scope>runtime</scope>
+			</dependency>
 		</dependencies>
-		<!-- API -->
-		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>${jakarta.version}</version>
-		</dependency>
-		<!-- Runtime -->
-		<dependency>
-			<groupId>com.sun.xml.bind</groupId>
-			<artifactId>jaxb-impl</artifactId>
-			<version>${sun-xml-bind.version}</version>
-			<scope>runtime</scope>
-		</dependency>
 	</dependencyManagement>
 	<build>
 		<pluginManagement>
