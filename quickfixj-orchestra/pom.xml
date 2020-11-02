@@ -139,9 +139,10 @@
 					</execution>
 				</executions>
 				<configuration>
+					<includeProjectDependencies>true</includeProjectDependencies>
+					<classpathScope>runtime</classpathScope>
 					<mainClass>io.fixprotocol.orchestra.quickfix.DataDictionaryGenerator</mainClass>
 					<arguments>
-						<argument>-classpath</argument> <!-- automatically creates the classpath using all project dependencies, also adding the project build directory -->
 						<argument>${project.build.directory}/generated-resources/repository/${orchestra.file}</argument>
 						<argument>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest</argument>
 					</arguments>
