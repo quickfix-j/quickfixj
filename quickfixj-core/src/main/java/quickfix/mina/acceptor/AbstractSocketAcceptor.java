@@ -235,7 +235,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                     }
                 } catch (Throwable t) {
                     if (continueInitOnError) {
-                        log.error("error during session initialization, continuing...", t);
+                        log.error("error during session initialization for {}, continuing...", sessionID, t);
                     } else {
                         throw t instanceof ConfigError ? (ConfigError) t : new ConfigError(
                                 "error during session initialization", t);
