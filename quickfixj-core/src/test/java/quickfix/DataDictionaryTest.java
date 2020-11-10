@@ -39,6 +39,7 @@ import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
 import quickfix.field.PartyID;
+import quickfix.field.NoPartyIDs;
 import quickfix.field.PartyIDSource;
 import quickfix.field.PartyRole;
 import quickfix.field.PartySubID;
@@ -57,6 +58,7 @@ import quickfix.field.TransactTime;
 import quickfix.fix44.NewOrderSingle;
 import quickfix.fix44.Quote;
 import quickfix.fix44.QuoteRequest;
+import quickfix.fix44.component.Parties;
 import quickfix.test.util.ExpectedTestFailure;
 
 import java.io.ByteArrayInputStream;
@@ -1027,7 +1029,80 @@ public class DataDictionaryTest {
         int[] expectedPartySubIDsFieldOrder = new int[] {PartySubID.FIELD, PartySubIDType.FIELD};
         assertArrayEquals(expectedPartySubIDsFieldOrder, partySubIDsDictionary.getOrderedFields());
     }
+    
+    private QuoteRequest.NoRelatedSym.NoPartyIDs createPartiesGroup() {
+		final  QuoteRequest.NoRelatedSym.NoPartyIDs noPartiesGroup = new QuoteRequest.NoRelatedSym.NoPartyIDs();
+	    noPartiesGroup.set(new PartyID("PartyOnDude"));
+		return noPartiesGroup;
+	}
 
+	/**
+     * <pre>
+     * given that the Component is not required when the contained Group is required and the Component is present then validation succeeds
+     * </pre>
+     */
+    @Test
+    public void testComponentNotRequiredWithGroupRequiredComponentPresent() throws Exception {
+    	QuoteRequest quoteRequest = new QuoteRequest(); 
+        initialiseQuoteRequest(quoteRequest);
+        addPartiesGroup(quoteRequest);
+        
+        DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
+        dataDictionary.validate(quoteRequest, true);
+    }
+
+	/**
+     * <pre>
+     * given that the Component is not required when the contained Group is required and the Component is absent then validation succeeds
+     * </pre>
+     */
+    @Test
+    public void testComponentNotRequiredWithGroupRequiredComponentAbsent() throws Exception {
+        Message quoteRequest = createQuoteRequest();
+        DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test.xml");
+        dataDictionary.validate(quoteRequest, true);
+    }
+    
+    /**
+     * <pre>
+     * given that the Component is required when the contained Group is required and the Component is absent then validation fails
+     * </pre>
+     */
+    @Test
+    public void testComponentRequiredWithGroupRequiredComponentAbsent() throws Exception {
+        Message quoteRequest = createQuoteRequest();
+        DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test_2.xml");
+        expectedException.expect(FieldException.class);
+        dataDictionary.validate(quoteRequest, true);
+    }
+
+    /**
+     * <pre>
+     * given that the Component is required when the contained Group is required and the Component is present then validation succeeds
+     * </pre>
+     */
+    
+    @Test
+    public void testComponentRequiredWithGroupRequiredComponentPresent() throws Exception {
+    	QuoteRequest quoteRequest = new QuoteRequest(); 
+        initialiseQuoteRequest(quoteRequest);
+        addPartiesGroup(quoteRequest);
+        
+        DataDictionary dataDictionary = new DataDictionary("FIX44_Custom_Test_2.xml");
+
+        dataDictionary.validate(quoteRequest, true);
+    }
+
+	private void addPartiesGroup(QuoteRequest quoteRequest) {
+		final QuoteRequest.NoRelatedSym.NoPartyIDs noPartiesGroup = createPartiesGroup();
+        
+        final QuoteRequest.NoRelatedSym noRelatedSymGroup = new QuoteRequest.NoRelatedSym();
+        noRelatedSymGroup.setString(Symbol.FIELD, "AAPL");
+        noRelatedSymGroup.addGroup(noPartiesGroup);
+        
+        quoteRequest.addGroup(noRelatedSymGroup);
+	}
+    
     /**
      * <pre>
      * +---------------------------+------------------------+-------+------------+
@@ -1284,15 +1359,19 @@ public class DataDictionaryTest {
         dataDictionary.validate(quoteRequest, true);
     }
 
-    private Message createQuoteRequest() {
-        Message quoteRequest = new Message();
-        quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
-        quoteRequest.setString(QuoteReqID.FIELD, "QR-12345");
+    private QuoteRequest createQuoteRequest() {
+    	QuoteRequest quoteRequest = new QuoteRequest(); 
+        initialiseQuoteRequest(quoteRequest);
         final Group noRelatedSymGroup = new Group(NoRelatedSym.FIELD, Symbol.FIELD);
         noRelatedSymGroup.setString(Symbol.FIELD, "AAPL");
         quoteRequest.addGroup(noRelatedSymGroup);
         return quoteRequest;
     }
+
+	private void initialiseQuoteRequest(QuoteRequest quoteRequest) {
+		quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
+        quoteRequest.setString(QuoteReqID.FIELD, "QR-12345");
+	}
 
     /**
      * Dictionary "FIX44.xml":<br/>

@@ -288,7 +288,7 @@
         <field name="Price" required="N" />
         <field name="Price2" required="N" />
         <component name="YieldData" required="N" />
-        <component name="Parties" required="N" />
+        <component name="Parties" required="Y" /> <!-- customisation -->
       </group>
       <field name="Text" required="N" />
       <field name="EncodedTextLen" required="N" />
