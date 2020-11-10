@@ -1038,7 +1038,7 @@ public class DataDictionaryTest {
 
 	/**
      * <pre>
-     * given that the Component is not required when the contained Group is required and the Component is present then validation succeeds
+     * given that the Component is not required and the contained Group is required and the Component is present then validation succeeds
      * </pre>
      */
     @Test
@@ -1053,7 +1053,7 @@ public class DataDictionaryTest {
 
 	/**
      * <pre>
-     * given that the Component is not required when the contained Group is required and the Component is absent then validation succeeds
+     * given that the Component is not required and the contained Group is required and the Component is absent then validation succeeds
      * </pre>
      */
     @Test
@@ -1065,7 +1065,7 @@ public class DataDictionaryTest {
     
     /**
      * <pre>
-     * given that the Component is required when the contained Group is required and the Component is absent then validation fails
+     * given that the Component is required and the contained Group is required when the Component is absent then validation fails
      * </pre>
      */
     @Test
@@ -1078,7 +1078,7 @@ public class DataDictionaryTest {
 
     /**
      * <pre>
-     * given that the Component is required when the contained Group is required and the Component is present then validation succeeds
+     * given that the Component is required and the contained Group is required when the Component is present then validation succeeds
      * </pre>
      */
     
