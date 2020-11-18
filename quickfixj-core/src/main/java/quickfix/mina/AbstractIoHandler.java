@@ -145,7 +145,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 }
             }
         } else {
-            log.error("Disconnecting; received message for unknown session. remoteSessionId:{}", remoteSessionId);
+            log.error("Disconnecting; received message for unknown session. remoteSessionID:{}", remoteSessionID);
             ioSession.closeNow();
         }
     }
