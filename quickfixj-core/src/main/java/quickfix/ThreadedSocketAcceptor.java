@@ -20,6 +20,7 @@
 package quickfix;
 
 import quickfix.mina.EventHandlingStrategy;
+import quickfix.mina.LoggingSettings;
 import quickfix.mina.ThreadPerSessionEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 
@@ -69,6 +70,13 @@ public class ThreadedSocketAcceptor extends AbstractSocketAcceptor {
             SessionSettings settings, LogFactory logFactory, MessageFactory messageFactory)
             throws ConfigError {
         super(application, messageStoreFactory, settings, logFactory, messageFactory);
+        eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
+    }
+
+    public ThreadedSocketAcceptor(Application application, MessageStoreFactory messageStoreFactory,
+            SessionSettings settings, LoggingSettings loggingSettings,
+            LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+        super(application, messageStoreFactory, settings, loggingSettings, logFactory, messageFactory);
         eventHandlingStrategy = new ThreadPerSessionEventHandlingStrategy(this, DEFAULT_QUEUE_CAPACITY);
     }
 

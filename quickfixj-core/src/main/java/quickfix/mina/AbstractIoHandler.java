@@ -41,10 +41,20 @@ import quickfix.SessionID;
 public abstract class AbstractIoHandler extends IoHandlerAdapter {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
+    private final LoggingSettings loggingSettings;
     private final EventHandlingStrategy eventHandlingStrategy;
 
     public AbstractIoHandler(NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
         networkingOptions = options;
+        this.loggingSettings = new LoggingSettings(true);
+        this.eventHandlingStrategy = eventHandlingStrategy;
+    }
+
+    public AbstractIoHandler(NetworkingOptions options,
+            LoggingSettings loggingSettings,
+            EventHandlingStrategy eventHandlingStrategy) {
+        networkingOptions = options;
+        this.loggingSettings = loggingSettings;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }
 
@@ -145,7 +155,12 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 }
             }
         } else {
-            log.error("Disconnecting; received message for unknown session: {}", messageString);
+            if (loggingSettings.isLogGarbledMessage()) {
+                log.error("Disconnecting; received message for unknown session: {}", messageString);
+            }
+            else {
+                log.error("Disconnecting; received message for unknown session. remoteSessionID: {}", remoteSessionID);
+            }
             ioSession.closeNow();
         }
     }

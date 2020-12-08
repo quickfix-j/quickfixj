@@ -37,11 +37,7 @@ import quickfix.Session;
 import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
-import quickfix.mina.CompositeIoFilterChainBuilder;
-import quickfix.mina.EventHandlingStrategy;
-import quickfix.mina.NetworkingOptions;
-import quickfix.mina.ProtocolFactory;
-import quickfix.mina.SessionConnector;
+import quickfix.mina.*;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
@@ -65,6 +61,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private final SessionFactory sessionFactory;
     private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<>();
     private final Map<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new HashMap<>();
+    private final LoggingSettings loggingSettings;
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -72,6 +69,16 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         IoBuffer.setAllocator(new SimpleBufferAllocator());
         IoBuffer.setUseDirectBuffer(false);
         this.sessionFactory = sessionFactory;
+        this.loggingSettings = new LoggingSettings(true);
+    }
+
+    protected AbstractSocketAcceptor(SessionSettings settings, LoggingSettings loggingSettings,
+            SessionFactory sessionFactory) throws ConfigError {
+        super(settings, sessionFactory);
+        IoBuffer.setAllocator(new SimpleBufferAllocator());
+        IoBuffer.setUseDirectBuffer(false);
+        this.sessionFactory = sessionFactory;
+        this.loggingSettings = loggingSettings;
     }
 
     protected AbstractSocketAcceptor(Application application,
@@ -85,6 +92,13 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             MessageStoreFactory messageStoreFactory, SessionSettings settings,
             LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
         this(settings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
+                messageFactory));
+    }
+
+    protected AbstractSocketAcceptor(Application application,
+            MessageStoreFactory messageStoreFactory, SessionSettings settings,
+            LoggingSettings loggingSettings, LogFactory logFactory, MessageFactory messageFactory) throws ConfigError {
+        this(settings, loggingSettings, new DefaultSessionFactory(application, messageStoreFactory, logFactory,
                 messageFactory));
     }
 
@@ -148,8 +162,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             try {
                 SessionSettings settings = getSettings();
                 NetworkingOptions networkingOptions = new NetworkingOptions(settings.getDefaultProperties());
-                networkingOptions.apply(ioAcceptor);
-                ioAcceptor.setHandler(new AcceptorIoHandler(sessionProvider, networkingOptions, getEventHandlingStrategy()));
+                AcceptorIoHandler handler = new AcceptorIoHandler(
+                        sessionProvider, networkingOptions, loggingSettings, getEventHandlingStrategy());
+                ioAcceptor.setHandler(handler);
             } catch (FieldConvertError e) {
                 throw new ConfigError(e);
             }
