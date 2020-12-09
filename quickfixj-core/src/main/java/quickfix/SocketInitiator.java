@@ -121,32 +121,33 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
     
     private void initialize() throws ConfigError {
-        if (isStarted.compareAndSet(false, true)) {
-            eventHandlingStrategy.setExecutor(longLivedExecutor);
-            createSessionInitiators();
-            for (Session session : getSessionMap().values()) {
-                Session.registerSession(session);
+        synchronized (isStarted) {
+            if (isStarted.compareAndSet(false, true)) {
+                eventHandlingStrategy.setExecutor(longLivedExecutor);
+                createSessionInitiators();
+                for (Session session : getSessionMap().values()) {
+                    Session.registerSession(session);
+                }
+                startInitiators();
+                eventHandlingStrategy.blockInThread();
             }
-            startInitiators();
-            eventHandlingStrategy.blockInThread();
-        } else {
-            log.warn("Ignored attempt to start already running SocketInitiator.");
         }
     }
 
     @Override
     public void stop(boolean forceDisconnect) {
-        if (isStarted.get() == true) {
-            try {
-                logoutAllSessions(forceDisconnect);
-                stopInitiators();
-            } finally {
+        synchronized (isStarted) {
+            if (isStarted.compareAndSet(true, false)) {
                 try {
-                    eventHandlingStrategy.stopHandlingMessages(true);
+                    logoutAllSessions(forceDisconnect);
+                    stopInitiators();
                 } finally {
-                    Session.unregisterSessions(getSessions(), true);
-                    clearConnectorSessions();
-                    isStarted.set(false);
+                    try {
+                        eventHandlingStrategy.stopHandlingMessages(true);
+                    } finally {
+                        Session.unregisterSessions(getSessions(), true);
+                        clearConnectorSessions();
+                    }
                 }
             }
         }
