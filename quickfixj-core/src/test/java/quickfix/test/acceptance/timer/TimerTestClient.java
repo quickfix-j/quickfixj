@@ -49,6 +49,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 import quickfix.ScreenLogFactory;
+import quickfix.test.util.ReflectionUtil;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -118,6 +119,13 @@ public class TimerTestClient extends MessageCracker implements Application {
                 }
             }, 5000);
 
+            Timer timer2 = new Timer();
+            timer2.schedule(new TimerTask() {
+                public void run() {
+                    ReflectionUtil.dumpStackTraces();
+                }
+            }, 2000);
+            
             try {
                 shutdownLatch.await();
             } catch (InterruptedException e) {
