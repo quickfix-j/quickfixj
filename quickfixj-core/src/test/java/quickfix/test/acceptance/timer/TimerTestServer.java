@@ -33,7 +33,6 @@ import quickfix.Message;
 import quickfix.MessageCracker;
 import quickfix.MessageStoreFactory;
 import quickfix.RejectLogon;
-import quickfix.SLF4JLogFactory;
 import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
@@ -48,6 +47,7 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
+import quickfix.ScreenLogFactory;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -130,7 +130,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
                         settings.setString(sessionID, "DataDictionary", FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "") + ".xml");
 
             MessageStoreFactory factory = new MemoryStoreFactory();
-            acceptor = new SocketAcceptor(this, factory, settings, new SLF4JLogFactory(settings),
+            acceptor = new SocketAcceptor(this, factory, settings, new ScreenLogFactory(true, true, true, true),
                     new DefaultMessageFactory());
             acceptor.start();
             try {

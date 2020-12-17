@@ -36,7 +36,6 @@ import quickfix.MessageCracker;
 import quickfix.MessageStoreFactory;
 import quickfix.RejectLogon;
 import quickfix.RuntimeError;
-import quickfix.SLF4JLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionNotFound;
 import quickfix.SessionSettings;
@@ -49,6 +48,7 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
+import quickfix.ScreenLogFactory;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -107,7 +107,7 @@ public class TimerTestClient extends MessageCracker implements Application {
 
         MessageStoreFactory storeFactory = new MemoryStoreFactory();
         Initiator initiator = new SocketInitiator(this, storeFactory, settings,
-                new SLF4JLogFactory(settings), new DefaultMessageFactory());
+                new ScreenLogFactory(true, true, true, true), new DefaultMessageFactory());
         initiator.start();
 
         try {
