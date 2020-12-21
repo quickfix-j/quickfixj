@@ -43,6 +43,7 @@ import quickfix.SocketInitiator;
 import quickfix.UnsupportedMessageType;
 import quickfix.fix44.ListStatusRequest;
 import quickfix.fix44.TestRequest;
+import quickfix.fix44.Logon;
 
 import java.util.HashMap;
 import java.util.Timer;
@@ -62,6 +63,14 @@ public class TimerTestClient extends MessageCracker implements Application {
 
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+        if (message instanceof Logon) {
+            Timer timer2 = new Timer();
+            timer2.schedule(new TimerTask() {
+                public void run() {
+                    ReflectionUtil.dumpStackTraces();
+                }
+            }, 2500);
+        }
     }
 
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
@@ -119,13 +128,6 @@ public class TimerTestClient extends MessageCracker implements Application {
                 }
             }, 5000);
 
-            Timer timer2 = new Timer();
-            timer2.schedule(new TimerTask() {
-                public void run() {
-                    ReflectionUtil.dumpStackTraces();
-                }
-            }, 2000);
-            
             try {
                 shutdownLatch.await();
             } catch (InterruptedException e) {
