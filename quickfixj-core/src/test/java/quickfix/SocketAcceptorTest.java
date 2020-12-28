@@ -36,6 +36,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -53,6 +58,20 @@ public class SocketAcceptorTest {
             "ACCEPTOR", "INITIATOR");
     private final SessionID initiatorSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42,
             "INITIATOR", "ACCEPTOR");
+
+
+    @Rule
+    public TestRule watcher = new TestWatcher() {
+        @Override
+        protected void starting(Description description) {
+            System.out.println("Starting test: " + description.getMethodName());
+        }
+    };
+
+    @Before
+    public void check() {
+        checkThreads(ManagementFactory.getThreadMXBean(), 0);
+    }
 
     @After
     public void cleanup() {
