@@ -106,10 +106,16 @@ public final class SessionState {
         }
     }
 
-    public boolean isHeartBeatNeeded() {
+    SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
+    SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
+    public boolean isHeartBeatNeeded(SessionID sessionID) {
         long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
+        boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
-        return millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
+        if ( sessionID.equals(sessionID1) || sessionID.equals(sessionID2)) {
+            System.out.println("XXX " + sessionID + " isHeartBeatNeeded() = " + name);
+        }
+        return name;
     }
 
     public boolean isInitiator() {

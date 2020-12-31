@@ -1967,7 +1967,7 @@ public class Session implements Closeable {
                 generateTestRequest("TEST");
                 getLog().onEvent("Sent test request TEST");
                 stateListener.onMissedHeartBeat();
-            } else if (state.isHeartBeatNeeded()) {
+            } else if (state.isHeartBeatNeeded(sessionID)) {
                 generateHeartbeat();
             }
         }
