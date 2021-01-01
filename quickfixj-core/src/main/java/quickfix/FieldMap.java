@@ -602,10 +602,19 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
         return getGroups(tag).size();
     }
 
+    /**
+     * @deprecated use {@linkplain #groupKeys()} instead
+     */
+    @Deprecated
     public Iterator<Integer> groupKeyIterator() {
         return groupKeys().iterator();
     }
 
+    /**
+     * Returns tags which are repeating group counters as {@code Iterable}
+     *
+     * @return tags which are repeating group counters
+     */
     public Iterable<Integer> groupKeys() {
         return groups.keySet();
     }
