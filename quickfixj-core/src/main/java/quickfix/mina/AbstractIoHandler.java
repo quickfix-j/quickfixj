@@ -31,9 +31,11 @@ import quickfix.Log;
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.MessageUtils;
-import static quickfix.MessageUtils.parse;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
+
+import static quickfix.MessageUtils.parse;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.
@@ -42,8 +44,10 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
     private final EventHandlingStrategy eventHandlingStrategy;
+    private final SessionSettings sessionSettings;
 
-    public AbstractIoHandler(NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
+    public AbstractIoHandler(SessionSettings settings, NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
+        sessionSettings = settings;
         networkingOptions = options;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }
@@ -145,7 +149,16 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 }
             }
         } else {
-            log.error("Disconnecting; received message for unknown session: {}", messageString);
+            boolean logMessageWhenSessionNotFound = true;
+            if (sessionSettings.isSetting(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND)) {
+                logMessageWhenSessionNotFound = sessionSettings.getBool(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND);
+            }
+            if (logMessageWhenSessionNotFound) {
+                log.error("Disconnecting; received message for unknown session: {}", messageString);
+            }
+            else {
+                log.error("Disconnecting; received message for unknown session. remoteSessionID: {}", remoteSessionID);
+            }
             ioSession.closeNow();
         }
     }
