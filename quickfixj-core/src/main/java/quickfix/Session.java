@@ -365,6 +365,7 @@ public class Session implements Closeable {
 
     /**
      * Log the entire message when the corresponding session can not be found.
+     * Otherwise only the SessionID is logged.
      * Valid values are "Y" or "N". Default is "Y".
      */
     public static final String SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND = "LogMessageWhenSessionNotFound";
