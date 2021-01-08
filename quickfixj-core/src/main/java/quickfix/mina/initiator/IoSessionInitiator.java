@@ -27,6 +27,7 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.transport.socket.SocketConnector;
 import quickfix.ConfigError;
+import quickfix.FieldConvertError;
 import quickfix.LogUtil;
 import quickfix.Session;
 import quickfix.SessionID;
@@ -145,10 +146,14 @@ public class IoSessionInitiator {
             this.proxyDomain = proxyDomain;
             this.proxyWorkstation = proxyWorkstation;
 
-            setupIoConnector();
+            try {
+                setupIoConnector();
+            } catch (FieldConvertError e) {
+                throw new ConfigError(e);
+            }
         }
 
-        private void setupIoConnector() throws ConfigError, GeneralSecurityException {
+        private void setupIoConnector() throws ConfigError, GeneralSecurityException, FieldConvertError {
             final CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(userIoFilterChainBuilder);
 
             boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress;

@@ -21,6 +21,8 @@ package quickfix.mina.initiator;
 
 import org.apache.mina.core.session.IoSession;
 
+import quickfix.ConfigError;
+import quickfix.FieldConvertError;
 import quickfix.Message;
 import quickfix.MessageUtils;
 import quickfix.Session;
@@ -42,7 +44,7 @@ class InitiatorIoHandler extends AbstractIoHandler {
     private final EventHandlingStrategy eventHandlingStrategy;
 
     public InitiatorIoHandler(Session quickfixSession, SessionSettings sessionSettings, NetworkingOptions networkingOptions,
-                              EventHandlingStrategy eventHandlingStrategy) {
+                              EventHandlingStrategy eventHandlingStrategy) throws FieldConvertError, ConfigError {
         super(sessionSettings, networkingOptions, eventHandlingStrategy);
         this.quickfixSession = quickfixSession;
         this.eventHandlingStrategy = eventHandlingStrategy;
