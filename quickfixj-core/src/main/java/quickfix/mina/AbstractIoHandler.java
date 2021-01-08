@@ -26,6 +26,8 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.ConfigError;
+import quickfix.FieldConvertError;
 import quickfix.InvalidMessage;
 import quickfix.Log;
 import quickfix.LogUtil;
@@ -45,11 +47,16 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     private final NetworkingOptions networkingOptions;
     private final EventHandlingStrategy eventHandlingStrategy;
     private final SessionSettings sessionSettings;
+    private boolean logMessageWhenSessionNotFound;
 
-    public AbstractIoHandler(SessionSettings settings, NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
+    public AbstractIoHandler(SessionSettings settings, NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) throws FieldConvertError, ConfigError {
         sessionSettings = settings;
         networkingOptions = options;
         this.eventHandlingStrategy = eventHandlingStrategy;
+        logMessageWhenSessionNotFound = true;
+        if (sessionSettings.isSetting(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND)) {
+            logMessageWhenSessionNotFound = sessionSettings.getBool(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND);
+        }
     }
 
     @Override
@@ -149,10 +156,6 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 }
             }
         } else {
-            boolean logMessageWhenSessionNotFound = true;
-            if (sessionSettings.isSetting(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND)) {
-                logMessageWhenSessionNotFound = sessionSettings.getBool(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND);
-            }
             if (logMessageWhenSessionNotFound) {
                 log.error("Disconnecting; received message for unknown session: {}", messageString);
             } else {
