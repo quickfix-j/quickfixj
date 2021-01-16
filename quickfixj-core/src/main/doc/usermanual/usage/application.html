@@ -56,7 +56,7 @@ public interface Application {
   that are being sent from your FIX engine to the counter party. This is normally
   not useful for an application however it is provided for any logging you may
   wish to do. Notice that the FIX::Message is not const. This allows you to add
-  fields before an adminstrative message before it is sent out. </dd>
+  fields to an administrative message before it is sent out. </dd>
   <dt>toApp</dt>
   <dd> This is a callback for application messages that you are being
   sent to a counterparty. If you throw a <I>DoNotSend</I> exception in this function,
