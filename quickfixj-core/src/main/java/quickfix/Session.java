@@ -1407,6 +1407,7 @@ public class Session implements Closeable {
             return;
         }
 
+        final boolean logoutInitiatedLocally = state.isLogoutSent();
         state.setLogoutReceived(true);
 
         String msg;
@@ -1432,6 +1433,10 @@ public class Session implements Closeable {
         }
 
         disconnect(msg, false);
+
+        if (!state.isInitiator() && !logoutInitiatedLocally) {
+            setEnabled(true);
+        }
     }
 
     public void generateLogout() {
@@ -2082,11 +2087,6 @@ public class Session implements Closeable {
                 stateListener.onLogout();
             }
         } finally {
-            // QFJ-457 now enabled again if acceptor
-            if (!state.isInitiator()) {
-                setEnabled(true);
-            }
-
             state.setLogonReceived(false);
             state.setLogonSent(false);
             state.setLogoutSent(false);
@@ -2106,6 +2106,9 @@ public class Session implements Closeable {
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
+        if (!enabled) {
+            throw new RejectLogon("Logon attempt when session is disabled");
+        }
         // QFJ-357
         // If this check is not done here, the Logon would be accepted and
         // immediately followed by a Logout (due to check in Session.next()).

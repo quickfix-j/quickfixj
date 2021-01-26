@@ -1872,7 +1872,7 @@ public class SessionTest {
 
     @Test
     // QFJ-457
-    public void testAcceptorRelogon() throws Exception {
+    public void testAcceptorAcceptsLogonWhenLogoutInitiatedExternally() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
@@ -1891,12 +1891,40 @@ public class SessionTest {
                     UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
             logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
             session.next(logout);
-            
-            // session.reset();
+
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertNotEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
+            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
+                    .getString(MsgType.FIELD));
+        }
+    }
+
+    @Test
+    public void testAcceptorRejectsLogonWhenLogoutInitiatedLocally() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+
+            logonTo(session);
+            assertTrue(session.isEnabled());
+            assertTrue(session.isLoggedOn());
+
+            session.logout();
+            session.next();
+
+            final Message logout = new Logout();
+            logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
+            logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
+            logout.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
+            session.next(logout);
+
+            assertFalse(session.isLoggedOn());
+            logonTo(session, 3);
+            Message lastToAdminMessage = application.lastToAdminMessage();
+            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
                     .getString(MsgType.FIELD));
         }
     }
