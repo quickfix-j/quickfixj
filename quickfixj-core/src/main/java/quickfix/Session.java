@@ -428,7 +428,6 @@ public class Session implements Closeable {
 
     private final AtomicBoolean isResetting = new AtomicBoolean();
     private final AtomicBoolean isResettingState = new AtomicBoolean();
-    private final AtomicBoolean isResetStatePending = new AtomicBoolean();
 
     private final ListenerSupport stateListeners = new ListenerSupport(SessionStateListener.class);
     private final SessionStateListener stateListener = (SessionStateListener) stateListeners
@@ -881,7 +880,7 @@ public class Session implements Closeable {
                 if (application instanceof ApplicationExtended) {
                     ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
                 }
-                isResetStatePending.set(true);
+                state.setResetStatePending(true);
                 logout("Session reset");
                 getLog().onEvent("Initiated logout request");
                 generateLogout(state.getLogoutReason());
@@ -1426,7 +1425,7 @@ public class Session implements Closeable {
         if (getExpectedTargetNum() == logout.getHeader().getInt(MsgSeqNum.FIELD)) {
             state.incrNextTargetMsgSeqNum();
         }
-        if (resetOnLogout || isResetStatePending.get()) {
+        if (resetOnLogout || state.isResetStatePending()) {
             resetState();
         }
 
@@ -1906,7 +1905,7 @@ public class Session implements Closeable {
             if ((now - lastSessionTimeCheck) >= 1000L) {
                 lastSessionTimeCheck = now;
                 if (!isSessionTime()) {
-                    if (state.isResetNeeded() && !isResetStatePending.get()) {
+                    if (state.isResetNeeded() && !state.isResetStatePending()) {
                         reset(); // only reset if seq nums are != 1 and not isResetStatePending is set
                     } else if (state.isLogoutTimedOut()) {
                         disconnect("Timed out waiting for logout response", true);
@@ -2040,12 +2039,12 @@ public class Session implements Closeable {
 
     /**
      * Logs out from session and closes the network connection.
-     * 
+     *
      * This method should not be called from user-code since it is likely
      * to deadlock when called from a different thread than the Session thread
      * and messages are sent/received concurrently.
      * Instead the logout() method should be used where possible.
-     * 
+     *
      * @param reason the reason why the session is disconnected
      * @param logError set to true if this disconnection is an error
      * @throws IOException IO error
@@ -2086,7 +2085,7 @@ public class Session implements Closeable {
             if (!state.isInitiator()) {
                 setEnabled(true);
             }
-            
+
             state.setLogonReceived(false);
             state.setLogonSent(false);
             state.setLogoutSent(false);
@@ -2097,7 +2096,7 @@ public class Session implements Closeable {
             state.clearLogoutReason();
             state.setResendRange(0, 0);
 
-            if (resetOnDisconnect || isResetStatePending.get()) {
+            if (resetOnDisconnect || state.isResetStatePending()) {
                 resetState();
             }
         }
@@ -2547,7 +2546,7 @@ public class Session implements Closeable {
         } else {
             getLog().onEvent("Responding to Logon request");
         }
-        
+
         setLogonTags(logon);
         sendRaw(logon, 0);
         state.setLogonSent(true);
@@ -2663,7 +2662,7 @@ public class Session implements Closeable {
             stateListener.onReset();
         } finally {
             isResettingState.set(false);
-            isResetStatePending.set(false);
+            state.setResetStatePending(false);
         }
     }
 
