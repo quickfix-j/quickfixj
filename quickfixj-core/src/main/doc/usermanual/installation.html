@@ -153,12 +153,11 @@ There are various command-line switches you can pass to mvn to modify the produc
 <code>mvn test -Dgenerator.decimal=true -DskipAT=true</code>
 </p>
 <h3>IDE support:</h3>
-<p>There are
-  Eclipse and Netbeans project definition files in the top-level directory of the checked out directory.
-
-   <em style="color:red">When the project is first created, it will not have the generated message classes
+<p><em style="color:red">When the project is first created, it will not have the generated message classes
    and compile errors will occur!</em> Best is to compile once on the command line before importing
    the project into the IDE.
+
+    If the IDE reports some errors after the compilation with <code>mvn package</code>, try to use <code>mvn install</code> .
 
 <h3>Maven Integration:</h3>
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
