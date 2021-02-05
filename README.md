@@ -58,6 +58,15 @@ $ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
+## importing the project into the IDE
+
+When the project is first created, it will not have the generated message classes and compile errors will occur! Best is to compile once on the command line before importing the project into the IDE.
+
+If the IDE reports some errors after the compilation with `mvn clean package`, try to use `mvn clean install`, like:
+```
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+```
+
 ## configuration options
 https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
