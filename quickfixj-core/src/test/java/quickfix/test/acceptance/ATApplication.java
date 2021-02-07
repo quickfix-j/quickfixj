@@ -19,8 +19,6 @@
 
 package quickfix.test.acceptance;
 
-import java.io.IOException;
-
 import org.junit.Assert;
 
 import quickfix.Application;
@@ -41,12 +39,8 @@ public class ATApplication implements Application {
     private boolean isLoggedOn;
 
     public void onCreate(SessionID sessionID) {
-        try {
-            assertNoSessionLock(sessionID);
-            Session.lookupSession(sessionID).reset();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        assertNoSessionLock(sessionID);
+        Session.lookupSession(sessionID).reset();
     }
 
     public synchronized void onLogon(SessionID sessionID) {
