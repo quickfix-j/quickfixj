@@ -1876,7 +1876,7 @@ public class SessionTest {
 
     @Test
     // QFJ-457
-    public void testAcceptorAcceptsLogonWhenLogoutInitiatedExternally() throws Exception {
+    public void testAcceptorRejectsLogonWhenLogoutInitiatedLocally() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
@@ -1896,6 +1896,7 @@ public class SessionTest {
             logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
             session.next(logout);
 
+            assertFalse(session.isEnabled());
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
@@ -1905,7 +1906,7 @@ public class SessionTest {
     }
 
     @Test
-    public void testAcceptorRejectsLogonWhenLogoutInitiatedLocally() throws Exception {
+    public void testAcceptorAcceptsLogonWhenLogoutInitiatedExternally() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
@@ -1913,9 +1914,6 @@ public class SessionTest {
             logonTo(session);
             assertTrue(session.isEnabled());
             assertTrue(session.isLoggedOn());
-
-            session.logout();
-            session.next();
 
             final Message logout = new Logout();
             logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
@@ -1925,10 +1923,13 @@ public class SessionTest {
             logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
             session.next(logout);
 
+            session.next();
+
+            assertTrue(session.isEnabled());
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
+            assertEquals(Logon.MSGTYPE, lastToAdminMessage.getHeader()
                     .getString(MsgType.FIELD));
         }
     }
