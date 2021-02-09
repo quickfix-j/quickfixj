@@ -24,6 +24,9 @@ public interface SessionStateListener {
     default void onConnect(){
     }
 
+    default void onConnectException(Exception e) {
+    }
+
     default void onDisconnect(){
     }
 

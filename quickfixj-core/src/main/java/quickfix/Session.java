@@ -2885,6 +2885,10 @@ public class Session implements Closeable {
         stateListeners.removeListener(listener);
     }
 
+    public SessionStateListener getStateListener() {
+        return stateListener;
+    }
+
     /**
      * @return the default application version ID for messages sent from this session
      */

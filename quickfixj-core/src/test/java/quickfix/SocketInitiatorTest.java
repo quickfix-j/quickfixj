@@ -229,6 +229,44 @@ public class SocketInitiatorTest {
         }
     }
 
+
+    public void testInitiatorConnectionException() throws Exception {
+        // use a free port to make sure nothing is listening
+        int freePort = AvailablePortFinder.getNextAvailable();
+        Initiator initiator = null;
+        AtomicBoolean onConnectExceptionWasCalled = new AtomicBoolean(false);
+        try {
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
+            settings.setString(clientSessionID, "SocketConnectHost", "0.0.0.0");
+            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+
+            SessionStateListener sessionStateListener = new SessionStateListener() {
+                @Override
+                public void onConnectException(Exception e) {
+                    onConnectExceptionWasCalled.set(true);
+                }
+            };
+            // add state listener on creation of Session
+            Application clientApplication = new ApplicationAdapter() {
+                @Override
+                public void onCreate(SessionID sessionId) {
+                    Session.lookupSession(clientSessionID).addStateListener(sessionStateListener);
+                }
+            };
+            DefaultSessionFactory sessionFactory = new DefaultSessionFactory(clientApplication, new MemoryStoreFactory(), new ScreenLogFactory(settings), new DefaultMessageFactory());
+            initiator = new SocketInitiator(sessionFactory, settings, 10000);
+            initiator.start();
+            Thread.sleep(5000);
+        } finally {
+            if (initiator != null) {
+                initiator.stop(true);
+            }
+            assertTrue(onConnectExceptionWasCalled.get());
+        }
+    }
+
+
     private interface LogSessionStateListener extends Log, SessionStateListener {}
 
     // QFJ-907
