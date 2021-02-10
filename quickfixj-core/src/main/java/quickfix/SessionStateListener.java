@@ -21,80 +21,80 @@ package quickfix;
 
 public interface SessionStateListener {
 
-	@Deprecated
-	default void onConnect() {
-		onConnect(null);
-	}
+    @Deprecated
+    default void onConnect() {
+        onConnect(null);
+    }
 
-	void onConnect(SessionID sessionID);
+    void onConnect(SessionID sessionID);
 
-	@Deprecated
-	default void onDisconnect() {
-		onDisconnect(null);
-	}
+    @Deprecated
+    default void onDisconnect() {
+        onDisconnect(null);
+    }
 
-	void onDisconnect(SessionID sessionID);
+    void onDisconnect(SessionID sessionID);
 
-	@Deprecated
-	default void onLogon() {
-		onLogon(null);
-	}
+    @Deprecated
+    default void onLogon() {
+        onLogon(null);
+    }
 
-	void onLogon(SessionID sessionID);
+    void onLogon(SessionID sessionID);
 
-	@Deprecated
-	default void onLogout() {
-		onLogout(null);
-	}
+    @Deprecated
+    default void onLogout() {
+        onLogout(null);
+    }
 
-	void onLogout(SessionID sessionID);
+    void onLogout(SessionID sessionID);
 
-	@Deprecated
-	default void onReset() {
-		onReset(null);
-	}
+    @Deprecated
+    default void onReset() {
+        onReset(null);
+    }
 
-	void onReset(SessionID sessionID);
+    void onReset(SessionID sessionID);
 
-	@Deprecated
-	default void onRefresh() {
-		onRefresh(null);
-	}
+    @Deprecated
+    default void onRefresh() {
+        onRefresh(null);
+    }
 
-	void onRefresh(SessionID sessionID);
+    void onRefresh(SessionID sessionID);
 
-	@Deprecated
-	default void onMissedHeartBeat() {
-		onMissedHeartBeat(null);
-	}
+    @Deprecated
+    default void onMissedHeartBeat() {
+        onMissedHeartBeat(null);
+    }
 
-	void onMissedHeartBeat(SessionID sessionID);
+    void onMissedHeartBeat(SessionID sessionID);
 
-	@Deprecated
-	default void onHeartBeatTimeout() {
-		onHeartBeatTimeout(null);
-	}
+    @Deprecated
+    default void onHeartBeatTimeout() {
+        onHeartBeatTimeout(null);
+    }
 
-	void onHeartBeatTimeout(SessionID sessionID);
+    void onHeartBeatTimeout(SessionID sessionID);
 
-	@Deprecated
-	default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
-		onResendRequestSent(null, beginSeqNo, endSeqNo, currentEndSeqNo);
-	}
+    @Deprecated
+    default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        onResendRequestSent(null, beginSeqNo, endSeqNo, currentEndSeqNo);
+    }
 
-	void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo);
+    void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo);
 
-	@Deprecated
-	default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
-		onSequenceResetReceived(null, newSeqNo, gapFillFlag);
-	}
+    @Deprecated
+    default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        onSequenceResetReceived(null, newSeqNo, gapFillFlag);
+    }
 
-	void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag);
+    void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag);
 
-	@Deprecated
-	default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
-		onResendRequestSatisfied(null, beginSeqNo, endSeqNo);
-	}
+    @Deprecated
+    default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+        onResendRequestSatisfied(null, beginSeqNo, endSeqNo);
+    }
 
     void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo);
 }
