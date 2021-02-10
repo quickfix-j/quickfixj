@@ -1900,8 +1900,7 @@ public class SessionTest {
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
-                    .getString(MsgType.FIELD));
+            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
         }
     }
 
@@ -1929,8 +1928,7 @@ public class SessionTest {
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertEquals(Logon.MSGTYPE, lastToAdminMessage.getHeader()
-                    .getString(MsgType.FIELD));
+            assertEquals(Logon.MSGTYPE, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
         }
     }
 
