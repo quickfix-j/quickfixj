@@ -21,80 +21,36 @@ package quickfix;
 
 public interface SessionStateListener {
 
-    @Deprecated
-    default void onConnect() {
-        onConnect(null);
+    default void onConnect(SessionID sessionID) {
     }
 
-    void onConnect(SessionID sessionID);
-
-    @Deprecated
-    default void onDisconnect() {
-        onDisconnect(null);
+    default void onDisconnect(SessionID sessionID) {
     }
 
-    void onDisconnect(SessionID sessionID);
-
-    @Deprecated
-    default void onLogon() {
-        onLogon(null);
+    default void onLogon(SessionID sessionID) {
     }
 
-    void onLogon(SessionID sessionID);
-
-    @Deprecated
-    default void onLogout() {
-        onLogout(null);
+    default void onLogout(SessionID sessionID) {
     }
 
-    void onLogout(SessionID sessionID);
-
-    @Deprecated
-    default void onReset() {
-        onReset(null);
+    default void onReset(SessionID sessionID) {
     }
 
-    void onReset(SessionID sessionID);
-
-    @Deprecated
-    default void onRefresh() {
-        onRefresh(null);
+    default void onRefresh(SessionID sessionID) {
     }
 
-    void onRefresh(SessionID sessionID);
-
-    @Deprecated
-    default void onMissedHeartBeat() {
-        onMissedHeartBeat(null);
+    default void onMissedHeartBeat(SessionID sessionID) {
     }
 
-    void onMissedHeartBeat(SessionID sessionID);
-
-    @Deprecated
-    default void onHeartBeatTimeout() {
-        onHeartBeatTimeout(null);
+    default void onHeartBeatTimeout(SessionID sessionID) {
     }
 
-    void onHeartBeatTimeout(SessionID sessionID);
-
-    @Deprecated
-    default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
-        onResendRequestSent(null, beginSeqNo, endSeqNo, currentEndSeqNo);
+    default void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
     }
 
-    void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo);
-
-    @Deprecated
-    default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
-        onSequenceResetReceived(null, newSeqNo, gapFillFlag);
+    default void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
     }
 
-    void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag);
-
-    @Deprecated
-    default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
-        onResendRequestSatisfied(null, beginSeqNo, endSeqNo);
+    default void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
     }
-
-    void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo);
 }
