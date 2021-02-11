@@ -27,9 +27,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidParameterException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
@@ -372,6 +374,55 @@ public class SessionSettingsTest {
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
+    }
+
+    @Test
+    public void testListConstructor() throws ConfigError {
+        List<String> listValues = new ArrayList<String>();
+        listValues.add("[SESSION]");
+        listValues.add("BeginString=FIX.4.2");
+        listValues.add("SenderCompID=Company");
+        listValues.add("SenderSubID=FixedIncome");
+        listValues.add("SenderLocationID=HongKong");
+        listValues.add("TargetCompID=CLIENT1");
+        listValues.add("TargetSubID=HedgeFund");
+        listValues.add("TargetLocationID=NYC\n");
+
+        final SessionSettings settings = new SessionSettings(listValues);
+        final SessionID id = settings.sectionIterator().next();
+        assertEquals("Company", id.getSenderCompID());
+        assertEquals("FixedIncome", id.getSenderSubID());
+        assertEquals("HongKong", id.getSenderLocationID());
+        assertEquals("CLIENT1", id.getTargetCompID());
+        assertEquals("HedgeFund", id.getTargetSubID());
+        assertEquals("NYC", id.getTargetLocationID());
+    }
+
+    @Test
+    public void testListPropertiesConstructor() throws ConfigError {
+        System.setProperty("test.2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("test.1", "FOO");
+
+        List<String> listValues = new ArrayList<String>();
+        listValues.add("[SESSION]");
+        listValues.add("BeginString=FIX.4.2");
+        listValues.add("SenderCompID=Company");
+        listValues.add("SenderSubID=FixedIncome");
+        listValues.add("SenderLocationID=HongKong");
+        listValues.add("TargetCompID=CLIENT3_${test.1}_${test.2}");
+        listValues.add("TargetSubID=HedgeFund");
+        listValues.add("TargetLocationID=NYC\n");
+
+        final SessionSettings settings = new SessionSettings(listValues, properties);
+        final SessionID id = settings.sectionIterator().next();
+        assertEquals("Company", id.getSenderCompID());
+        assertEquals("FixedIncome", id.getSenderSubID());
+        assertEquals("HongKong", id.getSenderLocationID());
+        assertEquals("CLIENT3_FOO_BAR", id.getTargetCompID());
+        assertEquals("HedgeFund", id.getTargetSubID());
+        assertEquals("NYC", id.getTargetLocationID());
+
     }
 
     @Test
