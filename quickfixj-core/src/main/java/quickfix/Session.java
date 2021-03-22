@@ -881,8 +881,8 @@ public class Session implements Closeable {
                     ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
                 }
                 state.setResetStatePending(true);
+                generateLogout("Session reset");
                 getLog().onEvent("Initiated logout request");
-                generateLogout(state.getLogoutReason());
             } else {
                 resetState();
             }
