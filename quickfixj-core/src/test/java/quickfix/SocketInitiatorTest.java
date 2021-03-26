@@ -229,7 +229,7 @@ public class SocketInitiatorTest {
         }
     }
 
-
+    @Test
     public void testInitiatorConnectionException() throws Exception {
         // use a free port to make sure nothing is listening
         int freePort = AvailablePortFinder.getNextAvailable();
