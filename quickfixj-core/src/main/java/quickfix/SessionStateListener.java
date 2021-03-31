@@ -16,45 +16,93 @@
  * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
-
 package quickfix;
 
 public interface SessionStateListener {
 
-    default void onConnect(){
+    /**
+     * Called when connection has been established.
+     */
+    default void onConnect() {
     }
 
-    default void onConnectException(Exception e) {
+    /**
+     * Called when Exception occurs during connection establishment.
+     *
+     * @param exception thrown Exception
+     */
+    default void onConnectException(Exception exception) {
     }
 
-    default void onDisconnect(){
+    /**
+     * Called when connection has been disconnected.
+     */
+    default void onDisconnect() {
     }
 
-    default void onLogon(){
+    /**
+     * Called when session has been logged on.
+     */
+    default void onLogon() {
     }
 
-    default void onLogout(){
+    /**
+     * Called when session has been logged out.
+     */
+    default void onLogout() {
     }
 
-    default void onReset(){
+    /**
+     * Called when message store gets reset.
+     */
+    default void onReset() {
     }
 
-    default void onRefresh(){
+    /**
+     * Called when message store gets refreshed on Logon.
+     */
+    default void onRefresh() {
     }
 
-    default void onMissedHeartBeat(){
+    /**
+     * Called when TestRequest is sent out due to missed Heartbeat.
+     */
+    default void onMissedHeartBeat() {
     }
 
-    default void onHeartBeatTimeout(){
+    /**
+     * Called when Heartbeat timeout has been detected.
+     */
+    default void onHeartBeatTimeout() {
     }
 
-    default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo){
+    /**
+     * Called when ResendRequest has been sent out.
+     *
+     * @param beginSeqNo first seqnum that gets requested
+     * @param endSeqNo last seqnum that gets requested
+     * @param currentEndSeqNo last seqnum of range that gets requested on
+     * chunked ResendRequests
+     */
+    default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
     }
 
-    default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag){
+    /**
+     * Called when SequenceReset has been received.
+     *
+     * @param newSeqNo NewSeqNo from SequenceReset
+     * @param gapFillFlag GapFillFlag from SequenceReset
+     */
+    default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
     }
 
-    default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo){
+    /**
+     * Called when a received ResendRequest has been satisfied.
+     *
+     * @param beginSeqNo first seqnum that was requested
+     * @param endSeqNo last seqnum that was requested
+     */
+    default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
     }
 
 }
