@@ -238,6 +238,7 @@ public class SocketInitiatorTest {
         try {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
+            settings.setString(clientSessionID, "ReconnectInterval", "1");
             settings.setString(clientSessionID, "SocketConnectHost", "0.0.0.0");
             settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
 
@@ -257,7 +258,7 @@ public class SocketInitiatorTest {
             DefaultSessionFactory sessionFactory = new DefaultSessionFactory(clientApplication, new MemoryStoreFactory(), new ScreenLogFactory(settings), new DefaultMessageFactory());
             initiator = new SocketInitiator(sessionFactory, settings, 10000);
             initiator.start();
-            Thread.sleep(5000);
+            Thread.sleep(3000); // make sure we try to connect
         } finally {
             if (initiator != null) {
                 initiator.stop(true);
