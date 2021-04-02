@@ -99,8 +99,8 @@ public class SessionConnectorTest {
             
             assertTrue(session.isEnabled());
             connector.logoutAllSessions(true);
-            // Acceptors should get re-enabled after Logout
-            assertTrue(session.isEnabled());
+            // Acceptors should not get re-enabled after initiating Logout
+            assertFalse(session.isEnabled());
             
             assertEquals(9999, connector.getIntSetting(Acceptor.SETTING_SOCKET_ACCEPT_PORT));
             
