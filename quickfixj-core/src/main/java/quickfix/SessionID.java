@@ -151,7 +151,7 @@ public class SessionID implements Serializable {
 
     /**
      * Session qualifier can be used to identify different sessions
-     * for the same target company ID. Session qualifiers can only me used
+     * for the same target company ID. Session qualifiers can only be used
      * with initiated sessions. They cannot be used with accepted sessions.
      *
      * @return the session qualifier
@@ -160,14 +160,20 @@ public class SessionID implements Serializable {
         return sessionQualifier;
     }
 
+    @Override
     public boolean equals(Object object) {
-        return object != null && toString().equals(object.toString());
+        if (!(object instanceof SessionID)) {
+	    return false;
+        }
+        return toString().equals(object.toString());
     }
 
+    @Override
     public String toString() {
         return id;
     }
 
+    @Override
     public int hashCode() {
         return toString().hashCode();
     }

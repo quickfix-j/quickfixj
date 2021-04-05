@@ -390,6 +390,14 @@
     <TD>Y</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
+      <TD> <I>ValidateChecksum</I> </TD>
+      <TD> If ValidateChecksum is set to N, checksum validation will not be executed on messages.<br>
+          This setting cannot be set to N together with RejectGarbledMessage set to Y, in this case Config Error will be thrown.
+      </TD>
+      <TD> Y<br>N</TD>
+      <TD> Y </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD><I>AllowUnknownMsgFields</I></TD>
     <TD>If set to Y, non user defined fields (field with tag < 5000) will not be rejected if they are not
       defined in the data dictionary, or are present in messages they do not
@@ -566,19 +574,14 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketAcceptPort</I> </TD>
-
-    <TD> Socket port for listening to incomming connections, Only used with a SocketAcceptor </TD>
-    <TD> positive integer, valid open socket port. Currently, this must be defined in the [DEFAULT]
-         section.</TD>
+    <TD> Socket port for listening to incoming connections. Only used with a SocketAcceptor </TD>
+    <TD> positive integer, valid open socket port.</TD>
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>SocketAcceptAddress</I></TD>
-
     <TD> Local IP address to for binding accept port.</TD>
-    <TD> A hostname or IP address parseable by <code>java.net.InetAddress</code>.<BR>
-         Currently, this must be defined in the [DEFAULT] section.
-    </TD>
+    <TD> A hostname or IP address parsable by <code>java.net.InetAddress</code>.</TD>
     <TD>Accept connections on any network interface.</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
@@ -597,16 +600,6 @@
     <TD> comma-separated list of hostnames or IP addresses parseable by <code>java.net.InetAddress</code>
     </TD>
     <TD> empty, ie all remote addresses are allowed </TD>
-  </TR>
-  <TR ALIGN="left" VALIGN="middle">
-    <TD> <I>RefreshOnLogon</I></TD>
-
-    <TD>Refresh the session state when a logon is received. This allows a simple form of failover
-    when the message store data is persistent. The
-    option will be ignored for message stores that are not persistent
-    (e.g., MemoryStore).</TD>
-    <TD> Y<br/>N</TD>
-    <TD>N</TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
@@ -676,13 +669,19 @@
     <TD valign="top"> <I>EnabledProtocols</I></TD>
     <TD>Protocols enabled for use with the SSL engine.</TD>
     <TD></TD>
-    <TD><a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html">Java supported protocols</a></TD>
+    <TD><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">Java supported protocols</a></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD valign="top"> <I>CipherSuites</I></TD>
     <TD>Cipher suites enabled for use with the SSL engine.</TD>
     <TD></TD>
-    <TD><a href="https://docs.oracle.com/javase/6/docs/technotes/guides/security/SunProviders.html">Java default cipher suites</a></TD>
+    <TD><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">Java default cipher suites</a></TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD valign="top"> <I>UseSNI</I></TD>
+    <TD>Configures the SSL engine to use Server Name Indication. This option is only useful to initiators.</TD>
+    <TD>Y<BR>N</TD>
+    <TD>N</TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
@@ -741,12 +740,10 @@
     <TD COLSPAN="4" class="subsection"><A NAME="Socket">Socket Options (Acceptor or Initiator)</A></TD>
   </TR>
   <TR ALIGN="center" VALIGN="middle">
-    <TD COLSPAN="4" >Acceptor socket options must be set in settings default section.<br/> Initiator
-    socket options can be set in either defaults or per-session settings.</TD>
+    <TD COLSPAN="4" >Acceptor and Initiator socket options can be set in either defaults or per-session settings.</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD valign="top"> <I>SocketKeepAlive</I></TD>
-
     <TD>
      When the keepalive option is set for a TCP socket and no data
      has been exchanged across the socket in either direction for
@@ -937,6 +934,12 @@
     <TD> Maximum number of message index entries to cache in memory. </TD>
     <TD>Integer. A zero will not cache any entries.</TD>
     <TD>10000</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>FileStoreSync</I></TD>
+    <TD> Whether the FileStore syncs to the hard drive on every write. It's safer to sync, but it's also much slower.</TD>
+    <TD> Y<br>N</TD>
+    <TD> N</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>JdbcDataSourceName</I></TD>
@@ -1144,7 +1147,7 @@
     <TD>&nbsp;</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD><I>ScreenLogEvents</I></TD>
+    <TD><I>ScreenLogShowEvents</I></TD>
     <TD>Log events to screen.</TD>
     <TD>Y<BR>N</TD>
     <TD>Y</TD>
@@ -1172,7 +1175,38 @@
 
     <TD COLSPAN="4" class="subsection"><A NAME="Miscellaneous">Miscellaneous</A></TD>
   </TR>
-<TR ALIGN="left" VALIGN="middle">
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogonTag</I> </TD>
+    <TD> Tag/value pair which will be set on sent or received Logon message. </TD>
+    <TD> &lt;tag&gt;=&lt;value&gt;, where "tag" has to be a positive integer and "value" a String <br>
+        Example: <br>
+                 LogonTag=553=foo
+                 </TD>
+    <TD> </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>LogonTag&lt;n&gt;</I> </TD>
+    <TD> Additional tag/value pairs which will be set on sent or received Logon message,<br>
+         where <b>n</b> is a positive integer, i.e. LogonTag1, LogonTag2, etc.
+         Must be consecutive.
+    </TD>
+    <TD> &lt;tag&gt;=&lt;value&gt;, where "tag" has to be a positive integer and "value" a String <br>
+        Example: <br>
+                 LogonTag=553=user<br>
+                 LogonTag1=554=password
+                 </TD>
+    <TD> </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>RefreshOnLogon</I></TD>
+    <TD>Refresh the session state when a Logon is received. This allows a simple form of failover
+    when the message store data is persistent. The
+    option will be ignored for message stores that are not persistent
+    (e.g., MemoryStore).</TD>
+    <TD> Y<br/>N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnLogon</I> </TD>
     <TD> Determines if sequence numbers should be reset before sending/receiving a logon request. </TD>
     <TD> Y<br>N</TD>
@@ -1182,13 +1216,11 @@
     <TD> <I>ResetOnLogout</I> </TD>
     <TD> Determines if sequence numbers should be reset to 1 after a normal logout termination. </TD>
     <TD> Y<br>N</TD>
-
     <TD> N </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResetOnDisconnect</I> </TD>
     <TD> Determines if sequence numbers should be reset to 1 after an abnormal termination. </TD>
-
     <TD> Y<br>N</TD>
     <TD> N </TD>
   </TR>
@@ -1232,7 +1264,7 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>ContinueInitializationOnError</I></TD>
-    <TD>Continue initializing sessions if an error occurs.</TD>
+    <TD>Continue initializing sessions if an error occurs. Useful when having multiple sessions per connector and misconfigured session(s) should not prevent the connector from starting.</TD>
     <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>
@@ -1245,10 +1277,20 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>TestRequestDelayMultiplier</I></TD>
     <TD>Fraction of the heartbeat interval which defines the additional time to wait
-    if a TestRequest sent after a missing heartbeat times out.
+    if a TestRequest sent after a missing heartbeat times out (final coefficient value is equal to
+    TestRequestDelayMultiplier + 1.0).
     </TD>
-    <TD>0..1</TD>
+    <TD>any non-negative value</TD>
     <TD>0.5</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+      <TD><I>HeartBeatTimeoutMultiplier</I></TD>
+      <TD>Fraction of the heartbeat interval which defines the additional time to wait
+      since the last message was received before disconnecting (final coefficient value is equal to
+      HeartBeatTimeoutMultiplier + 1.0).
+      </TD>
+      <TD>any non-negative value</TD>
+      <TD>1.4</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>DisableHeartBeatCheck</I></TD>
@@ -1265,7 +1307,7 @@
   </TABLE>
 
   <H3><A NAME="Invalid vs Garbled Messages">Rejecting Invalid vs Garbled Messages</A></H3>
-  
+
   <p>
       There are mainly two settings that influence QFJ's rejection behaviour:
   </p>
@@ -1278,9 +1320,9 @@
       While the first applies to messages that fail data dictionary validation,
       the latter applies to messages that fail basic validity checks on the FIX protocol level.
   </p>
-  
+
   <H4>Setting RejectInvalidMessage</H4>
-  
+
   <p>
       If RejectInvalidMessage is set to
   </p>

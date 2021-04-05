@@ -378,7 +378,7 @@ public class CachedFileStore implements MessageStore {
 
     /*
      * (non-Javadoc)
-     * @see quickfix.RefreshableMessageStore#refresh()
+     * @see quickfix.MessageStore#refresh()
      */
     public void refresh() throws IOException {
         initialize(false);

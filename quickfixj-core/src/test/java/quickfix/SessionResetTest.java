@@ -55,13 +55,7 @@ public class SessionResetTest {
             header.setInt(MsgSeqNum.FIELD, 1);
             header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
             
-            Thread resetThread = new Thread(() -> {
-                try {
-                    session.reset();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }, "SessionReset");
+            Thread resetThread = new Thread(session::reset, "SessionReset");
             resetThread.setDaemon(true);
             
             Thread messageSender = new Thread(() -> {
@@ -136,6 +130,15 @@ public class SessionResetTest {
         }
 
         public void onHeartBeatTimeout() {
+        }
+
+        public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        }
+
+        public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        }
+
+        public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
         }
     }
 

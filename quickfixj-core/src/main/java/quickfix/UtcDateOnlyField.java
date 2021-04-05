@@ -20,6 +20,7 @@
 package quickfix;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 
 /**
  * A date-valued message field.
@@ -27,7 +28,7 @@ import java.time.LocalDate;
 public class UtcDateOnlyField extends Field<LocalDate> {
 
     public UtcDateOnlyField(int field) {
-        super(field, LocalDate.now());
+        super(field, LocalDate.now(ZoneOffset.UTC));
     }
 
     protected UtcDateOnlyField(int field, LocalDate data) {

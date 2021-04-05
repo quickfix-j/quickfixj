@@ -64,12 +64,16 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
 		this.executor = executor;
 	}
 
+    MessageDispatchingThread createDispatcherThread(Session quickfixSession) {
+        return new MessageDispatchingThread(quickfixSession, executor);
+    }
+
     @Override
     public void onMessage(Session quickfixSession, Message message) {
         MessageDispatchingThread dispatcher = dispatchers.get(quickfixSession.getSessionID());
         if (dispatcher == null) {
             dispatcher = dispatchers.computeIfAbsent(quickfixSession.getSessionID(), sessionID -> {
-                final MessageDispatchingThread newDispatcher = new MessageDispatchingThread(quickfixSession, executor);
+                final MessageDispatchingThread newDispatcher = createDispatcherThread(quickfixSession);
                 startDispatcherThread(newDispatcher);
                 return newDispatcher;
             });
@@ -182,8 +186,12 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 queueTracker = newDefaultQueueTracker(messages);
             } else {
                 messages = new LinkedBlockingQueue<>();
-                queueTracker = newSingleSessionWatermarkTracker(messages, queueLowerWatermark, queueUpperWatermark,
-                        quickfixSession);
+                if (queueLowerWatermark > 0 && queueUpperWatermark > 0) {
+                    queueTracker = newSingleSessionWatermarkTracker(messages, queueLowerWatermark, queueUpperWatermark,
+                            quickfixSession);
+                } else {
+                    queueTracker = newDefaultQueueTracker(messages);
+                }
             }
         }
 

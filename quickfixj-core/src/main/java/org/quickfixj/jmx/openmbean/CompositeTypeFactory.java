@@ -21,31 +21,26 @@ import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.util.ArrayList;
-
-// NOTE: Do not parameterize OpenType for Java6 since it will
-// be incompatible with Java 5
+import java.util.List;
 
 public class CompositeTypeFactory {
+
     private final String name;
     private final String description;
-    private final ArrayList<String> itemNames = new ArrayList<>();
-    private final ArrayList<String> itemDescriptions = new ArrayList<>();
-
-    @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
-    private final ArrayList<OpenType> itemTypes = new ArrayList<>();
+    private final List<String> itemNames = new ArrayList<>();
+    private final List<String> itemDescriptions = new ArrayList<>();
+    private final List<OpenType<?>> itemTypes = new ArrayList<>();
 
     public CompositeTypeFactory(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
-    public void defineItem(String itemName, OpenType itemType) {
-        defineItem(itemName, null, itemType);
+    public void defineItem(String itemName, OpenType<?> itemType) {
+        defineItem(itemName, itemName, itemType);
     }
 
-    @SuppressWarnings("rawtypes") // Java 5/6 incompatibility
-    public void defineItem(String itemName, String itemDesc, OpenType itemType) {
+    public void defineItem(String itemName, String itemDesc, OpenType<?> itemType) {
         itemNames.add(itemName);
         itemDescriptions.add(itemDesc);
         itemTypes.add(itemType);
@@ -57,5 +52,4 @@ public class CompositeTypeFactory {
                 .toArray(new String[itemDescriptions.size()]), itemTypes
                 .toArray(new OpenType[itemTypes.size()]));
     }
-
 }

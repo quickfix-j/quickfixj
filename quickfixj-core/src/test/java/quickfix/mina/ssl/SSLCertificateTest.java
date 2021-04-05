@@ -44,9 +44,10 @@ import quickfix.mina.SessionConnector;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.security.cert.X509Certificate;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,6 @@ import org.junit.After;
 public class SSLCertificateTest {
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
-    private static final String CIPHER_SUITES_ANON = "TLS_DH_anon_WITH_AES_128_CBC_SHA";
     private static final String CIPHER_SUITES_TLS = "TLS_RSA_WITH_AES_128_CBC_SHA";
 
     @After
@@ -279,98 +279,6 @@ public class SSLCertificateTest {
                 initiator1.stop();
                 initiator2.stop();
                 initiator3.stop();
-            }
-        } finally {
-            acceptor.stop();
-        }
-    }
-
-    @Test
-    public void shouldCreateFixSessionWithoutAuthenticationWhenUsingEmptyServerKeyStoreWithAnonymousCipher()
-            throws Exception {
-        int freePort = AvailablePortFinder.getNextAvailable();
-        TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/empty.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_ANON, null, "JKS", "JKS", freePort));
-
-        try {
-            acceptor.start();
-
-            TestInitiator initiator = new TestInitiator(
-                    createInitiatorSettings("single-session/empty.keystore", "single-session/empty.keystore",
-                            CIPHER_SUITES_ANON, null, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-
-            try {
-                initiator.start();
-
-                initiator.assertNoSslExceptionThrown();
-                initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
-                initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
-
-                acceptor.assertNoSslExceptionThrown();
-                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-            } finally {
-                initiator.stop();
-            }
-        } finally {
-            acceptor.stop();
-        }
-    }
-
-    @Test
-    public void shouldCreateFixSessionWithoutAuthenticationWhenTrustStoresAreMissing() throws Exception {
-        int freePort = AvailablePortFinder.getNextAvailable();
-        TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                "missing", CIPHER_SUITES_ANON, null, "JKS", "JKS", freePort));
-
-        try {
-            acceptor.start();
-
-            TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/client.keystore",
-                    "missing", CIPHER_SUITES_ANON, null, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-
-            try {
-                initiator.start();
-
-                initiator.assertNoSslExceptionThrown();
-                initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
-                initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
-
-                acceptor.assertNoSslExceptionThrown();
-                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-            } finally {
-                initiator.stop();
-            }
-        } finally {
-            acceptor.stop();
-        }
-    }
-
-    @Test
-    public void shouldCreateFixSessionWithoutAuthenticationWhenUsingDefaultKeystores() throws Exception {
-        int freePort = AvailablePortFinder.getNextAvailable();
-        TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("missing", false, "missing",
-                CIPHER_SUITES_ANON, null, "JKS", "JKS", freePort));
-
-        try {
-            acceptor.start();
-
-            TestInitiator initiator = new TestInitiator(createInitiatorSettings("missing", "missing",
-                    CIPHER_SUITES_ANON, null, "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
-
-            try {
-                initiator.start();
-
-                initiator.assertNoSslExceptionThrown();
-                initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
-                initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
-
-                acceptor.assertNoSslExceptionThrown();
-                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
-            } finally {
-                initiator.stop();
             }
         } finally {
             acceptor.stop();
@@ -600,10 +508,14 @@ public class SSLCertificateTest {
             Session session = findSession(sessionID);
             SSLSession sslSession = findSSLSession(session);
 
-            X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
+            Certificate[] peerCertificates = sslSession.getPeerCertificates();
 
-            for (X509Certificate certificate : peerCertificateChain) {
-                if (certificate.getSerialNumber().compareTo(serialNumber) == 0) {
+            for (Certificate peerCertificate : peerCertificates) {
+                if (!(peerCertificate instanceof X509Certificate)) {
+                    continue;
+                }
+
+                if (((X509Certificate)peerCertificate).getSerialNumber().compareTo(serialNumber) == 0) {
                     return;
                 }
             }
@@ -619,9 +531,9 @@ public class SSLCertificateTest {
                 return;
 
             try {
-                X509Certificate[] peerCertificateChain = sslSession.getPeerCertificateChain();
+                Certificate[] peerCertificates = sslSession.getPeerCertificates();
 
-                if (peerCertificateChain != null && peerCertificateChain.length > 0) {
+                if (peerCertificates != null && peerCertificates.length > 0) {
                     throw new AssertionError("Certificate was authenticated");
                 }
             } catch (SSLPeerUnverifiedException e) {

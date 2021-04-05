@@ -21,8 +21,6 @@ package quickfix.mina;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 
 
@@ -36,7 +34,6 @@ import org.apache.mina.transport.vmpipe.VmPipeAddress;
 import org.apache.mina.transport.vmpipe.VmPipeConnector;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.proxy.handlers.ProxyRequest;
-import org.apache.mina.proxy.handlers.http.HttpAuthenticationMethods;
 import org.apache.mina.proxy.handlers.http.HttpProxyConstants;
 import org.apache.mina.proxy.handlers.http.HttpProxyRequest;
 import org.apache.mina.proxy.handlers.socks.SocksProxyConstants;
@@ -141,13 +138,6 @@ public class ProtocolFactory {
         }
 
         ProxyIoSession proxyIoSession = new ProxyIoSession(proxyAddress, req);
-
-        List<HttpAuthenticationMethods> l = new ArrayList<>();
-        l.add(HttpAuthenticationMethods.NO_AUTH);
-        l.add(HttpAuthenticationMethods.DIGEST);
-        l.add(HttpAuthenticationMethods.BASIC);
-
-        proxyIoSession.setPreferedOrder(l);
         connector.setProxyIoSession(proxyIoSession);
 
         return connector;

@@ -20,16 +20,17 @@
 package quickfix;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * A timestamp-valued message field (a timestamp has both a date and a time).
  */
 public class UtcTimeStampField extends Field<LocalDateTime> {
 
-    private UtcTimestampPrecision precision = UtcTimestampPrecision.MILLIS;
+    private UtcTimestampPrecision precision = getDefaultUtcTimestampPrecision();
 
     public UtcTimeStampField(int field) {
-        super(field, LocalDateTime.now());
+        super(field, LocalDateTime.now(ZoneOffset.UTC));
     }
 
     protected UtcTimeStampField(int field, LocalDateTime data) {
@@ -42,12 +43,12 @@ public class UtcTimeStampField extends Field<LocalDateTime> {
     }
 
     public UtcTimeStampField(int field, boolean includeMilliseconds) {
-        super(field, LocalDateTime.now());
+        super(field, LocalDateTime.now(ZoneOffset.UTC));
         this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
     }
 
     public UtcTimeStampField(int field, UtcTimestampPrecision precision) {
-        super(field, LocalDateTime.now());
+        super(field, LocalDateTime.now(ZoneOffset.UTC));
         this.precision = precision;
     }
 
@@ -72,4 +73,7 @@ public class UtcTimeStampField extends Field<LocalDateTime> {
         return getValue().equals(value);
     }
 
+    protected UtcTimestampPrecision getDefaultUtcTimestampPrecision() {
+        return UtcTimestampPrecision.MILLIS;
+    }
 }

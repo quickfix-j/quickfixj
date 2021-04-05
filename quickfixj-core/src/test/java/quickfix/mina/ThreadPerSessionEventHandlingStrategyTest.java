@@ -53,7 +53,8 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
+import static quickfix.test.util.ReflectionUtil.getField;
 
 public class ThreadPerSessionEventHandlingStrategyTest {
     private final static class ThreadPerSessionEventHandlingStrategyUnderTest extends
@@ -288,6 +289,29 @@ public class ThreadPerSessionEventHandlingStrategyTest {
     public void testVerifyGetConnectorAssumption() throws Exception {
         final ThreadPerSessionEventHandlingStrategyUnderTest strategy = new ThreadPerSessionEventHandlingStrategyUnderTest();
         assertNull(strategy.getSessionConnector());
+    }
+
+    @Test
+    public void shouldCreateCorrectTypeOfQueueTracker() throws Exception {
+        final Session quickfixSession = mock(Session.class, withSettings().defaultAnswer(RETURNS_DEEP_STUBS));
+
+        assertFalse(getField(
+                new ThreadPerSessionEventHandlingStrategy(null, 42)
+                        .createDispatcherThread(quickfixSession),
+                "queueTracker",
+                QueueTracker.class) instanceof WatermarkTracker);
+
+        assertTrue(getField(
+                new ThreadPerSessionEventHandlingStrategy(null, 42, 43)
+                        .createDispatcherThread(quickfixSession),
+                "queueTracker",
+                QueueTracker.class) instanceof WatermarkTracker);
+
+        assertFalse(getField(
+                new ThreadPerSessionEventHandlingStrategy(null, -1, -1)
+                        .createDispatcherThread(quickfixSession),
+                "queueTracker",
+                QueueTracker.class) instanceof WatermarkTracker);
     }
 
     private Session setUpSession(SessionID sessionID) throws ConfigError {

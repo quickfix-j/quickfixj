@@ -29,6 +29,7 @@ import org.apache.mina.transport.socket.SocketConnector;
 import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
+import quickfix.SessionID;
 import quickfix.SystemTime;
 import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
@@ -158,6 +159,7 @@ public class IoSessionInitiator {
 
             IoConnector newConnector;
             newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
+            networkingOptions.apply(newConnector);
             newConnector.setHandler(new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy));
             newConnector.setFilterChainBuilder(ioFilterChainBuilder);
 
@@ -192,11 +194,13 @@ public class IoSessionInitiator {
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
+            sslFilter.setUseSNI(sslConfig.isUseSNI());
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
             return sslFilter;
         }
 
-        public synchronized void run() {
+        @Override
+        public void run() {
             resetIoConnector();
             try {
                 if (connectFuture == null) {
@@ -257,8 +261,10 @@ public class IoSessionInitiator {
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
             if (e instanceof IOException) {
                 fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
+                fixSession.getStateListener().onConnectException((IOException) e);
             } else {
                 LogUtil.logThrowable(fixSession.getLog(), "Exception during connection to " + socketAddress + nextRetryMsg, e);
+                fixSession.getStateListener().onConnectException(new Exception(e));
             }
             connectFuture = null;
         }
@@ -370,5 +376,17 @@ public class IoSessionInitiator {
             reconnectFuture = null;
         }
         SessionConnector.closeManagedSessionsAndDispose(reconnectTask.ioConnector, true, log);
+    }
+
+    public SessionID getSessionID() {
+        return reconnectTask.fixSession.getSessionID();
+    }
+
+    public SocketAddress getLocalAddress() {
+        return reconnectTask.localAddress;
+    }
+
+    public SocketAddress[] getSocketAddresses() {
+        return Arrays.copyOf(reconnectTask.socketAddresses, reconnectTask.socketAddresses.length);
     }
 }

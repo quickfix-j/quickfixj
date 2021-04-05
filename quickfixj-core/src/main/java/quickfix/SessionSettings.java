@@ -19,10 +19,12 @@
 
 package quickfix;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.field.converter.BooleanConverter;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +38,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +48,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Settings for sessions. Settings are grouped by FIX version and target company
@@ -84,31 +88,45 @@ public class SessionSettings {
     // problems with moving configuration files between *nix and Windows.
     private static final String NEWLINE = "\r\n";
 
-    private Properties variableValues = System.getProperties();
+    private Properties variableValues;
 
     /**
      * Creates an empty session settings object.
      */
     public SessionSettings() {
+        this(System.getProperties());
+    }
+
+    /**
+     * Creates an empty session settings object with custom source of variable values in the settings.
+     * @param variableValues custom source of variable values in the settings
+     */
+    public SessionSettings(Properties variableValues) {
         sections.put(DEFAULT_SESSION_ID, new Properties());
+        this.variableValues = variableValues;
+    }
+
+    /**
+     * Loads session settings from a file with custom source of variable values in the settings.
+     *
+     * @param filename the path to the file containing the session settings
+     * @param variableValues custom source of variable values in the settings
+     * @throws quickfix.ConfigError when file could not be loaded
+     */
+    public SessionSettings(String filename, Properties variableValues) throws ConfigError {
+        this(variableValues);
+        loadFromFile(filename);
     }
 
     /**
      * Loads session settings from a file.
      *
      * @param filename the path to the file containing the session settings
+     * @throws quickfix.ConfigError when file could not be loaded
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
-        InputStream in = getClass().getClassLoader().getResourceAsStream(filename);
-        if (in == null) {
-            try {
-                in = new FileInputStream(filename);
-            } catch (final IOException e) {
-                throw new ConfigError(e.getMessage());
-            }
-        }
-        load(in);
+        loadFromFile(filename);
     }
 
     /**
@@ -120,6 +138,41 @@ public class SessionSettings {
     public SessionSettings(InputStream stream) throws ConfigError {
         this();
         load(stream);
+    }
+
+    /**
+     * Loads session settings from an input stream with custom source of variable values in the settings.
+     *
+     * @param stream the input stream
+     * @param variableValues custom source of variable values in the settings
+     * @throws ConfigError
+     */
+    public SessionSettings(InputStream stream, Properties variableValues) throws ConfigError {
+        this(variableValues);
+        load(stream);
+    }
+
+    /**
+     * Loads session settings from a list of strings.
+     *
+     * @param listValues the list of strings
+     * @throws ConfigError
+     */
+    public SessionSettings(List<String> listValues) throws ConfigError {
+        this();
+        loadFromList(listValues);
+    }
+
+    /**
+     * Loads session settings from a list of strings with custom source of variable values in the settings.
+     *
+     * @param listValues the list of strings
+     * @param variableValues custom source of variable values in the settings
+     * @throws ConfigError
+     */
+    public SessionSettings(List<String> listValues, Properties variableValues) throws ConfigError {
+        this(variableValues);
+        loadFromList(listValues);
     }
 
     /**
@@ -190,7 +243,6 @@ public class SessionSettings {
      * Returns the defaults for the session-level settings.
      *
      * @return the default properties
-     * @throws ConfigError
      */
     public Properties getDefaultProperties() {
         try {
@@ -248,7 +300,7 @@ public class SessionSettings {
      * @param sessionID the session ID
      * @param key       the settings key
      * @return the long integer value for the setting
-     * @throws ConfigError       configurion error, probably a missing setting.
+     * @throws ConfigError       configuration error, probably a missing setting.
      * @throws FieldConvertError error during field type conversion.
      */
     public int getInt(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
@@ -365,7 +417,7 @@ public class SessionSettings {
         getOrCreateSessionProperties(sessionID).setProperty(key, BooleanConverter.convert(value));
     }
 
-    private final HashMap<SessionID, Properties> sections = new HashMap<>();
+    private final ConcurrentMap<SessionID, Properties> sections = new ConcurrentHashMap<>();
 
     public Iterator<SessionID> sectionIterator() {
         final HashSet<SessionID> nondefaultSessions = new HashSet<>(sections.keySet());
@@ -373,12 +425,31 @@ public class SessionSettings {
         return nondefaultSessions.iterator();
     }
 
+    private void loadFromFile(String filename) throws ConfigError {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(filename)) {
+            if (in != null) {
+                load(in);
+            } else {
+                try (InputStream in2 = new FileInputStream(filename)) {
+                    load(in2);
+                }
+            }
+        } catch (final IOException ex) {
+            throw new ConfigError(ex.getMessage());
+        }
+    }
+
+    private void loadFromList(List<String> listValues) throws ConfigError {
+        byte[] bytes = listValues.stream().collect(Collectors.joining(System.lineSeparator())).getBytes();
+        InputStream in = new ByteArrayInputStream(bytes);
+        load(in);
+    }
+
     private void load(InputStream inputStream) throws ConfigError {
-        try {
+        try (final Reader reader = new InputStreamReader(inputStream)) {
             Properties currentSection = null;
             String currentSectionId = null;
             final Tokenizer tokenizer = new Tokenizer();
-            final Reader reader = new InputStreamReader(inputStream);
             Tokenizer.Token token = tokenizer.getToken(reader);
             while (token != null) {
                 if (token.getType() == Tokenizer.SECTION_TOKEN) {
@@ -402,7 +473,6 @@ public class SessionSettings {
             storeSection(currentSectionId, currentSection);
         } catch (final IOException e) {
             final ConfigError configError = new ConfigError(e.getMessage());
-            configError.fillInStackTrace();
             throw configError;
         }
     }

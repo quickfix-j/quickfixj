@@ -29,7 +29,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 import static quickfix.SessionID.NOT_SET;
 
@@ -58,8 +57,6 @@ public class SessionJmxExporter {
     }
 
     public ObjectName createSessionName(SessionID sessionID) throws MalformedObjectNameException {
-        TreeMap<String, String> properties = new TreeMap<>();
-        properties.put("type", "Session");
         ObjectNameFactory nameFactory = new ObjectNameFactory();
         nameFactory.addProperty("type", "Session");
         addSessionIdProperties(sessionID, nameFactory);

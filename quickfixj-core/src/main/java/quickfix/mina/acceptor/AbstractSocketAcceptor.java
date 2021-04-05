@@ -56,6 +56,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Abstract base class for socket acceptors.
@@ -64,7 +66,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     private final Map<SocketAddress, AcceptorSessionProvider> sessionProviders = new HashMap<>();
     private final SessionFactory sessionFactory;
     private final Map<SocketAddress, AcceptorSocketDescriptor> socketDescriptorForAddress = new HashMap<>();
-    private final Map<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new HashMap<>();
+    private final ConcurrentMap<AcceptorSocketDescriptor, IoAcceptor> ioAcceptors = new ConcurrentHashMap<>();
 
     protected AbstractSocketAcceptor(SessionSettings settings, SessionFactory sessionFactory)
             throws ConfigError {
@@ -136,29 +138,26 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
     }
 
-    private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor, boolean init) throws ConfigError {
+    private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor) throws ConfigError {
         int transportType = ProtocolFactory.getAddressTransportType(socketDescriptor.getAddress());
         AcceptorSessionProvider sessionProvider = sessionProviders.
                 computeIfAbsent(socketDescriptor.getAddress(),
                         k -> new DefaultAcceptorSessionProvider(socketDescriptor.getAcceptedSessions()));
 
         IoAcceptor ioAcceptor = ioAcceptors.get(socketDescriptor);
-        if (ioAcceptor == null && init) {
+        if (ioAcceptor == null) {
             ioAcceptor = ProtocolFactory.createIoAcceptor(transportType);
             try {
                 SessionSettings settings = getSettings();
-                ioAcceptor.setHandler(new AcceptorIoHandler(sessionProvider, new NetworkingOptions(
-                        settings.getDefaultProperties()), getEventHandlingStrategy()));
+                NetworkingOptions networkingOptions = new NetworkingOptions(settings.getDefaultProperties());
+                networkingOptions.apply(ioAcceptor);
+                ioAcceptor.setHandler(new AcceptorIoHandler(sessionProvider, networkingOptions, getEventHandlingStrategy()));
             } catch (FieldConvertError e) {
                 throw new ConfigError(e);
             }
             ioAcceptors.put(socketDescriptor, ioAcceptor);
         }
         return ioAcceptor;
-    }
-
-    private IoAcceptor getIoAcceptor(AcceptorSocketDescriptor socketDescriptor) throws ConfigError {
-        return getIoAcceptor(socketDescriptor, true);
     }
 
     private AcceptorSocketDescriptor getAcceptorSocketDescriptor(SessionSettings settings,
@@ -215,7 +214,9 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     }
 
     private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
-        HashMap<SessionID, Session> allSessions = new HashMap<>();
+        Map<SessionID, Session> allSessions = new HashMap<>();
+        boolean continueInitOnError = isContinueInitOnError();
+
         for (Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
             SessionID sessionID = i.next();
             String connectionType = settings.getString(sessionID,
@@ -227,11 +228,20 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             }
 
             if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-                AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
-                if (!isTemplate) {
-                    Session session = sessionFactory.create(sessionID, settings);
-                    descriptor.acceptSession(session);
-                    allSessions.put(sessionID, session);
+                try {
+                    AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
+                    if (!isTemplate) {
+                        Session session = sessionFactory.create(sessionID, settings);
+                        descriptor.acceptSession(session);
+                        allSessions.put(sessionID, session);
+                    }
+                } catch (Throwable t) {
+                    if (continueInitOnError) {
+                        log.error("error during session initialization for {}, continuing...", sessionID, t);
+                    } else {
+                        throw t instanceof ConfigError ? (ConfigError) t : new ConfigError(
+                                "error during session initialization", t);
+                    }
                 }
             }
         }

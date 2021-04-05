@@ -34,9 +34,15 @@ import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
 import quickfix.field.NoPartyIDs;
+import quickfix.field.NoPartySubIDs;
 import quickfix.field.NoRelatedSym;
 import quickfix.field.OrdType;
 import quickfix.field.OrderQty;
+import quickfix.field.PartyID;
+import quickfix.field.PartyIDSource;
+import quickfix.field.PartyRole;
+import quickfix.field.PartySubID;
+import quickfix.field.PartySubIDType;
 import quickfix.field.Price;
 import quickfix.field.QuoteReqID;
 import quickfix.field.SenderCompID;
@@ -49,19 +55,29 @@ import quickfix.field.TargetCompID;
 import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
 import quickfix.fix44.NewOrderSingle;
+import quickfix.fix44.Quote;
+import quickfix.fix44.QuoteRequest;
 import quickfix.test.util.ExpectedTestFailure;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DataDictionaryTest {
 
@@ -74,6 +90,7 @@ public class DataDictionaryTest {
 
         assertEquals("wrong field name", "Currency", dd.getFieldName(15));
         assertEquals("wrong value description", "BUY", dd.getValueName(4, "B"));
+        assertEquals("wrong value for given value name", "2", dd.getValue(54, "SELL"));
         assertEquals("wrong value type", FieldType.STRING, dd.getFieldType(1));
         assertEquals("wrong version", FixVersions.BEGINSTRING_FIX44, dd.getVersion());
         assertFalse("unexpected field values existence", dd.hasFieldValue(1));
@@ -973,6 +990,8 @@ public class DataDictionaryTest {
         assertEquals(ddCopy.isCheckFieldsOutOfOrder(),dataDictionary.isCheckFieldsOutOfOrder());
         assertEquals(ddCopy.isCheckUnorderedGroupFields(),dataDictionary.isCheckUnorderedGroupFields());
         assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
+        assertArrayEquals(getDictionary().getOrderedFields(),ddCopy.getOrderedFields());
+        assertArrayEquals(getDictionary().getOrderedFields(),dataDictionary.getOrderedFields());
 
         DataDictionary.GroupInfo groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
         assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
@@ -984,6 +1003,31 @@ public class DataDictionaryTest {
         assertTrue(ddCopy.isAllowUnknownMessageFields());
         groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
         assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
+
+        DataDictionary originalGroupDictionary = getDictionary().getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        DataDictionary groupDictionary = dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        DataDictionary copyGroupDictionary = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        assertArrayEquals(originalGroupDictionary.getOrderedFields(), groupDictionary.getOrderedFields());
+        assertArrayEquals(originalGroupDictionary.getOrderedFields(), copyGroupDictionary.getOrderedFields());
+
+        DataDictionary originalNestedGroupDictionary = originalGroupDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        DataDictionary nestedGroupDictionary = groupDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        DataDictionary copyNestedGroupDictionary = copyGroupDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        assertArrayEquals(originalNestedGroupDictionary.getOrderedFields(), nestedGroupDictionary.getOrderedFields());
+        assertArrayEquals(originalNestedGroupDictionary.getOrderedFields(), copyNestedGroupDictionary.getOrderedFields());
+    }
+
+    @Test
+    public void testOrderedFields() throws Exception {
+        final DataDictionary dataDictionary = getDictionary();
+
+        final DataDictionary partyIDsDictionary = dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
+        int[] expectedPartyIDsFieldOrder = new int[] {PartyID.FIELD, PartyIDSource.FIELD, PartyRole.FIELD, NoPartySubIDs.FIELD};
+        assertArrayEquals(expectedPartyIDsFieldOrder, partyIDsDictionary.getOrderedFields());
+
+        final DataDictionary partySubIDsDictionary = partyIDsDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
+        int[] expectedPartySubIDsFieldOrder = new int[] {PartySubID.FIELD, PartySubIDType.FIELD};
+        assertArrayEquals(expectedPartySubIDsFieldOrder, partySubIDsDictionary.getOrderedFields());
     }
 
     /**
@@ -1276,6 +1320,17 @@ public class DataDictionaryTest {
         dictionary.validate(quoteRequest, true);
     }
 
+    @Test
+    public void testRequiredFieldInsideComponentWithinRepeatingGroup() throws Exception {
+        DataDictionary dictionary = getDictionary();
+
+        assertTrue(dictionary.isRequiredField(Quote.MSGTYPE, Symbol.FIELD));
+        assertFalse(dictionary.isRequiredField(QuoteRequest.MSGTYPE, Symbol.FIELD));
+
+        DataDictionary.GroupInfo quoteRequestGroupInfo = dictionary.getGroup(QuoteRequest.MSGTYPE, NoRelatedSym.FIELD);
+        assertTrue(quoteRequestGroupInfo.getDataDictionary().isRequiredField(QuoteRequest.MSGTYPE, Symbol.FIELD));
+    }
+
     /**
      * Field EffectiveTime(168) is defined as UTCTIMESTAMP so an empty string value is invalid but if we allow blank values that should not fail
      * validation
@@ -1297,6 +1352,65 @@ public class DataDictionaryTest {
         newSingle.setField(new Account("testAccount"));
         newSingle.setField(new StringField(EffectiveTime.FIELD));
         dictionary.validate(newSingle, true);
+    }
+
+
+    // QFJ-971
+    @Test
+    public void testConcurrentValidationFailure() throws Exception {
+        final String data = "8=FIX.4.4|9=284|35=F|49=TEST_49|56=TEST_56|34=420|52=20190302-07:31:57.079|"
+                + "115=TEST3|116=TEST_116|11=TEST_11|41=TEST_41|55=TEST_55|48=TEST_48|22=4|54=2|"
+                + "60=20190302-07:31:56.933|38=100|207=TEST_207|453=1|448=TEST_448|447=D|452=3|10=204|";
+        final String msgString = data.replace('|', (char) 1);
+
+        // use some more threads to make it more likely that the problem will occur
+        final int noOfThreads = 8;
+        final int noOfIterations = 500;
+
+        for (int i = 0; i < noOfIterations; i++) {
+            final DataDictionary dd = new DataDictionary("FIX44.xml");
+            final MessageFactory messageFactory = new quickfix.fix44.MessageFactory();
+            PausableThreadPoolExecutor ptpe = new PausableThreadPoolExecutor(noOfThreads);
+            // submit threads to pausable executor and try to let them start at the same time
+            ptpe.pause();
+            List<Future> resultList = new ArrayList<>();
+            for (int j = 0; j < noOfThreads; j++) {
+                final Callable messageParser = (Callable) () -> {
+                    Message msg = MessageUtils.parse(messageFactory, dd, msgString);
+                    Group partyGroup = msg.getGroups(quickfix.field.NoPartyIDs.FIELD).get(0);
+                    char partyIdSource = partyGroup.getChar(PartyIDSource.FIELD);
+                    assertEquals(PartyIDSource.PROPRIETARY_CUSTOM_CODE, partyIdSource);
+                    return msg;
+                };
+                resultList.add(ptpe.submit(messageParser));
+            }
+
+            // start all threads
+            ptpe.resume();
+            ptpe.shutdown();
+            ptpe.awaitTermination(10, TimeUnit.MILLISECONDS);
+
+            // validate results
+            for (Future future : resultList) {
+                // if unsuccessful, this will throw an ExecutionException
+                future.get();
+            }
+        }
+    }
+
+    @Test
+    public void shouldLoadDictionaryWhenExternalDTDisEnabled() throws ConfigError {
+        new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+    }
+
+    @Test
+    public void shouldFailToLoadDictionaryWhenExternalDTDisDisabled() {
+        try {
+            new DataDictionary("FIX_External_DTD.xml");
+            fail("should fail to load dictionary with external DTD");
+        } catch (ConfigError e) {
+            assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
+        }
     }
 
     //

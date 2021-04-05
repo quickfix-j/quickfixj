@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -55,6 +56,7 @@ public final class SessionState {
     private long lastSentTime;
     private long lastReceivedTime;
     private final double testRequestDelayMultiplier;
+    private final double heartBeatTimeoutMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
 
@@ -62,6 +64,12 @@ public final class SessionState {
     private boolean resetSent;
     private boolean resetReceived;
     private String logoutReason;
+
+    /**
+     * Indicates whether resetting the internal state is still pending.
+     * Used when resetting sequence numbers after Logout.
+     */
+    private boolean resetStatePending = false;
 
     /*
      * If this is anything other than zero it's the value of the 789/NextExpectedMsgSeqNum tag in the last Logon message sent.
@@ -75,13 +83,14 @@ public final class SessionState {
     private final Map<Integer, Message> messageQueue = new LinkedHashMap<>();
 
     public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator, MessageStore messageStore,
-            double testRequestDelayMultiplier) {
+                        double testRequestDelayMultiplier, double heartBeatTimeoutMultiplier) {
         this.lock = lock;
         this.initiator = initiator;
         this.messageStore = messageStore;
         setHeartBeatInterval(heartBeatInterval);
         this.log = log == null ? new NullLog() : log;
         this.testRequestDelayMultiplier = testRequestDelayMultiplier;
+        this.heartBeatTimeoutMultiplier = heartBeatTimeoutMultiplier;
     }
 
     public int getHeartBeatInterval() {
@@ -93,13 +102,7 @@ public final class SessionState {
     public void setHeartBeatInterval(int heartBeatInterval) {
         synchronized (lock) {
             this.heartBeatInterval = heartBeatInterval;
-        }
-        setHeartBeatMillis(heartBeatInterval * 1000L);
-    }
-
-    private void setHeartBeatMillis(long heartBeatMillis) {
-        synchronized (lock) {
-            this.heartBeatMillis = heartBeatMillis;
+            this.heartBeatMillis = TimeUnit.SECONDS.toMillis(heartBeatInterval);
         }
     }
 
@@ -291,7 +294,7 @@ public final class SessionState {
 
     public boolean isTimedOut() {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
-        return millisSinceLastReceivedTime >= 2.4 * getHeartBeatMillis();
+        return millisSinceLastReceivedTime >= (1 + heartBeatTimeoutMultiplier) * getHeartBeatMillis();
     }
 
     public boolean set(int sequence, String message) throws IOException {
@@ -435,6 +438,19 @@ public final class SessionState {
             this.resetSent = resetSent;
         }
     }
+    
+    public boolean isResetStatePending() {
+        synchronized (lock) {
+            return resetStatePending;
+        }
+    }
+
+    public void setResetStatePending(boolean resetStatePending) {
+        synchronized (lock) {
+            this.resetStatePending = resetStatePending;
+        }
+    }
+
 
     /**
      * No actual resend request has occurred but at logon we populated tag 789 so that the other side knows we

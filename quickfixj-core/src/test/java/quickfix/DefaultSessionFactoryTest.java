@@ -19,19 +19,24 @@
 
 package quickfix;
 
-import java.io.IOException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import quickfix.field.ApplVerID;
 import quickfix.test.acceptance.ATApplication;
 
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import org.junit.After;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DefaultSessionFactoryTest {
 
@@ -252,6 +257,15 @@ public class DefaultSessionFactoryTest {
         factory.create(sessionID, settings);
         settings.setString(Session.SETTING_TIMESTAMP_PRECISION, "PICOS");
         createSessionAndAssertConfigError("no exception", ".*No enum constant quickfix.UtcTimestampPrecision.PICOS.*");
+    }
+
+    // QFJ-973
+    @Test
+    public void testRejectGarbledMessageAndNotValidateChecksumError() {
+        settings.setString(Session.SETTING_REJECT_GARBLED_MESSAGE, "Y");
+        settings.setString(Session.SETTING_VALIDATE_CHECKSUM, "N");
+        createSessionAndAssertConfigError("no exception", ".*Not possible to reject " +
+                "garbled message and process messages with invalid checksum at the same time.*");
     }
 
 }

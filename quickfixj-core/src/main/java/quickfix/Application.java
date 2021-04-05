@@ -67,7 +67,7 @@ public interface Application {
 
     /**
      * This callback notifies you when an administrative message is sent from a
-     * counterparty to your FIX engine. This can be usefull for doing extra
+     * counterparty to your FIX engine. This can be useful for doing extra
      * validation on logon messages such as for checking passwords. Throwing a
      * RejectLogon exception will disconnect the counterparty.
      *

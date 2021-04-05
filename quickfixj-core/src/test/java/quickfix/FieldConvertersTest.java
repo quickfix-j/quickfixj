@@ -28,7 +28,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import quickfix.field.converter.BooleanConverter;
+import quickfix.field.converter.CharArrayConverter;
 import quickfix.field.converter.CharConverter;
 import quickfix.field.converter.DoubleConverter;
 import quickfix.field.converter.IntConverter;
@@ -36,10 +40,18 @@ import quickfix.field.converter.UtcDateOnlyConverter;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class FieldConvertersTest extends TestCase {
+public class FieldConvertersTest {
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
+    @Test
     public void testIntegerConversion() throws Exception {
         assertEquals("123", IntConverter.convert(123));
         assertEquals(123, IntConverter.convert("123"));
@@ -65,6 +77,7 @@ public class FieldConvertersTest extends TestCase {
         }
     }
 
+    @Test
     public void testDoubleConversion() throws Exception {
         assertEquals("45.32", DoubleConverter.convert(45.32));
         assertEquals("45", DoubleConverter.convert(45));
@@ -127,6 +140,7 @@ public class FieldConvertersTest extends TestCase {
         assertEquals("0.0", DoubleConverter.convert(0, 1));
     }
 
+    @Test
     public void testCharConversion() throws Exception {
         assertEquals("a", CharConverter.convert('a'));
         assertEquals("1", CharConverter.convert('1'));
@@ -148,6 +162,24 @@ public class FieldConvertersTest extends TestCase {
         }
     }
 
+    public void testCharArrayConversion() throws Exception {
+        assertEquals("a 2 Z", CharArrayConverter.convert('a', '2', 'Z'));
+
+        try {
+            CharArrayConverter.convert("");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            CharArrayConverter.convert("a B cD");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+    }
+
+    @Test
     public void testBooleanConversion() throws Exception {
         assertEquals("Y", BooleanConverter.convert(true));
         assertEquals("N", BooleanConverter.convert(false));
@@ -167,6 +199,7 @@ public class FieldConvertersTest extends TestCase {
         }
     }
 
+    @Test
     public void testUtcTimeStampConversion() throws Exception {
         Calendar c = new GregorianCalendar(2000, 3, 26, 12, 5, 6);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -313,6 +346,7 @@ public class FieldConvertersTest extends TestCase {
 
     }
 
+    @Test
     public void testUtcTimeOnlyConversion() throws Exception {
         Calendar c = new GregorianCalendar(0, 0, 0, 12, 5, 6);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -398,6 +432,7 @@ public class FieldConvertersTest extends TestCase {
         
     }
 
+    @Test
     public void testUtcDateOnlyConversion() throws Exception {
         Calendar c = new GregorianCalendar(2000, 3, 26, 0, 0, 0);
         c.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -454,4 +489,61 @@ public class FieldConvertersTest extends TestCase {
         
     }
 
+    @Test
+    public void shouldConvertFromCharArrayToString() {
+        assertEquals("a", CharArrayConverter.convert('a'));
+        assertEquals("5 a", CharArrayConverter.convert('5', 'a'));
+        assertEquals("5 a b", CharArrayConverter.convert('5', 'a', 'b'));
+        assertEquals("5 a b 5", CharArrayConverter.convert('5', 'a', 'b', '5'));
+        assertEquals("5 a b \0", CharArrayConverter.convert('5', 'a', 'b', '\0'));
+    }
+
+    @Test
+    public void shouldFailToConvertFromCharArrayToStringWhenTabCharacterPresent() {
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("whitespace character present: 9");
+
+        CharArrayConverter.convert('5', '\t', 'b');
+    }
+
+    @Test
+    public void shouldConvertFromStringToCharArray() throws FieldConvertError {
+        assertArrayEquals(new char[] {'a'}, CharArrayConverter.convert("a"));
+        assertArrayEquals(new char[] { '5', 'a' }, CharArrayConverter.convert("5 a"));
+        assertArrayEquals(new char[] { '5', 'a', 'b'}, CharArrayConverter.convert("5 a b"));
+        assertArrayEquals(new char[] { '5', 'a', 'b', '5'}, CharArrayConverter.convert("5 a b 5"));
+        assertArrayEquals(new char[] { '5', 'a', 'b', '\0'}, CharArrayConverter.convert("5 a b \0"));
+    }
+
+    @Test
+    public void shouldFailToConvertFromStringToCharArrayWhenTabCharacterPresent() throws FieldConvertError {
+        expectedException.expect(FieldConvertError.class);
+        expectedException.expectMessage("invalid char array: [53, 32, 9, 32, 98]");
+
+        CharArrayConverter.convert("5 \t b");
+    }
+
+    @Test
+    public void shouldFailToConvertFromStringToCharArrayWhenDoubleSpaceCharacterPresent() throws FieldConvertError {
+        expectedException.expect(FieldConvertError.class);
+        expectedException.expectMessage("invalid char array: [53, 32, 32, 32, 32, 98]");
+
+        CharArrayConverter.convert("5    b");
+    }
+
+    @Test
+    public void shouldFailToConvertFromStringToCharArrayWhenTerminatedWithSpaceCharacter() throws FieldConvertError {
+        expectedException.expect(FieldConvertError.class);
+        expectedException.expectMessage("invalid char array: [53, 32, 98, 32]");
+
+        CharArrayConverter.convert("5 b ");
+    }
+
+    @Test
+    public void shouldFailToConvertFromStringToCharArrayWhenNoCharactersPresent() throws FieldConvertError {
+        expectedException.expect(FieldConvertError.class);
+        expectedException.expectMessage("invalid char array: []");
+
+        CharArrayConverter.convert("");
+    }
 }

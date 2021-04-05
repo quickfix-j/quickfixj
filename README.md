@@ -1,13 +1,15 @@
 QuickFIX/J
 ==========
-
-[![Build Status](https://travis-ci.org/quickfix-j/quickfixj.svg?branch=master)](https://travis-ci.org/quickfix-j/quickfixj)
+[![Java CI](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml)
+[![CodeQL](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/alerts/)
+[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/context:java)
 
 This is the official QuickFIX/J project repository.
 
 ## intro
-QuickFIX/J is a full featured messaging engine for the FIX protocol.
+QuickFIX/J is a full featured messaging engine for the FIX protocol (FIX versions 4.0 - 5.0SP2/FIXT1.1).
 It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
 
 The Financial Information eXchange (FIX) protocol is a messaging standard developed
@@ -21,10 +23,19 @@ For more information see the project website at http://www.quickfixj.org.
 Check out the wiki: https://github.com/quickfix-j/quickfixj/wiki
 
 ## questions
-For asking questions please use the mailing list: https://lists.sourceforge.net/lists/listinfo/quickfixj-users
+For asking questions please either use the mailing list https://lists.sourceforge.net/lists/listinfo/quickfixj-users or ask on Stack Overflow https://stackoverflow.com/questions/ask?tags=quickfixj .
 
 ## issues
-Please report issues at http://www.quickfixj.org/jira.
+Please report issues here: https://github.com/quickfix-j/quickfixj/issues
+
+## security
+QuickFIX/J welcomes and appreciates responsible disclosure. Contributors are given appropriate credit in release notes and Git logs.
+
+For security issues in QuickFIX/J itself contact the project maintainer: christoph.john-at-macd.com
+
+For security issues in libraries used by QuickFIX/J contact the relevant project team (e.g. for Apache MINA: https://www.apache.org/security/ ). If you feel they are particularly exploitable via QuickFIX/J also feel free to follow up with the project maintainer as above so that we upgrade to the new version in a timely fashion.
+
+Once a security issue is fixed in QuickFIX/J it will be communicated via the user mailing list and other appropriate channels.
 
 ## contributions
 Pull requests are always welcome! Best is if you added a unit test to show that a certain bug has been fixed or a new feature works as expected.
@@ -47,6 +58,15 @@ $ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
+## importing the project into the IDE
+
+When the project is first created, it will not have the generated message classes and compile errors will occur! Best is to compile once on the command line before importing the project into the IDE.
+
+If the IDE reports some errors after the compilation with `mvn clean package`, try to use `mvn clean install`, like:
+```
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+```
+
 ## configuration options
 https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
@@ -66,7 +86,7 @@ Here are explanations of what these functions provide for you.
 
 `onLogout` notifies you when an FIX session is no longer online. This could happen during a normal logout exchange or because of a forced termination or a loss of network connection. 
 
-`toAdmin` provides you with a peek at the administrative messages that are being sent from your FIX engine to the counter party. This is normally not useful for an application however it is provided for any logging you may wish to do. Notice that the `quickfix.Message` is mutable. This allows you to add fields before an adminstrative message before it is sent out. 
+`toAdmin` provides you with a peek at the administrative messages that are being sent from your FIX engine to the counter party. This is normally not useful for an application however it is provided for any logging you may wish to do. Notice that the `quickfix.Message` is mutable. This allows you to add fields to an administrative message before it is sent out. 
 
 `toApp` is a callback for application messages that are being sent to a counterparty. If you throw a `DoNotSend` exception in this method, the application will not send the message. This is mostly useful if the application has been asked to resend a message such as an order that is no longer relevant for the current market. Messages that are being resent are marked with the `PossDupFlag` in the header set to true; If a `DoNotSend` exception is thrown and the flag is set to true, a sequence reset will be sent in place of the message. If it is set to false, the message will simply not be sent. Notice that the `quickfix.Message` is mutable. This allows you to add fields to an application message before it is sent out. 
 
@@ -77,7 +97,7 @@ Here are explanations of what these functions provide for you.
 
 The sample code below shows how you might start up a FIX acceptor which listens on a socket. If you wanted an initiator, you would simply replace the acceptor in this code fragment with a `SocketInitiator`. `ThreadedSocketInitiator` and `ThreadedSocketAcceptor` classes are also available. These will supply a thread to each session that is created. If you use these you must make sure your application is thread safe.
 
-```
+```Java
 import quickfix.*;
 import java.io.FileInputStream;
 
@@ -113,7 +133,7 @@ Keep in mind that all messages have a header and a trailer. If you want to see f
 
 QuickFIX/J has message classes that correlate to all the messages defined in the spec. They are, just like the field classes, generated directly off of the FIX specifications. To take advantage of this, you must break the messages out with the supplied `MessageCracker`. 
 
-```
+```Java
 import quickfix.*;
 import quickfix.field.*;
 
@@ -152,7 +172,7 @@ Any function you do not overload will by default throw an `UnsupportedMessageTyp
 
 Define your application like this:
 
-```
+```Java
 import quickfix.Application;
 import quickfix.MessageCracker;
 
@@ -182,12 +202,46 @@ Message crackers for each FIX version are still generated for backward compatibi
 
 The generated classes define handlers for all messages defined by that version of FIX. This requires the JVM to load those classes when the cracker is loaded. Most applications only need to handle a small subset of the messages defined by a FIX version so loading all the messages classes is excessive overhead in those cases.
 
+#### Functional interfaces for receiving messages
+
+If you prefer using lambda expressions in handling received messages, then <code>ApplicationFunctionalAdapter</code> or <code>ApplicationExtendedFunctionalAdapter</code> can be used to register reactions to events the application is interested in.
+
+They also allow registering the interests in a given message type in a type-safe manner.
+
+```Java
+import quickfix.ApplicationFunctionalAdapter;
+import quickfix.SessionID;
+
+public class EmailForwarder {
+    public void init(ApplicationFunctionalAdapter adapter) {
+        adapter.addOnLogonListener(this::captureUsername);
+        adapter.addFromAppListener(quickfix.fix44.Email.class, (e , s) -> forward(e));
+    }
+
+    private void forward(quickfix.fix44.Email email) {
+        // implementation
+    }
+
+    private void captureUsername(SessionID sessionID) {
+        // implementation
+    }
+}
+```
+<code>ApplicationFunctionalAdapter</code> and <code>ApplicationExtendedFunctionalAdapter</code> support multiple registration to the same event, and the registered callbacks are invoked in the FIFO manner. 
+
+However FIFO cannot be guaranteed between registration with specific message type (e.g. <code>quickfix.fix44.Email</code>) and that without specific message type. For example, there is no invocation order guarantee between the following two callbacks:
+
+```Java
+    adapter.addFromAppListener((e , s) -> handleGeneral(e));
+
+    adapter.addFromAppListener(quickfix.fix44.Email.class, (e , s) -> handleSpecific(e));
+```
 
 ### Sending messages
 
 Messages can be sent to a counter party with one of the static `Session.sendToTarget` methods. This method has several signatures. They are:
 
-```
+```Java
 package quickfix;
 
 public static boolean sendToTarget(Message message)
@@ -205,7 +259,7 @@ The highly recommended method is to use the type safe message classes. This shou
 
 Here the constructor takes in all the required fields and adds the correct `MsgType` and `BeginString` for you. What's more, by using the `set` method instead of `setField`, the compiler will not let you add a field that is not a part of a `OrderCancelRequest` based on the FIX4.1 specs. Keep in mind that you can still use `setField` if you want to force any field you want into the message.
 
-```
+```Java
 import quickfix.*;
 
 void sendOrderCancelRequest() throws SessionNotFound {

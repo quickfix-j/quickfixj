@@ -52,11 +52,11 @@ public interface Application {
   This could happen during a normal logout exchange or because of a forced termination
   or a loss of network connection. </dd>
   <dt>toAdmin</dt>
-  <dd> This callback provides you with a peak at the administrative messages
+  <dd> This callback provides you with a peek at the administrative messages
   that are being sent from your FIX engine to the counter party. This is normally
   not useful for an application however it is provided for any logging you may
   wish to do. Notice that the FIX::Message is not const. This allows you to add
-  fields before an adminstrative message before it is sent out. </dd>
+  fields to an administrative message before it is sent out. </dd>
   <dt>toApp</dt>
   <dd> This is a callback for application messages that you are being
   sent to a counterparty. If you throw a <I>DoNotSend</I> exception in this function,

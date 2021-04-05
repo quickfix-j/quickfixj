@@ -50,6 +50,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.service.IoService;
 
@@ -67,10 +68,10 @@ public abstract class SessionConnector implements Connector {
 
     protected final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
-    private Map<SessionID, Session> sessions = Collections.emptyMap();
+    private final Map<SessionID, Session> sessions = new ConcurrentHashMap<>();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
-    private final static ScheduledExecutorService scheduledExecutorService = Executors
+    private static final ScheduledExecutorService SCHEDULED_EXECUTOR = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
@@ -117,7 +118,8 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void setSessions(Map<SessionID, Session> sessions) {
-        this.sessions = sessions;
+        clearConnectorSessions();
+        this.sessions.putAll(sessions);
         propertyChangeSupport.firePropertyChange(SESSIONS_PROPERTY, null, sessions);
     }
 
@@ -237,10 +239,6 @@ public abstract class SessionConnector implements Connector {
 
     protected void logoutAllSessions(boolean forceDisconnect) {
         log.info("Logging out all sessions");
-        if (sessions == null) {
-            log.error("Attempt to logout all sessions before initialization is complete.");
-            return;
-        }
         for (Session session : sessions.values()) {
             try {
                 session.logout();
@@ -316,7 +314,7 @@ public abstract class SessionConnector implements Connector {
         if (shortLivedExecutor != null) {
             timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
         }
-        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
+        sessionTimerFuture = SCHEDULED_EXECUTOR.scheduleAtFixedRate(timerTask, 0, 1000L,
                 TimeUnit.MILLISECONDS);
         log.info("SessionTimer started");
     }
@@ -337,10 +335,11 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected ScheduledExecutorService getScheduledExecutorService() {
-        return scheduledExecutorService;
+        return SCHEDULED_EXECUTOR;
     }
 
     private class SessionTimerTask implements Runnable {
+        @Override
         public void run() {
             try {
                 for (Session session : sessions.values()) {
@@ -409,6 +408,7 @@ public abstract class SessionConnector implements Connector {
 
     private static class QFTimerThreadFactory implements ThreadFactory {
 
+        @Override
         public Thread newThread(Runnable runnable) {
             Thread thread = new Thread(runnable, "QFJ Timer");
             thread.setDaemon(true);
@@ -458,6 +458,14 @@ public abstract class SessionConnector implements Connector {
         if (!ioService.isDisposing()) {
             ioService.dispose(awaitTermination);
         }
+    }
+
+    protected boolean isContinueInitOnError() throws ConfigError, FieldConvertError {
+        boolean continueInitOnError = false;
+        if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
+            continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
+        }
+        return continueInitOnError;
     }
 
 }

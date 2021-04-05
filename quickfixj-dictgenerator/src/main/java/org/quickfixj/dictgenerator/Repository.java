@@ -54,7 +54,7 @@ public class Repository {
             throw new Exception("Invalid repository: Missing required files: " + requiredFiles);
         }
 
-        SAXReader reader = new SAXReader();
+        SAXReader reader = SAXReader.createDefault();
         components = reader.read(new File(repository, "Components.xml"));
         enums = reader.read(new File(repository, "Enums.xml"));
         fields = reader.read(new File(repository, "Fields.xml"));
@@ -233,11 +233,12 @@ public class Repository {
     }
 
     class MsgContentNodeComparator implements Comparator<Object> {
+	@Override
         public int compare(Object o1, Object o2) {
             try {
-                Double pos1 = Double.parseDouble(getSingleNodeTextSafe((Node) o1, "Position"));
-                Double pos2 = Double.parseDouble(getSingleNodeTextSafe((Node) o2, "Position"));
-                return pos1.compareTo(pos2);
+                double pos1 = Double.parseDouble(getSingleNodeTextSafe((Node) o1, "Position"));
+                double pos2 = Double.parseDouble(getSingleNodeTextSafe((Node) o2, "Position"));
+                return Double.compare(pos1, pos2);
             } catch (Exception e) {
                 return 0;
             }
@@ -245,11 +246,12 @@ public class Repository {
     }
 
     class EnumNodeComparator implements Comparator<Object> {
+	@Override
         public int compare(Object o1, Object o2) {
             try {
-                Double pos1 = Double.parseDouble(getSingleNodeTextSafe((Node) o1, "Sort"));
-                Double pos2 = Double.parseDouble(getSingleNodeTextSafe((Node) o2, "Sort"));
-                return pos1.compareTo(pos2);
+                double pos1 = Double.parseDouble(getSingleNodeTextSafe((Node) o1, "Sort"));
+                double pos2 = Double.parseDouble(getSingleNodeTextSafe((Node) o2, "Sort"));
+                return Double.compare(pos1, pos2);
             } catch (Exception e) {
                 return 0;
             }

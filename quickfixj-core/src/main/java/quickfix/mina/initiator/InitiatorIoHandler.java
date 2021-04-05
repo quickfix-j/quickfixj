@@ -34,6 +34,8 @@ import quickfix.mina.IoSessionResponder;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
 
+import java.util.Optional;
+
 class InitiatorIoHandler extends AbstractIoHandler {
     private final Session quickfixSession;
     private final EventHandlingStrategy eventHandlingStrategy;
@@ -61,7 +63,8 @@ class InitiatorIoHandler extends AbstractIoHandler {
 
     @Override
     protected void processMessage(IoSession protocolSession, Message message) throws Exception {
-        if (message.getHeader().getString(MsgType.FIELD).equals(MsgType.LOGON)) {
+        final Optional<String> msgTypeField = message.getHeader().getOptionalString(MsgType.FIELD);
+        if (msgTypeField.isPresent() && msgTypeField.get().equals(MsgType.LOGON)) {
             final SessionID sessionID = MessageUtils.getReverseSessionID(message);
             if (sessionID.isFIXT()) {
                 if (message.isSetField(DefaultApplVerID.FIELD)) {

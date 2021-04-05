@@ -66,7 +66,9 @@ public abstract class AbstractSessionConnectorBuilder<Derived, Product> {
         if (logFactory == null) {
             logFactory = new ScreenLogFactory(settings);
         }
-
+        if (messageFactory == null) {
+            messageFactory = new DefaultMessageFactory();
+        }
         return doBuild();
     }
 
