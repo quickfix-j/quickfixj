@@ -483,6 +483,29 @@ public class Session implements Closeable {
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier) {
+        this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
+            messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
+            false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
+            false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
+            false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+    }
+
+    Session(Application application, MessageStoreFactory messageStoreFactory, MessageQueueFactory messageQueueFactory,
+            SessionID sessionID, DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule,
+            LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
+            boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
+            boolean resetOnLogon, boolean resetOnLogout, boolean resetOnDisconnect,
+            boolean refreshOnLogon, boolean checkCompID,
+            boolean redundantResentRequestsAllowed, boolean persistMessages,
+            boolean useClosedRangeForResend, double testRequestDelayMultiplier,
+            DefaultApplVerID senderDefaultApplVerID, boolean validateSequenceNumbers,
+            int[] logonIntervals, boolean resetOnError, boolean disconnectOnError,
+            boolean disableHeartBeatCheck, boolean rejectGarbledMessage, boolean rejectInvalidMessage,
+            boolean rejectMessageOnUnhandledException, boolean requiresOrigSendingTime,
+            boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
+            boolean validateIncomingMessage, int resendRequestChunkSize,
+            boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
+            boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -528,8 +551,13 @@ public class Session implements Closeable {
             addStateListener((SessionStateListener) messageStore);
         }
 
+        final MessageQueue messageQueue = messageQueueFactory.create(sessionID);
+        if (messageQueue instanceof SessionStateListener) {
+            addStateListener((SessionStateListener) messageQueue);
+        }
+
         state = new SessionState(this, engineLog, heartbeatInterval, heartbeatInterval != 0,
-            messageStore, testRequestDelayMultiplier, heartBeatTimeoutMultiplier);
+            messageStore, messageQueue, testRequestDelayMultiplier, heartBeatTimeoutMultiplier);
 
         registerSession(this);
 
@@ -1518,7 +1546,7 @@ public class Session implements Closeable {
                 }
                 // QFJ-728: newSequence will be the seqnum of the next message so we
                 // delete all older messages from the queue since they are effectively skipped.
-                state.dequeueMessagesUpTo(newSequence);
+                state.getMessageQueue().dequeueMessagesUpTo(newSequence);
             } else if (newSequence < getExpectedTargetNum()) {
 
                 getLog().onErrorEvent(
@@ -2092,7 +2120,7 @@ public class Session implements Closeable {
             state.setLogoutReceived(false);
             state.setResetReceived(false);
             state.setResetSent(false);
-            state.clearQueue();
+            state.getMessageQueue().clear();
             state.clearLogoutReason();
             state.setResendRange(0, 0);
 
@@ -2384,7 +2412,7 @@ public class Session implements Closeable {
 
     private boolean nextQueued(int num) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
-        final Message msg = state.dequeue(num);
+        final Message msg = state.getMessageQueue().dequeue(num);
         if (msg != null) {
             getLog().onEvent("Processing queued message: " + num);
 
@@ -2653,7 +2681,7 @@ public class Session implements Closeable {
     }
 
     private void enqueueMessage(final Message msg, final int msgSeqNum) {
-        state.enqueue(msgSeqNum, msg);
+        state.getMessageQueue().enqueue(msgSeqNum, msg);
         getLog().onEvent("Enqueued at pos " + msgSeqNum + ": " + msg);
     }
 

@@ -94,12 +94,16 @@ public class SessionTest {
         stub(mockMessageStoreFactory.create(sessionID)).toReturn(
                 mockMessageStore);
 
+        final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
+        final MessageQueue mockMessageQueue = mock(MessageQueue.class);
+        stub(mockMessageQueueFactory.create(sessionID)).toReturn(mockMessageQueue);
+
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final CloseableLog mockLog = mock(CloseableLog.class);
         stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
 
         try (Session session = new Session(application,
-                mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
@@ -135,12 +139,16 @@ public class SessionTest {
         stub(mockMessageStoreFactory.create(sessionID)).toReturn(
                 mockMessageStore);
 
+        final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
+        final MessageQueue mockMessageQueue = mock(MessageQueue.class);
+        stub(mockMessageQueueFactory.create(sessionID)).toReturn(mockMessageQueue);
+
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final Log mockLog = mock(Log.class);
         stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
 
         try (Session session = new Session(application,
-                mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
@@ -1301,7 +1309,8 @@ public class SessionTest {
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
             final SessionState state = getSessionState(session);
-            
+            final InMemoryMessageQueue queue = (InMemoryMessageQueue) state.getMessageQueue();
+
             logonTo(session, 1);
             
             assertTrue(session.isLoggedOn());
@@ -1324,7 +1333,7 @@ public class SessionTest {
             assertEquals(52, state.getNextTargetMsgSeqNum());
             assertTrue(session.isLoggedOn());
             assertFalse(state.isResendRequested());
-            assertTrue(state.getQueuedSeqNums().isEmpty());
+            assertTrue(queue.getBackingMap().isEmpty());
         }
     }
 
@@ -1528,6 +1537,7 @@ public class SessionTest {
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
             final SessionState state = getSessionState(session);
+            final InMemoryMessageQueue queue = (InMemoryMessageQueue) state.getMessageQueue();
             
             final int from = 10;
             int numberOfMsgs = 200;
@@ -1539,10 +1549,10 @@ public class SessionTest {
                 processMessage(session, createAppMessage(i));
             }
             for (int i = from; i < to; i++) {
-                assertTrue(state.getQueuedSeqNums().contains(i));
+                assertTrue(queue.getBackingMap().containsKey(i));
             }
 
-            assertEquals(state.getQueuedSeqNums().size(), numberOfMsgs);
+            assertEquals(queue.getBackingMap().size(), numberOfMsgs);
             assertTrue(application.fromAppMessages.isEmpty());
             // Create a sequence reset which will cause deletion of almost all
             // messages
@@ -1554,7 +1564,7 @@ public class SessionTest {
             assertEquals(application.fromAppMessages.size(), two);
             assertFalse(state.isResendRequested());
             assertTrue(session.isLoggedOn());
-            assertTrue(state.getQueuedSeqNums().isEmpty());
+            assertTrue(queue.getBackingMap().isEmpty());
         }
     }
 
@@ -2099,7 +2109,7 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
         try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2162,7 +2172,7 @@ public class SessionTest {
 		final boolean resetOnLogon = false;
 		final boolean validateSequenceNumbers = true;
 
-		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
 				sessionID, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
@@ -2210,7 +2220,7 @@ public class SessionTest {
 		final boolean resetOnLogon = false;
 		final boolean validateSequenceNumbers = true;
 
-		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
 				sessionID, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
@@ -2258,7 +2268,7 @@ public class SessionTest {
         final boolean disconnectOnError = true;
 
         try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2294,7 +2304,7 @@ public class SessionTest {
         UnitTestApplication unitTestApplication = new UnitTestApplication();
 
         try (Session session = new Session(unitTestApplication,
-                new MemoryStoreFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
@@ -2347,7 +2357,7 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
         final UnitTestApplication unitTestApplication = new UnitTestApplication();
 
-        Session session = new Session(unitTestApplication, new MemoryStoreFactory(),
+        Session session = new Session(unitTestApplication, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
                 sessionID, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
@@ -2463,7 +2473,7 @@ public class SessionTest {
             }
         };
 
-        Session session = new Session(app, new MemoryStoreFactory(),
+        Session session = new Session(app, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
                 sessionID, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
