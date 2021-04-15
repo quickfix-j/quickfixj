@@ -182,7 +182,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             initiators.add(ioSessionInitiator);
         } catch (ConfigError e) {
             if (continueInitOnError) {
-                log.error("error during session initialization for {}, continuing...", sessionID, e);
+                log.warn("error during session initialization for {}, continuing...", sessionID, e);
             } else {
                 throw e;
             }
@@ -222,7 +222,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     }
                 } catch (final Throwable e) {
                     if (continueInitOnError) {
-                        log.error("error during session initialization for {}, continuing...", sessionID, e);
+                        log.warn("error during session initialization for {}, continuing...", sessionID, e);
                     } else {
                         throw e instanceof ConfigError ? (ConfigError) e : new ConfigError(
                                 "error during session initialization", e);
