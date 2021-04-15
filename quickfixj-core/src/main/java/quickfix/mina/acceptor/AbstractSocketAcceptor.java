@@ -233,8 +233,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                     if (settings.isSetting(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE)) {
                         try {
                             isTemplate = settings.getBool(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE);
-                        } catch (FieldConvertError ex) {
-                            // should not happen due to call to settings.isSetting
+                        } catch (FieldConvertError | ConfigError ex) {
+                            // ignore and use default
                         }
                     }
 
