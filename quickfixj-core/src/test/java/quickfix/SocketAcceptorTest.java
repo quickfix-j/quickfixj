@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import org.apache.mina.core.service.IoAcceptor;
+import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,7 +28,10 @@ import org.slf4j.LoggerFactory;
 import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.message.FIXProtocolCodecFactory;
+import quickfix.mina.ssl.SSLSupport;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -35,7 +40,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -188,6 +198,53 @@ public class SocketAcceptorTest {
                 assertEquals("After stop() the Session count should be zero in Connector", 0, acceptor.getSessions().size() );
             }
         }
+    }
+    
+    @Test
+    public void testAcceptorContinueInitializationOnError() throws ConfigError, InterruptedException, IOException {
+        final int port = AvailablePortFinder.getNextAvailable();
+        final int port2 = AvailablePortFinder.getNextAvailable();
+        final SessionSettings settings = new SessionSettings();
+        final SessionID sessionId = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        final SessionID sessionId2 = new SessionID("FIX.4.4", "FOO", "BAR");
+        final SessionID sessionId3 = new SessionID("FIX.4.4", "BAR", "BAZ");
+        settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
+        settings.setString("ConnectionType", "acceptor");
+        settings.setString("StartTime", "00:00:00");
+        settings.setString("EndTime", "00:00:00");
+        settings.setString("HeartBtInt", "30");
+        settings.setString("BeginString", "FIX.4.4");
+        settings.setLong(sessionId, "SocketAcceptPort", port);
+        settings.setLong(sessionId2, "SocketAcceptPort", port2);
+        settings.setLong(sessionId3, "SocketAcceptPort", port2);
+        settings.setString(sessionId, SSLSupport.SETTING_USE_SSL, "Y");
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_NAME, "test.keystore");
+        // supply a wrong password to make initialization fail
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_PWD, "wrong-password");
+        // supply a wrong protocol to make initialization fail
+        settings.setString(sessionId3, "SocketAcceptProtocol", "foobar");
+
+        final SocketAcceptor acceptor = new SocketAcceptor(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new ScreenLogFactory(settings), new DefaultMessageFactory());
+        acceptor.start();
+
+        for (IoAcceptor endpoint : acceptor.getEndpoints()) {
+            boolean containsFIXCodec = endpoint.getFilterChain().contains(FIXProtocolCodecFactory.FILTER_NAME);
+            if (endpoint.getLocalAddress() == null) { // failing session is not bound!
+                assertFalse(containsFIXCodec);
+            } else {
+                assertTrue(containsFIXCodec);
+            }
+        }
+
+        // sessionid1 is present since it fails after the setup phase
+        assertTrue(acceptor.getSessions().contains(sessionId));
+        // sessionid2 is set up normally
+        assertTrue(acceptor.getSessions().contains(sessionId2));
+        // sessionid3 could not be set up due to problems in the config itself
+        assertFalse(acceptor.getSessions().contains(sessionId3));
+
+        acceptor.stop();
     }
     
     private void checkThreads(ThreadMXBean bean, int expectedNum) {
