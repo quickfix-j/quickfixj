@@ -867,12 +867,11 @@ public class Session implements Closeable {
     }
 
     /**
-     * Logs out and disconnects session (if logged on) and then resets session state.
+     * Logs out session (if logged on) and then resets session state.
      *
-     * @throws IOException IO error
      * @see SessionState#reset()
      */
-    public void reset() throws IOException {
+    public void reset() {
         if (!isResetting.compareAndSet(false, true)) {
             return;
         }
@@ -881,10 +880,12 @@ public class Session implements Closeable {
                 if (application instanceof ApplicationExtended) {
                     ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
                 }
-                generateLogout();
-                disconnect("Session reset", false);
+                state.setResetStatePending(true);
+                generateLogout("Session reset");
+                getLog().onEvent("Initiated logout request");
+            } else {
+                resetState();
             }
-            resetState();
         } finally {
             isResetting.set(false);
         }
@@ -1239,12 +1240,8 @@ public class Session implements Closeable {
             return false;
         }
         if (resetOnError) {
-            try {
-                getLog().onErrorEvent("Auto reset");
-                reset();
-            } catch (final IOException e) {
-                LOG.error("Failed resetting: {}", e);
-            }
+            getLog().onErrorEvent("Auto reset");
+            reset();
             return true;
         }
         if (disconnectOnError) {
@@ -1407,6 +1404,7 @@ public class Session implements Closeable {
             return;
         }
 
+        final boolean logoutInitiatedLocally = state.isLogoutSent();
         state.setLogoutReceived(true);
 
         String msg;
@@ -1427,11 +1425,15 @@ public class Session implements Closeable {
         if (getExpectedTargetNum() == logout.getHeader().getInt(MsgSeqNum.FIELD)) {
             state.incrNextTargetMsgSeqNum();
         }
-        if (resetOnLogout) {
+        if (resetOnLogout || state.isResetStatePending()) {
             resetState();
         }
 
         disconnect(msg, false);
+
+        if (!state.isInitiator() && !logoutInitiatedLocally) {
+            setEnabled(true);
+        }
     }
 
     public void generateLogout() {
@@ -1908,8 +1910,10 @@ public class Session implements Closeable {
             if ((now - lastSessionTimeCheck) >= 1000L) {
                 lastSessionTimeCheck = now;
                 if (!isSessionTime()) {
-                    if (state.isResetNeeded()) {
-                        reset(); // only reset if seq nums are != 1
+                    if (state.isResetNeeded() && !state.isResetStatePending()) {
+                        reset(); // only reset if seq nums are != 1 and not isResetStatePending is set
+                    } else if (state.isLogoutTimedOut()) {
+                        disconnect("Timed out waiting for logout response", true);
                     }
                     return; // since we are outside of session time window
                 } else {
@@ -1947,12 +1951,12 @@ public class Session implements Closeable {
             return;
         }
 
-        if (state.getHeartBeatInterval() == 0) {
-            return;
-        }
-
         if (state.isLogoutTimedOut()) {
             disconnect("Timed out waiting for logout response", true);
+        }
+
+        if (state.getHeartBeatInterval() == 0) {
+            return;
         }
 
         if (state.isTimedOut()) {
@@ -2082,11 +2086,6 @@ public class Session implements Closeable {
                 stateListener.onLogout();
             }
         } finally {
-            // QFJ-457 now enabled again if acceptor
-            if (!state.isInitiator()) {
-                setEnabled(true);
-            }
-
             state.setLogonReceived(false);
             state.setLogonSent(false);
             state.setLogoutSent(false);
@@ -2097,7 +2096,7 @@ public class Session implements Closeable {
             state.clearLogoutReason();
             state.setResendRange(0, 0);
 
-            if (resetOnDisconnect) {
+            if (resetOnDisconnect || state.isResetStatePending()) {
                 resetState();
             }
         }
@@ -2106,6 +2105,9 @@ public class Session implements Closeable {
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
+        if (!enabled) {
+            throw new RejectLogon("Logon attempt when session is disabled");
+        }
         // QFJ-357
         // If this check is not done here, the Logon would be accepted and
         // immediately followed by a Logout (due to check in Session.next()).
@@ -2664,6 +2666,7 @@ public class Session implements Closeable {
             stateListener.onReset();
         } finally {
             isResettingState.set(false);
+            state.setResetStatePending(false);
         }
     }
 
@@ -2882,6 +2885,10 @@ public class Session implements Closeable {
 
     public void removeStateListener(SessionStateListener listener) {
         stateListeners.removeListener(listener);
+    }
+
+    public SessionStateListener getStateListener() {
+        return stateListener;
     }
 
     /**
