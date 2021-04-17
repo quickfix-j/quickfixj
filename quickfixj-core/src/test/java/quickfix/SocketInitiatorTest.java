@@ -239,8 +239,8 @@ public class SocketInitiatorTest {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
             settings.setString(clientSessionID, "ReconnectInterval", "1");
-            settings.setString(clientSessionID, "SocketConnectHost", "0.0.0.0");
-            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+            settings.setString(clientSessionID, "SocketConnectHost", "localhost");
+            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
 
             SessionStateListener sessionStateListener = new SessionStateListener() {
                 @Override
