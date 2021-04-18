@@ -18,10 +18,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
+
+      - name: Disable NTP on macOS (https://github.com/actions/virtual-environments/issues/820)
+        run: |
+          sudo systemsetup -setusingnetworktime off
+          sudo rm -rf /etc/ntp.conf
+        if: runner.os == 'macOS'
+
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms3g -Xmx3g"
