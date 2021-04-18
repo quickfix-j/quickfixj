@@ -49,6 +49,7 @@ import quickfix.mina.ssl.SSLFilter;
 import quickfix.mina.ssl.SSLSupport;
 
 import javax.net.ssl.SSLContext;
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
@@ -93,12 +94,13 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
     // TODO SYNC Does this method really need synchronization?
     protected synchronized void startAcceptingConnections() throws ConfigError {
 
-        SocketAddress address = null;
-        try {
-            createSessions(getSettings());
-            startSessionTimer();
+        boolean continueInitOnError = isContinueInitOnError();
+        createSessions(getSettings(), continueInitOnError);
+        startSessionTimer();
 
-            for (AcceptorSocketDescriptor socketDescriptor : socketDescriptorForAddress.values()) {
+        SocketAddress address = null;
+        for (AcceptorSocketDescriptor socketDescriptor : socketDescriptorForAddress.values()) {
+            try {
                 address = socketDescriptor.getAddress();
                 IoAcceptor ioAcceptor = getIoAcceptor(socketDescriptor);
                 CompositeIoFilterChainBuilder ioFilterChainBuilder = new CompositeIoFilterChainBuilder(getIoFilterChainBuilder());
@@ -114,12 +116,14 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 ioAcceptor.setCloseOnDeactivation(false);
                 ioAcceptor.bind(socketDescriptor.getAddress());
                 log.info("Listening for connections at {} for session(s) {}", address, socketDescriptor.getAcceptedSessions().keySet());
+            } catch (IOException | GeneralSecurityException | ConfigError e) {
+                if (continueInitOnError) {
+                    log.warn("error during session initialization for session(s) {}, continuing...", socketDescriptor.getAcceptedSessions().keySet(), e);
+                } else {
+                    log.error("Cannot start acceptor session for {}, error: {}", address, e);
+                    throw new RuntimeError(e);
+                }
             }
-        } catch (FieldConvertError e) {
-            throw new ConfigError(e);
-        } catch (Exception e) {
-            log.error("Cannot start acceptor session for {}, error: {}", address, e);
-            throw new RuntimeError(e);
         }
     }
 
@@ -213,35 +217,40 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         return object1 == null ? object2 == null : object1.equals(object2);
     }
 
-    private void createSessions(SessionSettings settings) throws ConfigError, FieldConvertError {
+    private void createSessions(SessionSettings settings, boolean continueInitOnError) throws ConfigError {
         Map<SessionID, Session> allSessions = new HashMap<>();
-        boolean continueInitOnError = isContinueInitOnError();
-
         for (Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
             SessionID sessionID = i.next();
-            String connectionType = settings.getString(sessionID,
-                    SessionFactory.SETTING_CONNECTION_TYPE);
+            try {
+                String connectionType = null;
+                if (settings.isSetting(sessionID, SessionFactory.SETTING_CONNECTION_TYPE)) {
+                    connectionType = settings.getString(sessionID,
+                            SessionFactory.SETTING_CONNECTION_TYPE);
+                }
 
-            boolean isTemplate = false;
-            if (settings.isSetting(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE)) {
-                isTemplate = settings.getBool(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE);
-            }
+                if (SessionFactory.ACCEPTOR_CONNECTION_TYPE.equals(connectionType)) {
+                    boolean isTemplate = false;
+                    if (settings.isSetting(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE)) {
+                        try {
+                            isTemplate = settings.getBool(sessionID, Acceptor.SETTING_ACCEPTOR_TEMPLATE);
+                        } catch (FieldConvertError | ConfigError ex) {
+                            // ignore and use default
+                        }
+                    }
 
-            if (connectionType.equals(SessionFactory.ACCEPTOR_CONNECTION_TYPE)) {
-                try {
-                    AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
                     if (!isTemplate) {
+                        AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
                         Session session = sessionFactory.create(sessionID, settings);
                         descriptor.acceptSession(session);
                         allSessions.put(sessionID, session);
                     }
-                } catch (Throwable t) {
-                    if (continueInitOnError) {
-                        log.error("error during session initialization for {}, continuing...", sessionID, t);
-                    } else {
-                        throw t instanceof ConfigError ? (ConfigError) t : new ConfigError(
-                                "error during session initialization", t);
-                    }
+                }
+            } catch (Throwable t) {
+                if (continueInitOnError) {
+                    log.warn("error during session initialization for {}, continuing...", sessionID, t);
+                } else {
+                    throw t instanceof ConfigError ? (ConfigError) t : new ConfigError(
+                            "error during session initialization", t);
                 }
             }
         }

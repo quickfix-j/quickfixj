@@ -54,6 +54,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import quickfix.field.MsgType;
+import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.util.ReflectionUtil;
 
 public class SocketInitiatorTest {
@@ -404,6 +405,36 @@ public class SocketInitiatorTest {
         assertEquals(1, onConnectCallCount.intValue());
         assertEquals(1, onDisconnectCallCount.intValue());
     }
+
+    
+    @Test
+    public void testInitiatorContinueInitializationOnError() throws ConfigError, InterruptedException, IOException {
+        final ServerSocket serverSocket = new ServerSocket(0);
+        final int port = serverSocket.getLocalPort();
+        final SessionSettings settings = new SessionSettings();
+        final SessionID sessionId = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
+        settings.setString(sessionId, "BeginString", "FIX.4.4");
+        settings.setString("ConnectionType", "initiator");
+        settings.setLong(sessionId, "SocketConnectPort", port);
+        settings.setString(sessionId, "SocketConnectHost", "localhost");
+        settings.setString("StartTime", "00:00:00");
+        settings.setString("EndTime", "00:00:00");
+        settings.setString("HeartBtInt", "30");
+        settings.setString("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        settings.setString(sessionId, SSLSupport.SETTING_USE_SSL, "Y");
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_NAME, "test.keystore");
+        // supply a wrong password to make initialization fail
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_PWD, "wrong-password");
+
+        final SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new ScreenLogFactory(settings), new DefaultMessageFactory());
+        initiator.start();
+
+        assertTrue(initiator.getInitiators().isEmpty());
+        initiator.stop();
+    }
+
 
     private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,
             final Initiator initiator, File messageLog, int port) throws InterruptedException, ConfigError {

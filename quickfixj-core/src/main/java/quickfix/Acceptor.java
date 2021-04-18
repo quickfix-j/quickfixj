@@ -16,7 +16,6 @@
  * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
  ******************************************************************************/
-
 package quickfix;
 
 /**
@@ -25,7 +24,8 @@ package quickfix;
 public interface Acceptor extends Connector {
 
     /**
-     * Acceptor setting specifying the socket protocol used to accept connections.
+     * Acceptor setting specifying the socket protocol used to accept
+     * connections.
      */
     String SETTING_SOCKET_ACCEPT_PROTOCOL = "SocketAcceptProtocol";
 
@@ -35,12 +35,13 @@ public interface Acceptor extends Connector {
     String SETTING_SOCKET_ACCEPT_PORT = "SocketAcceptPort";
 
     /**
-     * Acceptor setting specifying local IP interface address for accepting connections.
+     * Acceptor setting specifying local IP interface address for accepting
+     * connections.
      */
     String SETTING_SOCKET_ACCEPT_ADDRESS = "SocketAcceptAddress";
 
     /**
-     * Acceptor setting specifying local IP interface address for accepting connections.
+     * Acceptor setting specifying a template acceptor session.
      */
     String SETTING_ACCEPTOR_TEMPLATE = "AcceptorTemplate";
 }
