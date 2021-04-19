@@ -29,12 +29,15 @@ public interface FixVersions {
     String BEGINSTRING_FIX43 = "FIX.4.3";
     String BEGINSTRING_FIX44 = "FIX.4.4";
 
-    /**
-     * FIX 5.0 does not have a begin string.
+    /*
+     * FIX 5.0+ does not have a begin string.
      */
     String FIX50 = "FIX.5.0";
     String FIX50SP1 = "FIX.5.0SP1";
     String FIX50SP2 = "FIX.5.0SP2";
+    
+    String LATEST = "Latest";
+    String FIXLATEST = "FIX." + LATEST;
 
     // FIXT.x.x support
 
