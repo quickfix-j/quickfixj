@@ -19,25 +19,30 @@
 
 package quickfix.test.acceptance.timer;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import quickfix.ConfigError;
 import quickfix.SessionNotFound;
 
-public class TimerTest extends TestCase {
+public class TimerTest {
 
     TimerTestServer server;
 
+    @Test
     public void testAcceptorTimer() throws ConfigError, SessionNotFound, InterruptedException {
         new TimerTestClient().run();
     }
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         server = new TimerTestServer();
         server.start();
         server.waitForInitialization();
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         server.stop();
     }
 }

@@ -43,14 +43,12 @@ import quickfix.SocketInitiator;
 import quickfix.UnsupportedMessageType;
 import quickfix.fix44.ListStatusRequest;
 import quickfix.fix44.TestRequest;
-import quickfix.fix44.Logon;
 
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 import quickfix.ScreenLogFactory;
-import quickfix.test.util.ReflectionUtil;
 
 /**
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
@@ -61,29 +59,26 @@ public class TimerTestClient extends MessageCracker implements Application {
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean failed;
 
+    @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-        if (message instanceof Logon) {
-            Timer timer2 = new Timer();
-            timer2.schedule(new TimerTask() {
-                public void run() {
-                    ReflectionUtil.dumpStackTraces();
-                }
-            }, 2500);
-        }
     }
 
+    @Override
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         crack(message, sessionID);
     }
 
+    @Override
     public void onCreate(SessionID sessionId) {
     }
 
+    @Override
     public void onLogon(SessionID sessionId) {
     }
 
+    @Override
     public void onLogout(SessionID sessionId) {
     }
 
@@ -123,6 +118,7 @@ public class TimerTestClient extends MessageCracker implements Application {
         try {
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
+                @Override
                 public void run() {
                     stop(false);
                 }
@@ -143,18 +139,14 @@ public class TimerTestClient extends MessageCracker implements Application {
         }
     }
 
+    @Override
     public void toAdmin(Message message, SessionID sessionId) {
         if (message instanceof TestRequest) {
             stop(true);
         }
     }
 
+    @Override
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
-    }
-
-    public static void main(String[] args) throws ConfigError, SessionNotFound,
-            InterruptedException {
-        TimerTestClient ttc = new TimerTestClient();
-        ttc.run();
     }
 }

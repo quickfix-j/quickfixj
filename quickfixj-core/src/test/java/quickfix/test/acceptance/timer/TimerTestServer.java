@@ -61,23 +61,25 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
     private class DelayedTestRequest extends TimerTask {
-        final SessionID session;
+        final SessionID sessionID;
 
         DelayedTestRequest(SessionID sessionID) {
-            this.session = sessionID;
+            this.sessionID = sessionID;
         }
 
+        @Override
         public void run() {
             try {
                 log.info("Sending offset message");
                 ListStatusRequest lsr = new ListStatusRequest(new ListID("somelist"));
-                Session.sendToTarget(lsr, this.session);
+                Session.sendToTarget(lsr, this.sessionID);
             } catch (SessionNotFound sessionNotFound) {
                 // not going to happen
             }
         }
     }
 
+    @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         // sleep to move our timer off from the client's
@@ -86,16 +88,20 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         }
     }
 
+    @Override
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
     }
 
+    @Override
     public void onCreate(SessionID sessionId) {
     }
 
+    @Override
     public void onLogon(SessionID sessionId) {
     }
 
+    @Override
     public void onLogout(SessionID sessionId) {
         log.info("logout");
         shutdownLatch.countDown();
@@ -111,6 +117,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         shutdownLatch.countDown();
     }
 
+    @Override
     public void run() {
         try {
             HashMap<Object, Object> defaults = new HashMap<>();
@@ -127,7 +134,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
 
             SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
             settings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
-                        settings.setString(sessionID, "DataDictionary", FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "") + ".xml");
+            settings.setString(sessionID, "DataDictionary", FixVersions.BEGINSTRING_FIX44.replaceAll("\\.", "") + ".xml");
 
             MessageStoreFactory factory = new MemoryStoreFactory();
             acceptor = new SocketAcceptor(this, factory, settings, new ScreenLogFactory(true, true, true, true),
@@ -152,18 +159,15 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         }
     }
 
+    @Override
     public void toAdmin(Message message, SessionID sessionId) {
     }
 
+    @Override
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
     }
 
     public void waitForInitialization() throws InterruptedException {
         initializationLatch.await();
-    }
-
-    public static void main(String[] args) {
-        TimerTestServer server = new TimerTestServer();
-        server.run();
     }
 }
