@@ -164,8 +164,8 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         return ioAcceptor;
     }
 
-    private AcceptorSocketDescriptor getAcceptorSocketDescriptor(SessionSettings settings,
-            SessionID sessionID) throws ConfigError, FieldConvertError {
+    private void setupSession(SessionSettings settings, SessionID sessionID, boolean isTemplate, Map<SessionID, Session> allSessions)
+            throws ConfigError, FieldConvertError {
         int acceptTransportType = ProtocolFactory.SOCKET;
         if (settings.isSetting(sessionID, Acceptor.SETTING_SOCKET_ACCEPT_PROTOCOL)) {
             try {
@@ -210,7 +210,11 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
             socketDescriptorForAddress.put(acceptorAddress, descriptor);
         }
 
-        return descriptor;
+        if (!isTemplate) {
+            Session session = sessionFactory.create(sessionID, settings);
+            descriptor.acceptSession(session);
+            allSessions.put(sessionID, session);
+        }
     }
 
     private boolean equals(Object object1, Object object2) {
@@ -238,12 +242,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                         }
                     }
 
-                    if (!isTemplate) {
-                        AcceptorSocketDescriptor descriptor = getAcceptorSocketDescriptor(settings, sessionID);
-                        Session session = sessionFactory.create(sessionID, settings);
-                        descriptor.acceptSession(session);
-                        allSessions.put(sessionID, session);
-                    }
+                    setupSession(settings, sessionID, isTemplate, allSessions);
                 }
             } catch (Throwable t) {
                 if (continueInitOnError) {
