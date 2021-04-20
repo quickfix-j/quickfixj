@@ -44,16 +44,19 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import quickfix.mina.SessionConnector;
 
 public class TestConnection {
-    private static final HashMap<String, IoConnector> connectors = new HashMap<>();
+    private static final Map<String, IoConnector> connectors = new HashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<>();
+    private final ConcurrentMap<Integer, TestIoHandler> ioHandlers = new ConcurrentHashMap<>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -61,15 +64,16 @@ public class TestConnection {
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        synchronized (ioHandlers) {
-            return ioHandlers.get(clientId);
-        }
+        return ioHandlers.get(clientId);
     }
 
     public void tearDown() {
         for (TestIoHandler testIoHandler : ioHandlers.values()) {
-            CloseFuture closeFuture = testIoHandler.getSession().closeNow();
-            closeFuture.awaitUninterruptibly();
+            IoSession session = testIoHandler.getSession();
+            if (session != null) {
+                CloseFuture closeFuture = session.closeNow();
+                closeFuture.awaitUninterruptibly();
+            }
         }
         ioHandlers.clear();
     }
@@ -102,13 +106,11 @@ public class TestConnection {
         connectors.put(Integer.toString(clientId), connector);
 
         TestIoHandler testIoHandler = new TestIoHandler();
-        synchronized (ioHandlers) {
-            ioHandlers.put(clientId, testIoHandler);
-            connector.setHandler(testIoHandler);
-            ConnectFuture future = connector.connect(address);
-            future.awaitUninterruptibly(5000L);
-            Assert.assertTrue("connection to server failed", future.isConnected());
-        }
+        ioHandlers.put(clientId, testIoHandler);
+        connector.setHandler(testIoHandler);
+        ConnectFuture future = connector.connect(address);
+        future.awaitUninterruptibly(5000L);
+        Assert.assertTrue("connection to server failed", future.isConnected());
     }
 
     private class TestIoHandler extends IoHandlerAdapter {

@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import quickfix.Session;
 
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
@@ -107,6 +108,7 @@ public class ATServer implements Runnable {
             defaults.put("SocketTcpNoDelay", "Y");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
+            defaults.put(Session.SETTING_NON_STOP_SESSION, "Y");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
             defaults.put("JdbcDriver", "com.mysql.jdbc.Driver");
@@ -162,10 +164,7 @@ public class ATServer implements Runnable {
             MessageStoreFactory factory = usingMemoryStore
                     ? new MemoryStoreFactory()
                     : new FileStoreFactory(settings);
-            //MessageStoreFactory factory = new JdbcStoreFactory(settings);
-            //LogFactory logFactory = new CommonsLogFactory(settings);
             quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
-            //quickfix.LogFactory logFactory = new JdbcLogFactory(settings);
             if (threaded) {
                 acceptor = new ThreadedSocketAcceptor(application, factory, settings, logFactory,
                         new DefaultMessageFactory());
