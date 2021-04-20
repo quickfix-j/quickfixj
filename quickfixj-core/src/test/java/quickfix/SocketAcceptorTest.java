@@ -247,6 +247,35 @@ public class SocketAcceptorTest {
         acceptor.stop();
     }
     
+    /**
+     * Ensure that an Acceptor can be started that only has a template session.
+     */
+    @Test
+    public void testAcceptorTemplate() throws ConfigError, InterruptedException, IOException {
+        final int port = AvailablePortFinder.getNextAvailable();
+        final SessionSettings settings = new SessionSettings();
+        final SessionID sessionId = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        settings.setString("ConnectionType", "acceptor");
+        settings.setString("StartTime", "00:00:00");
+        settings.setString("EndTime", "00:00:00");
+        settings.setString("HeartBtInt", "30");
+        settings.setString("BeginString", "FIX.4.4");
+        settings.setLong(sessionId, "SocketAcceptPort", port);
+        settings.setString(sessionId, Acceptor.SETTING_ACCEPTOR_TEMPLATE, "Y");
+
+        final SocketAcceptor acceptor = new SocketAcceptor(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new ScreenLogFactory(settings), new DefaultMessageFactory());
+        acceptor.start();
+
+        for (IoAcceptor endpoint : acceptor.getEndpoints()) {
+            boolean containsFIXCodec = endpoint.getFilterChain().contains(FIXProtocolCodecFactory.FILTER_NAME);
+            assertTrue(containsFIXCodec);
+        }
+
+        acceptor.stop();
+    }
+
+
     private void checkThreads(ThreadMXBean bean, int expectedNum) {
         ThreadInfo[] dumpAllThreads = bean.dumpAllThreads(false, false);
         int qfjMPThreads = 0;
