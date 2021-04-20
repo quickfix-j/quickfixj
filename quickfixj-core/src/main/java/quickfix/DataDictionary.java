@@ -95,6 +95,11 @@ public class DataDictionary {
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
     private String beginString;
+    private String fullVersion;
+    private String majorVersion;
+    private int minorVersion;
+    private int extensionPack;
+    private int servicePack;
     private final Map<String, Set<Integer>> messageFields = new HashMap<>();
     private final Map<String, Set<Integer>> requiredFields = new HashMap<>();
     private final Set<String> messages = new HashSet<>();
@@ -171,12 +176,55 @@ public class DataDictionary {
     }
 
     /**
-     * Get the FIX version associated with this dictionary.
-     *
+     * Get the FIX major/minor version associated with this dictionary.
+     * E.g. FIX.5.0
      * @return the FIX version
      */
     public String getVersion() {
         return beginString;
+    }
+
+    private void setFullVersion(String fullVersion) {
+        this.fullVersion = fullVersion;
+    }
+
+    /**
+     * Get the FIX major/minor/SP/EP version associated with this dictionary.
+     * E.g. FIX.5.0.SP2_EP260
+     * @return the full FIX version
+     */
+    public String getFullVersion() {
+        return fullVersion;
+    }
+
+    /**
+     * @return the ExtensionPack (EP), 0 if it is undefined.
+     */
+    public int getExtensionPack() {
+        return extensionPack;
+    }
+
+    /**
+     * @return the ServicePack (SP), 0 if it is undefined.
+     */
+    public int getServicePack() {
+        return servicePack;
+    }
+
+    /**
+     * @return the minor FIX version, 0 if it is undefined.
+     */
+    public int getMinorVersion() {
+        return minorVersion;
+    }
+    
+    /**
+     * NOTE: this is of type String to cover the "Latest" case.
+     * 
+     * @return the major FIX version
+     */
+    public String getMajorVersion() {
+        return majorVersion;
     }
 
     private void addField(int field) {
@@ -568,6 +616,11 @@ public class DataDictionary {
     private void copyFrom(DataDictionary rhs) {
         hasVersion = rhs.hasVersion;
         beginString = rhs.beginString;
+        fullVersion = rhs.fullVersion;
+        majorVersion = rhs.majorVersion;
+        minorVersion = rhs.minorVersion;
+        extensionPack = rhs.extensionPack;
+        servicePack = rhs.servicePack;
 
         copyMap(messageFields, rhs.messageFields);
         copyMap(requiredFields, rhs.requiredFields);
@@ -939,16 +992,35 @@ public class DataDictionary {
             throw new ConfigError("major attribute not found on <fix>");
         }
 
-        if (!documentElement.hasAttribute("minor")) {
-            throw new ConfigError("minor attribute not found on <fix>");
-        }
+        majorVersion = documentElement.getAttribute("major");
+        minorVersion = getIntegerAttributeIfDefined(documentElement, "minor");
+        servicePack = getIntegerAttributeIfDefined(documentElement, "servicepack");
+        extensionPack = getIntegerAttributeIfDefined(documentElement, "extensionpack");
 
         final String dictionaryType = documentElement.hasAttribute("type") ? documentElement
                 .getAttribute("type") : FIX_PREFIX;
 
-        setVersion(dictionaryType + "." + documentElement.getAttribute("major") + "."
-                + documentElement.getAttribute("minor"));
-
+        if (FixVersions.LATEST.equals(majorVersion)) {
+            String version = dictionaryType + "." + majorVersion;
+            setVersion(version);
+            String fullVersion = version;
+            if (extensionPack > 0) {
+                fullVersion = fullVersion + "_EP" + extensionPack;
+            }
+            setFullVersion(fullVersion);
+        } else {
+            String version = dictionaryType + "." + majorVersion + "." + minorVersion;
+            setVersion(version);
+            String fullVersion = version;
+            if (servicePack > 0) {
+                fullVersion = fullVersion + "SP" + servicePack;
+            }
+            if (extensionPack > 0) {
+                fullVersion = fullVersion + "_EP" + extensionPack;
+            }
+            setFullVersion(fullVersion);
+        }
+        
         // Index Components
         final NodeList componentsNode = documentElement.getElementsByTagName("components");
         if (componentsNode.getLength() > 0) {
@@ -1080,6 +1152,15 @@ public class DataDictionary {
         }
 
         calculateOrderedFields();
+    }
+
+    private int getIntegerAttributeIfDefined(final Element documentElement, final String attribute) throws ConfigError {
+        try {
+            return documentElement.hasAttribute(attribute)
+                    ? Integer.valueOf(documentElement.getAttribute(attribute)) : 0;
+        } catch (NumberFormatException e) {
+            throw new ConfigError("Attribute " + attribute + " could not be parsed as Integer.", e);
+        }
     }
 
     public int getNumMessageCategories() {
