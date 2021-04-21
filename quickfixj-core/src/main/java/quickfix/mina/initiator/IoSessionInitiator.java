@@ -274,9 +274,9 @@ public class IoSessionInitiator {
             // Recreate socket address to avoid cached address resolution
             if (socketAddress instanceof InetSocketAddress) {
                 InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
-	            socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr.getPort());
-	            socketAddresses[nextSocketAddressIndex] = socketAddress;
-	        }
+                socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr.getPort());
+                socketAddresses[nextSocketAddressIndex] = socketAddress;
+            }
             nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
             return socketAddress;
         }
