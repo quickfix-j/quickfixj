@@ -306,7 +306,7 @@ public class Message extends FieldMap {
 
     /**
      * Converts the message into a simple XML format. This format is
-     * probably not sufficient for production use, but it more intended
+     * probably not sufficient for production use, but is more intended
      * for diagnostics and debugging. THIS IS NOT FIXML.
      *
      * To get names instead of tag number, use toXML(DataDictionary)
@@ -321,7 +321,7 @@ public class Message extends FieldMap {
 
     /**
      * Converts the message into a simple XML format. This format is
-     * probably not sufficient for production use, but it more intended
+     * probably not sufficient for production use, but is more intended
      * for diagnostics and debugging. THIS IS NOT FIXML.
      *
      * @param dataDictionary
