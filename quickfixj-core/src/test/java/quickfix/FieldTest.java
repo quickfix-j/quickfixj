@@ -251,6 +251,25 @@ public class FieldTest {
     }
 
     @Test
+    public void testBytesFieldFullRange() {
+        byte[] data = new byte[256];
+
+        for (int i = 0; i < 256; i++) {
+            data[i] = (byte) i;
+        }
+
+        BytesField field = new BytesField(RawData.FIELD);
+        field.setValue(data);
+
+        byte[] tagPrefixedData = field.toString().getBytes(CharsetSupport.getCharsetInstance());
+        assertEquals(256 + 3, tagPrefixedData.length);
+
+        for (int i = 0; i < data.length; ++i) {
+            assertEquals(data[i], tagPrefixedData[i + 3]);
+        }
+    }
+
+    @Test
     public void testFieldhashCode() throws Exception {
         assertEqualsAndHash(new IntField(11, 100), new IntField(11, 100));
         assertEqualsAndHash(new DoubleField(11, 100.0), new DoubleField(11, 100.0));
