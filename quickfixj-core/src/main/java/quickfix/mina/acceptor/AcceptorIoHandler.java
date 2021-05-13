@@ -20,8 +20,6 @@
 package quickfix.mina.acceptor;
 
 import org.apache.mina.core.session.IoSession;
-import quickfix.ConfigError;
-import quickfix.FieldConvertError;
 import quickfix.Log;
 import quickfix.Message;
 import quickfix.MessageUtils;
@@ -51,7 +49,7 @@ class AcceptorIoHandler extends AbstractIoHandler {
     public AcceptorIoHandler(AcceptorSessionProvider sessionProvider,
                              SessionSettings sessionSettings,
                              NetworkingOptions networkingOptions,
-                             EventHandlingStrategy eventHandlingStrategy) throws FieldConvertError, ConfigError {
+                             EventHandlingStrategy eventHandlingStrategy) {
         super(sessionSettings, networkingOptions, eventHandlingStrategy);
         this.sessionProvider = sessionProvider;
         this.eventHandlingStrategy = eventHandlingStrategy;

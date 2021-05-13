@@ -49,13 +49,17 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     private final SessionSettings sessionSettings;
     private boolean logMessageWhenSessionNotFound;
 
-    public AbstractIoHandler(SessionSettings settings, NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) throws FieldConvertError, ConfigError {
+    public AbstractIoHandler(SessionSettings settings, NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
         sessionSettings = settings;
         networkingOptions = options;
         this.eventHandlingStrategy = eventHandlingStrategy;
         logMessageWhenSessionNotFound = true;
-        if (sessionSettings.isSetting(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND)) {
-            logMessageWhenSessionNotFound = sessionSettings.getBool(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND);
+        try {
+            if (sessionSettings.isSetting(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND)) {
+                logMessageWhenSessionNotFound = sessionSettings.getBool(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND);
+            }
+        } catch (ConfigError | FieldConvertError e) {
+            // ignore
         }
     }
 
