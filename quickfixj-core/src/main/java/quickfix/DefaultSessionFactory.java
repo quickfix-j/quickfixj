@@ -159,7 +159,7 @@ public class DefaultSessionFactory implements SessionFactory {
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
                 heartbeatInterval = (int) settings.getLong(sessionID, Session.SETTING_HEARTBTINT);
                 if (heartbeatInterval <= 0) {
-                    throw new ConfigError("Heartbeat must be greater than zero");
+                    throw new ConfigError("Heartbeat interval must be greater than zero");
                 }
             }
 
