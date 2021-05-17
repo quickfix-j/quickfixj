@@ -373,6 +373,11 @@ public class Session implements Closeable {
 
     public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
 
+    /**
+     * Option so that the session doesn't remove PossDupFlag (43) information when sending.
+     */
+    public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -423,6 +428,7 @@ public class Session implements Closeable {
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
+    private boolean allowPosDup;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -464,7 +470,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -482,7 +488,8 @@ public class Session implements Closeable {
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
-            boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier) {
+            boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
+            boolean allowPossDup) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -517,6 +524,7 @@ public class Session implements Closeable {
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
+        this.allowPosDup = allowPossDup;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2676,7 +2684,7 @@ public class Session implements Closeable {
      * information already is present).
      *
      * The returned status flag is included for
-     * compatibility with the JNI API but it's usefulness is questionable.
+     * compatibility with the JNI API but its usefulness is questionable.
      * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
      * only indicates the message was successfully queued for transmission. An error could still
      * occur before the message data is actually sent.
@@ -2685,7 +2693,7 @@ public class Session implements Closeable {
      * @return a status flag indicating whether the write to the network layer was successful.
      */
     public boolean send(Message message) {
-        return send(message, false);
+        return send(message, this.allowPosDup);
     }
 
     /**
@@ -2694,7 +2702,7 @@ public class Session implements Closeable {
      * information already is present).
      *
      * The returned status flag is included for
-     * compatibility with the JNI API but it's usefulness is questionable.
+     * compatibility with the JNI API but its usefulness is questionable.
      * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
      * only indicates the message was successfully queued for transmission. An error could still
      * occur before the message data is actually sent.
@@ -2704,10 +2712,14 @@ public class Session implements Closeable {
      * @return a status flag indicating whether the write to the network layer was successful.
      */
     public boolean send(Message message, boolean allowPosDup) {
-        if (!allowPosDup) {
-            message.getHeader().removeField(PossDupFlag.FIELD);
-            message.getHeader().removeField(OrigSendingTime.FIELD);
+        // Send message as is if allowPosDup flag is set
+        if (allowPosDup) {
+            return sendRaw(message, 0);
         }
+
+        // Else remove PossDupFlag and OrigSendingTime
+        message.getHeader().removeField(PossDupFlag.FIELD);
+        message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
     }
 
@@ -3017,6 +3029,10 @@ public class Session implements Closeable {
     public boolean isAllowedForSession(InetAddress remoteInetAddress) {
         return allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()
                 || allowedRemoteAddresses.contains(remoteInetAddress);
+    }
+
+    public void setAllowPosDup(boolean allowPosDup) {
+        this.allowPosDup = allowPosDup;
     }
 
     /**

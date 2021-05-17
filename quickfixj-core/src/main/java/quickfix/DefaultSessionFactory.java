@@ -213,6 +213,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean enableNextExpectedMsgSeqNum = getSetting(settings, sessionID, Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, false);
             final boolean enableLastMsgSeqNumProcessed = getSetting(settings, sessionID, Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, false);
             final int resendRequestChunkSize = getSetting(settings, sessionID, Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, Session.DEFAULT_RESEND_RANGE_CHUNK_SIZE);
+            final boolean allowPossDup = getSetting(settings, sessionID, Session.SETTING_ALLOW_POS_DUP_MESSAGES, false);
 
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
@@ -231,7 +232,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum, logonTags, heartBeatTimeoutMultiplier);
+                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
