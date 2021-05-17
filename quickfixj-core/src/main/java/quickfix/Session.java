@@ -2685,8 +2685,29 @@ public class Session implements Closeable {
      * @return a status flag indicating whether the write to the network layer was successful.
      */
     public boolean send(Message message) {
-        message.getHeader().removeField(PossDupFlag.FIELD);
-        message.getHeader().removeField(OrigSendingTime.FIELD);
+        return send(message, false);
+    }
+
+    /**
+     * Send a message to a counterparty. Sequence numbers and information about the sender
+     * and target identification will be added automatically (or overwritten if that
+     * information already is present).
+     *
+     * The returned status flag is included for
+     * compatibility with the JNI API but it's usefulness is questionable.
+     * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
+     * only indicates the message was successfully queued for transmission. An error could still
+     * occur before the message data is actually sent.
+     *
+     * @param message       the message to send
+     * @param allowPosDup   whether to allow PossDupFlag and OrigSendingTime in the message
+     * @return a status flag indicating whether the write to the network layer was successful.
+     */
+    public boolean send(Message message, boolean allowPosDup) {
+        if (!allowPosDup) {
+            message.getHeader().removeField(PossDupFlag.FIELD);
+            message.getHeader().removeField(OrigSendingTime.FIELD);
+        }
         return sendRaw(message, 0);
     }
 
