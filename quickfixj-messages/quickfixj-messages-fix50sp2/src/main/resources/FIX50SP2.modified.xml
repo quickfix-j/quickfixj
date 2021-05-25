@@ -228,6 +228,7 @@
       <field name="TimeToExpiration" required="N"/>
       <field name="RiskFreeRate" required="N"/>
       <field name="PriceDelta" required="N"/>
+      <field name="CxlQty" required="N"/>
     </message>
     <message name="OrderCancelReject" msgtype="9" msgcat="app">
       <field name="OrderID" required="Y"/>
@@ -3053,6 +3054,36 @@
       <field name="TradingSessionSubID" required="N"/>
       <field name="SubscriptionRequestType" required="N"/>
     </message>
+    <message name="SecurityMassStatusRequest" msgtype="CN" msgcat="app">
+      <field name ="SecurityStatusReqID" required="Y"/>
+      <component name="InstrumentScope" required="N"/>
+      <field name ="SubscriptionRequestType" required="Y"/>
+      <field name ="SecurityListID" required="N"/>
+      <field name ="MarketID" required="N"/>
+      <field name ="MarketSegmentID" required="N"/>
+      <field name ="TradingSessionID" required="N"/>
+      <field name ="TradingSessionSubID" required="N"/>
+    </message>
+    <message name="SecurityMassStatus" msgtype="CO" msgcat="app">
+      <field name ="SecurityStatusReqID" required="Y"/>
+      <field name ="SecurityListID" required="N"/>
+      <field name ="MarketID" required="N"/>
+      <field name ="MarketSegmentID" required="N"/>
+      <field name ="TradingSessionID" required="N"/>
+      <field name ="TradingSessionSubID" required="N"/>
+      <component name="InstrumentScope" required="N"/>
+      <field name ="UnsolicitedIndicator" required="N"/>
+      <field name ="SecurityMassTradingStatus" required="N"/>
+      <field name ="SecurityMassTradingEvent" required="N"/>
+      <field name ="MassHaltReason" required="N"/>
+      <field name ="MDBookType" required="N"/>
+      <field name ="MarketDepth" required="N"/>
+      <field name ="TransactTime" required="N"/>
+      <field name ="Adjustment" required="N"/>
+      <component name="SecMassStatGrp" required="N"/>
+      <field name ="TradeDate" required="N"/>
+      <field name ="FastMarketIndicator" required="N"/>
+    </message>
   </messages>
   <components>
     <component name="MDFullGrp">
@@ -3822,6 +3853,54 @@
       <field name="DeliveryForm" required="N"/>
       <field name="PctAtRisk" required="N"/>
       <component name="AttrbGrp" required="N"/>
+    </component>
+    <component name="InstrumentScope">
+      <field name="InstrumentScopeSymbol" required="N"/>
+      <field name="InstrumentScopeSymbolSfx" required="N"/>
+      <field name="InstrumentScopeSecurityID" required="N"/>
+      <field name="InstrumentScopeSecurityIDSource" required="N"/>
+      <component name="InstrumentScopeSecurityAltIDGrp" required="N"/>
+      <field name="InstrumentScopeProduct" required="N"/>
+      <field name="InstrumentScopeProductComplex" required="N"/>
+      <field name="InstrumentScopeSecurityGroup" required="N"/>
+      <field name="InstrumentScopeCFICode" required="N"/>
+      <field name="InstrumentScopeSecurityType" required="N"/>
+      <field name="InstrumentScopeSecuritySubType" required="N"/>
+      <field name="InstrumentScopeMaturityMonthYear" required="N"/>
+      <field name="InstrumentScopeMaturityTime" required="N"/>
+      <field name="InstrumentScopeRestructuringType" required="N"/>
+      <field name="InstrumentScopeSeniority" required="N"/>
+      <field name="InstrumentScopePutOrCall" required="N"/>
+      <field name="InstrumentScopeFlexibleIndicator" required="N"/>
+      <field name="InstrumentScopeCouponRate" required="N"/>
+      <field name="InstrumentScopeSecurityExchange" required="N"/>
+      <field name="InstrumentScopeSecurityDesc" required="N"/>
+      <field name="InstrumentScopeEncodedSecurityDescLen" required="N"/>
+      <field name="InstrumentScopeEncodedSecurityDesc" required="N"/>
+      <field name="InstrumentScopeSettlType" required="N"/>
+    </component>
+    <component name="InstrumentScopeSecurityAltIDGrp">
+      <group name="NoInstrumentScopeSecurityAltIDs" required="N">
+        <field name="InstrumentScopeSecurityAltID" required="N"/>
+        <field name="InstrumentScopeSecurityAltIDSource" required="N"/>
+      </group>
+    </component>
+    <component name="SecMassStatGrp">
+      <group name="NoRelatedSym" required="N">
+        <component name="Instrument" required="N"/>
+        <component name="InstrumentExtension" required="N"/>
+        <component name="UndInstrmtGrp" required="N"/>
+        <component name="InstrmtLegGrp" required="N"/>
+        <field name="SecurityTradingStatus" required="N"/>
+        <field name="SecurityTradingEvent" required="N"/>
+        <field name="HaltReason" required="N"/>
+        <field name="FinancialStatus" required="N"/>
+        <field name="CorporateAction" required="N"/>
+        <field name="Text" required="N"/>
+        <field name="EncodedTextLen" required="N"/>
+        <field name="EncodedText" required="N"/>
+        <component name="FinancingDetails" required="N"/>
+      </group>
     </component>
     <component name="TradeReportOrderDetail">
       <field name="OrderID" required="N"/>
@@ -5502,6 +5581,16 @@
       <value enum="K" description="ISDA_FPML_PRODUCT_URL"/>
       <value enum="L" description="LETTER_OF_CREDIT"/>
       <value enum="M" description="MARKETPLACE_ASSIGNED_IDENTIFIER"/>
+      <value enum="N" description="MARKIT_RED_ENTITY_CLIP"/>
+      <value enum="P" description="MARKIT_RED_PAIR_CLIP"/>
+      <value enum="Q" description="CFTC_COMMODITY_CODE"/>
+      <value enum="R" description="ISDA_COMMODITY_REFERENCE_PRICE"/>
+      <value enum="S" description="FINANCIAL_INSTRUMENT_GLOBAL_IDENTIFIER"/>
+      <value enum="T" description="LEGAL_ENTITY_IDENTIFIER"/>
+      <value enum="U" description="SYNTHETIC"/>
+      <value enum="V" description="FIDESSA_INSTRUMENT_MNEMONIC"/>
+      <value enum="W" description="INDEX_NAME"/>
+      <value enum="X" description="UNIFORM_SYMOBOL"/>
     </field>
     <field number="23" name="IOIID" type="STRING"/>
     <field number="25" name="IOIQltyInd" type="CHAR">
@@ -9933,10 +10022,42 @@
       <value enum="1" description="ASSIGNMENT_REJECTED"/>
     </field>
     <field number="1504" name="RelSymTransactTime" type="UTCTIMESTAMP"/>
+    <field number="1536" name="InstrumentScopeSymbol" type="STRING"/>
+    <field number="1537" name="InstrumentScopeSymbolSfx" type="STRING"/>
+    <field number="1538" name="InstrumentScopeSecurityID" type="STRING"/>
+    <field number="1539" name="InstrumentScopeSecurityIDSource" type="STRING"/>
+    <field number="1540" name="NoInstrumentScopeSecurityAltIDs" type="NUMINGROUP"/>
+    <field number="1541" name="InstrumentScopeSecurityAltID" type="STRING"/>
+    <field number="1542" name="InstrumentScopeSecurityAltIDSource" type="STRING"/>
+    <field number="1543" name="InstrumentScopeProduct" type="INT"/>
+    <field number="1544" name="InstrumentScopeProductComplex" type="STRING"/>
+    <field number="1545" name="InstrumentScopeSecurityGroup" type="STRING"/>
+    <field number="1546" name="InstrumentScopeCFICode" type="STRING"/>
+    <field number="1547" name="InstrumentScopeSecurityType" type="STRING"/>
+    <field number="1548" name="InstrumentScopeSecuritySubType" type="STRING"/>
+    <field number="1549" name="InstrumentScopeMaturityMonthYear" type="MONTHYEAR"/>
+    <field number="1550" name="InstrumentScopeMaturityTime" type="TZTIMEONLY"/>
+    <field number="1551" name="InstrumentScopeRestructuringType" type="STRING"/>
+    <field number="1552" name="InstrumentScopeSeniority" type="STRING"/>
+    <field number="1553" name="InstrumentScopePutOrCall" type="INT"/>
+    <field number="1554" name="InstrumentScopeFlexibleIndicator" type="BOOLEAN"/>
+    <field number="1555" name="InstrumentScopeCouponRate" type="PERCENTAGE"/>
+    <field number="1556" name="InstrumentScopeSecurityDesc" type="STRING"/>
+    <field number="1557" name="InstrumentScopeSettlType" type="STRING"/>
+    <field number="1616" name="InstrumentScopeSecurityExchange" type="EXCHANGE"/>
     <field number="1617" name="StreamAsgnType" type="INT">
       <value enum="1" description="ASSIGNMENT"/>
       <value enum="2" description="REJECTED"/>
       <value enum="3" description="TERMINATE_UNASSIGN"/>
+    </field>
+    <field number="1620" name="InstrumentScopeEncodedSecurityDescLen" type="LENGTH"/>
+    <field number="1621" name="InstrumentScopeEncodedSecurityDesc" type="DATA"/>
+    <field number="1679" name="SecurityMassTradingStatus" type="INT"/>
+    <field number="1680" name="SecurityMassTradingEvent" type="INT"/>
+    <field number="1681" name="MassHaltReason" type="INT"/>
+    <field number="2447" name="FastMarketIndicator" type="BOOLEAN">
+      <value enum="N" description="NOT_FAST_MARKET"/>
+      <value enum="Y" description="FAST_MARKET"/>
     </field>
   </fields>
 </fix>
