@@ -374,7 +374,7 @@ public class Session implements Closeable {
     public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
 
     /**
-     * Option so that the session doesn't remove PossDupFlag (43) information when sending.
+     * Option so that the session does not remove PossDupFlag (43) and OrigSendingTime (122) information when sending.
      */
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
@@ -428,7 +428,7 @@ public class Session implements Closeable {
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
-    private boolean allowPosDup;
+    private boolean allowPosDup = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -2717,7 +2717,6 @@ public class Session implements Closeable {
             return sendRaw(message, 0);
         }
 
-        // Else remove PossDupFlag and OrigSendingTime
         message.getHeader().removeField(PossDupFlag.FIELD);
         message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
