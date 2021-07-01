@@ -54,6 +54,7 @@ public final class SessionState {
     private boolean logoutReceived = false;
     private int testRequestCounter;
     private long lastSentTime;
+    private long lastSentTimeNanos;
     private long lastReceivedTime;
     private final double testRequestDelayMultiplier;
     private final double heartBeatTimeoutMultiplier;
@@ -115,10 +116,11 @@ public final class SessionState {
     SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
     SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
     public boolean isHeartBeatNeeded(SessionID sessionID) {
-        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
+        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - getLastSentTimeNanos());
+//        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
         boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
-        if ( sessionID.equals(sessionID1) || sessionID.equals(sessionID2)) {
+        if (sessionID.equals(sessionID1) || sessionID.equals(sessionID2)) {
             System.out.println("XXX " + sessionID + " isHeartBeatNeeded() = " + name);
         }
         return name;
@@ -146,9 +148,16 @@ public final class SessionState {
         }
     }
 
+    public long getLastSentTimeNanos() {
+        synchronized (lock) {
+            return lastSentTimeNanos;
+        }
+    }
+
     public void setLastSentTime(long lastSentTime) {
         synchronized (lock) {
             this.lastSentTime = lastSentTime;
+            this.lastSentTimeNanos = System.nanoTime();
         }
     }
 
