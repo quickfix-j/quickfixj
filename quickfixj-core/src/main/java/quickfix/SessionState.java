@@ -56,6 +56,7 @@ public final class SessionState {
     private long lastSentTime;
     private long lastSentTimeNanos;
     private long lastReceivedTime;
+    private long lastReceivedTimeNanos;
     private final double testRequestDelayMultiplier;
     private final double heartBeatTimeoutMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
@@ -136,9 +137,16 @@ public final class SessionState {
         }
     }
 
+    public long getLastReceivedTimeNanos() {
+        synchronized (lock) {
+            return lastReceivedTimeNanos;
+        }
+    }
+
     public void setLastReceivedTime(long lastReceivedTime) {
         synchronized (lock) {
             this.lastReceivedTime = lastReceivedTime;
+            this.lastReceivedTimeNanos = System.nanoTime();
         }
     }
 
@@ -304,7 +312,8 @@ public final class SessionState {
     }
 
     private long timeSinceLastReceivedMessage() {
-        return SystemTime.currentTimeMillis() - getLastReceivedTime();
+        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - getLastReceivedTimeNanos());
+//        return SystemTime.currentTimeMillis() - getLastReceivedTime();
     }
 
     public boolean isTimedOut() {
