@@ -45,9 +45,10 @@ import quickfix.fix44.ListStatusRequest;
 import quickfix.fix44.TestRequest;
 
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import quickfix.ScreenLogFactory;
 
 /**
@@ -58,6 +59,7 @@ public class TimerTestClient extends MessageCracker implements Application {
     private final SessionSettings settings = new SessionSettings();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean failed;
+    private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
@@ -116,13 +118,17 @@ public class TimerTestClient extends MessageCracker implements Application {
         initiator.start();
 
         try {
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    stop(false);
-                }
-            }, 5000);
+            scheduledExecutor.schedule(() -> {
+                stop(false);
+            }, 5000, TimeUnit.MILLISECONDS);
+
+//            Timer timer = new Timer();
+//            timer.schedule(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    stop(false);
+//                }
+//            }, 5000);
 
             try {
                 shutdownLatch.await();

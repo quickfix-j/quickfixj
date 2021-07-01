@@ -44,9 +44,10 @@ import quickfix.fix44.ListStatusRequest;
 import quickfix.fix44.Logon;
 
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import quickfix.ScreenLogFactory;
 
 /**
@@ -59,8 +60,9 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
     private Thread serverThread;
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
+    private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-    private class DelayedTestRequest extends TimerTask {
+    private class DelayedTestRequest implements Runnable {
         final SessionID sessionID;
 
         DelayedTestRequest(SessionID sessionID) {
@@ -84,7 +86,11 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         // sleep to move our timer off from the client's
         if (message instanceof Logon) {
-            new Timer().schedule(new DelayedTestRequest(sessionId), 3000);
+            scheduledExecutor.schedule(() -> {
+                new DelayedTestRequest(sessionId);
+            }, 3000, TimeUnit.MILLISECONDS);
+
+//            new Timer().schedule(new DelayedTestRequest(sessionId), 3000);
         }
     }
 
