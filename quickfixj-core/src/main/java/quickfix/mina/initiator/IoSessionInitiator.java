@@ -254,7 +254,6 @@ public class IoSessionInitiator {
         private void handleConnectException(Throwable e) {
             ++connectionFailureCount;
             SocketAddress socketAddress = socketAddresses[getCurrentSocketAddressIndex()];
-            unresolveCurrentSocketAddress(socketAddress);
             while (e.getCause() != null) {
                 e = e.getCause();
             }
@@ -272,26 +271,14 @@ public class IoSessionInitiator {
         private SocketAddress getNextSocketAddress() {
             SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
 
-            // QFJ-266 Recreate socket address for unresolved addresses
+            // Recreate socket address to avoid cached address resolution
             if (socketAddress instanceof InetSocketAddress) {
                 InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
-                if (inetAddr.isUnresolved()) {
-                    socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr
-                            .getPort());
-                    socketAddresses[nextSocketAddressIndex] = socketAddress;
-                }
+                socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr.getPort());
+                socketAddresses[nextSocketAddressIndex] = socketAddress;
             }
             nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
             return socketAddress;
-        }
-
-        // QFJ-822 Reset cached DNS resolution information on connection failure.
-        private void unresolveCurrentSocketAddress(SocketAddress socketAddress) {
-            if (socketAddress instanceof InetSocketAddress) {
-                InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
-                socketAddresses[getCurrentSocketAddressIndex()] = InetSocketAddress.createUnresolved(
-                        inetAddr.getHostString(), inetAddr.getPort());
-            }
         }
 
         private int getCurrentSocketAddressIndex() {
