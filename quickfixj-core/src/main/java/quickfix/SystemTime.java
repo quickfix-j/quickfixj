@@ -38,6 +38,11 @@ public class SystemTime {
         }
 
         @Override
+        public long getTimeFromNanos() {
+            return System.nanoTime();
+        }
+
+        @Override
         public LocalDateTime getNow() {
             return LocalDateTime.now(ZoneOffset.UTC);
         }
@@ -47,6 +52,10 @@ public class SystemTime {
 
     public static long currentTimeMillis() {
         return systemTimeSource.getTime();
+    }
+
+    public static long currentTimeMillisFromNanos() {
+        return systemTimeSource.getTimeFromNanos();
     }
     
     public static LocalDateTime now() {

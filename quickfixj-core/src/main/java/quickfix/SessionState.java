@@ -117,7 +117,7 @@ public final class SessionState {
     SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
     SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
     public boolean isHeartBeatNeeded(SessionID sessionID) {
-        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - getLastSentTimeNanos());
+        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(SystemTime.currentTimeMillisFromNanos() - getLastSentTimeNanos());
 //        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
         boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
@@ -146,10 +146,14 @@ public final class SessionState {
     public void setLastReceivedTime(long lastReceivedTime) {
         synchronized (lock) {
             this.lastReceivedTime = lastReceivedTime;
-            this.lastReceivedTimeNanos = System.nanoTime();
+            this.lastReceivedTimeNanos = TimeUnit.MILLISECONDS.toNanos(lastReceivedTime);
         }
     }
 
+    public void setLastReceivedTimeNanos(long lastReceivedTimeNanos) {
+        this.lastReceivedTimeNanos = lastReceivedTimeNanos;
+    }
+    
     public long getLastSentTime() {
         synchronized (lock) {
             return lastSentTime;
@@ -165,7 +169,7 @@ public final class SessionState {
     public void setLastSentTime(long lastSentTime) {
         synchronized (lock) {
             this.lastSentTime = lastSentTime;
-            this.lastSentTimeNanos = System.nanoTime();
+            this.lastSentTimeNanos = SystemTime.currentTimeMillisFromNanos();
         }
     }
 
@@ -312,8 +316,10 @@ public final class SessionState {
     }
 
     private long timeSinceLastReceivedMessage() {
-        return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - getLastReceivedTimeNanos());
-//        return SystemTime.currentTimeMillis() - getLastReceivedTime();
+        long lastReceivedTimeNanos1 = getLastReceivedTimeNanos();
+        long currentTimeMillisFromNanos = SystemTime.currentTimeMillisFromNanos();
+        long timeSinceLastReceivedMessage = TimeUnit.NANOSECONDS.toMillis(currentTimeMillisFromNanos - lastReceivedTimeNanos1);
+        return timeSinceLastReceivedMessage;
     }
 
     public boolean isTimedOut() {

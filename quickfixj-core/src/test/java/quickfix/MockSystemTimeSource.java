@@ -23,9 +23,12 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class MockSystemTimeSource implements SystemTimeSource {
-    private long[] systemTimes = { System.currentTimeMillis() };
+
+    private long[] systemTimes = {System.currentTimeMillis()};
+    private long[] systemTimesNanos = {System.nanoTime()};
     private int offset;
 
     public MockSystemTimeSource() {
@@ -34,6 +37,7 @@ public class MockSystemTimeSource implements SystemTimeSource {
 
     public MockSystemTimeSource(long time) {
         setSystemTimes(time);
+        setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(time));
     }
 
     public void setSystemTimes(long[] times) {
@@ -41,7 +45,11 @@ public class MockSystemTimeSource implements SystemTimeSource {
     }
 
     void setSystemTimes(long time) {
-        systemTimes = new long[] { time };
+        systemTimes = new long[]{time};
+    }
+
+    void setSystemTimesNanos(long time) {
+        systemTimesNanos = new long[]{time};
     }
 
     public void setTime(Calendar c) {
@@ -56,9 +64,20 @@ public class MockSystemTimeSource implements SystemTimeSource {
         return systemTimes[offset];
     }
 
+    @Override
+    public long getTimeFromNanos() {
+        if (systemTimesNanos.length - offset > 1) {
+            offset++;
+        }
+        return systemTimesNanos[offset];
+    }
+
     public void increment(long delta) {
         if (systemTimes.length - offset == 1) {
             systemTimes[offset] += delta;
+        }
+        if (systemTimesNanos.length - offset == 1) {
+            systemTimesNanos[offset] += TimeUnit.MILLISECONDS.toNanos(delta);
         }
     }
 

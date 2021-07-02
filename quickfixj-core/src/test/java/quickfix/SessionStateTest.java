@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +58,7 @@ public class SessionStateTest  {
     public void testTestRequestTiming() {
         SessionState state = new SessionState(new Object(), null, 0, false, null,
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
-        state.setLastReceivedTime(950);
+        state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(950));
         state.setHeartBeatInterval(50);
         assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
         for (int i = 0; i < 5; i++) {
@@ -76,15 +77,15 @@ public class SessionStateTest  {
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
 
         // session should timeout after 2.4 * 30 = 72 seconds
-        state.setLastReceivedTime(950_000);
+        state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(950_000));
 
-        timeSource.setSystemTimes(1_000_000L);
+        timeSource.setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(1_000_000L));
         assertFalse("session is still valid", state.isTimedOut());
 
-        timeSource.setSystemTimes(1_021_999L);
+        timeSource.setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(1_021_999L));
         assertFalse("session is still valid", state.isTimedOut());
 
-        timeSource.setSystemTimes(1_022_000L);
+        timeSource.setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(1_022_000L));
         assertTrue("session timed out", state.isTimedOut());
     }
 }
