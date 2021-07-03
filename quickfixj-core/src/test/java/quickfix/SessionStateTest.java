@@ -47,6 +47,7 @@ public class SessionStateTest  {
         SessionState state = new SessionState(new Object(), null, 0, false, null,
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
         state.setLastReceivedTime(900);
+        state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(900));
         assertFalse("logon timeout not init'ed", state.isLogonTimedOut());
 
         state.setLogoutSent(true);

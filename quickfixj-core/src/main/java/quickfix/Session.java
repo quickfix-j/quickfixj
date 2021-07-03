@@ -1745,6 +1745,7 @@ public class Session implements Closeable {
             UnsupportedMessageType, IOException {
 
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
+        state.setLastReceivedTimeNanos(SystemTime.currentTimeMillisFromNanos());
         state.clearTestRequestCounter();
 
         String msgType;
@@ -2028,6 +2029,7 @@ public class Session implements Closeable {
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
         }
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
+        state.setLastReceivedTimeNanos(SystemTime.currentTimeMillisFromNanos());
         state.clearTestRequestCounter();
         state.setLogonSent(true);
         logonAttempts++;
