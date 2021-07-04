@@ -752,7 +752,7 @@ public class Session implements Closeable {
     }
 
     private void initializeHeader(Message.Header header) {
-        state.setLastSentTime(SystemTime.currentTimeMillis());
+//        state.setLastSentTime(SystemTime.currentTimeMillis());  move to sendRaw()
         header.setString(BeginString.FIELD, sessionID.getBeginString());
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
         optionallySetID(header, SenderSubID.FIELD, sessionID.getSenderSubID());
@@ -2330,6 +2330,7 @@ public class Session implements Closeable {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
                     getLog().onEvent("Resending message: " + msgSeqNum);
+                    state.setLastSentTime(SystemTime.currentTimeMillis());
                     send(msg.toString());
                     begin = 0;
                     appMessageJustSent = true;
@@ -2641,7 +2642,7 @@ public class Session implements Closeable {
                     result = send(messageString);
                 }
             }
-
+            state.setLastSentTime(SystemTime.currentTimeMillis());
             return result;
         } catch (final IOException e) {
             logThrowable(getLog(), "Error reading/writing in MessageStore", e);
