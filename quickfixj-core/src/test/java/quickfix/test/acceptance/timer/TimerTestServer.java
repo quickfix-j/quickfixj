@@ -1,4 +1,4 @@
-/*******************************************************************************
+/** *****************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
  * This file is part of the QuickFIX FIX Engine
@@ -15,8 +15,7 @@
  *
  * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
- ******************************************************************************/
-
+ ***************************************************************************** */
 package quickfix.test.acceptance.timer;
 
 import org.slf4j.Logger;
@@ -54,6 +53,7 @@ import quickfix.ScreenLogFactory;
  * @author <a href="mailto:jhensley@bonddesk.com">John Hensley</a>
  */
 public class TimerTestServer extends MessageCracker implements Application, Runnable {
+
     SocketAcceptor acceptor;
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
@@ -63,6 +63,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
     private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     private class DelayedTestRequest implements Runnable {
+
         final SessionID sessionID;
 
         DelayedTestRequest(SessionID sessionID) {
@@ -86,10 +87,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         // sleep to move our timer off from the client's
         if (message instanceof Logon) {
-            scheduledExecutor.schedule(() -> {
-                new DelayedTestRequest(sessionId);
-            }, 3000, TimeUnit.MILLISECONDS);
-
+            scheduledExecutor.schedule(new DelayedTestRequest(sessionId), 3000, TimeUnit.MILLISECONDS);
 //            new Timer().schedule(new DelayedTestRequest(sessionId), 3000);
         }
     }
@@ -128,7 +126,7 @@ public class TimerTestServer extends MessageCracker implements Application, Runn
         try {
             HashMap<Object, Object> defaults = new HashMap<>();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", "19888" );
+            defaults.put("SocketAcceptPort", "19888");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
