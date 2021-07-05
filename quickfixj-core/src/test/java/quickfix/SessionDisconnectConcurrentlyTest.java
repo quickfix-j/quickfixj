@@ -110,9 +110,7 @@ public class SessionDisconnectConcurrentlyTest {
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {
             if (message instanceof Heartbeat) {
                 sessionMessages.put(sessionId, message);
-                if (messageLatch != null) {
-                    messageLatch.countDown();
-                }
+                messageLatch.countDown();
             }
         }
 
@@ -120,6 +118,7 @@ public class SessionDisconnectConcurrentlyTest {
                 throws FieldNotFound {
             Message testRequest = sessionMessages.get(sessionID);
             assertNotNull("no message", testRequest);
+            System.out.println("XXXXXX " + testRequest);
             assertEquals("wrong message", text, testRequest.getString(TestReqID.FIELD));
         }
 
