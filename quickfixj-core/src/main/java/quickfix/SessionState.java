@@ -146,7 +146,6 @@ public final class SessionState {
     public void setLastReceivedTime(long lastReceivedTime) {
         synchronized (lock) {
             this.lastReceivedTime = lastReceivedTime;
-            this.lastReceivedTimeNanos = TimeUnit.MILLISECONDS.toNanos(lastReceivedTime);
         }
     }
 
@@ -211,7 +210,8 @@ public final class SessionState {
 
     public boolean isLogonTimedOut() {
         synchronized (lock) {
-            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+//            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+            return isLogonSent() && SystemTime.currentTimeMillisFromNanos() - getLastReceivedTimeNanos()>= getLogonTimeoutMs();
         }
     }
 
