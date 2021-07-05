@@ -211,7 +211,7 @@ public final class SessionState {
     public boolean isLogonTimedOut() {
         synchronized (lock) {
 //            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
-            return isLogonSent() && SystemTime.currentTimeMillisFromNanos() - getLastReceivedTimeNanos()>= getLogonTimeoutMs();
+            return isLogonSent() && TimeUnit.NANOSECONDS.toMillis(SystemTime.currentTimeMillisFromNanos() - getLastReceivedTimeNanos()) >= getLogonTimeoutMs();
         }
     }
 
