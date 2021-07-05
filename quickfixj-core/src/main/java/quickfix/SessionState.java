@@ -150,7 +150,9 @@ public final class SessionState {
     }
 
     public void setLastReceivedTimeNanos(long lastReceivedTimeNanos) {
-        this.lastReceivedTimeNanos = lastReceivedTimeNanos;
+        synchronized (lock) {
+            this.lastReceivedTimeNanos = lastReceivedTimeNanos;
+        }
     }
     
     public long getLastSentTime() {
