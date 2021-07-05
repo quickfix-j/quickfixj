@@ -58,7 +58,7 @@ public class TimerTestClient extends MessageCracker implements Application {
     private final Logger log = LoggerFactory.getLogger(TimerTestServer.class);
     private final SessionSettings settings = new SessionSettings();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
-    private boolean failed;
+    private volatile boolean failed;
     private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
     @Override
