@@ -127,6 +127,7 @@ public class SessionDisconnectConcurrentlyTest {
                 throws FieldNotFound {
             Message testRequest = sessionMessages.get(sessionID);
             assertNotNull("no message", testRequest);
+            System.out.println("XXXXX " + testRequest);
             assertEquals("wrong message", text, testRequest.getString(TestReqID.FIELD));
         }
 
