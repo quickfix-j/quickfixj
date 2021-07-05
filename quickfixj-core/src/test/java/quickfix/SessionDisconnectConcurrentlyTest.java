@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import quickfix.field.BeginString;
@@ -48,22 +47,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import quickfix.fix42.Heartbeat;
 
 public class SessionDisconnectConcurrentlyTest {
-    private TestAcceptorApplication testAcceptorApplication;
-
-    @After
-    public void tearDown() throws Exception {
-        if (testAcceptorApplication != null) {
-            testAcceptorApplication.tearDown();
-        }
-    }
 
     // QFJ-738
     @Test(timeout = 15000)
     public void testConcurrentDisconnection() throws Exception {
-        testAcceptorApplication = new TestAcceptorApplication(1);
-        final Acceptor acceptor = createAcceptor();
+        TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication(1);
+        final Acceptor acceptor = createAcceptor(testAcceptorApplication);
         final Initiator initiator = createInitiator();
         try {
             acceptor.start();
@@ -71,7 +63,7 @@ public class SessionDisconnectConcurrentlyTest {
 
             testAcceptorApplication.waitForLogon();
 
-            doSessionDispatchingTest(1);
+            doSessionDispatchingTest(1, testAcceptorApplication);
         } finally {
             MyThread thread = new MyThread();
             thread.setDaemon(true);
@@ -84,13 +76,11 @@ public class SessionDisconnectConcurrentlyTest {
         }
     }
 
-    private void doSessionDispatchingTest(int i) throws SessionNotFound, InterruptedException,
+    private void doSessionDispatchingTest(int i, TestAcceptorApplication testAcceptorApplication) throws SessionNotFound, InterruptedException,
             FieldNotFound {
         TestRequest message = new TestRequest();
         message.set(new TestReqID("TEST" + i));
         SessionID sessionID = getSessionIDForClient(i);
-
-        testAcceptorApplication.setMessageLatch(new CountDownLatch(1));
         Session.sendToTarget(message, sessionID);
 
         testAcceptorApplication.waitForMessages();
@@ -104,10 +94,11 @@ public class SessionDisconnectConcurrentlyTest {
     private static class TestAcceptorApplication extends ApplicationAdapter {
         private final HashMap<SessionID, Message> sessionMessages = new HashMap<>();
         private final CountDownLatch logonLatch;
-        private CountDownLatch messageLatch;
+        private final CountDownLatch messageLatch;
 
         public TestAcceptorApplication(int countDown) {
             logonLatch = new CountDownLatch(countDown);
+            messageLatch = new CountDownLatch(1);
         }
 
         public void onLogon(SessionID sessionId) {
@@ -117,9 +108,11 @@ public class SessionDisconnectConcurrentlyTest {
 
         public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
                 IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-            sessionMessages.put(sessionId, message);
-            if (messageLatch != null) {
-                messageLatch.countDown();
+            if (message instanceof Heartbeat) {
+                sessionMessages.put(sessionId, message);
+                if (messageLatch != null) {
+                    messageLatch.countDown();
+                }
             }
         }
 
@@ -127,7 +120,6 @@ public class SessionDisconnectConcurrentlyTest {
                 throws FieldNotFound {
             Message testRequest = sessionMessages.get(sessionID);
             assertNotNull("no message", testRequest);
-            System.out.println("XXXXX " + testRequest);
             assertEquals("wrong message", text, testRequest.getString(TestReqID.FIELD));
         }
 
@@ -139,11 +131,7 @@ public class SessionDisconnectConcurrentlyTest {
             }
         }
 
-        public synchronized void setMessageLatch(CountDownLatch messageLatch) {
-            this.messageLatch = messageLatch;
-        }
-
-        public synchronized void waitForMessages() {
+        public void waitForMessages() {
             try {
                 if (!messageLatch.await(10, TimeUnit.SECONDS)) {
                     fail("Timed out waiting for message");
@@ -151,10 +139,6 @@ public class SessionDisconnectConcurrentlyTest {
             } catch (InterruptedException e) {
                 fail(e.getMessage());
             }
-        }
-
-        public void tearDown() {
-            sessionMessages.clear();
         }
     }
 
@@ -188,7 +172,7 @@ public class SessionDisconnectConcurrentlyTest {
         settings.setString(sessionID, "SocketConnectPort", Integer.toString(port));
     }
 
-    private Acceptor createAcceptor() throws ConfigError {
+    private Acceptor createAcceptor(TestAcceptorApplication testAcceptorApplication) throws ConfigError {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "acceptor");
