@@ -1968,7 +1968,7 @@ public class Session implements Closeable {
                 LOG.warn("Heartbeat failure detected but deactivated");
             }
         } else {
-            if (state.isTestRequestNeeded()) {
+            if (state.isTestRequestNeeded(sessionID)) {
                 generateTestRequest("TEST");
                 getLog().onEvent("Sent test request TEST");
                 stateListener.onMissedHeartBeat();

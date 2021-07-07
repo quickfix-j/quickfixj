@@ -30,6 +30,7 @@ import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.TargetCompID;
 import quickfix.field.TestReqID;
+import quickfix.fix42.Heartbeat;
 import quickfix.fix42.TestRequest;
 import quickfix.mina.ProtocolFactory;
 
@@ -47,10 +48,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import quickfix.fix42.Heartbeat;
 
 public class SessionDisconnectConcurrentlyTest {
 
+    
+    @Test
+    public void main() {
+        for (int i = 0; i < 100_000_000; i++) {
+            timeInvocation();
+        }
+    }
+
+    private static void timeInvocation() {
+        final long start = System.nanoTime();
+        final long end = System.nanoTime();
+        checkResult(end - start);
+    }
+
+    private static void checkResult(final long l) {
+        if (l < 0) {
+            System.out.println("should not get here " + l); // removing reference to l parameter here "fixes" the bug
+            fail();
+        }
+    }
     // QFJ-738
     @Test(timeout = 15000)
     public void testConcurrentDisconnection() throws Exception {

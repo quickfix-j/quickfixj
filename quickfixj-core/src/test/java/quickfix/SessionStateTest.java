@@ -57,19 +57,20 @@ public class SessionStateTest  {
 
     @Test
     public void testTestRequestTiming() {
+        SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
         SessionState state = new SessionState(new Object(), null, 0, false, null,
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
         state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(950));
         state.setHeartBeatInterval(50);
-        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
+        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded(sessionID1));
         for (int i = 0; i < 5; i++) {
             state.incrementTestRequestCounter();
         }
-        assertFalse("testRequest should be needed", state.isTestRequestNeeded());
+        assertFalse("testRequest should be needed", state.isTestRequestNeeded(sessionID1));
 
         // set the heartbeat interval to something small and we shouldn't need it again
         state.setHeartBeatInterval(3);
-        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
+        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded(sessionID1));
     }
 
     @Test

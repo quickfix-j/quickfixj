@@ -121,8 +121,8 @@ public final class SessionState {
 //        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
         boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
-        if (sessionID.equals(sessionID1) || sessionID.equals(sessionID2)) {
-            System.out.println("XXX " + sessionID + " isHeartBeatNeeded() = " + name);
+        if (sessionID.equals(sessionID1) || sessionID.equals(sessionID2) || "ACCEPTOR-1".equals(sessionID.getTargetCompID()) ) {
+            getLog().onEvent("isHeartBeatNeeded() = " + name + " millisSinceLastSent = " + millisSinceLastSentTime);
         }
         return name;
     }
@@ -311,8 +311,11 @@ public final class SessionState {
         }
     }
 
-    public boolean isTestRequestNeeded() {
+    public boolean isTestRequestNeeded(SessionID sessionID) {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
+        if (sessionID.equals(sessionID1) || sessionID.equals(sessionID2) || "ACCEPTOR-1".equals(sessionID.getTargetCompID()) ) {
+            getLog().onEvent("isTestRequestNeeded() - millisSinceLastReceived = " + millisSinceLastReceivedTime);
+        }
         return millisSinceLastReceivedTime >= ((1 + testRequestDelayMultiplier) * (getTestRequestCounter() + 1))
                 * getHeartBeatMillis();
     }
