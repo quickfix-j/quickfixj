@@ -115,13 +115,15 @@ public final class SessionState {
     }
 
     SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
-    SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
+//    SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
     public boolean isHeartBeatNeeded(SessionID sessionID) {
         long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(SystemTime.currentTimeMillisFromNanos() - getLastSentTimeNanos());
 //        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
         boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
-        if (sessionID.equals(sessionID1) || sessionID.equals(sessionID2) || "ACCEPTOR-1".equals(sessionID.getTargetCompID()) ) {
+        if (sessionID1.getSenderCompID().equals(sessionID.getSenderCompID())
+                || sessionID1.getSenderCompID().equals(sessionID.getTargetCompID())
+                || "ACCEPTOR-1".equals(sessionID.getTargetCompID())) {
             getLog().onEvent("isHeartBeatNeeded() = " + name + " millisSinceLastSent = " + millisSinceLastSentTime);
         }
         return name;
@@ -313,7 +315,9 @@ public final class SessionState {
 
     public boolean isTestRequestNeeded(SessionID sessionID) {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
-        if (sessionID.equals(sessionID1) || sessionID.equals(sessionID2) || "ACCEPTOR-1".equals(sessionID.getTargetCompID()) ) {
+        if (sessionID.getSenderCompID().equals(sessionID1.getSenderCompID())
+                || sessionID.getTargetCompID().equals(sessionID1.getSenderCompID())
+                || "ACCEPTOR-1".equals(sessionID.getTargetCompID())) {
             getLog().onEvent("isTestRequestNeeded() - millisSinceLastReceived = " + millisSinceLastReceivedTime);
         }
         return millisSinceLastReceivedTime >= ((1 + testRequestDelayMultiplier) * (getTestRequestCounter() + 1))
