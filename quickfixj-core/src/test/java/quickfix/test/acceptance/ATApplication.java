@@ -19,6 +19,7 @@
 
 package quickfix.test.acceptance;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 
 import quickfix.Application;
@@ -36,17 +37,17 @@ import quickfix.UnsupportedMessageType;
 public class ATApplication implements Application {
     private final ATMessageCracker inboundCracker = new ATMessageCracker();
     private final MessageCracker outboundCracker = new MessageCracker(new Object());
-    private boolean isLoggedOn;
+    private AtomicBoolean isLoggedOn = new AtomicBoolean(false);
 
     public void onCreate(SessionID sessionID) {
         assertNoSessionLock(sessionID);
         Session.lookupSession(sessionID).reset();
     }
 
-    public synchronized void onLogon(SessionID sessionID) {
+    public void onLogon(SessionID sessionID) {
         assertNoSessionLock(sessionID);
-        Assert.assertFalse("Already logged on", isLoggedOn);
-        isLoggedOn = true;
+        Assert.assertFalse("Already logged on", isLoggedOn.get());
+        isLoggedOn.set(true);
     }
 
     private void assertNoSessionLock(SessionID sessionID) {
@@ -56,11 +57,11 @@ public class ATApplication implements Application {
                 Thread.holdsLock(session));
     }
 
-    public synchronized void onLogout(SessionID sessionID) {
+    public void onLogout(SessionID sessionID) {
         assertNoSessionLock(sessionID);
         inboundCracker.reset();
-        Assert.assertTrue("No logged on when logout is received", isLoggedOn);
-        isLoggedOn = false;
+        Assert.assertTrue("Not logged on when logout is received", isLoggedOn.get());
+        isLoggedOn.set(false);
     }
 
     public void toAdmin(Message message, SessionID sessionID) {
