@@ -117,14 +117,18 @@ public final class SessionState {
     SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
 //    SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
     public boolean isHeartBeatNeeded(SessionID sessionID) {
-        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(SystemTime.currentTimeMillisFromNanos() - getLastSentTimeNanos());
+        long currentTimeMillisFromNanos = SystemTime.currentTimeMillisFromNanos();
+        long lastSentTimeNanos = getLastSentTimeNanos();
+        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(currentTimeMillisFromNanos - lastSentTimeNanos);
 //        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
         boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
         if (sessionID1.getSenderCompID().equals(sessionID.getSenderCompID())
                 || sessionID1.getSenderCompID().equals(sessionID.getTargetCompID())
                 || "ACCEPTOR-1".equals(sessionID.getTargetCompID())) {
-            getLog().onEvent("isHeartBeatNeeded() = " + name + " millisSinceLastSent = " + millisSinceLastSentTime);
+            getLog().onEvent("isHeartBeatNeeded() = " + name + " current=" + currentTimeMillisFromNanos
+                    + " - lastSentTime=" + lastSentTimeNanos
+                    + "= millisSinceLastSent=" + millisSinceLastSentTime);
         }
         return name;
     }

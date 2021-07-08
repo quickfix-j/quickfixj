@@ -2586,8 +2586,8 @@ public class Session implements Closeable {
             final Message.Header header = message.getHeader();
             final String msgType = header.getString(MsgType.FIELD);
 
-            initializeHeader(header);
-
+            initializeHeader(header);   // TODO still duplicate to generateXXX methods
+            state.setLastSentTime(SystemTime.currentTimeMillis());
             if (num > 0) {
                 header.setInt(MsgSeqNum.FIELD, num);
             }
@@ -2642,7 +2642,6 @@ public class Session implements Closeable {
                     result = send(messageString);
                 }
             }
-            state.setLastSentTime(SystemTime.currentTimeMillis());
             return result;
         } catch (final IOException e) {
             logThrowable(getLog(), "Error reading/writing in MessageStore", e);
