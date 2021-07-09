@@ -19,7 +19,6 @@
 
 package quickfix.mina.ssl;
 
-import junit.framework.TestCase;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
@@ -43,14 +42,21 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class SecureSocketTest extends TestCase {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+
+public class SecureSocketTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final int transportProtocol = ProtocolFactory.SOCKET;
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         SystemTime.setTimeSource(null);
     }
 
+    @Test
     public void testLogonWithBadCertificate() throws Exception {
         ServerThread serverThread = new ServerThread("nonexistent", "pwd");
         try {
@@ -85,10 +91,12 @@ public class SecureSocketTest extends TestCase {
         }
     }
 
+    @Test
     public void testLogonWithDefaultCertificate() throws Exception {
         doLogonTest(null, null);
     }
 
+    @Test
     public void testLogonWithCustomCertificate() throws Exception {
         doLogonTest("test.keystore", "quickfixjtestpw");
     }
@@ -103,6 +111,7 @@ public class SecureSocketTest extends TestCase {
      * so that it's not cached by another test so that there are no false failures.
      * The test-client.keystore key store is just a copy of test.keystore under a different name.
      */
+    @Test
     public void testLogonWithBadCertificateOnInitiatorSide() throws Exception {
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
         SessionSettings settings = getClientSessionSettings(clientSessionID);
