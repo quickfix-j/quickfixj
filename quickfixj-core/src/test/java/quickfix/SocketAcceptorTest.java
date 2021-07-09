@@ -407,7 +407,7 @@ public class SocketAcceptorTest {
         SessionSettings settings = createAcceptorSettings();
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
+        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true, true);
         return new SocketAcceptor(testAcceptorApplication, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }
@@ -418,7 +418,7 @@ public class SocketAcceptorTest {
         SessionSettings settings = createAcceptorSettings();
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
+        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true, true);
         return new ThreadedSocketAcceptor(testAcceptorApplication, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }
