@@ -2981,5 +2981,39 @@ public class SessionTest {
             disconnectCalled = true;
         }
     }
+    
+    @Test
+    public void testSendWithoutAllowPosDupDropsFlagAndOrigSendingTime() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        logonTo(session);
+        
+        session.send(createPossDupAppMessage(1));
+        
+        final Message sentMessage = new Message(responder.sentMessageData);
+        
+        assertFalse(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertFalse(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+    
+    @Test
+    public void testSendWithAllowPosDupKeepsFlagAndOrigSendingTime() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.setAllowPosDup(true);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1));
+        
+        final Message sentMessage = new Message(responder.sentMessageData);
+        
+        assertFalse(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertFalse(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
 
 }
