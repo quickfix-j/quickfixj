@@ -69,7 +69,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>1.7.31</slf4j.version>
+		<slf4j.version>1.7.32</slf4j.version>
 		<junit.version>4.13.1</junit.version>
 		<mainClass/>
 
