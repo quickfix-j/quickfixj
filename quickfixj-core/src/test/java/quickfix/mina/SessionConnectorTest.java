@@ -312,7 +312,7 @@ public class SessionConnectorTest {
                     Thread.sleep(randomSleep);
                 } catch (final Throwable throwable) {
                     throwable.printStackTrace();
-                    fail("Well.. this operation shouldnt fail");
+                    fail("This operation shouldn't fail");
                 } finally {
                     countDownLatch.countDown();
                 }
