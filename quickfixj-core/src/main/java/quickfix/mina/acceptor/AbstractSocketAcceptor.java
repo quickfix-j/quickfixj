@@ -155,7 +155,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
                 SessionSettings settings = getSettings();
                 NetworkingOptions networkingOptions = new NetworkingOptions(settings.getDefaultProperties());
                 networkingOptions.apply(ioAcceptor);
-                ioAcceptor.setHandler(new AcceptorIoHandler(sessionProvider, networkingOptions, getEventHandlingStrategy()));
+                ioAcceptor.setHandler(new AcceptorIoHandler(sessionProvider, settings, networkingOptions, getEventHandlingStrategy()));
             } catch (FieldConvertError e) {
                 throw new ConfigError(e);
             }

@@ -26,14 +26,18 @@ import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.ConfigError;
+import quickfix.FieldConvertError;
 import quickfix.InvalidMessage;
 import quickfix.Log;
 import quickfix.LogUtil;
 import quickfix.Message;
 import quickfix.MessageUtils;
-import static quickfix.MessageUtils.parse;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
+
+import static quickfix.MessageUtils.parse;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.
@@ -42,10 +46,21 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     private final NetworkingOptions networkingOptions;
     private final EventHandlingStrategy eventHandlingStrategy;
+    private final SessionSettings sessionSettings;
+    private boolean logMessageWhenSessionNotFound;
 
-    public AbstractIoHandler(NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
+    public AbstractIoHandler(SessionSettings settings, NetworkingOptions options, EventHandlingStrategy eventHandlingStrategy) {
+        sessionSettings = settings;
         networkingOptions = options;
         this.eventHandlingStrategy = eventHandlingStrategy;
+        logMessageWhenSessionNotFound = true;
+        try {
+            if (sessionSettings.isSetting(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND)) {
+                logMessageWhenSessionNotFound = sessionSettings.getBool(Session.SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND);
+            }
+        } catch (ConfigError | FieldConvertError e) {
+            // ignore
+        }
     }
 
     @Override
@@ -145,7 +160,11 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                 }
             }
         } else {
-            log.error("Disconnecting; received message for unknown session: {}", messageString);
+            if (logMessageWhenSessionNotFound) {
+                log.error("Disconnecting; received message for unknown session: {}", messageString);
+            } else {
+                log.error("Disconnecting; received message for unknown session. Remote SessionID: {}", remoteSessionID);
+            }
             ioSession.closeNow();
         }
     }
