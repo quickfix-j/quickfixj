@@ -74,13 +74,6 @@ public interface MessageStore {
     Date getCreationTime() throws IOException;
 
     /**
-     * Clear messages from store.
-     *
-     * @throws IOException IO error
-     */
-    void clearMessages() throws IOException;
-
-    /**
      * Reset the message store. Sequence numbers are set back to 1 and stored
      * messages are erased. The session creation time is also set to the time of
      * the reset.

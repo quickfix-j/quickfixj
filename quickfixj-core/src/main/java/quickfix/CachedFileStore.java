@@ -386,14 +386,6 @@ public class CachedFileStore implements MessageStore {
 
     /*
      * (non-Javadoc)
-     * @see quickfix.MessageStore#clearMessages()
-     */
-    public void clearMessages() throws IOException {
-        initialize(false);
-    }
-
-    /*
-     * (non-Javadoc)
      * @see quickfix.MessageStore#reset()
      */
     public void reset() throws IOException {

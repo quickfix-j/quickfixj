@@ -86,7 +86,6 @@ public abstract class AbstractMessageStoreTest extends TestCase {
         assertEquals("wrong value", 322, store.getNextTargetMsgSeqNum());
 
         // test reset again after values have been set
-        store.clearMessages();
         store.reset();
         assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());

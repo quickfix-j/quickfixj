@@ -99,7 +99,6 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         initializeTableDefinitions("xsessions", "messages");
         JdbcStore store = (JdbcStore) getMessageStoreFactory("xsessions", "messages").create(
                 getSessionID());
-        store.clearMessages();
         store.reset();
         assertEquals("wrong value", 1, store.getNextSenderMsgSeqNum());
         assertEquals("wrong value", 1, store.getNextTargetMsgSeqNum());
@@ -161,7 +160,6 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
 
     public void testMessageUpdate() throws Exception {
         JdbcStore store = (JdbcStore) getMessageStoreFactory().create(getSessionID());
-        store.clearMessages();
         store.reset();
 
         assertTrue(store.set(1, "MESSAGE1"));

@@ -90,13 +90,10 @@ public class MemoryStore implements MessageStore {
         setNextTargetMsgSeqNum(getNextTargetMsgSeqNum() + 1);
     }
 
-    public void clearMessages() {
-        messages.clear();
-    }
-
     public void reset() throws IOException {
         setNextSenderMsgSeqNum(1);
         setNextTargetMsgSeqNum(1);
+        messages.clear();
         creationTime = SystemTime.getUtcCalendar();
     }
 

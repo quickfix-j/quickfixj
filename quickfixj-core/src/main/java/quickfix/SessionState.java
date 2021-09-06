@@ -374,14 +374,6 @@ public final class SessionState {
         return getNextSenderMsgSeqNum() != 1 || getNextTargetMsgSeqNum() != 1;
     }
 
-    public void clearMessages() {
-        try {
-            messageStore.clearMessages();
-        } catch (IOException e) {
-            throw new RuntimeError(e);
-        }
-    }
-
     public void reset() {
         try {
             messageStore.reset();
