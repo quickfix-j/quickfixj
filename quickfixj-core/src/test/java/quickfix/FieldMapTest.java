@@ -114,4 +114,13 @@ public class FieldMapTest extends TestCase {
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
+
+    public void testRemoveGroup() {
+        FieldMap map = new Message();
+        Group group = new Group(73,11);
+        map.addGroup(group);
+        assertTrue(map.hasGroup(73));
+        map.removeGroup(73);
+        assertFalse(map.hasGroup(73));
+    }
 }
