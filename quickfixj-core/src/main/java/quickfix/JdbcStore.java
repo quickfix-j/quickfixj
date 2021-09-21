@@ -200,9 +200,7 @@ class JdbcStore implements MessageStore {
         } catch (SQLException e) {
             throw new IOException(e.getMessage(), e);
         } finally {
-            if(persistMessages) {
-                JdbcUtil.close(sessionID, deleteMessages);
-            }
+            JdbcUtil.close(sessionID, deleteMessages);
             JdbcUtil.close(sessionID, updateTime);
             JdbcUtil.close(sessionID, connection);
         }
