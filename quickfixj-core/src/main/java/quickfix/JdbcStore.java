@@ -184,7 +184,7 @@ class JdbcStore implements MessageStore {
         PreparedStatement updateTime = null;
         try {
             connection = dataSource.getConnection();
-            if(persistMessages) {
+            if (persistMessages) {
                 deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
                 setSessionIdParameters(deleteMessages, 1);
                 deleteMessages.execute();
