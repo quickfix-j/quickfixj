@@ -669,7 +669,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void removeGroup(int field) {
-        this.groups.remove(field);
+        getGroups().remove(field);
         removeField(field);
     }
 
