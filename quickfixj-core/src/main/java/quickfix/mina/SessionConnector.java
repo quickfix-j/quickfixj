@@ -53,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.mina.core.future.CloseFuture;
 import org.apache.mina.core.service.IoService;
+import quickfix.SystemTime;
 
 /**
  * An abstract base class for acceptors and initiators. Provides support for common functionality and also serves as an
@@ -265,7 +266,7 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected void waitForLogout() {
-        long start = System.currentTimeMillis();
+        long start = SystemTime.currentTimeMillisFromNanos();
         Set<Session> loggedOnSessions;
         while (!(loggedOnSessions = getLoggedOnSessions()).isEmpty()) {
             try {
@@ -273,7 +274,7 @@ public abstract class SessionConnector implements Connector {
             } catch (InterruptedException e) {
                 log.error(e.getMessage(), e);
             }
-            final long elapsed = System.currentTimeMillis() - start;
+            final long elapsed = TimeUnit.NANOSECONDS.toMillis(SystemTime.currentTimeMillisFromNanos() - start);
             Iterator<Session> sessionItr = loggedOnSessions.iterator();
             while (sessionItr.hasNext()) {
                 Session session = sessionItr.next();

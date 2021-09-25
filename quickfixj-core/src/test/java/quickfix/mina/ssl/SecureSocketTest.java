@@ -19,9 +19,9 @@
 
 package quickfix.mina.ssl;
 
-import junit.framework.TestCase;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.util.AvailablePortFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.ApplicationAdapter;
@@ -40,26 +40,35 @@ import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.ExpectedTestFailure;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class SecureSocketTest extends TestCase {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+
+public class SecureSocketTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final int transportProtocol = ProtocolFactory.SOCKET;
 
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         SystemTime.setTimeSource(null);
     }
 
+    @Test
     public void testLogonWithBadCertificate() throws Exception {
-        ServerThread serverThread = new ServerThread("nonexistent", "pwd");
+        int freePort = AvailablePortFinder.getNextAvailable();
+        ServerThread serverThread = new ServerThread("nonexistent", "pwd", freePort);
         try {
             serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
 
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-            SessionSettings settings = getClientSessionSettings(clientSessionID);
+            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
             ClientApplication clientApplication = new ClientApplication();
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
@@ -85,10 +94,12 @@ public class SecureSocketTest extends TestCase {
         }
     }
 
+    @Test
     public void testLogonWithDefaultCertificate() throws Exception {
         doLogonTest(null, null);
     }
 
+    @Test
     public void testLogonWithCustomCertificate() throws Exception {
         doLogonTest("test.keystore", "quickfixjtestpw");
     }
@@ -103,9 +114,11 @@ public class SecureSocketTest extends TestCase {
      * so that it's not cached by another test so that there are no false failures.
      * The test-client.keystore key store is just a copy of test.keystore under a different name.
      */
+    @Test
     public void testLogonWithBadCertificateOnInitiatorSide() throws Exception {
+        int freePort = AvailablePortFinder.getNextAvailable();
         SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-        SessionSettings settings = getClientSessionSettings(clientSessionID);
+        SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
         // reset client side to invalid certs
         settings.setString(SSLSupport.SETTING_KEY_STORE_NAME, "test-client.keystore");
         settings.setString(SSLSupport.SETTING_KEY_STORE_PWD, "wrong-pwd");
@@ -122,14 +135,15 @@ public class SecureSocketTest extends TestCase {
     }
 
     private void doLogonTest(String keyStoreName, String keyStorePassword) throws InterruptedException, ConfigError {
-        ServerThread serverThread = new ServerThread(keyStoreName, keyStorePassword);
+        int freePort = AvailablePortFinder.getNextAvailable();
+        ServerThread serverThread = new ServerThread(keyStoreName, keyStorePassword, freePort);
         try {
             serverThread.setDaemon(true);
             serverThread.start();
             serverThread.waitForInitialization();
 
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
-            SessionSettings settings = getClientSessionSettings(clientSessionID);
+            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
             ClientApplication clientApplication = new ClientApplication();
             ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
                     new MemoryStoreFactory(), settings, new DefaultMessageFactory());
@@ -149,14 +163,14 @@ public class SecureSocketTest extends TestCase {
         }
     }
 
-    private SessionSettings getClientSessionSettings(SessionID clientSessionID) {
+    private SessionSettings getClientSessionSettings(SessionID clientSessionID, int freePort) {
         SessionSettings settings = new SessionSettings();
-        HashMap<Object, Object> defaults = new HashMap<>();
+        Map<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(transportProtocol));
         defaults.put("SocketUseSSL", "Y");
         defaults.put("SocketConnectHost", "localhost");
-        defaults.put("SocketConnectPort", "9877");
+        defaults.put("SocketConnectPort", String.valueOf(freePort));
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("HeartBtInt", "30");
@@ -205,9 +219,9 @@ public class SecureSocketTest extends TestCase {
     private class ServerThread extends Thread {
         private final ATServer server;
 
-        public ServerThread(String keyStoreName, String keyStorePassword) {
+        public ServerThread(String keyStoreName, String keyStorePassword, int freePort) {
             super("test server");
-            server = new ATServer();
+            server = new ATServer(freePort, transportProtocol);
             server.setUseSSL(true);
             server.setKeyStoreName(keyStoreName);
             server.setKeyStorePassword(keyStorePassword);

@@ -40,12 +40,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -63,6 +70,20 @@ public class SocketAcceptorTest {
             "ACCEPTOR", "INITIATOR");
     private final SessionID initiatorSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42,
             "INITIATOR", "ACCEPTOR");
+
+
+    @Rule
+    public TestRule watcher = new TestWatcher() {
+        @Override
+        protected void starting(Description description) {
+            System.out.println("Starting test: " + description.getMethodName());
+        }
+    };
+
+    @Before
+    public void check() {
+        checkThreads(ManagementFactory.getThreadMXBean(), 0);
+    }
 
     @After
     public void cleanup() {
@@ -386,7 +407,7 @@ public class SocketAcceptorTest {
         SessionSettings settings = createAcceptorSettings();
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
+        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true, true);
         return new SocketAcceptor(testAcceptorApplication, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }
@@ -397,7 +418,7 @@ public class SocketAcceptorTest {
         SessionSettings settings = createAcceptorSettings();
 
         MessageStoreFactory factory = new MemoryStoreFactory();
-        quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
+        quickfix.LogFactory logFactory = new ScreenLogFactory(true, true, true, true);
         return new ThreadedSocketAcceptor(testAcceptorApplication, factory, settings, logFactory,
                 new DefaultMessageFactory());
     }

@@ -96,7 +96,7 @@ public class InitiateMessageStep implements TestStep {
         if (!message.contains("\00110=")) {
             message += "10=" + CHECKSUM_FORMAT.format(MessageUtils.checksum(message)) + '\001';
         }
-        log.debug("sending to client " + clientId + ": " + message);
+        log.info("sending to client " + clientId + ": " + message);
         try {
             connection.sendMessage(clientId, message);
         } catch (IOException e) {

@@ -54,7 +54,9 @@ public final class SessionState {
     private boolean logoutReceived = false;
     private int testRequestCounter;
     private long lastSentTime;
+    private long lastSentTimeNanos;
     private long lastReceivedTime;
+    private long lastReceivedTimeNanos;
     private final double testRequestDelayMultiplier;
     private final double heartBeatTimeoutMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
@@ -112,10 +114,23 @@ public final class SessionState {
         }
     }
 
-    public boolean isHeartBeatNeeded() {
-        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
+    SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
+//    SessionID sessionID2 = new SessionID(FixVersions.BEGINSTRING_FIX44, "TW", "ISLD");
+    public boolean isHeartBeatNeeded(SessionID sessionID) {
+        long currentTimeMillisFromNanos = SystemTime.currentTimeMillisFromNanos();
+        long lastSentTimeNanos = getLastSentTimeNanos();
+        long millisSinceLastSentTime = TimeUnit.NANOSECONDS.toMillis(currentTimeMillisFromNanos - lastSentTimeNanos);
+//        long millisSinceLastSentTime = SystemTime.currentTimeMillis() - getLastSentTime();
+        boolean name = millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
         // QFJ-448: allow 10 ms leeway since exact comparison causes skipped heartbeats occasionally
-        return millisSinceLastSentTime + 10 > getHeartBeatMillis() && getTestRequestCounter() == 0;
+        if (sessionID1.getSenderCompID().equals(sessionID.getSenderCompID())
+                || sessionID1.getSenderCompID().equals(sessionID.getTargetCompID())
+                || "ACCEPTOR-1".equals(sessionID.getTargetCompID())) {
+            getLog().onEvent("isHeartBeatNeeded() = " + name + " current=" + currentTimeMillisFromNanos
+                    + " - lastSentTime=" + lastSentTimeNanos
+                    + "= millisSinceLastSent=" + millisSinceLastSentTime);
+        }
+        return name;
     }
 
     public boolean isInitiator() {
@@ -128,21 +143,40 @@ public final class SessionState {
         }
     }
 
+    public long getLastReceivedTimeNanos() {
+        synchronized (lock) {
+            return lastReceivedTimeNanos;
+        }
+    }
+
     public void setLastReceivedTime(long lastReceivedTime) {
         synchronized (lock) {
             this.lastReceivedTime = lastReceivedTime;
         }
     }
 
+    public void setLastReceivedTimeNanos(long lastReceivedTimeNanos) {
+        synchronized (lock) {
+            this.lastReceivedTimeNanos = lastReceivedTimeNanos;
+        }
+    }
+    
     public long getLastSentTime() {
         synchronized (lock) {
             return lastSentTime;
         }
     }
 
+    public long getLastSentTimeNanos() {
+        synchronized (lock) {
+            return lastSentTimeNanos;
+        }
+    }
+
     public void setLastSentTime(long lastSentTime) {
         synchronized (lock) {
             this.lastSentTime = lastSentTime;
+            this.lastSentTimeNanos = SystemTime.currentTimeMillisFromNanos();
         }
     }
 
@@ -184,7 +218,8 @@ public final class SessionState {
 
     public boolean isLogonTimedOut() {
         synchronized (lock) {
-            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+//            return isLogonSent() && SystemTime.currentTimeMillis() - getLastReceivedTime() >= getLogonTimeoutMs();
+            return isLogonSent() && TimeUnit.NANOSECONDS.toMillis(SystemTime.currentTimeMillisFromNanos() - getLastReceivedTimeNanos()) >= getLogonTimeoutMs();
         }
     }
 
@@ -282,14 +317,22 @@ public final class SessionState {
         }
     }
 
-    public boolean isTestRequestNeeded() {
+    public boolean isTestRequestNeeded(SessionID sessionID) {
         long millisSinceLastReceivedTime = timeSinceLastReceivedMessage();
+        if (sessionID.getSenderCompID().equals(sessionID1.getSenderCompID())
+                || sessionID.getTargetCompID().equals(sessionID1.getSenderCompID())
+                || "ACCEPTOR-1".equals(sessionID.getTargetCompID())) {
+            getLog().onEvent("isTestRequestNeeded() - millisSinceLastReceived = " + millisSinceLastReceivedTime);
+        }
         return millisSinceLastReceivedTime >= ((1 + testRequestDelayMultiplier) * (getTestRequestCounter() + 1))
                 * getHeartBeatMillis();
     }
 
     private long timeSinceLastReceivedMessage() {
-        return SystemTime.currentTimeMillis() - getLastReceivedTime();
+        long lastReceivedTimeNanos1 = getLastReceivedTimeNanos();
+        long currentTimeMillisFromNanos = SystemTime.currentTimeMillisFromNanos();
+        long timeSinceLastReceivedMessage = TimeUnit.NANOSECONDS.toMillis(currentTimeMillisFromNanos - lastReceivedTimeNanos1);
+        return timeSinceLastReceivedMessage;
     }
 
     public boolean isTimedOut() {

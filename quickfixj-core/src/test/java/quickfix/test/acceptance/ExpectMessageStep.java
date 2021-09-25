@@ -73,7 +73,7 @@ public class ExpectMessageStep implements TestStep {
     }
 
     public void run(TestResult result, final TestConnection connection) throws InterruptedException {
-        log.debug("expecting from client " + clientId + ": " + data + " " + expectedFields);
+        log.info("expecting from client " + clientId + ": " + data + " " + expectedFields);
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
             log.info("Dumping threads due to timeout when expecting a message...");

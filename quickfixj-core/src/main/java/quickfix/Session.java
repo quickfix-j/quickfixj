@@ -767,7 +767,7 @@ public class Session implements Closeable {
     }
 
     private void initializeHeader(Message.Header header) {
-        state.setLastSentTime(SystemTime.currentTimeMillis());
+//        state.setLastSentTime(SystemTime.currentTimeMillis());  move to sendRaw()
         header.setString(BeginString.FIELD, sessionID.getBeginString());
         header.setString(SenderCompID.FIELD, sessionID.getSenderCompID());
         optionallySetID(header, SenderSubID.FIELD, sessionID.getSenderSubID());
@@ -1760,6 +1760,7 @@ public class Session implements Closeable {
             UnsupportedMessageType, IOException {
 
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
+        state.setLastReceivedTimeNanos(SystemTime.currentTimeMillisFromNanos());
         state.clearTestRequestCounter();
 
         String msgType;
@@ -1982,11 +1983,11 @@ public class Session implements Closeable {
                 LOG.warn("Heartbeat failure detected but deactivated");
             }
         } else {
-            if (state.isTestRequestNeeded()) {
+            if (state.isTestRequestNeeded(sessionID)) {
                 generateTestRequest("TEST");
                 getLog().onEvent("Sent test request TEST");
                 stateListener.onMissedHeartBeat();
-            } else if (state.isHeartBeatNeeded()) {
+            } else if (state.isHeartBeatNeeded(sessionID)) {
                 generateHeartbeat();
             }
         }
@@ -2043,6 +2044,7 @@ public class Session implements Closeable {
             logon.setBoolean(ResetSeqNumFlag.FIELD, true);
         }
         state.setLastReceivedTime(SystemTime.currentTimeMillis());
+        state.setLastReceivedTimeNanos(SystemTime.currentTimeMillisFromNanos());
         state.clearTestRequestCounter();
         state.setLogonSent(true);
         logonAttempts++;
@@ -2343,6 +2345,7 @@ public class Session implements Closeable {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
                     getLog().onEvent("Resending message: " + msgSeqNum);
+                    state.setLastSentTime(SystemTime.currentTimeMillis());
                     send(msg.toString());
                     begin = 0;
                     appMessageJustSent = true;
@@ -2598,8 +2601,8 @@ public class Session implements Closeable {
             final Message.Header header = message.getHeader();
             final String msgType = header.getString(MsgType.FIELD);
 
-            initializeHeader(header);
-
+            initializeHeader(header);   // TODO still duplicate to generateXXX methods
+            state.setLastSentTime(SystemTime.currentTimeMillis());
             if (num > 0) {
                 header.setInt(MsgSeqNum.FIELD, num);
             }
@@ -2654,7 +2657,6 @@ public class Session implements Closeable {
                     result = send(messageString);
                 }
             }
-
             return result;
         } catch (final IOException e) {
             logThrowable(getLog(), "Error reading/writing in MessageStore", e);

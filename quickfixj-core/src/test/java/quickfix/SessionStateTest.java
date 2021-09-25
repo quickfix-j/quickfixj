@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +47,7 @@ public class SessionStateTest  {
         SessionState state = new SessionState(new Object(), null, 0, false, null,
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
         state.setLastReceivedTime(900);
+        state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(900));
         assertFalse("logon timeout not init'ed", state.isLogonTimedOut());
 
         state.setLogoutSent(true);
@@ -55,23 +57,25 @@ public class SessionStateTest  {
 
     @Test
     public void testTestRequestTiming() {
+        SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
         SessionState state = new SessionState(new Object(), null, 0, false, null,
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
-        state.setLastReceivedTime(950);
+        state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(950));
         state.setHeartBeatInterval(50);
-        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
+        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded(sessionID1));
         for (int i = 0; i < 5; i++) {
             state.incrementTestRequestCounter();
         }
-        assertFalse("testRequest should be needed", state.isTestRequestNeeded());
+        assertFalse("testRequest should be needed", state.isTestRequestNeeded(sessionID1));
 
         // set the heartbeat interval to something small and we shouldn't need it again
         state.setHeartBeatInterval(3);
-        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
+        assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded(sessionID1));
     }
 
     @Test
     public void testHeartbeatTiming() {
+        SessionID sessionID1 = new SessionID(FixVersions.BEGINSTRING_FIX44, "ISLD", "TW");
         // we set a HB interval of 2 seconds = 2000ms
         SessionState state = new SessionState(new Object(), null, 2 /* HB interval */, false, null,
                 Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
@@ -79,12 +83,12 @@ public class SessionStateTest  {
         long now = System.currentTimeMillis();
         timeSource.setSystemTimes(now);
         state.setLastSentTime(now);
-        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded());
+        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded(sessionID1));
         timeSource.increment(1000);
-        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded());
+        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded(sessionID1));
         timeSource.increment(1000);
         // current time is now 2000ms further since the start, i.e. the HB interval has elapsed
-        assertTrue("heartbeat should be needed", state.isHeartBeatNeeded());
+        assertTrue("heartbeat should be needed", state.isHeartBeatNeeded(sessionID1));
     }
 
     @Test
@@ -93,15 +97,15 @@ public class SessionStateTest  {
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
 
         // session should timeout after 2.4 * 30 = 72 seconds
-        state.setLastReceivedTime(950_000);
+        state.setLastReceivedTimeNanos(TimeUnit.MILLISECONDS.toNanos(950_000));
 
-        timeSource.setSystemTimes(1_000_000L);
+        timeSource.setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(1_000_000L));
         assertFalse("session is still valid", state.isTimedOut());
 
-        timeSource.setSystemTimes(1_021_999L);
+        timeSource.setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(1_021_999L));
         assertFalse("session is still valid", state.isTimedOut());
 
-        timeSource.setSystemTimes(1_022_000L);
+        timeSource.setSystemTimesNanos(TimeUnit.MILLISECONDS.toNanos(1_022_000L));
         assertTrue("session timed out", state.isTimedOut());
     }
 }

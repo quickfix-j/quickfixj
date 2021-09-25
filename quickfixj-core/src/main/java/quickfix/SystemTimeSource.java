@@ -33,6 +33,8 @@ public interface SystemTimeSource {
      * @return current (possible simulated) time
      */
     long getTime();
+
+    long getTimeFromNanos();
     
     /**
      * Obtain current LocalDateTime.
