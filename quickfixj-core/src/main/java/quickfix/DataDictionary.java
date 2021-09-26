@@ -43,7 +43,6 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -751,9 +750,8 @@ public class DataDictionary {
 
     private void iterate(FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
             IncorrectDataFormat {
-        final Iterator<Field<?>> iterator = map.iterator();
-        while (iterator.hasNext()) {
-            final StringField field = (StringField) iterator.next();
+        for (final Field<?> f : map) {
+            final StringField field = (StringField) f;
 
             checkHasValue(field);
 

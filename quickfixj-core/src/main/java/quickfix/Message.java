@@ -66,7 +66,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -392,9 +391,7 @@ public class Message extends FieldMap {
         final Document document = message.getOwnerDocument();
         final Element fields = document.createElement(section);
         message.appendChild(fields);
-        final Iterator<Field<?>> fieldItr = fieldMap.iterator();
-        while (fieldItr.hasNext()) {
-            final Field<?> field = fieldItr.next();
+        for (final Field<?> field : fieldMap) {
             final Element fieldElement = document.createElement("field");
             if (dataDictionary != null) {
                 final String name = dataDictionary.getFieldName(field.getTag());
@@ -412,9 +409,7 @@ public class Message extends FieldMap {
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
         }
-        final Iterator<Integer> groupKeyItr = fieldMap.groupKeyIterator();
-        while (groupKeyItr.hasNext()) {
-            final int groupKey = groupKeyItr.next();
+        for (final int groupKey : fieldMap.groupKeys()) {
             final Element groupsElement = document.createElement("groups");
             fields.appendChild(groupsElement);
             if (dataDictionary != null) {
