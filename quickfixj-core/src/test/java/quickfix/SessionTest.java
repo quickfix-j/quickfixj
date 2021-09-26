@@ -103,7 +103,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
         }
@@ -144,7 +144,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
             
@@ -1876,7 +1876,7 @@ public class SessionTest {
 
     @Test
     // QFJ-457
-    public void testAcceptorRelogon() throws Exception {
+    public void testAcceptorRejectsLogonWhenLogoutInitiatedLocally() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
@@ -1895,13 +1895,40 @@ public class SessionTest {
                     UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
             logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
             session.next(logout);
-            
-            // session.reset();
+
+            assertFalse(session.isEnabled());
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertNotEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
-                    .getString(MsgType.FIELD));
+            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
+        }
+    }
+
+    @Test
+    public void testAcceptorAcceptsLogonWhenLogoutInitiatedExternally() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+
+            logonTo(session);
+            assertTrue(session.isEnabled());
+            assertTrue(session.isLoggedOn());
+
+            final Message logout = new Logout();
+            logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
+            logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
+            logout.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
+            session.next(logout);
+
+            session.next();
+
+            assertTrue(session.isEnabled());
+            assertFalse(session.isLoggedOn());
+            logonTo(session, 3);
+            Message lastToAdminMessage = application.lastToAdminMessage();
+            assertEquals(Logon.MSGTYPE, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
         }
     }
 
@@ -2078,7 +2105,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, false, false, false, true, false, true, false, null, true,
-                chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2140,7 +2167,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2188,7 +2215,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2237,7 +2264,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2273,7 +2300,7 @@ public class SessionTest {
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2325,7 +2352,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -2441,7 +2468,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
 
@@ -2955,4 +2982,70 @@ public class SessionTest {
         }
     }
 
+    @Test
+    public void testSendWithAllowPosDupAsFalse_ShouldRemovePossDupFlagAndOrigSendingTime() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        logonTo(session);
+
+        session.send(createPossDupAppMessage(1), false);
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertFalse(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertFalse(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testSendWithAllowPosDupAsFalse_ShouldRemovePossDupFlagAndOrigSendingTime_GivenAllowPosDupConfigurationPropertySetToTrue() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.setAllowPosDup(true);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1), false);
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertFalse(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertFalse(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testSendWithAllowPosDupAsTrue_ShouldKeepPossDupFlagAndOrigSendingTime() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1), true);
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testSend_ShouldKeepPossDupFlagAndOrigSendingTime_GivenAllowPosDupConfigurationPropertySetToTrue() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.setAllowPosDup(true);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1));
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
 }

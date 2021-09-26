@@ -60,7 +60,7 @@ public class InitiatorIoHandlerTest {
             stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
 
             final InitiatorIoHandler handler = new InitiatorIoHandler(session,
-                    new NetworkingOptions(new Properties()), eventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), eventHandlingStrategy);
 
             final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
             final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),

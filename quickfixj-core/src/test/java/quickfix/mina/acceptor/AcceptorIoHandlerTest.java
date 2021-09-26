@@ -72,6 +72,7 @@ public class AcceptorIoHandlerTest {
     public void testFIXTLogonAndApplVerID() throws Exception {
         EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
         IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
                 "TARGET");
@@ -84,7 +85,7 @@ public class AcceptorIoHandlerTest {
             final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
 
             final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
-                    new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
             final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
             final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
@@ -103,6 +104,7 @@ public class AcceptorIoHandlerTest {
     @Test
     public void testMessageBeforeLogon() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
         stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null);
 
         EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
@@ -110,7 +112,7 @@ public class AcceptorIoHandlerTest {
         HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
 
         AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
-                new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
         handler.processMessage(mockIoSession, new Logout());
 
@@ -125,6 +127,7 @@ public class AcceptorIoHandlerTest {
     @Test
     public void testMessageBeforeLogonWithBoundSession() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
 
         try (Session qfSession = SessionFactoryTestSupport.createSession()) {
             stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(qfSession);
@@ -140,7 +143,7 @@ public class AcceptorIoHandlerTest {
             HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
 
             AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
-                    new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
             handler.processMessage(mockIoSession, logout);
 
@@ -152,6 +155,7 @@ public class AcceptorIoHandlerTest {
     @Test
     public void testMessageBeforeLogonWithKnownButUnboundSession() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
 
         stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null);
 
@@ -171,7 +175,7 @@ public class AcceptorIoHandlerTest {
             HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
             acceptorSessions.put(qfSession.getSessionID(), qfSession);
             AcceptorIoHandler handler = new AcceptorIoHandler(createSessionProvider(acceptorSessions),
-                    new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
             handler.processMessage(mockIoSession, logout);
 
@@ -185,6 +189,7 @@ public class AcceptorIoHandlerTest {
     public void testLogonWithoutHeartBtInt() throws Exception {
         EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
         IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
 
         final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
                 "TARGET");
@@ -197,7 +202,7 @@ public class AcceptorIoHandlerTest {
             final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
 
             final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
-                    new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
 
             final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
             final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
@@ -235,7 +240,7 @@ public class AcceptorIoHandlerTest {
             final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
 
             final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
-                    new NetworkingOptions(new Properties()), eventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), eventHandlingStrategy);
 
             final DefaultApplVerID defaultApplVerID = new DefaultApplVerID(ApplVerID.FIX50SP2);
             final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
@@ -338,7 +343,7 @@ public class AcceptorIoHandlerTest {
             final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
 
             final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
-                    new NetworkingOptions(new Properties()), eventHandlingStrategy);
+                    settings, new NetworkingOptions(new Properties()), eventHandlingStrategy);
 
             // garbled: missing msgtype
             String fixString = "8=FIXT.1.19=6834=349=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=a10=248";

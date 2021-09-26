@@ -364,6 +364,13 @@ public class Session implements Closeable {
     public static final String SETTING_ALLOWED_REMOTE_ADDRESSES = "AllowedRemoteAddresses";
 
     /**
+     * Log the entire message when the corresponding session can not be found.
+     * Otherwise only the SessionID is logged.
+     * Valid values are "Y" or "N". Default is "Y".
+     */
+    public static final String SETTING_LOG_MESSAGE_WHEN_SESSION_NOT_FOUND = "LogMessageWhenSessionNotFound";
+
+    /**
      * Setting to limit the size of a resend request in case of missing messages.
      * This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest
      */
@@ -372,6 +379,11 @@ public class Session implements Closeable {
     public static final String SETTING_MAX_SCHEDULED_WRITE_REQUESTS = "MaxScheduledWriteRequests";
 
     public static final String SETTING_VALIDATE_CHECKSUM = "ValidateChecksum";
+
+    /**
+     * Option so that the session does not remove PossDupFlag (43) and OrigSendingTime (122) information when sending.
+     */
+    public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
@@ -423,6 +435,7 @@ public class Session implements Closeable {
     private boolean enableNextExpectedMsgSeqNum = false;
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
+    private boolean allowPosDup = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -464,7 +477,7 @@ public class Session implements Closeable {
              messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
              false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
              false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -482,7 +495,8 @@ public class Session implements Closeable {
             boolean forceResendWhenCorruptedStore, Set<InetAddress> allowedRemoteAddresses,
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
-            boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier) {
+            boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
+            boolean allowPossDup) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -517,6 +531,7 @@ public class Session implements Closeable {
         this.enableLastMsgSeqNumProcessed = enableLastMsgSeqNumProcessed;
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
+        this.allowPosDup = allowPossDup;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -881,9 +896,8 @@ public class Session implements Closeable {
                     ((ApplicationExtended) application).onBeforeSessionReset(sessionID);
                 }
                 state.setResetStatePending(true);
-                logout("Session reset");
+                generateLogout("Session reset");
                 getLog().onEvent("Initiated logout request");
-                generateLogout(state.getLogoutReason());
             } else {
                 resetState();
             }
@@ -1405,6 +1419,7 @@ public class Session implements Closeable {
             return;
         }
 
+        final boolean logoutInitiatedLocally = state.isLogoutSent();
         state.setLogoutReceived(true);
 
         String msg;
@@ -1430,6 +1445,10 @@ public class Session implements Closeable {
         }
 
         disconnect(msg, false);
+
+        if (!state.isInitiator() && !logoutInitiatedLocally) {
+            setEnabled(true);
+        }
     }
 
     public void generateLogout() {
@@ -2082,11 +2101,6 @@ public class Session implements Closeable {
                 stateListener.onLogout(sessionID);
             }
         } finally {
-            // QFJ-457 now enabled again if acceptor
-            if (!state.isInitiator()) {
-                setEnabled(true);
-            }
-
             state.setLogonReceived(false);
             state.setLogonSent(false);
             state.setLogoutSent(false);
@@ -2106,6 +2120,9 @@ public class Session implements Closeable {
     private void nextLogon(Message logon) throws FieldNotFound, RejectLogon, IncorrectDataFormat,
             IncorrectTagValue, UnsupportedMessageType, IOException, InvalidMessage {
 
+        if (!enabled) {
+            throw new RejectLogon("Logon attempt when session is disabled");
+        }
         // QFJ-357
         // If this check is not done here, the Logon would be accepted and
         // immediately followed by a Logout (due to check in Session.next()).
@@ -2674,7 +2691,7 @@ public class Session implements Closeable {
      * information already is present).
      *
      * The returned status flag is included for
-     * compatibility with the JNI API but it's usefulness is questionable.
+     * compatibility with the JNI API but its usefulness is questionable.
      * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
      * only indicates the message was successfully queued for transmission. An error could still
      * occur before the message data is actually sent.
@@ -2683,6 +2700,30 @@ public class Session implements Closeable {
      * @return a status flag indicating whether the write to the network layer was successful.
      */
     public boolean send(Message message) {
+        return send(message, this.allowPosDup);
+    }
+
+    /**
+     * Send a message to a counterparty. Sequence numbers and information about the sender
+     * and target identification will be added automatically (or overwritten if that
+     * information already is present).
+     *
+     * The returned status flag is included for
+     * compatibility with the JNI API but its usefulness is questionable.
+     * In QuickFIX/J, the message is transmitted using asynchronous network I/O so the boolean
+     * only indicates the message was successfully queued for transmission. An error could still
+     * occur before the message data is actually sent.
+     *
+     * @param message       the message to send
+     * @param allowPosDup   whether to allow PossDupFlag and OrigSendingTime in the message
+     * @return a status flag indicating whether the write to the network layer was successful.
+     */
+    public boolean send(Message message, boolean allowPosDup) {
+        // Send message as is if allowPosDup flag is set
+        if (allowPosDup) {
+            return sendRaw(message, 0);
+        }
+
         message.getHeader().removeField(PossDupFlag.FIELD);
         message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
@@ -2885,6 +2926,10 @@ public class Session implements Closeable {
         stateListeners.removeListener(listener);
     }
 
+    public SessionStateListener getStateListener() {
+        return stateListener;
+    }
+
     /**
      * @return the default application version ID for messages sent from this session
      */
@@ -2990,6 +3035,10 @@ public class Session implements Closeable {
     public boolean isAllowedForSession(InetAddress remoteInetAddress) {
         return allowedRemoteAddresses == null || allowedRemoteAddresses.isEmpty()
                 || allowedRemoteAddresses.contains(remoteInetAddress);
+    }
+
+    public void setAllowPosDup(boolean allowPosDup) {
+        this.allowPosDup = allowPosDup;
     }
 
     /**

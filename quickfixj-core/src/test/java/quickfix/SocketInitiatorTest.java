@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.ReflectionUtil;
 
@@ -55,6 +56,8 @@ import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+
 
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -229,6 +232,45 @@ public class SocketInitiatorTest {
         }
     }
 
+    @Test
+    public void testInitiatorConnectionException() throws Exception {
+        // use a free port to make sure nothing is listening
+        int freePort = AvailablePortFinder.getNextAvailable();
+        Initiator initiator = null;
+        AtomicBoolean onConnectExceptionWasCalled = new AtomicBoolean(false);
+        try {
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
+            settings.setString(clientSessionID, "ReconnectInterval", "1");
+            settings.setString(clientSessionID, "SocketConnectHost", "localhost");
+            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+
+            SessionStateListener sessionStateListener = new SessionStateListener() {
+                @Override
+                public void onConnectException(Exception e) {
+                    onConnectExceptionWasCalled.set(true);
+                }
+            };
+            // add state listener on creation of Session
+            Application clientApplication = new ApplicationAdapter() {
+                @Override
+                public void onCreate(SessionID sessionId) {
+                    Session.lookupSession(clientSessionID).addStateListener(sessionStateListener);
+                }
+            };
+            DefaultSessionFactory sessionFactory = new DefaultSessionFactory(clientApplication, new MemoryStoreFactory(), new ScreenLogFactory(settings), new DefaultMessageFactory());
+            initiator = new SocketInitiator(sessionFactory, settings, 10000);
+            initiator.start();
+            Thread.sleep(3000); // make sure we try to connect
+        } finally {
+            if (initiator != null) {
+                initiator.stop(true);
+            }
+            assertTrue(onConnectExceptionWasCalled.get());
+        }
+    }
+
+
     private interface LogSessionStateListener extends Log, SessionStateListener {}
 
     // QFJ-907
@@ -365,6 +407,36 @@ public class SocketInitiatorTest {
         assertEquals(1, onConnectCallCount.intValue());
         assertEquals(1, onDisconnectCallCount.intValue());
     }
+
+    
+    @Test
+    public void testInitiatorContinueInitializationOnError() throws ConfigError, InterruptedException, IOException {
+        final ServerSocket serverSocket = new ServerSocket(0);
+        final int port = serverSocket.getLocalPort();
+        final SessionSettings settings = new SessionSettings();
+        final SessionID sessionId = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
+        settings.setString(sessionId, "BeginString", "FIX.4.4");
+        settings.setString("ConnectionType", "initiator");
+        settings.setLong(sessionId, "SocketConnectPort", port);
+        settings.setString(sessionId, "SocketConnectHost", "localhost");
+        settings.setString("StartTime", "00:00:00");
+        settings.setString("EndTime", "00:00:00");
+        settings.setString("HeartBtInt", "30");
+        settings.setString("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        settings.setString(sessionId, SSLSupport.SETTING_USE_SSL, "Y");
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_NAME, "test.keystore");
+        // supply a wrong password to make initialization fail
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_PWD, "wrong-password");
+
+        final SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new ScreenLogFactory(settings), new DefaultMessageFactory());
+        initiator.start();
+
+        assertTrue(initiator.getInitiators().isEmpty());
+        initiator.stop();
+    }
+
 
     private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,
             final Initiator initiator, File messageLog, int port) throws InterruptedException, ConfigError {

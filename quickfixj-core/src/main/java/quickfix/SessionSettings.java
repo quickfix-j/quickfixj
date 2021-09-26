@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.field.converter.BooleanConverter;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Settings for sessions. Settings are grouped by FIX version and target company
@@ -148,6 +150,29 @@ public class SessionSettings {
     public SessionSettings(InputStream stream, Properties variableValues) throws ConfigError {
         this(variableValues);
         load(stream);
+    }
+
+    /**
+     * Loads session settings from a list of strings.
+     *
+     * @param listValues the list of strings
+     * @throws ConfigError
+     */
+    public SessionSettings(List<String> listValues) throws ConfigError {
+        this();
+        loadFromList(listValues);
+    }
+
+    /**
+     * Loads session settings from a list of strings with custom source of variable values in the settings.
+     *
+     * @param listValues the list of strings
+     * @param variableValues custom source of variable values in the settings
+     * @throws ConfigError
+     */
+    public SessionSettings(List<String> listValues, Properties variableValues) throws ConfigError {
+        this(variableValues);
+        loadFromList(listValues);
     }
 
     /**
@@ -412,6 +437,12 @@ public class SessionSettings {
         } catch (final IOException ex) {
             throw new ConfigError(ex.getMessage());
         }
+    }
+
+    private void loadFromList(List<String> listValues) throws ConfigError {
+        byte[] bytes = listValues.stream().collect(Collectors.joining(System.lineSeparator())).getBytes();
+        InputStream in = new ByteArrayInputStream(bytes);
+        load(in);
     }
 
     private void load(InputStream inputStream) throws ConfigError {
