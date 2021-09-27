@@ -29,6 +29,7 @@ public interface SessionStateListener {
     /**
      * Called when Exception occurs during connection establishment.
      *
+     * @param sessionID affected SessionID
      * @param exception thrown Exception
      */
     default void onConnectException(SessionID sessionID, Exception exception) {
