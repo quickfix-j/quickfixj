@@ -128,6 +128,7 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
         return toAdminMessages.get(toAdminMessages.size() - 1);
     }
 
+    @Override
     public void onReset(SessionID sessionID) {
         sessionResets++;
     }
