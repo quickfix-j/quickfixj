@@ -22,13 +22,18 @@ package quickfix;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteRequest;
+import org.apache.mina.util.AvailablePortFinder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
+import quickfix.test.util.ReflectionUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,16 +51,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
-import static junit.framework.TestCase.assertNotNull;
-import org.apache.mina.util.AvailablePortFinder;
-import org.junit.After;
 
+import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import quickfix.field.MsgType;
-import quickfix.mina.ssl.SSLSupport;
-import quickfix.test.util.ReflectionUtil;
+
+
 
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -245,7 +247,7 @@ public class SocketInitiatorTest {
 
             SessionStateListener sessionStateListener = new SessionStateListener() {
                 @Override
-                public void onConnectException(Exception e) {
+                public void onConnectException(SessionID sessionID, Exception e) {
                     onConnectExceptionWasCalled.set(true);
                 }
             };
@@ -341,49 +343,49 @@ public class SocketInitiatorTest {
             }
 
             @Override
-            public void onConnect() {
+            public void onConnect(SessionID sessionID) {
                 onConnectCallCount.incrementAndGet();
             }
 
             @Override
-            public void onDisconnect() {
+            public void onDisconnect(SessionID sessionID) {
                 onDisconnectCallCount.incrementAndGet();
             }
 
             @Override
-            public void onLogon() {
+            public void onLogon(SessionID sessionID) {
             }
 
             @Override
-            public void onLogout() {
+            public void onLogout(SessionID sessionID) {
             }
 
             @Override
-            public void onReset() {
+            public void onReset(SessionID sessionID) {
             }
 
             @Override
-            public void onRefresh() {
+            public void onRefresh(SessionID sessionID) {
             }
 
             @Override
-            public void onMissedHeartBeat() {
+            public void onMissedHeartBeat(SessionID sessionID) {
             }
 
             @Override
-            public void onHeartBeatTimeout() {
+            public void onHeartBeatTimeout(SessionID sessionID) {
             }
 
             @Override
-            public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+            public void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
             }
 
             @Override
-            public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+            public void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
             }
 
             @Override
-            public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+            public void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
             }
         };
 

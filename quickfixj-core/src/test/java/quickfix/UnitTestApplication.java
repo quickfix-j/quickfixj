@@ -129,7 +129,7 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
     }
 
     @Override
-    public void onReset() {
+    public void onReset(SessionID sessionID) {
         sessionResets++;
     }
 }

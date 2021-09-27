@@ -1215,7 +1215,7 @@ public class SessionTest {
             
             session.next(message);
             
-            verify(mockStateListener).onDisconnect();
+            verify(mockStateListener).onDisconnect(session.getSessionID());
             verifyNoMoreInteractions(mockStateListener);
         }
     }
@@ -1238,7 +1238,7 @@ public class SessionTest {
             
             session.next(message);
             
-            verify(mockStateListener).onDisconnect();
+            verify(mockStateListener).onDisconnect(session.getSessionID());
             verifyNoMoreInteractions(mockStateListener);
         }
     }

@@ -579,9 +579,9 @@ public class Session implements Closeable {
         synchronized (responderLock) {
             this.responder = responder;
             if (responder != null) {
-                stateListener.onConnect();
+                stateListener.onConnect(sessionID);
             } else {
-                stateListener.onDisconnect();
+                stateListener.onDisconnect(sessionID);
             }
         }
     }
@@ -1508,7 +1508,7 @@ public class Session implements Closeable {
 
         if (validateSequenceNumbers && sequenceReset.isSetField(NewSeqNo.FIELD)) {
             final int newSequence = sequenceReset.getInt(NewSeqNo.FIELD);
-            stateListener.onSequenceResetReceived(newSequence, isGapFill);
+            stateListener.onSequenceResetReceived(sessionID, newSequence, isGapFill);
             getLog().onEvent(
                     "Received SequenceReset FROM: " + getExpectedTargetNum() + " TO: "
                             + newSequence);
@@ -1808,7 +1808,7 @@ public class Session implements Closeable {
                         getLog().onEvent(
                                 "ResendRequest for messages FROM " + range.getBeginSeqNo() + " TO " + range.getEndSeqNo()
                                         + " has been satisfied.");
-                        stateListener.onResendRequestSatisfied(range.getBeginSeqNo(), range.getEndSeqNo());
+                        stateListener.onResendRequestSatisfied(sessionID, range.getBeginSeqNo(), range.getEndSeqNo());
                         state.setResendRange(0, 0, 0);
                     }
                 }
@@ -1977,7 +1977,7 @@ public class Session implements Closeable {
         if (state.isTimedOut()) {
             if (!disableHeartBeatCheck) {
                 disconnect("Timed out waiting for heartbeat", true);
-                stateListener.onHeartBeatTimeout();
+                stateListener.onHeartBeatTimeout(sessionID);
             } else {
                 LOG.warn("Heartbeat failure detected but deactivated");
             }
@@ -1985,7 +1985,7 @@ public class Session implements Closeable {
             if (state.isTestRequestNeeded()) {
                 generateTestRequest("TEST");
                 getLog().onEvent("Sent test request TEST");
-                stateListener.onMissedHeartBeat();
+                stateListener.onMissedHeartBeat(sessionID);
             } else if (state.isHeartBeatNeeded()) {
                 generateHeartbeat();
             }
@@ -2098,7 +2098,7 @@ public class Session implements Closeable {
                     logApplicationException("onLogout()", t);
                 }
 
-                stateListener.onLogout();
+                stateListener.onLogout(sessionID);
             }
         } finally {
             state.setLogonReceived(false);
@@ -2279,7 +2279,7 @@ public class Session implements Closeable {
             } catch (final Throwable t) {
                 logApplicationException("onLogon()", t);
             }
-            stateListener.onLogon();
+            stateListener.onLogon(sessionID);
             lastSessionLogon = SystemTime.currentTimeMillis();
             logonAttempts = 0;
         }
@@ -2502,7 +2502,7 @@ public class Session implements Closeable {
         int resendRangeEndSeqNum = msgSeqNum - 1;
         int resendRangeCurrentSeqNum = resendRequestChunkSize == 0 ? 0 : lastEndSeqNoSent;
         state.setResendRange(beginSeqNo, resendRangeEndSeqNum, resendRangeCurrentSeqNum);
-        stateListener.onResendRequestSent(beginSeqNo, resendRangeEndSeqNum, resendRangeCurrentSeqNum);
+        stateListener.onResendRequestSent(sessionID, beginSeqNo, resendRangeEndSeqNum, resendRangeCurrentSeqNum);
     }
 
     private boolean validatePossDup(Message msg) throws FieldNotFound, IOException {
@@ -2678,7 +2678,7 @@ public class Session implements Closeable {
         }
         try {
             state.reset();
-            stateListener.onReset();
+            stateListener.onReset(sessionID);
         } finally {
             isResettingState.set(false);
             state.setResetStatePending(false);
@@ -3084,7 +3084,7 @@ public class Session implements Closeable {
     private void refreshState() throws IOException {
         getLog().onEvent("Refreshing message/state store on Logon");
         getStore().refresh();
-        stateListener.onRefresh();
+        stateListener.onRefresh(sessionID);
     }
 
 }
