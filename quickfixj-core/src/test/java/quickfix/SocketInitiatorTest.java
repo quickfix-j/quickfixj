@@ -247,7 +247,7 @@ public class SocketInitiatorTest {
 
             SessionStateListener sessionStateListener = new SessionStateListener() {
                 @Override
-                public void onConnectException(Exception e) {
+                public void onConnectException(SessionID sessionID, Exception e) {
                     onConnectExceptionWasCalled.set(true);
                 }
             };
