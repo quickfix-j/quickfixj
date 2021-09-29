@@ -42,8 +42,8 @@ public class DefaultSessionSchedule implements SessionSchedule {
     protected static final Logger LOG = LoggerFactory.getLogger(DefaultSessionSchedule.class);
 
     //Cache recent time data to reduce creation of calendar objects
-    private ThreadLocal<Calendar> threadLocalCalendar;
-    private ThreadLocal<TimeInterval> threadLocalRecentTimeInterval;
+    private final ThreadLocal<Calendar> threadLocalCalendar;
+    private final ThreadLocal<TimeInterval> threadLocalRecentTimeInterval;
 
     public DefaultSessionSchedule(SessionSettings settings, SessionID sessionID) throws ConfigError,
             FieldConvertError {
