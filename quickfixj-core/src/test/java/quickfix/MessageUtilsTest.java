@@ -19,7 +19,6 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.DefaultApplVerID;
@@ -36,14 +35,18 @@ import quickfix.fix50.Email;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.when;
 
-public class MessageUtilsTest extends TestCase {
+public class MessageUtilsTest {
 
+    @Test
     public void testGetStringField() throws Exception {
         String messageString = "8=FIX.4.2\0019=12\00135=X\001108=30\00110=049\001";
         assertEquals("wrong value", "FIX.4.2", MessageUtils.getStringField(messageString,
@@ -52,6 +55,7 @@ public class MessageUtilsTest extends TestCase {
         assertNull(messageString, MessageUtils.getStringField(messageString, SenderCompID.FIELD));
     }
 
+    @Test
     public void testSessionIdFromMessage() throws Exception {
         Message message = new Logon();
         message.getHeader().setString(SenderCompID.FIELD, "TW");
@@ -62,6 +66,7 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("ISLD", sessionID.getTargetCompID());
     }
 
+    @Test
     public void testReverseSessionIdFromMessage() throws Exception {
         Message message = new Logon();
         message.getHeader().setString(SenderCompID.FIELD, "TW");
@@ -72,6 +77,7 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("TW", sessionID.getTargetCompID());
     }
 
+    @Test
     public void testReverseSessionIdFromMessageWithMissingFields() throws Exception {
         Message message = new Logon();
         SessionID sessionID = MessageUtils.getReverseSessionID(message);
@@ -80,6 +86,7 @@ public class MessageUtilsTest extends TestCase {
         assertEquals(sessionID.getTargetCompID(), SessionID.NOT_SET);
     }
 
+    @Test
     public void testSessionIdFromRawMessage() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
@@ -89,6 +96,7 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("ISLD", sessionID.getTargetCompID());
     }
 
+    @Test
     public void testReverseSessionIdFromRawMessage() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\00150=TWS\001" +
             "142=TWL\00152=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
@@ -100,12 +108,14 @@ public class MessageUtilsTest extends TestCase {
         assertEquals("TWL", sessionID.getTargetLocationID());
     }
 
+    @Test
     public void testMessageType() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         assertEquals("A", MessageUtils.getMessageType(messageString));
     }
 
+    @Test
     public void testMessageTypeError() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
@@ -117,6 +127,7 @@ public class MessageUtilsTest extends TestCase {
         }
     }
 
+    @Test
     public void testMessageTypeError2() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00135=1";
         try {
@@ -127,23 +138,26 @@ public class MessageUtilsTest extends TestCase {
         }
     }
 
+    @Test
     public void testGetNonexistentStringField() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         assertNull(MessageUtils.getStringField(messageString, 35));
     }
 
+    @Test
     public void testGetStringFieldWithBadValue() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223";
         assertNull(MessageUtils.getStringField(messageString, 10));
     }
 
+    @Test
     public void testParse() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
-        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
-        stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
+        when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
+        when(mockSession.getMessageFactory()).thenReturn(new quickfix.fix40.MessageFactory());
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
 
@@ -152,6 +166,7 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(notNullValue()));
     }
 
+    @Test
     public void testLegacyParse() throws Exception {
         String data = "8=FIX.4.4\0019=309\00135=8\00149=ASX\00156=CL1_FIX44\00134=4\001" +
             "52=20060324-01:05:58\00117=X-B-WOW-1494E9A0:58BD3F9D-1109\001150=D\001" +
@@ -164,11 +179,12 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(notNullValue()));
     }
 
+    @Test
     public void testParseFixt() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
-        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
-        stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
+        when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
+        when(mockSession.getMessageFactory()).thenReturn(new quickfix.fix40.MessageFactory());
 
         Email email = new Email(new EmailThreadID("THREAD_ID"), new EmailType(EmailType.NEW), new Subject("SUBJECT"));
         email.getHeader().setField(new ApplVerID(ApplVerID.FIX42));
@@ -181,11 +197,12 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(quickfix.fix40.Email.class));
     }
 
+    @Test
     public void testParseFixtLogon() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
-        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
-        stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
+        when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
+        when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
 
         quickfix.fixt11.Logon logon = new quickfix.fixt11.Logon(new EncryptMethod(EncryptMethod.NONE_OTHER), new HeartBtInt(30),
                 new DefaultApplVerID(ApplVerID.FIX42));
@@ -196,11 +213,12 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(quickfix.fixt11.Logon.class));
     }
 
+    @Test
     public void testParseFixtLogout() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
-        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
-        stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
+        when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
+        when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
 
         quickfix.fixt11.Logout logout = new quickfix.fixt11.Logout();
 
@@ -210,11 +228,12 @@ public class MessageUtilsTest extends TestCase {
         assertThat(message, is(quickfix.fixt11.Logout.class));
     }
 
+    @Test
     public void testParseFix50() throws Exception {
         Session mockSession = mock(Session.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
-        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
-        stub(mockSession.getMessageFactory()).toReturn(new DefaultMessageFactory());
+        when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
+        when(mockSession.getMessageFactory()).thenReturn(new DefaultMessageFactory());
 
         Email email = new Email(new EmailThreadID("THREAD_ID"), new EmailType(EmailType.NEW), new Subject("SUBJECT"));
         email.getHeader().setField(new ApplVerID(ApplVerID.FIX50));
@@ -228,6 +247,7 @@ public class MessageUtilsTest extends TestCase {
     }
 
     // QFJ-973
+    @Test
     public void testParseMessageWithoutChecksumValidation() throws InvalidMessage {
         Session mockSession = mock(Session.class);
         when(mockSession.isValidateChecksum()).thenReturn(Boolean.FALSE);
@@ -235,8 +255,8 @@ public class MessageUtilsTest extends TestCase {
         DataDictionary dataDictionary = mock(DataDictionary.class);
         DataDictionaryProvider mockDataDictionaryProvider = mock(DataDictionaryProvider.class);
         when(mockDataDictionaryProvider.getSessionDataDictionary(any(String.class))).thenReturn(dataDictionary);
-        stub(mockSession.getDataDictionaryProvider()).toReturn(mockDataDictionaryProvider);
-        stub(mockSession.getMessageFactory()).toReturn(new quickfix.fix40.MessageFactory());
+        when(mockSession.getDataDictionaryProvider()).thenReturn(mockDataDictionaryProvider);
+        when(mockSession.getMessageFactory()).thenReturn(new quickfix.fix40.MessageFactory());
 
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
                 "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=283\001";

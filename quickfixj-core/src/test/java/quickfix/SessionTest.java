@@ -64,7 +64,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -91,12 +90,11 @@ public class SessionTest {
 
         final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
         final CloseableMessageStore mockMessageStore = mock(CloseableMessageStore.class);
-        stub(mockMessageStoreFactory.create(sessionID)).toReturn(
-                mockMessageStore);
+        when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final CloseableLog mockLog = mock(CloseableLog.class);
-        stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
@@ -132,12 +130,11 @@ public class SessionTest {
 
         final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
         final MessageStore mockMessageStore = mock(MessageStore.class);
-        stub(mockMessageStoreFactory.create(sessionID)).toReturn(
-                mockMessageStore);
+        when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final Log mockLog = mock(Log.class);
-        stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
