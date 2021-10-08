@@ -11,6 +11,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
 public class X509TrustManagerWrapperTest {
 
     private X509TrustManagerWrapper underTest;
@@ -18,14 +21,14 @@ public class X509TrustManagerWrapperTest {
 
     @Before
     public void setUp() throws Exception {
-        trustManager = Mockito.mock(X509TrustManager.class);
+        trustManager = mock(X509TrustManager.class);
         underTest = new X509TrustManagerWrapper(trustManager);
     }
 
     @Test
     public void shouldWrapX509TrustManagers() {
-        TrustManager[] managers = new TrustManager[] { Mockito.mock(TrustManager.class),
-                Mockito.mock(X509TrustManager.class) };
+        TrustManager[] managers = new TrustManager[]{mock(TrustManager.class),
+            mock(X509TrustManager.class)};
 
         TrustManager[] wrapped = X509TrustManagerWrapper.wrap(managers);
 
@@ -38,8 +41,8 @@ public class X509TrustManagerWrapperTest {
     @Test(expected = CertificateException.class)
     public void shouldRethrowCertificateExceptionOnCheckClientTrusted() throws Exception {
         // underlying trust manager should throw runtime exception
-        Mockito.doThrow(new RuntimeException()).when(trustManager)
-                .checkClientTrusted(Mockito.any(X509Certificate[].class), Mockito.anyString());
+        doThrow(new RuntimeException()).when(trustManager)
+                .checkClientTrusted(Mockito.<X509Certificate[]>any(), Mockito.<String>any());
 
         underTest.checkClientTrusted(null, null);
     }
@@ -47,8 +50,8 @@ public class X509TrustManagerWrapperTest {
     @Test(expected = CertificateException.class)
     public void shouldRethrowCertificateExceptionOnCheckServerTrusted() throws Exception {
         // underlying trust manager should throw runtime exception
-        Mockito.doThrow(new RuntimeException()).when(trustManager)
-                .checkServerTrusted(Mockito.any(X509Certificate[].class), Mockito.anyString());
+        doThrow(new RuntimeException()).when(trustManager)
+                .checkServerTrusted(Mockito.<X509Certificate[]>any(), Mockito.<String>any());
 
         underTest.checkServerTrusted(null, null);
     }

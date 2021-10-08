@@ -22,12 +22,9 @@ package quickfix;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
 
 import java.io.InvalidObjectException;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import quickfix.MessageCracker.RedundantHandlerException;
@@ -41,14 +38,6 @@ import quickfix.field.TargetCompID;
 
 public class MessageCrackerTest {
     private int messageCracked;
-    private Session mockSession;
-
-    @Before
-    public void setUp() throws Exception {
-        mockSession = mock(Session.class);
-        stub(mockSession.getTargetDefaultApplicationVersionID()).toReturn(
-                new ApplVerID(ApplVerID.FIX50SP2));
-    }
 
     @Test(expected=UnsupportedMessageType.class)
     public void testInvokerException1() throws Exception {
@@ -241,8 +230,6 @@ public class MessageCrackerTest {
     @Test
     public void testFixtMessageCrackingWithSessionDefaultApplVerID() throws Exception {
         quickfix.fix44.Email message = createFix44Email();
-        stub(mockSession.getTargetDefaultApplicationVersionID()).toReturn(
-                new ApplVerID(ApplVerID.FIX44));
 
         MessageCracker cracker = new MessageCracker() {
             @SuppressWarnings("unused")
