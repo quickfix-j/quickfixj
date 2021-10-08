@@ -34,7 +34,7 @@ import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
+import static org.mockito.Mockito.when;
 
 public class InitiatorIoHandlerTest {
 
@@ -57,7 +57,7 @@ public class InitiatorIoHandlerTest {
                         ApplVerID.FIX50SP2))) {
             session.setRejectGarbledMessage(true);
             eventHandlingStrategy.blockInThread();
-            stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(null); // to create a new Session
+            when(mockIoSession.getAttribute("QF_SESSION")).thenReturn(null);    // to create a new Session
 
             final InitiatorIoHandler handler = new InitiatorIoHandler(session,
                     settings, new NetworkingOptions(new Properties()), eventHandlingStrategy);
@@ -77,7 +77,7 @@ public class InitiatorIoHandlerTest {
 
             assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
             assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
-            stub(mockIoSession.getAttribute("QF_SESSION")).toReturn(session);
+            when(mockIoSession.getAttribute("QF_SESSION")).thenReturn(session);
 
             // garbled: character as group count
             String fixString = "8=FIXT.1.19=6835=B34=249=TARGET52=20180623-22:06:28.97756=SENDER148=foo33=a10=248";
