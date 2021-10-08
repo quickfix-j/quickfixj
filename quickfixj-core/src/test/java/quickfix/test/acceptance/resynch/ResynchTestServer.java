@@ -55,10 +55,15 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
     private Thread serverThread;
     private final CountDownLatch initializationLatch = new CountDownLatch(1);
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
+    private final int port;
 
     private boolean unsynchMode = false;
     private boolean validateSequenceNumbers = true;
 
+    public ResynchTestServer(int port) {
+        this.port = port;
+    }
+    
     @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
@@ -107,7 +112,7 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
         try {
             HashMap<Object, Object> defaults = new HashMap<>();
             defaults.put("ConnectionType", "acceptor");
-            defaults.put("SocketAcceptPort", "19889");
+            defaults.put("SocketAcceptPort", String.valueOf(port));
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
             defaults.put("SenderCompID", "ISLD");
@@ -159,11 +164,6 @@ public class ResynchTestServer extends MessageCracker implements Application, Ru
 
     public void waitForInitialization() throws InterruptedException {
         initializationLatch.await();
-    }
-
-    public static void main(String[] args) {
-        ResynchTestServer server = new ResynchTestServer();
-        server.run();
     }
 
     public void setUnsynchMode(boolean unsynchMode) {

@@ -55,10 +55,17 @@ public class ResynchTestClient extends MessageCracker implements Application {
     private final SessionSettings settings = new SessionSettings();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private boolean failed;
+    private final int port;
 
     private boolean unsynchMode = false;
     private boolean forceResynch = false;
 
+    public ResynchTestClient(int port) {
+        this.port = port;
+    }
+
+    
+    
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         try {
@@ -102,7 +109,7 @@ public class ResynchTestClient extends MessageCracker implements Application {
         defaults.put("ConnectionType", "initiator");
         defaults.put("HeartBtInt", "2");
         defaults.put("SocketConnectHost", "localhost");
-        defaults.put("SocketConnectPort", "19889");
+        defaults.put("SocketConnectPort", String.valueOf(port));
         defaults.put("SocketTcpNoDelay", "Y");
         defaults.put("ReconnectInterval", "3");
         defaults.put("StartTime", "00:00:00");
@@ -152,12 +159,6 @@ public class ResynchTestClient extends MessageCracker implements Application {
     }
 
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
-    }
-
-    public static void main(String[] args) throws ConfigError, SessionNotFound,
-            InterruptedException {
-        ResynchTestClient ttc = new ResynchTestClient();
-        ttc.run();
     }
 
     public void setUnsynchMode(boolean unsynchMode) {
