@@ -413,7 +413,7 @@
                 <acceptance.tests />
             </properties>
         </profile>
-	<!-- select different java options on JDK8 for surefire since otherwise the build will fail -->
+        <!-- select different java options on JDK8 for surefire since otherwise the build will fail -->
         <profile>
             <id>surefire-java8</id>
             <activation>
@@ -425,31 +425,31 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-			    <argLine>
-				-Xmx512m -Djava.net.preferIPv4Stack=true
-			    </argLine>
-			    <trimStackTrace>false</trimStackTrace>
-			    <includes>
-				<include>**/*Test.java</include>
-				<include>${acceptance.tests}</include>
-			    </includes>
-			    <excludes>
-				<exclude>**/*ForTest.java</exclude>
-				<exclude>**/Abstract*Test.java</exclude>
-				<exclude>**/AcceptanceTestSuite$*</exclude>
-			    </excludes>
-			    <systemPropertyVariables>
-				<atest.heartbeat>5</atest.heartbeat>
-				<atest.timeout>60000</atest.timeout>
-				<atest.reconnectDelay>5</atest.reconnectDelay>
-				<atest.skipslow>false</atest.skipslow>
-			    </systemPropertyVariables>
-                   	</configuration>
+                            <argLine>
+                                -Xmx512m -Djava.net.preferIPv4Stack=true
+                            </argLine>
+                            <trimStackTrace>false</trimStackTrace>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>${acceptance.tests}</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*ForTest.java</exclude>
+                                <exclude>**/Abstract*Test.java</exclude>
+                                <exclude>**/AcceptanceTestSuite$*</exclude>
+                            </excludes>
+                            <systemPropertyVariables>
+                                <atest.heartbeat>5</atest.heartbeat>
+                                <atest.timeout>60000</atest.timeout>
+                                <atest.reconnectDelay>5</atest.reconnectDelay>
+                                <atest.skipslow>false</atest.skipslow>
+                            </systemPropertyVariables>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile> 
-	<!-- surefire for JDK9 and upwards -->
+        <!-- surefire for JDK9 and upwards -->
         <profile>
             <id>surefire</id>
             <activation>
@@ -461,27 +461,27 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-			    <argLine>
-				-Xmx512m -Djava.net.preferIPv4Stack=true
-				--add-opens java.base/java.lang=ALL-UNNAMED
-			    </argLine>
-			    <trimStackTrace>false</trimStackTrace>
-			    <includes>
-				<include>**/*Test.java</include>
-				<include>${acceptance.tests}</include>
-			    </includes>
-			    <excludes>
-				<exclude>**/*ForTest.java</exclude>
-				<exclude>**/Abstract*Test.java</exclude>
-				<exclude>**/AcceptanceTestSuite$*</exclude>
-			    </excludes>
-			    <systemPropertyVariables>
-				<atest.heartbeat>5</atest.heartbeat>
-				<atest.timeout>60000</atest.timeout>
-				<atest.reconnectDelay>5</atest.reconnectDelay>
-				<atest.skipslow>false</atest.skipslow>
-			    </systemPropertyVariables>
-                   	</configuration>
+                            <argLine>
+                                -Xmx512m -Djava.net.preferIPv4Stack=true
+                                --add-opens java.base/java.lang=ALL-UNNAMED
+                            </argLine>
+                            <trimStackTrace>false</trimStackTrace>
+                            <includes>
+                                <include>**/*Test.java</include>
+                                <include>${acceptance.tests}</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*ForTest.java</exclude>
+                                <exclude>**/Abstract*Test.java</exclude>
+                                <exclude>**/AcceptanceTestSuite$*</exclude>
+                            </excludes>
+                            <systemPropertyVariables>
+                                <atest.heartbeat>5</atest.heartbeat>
+                                <atest.timeout>60000</atest.timeout>
+                                <atest.reconnectDelay>5</atest.reconnectDelay>
+                                <atest.skipslow>false</atest.skipslow>
+                            </systemPropertyVariables>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
