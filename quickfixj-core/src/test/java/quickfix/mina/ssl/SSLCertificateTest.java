@@ -65,6 +65,7 @@ public class SSLCertificateTest {
         try {
             Thread.sleep(500);
         } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
             java.util.logging.Logger.getLogger(SSLCertificateTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

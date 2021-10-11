@@ -206,6 +206,7 @@ public class MultiAcceptorTest {
             try {
                 logonLatch.await(20, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 fail(e.getMessage());
             }
         }
@@ -220,6 +221,7 @@ public class MultiAcceptorTest {
                     fail("Timed out waiting for message");
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 fail(e.getMessage());
             }
         }
