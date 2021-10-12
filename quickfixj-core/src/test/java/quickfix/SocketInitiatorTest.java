@@ -306,6 +306,7 @@ public class SocketInitiatorTest {
         socketThread.start();
 
         final SessionSettings settings = new SessionSettings();
+        settings.setString("NonStopSession", "Y");
         settings.setString("StartTime", "00:00:00");
         settings.setString("EndTime", "00:00:00");
         settings.setString("ReconnectInterval", "30");
@@ -351,42 +352,6 @@ public class SocketInitiatorTest {
             public void onDisconnect(SessionID sessionID) {
                 onDisconnectCallCount.incrementAndGet();
             }
-
-            @Override
-            public void onLogon(SessionID sessionID) {
-            }
-
-            @Override
-            public void onLogout(SessionID sessionID) {
-            }
-
-            @Override
-            public void onReset(SessionID sessionID) {
-            }
-
-            @Override
-            public void onRefresh(SessionID sessionID) {
-            }
-
-            @Override
-            public void onMissedHeartBeat(SessionID sessionID) {
-            }
-
-            @Override
-            public void onHeartBeatTimeout(SessionID sessionID) {
-            }
-
-            @Override
-            public void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
-            }
-
-            @Override
-            public void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
-            }
-
-            @Override
-            public void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
-            }
         };
 
         LogFactory logFactory = sessionID -> logSessionStateListener;
@@ -420,6 +385,7 @@ public class SocketInitiatorTest {
         settings.setString("ConnectionType", "initiator");
         settings.setLong(sessionId, "SocketConnectPort", port);
         settings.setString(sessionId, "SocketConnectHost", "localhost");
+        settings.setString("NonStopSession", "Y");
         settings.setString("StartTime", "00:00:00");
         settings.setString("EndTime", "00:00:00");
         settings.setString("HeartBtInt", "30");
@@ -446,13 +412,14 @@ public class SocketInitiatorTest {
             serverThread.start();
             serverThread.waitForInitialization();
             long messageLogLength = 0;
+            Session clientSession = null;
             try {
                 clientApplication.setUpLogonExpectation();
                 initiator.start();
                 assertTrue(initiator.getSessions().contains(clientSessionID));
                 assertEquals(1, initiator.getSessions().size());
 
-                Session clientSession = Session.lookupSession(clientSessionID);
+                clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
 
                 clientApplication.setUpLogoutExpectation();
@@ -478,8 +445,13 @@ public class SocketInitiatorTest {
                     // QFJ-698: check that we were still able to write to the messageLog after the restart
                     assertTrue(messageLog.length() > messageLogLength);
                 }
+                
+                clientApplication.setUpLogoutExpectation();
             } finally {
                 initiator.stop();
+                if (clientSession != null) {
+                    assertLoggedOut(clientApplication, clientSession);
+                }
             }
         } finally {
             serverThread.interrupt();
@@ -527,6 +499,7 @@ public class SocketInitiatorTest {
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", Integer.toString(port));
+        defaults.put("NonStopSession", "Y");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("HeartBtInt", "30");
@@ -611,11 +584,11 @@ public class SocketInitiatorTest {
 
         @Override
         public void toAdmin(Message message, SessionID sessionId) {
-            log.info("[{}] {}", sessionId, message);
+            log.info("toAdmin: [{}] {}", sessionId, message);
 
             // Only countdown the latch if a logout message is actually sent
             try {
-                if (logoutLatch != null && message.getHeader().isSetField(MsgType.FIELD)
+                if (logoutLatch != null && logoutLatch.getCount() > 0 && message.getHeader().isSetField(MsgType.FIELD)
                         && MsgType.LOGOUT.equals(message.getHeader().getString(MsgType.FIELD))) {
                     log.info("Releasing logout latch for session [{}] with message {}", sessionId, message);
                     logoutLatch.countDown();
