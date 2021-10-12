@@ -38,7 +38,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
 
     private static int transportType = ProtocolFactory.SOCKET;
-    private static int port = 9887;
+    private static int port = AvailablePortFinder.getNextAvailable();
 
     private final boolean skipSlowTests;
     private final boolean multithreaded;
@@ -247,7 +247,6 @@ public class AcceptanceTestSuite extends TestSuite {
 
     public static Test suite() {
         transportType = ProtocolFactory.getTransportType(System.getProperty(ATEST_TRANSPORT_KEY, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET)));
-        port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite(AcceptanceTestSuite.class.getSimpleName());
         // default server
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false)));

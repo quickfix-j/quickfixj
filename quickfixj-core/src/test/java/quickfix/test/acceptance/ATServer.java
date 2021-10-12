@@ -29,7 +29,6 @@ import quickfix.FileStoreFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
-import quickfix.RuntimeError;
 import quickfix.SLF4JLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -43,7 +42,6 @@ import quickfix.test.util.ReflectionUtil;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
-import java.net.BindException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -107,6 +105,7 @@ public class ATServer implements Runnable {
             defaults.put("SocketTcpNoDelay", "Y");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
+            defaults.put("NonStopSession", "Y");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
             defaults.put("JdbcDriver", "com.mysql.jdbc.Driver");
@@ -176,15 +175,7 @@ public class ATServer implements Runnable {
             assertSessionIds();
 
             acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
-            try {
-                acceptor.start();
-            } catch (RuntimeError e) {
-                if (e.getCause() instanceof BindException) {
-                    log.warn("Acceptor port {} is still bound! Waiting 60 seconds and trying again...", port);
-                    Thread.sleep(60000);
-                    acceptor.start();
-                }
-            }
+            acceptor.start();
 
             assertSessionIds();
 

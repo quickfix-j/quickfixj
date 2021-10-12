@@ -44,16 +44,19 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import quickfix.mina.SessionConnector;
 
 public class TestConnection {
-    private static final HashMap<String, IoConnector> connectors = new HashMap<>();
+    private static final Map<Integer, IoConnector> connectors = new HashMap<>();
+    private final ConcurrentMap<Integer, TestIoHandler> ioHandlers = new ConcurrentHashMap<>();
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final HashMap<Integer, TestIoHandler> ioHandlers = new HashMap<>();
 
     public void sendMessage(int clientId, String message) throws IOException {
         TestIoHandler handler = getIoHandler(clientId);
@@ -61,9 +64,7 @@ public class TestConnection {
     }
 
     private TestIoHandler getIoHandler(int clientId) {
-        synchronized (ioHandlers) {
-            return ioHandlers.get(clientId);
-        }
+        return ioHandlers.get(clientId);
     }
 
     public void tearDown() {
@@ -87,7 +88,7 @@ public class TestConnection {
 
     public void connect(int clientId, int transportType, int port)
             throws IOException {
-        IoConnector connector = connectors.get(Integer.toString(clientId));
+        IoConnector connector = connectors.get(clientId);
         if (connector != null) {
             SessionConnector.closeManagedSessionsAndDispose(connector, true, log);
         }
@@ -102,16 +103,14 @@ public class TestConnection {
         } else {
             throw new RuntimeException("Unsupported transport type: " + transportType);
         }
-        connectors.put(Integer.toString(clientId), connector);
+        connectors.put(clientId, connector);
 
         TestIoHandler testIoHandler = new TestIoHandler();
-        synchronized (ioHandlers) {
-            ioHandlers.put(clientId, testIoHandler);
-            connector.setHandler(testIoHandler);
-            ConnectFuture future = connector.connect(address);
-            future.awaitUninterruptibly(5000L);
-            Assert.assertTrue("connection to server failed", future.isConnected());
-        }
+        ioHandlers.put(clientId, testIoHandler);
+        connector.setHandler(testIoHandler);
+        ConnectFuture future = connector.connect(address);
+        future.awaitUninterruptibly(5000L);
+        Assert.assertTrue("connection to server failed", future.isConnected());
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
@@ -144,7 +143,7 @@ public class TestConnection {
 
         public IoSession getSession() {
             try {
-                boolean await = sessionCreatedLatch.await(70, TimeUnit.SECONDS); // 10 seconds more than retry time in ATServer.run()
+                boolean await = sessionCreatedLatch.await(5, TimeUnit.SECONDS);
                 if (!await) {
                     log.error("sessionCreatedLatch timed out. Dumping threads...");
                     ReflectionUtil.dumpStackTraces();
