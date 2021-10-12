@@ -68,8 +68,11 @@ public class TestConnection {
 
     public void tearDown() {
         for (TestIoHandler testIoHandler : ioHandlers.values()) {
-            CloseFuture closeFuture = testIoHandler.getSession().closeNow();
-            closeFuture.awaitUninterruptibly();
+            IoSession session = testIoHandler.getSession();
+            if (session != null) {
+                CloseFuture closeFuture = session.closeNow();
+                closeFuture.awaitUninterruptibly();
+            }
         }
         ioHandlers.clear();
     }
@@ -165,6 +168,7 @@ public class TestConnection {
                     }
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
             return session;

@@ -134,6 +134,7 @@ public class SessionDisconnectConcurrentlyTest {
             try {
                 logonLatch.await(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 fail(e.getMessage());
             }
         }
@@ -148,6 +149,7 @@ public class SessionDisconnectConcurrentlyTest {
                     fail("Timed out waiting for message");
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 fail(e.getMessage());
             }
         }
@@ -225,7 +227,7 @@ public class SessionDisconnectConcurrentlyTest {
             try {
                 Thread.sleep(12000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             threadIds = bean.findDeadlockedThreads();
         }
