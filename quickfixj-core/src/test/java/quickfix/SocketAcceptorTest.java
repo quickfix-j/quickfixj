@@ -75,8 +75,8 @@ public class SocketAcceptorTest {
 
     @Test
     public void testRestartOfAcceptor() throws Exception {
-        TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
-        TestInitiatorApplication testInitiatorApplication = new TestInitiatorApplication();
+        TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
+        TestConnectorApplication testInitiatorApplication = new TestConnectorApplication();
         ThreadMXBean bean = ManagementFactory.getThreadMXBean();
         Acceptor acceptor = null;
         Initiator initiator = null;
@@ -109,6 +109,7 @@ public class SocketAcceptorTest {
                     log.error(e.getMessage(), e);
                 }
             }
+            testAcceptorApplication.waitForLogout();
             if (acceptor != null) {
                 try {
                     acceptor.stop();
@@ -116,7 +117,6 @@ public class SocketAcceptorTest {
                     log.error(e.getMessage(), e);
                 }
             }
-            testAcceptorApplication.waitForLogout();
             testInitiatorApplication.waitForLogout();
         }
     }
@@ -127,7 +127,7 @@ public class SocketAcceptorTest {
         Acceptor acceptor = null;
         try {
             ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-            TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+            TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
             acceptor = createAcceptor(testAcceptorApplication);
             acceptor.start();
             Thread.sleep(2500L);
@@ -148,7 +148,7 @@ public class SocketAcceptorTest {
         Acceptor acceptor = null;
         try {
             ThreadMXBean bean = ManagementFactory.getThreadMXBean();
-            TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+            TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
             acceptor = createAcceptor(testAcceptorApplication);
             acceptor.start();
             // second start should be ignored
@@ -166,7 +166,7 @@ public class SocketAcceptorTest {
     public void testSessionsAreCleanedUp() throws Exception {
         Acceptor acceptor = null;
         try {
-            TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+            TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
             acceptor = createAcceptor(testAcceptorApplication);
             acceptor.start();
             assertEquals(1, acceptor.getSessions().size() );
@@ -185,7 +185,7 @@ public class SocketAcceptorTest {
     public void testSessionsAreCleanedUpOnThreadedSocketAcceptor() throws Exception {
         Acceptor acceptor = null;
         try {
-            TestAcceptorApplication testAcceptorApplication = new TestAcceptorApplication();
+            TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
             acceptor = createAcceptorThreaded(testAcceptorApplication);
             acceptor.start();
             assertEquals(1, acceptor.getSessions().size() );
@@ -292,12 +292,12 @@ public class SocketAcceptorTest {
         return Session.lookupSession(sessionID);
     }
 
-    private static class TestAcceptorApplication extends ApplicationAdapter {
+    private class TestConnectorApplication extends ApplicationAdapter {
 
         private final CountDownLatch logonLatch;
         private final CountDownLatch logoutLatch;
 
-        public TestAcceptorApplication() {
+        public TestConnectorApplication() {
             logonLatch = new CountDownLatch(1);
             logoutLatch = new CountDownLatch(1);
         }
@@ -334,53 +334,15 @@ public class SocketAcceptorTest {
                 // ignore
             }
         }
-    }
-
-    private static class TestInitiatorApplication extends ApplicationAdapter {
-
-        private final CountDownLatch logonLatch;
-        private final CountDownLatch logoutLatch;
-
-        public TestInitiatorApplication() {
-            logonLatch = new CountDownLatch(1);
-            logoutLatch = new CountDownLatch(1);
-        }
 
         @Override
-        public void onLogon(SessionID sessionId) {
-            super.onLogon(sessionId);
-            logonLatch.countDown();
-        }
-
-        public void waitForLogon() {
-            try {
-                assertTrue("Logon timed out", logonLatch.await(10, TimeUnit.SECONDS));
-            } catch (InterruptedException e) {
-                fail(e.getMessage());
-            }
-        }
-
-        public void waitForLogout() {
-            try {
-                assertTrue("Logout timed out", logoutLatch.await(10, TimeUnit.SECONDS));
-            } catch (InterruptedException e) {
-                fail(e.getMessage());
-            }
-        }
-
-        @Override
-        public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon {
-            try {
-                if (MsgType.LOGOUT.equals(MessageUtils.getMessageType(message.toString()))) {
-                    logoutLatch.countDown();
-                }
-            } catch (InvalidMessage ex) {
-                // ignore
-            }
+        public void toAdmin(Message message, SessionID sessionId) {
+            log.info("toAdmin: [{}] {}", sessionId, message);
         }
     }
 
-    private Acceptor createAcceptor(TestAcceptorApplication testAcceptorApplication)
+    
+    private Acceptor createAcceptor(TestConnectorApplication testAcceptorApplication)
             throws ConfigError {
 
         SessionSettings settings = createAcceptorSettings();
@@ -391,7 +353,7 @@ public class SocketAcceptorTest {
                 new DefaultMessageFactory());
     }
 
-    private Acceptor createAcceptorThreaded(TestAcceptorApplication testAcceptorApplication)
+    private Acceptor createAcceptorThreaded(TestConnectorApplication testAcceptorApplication)
             throws ConfigError {
 
         SessionSettings settings = createAcceptorSettings();
@@ -409,13 +371,14 @@ public class SocketAcceptorTest {
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("BeginString", "FIX.4.2");
+        defaults.put("NonStopSession", "Y");
         settings.setString(acceptorSessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(acceptorSessionID, "SocketAcceptPort", "10000");
         settings.set(defaults);
         return settings;
     }
 
-    private Initiator createInitiator(TestInitiatorApplication testInitiatorApplication) throws ConfigError {
+    private Initiator createInitiator(TestConnectorApplication testInitiatorApplication) throws ConfigError {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
@@ -425,6 +388,7 @@ public class SocketAcceptorTest {
         defaults.put("ReconnectInterval", "2");
         defaults.put("FileStorePath", "target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
+        defaults.put("NonStopSession", "Y");
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
         settings.setString(initiatorSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         settings.setString(initiatorSessionID, "SocketConnectHost", "127.0.0.1");
