@@ -194,7 +194,9 @@ public class SingleThreadedEventHandlingStrategy implements EventHandlingStrateg
         stopHandlingMessages();
         if (join) {
             try {
-                messageProcessingThread.join();
+                if (messageProcessingThread != null) {
+                    messageProcessingThread.join();
+                }
             } catch (InterruptedException e) {
                 sessionConnector.log.warn("{} interrupted.", MESSAGE_PROCESSOR_THREAD_NAME);
                 Thread.currentThread().interrupt();
