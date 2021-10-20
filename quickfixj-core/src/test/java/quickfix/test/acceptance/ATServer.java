@@ -180,6 +180,9 @@ public class ATServer implements Runnable {
             assertSessionIds();
 
             initializationLatch.countDown();
+            
+            System.out.println("quickfix.test.acceptance.ATServer: " + acceptor.getAcceptorAddresses() );
+            
             CountDownLatch shutdownLatch = new CountDownLatch(1);
             try {
                 // running all acceptance tests should hopefully not take longer than 30 mins
