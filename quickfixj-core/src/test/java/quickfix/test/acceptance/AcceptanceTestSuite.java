@@ -218,7 +218,6 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final class AcceptanceTestServerSetUp extends TestSetup {
         private final boolean threaded;
         private final Map<Object, Object> overridenProperties;
-//        private Thread serverThread;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
         private ATServer server;
