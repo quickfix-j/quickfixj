@@ -110,7 +110,9 @@ public class TestConnection {
         connector.setHandler(testIoHandler);
         ConnectFuture future = connector.connect(address);
         future.awaitUninterruptibly(5000L);
-        Assert.assertTrue("connection to server failed", future.isConnected());
+        Throwable exception = future.getException();
+        String failedMessage = "connection to server failed: " + (exception != null ? exception.getMessage() : "");
+        Assert.assertTrue(failedMessage, future.isConnected());
     }
 
     private class TestIoHandler extends IoHandlerAdapter {
