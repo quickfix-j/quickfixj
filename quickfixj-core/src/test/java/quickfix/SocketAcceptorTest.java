@@ -102,22 +102,25 @@ public class SocketAcceptorTest {
             assertTrue("acceptor should have logged on by now", acceptor.isLoggedOn());
             assertTrue("initiator should have logged on by now", initiator.isLoggedOn());
         } finally {
-            if (initiator != null) {
-                try {
-                    initiator.stop();
-                } catch (RuntimeException e) {
-                    log.error(e.getMessage(), e);
+            try {
+                if (initiator != null) {
+                    try {
+                        initiator.stop();
+                    } catch (RuntimeException e) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
-            }
-            testAcceptorApplication.waitForLogout();
-            if (acceptor != null) {
-                try {
-                    acceptor.stop();
-                } catch (RuntimeException e) {
-                    log.error(e.getMessage(), e);
+                testAcceptorApplication.waitForLogout();
+            } finally {
+                if (acceptor != null) {
+                    try {
+                        acceptor.stop();
+                    } catch (RuntimeException e) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
+                testInitiatorApplication.waitForLogout();
             }
-            testInitiatorApplication.waitForLogout();
         }
     }
 
