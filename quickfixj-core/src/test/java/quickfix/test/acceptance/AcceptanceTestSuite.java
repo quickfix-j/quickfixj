@@ -110,9 +110,7 @@ public class AcceptanceTestSuite extends TestSuite {
         private List<TestStep> load(String filename) throws IOException {
             ArrayList<TestStep> steps = new ArrayList<>();
             log.info("load test: " + filename);
-            BufferedReader in = null;
-            try {
-                in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO8859_1"));
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO8859_1"))) {
                 String line = in.readLine();
                 while (line != null) {
                     if (line.matches("^[ \t]*#.*")) {
@@ -129,14 +127,6 @@ public class AcceptanceTestSuite extends TestSuite {
                         steps.add(new ExpectDisconnectStep(line));
                     }
                     line = in.readLine();
-                }
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
                 }
             }
             return steps;
