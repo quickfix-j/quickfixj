@@ -70,6 +70,7 @@ public class ATApplication implements Application {
     @Override
     public void toAdmin(Message message, SessionID sessionID) {
         assertNoSessionLock(sessionID);
+        System.out.println("ATApplication.toAdmin() XXXXX: " + message);
     }
 
     @Override
@@ -88,6 +89,7 @@ public class ATApplication implements Application {
     public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         assertNoSessionLock(sessionID);
+        System.out.println("ATApplication.fromAdmin() XXXXX: " + message);
     }
 
     @Override
