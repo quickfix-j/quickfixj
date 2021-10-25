@@ -180,7 +180,7 @@ public class TestConnection {
         }
 
         public void waitForDisconnect() throws InterruptedException {
-            if (!disconnectLatch.await(5000, TimeUnit.MILLISECONDS)) {
+            if (!disconnectLatch.await(20000, TimeUnit.MILLISECONDS)) {
                 Assert.fail("client not disconnected");
             }
         }
