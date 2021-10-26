@@ -180,6 +180,9 @@ public class TestConnection {
         }
 
         public void waitForDisconnect() throws InterruptedException {
+            /*  Please note that this timeout should not be too little because
+                there is at least one acceptance test (6_SendTestRequest) expecting
+                the connection to timeout after a TestRequest. */
             if (!disconnectLatch.await(20000, TimeUnit.MILLISECONDS)) {
                 Assert.fail("client not disconnected");
             }
