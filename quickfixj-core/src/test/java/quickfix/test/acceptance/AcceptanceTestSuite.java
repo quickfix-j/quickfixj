@@ -37,7 +37,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final String acceptanceTestResourcePath = "quickfix/test/acceptance/definitions/";
     private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
 
-    private static int transportType = ProtocolFactory.SOCKET;
+    private static int transportType = ProtocolFactory.VM_PIPE;
     private static int port = AvailablePortFinder.getNextAvailable();
 
     private final boolean skipSlowTests;
