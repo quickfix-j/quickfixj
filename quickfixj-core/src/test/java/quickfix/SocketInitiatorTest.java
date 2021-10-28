@@ -33,7 +33,7 @@ import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
-import quickfix.test.util.ReflectionUtil;
+import quickfix.test.util.StackTraceUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -527,7 +527,7 @@ public class SocketInitiatorTest {
                 }
                 if ( clientApplication.logonLatch.getCount() > 0 ) {
                     System.err.println("XXX Dumping threads since latch count is not zero...");
-                    ReflectionUtil.dumpStackTraces();
+                    StackTraceUtil.dumpStackTraces();
                 }
             });
         } finally {
@@ -544,7 +544,7 @@ public class SocketInitiatorTest {
         assertNotNull("no client session", clientSession);
         final boolean await = clientApplication.logoutLatch.await(20, TimeUnit.SECONDS);
         if (!await) {
-            ReflectionUtil.dumpStackTraces();
+            StackTraceUtil.dumpStackTraces();
         }
         assertTrue("Expected logout did not occur", await);
         assertFalse("client session logged in?", clientSession.isLoggedOn());
