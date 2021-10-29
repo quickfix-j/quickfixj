@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
-import quickfix.test.util.ReflectionUtil;
+import quickfix.test.util.StackTraceUtil;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -148,7 +148,7 @@ public class TestConnection {
                 boolean await = sessionCreatedLatch.await(5, TimeUnit.SECONDS);
                 if (!await) {
                     log.error("sessionCreatedLatch timed out. Dumping threads...");
-                    ReflectionUtil.dumpStackTraces();
+                    StackTraceUtil.dumpStackTraces(log);
 
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
                     long[] threadIds = bean.findDeadlockedThreads();

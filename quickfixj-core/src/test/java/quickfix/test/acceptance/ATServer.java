@@ -37,7 +37,7 @@ import quickfix.ThreadedSocketAcceptor;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
 import quickfix.mina.ssl.SSLSupport;
-import quickfix.test.util.ReflectionUtil;
+import quickfix.test.util.StackTraceUtil;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -189,7 +189,7 @@ public class ATServer implements Runnable {
                 final boolean await = shutdownLatch.await(30, TimeUnit.MINUTES);
                 if (!await) {
                     log.error("ShutdownLatch timed out. Dumping threads...");
-                    ReflectionUtil.dumpStackTraces();
+                    StackTraceUtil.dumpStackTraces(log);
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
                     long[] threadIds = bean.findDeadlockedThreads();
 
