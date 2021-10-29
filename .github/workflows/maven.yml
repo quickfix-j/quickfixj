@@ -28,4 +28,4 @@ jobs:
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms3g -Xmx3g"
-        run: mvn test -B -V -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: mvn test -B -V -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
