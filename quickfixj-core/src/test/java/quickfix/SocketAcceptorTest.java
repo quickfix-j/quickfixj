@@ -46,6 +46,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import quickfix.test.util.StackTraceUtil;
 
 /**
  * QFJ-643: Unable to restart a stopped acceptor (SocketAcceptor)
@@ -321,7 +322,11 @@ public class SocketAcceptorTest {
         
         public void waitForLogout() {
             try {
-                assertTrue("Logout timed out", logoutLatch.await(10, TimeUnit.SECONDS));
+                final boolean await = logoutLatch.await(10, TimeUnit.SECONDS);
+                if (!await) {
+                    StackTraceUtil.dumpStackTraces(log);
+                }
+                assertTrue("Logout timed out", await);
             } catch (InterruptedException e) {
                 fail(e.getMessage());
             }
