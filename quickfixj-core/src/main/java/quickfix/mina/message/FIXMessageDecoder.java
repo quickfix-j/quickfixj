@@ -170,8 +170,8 @@ public class FIXMessageDecoder implements MessageDecoder {
                     } else {
                         if (position < in.limit()) { // if data remains
                             String messageString = getMessageStringForError(in);
-                            handleError(in, in.position() + 1, "Length format error in message (last character: " + (char)ch + "): " + messageString,
-                                false);
+                            handleError(in, position, "Length format error in message (last character: " + (char) ch + "): " + messageString,
+                                    false);
                             continue;
                         } else {
                             break;
