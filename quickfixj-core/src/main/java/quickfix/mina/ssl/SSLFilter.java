@@ -26,15 +26,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.ssl.SslFilter;
+import org.apache.mina.filter.ssl.SSLFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An extended SSL filter based on MINA {@link SslFilter} that applies
+ * An extended SSL filter based on MINA {@link SSLFilter} that applies
  * some adaptations.
  */
-public class SSLFilter extends SslFilter {
+public class SSLFilter extends SSLFilter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private boolean useSNI;
@@ -48,7 +48,7 @@ public class SSLFilter extends SslFilter {
     }
 
     /**
-     * Called from {@link SslFilter#onPreAdd} every time a new
+     * Called from {@link SSLFilter#onPreAdd} every time a new
      * session is created which makes it impossible to override enabled cipher
      * suites configuration.
      */
