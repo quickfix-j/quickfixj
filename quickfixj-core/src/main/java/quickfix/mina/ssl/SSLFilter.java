@@ -26,7 +26,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.ssl.SSLFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
