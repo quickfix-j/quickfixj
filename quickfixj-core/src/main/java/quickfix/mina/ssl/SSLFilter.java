@@ -31,10 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * An extended SSL filter based on MINA {@link SSLFilter} that applies
+ * An extended SSL filter based on MINA {@link org.apache.mina.filter.ssl.SSLFilter} that applies
  * some adaptations.
  */
-public class SSLFilter extends SSLFilter {
+public class SSLFilter extends org.apache.mina.filter.ssl.SSLFilter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private boolean useSNI;
@@ -48,7 +48,7 @@ public class SSLFilter extends SSLFilter {
     }
 
     /**
-     * Called from {@link SSLFilter#onPreAdd} every time a new
+     * Called from {@link org.apache.mina.filter.ssl.SSLFilter#onPreAdd} every time a new
      * session is created which makes it impossible to override enabled cipher
      * suites configuration.
      */
