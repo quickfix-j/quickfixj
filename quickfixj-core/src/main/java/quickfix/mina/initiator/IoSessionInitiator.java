@@ -188,8 +188,9 @@ public class IoSessionInitiator {
         private SSLFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder, boolean autoStart)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SSLFilter sslFilter = new SSLFilter(sslContext, autoStart);
-            sslFilter.setUseClientMode(true);
+            final SSLFilter sslFilter = new SSLFilter(sslContext);
+//            final SSLFilter sslFilter = new SSLFilter(sslContext, autoStart);
+//            sslFilter.setUseClientMode(true);
             sslFilter.setCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()

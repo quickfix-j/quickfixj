@@ -133,7 +133,7 @@ public abstract class AbstractSocketAcceptor extends SessionConnector implements
         SSLConfig sslConfig = descriptor.getSslConfig();
         SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
         SSLFilter sslFilter = new SSLFilter(sslContext);
-        sslFilter.setUseClientMode(false);
+//        sslFilter.setUseClientMode(false);
         sslFilter.setNeedClientAuth(sslConfig.isNeedClientAuth());
         sslFilter.setCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                 : SSLSupport.getDefaultCipherSuites(sslContext));

@@ -480,7 +480,8 @@ public class SSLCertificateTest {
             if (sslFilter == null)
                 return null;
 
-            return sslFilter.getSslSession(ioSession);
+            return (SSLSession) ioSession.getAttribute("session");
+//            return sslFilter.getSslSession(ioSession);
         }
 
         private Session findSession(SessionID sessionID) {

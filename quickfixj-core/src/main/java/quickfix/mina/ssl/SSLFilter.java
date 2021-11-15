@@ -23,7 +23,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import javax.net.ssl.SSLContext;
 
-import javax.net.ssl.SSLException;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
@@ -38,9 +37,9 @@ public class SSLFilter extends org.apache.mina.filter.ssl.SSLFilter {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private boolean useSNI;
 
-    public SSLFilter(SSLContext sslContext, boolean autoStart) {
-        super(sslContext, autoStart);
-    }
+//    public SSLFilter(SSLContext sslContext, boolean autoStart) {
+//        super(sslContext, autoStart);
+//    }
 
     public SSLFilter(SSLContext sslContext) {
         super(sslContext);
@@ -65,7 +64,7 @@ public class SSLFilter extends org.apache.mina.filter.ssl.SSLFilter {
      */
     @Override
     public void onPreAdd(IoFilterChain parent, String name, NextFilter nextFilter)
-        throws SSLException {
+        throws Exception {
 
         if (useSNI) {
             IoSession session = parent.getSession();
@@ -74,7 +73,7 @@ public class SSLFilter extends org.apache.mina.filter.ssl.SSLFilter {
             if (remoteAddress instanceof InetSocketAddress) {
                 // activate the SNI support in the JSSE SSLEngine
                 log.info("Activating TLS SNI support for peer address: {}", remoteAddress);
-                session.setAttribute(PEER_ADDRESS, remoteAddress);
+//                session.setAttribute(PEER_ADDRESS, remoteAddress);
             }
         }
 
