@@ -45,4 +45,7 @@ public class ConnectionException extends IOException {
         this.socketAddress = socketAddress;
     }
 
+    public SocketAddress getSocketAddress() {
+        return socketAddress;
+    }
 }
