@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Calendar;
@@ -30,8 +32,9 @@ import java.util.TimeZone;
  */
 public class SystemTime {
     public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
+    public static final Clock UTC_CLOCK = Clock.systemUTC();
 
-    private static final SystemTimeSource DEFAULT_TIME_SOURCE = new SystemTimeSource() {
+    public static final SystemTimeSource UTC = new SystemTimeSource() {
         @Override
         public long getTime() {
             return System.currentTimeMillis();
@@ -39,11 +42,12 @@ public class SystemTime {
 
         @Override
         public LocalDateTime getNow() {
-            return LocalDateTime.now(ZoneOffset.UTC);
+            final Instant instant = UTC_CLOCK.instant();
+            return LocalDateTime.ofEpochSecond(instant.getEpochSecond(), instant.getNano(), ZoneOffset.UTC);
         }
     };
 
-    private static volatile SystemTimeSource systemTimeSource = DEFAULT_TIME_SOURCE;
+    private static volatile SystemTimeSource systemTimeSource = UTC;
 
     public static long currentTimeMillis() {
         return systemTimeSource.getTime();
@@ -63,7 +67,7 @@ public class SystemTime {
 
     public static void setTimeSource(SystemTimeSource systemTimeSource) {
         SystemTime.systemTimeSource = systemTimeSource != null ? systemTimeSource
-                : DEFAULT_TIME_SOURCE;
+                : UTC;
     }
 
     public static Calendar getUtcCalendar() {
