@@ -22,7 +22,7 @@ import java.io.IOException;
 import javax.management.openmbean.TabularData;
 
 /**
- * Management inteface for a socket acceptor connector.
+ * Management interface for a socket acceptor connector.
  */
 public interface SocketAcceptorAdminMBean extends ConnectorAdminMBean {
 

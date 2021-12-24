@@ -41,29 +41,22 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
 
     private final AbstractSocketAcceptor acceptor;
 
-    private static final TabularDataAdapter tabularDataAdapter = new TabularDataAdapter();
-
-    private final SessionJmxExporter sessionExporter;
-
     public SocketAcceptorAdmin(JmxExporter jmxExporter, AbstractSocketAcceptor connector,
             ObjectName connectorName, SessionJmxExporter sessionExporter) {
         super(jmxExporter, connector, connectorName, connector.getSettings(), sessionExporter);
-        this.sessionExporter = sessionExporter;
         acceptor = connector;
     }
 
     public static class SessionAcceptorAddressRow {
 
         private final SessionID sessionID;
-
         private final SocketAddress acceptorAddress;
-
         private final ObjectName sessionName;
 
-        public SessionAcceptorAddressRow(SessionID sessionID, SocketAddress accceptorAddress,
+        public SessionAcceptorAddressRow(SessionID sessionID, SocketAddress acceptorAddress,
                 ObjectName sessionName) {
             this.sessionID = sessionID;
-            this.acceptorAddress = accceptorAddress;
+            this.acceptorAddress = acceptorAddress;
             this.sessionName = sessionName;
         }
 
@@ -82,6 +75,7 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
         }
     }
 
+    @Override
     public TabularData getAcceptorAddresses() throws IOException {
         List<SessionAcceptorAddressRow> rows = new ArrayList<>();
         for (Map.Entry<SessionID, SocketAddress> entry : acceptor.getAcceptorAddresses().entrySet()) {
@@ -90,7 +84,7 @@ public class SocketAcceptorAdmin extends ConnectorAdmin implements SocketAccepto
             rows.add(new SessionAcceptorAddressRow(sessionID, address, sessionExporter.getSessionName(sessionID)));
         }
         try {
-            return tabularDataAdapter.fromBeanList("AcceptorAddresses", "AddressInfo", "sessionID",
+            return TABULAR_DATA_ADAPTER.fromBeanList("AcceptorAddresses", "AddressInfo", "sessionID",
                     rows);
         } catch (OpenDataException e) {
             throw JmxSupport.toIOException(e);

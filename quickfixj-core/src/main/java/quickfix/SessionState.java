@@ -65,6 +65,12 @@ public final class SessionState {
     private boolean resetReceived;
     private String logoutReason;
 
+    /**
+     * Indicates whether resetting the internal state is still pending.
+     * Used when resetting sequence numbers after Logout.
+     */
+    private boolean resetStatePending = false;
+
     /*
      * If this is anything other than zero it's the value of the 789/NextExpectedMsgSeqNum tag in the last Logon message sent.
      * It is used to determine if the recipient has enough information (assuming they support 789) to avoid the need
@@ -432,6 +438,19 @@ public final class SessionState {
             this.resetSent = resetSent;
         }
     }
+    
+    public boolean isResetStatePending() {
+        synchronized (lock) {
+            return resetStatePending;
+        }
+    }
+
+    public void setResetStatePending(boolean resetStatePending) {
+        synchronized (lock) {
+            this.resetStatePending = resetStatePending;
+        }
+    }
+
 
     /**
      * No actual resend request has occurred but at logon we populated tag 789 so that the other side knows we

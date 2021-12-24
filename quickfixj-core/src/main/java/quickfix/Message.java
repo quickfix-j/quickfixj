@@ -66,9 +66,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.ByteArrayOutputStream;
 import java.text.DecimalFormat;
-import java.util.Iterator;
 import java.util.List;
-import javax.xml.XMLConstants;
 
 /**
  * Represents a FIX message.
@@ -307,7 +305,7 @@ public class Message extends FieldMap {
 
     /**
      * Converts the message into a simple XML format. This format is
-     * probably not sufficient for production use, but it more intended
+     * probably not sufficient for production use, but is more intended
      * for diagnostics and debugging. THIS IS NOT FIXML.
      *
      * To get names instead of tag number, use toXML(DataDictionary)
@@ -317,22 +315,51 @@ public class Message extends FieldMap {
      * @see #toXML(DataDictionary)
      */
     public String toXML() {
-        return toXML(null);
+        return toXML(false);
     }
 
     /**
      * Converts the message into a simple XML format. This format is
-     * probably not sufficient for production use, but it more intended
+     * probably not sufficient for production use, but is more intended
+     * for diagnostics and debugging. THIS IS NOT FIXML.
+     *
+     * To get names instead of tag number, use toXML(DataDictionary, boolean)
+     * instead.
+     *
+     * @param indent specifies whether the Transformer may add additional
+     *               whitespace when outputting the result tree
+     * @return an XML representation of the message.
+     * @see #toXML(DataDictionary, boolean)
+     */
+    public String toXML(boolean indent) {
+        return toXML(null, indent);
+    }
+
+    /**
+     * Converts the message into a simple XML format. This format is
+     * probably not sufficient for production use, but is more intended
      * for diagnostics and debugging. THIS IS NOT FIXML.
      *
      * @param dataDictionary
      * @return the XML representation of the message
      */
     public String toXML(DataDictionary dataDictionary) {
+        return toXML(dataDictionary, false);
+    }
+
+    /**
+     * Converts the message into a simple XML format. This format is
+     * probably not sufficient for production use, but is more intended
+     * for diagnostics and debugging. THIS IS NOT FIXML.
+     *
+     * @param indent specifies whether the Transformer may add additional
+     *               whitespace when outputting the result tree
+     * @param dataDictionary
+     * @return the XML representation of the message
+     */
+    public String toXML(DataDictionary dataDictionary, boolean indent) {
         try {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             final Document document = factory.newDocumentBuilder()
                     .newDocument();
             final Element message = document.createElement("message");
@@ -344,11 +371,14 @@ public class Message extends FieldMap {
             final ByteArrayOutputStream out = new ByteArrayOutputStream();
             final StreamResult streamResult = new StreamResult(out);
             final TransformerFactory tf = TransformerFactory.newInstance();
-            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-            tf.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
             final Transformer serializer = tf.newTransformer();
             serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
-            serializer.setOutputProperty(OutputKeys.INDENT, "yes");
+            if (indent) {
+                serializer.setOutputProperty(OutputKeys.INDENT, "yes");
+                serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+            } else {
+                serializer.setOutputProperty(OutputKeys.INDENT, "no");
+            }
             serializer.transform(domSource, streamResult);
             return out.toString();
         } catch (final Exception e) {
@@ -357,13 +387,11 @@ public class Message extends FieldMap {
     }
 
     private void toXMLFields(Element message, String section, FieldMap fieldMap,
-            DataDictionary dataDictionary) throws FieldNotFound {
+            DataDictionary dataDictionary) {
         final Document document = message.getOwnerDocument();
         final Element fields = document.createElement(section);
         message.appendChild(fields);
-        final Iterator<Field<?>> fieldItr = fieldMap.iterator();
-        while (fieldItr.hasNext()) {
-            final Field<?> field = fieldItr.next();
+        for (final Field<?> field : fieldMap) {
             final Element fieldElement = document.createElement("field");
             if (dataDictionary != null) {
                 final String name = dataDictionary.getFieldName(field.getTag());
@@ -381,9 +409,7 @@ public class Message extends FieldMap {
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
         }
-        final Iterator<Integer> groupKeyItr = fieldMap.groupKeyIterator();
-        while (groupKeyItr.hasNext()) {
-            final int groupKey = groupKeyItr.next();
+        for (final int groupKey : fieldMap.groupKeys()) {
             final Element groupsElement = document.createElement("groups");
             fields.appendChild(groupsElement);
             if (dataDictionary != null) {

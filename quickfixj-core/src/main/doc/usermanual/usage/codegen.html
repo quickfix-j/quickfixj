@@ -44,11 +44,11 @@ process. The types of customizations currently supported include:
 <tr>
 	<td>outputBaseDirectory</td>
 	<td>The base directory where generated source code will be placed.</td>
-</td>
+</tr>
 <tr>
 	<td>overwrite</td>
 	<td>Controls whether existings files are overwritten. Usually this would be true.</td>
-</td>
+</tr>
 <tr>
 	<td>messagePackage</td>
 	<td>The Java package for the generated messages. This would be something like "my.message.fix42".
@@ -67,12 +67,16 @@ process. The types of customizations currently supported include:
 	the meta. Although the FIX specification does not require this ordering, some exchanges do
 	require it. There may be a slight (probably very slight) performance degradation when
 	using this option.</td>
-</td>
+</tr>
 <tr>
 	<td>decimalGenerated</td>
 	<td>Generates BigDecimals for price, quantity, and similar fields. The default code
 	generation generated doubles to be compatible with the QuickFIX C++ implementation.</td>
-</td>
+</tr>
+<tr>
+	<td>utcTimestampPrecision</td>
+	<td>The default UtcTimestampPrecision to be used during field code generation.</td>
+</tr>
 </table>
 <p>
 To generate you own message library, you can create a program that uses the <code>MessageCodeGenerator</code>

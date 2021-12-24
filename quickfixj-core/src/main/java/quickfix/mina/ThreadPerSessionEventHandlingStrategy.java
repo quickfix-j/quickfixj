@@ -203,6 +203,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                 queueTracker.put(message);
             } catch (final InterruptedException e) {
                 quickfixSession.getLog().onErrorEvent(e.toString());
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -227,6 +228,7 @@ public class ThreadPerSessionEventHandlingStrategy implements EventHandlingStrat
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
                             "Message dispatcher interrupted", e);
                     stopping = true;
+                    Thread.currentThread().interrupt();
                 } catch (final Throwable e) {
                     LogUtil.logThrowable(quickfixSession.getSessionID(),
                             "Error during message processing", e);

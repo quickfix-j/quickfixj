@@ -135,7 +135,7 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     /* (non-Javadoc)
      * @see quickfix.jmx.SessionMBean#reset()
      */
-    public void reset() throws IOException {
+    public void reset() {
         logInvocation("reset");
         session.reset();
     }
@@ -391,35 +391,47 @@ public class SessionAdmin extends NotificationBroadcasterSupport implements Sess
     // Session State Notifications
     //
 
-    public void onConnect() {
+    public void onConnect(SessionID sessionID) {
         sendNotification("connect");
     }
 
-    public void onDisconnect() {
+    public void onDisconnect(SessionID sessionID) {
         sendNotification("disconnect");
     }
 
-    public void onLogon() {
+    public void onLogon(SessionID sessionID) {
         sendNotification("logon");
     }
 
-    public void onLogout() {
+    public void onLogout(SessionID sessionID) {
         sendNotification("logout");
     }
 
-    public void onHeartBeatTimeout() {
+    public void onHeartBeatTimeout(SessionID sessionID) {
         sendNotification("heartBeatTimeout");
     }
 
-    public void onMissedHeartBeat() {
+    public void onMissedHeartBeat(SessionID sessionID) {
         sendNotification("missedHeartBeat");
     }
 
-    public void onRefresh() {
+    public void onRefresh(SessionID sessionID) {
         sendNotification("refresh");
     }
 
-    public void onReset() {
+    public void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        sendNotification("resendRequestSent");
+    }
+
+    public void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
+        sendNotification("sequenceResetReceived");
+    }
+
+    public void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
+        sendNotification("resentRequestSatisfied");
+    }
+
+    public void onReset(SessionID sessionID) {
         sendNotification("reset");
     }
 

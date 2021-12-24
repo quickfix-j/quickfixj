@@ -601,6 +601,12 @@
     </TD>
     <TD> empty, ie all remote addresses are allowed </TD>
   </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>AcceptorTemplate</I> </TD>
+    <TD> Designates a template Acceptor session. See <a href="acceptor_dynamic.html">Dynamic Acceptor Sessions</a></TD>
+    <TD> Y<BR>N</TD>
+    <TD>N</TD>
+  </TR>
 
   <TR ALIGN="center" VALIGN="middle">
     <TD COLSPAN="4" class="subsection"><A NAME="Security">Secure Communication Options</A></TD>
@@ -1147,7 +1153,7 @@
     <TD>&nbsp;</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
-    <TD><I>ScreenLogEvents</I></TD>
+    <TD><I>ScreenLogShowEvents</I></TD>
     <TD>Log events to screen.</TD>
     <TD>Y<BR>N</TD>
     <TD>Y</TD>
@@ -1300,6 +1306,18 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>ForceResendWhenCorruptedStore</I></TD>
     <TD> Fill in heartbeats on resend when reading from message store fails. </TD>
+    <TD>Y<BR>N</TD>
+    <TD>N</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>LogMessageWhenSessionNotFound</I></TD>
+    <TD>Log the entire message when the corresponding session can not be found. Otherwise only the SessionID is logged.</TD>
+    <TD>Y<BR>N</TD>
+    <TD>Y</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>AllowPosDup</I></TD>
+    <TD>Whether to allow PossDupFlag and OrigSendingTime when sending messages. This is useful on occasions, primarily when a QFJ application is acting as purely a pass-through/monitoring hop.</TD>
     <TD>Y<BR>N</TD>
     <TD>N</TD>
   </TR>

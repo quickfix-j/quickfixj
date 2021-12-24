@@ -117,6 +117,7 @@ import quickfix.fix44.component.Instrument;
 import quickfix.fix44.component.Parties;
 import quickfix.fix50.MarketDataSnapshotFullRefresh;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -1929,6 +1930,43 @@ public class MessageTest {
 
         final Message seventhConstructor = new Message(rawMessage, dataDictionary, dataDictionary, false);
         assertNotNull(seventhConstructor.getHeader());
+    }
+
+    @Test
+    public void shouldConvertToXmlWhenDataDictionaryLoadedWithExternalDTD() throws ConfigError {
+        DataDictionary dataDictionary = new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+
+        Message message = new Message();
+        message.setString(Account.FIELD, "test-account");
+
+        String xml = message.toXML(dataDictionary);
+        xml = xml.replace("\r", "").replace("\n", "").replaceAll(">\\s+<", "><");
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?><message><header/><body><field name=\"Account\" tag=\"1\"><![CDATA[test-account]]></field></body><trailer/></message>", xml);
+    }
+
+    @Test
+    public void shouldConvertToXMLWithoutIndent() {
+        Message message = new Message();
+        message.setString(Account.FIELD, "test-account");
+
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?><message><header/><body><field tag=\"1\"><![CDATA[test-account]]></field></body><trailer/></message>", message.toXML());
+    }
+
+    @Test
+    public void shouldConvertToXMLWithIndent() {
+        Message message = new Message();
+        message.setString(Account.FIELD, "test-account");
+
+        String xml = message.toXML(true);
+        xml = xml.replace("\r", "");
+        // formatting CDATA elements can be different across JVM's so we have to strip whitespaces before and after for the test to pass
+        // https://bugs.openjdk.java.net/browse/JDK-8215543
+        xml = xml.replaceAll("\\s+<!\\[CDATA\\[test-account\\]\\]>\\s+", "<![CDATA[test-account]]>");
+
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?>\n" + "<message>\n" +
+                     "    <header/>\n" + "    <body>\n" +
+                     "        <field tag=\"1\"><![CDATA[test-account]]></field>\n" + "    </body>\n" +
+                     "    <trailer/>\n" + "</message>\n", xml);
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)

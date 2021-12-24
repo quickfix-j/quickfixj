@@ -61,6 +61,7 @@ import quickfix.fix44.QuoteRequest;
 import quickfix.fix44.component.Parties;
 import quickfix.test.util.ExpectedTestFailure;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -78,6 +79,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DataDictionaryTest {
 
@@ -794,7 +796,7 @@ public class DataDictionaryTest {
         //   If bodyOnly is true, the correct data dictionary is not checked.
         dd.validate(newSingle, true);
     }
-
+    
     // QF C++ treats the string argument as a filename although it's
     // named 'url'. QFJ string argument can be either but this test
     // ensures the DD works correctly with a regular file path.
@@ -1475,6 +1477,100 @@ public class DataDictionaryTest {
         }
     }
 
+    @Test
+    public void shouldLoadDictionaryWhenExternalDTDisEnabled() throws ConfigError {
+        new DataDictionary("FIX_External_DTD.xml", DocumentBuilderFactory::newInstance);
+    }
+
+    @Test
+    public void shouldFailToLoadDictionaryWhenExternalDTDisDisabled() {
+        try {
+            new DataDictionary("FIX_External_DTD.xml");
+            fail("should fail to load dictionary with external DTD");
+        } catch (ConfigError e) {
+            assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
+        }
+    }
+    
+    /**
+     * For FIX.Latest a minor version is not required.
+     */
+    @Test
+    public void testMissingMinorVersion() throws Exception {
+        String data = "";
+        data += "<fix major=\"5\">";
+        data = getCommonDataDictionaryString(data);
+
+        DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertEquals(0, dataDictionary.getMinorVersion());
+    }
+
+    @Test
+    public void testFixLatestMajorVersion() throws Exception {
+        String data = "";
+        data += "<fix major=\"Latest\">";
+        data = getCommonDataDictionaryString(data);
+
+        DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertEquals(0, dataDictionary.getMinorVersion());
+        assertEquals("FIX.Latest", dataDictionary.getFullVersion());
+    }
+
+    @Test
+    public void testFixLatestMajorVersionAndEP() throws Exception {
+        String data = "";
+        data += "<fix major=\"Latest\" extensionpack=\"260\">";
+        data = getCommonDataDictionaryString(data);
+
+        DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertEquals(0, dataDictionary.getMinorVersion());
+        assertEquals("FIX.Latest_EP260", dataDictionary.getFullVersion());
+    }
+
+    @Test
+    public void testSP() throws Exception {
+        String data = "";
+        data += "<fix major=\"5\" minor=\"0\" servicepack=\"2\">";
+        data = getCommonDataDictionaryString(data);
+
+        DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertEquals(0, dataDictionary.getMinorVersion());
+        assertEquals("FIX.5.0", dataDictionary.getVersion());
+        assertEquals("FIX.5.0SP2", dataDictionary.getFullVersion());
+    }
+
+    @Test
+    public void testEPAndSP() throws Exception {
+        String data = "";
+        data += "<fix major=\"5\" minor=\"0\" extensionpack=\"260\" servicepack=\"2\">";
+        data = getCommonDataDictionaryString(data);
+
+        DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+        assertEquals(0, dataDictionary.getMinorVersion());
+        assertEquals("FIX.5.0", dataDictionary.getVersion());
+        assertEquals("FIX.5.0SP2_EP260", dataDictionary.getFullVersion());
+    }
+
+    private String getCommonDataDictionaryString(String data) {
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
+        data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
+        data += "      <field name=\"TestReqID\" required=\"N\"/>";
+        data += "    </message>";
+        data += "  </messages>";
+        data += "</fix>";
+        return data;
+    }
 
 
     //
