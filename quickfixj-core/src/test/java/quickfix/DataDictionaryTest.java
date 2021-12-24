@@ -1031,19 +1031,19 @@ public class DataDictionaryTest {
     }
     
     private QuoteRequest.NoRelatedSym.NoPartyIDs createPartiesGroup() {
-		final  QuoteRequest.NoRelatedSym.NoPartyIDs noPartiesGroup = new QuoteRequest.NoRelatedSym.NoPartyIDs();
-	    noPartiesGroup.set(new PartyID("PartyOnDude"));
-		return noPartiesGroup;
-	}
+        final  QuoteRequest.NoRelatedSym.NoPartyIDs noPartiesGroup = new QuoteRequest.NoRelatedSym.NoPartyIDs();
+        noPartiesGroup.set(new PartyID("PartyOnDude"));
+        return noPartiesGroup;
+    }
 
-	/**
+    /**
      * <pre>
      * given that the Component is not required and the contained Group is required and the Component is present then validation succeeds
      * </pre>
      */
     @Test
     public void testComponentNotRequiredWithGroupRequiredComponentPresent() throws Exception {
-    	QuoteRequest quoteRequest = new QuoteRequest(); 
+        QuoteRequest quoteRequest = new QuoteRequest(); 
         initialiseQuoteRequest(quoteRequest);
         addPartiesGroup(quoteRequest);
         
@@ -1051,7 +1051,7 @@ public class DataDictionaryTest {
         dataDictionary.validate(quoteRequest, true);
     }
 
-	/**
+    /**
      * <pre>
      * given that the Component is not required and the contained Group is required and the Component is absent then validation succeeds
      * </pre>
@@ -1084,7 +1084,7 @@ public class DataDictionaryTest {
     
     @Test
     public void testComponentRequiredWithGroupRequiredComponentPresent() throws Exception {
-    	QuoteRequest quoteRequest = new QuoteRequest(); 
+        QuoteRequest quoteRequest = new QuoteRequest(); 
         initialiseQuoteRequest(quoteRequest);
         addPartiesGroup(quoteRequest);
         
@@ -1093,15 +1093,15 @@ public class DataDictionaryTest {
         dataDictionary.validate(quoteRequest, true);
     }
 
-	private void addPartiesGroup(QuoteRequest quoteRequest) {
-		final QuoteRequest.NoRelatedSym.NoPartyIDs noPartiesGroup = createPartiesGroup();
+    private void addPartiesGroup(QuoteRequest quoteRequest) {
+        final QuoteRequest.NoRelatedSym.NoPartyIDs noPartiesGroup = createPartiesGroup();
         
         final QuoteRequest.NoRelatedSym noRelatedSymGroup = new QuoteRequest.NoRelatedSym();
         noRelatedSymGroup.setString(Symbol.FIELD, "AAPL");
         noRelatedSymGroup.addGroup(noPartiesGroup);
         
         quoteRequest.addGroup(noRelatedSymGroup);
-	}
+    }
     
     /**
      * <pre>
@@ -1360,7 +1360,7 @@ public class DataDictionaryTest {
     }
 
     private QuoteRequest createQuoteRequest() {
-    	QuoteRequest quoteRequest = new QuoteRequest(); 
+        QuoteRequest quoteRequest = new QuoteRequest(); 
         initialiseQuoteRequest(quoteRequest);
         final Group noRelatedSymGroup = new Group(NoRelatedSym.FIELD, Symbol.FIELD);
         noRelatedSymGroup.setString(Symbol.FIELD, "AAPL");
@@ -1368,10 +1368,10 @@ public class DataDictionaryTest {
         return quoteRequest;
     }
 
-	private void initialiseQuoteRequest(QuoteRequest quoteRequest) {
-		quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
+    private void initialiseQuoteRequest(QuoteRequest quoteRequest) {
+        quoteRequest.getHeader().setString(MsgType.FIELD, MsgType.QUOTE_REQUEST);
         quoteRequest.setString(QuoteReqID.FIELD, "QR-12345");
-	}
+    }
 
     /**
      * Dictionary "FIX44.xml":<br/>
