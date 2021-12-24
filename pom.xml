@@ -89,7 +89,7 @@
 		<nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
 		<fix.orchestra.version>1.5.1</fix.orchestra.version>
-		<docgen.version>1.5.0</docgen.version>
+		<docgen.version>1.6.8</docgen.version>
 		<jakarta.version>2.3.3</jakarta.version>
 		<sun-xml-bind.version>2.3.3</sun-xml-bind.version>
 	</properties>

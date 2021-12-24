@@ -39,6 +39,16 @@
 	<xsl:template
         match="fixr:codeSet[@id='1081']/fixr:code[@id='1081011']"/> 
     
+	<!-- the following are members of fixr:codeSet name="EntitlementAttribDatatypeCodeSet" id="1779" that have names which are Java primitive types  
+		 and thereby cause compilation failures in the generated code -->
+	<xsl:template
+        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779022']"/>
+	<xsl:template
+        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779024']"/> 
+	<xsl:template
+        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779030']"/> 
+         
+    
     <!-- replace incorrect type for NoStreamAssetAttributesCodeSet -->
     <xsl:template match="fixr:fields/fixr:field/@type">
         <xsl:attribute name="type">
@@ -55,7 +65,7 @@
         </xsl:attribute>
     </xsl:template>
 
-    <!-- filter out session layer messages -->
+    <!-- filter out session layer messages 
     <xsl:template
         match="fixr:message[(@msgType='0' or
                              @msgType='1' or
@@ -64,5 +74,6 @@
                              @msgType='4' or
                              @msgType='5' or
                              @msgType='A') ]" />
+                             -->
 
 </xsl:stylesheet>
