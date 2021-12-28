@@ -23,7 +23,7 @@
 			<artifactId>fix-standard</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.fixprotocol.orchestra</groupId>
+			<groupId>io.fixprotocol.orchestra.qf</groupId>
 			<artifactId>repository-quickfix</artifactId>
 		</dependency>
 		<!-- API -->
@@ -140,7 +140,6 @@
 				</executions>
 				<configuration>
 					<includeProjectDependencies>true</includeProjectDependencies>
-					<classpathScope>runtime</classpathScope>
 					<mainClass>io.fixprotocol.orchestra.quickfix.DataDictionaryGenerator</mainClass>
 					<arguments>
 						<argument>${project.build.directory}/generated-resources/repository/${orchestra.file}</argument>

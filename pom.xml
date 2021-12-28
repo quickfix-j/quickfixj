@@ -56,9 +56,9 @@
 	</prerequisites>
 
 	<modules>
-		<module>quickfixj-codegenerator</module>
-		<module>quickfixj-dictgenerator</module>
-		<module>quickfixj-orchestra</module>
+        <module>quickfixj-codegenerator</module>
+        <module>quickfixj-dictgenerator</module>
+        <module>quickfixj-orchestra</module>
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
@@ -80,7 +80,7 @@
 		<maven-surefire-plugin-version>2.22.0</maven-surefire-plugin-version>
 		<maven-pmd-plugin-version>3.10.0</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.0.1</maven-source-plugin-version>
-		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
+		<maven-javadoc-plugin-version>3.0.1</maven-javadoc-plugin-version>
 		<maven-shade-plugin-version>3.1.1</maven-shade-plugin-version>
 		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
 		<maven-bundle-plugin-version>3.5.1</maven-bundle-plugin-version>
@@ -90,6 +90,7 @@
 		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
 		<fix.orchestra.version>1.5.1</fix.orchestra.version>
 		<docgen.version>1.6.8</docgen.version>
+		<orchestra.codegen.version>1.0.0-SNAPSHOT</orchestra.codegen.version>
 		<jakarta.version>2.3.3</jakarta.version>
 		<sun-xml-bind.version>2.3.3</sun-xml-bind.version>
 	</properties>
@@ -101,9 +102,9 @@
 				<version>${fix.orchestra.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>io.fixprotocol.orchestra</groupId>
+				<groupId>io.fixprotocol.orchestra.qf</groupId>
 				<artifactId>repository-quickfix</artifactId>
-				<version>${docgen.version}</version>
+				<version>${orchestra.codegen.version}</version>
 			</dependency>			
 			<!-- API -->
 			<dependency>
@@ -185,7 +186,7 @@
 						</execution>
 					</executions>
 				</plugin>
-				<plugin>
+				<!-- plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>${maven-javadoc-plugin-version}</version>
@@ -196,12 +197,13 @@
 								<goal>jar</goal>
 							</goals>
 							<configuration>
+								<source>8</source>
 								<additionalparam>-Xdoclint:none</additionalparam>
 							    <maxmemory>3g</maxmemory>
 							</configuration>
 						</execution>
 					</executions>
-				</plugin>
+				</plugin -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>

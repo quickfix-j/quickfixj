@@ -13,7 +13,7 @@
   <includeBaseDirectory>false</includeBaseDirectory>  
   <fileSets>
     <fileSet>
-      <directory>${project.build.directory}/generated-resources/dictionary</directory>
+      <directory>${project.build.directory}/generated-resources/quickfixj-messages-FIXLatest</directory>
       <outputDirectory></outputDirectory>
       <lineEnding>unix</lineEnding>
       <filtered>false</filtered>
