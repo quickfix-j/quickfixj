@@ -13,6 +13,12 @@
             <xsl:apply-templates select="@* | node()" />
         </xsl:copy>
     </xsl:template>
+    
+    <xsl:template match="node()|@*" name="identity">
+        <xsl:copy>
+            <xsl:apply-templates select="node()|@*" />
+        </xsl:copy>
+    </xsl:template>
 
     <!-- filter out deprecated codes -->
     <!-- this is added to remove duplicates with differing case as these cause a problem with QFJ code generation"
@@ -152,6 +158,28 @@
             <xsl:apply-templates select="@id | @value | @sort | @added" />
             <xsl:apply-templates select="node()" />
         </xsl:copy>
+    </xsl:template>
+
+    <xsl:param name="addFields">
+	    <!-- Field not present in latest but used in FIX 4.2 and expected by QFJ -->
+	    <fixr:field added="FIX.4.2" id="370"
+	        name="OnBehalfOfSendingTime" type="UTCTimestamp"
+	        abbrName="OnBehalfOfSendingTime" presence="optional"
+	        supported="supported">
+	        <fixr:annotation supported="supported">
+	            <fixr:documentation purpose="SYNOPSIS" supported="supported">
+	              Used when a message is sent via a "hub" or "service bureau". 
+	              If A sends to Q (the hub) who then sends to B via a separate FIX session, then when Q sends to B the value of this field should represent the SendingTime on the message A sent to Q.
+	              (always expressed in UTC (Universal Time Coordinated, also known as "GMT")
+	            </fixr:documentation>
+	        </fixr:annotation>
+	    </fixr:field>
+    </xsl:param>
+    
+    <xsl:template
+        match="fixr:fields/fixr:field[position()=last()]">
+        <xsl:call-template name="identity" />
+        <xsl:copy-of select="$addFields" />
     </xsl:template>
 
     <!-- filter out session layer messages 

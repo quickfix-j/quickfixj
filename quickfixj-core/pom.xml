@@ -342,28 +342,6 @@
                     </execution>
                 </executions>
             </plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>fixLatest</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<includeProjectDependencies>true</includeProjectDependencies>
-					<classpathScope>runtime</classpathScope>
-					<mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
-					<arguments>
-						<argument>${project.basedir}/../quickfixj-orchestra/target/generated-resources/repository/OrchestraEP255.xml</argument>
-						<argument>${project.build.directory}/generated-sources</argument>
-					</arguments>
-				</configuration>
-			</plugin>             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -433,7 +411,6 @@
                             quickfix.fix50;resolution:=optional,
                             quickfix.fix50sp1;resolution:=optional,
                             quickfix.fix50sp2;resolution:=optional,
-                            quickfix.fixLatest;resolution:=optional,
                             quickfix.fixt11;resolution:=optional,
                             <!-- add the required imports -->
                             quickfix,quickfix.field,*

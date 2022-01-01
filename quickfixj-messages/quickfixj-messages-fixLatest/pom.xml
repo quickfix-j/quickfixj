@@ -23,6 +23,11 @@
 	</dependencies>
 
 	<build>
+        <resources>
+            <resource>
+                <directory>../../quickfixj-orchestra/target/generated-resources</directory>
+            </resource>
+        </resources>	
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -34,32 +39,32 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
+								<source>${project.basedir}/../../quickfixj-core-latest/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-<!--                        <skip>true</skip> Uncomment this to skip execution as this module requires more than 9gb memory -->
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>12g</maxmemory>
-                            <detectOfflineLinks>false</detectOfflineLinks>
-                            <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fixLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+<!--             <plugin> -->
+<!--                 <groupId>org.apache.maven.plugins</groupId> -->
+<!--                 <artifactId>maven-javadoc-plugin</artifactId> -->
+<!--                 <executions> -->
+<!--                     <execution> -->
+<!--                         <id>attach-javadocs</id> -->
+<!--                         <goals> -->
+<!--                             <goal>jar</goal> -->
+<!--                         </goals> -->
+<!--                         <configuration> -->
+     <!--                        <skip>true</skip> Uncomment this to skip execution as this module requires more than 9gb memory -->
+<!--                             <additionalparam>-Xdoclint:none</additionalparam> -->
+<!--                             <maxmemory>12g</maxmemory> -->
+<!--                             <detectOfflineLinks>false</detectOfflineLinks> -->
+<!--                             <includeDependencySources>false</includeDependencySources> -->
+<!--                             <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix-latest/fixLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath> -->
+<!--                         </configuration> -->
+<!--                     </execution> -->
+<!--                 </executions> -->
+<!--             </plugin> -->
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -88,9 +93,9 @@
 				<configuration>
 					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
-						<include>FIXLatest.xml</include>
+						<include>FIX50SP2.xml</include>
 						<include>quickfix/field/*.class</include>
-						<include>quickfix/fixLatest/**</include>
+						<include>quickfix/fix50sp2/**</include>
 					</includes>
 					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -104,8 +109,8 @@
 				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
-						<include>FIXLatest.xml</include>
-						<include>quickfix/fixLatest/**</include>
+						<include>FIX50SP2.xml</include>
+						<include>quickfix/fix50sp2/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
 					<archive>
