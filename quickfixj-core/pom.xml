@@ -400,7 +400,7 @@
                 <artifactId>maven-bundle-plugin</artifactId>
                 <configuration>
                     <instructions>
-                        <Export-Package>quickfix,quickfix.field.*,quickfix.mina.*,org.quickfixj.*</Export-Package>
+                        <Export-Package>quickfix,quickfix.field.converter.*,quickfix.mina.*,org.quickfixj.*</Export-Package>
                         <Import-Package>
                             <!-- add dynamically-loaded version-specific message factories (optional)-->
                             quickfix.fix40;resolution:=optional,

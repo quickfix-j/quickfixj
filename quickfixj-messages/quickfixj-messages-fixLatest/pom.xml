@@ -1,50 +1,78 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.quickfixj</groupId>
-		<artifactId>quickfixj-messages</artifactId>
-		<version>2.2.1-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>org.quickfixj</groupId>
+        <artifactId>quickfixj-messages</artifactId>
+        <version>2.2.1-SNAPSHOT</version>
+    </parent>
 
-	<artifactId>quickfixj-messages-fixLatest</artifactId>
-	<packaging>jar</packaging>
+    <artifactId>quickfixj-messages-fixLatest</artifactId>
+    <packaging>jar</packaging>
 
-	<name>QuickFIX/J Message classes for FIX Latest</name>
-	<description>QuickFIX/J Message classes for FIX Latest</description>
-	<url>http://www.quickfixj.org</url>
-	
-	<dependencies>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
+    <name>QuickFIX/J Message classes for FIX Latest</name>
+    <description>QuickFIX/J Message classes for FIX Latest</description>
+    <url>http://www.quickfixj.org</url>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.fixprotocol.orchestra.qf</groupId>
+            <artifactId>repository-quickfix</artifactId>
+            <version>${repository-quickfix.version}</version>
+        </dependency>
+		<!-- not required for Java 8 -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-core</artifactId>
+            <version>2.3.0.1</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 
-	<build>
+    <build>
         <resources>
             <resource>
                 <directory>../../quickfixj-orchestra/target/generated-resources</directory>
             </resource>
-        </resources>	
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${build-helper-maven-plugin-version}</version>
-				<executions>
-					<execution>
-						<phase>prepare-package</phase>
-						<goals><goal>add-source</goal></goals>
-						<configuration>
-							<sources>
-								<source>${project.basedir}/../../quickfixj-core-latest/target/generated-sources/</source>
-							</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+        </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>../../quickfixj-orchestra/target/generated-resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
 <!--             <plugin> -->
 <!--                 <groupId>org.apache.maven.plugins</groupId> -->
 <!--                 <artifactId>maven-javadoc-plugin</artifactId> -->
@@ -65,59 +93,122 @@
 <!--                     </execution> -->
 <!--                 </executions> -->
 <!--             </plugin> -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <id>fixLatest</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeProjectDependencies>true</includeProjectDependencies>
+                    <classpathScope>runtime</classpathScope>
+                    <mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
+                    <arguments>
+                        <argument>${project.basedir}/../../quickfixj-orchestra/target/generated-resources/OrchestraEP255.xml</argument>
+                        <argument>${project.build.directory}/generated-sources</argument>
+                    </arguments>
+                    <!-- executableDependency>
+                        <groupId>io.fixprotocol.orchestra.qf</groupId>
+                        <artifactId>repository-quickfix</artifactId>
+                    </executableDependency -->
+                </configuration>
+                <!-- dependencies>
+                    <dependency>
+                        <groupId>io.fixprotocol.orchestra.qf</groupId>
+                        <artifactId>repository-quickfix</artifactId>
+                        <version>${repository-quickfix.version}</version>
+                    </dependency>
+                </dependencies -->
+            </plugin>
 			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
-						<id>bundle-manifest</id>
-						<phase>process-classes</phase>
+						<phase>generate-sources</phase>
 						<goals>
-							<goal>manifest</goal>
+							<goal>add-source</goal>
 						</goals>
 						<configuration>
-							<instructions>
-								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixLatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
-								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
-								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
-							</instructions>
+							<sources>
+								<source>${project.build.directory}/generated-sources</source>
+							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+            <!-- plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>bundle-manifest</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                        <configuration>
+                            <instructions>
+                                <Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixLatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+                                <Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+                                <Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+                            </instructions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin -->
+            <plugin>
+               <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase />
+                    </execution>
+                </executions>
+             </plugin>            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin-version}</version>
+                <configuration>
+                    <!-- classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory -->
+                    <includes>
+                        <include>FIX50SP2.xml</include>
+                        <include>quickfix/field/*.class</include>
+                        <include>quickfix/fix50sp2/**</include>
+                    </includes>
+                    <!-- archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive -->
+                </configuration>
+            </plugin>
 
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin-version}</version>
-				<configuration>
-					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
-					<includes>
-						<include>FIX50SP2.xml</include>
-						<include>quickfix/field/*.class</include>
-						<include>quickfix/fix50sp2/**</include>
-					</includes>
-					<archive>
-						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
-				<groupId>org.apache.maven.plugins</groupId>
-				<version>${maven-source-plugin-version}</version>
-				<configuration>
-					<includes>
-						<include>FIX50SP2.xml</include>
-						<include>quickfix/fix50sp2/**</include>
-						<include>quickfix/field/**</include>
-					</includes>
-					<archive>
-						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <version>${maven-source-plugin-version}</version>
+                <configuration>
+                    <includes>
+                        <include>FIX50SP2.xml</include>
+                        <include>quickfix/fix50sp2/**</include>
+                        <include>quickfix/field/**</include>
+                    </includes>
+                    <!-- archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive -->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

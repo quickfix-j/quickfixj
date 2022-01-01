@@ -21,6 +21,7 @@
 		<dependency>
 			<groupId>io.fixprotocol.orchestra.qf</groupId>
 			<artifactId>repository-quickfix</artifactId>
+			<version>${repository-quickfix.version}</version>
 		</dependency>
         <!-- not required for Java 8 -->
         <dependency>
@@ -171,6 +172,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
+				<version>${exec-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<id>fixLatest</id>
@@ -188,7 +190,18 @@
 						<argument>${project.basedir}/../quickfixj-orchestra/target/generated-resources/OrchestraEP255.xml</argument>
 						<argument>${project.build.directory}/generated-sources</argument>
 					</arguments>
+					<!-- executableDependency>
+						<groupId>io.fixprotocol.orchestra.qf</groupId>
+						<artifactId>repository-quickfix</artifactId>
+					</executableDependency -->
 				</configuration>
+				<!-- dependencies>
+					<dependency>
+						<groupId>io.fixprotocol.orchestra.qf</groupId>
+						<artifactId>repository-quickfix</artifactId>
+						<version>${repository-quickfix.version}</version>
+					</dependency>
+				</dependencies -->
 			</plugin>             
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
