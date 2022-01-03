@@ -1,7 +1,0 @@
-# Disconnect if initiator sent a negative heartbeat interval
-
-iCONNECT
-I8=FIX.4.135=A34=149=TW52=<TIME>56=ISLD98=0108=-10
-# Expect a disconnect with reason stating we supplied a negative HeartBtInt
-E8=FIX.4.135=534=149=ISLD56=TW58=HeartBtInt must not be negative
-eDISCONNECT
