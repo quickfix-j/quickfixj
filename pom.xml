@@ -91,13 +91,29 @@
         <nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
         <build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
         <exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
+        <xml-maven-plugin-version>1.0.2</xml-maven-plugin-version>
         <fix.orchestra.version>1.5.1</fix.orchestra.version>
         <docgen.version>1.6.8</docgen.version>
         <repository-quickfix.version>1.0.0-SNAPSHOT</repository-quickfix.version>
     </properties>
 
+   <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.fixprotocol.orchestrations</groupId>
+                <artifactId>fix-standard</artifactId>
+                <version>${fix.orchestra.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.fixprotocol.orchestra.qf</groupId>
+                <artifactId>repository-quickfix</artifactId>
+                <version>${repository-quickfix.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
-        <pluginManagement>
+         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -228,8 +244,25 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec-maven-plugin-version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>xml-maven-plugin</artifactId>
+                    <version>${xml-maven-plugin-version}</version>
+                </plugin>                   
             </plugins>
         </pluginManagement>
+        <plugins>
+               <!-- enable bundle packaging -->
+                <plugin>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                </plugin>
+        </plugins>
     </build>
     <profiles>
         <profile>

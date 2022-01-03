@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.quickfixj</groupId>
         <artifactId>quickfixj-parent</artifactId>
-        <version>2.2.1-SNAPSHOT</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>quickfixj-orchestration</artifactId>
@@ -25,17 +25,6 @@
         <dependency>
             <groupId>io.fixprotocol.orchestra.qf</groupId>
             <artifactId>repository-quickfix</artifactId>
-        </dependency>
-        <!-- API -->
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <!-- Runtime -->
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <scope>runtime</scope>
         </dependency>
     </dependencies>
 

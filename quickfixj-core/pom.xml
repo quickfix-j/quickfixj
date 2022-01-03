@@ -19,40 +19,11 @@
     </properties>
 
     <dependencies>
-		<dependency>
-			<groupId>io.fixprotocol.orchestra.qf</groupId>
-			<artifactId>repository-quickfix</artifactId>
-		</dependency>
-        <!-- not required for Java 8 -->
         <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.1</version>
-            <optional>true</optional>
+            <groupId>io.fixprotocol.orchestra.qf</groupId>
+            <artifactId>repository-quickfix</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-            <version>2.3.0.1</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>1.1.1</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
-            <optional>true</optional>
-        </dependency>		    
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -342,28 +313,28 @@
                     </execution>
                 </executions>
             </plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>fixLatest</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<includeProjectDependencies>true</includeProjectDependencies>
-					<classpathScope>runtime</classpathScope>
-					<mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
-					<arguments>
-						<argument>${project.basedir}/../quickfixj-orchestra/target/generated-resources/repository/OrchestraEP255.xml</argument>
-						<argument>${project.build.directory}/generated-sources</argument>
-					</arguments>
-				</configuration>
-			</plugin>             
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>fixLatest</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeProjectDependencies>true</includeProjectDependencies>
+                    <classpathScope>runtime</classpathScope>
+                    <mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
+                    <arguments>
+                        <argument>${project.basedir}/../quickfixj-orchestra/target/generated-resources/repository/OrchestraEP255.xml</argument>
+                        <argument>${project.build.directory}/generated-sources</argument>
+                    </arguments>
+                </configuration>
+            </plugin>             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -408,7 +379,7 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-							<source>8</source>
+                            <source>8</source>
                             <additionalparam>-Xdoclint:none</additionalparam>
                             <maxmemory>3g</maxmemory>
                             <includeDependencySources>false</includeDependencySources>
