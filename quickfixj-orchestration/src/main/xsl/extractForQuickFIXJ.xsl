@@ -150,15 +150,15 @@
         </xsl:copy>
     </xsl:template>
 
-    <xsl:template match="fixr:codeSet[@id='35']/fixr:code[@name='NewOrderSingle']">
+    <!-- xsl:template match="fixr:codeSet[@id='35']/fixr:code[@name='NewOrderSingle']">
         <xsl:copy>
             <xsl:attribute name="name">
-                <xsl:value-of select="'ORDER_SINGLE'" />
+                <xsl:value-of select="'NEW_ORDER_SINGLE'" />
             </xsl:attribute>
             <xsl:apply-templates select="@id | @value | @sort | @added" />
             <xsl:apply-templates select="node()" />
         </xsl:copy>
-    </xsl:template>
+    </xsl:template -->
 
     <xsl:param name="addFields">
 	    <!-- Field not present in latest but used in FIX 4.2 and expected by QFJ -->

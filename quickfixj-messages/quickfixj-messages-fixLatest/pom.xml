@@ -60,7 +60,7 @@
     <build>
         <resources>
             <resource>
-                <directory>../../quickfixj-orchestra/target/generated-resources</directory>
+                <directory>../../quickfixj-orchestration/target/generated-resources</directory>
             </resource>
         </resources>
 
@@ -69,7 +69,7 @@
                 <directory>src/test/resources</directory>
             </testResource>
             <testResource>
-                <directory>../../quickfixj-orchestra/target/generated-resources</directory>
+                <directory>../../quickfixj-orchestration/target/generated-resources</directory>
             </testResource>
         </testResources>
         <plugins>
@@ -111,7 +111,7 @@
                     <classpathScope>runtime</classpathScope>
                     <mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
                     <arguments>
-                        <argument>${project.basedir}/../../quickfixj-orchestra/target/generated-resources/OrchestraEP255.xml</argument>
+                        <argument>${project.basedir}/../../quickfixj-orchestration/target/generated-resources/OrchestraEP255.xml</argument>
                         <argument>${project.build.directory}/generated-sources</argument>
                     </arguments>
                     <!-- executableDependency>
