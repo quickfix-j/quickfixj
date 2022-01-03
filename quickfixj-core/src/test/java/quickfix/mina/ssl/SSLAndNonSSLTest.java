@@ -214,6 +214,7 @@ public class SSLAndNonSSLTest {
                     shutdownLatch.await();
                 } catch (InterruptedException e1) {
                     try {
+                        Thread.currentThread().interrupt();
                         acceptor.stop(true);
                     } catch (RuntimeException e) {
                         e.printStackTrace();

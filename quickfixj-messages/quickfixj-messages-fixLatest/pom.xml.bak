@@ -4,16 +4,16 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-messages</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>2.2.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>quickfixj-messages-fix41</artifactId>
+	<artifactId>quickfixj-messages-fixLatest</artifactId>
 	<packaging>jar</packaging>
 
-	<name>QuickFIX/J Message classes for FIX 4.1</name>
-	<description>QuickFIX/J Message classes for FIX 4.1</description>
+	<name>QuickFIX/J Message classes for FIX Latest</name>
+	<description>QuickFIX/J Message classes for FIX Latest</description>
 	<url>http://www.quickfixj.org</url>
-
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
@@ -40,10 +40,9 @@
 					</execution>
 				</executions>
 			</plugin>
-            <!-- plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-version}</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -51,15 +50,16 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
+<!--                        <skip>true</skip> Uncomment this to skip execution as this module requires more than 9gb memory -->
                             <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>3g</maxmemory>
+                            <maxmemory>12g</maxmemory>
                             <detectOfflineLinks>false</detectOfflineLinks>
                             <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fix41;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
+                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/FIXLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin -->
+            </plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -72,7 +72,7 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix41;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.FIXLatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
 								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
@@ -88,9 +88,9 @@
 				<configuration>
 					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
-						<include>FIX41.xml</include>
+						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>
-						<include>quickfix/fix41/**</include>
+						<include>quickfix/FIXLatest/**</include>
 					</includes>
 					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -104,10 +104,13 @@
 				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
-						<include>FIX41.xml</include>
-						<include>quickfix/fix41/**</include>
+						<include>FIXLatest.xml</include>
+						<include>quickfix/FIXLatest/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
+					<archive>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>

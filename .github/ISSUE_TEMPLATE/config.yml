@@ -6,3 +6,6 @@ contact_links:
   - name:  Stack Overflow
     url: https://stackoverflow.com/questions/ask?tags=quickfixj
     about: Please ask usage releated questions here and tag your question with "quickfixj".
+  - name: Discussions
+    url: https://github.com/quickfix-j/quickfixj/discussions
+    about: Please ask usage related questions here.

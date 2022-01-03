@@ -351,6 +351,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
         quickfix.fix44.ExecutionReport accept = new quickfix.fix44.ExecutionReport(
                     genOrderID(), genExecID(), new ExecType(ExecType.TRADE), new OrdStatus(
+                    genOrderID(), genExecID(), new ExecType(ExecType.NEW), new OrdStatus(
                             OrdStatus.NEW), order.getSide(), new LeavesQty(order.getOrderQty()
                             .getValue()), new CumQty(0), new AvgPx(0));
 

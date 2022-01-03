@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.acceptor.AbstractSocketAcceptor;
@@ -28,7 +29,7 @@ import quickfix.mina.acceptor.AbstractSocketAcceptor;
  * sessions.
  */
 public class SocketAcceptor extends AbstractSocketAcceptor {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
     private SocketAcceptor(Builder builder) throws ConfigError {
@@ -103,30 +104,30 @@ public class SocketAcceptor extends AbstractSocketAcceptor {
     }
 
     private void initialize() throws ConfigError {
-        if (isStarted.equals(Boolean.FALSE)) {
-            eventHandlingStrategy.setExecutor(longLivedExecutor);
-            startAcceptingConnections();
-            eventHandlingStrategy.blockInThread();
-            isStarted = Boolean.TRUE;
-        } else {
-            log.warn("Ignored attempt to start already running SocketAcceptor.");
+        synchronized (isStarted) {
+            if (isStarted.compareAndSet(false, true)) {
+                eventHandlingStrategy.setExecutor(longLivedExecutor);
+                startAcceptingConnections();
+                eventHandlingStrategy.blockInThread();
+            }
         }
     }
 
     @Override
     public void stop(boolean forceDisconnect) {
-        if (isStarted.equals(Boolean.TRUE)) {
-            try {
-                logoutAllSessions(forceDisconnect);
-                stopAcceptingConnections();
-                stopSessionTimer();
-            } finally {
+        synchronized (isStarted) {
+            if (isStarted.compareAndSet(true, false)) {
                 try {
-                    eventHandlingStrategy.stopHandlingMessages(true);
+                    logoutAllSessions(forceDisconnect);
+                    stopAcceptingConnections();
+                    stopSessionTimer();
                 } finally {
-                    Session.unregisterSessions(getSessions(), true);
-                    clearConnectorSessions();
-                    isStarted = Boolean.FALSE;
+                    try {
+                        eventHandlingStrategy.stopHandlingMessages(true);
+                    } finally {
+                        Session.unregisterSessions(getSessions(), true);
+                        clearConnectorSessions();
+                    }
                 }
             }
         }

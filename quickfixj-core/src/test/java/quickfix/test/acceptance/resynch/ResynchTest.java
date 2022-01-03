@@ -19,6 +19,7 @@
 
 package quickfix.test.acceptance.resynch;
 
+import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,11 +34,13 @@ import quickfix.SystemTime;
 public class ResynchTest {
 
     ResynchTestServer server;
+    int port;
 
     @Before
     public void setUp() throws Exception {
         SystemTime.setTimeSource(null);
-        server = new ResynchTestServer();
+        port = AvailablePortFinder.getNextAvailable();
+        server = new ResynchTestServer(port);
     }
 
     @After
@@ -49,7 +52,7 @@ public class ResynchTest {
     public void testAcceptorTimerSync() throws ConfigError, SessionNotFound, InterruptedException {
         server.start();
         server.waitForInitialization();
-        new ResynchTestClient().run();
+        new ResynchTestClient(port).run();
     }
 
     @Test(timeout=30000)
@@ -58,7 +61,7 @@ public class ResynchTest {
         server.setValidateSequenceNumbers(true);
         server.start();
         server.waitForInitialization();
-        ResynchTestClient client = new ResynchTestClient();
+        ResynchTestClient client = new ResynchTestClient(port);
         client.setUnsynchMode(true);
         client.run();
     }
@@ -69,7 +72,7 @@ public class ResynchTest {
         server.setValidateSequenceNumbers(false);
         server.start();
         server.waitForInitialization();
-        ResynchTestClient client = new ResynchTestClient();
+        ResynchTestClient client = new ResynchTestClient(port);
         client.setUnsynchMode(false);
         client.setForceResynch(true);
         client.run();

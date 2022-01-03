@@ -45,7 +45,7 @@ import java.util.Map.Entry;
 /**
  * Field container used by messages, groups, and composites.
  */
-public abstract class FieldMap implements Serializable {
+public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     static final long serialVersionUID = -3193357271891865972L;
 
@@ -448,6 +448,7 @@ public abstract class FieldMap implements Serializable {
         fields.remove(field);
     }
 
+    @Override
     public Iterator<Field<?>> iterator() {
         return fields.values().iterator();
     }
@@ -601,8 +602,21 @@ public abstract class FieldMap implements Serializable {
         return getGroups(tag).size();
     }
 
+    /**
+     * @deprecated use {@linkplain #groupKeys()} instead
+     */
+    @Deprecated
     public Iterator<Integer> groupKeyIterator() {
-        return groups.keySet().iterator();
+        return groupKeys().iterator();
+    }
+
+    /**
+     * Returns tags which are repeating group counters as {@code Iterable}
+     *
+     * @return tags which are repeating group counters
+     */
+    public Iterable<Integer> groupKeys() {
+        return groups.keySet();
     }
 
     Map<Integer, List<Group>> getGroups() {
@@ -669,7 +683,7 @@ public abstract class FieldMap implements Serializable {
     }
 
     public void removeGroup(int field) {
-        getGroups(field).clear();
+        getGroups().remove(field);
         removeField(field);
     }
 

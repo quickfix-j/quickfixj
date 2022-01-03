@@ -23,7 +23,7 @@ import junit.framework.TestResult;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import quickfix.test.util.ReflectionUtil;
+import quickfix.test.util.StackTraceUtil;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -77,7 +77,7 @@ public class ExpectMessageStep implements TestStep {
         CharSequence message = connection.readMessage(clientId, TIMEOUT_IN_MS);
         if (message == null) {
             log.info("Dumping threads due to timeout when expecting a message...");
-            ReflectionUtil.dumpStackTraces();
+            StackTraceUtil.dumpStackTraces(log);
             final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             long[] threadIds = bean.findDeadlockedThreads();
 

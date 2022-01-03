@@ -3,7 +3,7 @@
 
     <groupId>org.quickfixj</groupId>
     <artifactId>quickfixj-parent</artifactId>
-    <version>2.2.1-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>QuickFIX/J Parent</name>
@@ -70,9 +70,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jdkLevel>1.8</jdkLevel>
-        <slf4j.version>1.7.30</slf4j.version>
+        <slf4j.version>1.7.32</slf4j.version>
         <junit.version>4.13.1</junit.version>
-        <mainClass />
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <mainClass/>
 
         <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
         <maven-compiler-plugin-version>3.8.0</maven-compiler-plugin-version>
@@ -80,48 +82,20 @@
         <maven-surefire-plugin-version>2.22.0</maven-surefire-plugin-version>
         <maven-pmd-plugin-version>3.10.0</maven-pmd-plugin-version>
         <maven-source-plugin-version>3.0.1</maven-source-plugin-version>
-        <maven-javadoc-plugin-version>3.0.1</maven-javadoc-plugin-version>
+        <maven-javadoc-plugin-version>3.3.1</maven-javadoc-plugin-version>
         <maven-shade-plugin-version>3.1.1</maven-shade-plugin-version>
         <maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
         <maven-bundle-plugin-version>3.5.1</maven-bundle-plugin-version>
         <maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
         <maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
-        <exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
         <nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
         <build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+        <exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
         <fix.orchestra.version>1.5.1</fix.orchestra.version>
         <docgen.version>1.6.8</docgen.version>
         <repository-quickfix.version>1.0.0-SNAPSHOT</repository-quickfix.version>
-        <jakarta.version>2.3.3</jakarta.version>
-        <sun-xml-bind.version>2.3.3</sun-xml-bind.version>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.fixprotocol.orchestrations</groupId>
-                <artifactId>fix-standard</artifactId>
-                <version>${fix.orchestra.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.fixprotocol.orchestra.qf</groupId>
-                <artifactId>repository-quickfix</artifactId>
-                <version>${repository-quickfix.version}</version>
-            </dependency>           
-            <!-- API -->
-            <dependency>
-                <groupId>jakarta.xml.bind</groupId>
-                <artifactId>jakarta.xml.bind-api</artifactId>
-                <version>${jakarta.version}</version>
-            </dependency>
-            <!-- Runtime -->
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-impl</artifactId>
-                <version>${sun-xml-bind.version}</version>
-                <scope>runtime</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -141,8 +115,6 @@
                     <version>${maven-compiler-plugin-version}</version>
                     <inherited>true</inherited>
                     <configuration>
-                        <source>${jdkLevel}</source>
-                        <target>${jdkLevel}</target>
                         <meminitial>2g</meminitial>
                         <maxmem>4g</maxmem>
                     </configuration>
@@ -187,7 +159,7 @@
                         </execution>
                     </executions>
                 </plugin>
-                <!-- plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin-version}</version>
@@ -198,13 +170,12 @@
                                 <goal>jar</goal>
                             </goals>
                             <configuration>
-                                <source>8</source>
                                 <additionalparam>-Xdoclint:none</additionalparam>
                                 <maxmemory>3g</maxmemory>
                             </configuration>
                         </execution>
                     </executions>
-                </plugin -->
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
@@ -259,16 +230,7 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-
-        <plugins>
-            <!-- enable bundle packaging -->
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin>
-        </plugins>
     </build>
-
     <profiles>
         <profile>
             <id>skipBundlePlugin</id>
@@ -282,7 +244,7 @@
                         <artifactId>maven-bundle-plugin</artifactId>
                         <executions>
                             <execution>
-                                <phase />
+                                <phase/>
                             </execution>
                         </executions>
                     </plugin>
@@ -325,8 +287,16 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>java-8-compilation</id>
+            <activation>
+            <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
     </profiles>
-
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>

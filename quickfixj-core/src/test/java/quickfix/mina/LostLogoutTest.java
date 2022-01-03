@@ -144,7 +144,7 @@ public class LostLogoutTest {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             System.out.println("Server: message processing end");
         }

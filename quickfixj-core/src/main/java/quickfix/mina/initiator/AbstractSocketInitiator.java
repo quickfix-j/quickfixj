@@ -47,10 +47,10 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -63,7 +63,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractSocketInitiator extends SessionConnector implements Initiator {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private final Set<IoSessionInitiator> initiators = new HashSet<>();
+    private final Set<IoSessionInitiator> initiators = ConcurrentHashMap.newKeySet();
     private final ScheduledExecutorService scheduledReconnectExecutor;
     public static final String QFJ_RECONNECT_THREAD_PREFIX = "QFJ Reconnect Thread-";
 
@@ -102,16 +102,17 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     protected void createSessionInitiators()
             throws ConfigError {
         try {
-            createSessions();
+            boolean continueInitOnError = isContinueInitOnError();
+            createSessions(continueInitOnError);
             for (final Session session : getSessionMap().values()) {
-                createInitiator(session);
+                createInitiator(session, continueInitOnError);
             }
         } catch (final FieldConvertError e) {
             throw new ConfigError(e);
         }
     }
 
-    private void createInitiator(final Session session) throws ConfigError, FieldConvertError {
+    private void createInitiator(final Session session, final boolean continueInitOnError) throws ConfigError, FieldConvertError {
                 
         SessionSettings settings = getSettings();
         final SessionID sessionID = session.getSessionID();
@@ -171,14 +172,21 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         }
 
         ScheduledExecutorService scheduledExecutorService = (scheduledReconnectExecutor != null ? scheduledReconnectExecutor : getScheduledExecutorService());
-        final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
-                socketAddresses, localAddress, reconnectingIntervals,
-                scheduledExecutorService, networkingOptions,
-                getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
-                proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
+        try {
+            final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
+                    socketAddresses, localAddress, reconnectingIntervals,
+                    scheduledExecutorService, settings, networkingOptions,
+                    getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
+                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);
 
-        initiators.add(ioSessionInitiator);
-
+            initiators.add(ioSessionInitiator);
+        } catch (ConfigError e) {
+            if (continueInitOnError) {
+                log.warn("error during session initialization for {}, continuing...", sessionID, e);
+            } else {
+                throw e;
+            }
+        }
     }
 
     // QFJ-482
@@ -201,10 +209,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         return localAddress;
     }
 
-    private void createSessions() throws ConfigError, FieldConvertError {
+    private void createSessions(boolean continueInitOnError) throws ConfigError, FieldConvertError {
         final SessionSettings settings = getSettings();
-        boolean continueInitOnError = isContinueInitOnError();
-
         final Map<SessionID, Session> initiatorSessions = new HashMap<>();
         for (final Iterator<SessionID> i = settings.sectionIterator(); i.hasNext();) {
             final SessionID sessionID = i.next();
@@ -216,7 +222,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     }
                 } catch (final Throwable e) {
                     if (continueInitOnError) {
-                        log.error("error during session initialization for {}, continuing...", sessionID, e);
+                        log.warn("error during session initialization for {}, continuing...", sessionID, e);
                     } else {
                         throw e instanceof ConfigError ? (ConfigError) e : new ConfigError(
                                 "error during session initialization", e);
@@ -232,7 +238,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         try {
             Session session = createSession(sessionID);
             super.addDynamicSession(session);
-            createInitiator(session);
+            createInitiator(session, isContinueInitOnError());
             startInitiators();
         } catch (final FieldConvertError e) {
             throw new ConfigError(e);
