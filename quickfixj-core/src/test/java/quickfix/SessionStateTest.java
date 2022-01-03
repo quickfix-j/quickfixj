@@ -71,6 +71,23 @@ public class SessionStateTest  {
     }
 
     @Test
+    public void testHeartbeatTiming() {
+        // we set a HB interval of 2 seconds = 2000ms
+        SessionState state = new SessionState(new Object(), null, 2 /* HB interval */, false, null,
+                Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+
+        long now = System.currentTimeMillis();
+        timeSource.setSystemTimes(now);
+        state.setLastSentTime(now);
+        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded());
+        timeSource.increment(1000);
+        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded());
+        timeSource.increment(1000);
+        // current time is now 2000ms further since the start, i.e. the HB interval has elapsed
+        assertTrue("heartbeat should be needed", state.isHeartBeatNeeded());
+    }
+
+    @Test
     public void testSessionTimeout() {
         SessionState state = new SessionState(new Object(), null, 30, false, null,
             Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);

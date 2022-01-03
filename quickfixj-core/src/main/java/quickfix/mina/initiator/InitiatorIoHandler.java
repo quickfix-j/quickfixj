@@ -25,6 +25,7 @@ import quickfix.Message;
 import quickfix.MessageUtils;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.MsgType;
@@ -40,9 +41,9 @@ class InitiatorIoHandler extends AbstractIoHandler {
     private final Session quickfixSession;
     private final EventHandlingStrategy eventHandlingStrategy;
 
-    public InitiatorIoHandler(Session quickfixSession, NetworkingOptions networkingOptions,
-            EventHandlingStrategy eventHandlingStrategy) {
-        super(networkingOptions, eventHandlingStrategy);
+    public InitiatorIoHandler(Session quickfixSession, SessionSettings sessionSettings, NetworkingOptions networkingOptions,
+                              EventHandlingStrategy eventHandlingStrategy) {
+        super(sessionSettings, networkingOptions, eventHandlingStrategy);
         this.quickfixSession = quickfixSession;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }

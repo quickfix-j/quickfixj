@@ -23,8 +23,10 @@ import org.apache.mina.core.session.IoSession;
 import quickfix.Log;
 import quickfix.Message;
 import quickfix.MessageUtils;
+import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.HeartBtInt;
@@ -39,15 +41,16 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Optional;
-import quickfix.Responder;
 
 class AcceptorIoHandler extends AbstractIoHandler {
     private final EventHandlingStrategy eventHandlingStrategy;
     private final AcceptorSessionProvider sessionProvider;
 
     public AcceptorIoHandler(AcceptorSessionProvider sessionProvider,
-            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy) {
-        super(networkingOptions, eventHandlingStrategy);
+                             SessionSettings sessionSettings,
+                             NetworkingOptions networkingOptions,
+                             EventHandlingStrategy eventHandlingStrategy) {
+        super(sessionSettings, networkingOptions, eventHandlingStrategy);
         this.sessionProvider = sessionProvider;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }

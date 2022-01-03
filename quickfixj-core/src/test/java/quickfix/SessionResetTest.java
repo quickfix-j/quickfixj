@@ -55,13 +55,7 @@ public class SessionResetTest {
             header.setInt(MsgSeqNum.FIELD, 1);
             header.setUtcTimeStamp(SendingTime.FIELD, SystemTime.getLocalDateTime(), true);
             
-            Thread resetThread = new Thread(() -> {
-                try {
-                    session.reset();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }, "SessionReset");
+            Thread resetThread = new Thread(session::reset, "SessionReset");
             resetThread.setDaemon(true);
             
             Thread messageSender = new Thread(() -> {
@@ -113,38 +107,38 @@ public class SessionResetTest {
         public void disconnect() {
         }
 
-        public void onConnect() {
+        public void onConnect(SessionID sessionID) {
         }
 
-        public void onDisconnect() {
+        public void onDisconnect(SessionID sessionID) {
         }
 
-        public void onLogon() {
+        public void onLogon(SessionID sessionID) {
         }
 
-        public void onLogout() {
+        public void onLogout(SessionID sessionID) {
         }
 
-        public void onReset() {
+        public void onReset(SessionID sessionID) {
             onResetCalled = true;
         }
 
-        public void onRefresh() {
+        public void onRefresh(SessionID sessionID) {
         }
 
-        public void onMissedHeartBeat() {
+        public void onMissedHeartBeat(SessionID sessionID) {
         }
 
-        public void onHeartBeatTimeout() {
+        public void onHeartBeatTimeout(SessionID sessionID) {
         }
 
-        public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        public void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
         }
 
-        public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        public void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
         }
 
-        public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+        public void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
         }
     }
 

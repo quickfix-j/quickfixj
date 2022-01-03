@@ -19,20 +19,30 @@
 
 package quickfix.mina;
 
-import junit.framework.TestCase;
+import java.net.InetSocketAddress;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.session.IoSession;
 
-import java.net.InetSocketAddress;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-public class IoSessionResponderTest extends TestCase {
+
+public class IoSessionResponderTest {
+    
+    @Test
     public void testAsynchronousSend() throws Exception {
         IoSession mockIoSession = mock(IoSession.class);
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
-        stub(mockWriteFuture.isWritten()).toReturn(true);
-        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
+        when(mockWriteFuture.isWritten()).thenReturn(true);
+        when(mockIoSession.write("abcd")).thenReturn(mockWriteFuture);
         IoSessionResponder responder = new IoSessionResponder(mockIoSession, false, 0, 0);
 
         boolean result = responder.send("abcd");
@@ -43,12 +53,13 @@ public class IoSessionResponderTest extends TestCase {
         verifyNoMoreInteractions(mockIoSession);
     }
 
+    @Test
     public void testSynchronousSend() throws Exception {
         int timeout = 123;
         IoSession mockIoSession = mock(IoSession.class);
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
-        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
-        stub(mockWriteFuture.awaitUninterruptibly(timeout)).toReturn(true);
+        when(mockIoSession.write("abcd")).thenReturn(mockWriteFuture);
+        when(mockWriteFuture.awaitUninterruptibly(timeout)).thenReturn(true);
         IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");
@@ -60,12 +71,13 @@ public class IoSessionResponderTest extends TestCase {
         verifyNoMoreInteractions(mockIoSession);
     }
 
+    @Test
     public void testSynchronousSendWithJoinException() throws Exception {
         int timeout = 123;
         IoSession mockIoSession = mock(IoSession.class);
 
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
-        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
+        when(mockIoSession.write("abcd")).thenReturn(mockWriteFuture);
         doThrow(new RuntimeException("TEST")).when(mockWriteFuture).awaitUninterruptibly(timeout);
         IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
@@ -78,13 +90,14 @@ public class IoSessionResponderTest extends TestCase {
         verifyNoMoreInteractions(mockIoSession);
     }
 
+    @Test
     public void testSynchronousSendWithJoinTimeout() throws Exception {
         int timeout = 123;
         IoSession mockIoSession = mock(IoSession.class);
 
         WriteFuture mockWriteFuture = mock(WriteFuture.class);
-        stub(mockIoSession.write("abcd")).toReturn(mockWriteFuture);
-        stub(mockWriteFuture.awaitUninterruptibly(timeout)).toReturn(false);
+        when(mockIoSession.write("abcd")).thenReturn(mockWriteFuture);
+        when(mockWriteFuture.awaitUninterruptibly(timeout)).thenReturn(false);
         IoSessionResponder responder = new IoSessionResponder(mockIoSession, true, timeout, 0);
 
         boolean result = responder.send("abcd");
@@ -96,10 +109,12 @@ public class IoSessionResponderTest extends TestCase {
         verifyNoMoreInteractions(mockIoSession);
     }
 
+    @Test
     public void testDisconnect() throws Exception {
         IoSession mockProtocolSession = mock(IoSession.class);
-        stub(mockProtocolSession.getScheduledWriteMessages()).toReturn(0);
-        stub(mockProtocolSession.closeNow()).toReturn(null);
+        
+        when(mockProtocolSession.getScheduledWriteMessages()).thenReturn(0);
+        when(mockProtocolSession.closeNow()).thenReturn(null);
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0, 0);
         responder.disconnect();
@@ -110,10 +125,10 @@ public class IoSessionResponderTest extends TestCase {
         verifyNoMoreInteractions(mockProtocolSession);
     }
 
+    @Test
     public void testGetRemoteSocketAddress() throws Exception {
         IoSession mockProtocolSession = mock(IoSession.class);
-        stub(mockProtocolSession.getRemoteAddress()).toReturn(
-                new InetSocketAddress("1.2.3.4", 5432));
+        when(mockProtocolSession.getRemoteAddress()).thenReturn(new InetSocketAddress("1.2.3.4", 5432));
 
         IoSessionResponder responder = new IoSessionResponder(mockProtocolSession, false, 0, 0);
 
