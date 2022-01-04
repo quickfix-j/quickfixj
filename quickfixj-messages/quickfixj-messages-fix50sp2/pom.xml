@@ -36,30 +36,29 @@
         <testResources>
         </testResources>
         <plugins>
-<!--             <plugin> -->
-<!--                 <groupId>org.apache.maven.plugins</groupId> -->
-<!--                 <artifactId>maven-javadoc-plugin</artifactId> -->
-<!--                 <executions> -->
-<!--                     <execution> -->
-<!--                         <id>attach-javadocs</id> -->
-<!--                         <goals> -->
-<!--                             <goal>jar</goal> -->
-<!--                         </goals> -->
-<!--                         <configuration> -->
-     <!--                        <skip>true</skip> Uncomment this to skip execution as this module requires more than 9gb memory -->
-<!--                             <additionalparam>-Xdoclint:none</additionalparam> -->
-<!--                             <maxmemory>12g</maxmemory> -->
-<!--                             <detectOfflineLinks>false</detectOfflineLinks> -->
-<!--                             <includeDependencySources>false</includeDependencySources> -->
-<!--                             <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix-latest/fixLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath> -->
-<!--                         </configuration> -->
-<!--                     </execution> -->
-<!--                 </executions> -->
-<!--             </plugin> -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip> <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <maxmemory>12g</maxmemory>
+                            <detectOfflineLinks>false</detectOfflineLinks>
+                            <includeDependencySources>false</includeDependencySources>
+                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix-latest/fixLatest;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${build-helper-maven-plugin-version}</version>
                 <executions>
                     <execution>
                         <phase>prepare-package</phase>

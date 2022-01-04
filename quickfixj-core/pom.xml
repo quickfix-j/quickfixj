@@ -27,7 +27,6 @@
         <dependency>
             <groupId>io.fixprotocol.orchestra</groupId>
             <artifactId>repository</artifactId>
-            <version>${orchestra.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -343,7 +342,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin-version}</version>
                 <configuration>
                     <includes>
                         <include>quickfix/**</include>
@@ -373,26 +371,26 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <!-- plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-version}</version>
                 <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <source>8</source>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>3g</maxmemory>
-                            <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
-                        </configuration>
-                    </execution>
+                  <execution>
+                      <id>attach-javadocs</id>
+                      <goals>
+                          <goal>jar</goal>
+                      </goals>
+                      <configuration>
+                          <skip>true</skip> <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
+                          <source>8</source>
+                          <additionalparam>-Xdoclint:none</additionalparam>
+                          <maxmemory>3g</maxmemory>
+                          <includeDependencySources>false</includeDependencySources>
+                          <sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
+                      </configuration>
+                  </execution>
                 </executions>
-            </plugin -->
+           </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
