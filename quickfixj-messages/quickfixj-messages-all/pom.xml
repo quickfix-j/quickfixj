@@ -52,7 +52,7 @@
 				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
 			</resource>
 			<resource>
-				<directory>../quickfixj-orchestra/target/generated-resources/dictionary/</directory>
+				<directory>../quickfixj-orchestration/target/generated-resources</directory>
 			</resource>
 		</resources>
 

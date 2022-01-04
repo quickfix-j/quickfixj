@@ -23,8 +23,9 @@
             <artifactId>fix-standard</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.fixprotocol.orchestra.qf</groupId>
+            <groupId>org.quickfixj</groupId>
             <artifactId>repository-quickfix</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
