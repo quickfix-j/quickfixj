@@ -522,18 +522,21 @@ public class CodeGeneratorJ {
 
   private Writer writeComponentAccessors(Writer writer, String componentName, String packageName)
       throws IOException {
-    final String className = getQualifiedClassName(packageName, componentName);
-    writer.write(
-        String.format("%n%spublic void set(%s component) {%n%ssetComponent(component);%n%s}%n",
-            indent(1), className, indent(2), indent(1)));
-    writer.write(String.format(
-        "%n%spublic %s get(%s component) throws FieldNotFound {%n%sgetComponent(component);%n%sreturn component;%n%s}%n",
-        indent(1), className, className, indent(2), indent(2), indent(1)));
-    // Add "Component" as suffix to the accessor name to avoid conflict with field accessor names
-    writer.write(String.format(
-        "%n%spublic %s get%s%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n", indent(1),
-        className, componentName, "Component", indent(2), className, indent(1)));
-    return writer;
+	  // QFJ Message Base class has accessors for the standard Header and Trailer components 
+	  // so omit accessor on derived class
+	  if (!componentName.equals("StandardHeader") && !componentName.equals("StandardTrailer") ) {
+		final String className = getQualifiedClassName(packageName, componentName);
+	    writer.write(
+	        String.format("%n%spublic void set(%s component) {%n%ssetComponent(component);%n%s}%n",
+	            indent(1), className, indent(2), indent(1)));
+	    writer.write(String.format(
+	        "%n%spublic %s get(%s component) throws FieldNotFound {%n%sgetComponent(component);%n%sreturn component;%n%s}%n",
+	        indent(1), className, className, indent(2), indent(2), indent(1)));
+	    writer.write(String.format(
+        "%n%spublic %s get%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n", indent(1),
+        className, componentName, indent(2), className, indent(1)));
+	  }
+      return writer;
   }
 
   private Writer writeComponentFieldIds(Writer writer, List<Integer> componentFields)

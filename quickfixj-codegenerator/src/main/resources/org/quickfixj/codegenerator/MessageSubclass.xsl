@@ -279,20 +279,10 @@ import quickfix.Group;</xsl:if>
 		getComponent(component);
 		return component;
 	}
-	<xsl:choose>
-	    <!-- In the FIX Latest repository some components have the same names as fields. Java does not overload on return type so "Component" is added to the
-	         method name to disambiguate the component accessors from field accessors. -->
-	  	<xsl:when test="//fix/@fixLatest ='true'">
-	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>Component() throws FieldNotFound {
-		return get(new <xsl:value-of select="$type"/>());
-	}
-		</xsl:when>
-		<xsl:otherwise>
+
 	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
 		return get(new <xsl:value-of select="$type"/>());
 	}	
-		</xsl:otherwise>
-	</xsl:choose>
 </xsl:template>
 
 <xsl:template mode="field-accessors" match="component">
