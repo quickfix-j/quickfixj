@@ -282,7 +282,7 @@ import quickfix.Group;</xsl:if>
 
 	public <xsl:value-of select="$type"/> get<xsl:value-of select="@name"/>() throws FieldNotFound {
 		return get(new <xsl:value-of select="$type"/>());
-	}	
+	}
 </xsl:template>
 
 <xsl:template mode="field-accessors" match="component">

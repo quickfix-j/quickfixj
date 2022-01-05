@@ -65,10 +65,6 @@ public class Message extends quickfix.Message {
 
 	protected Message(int[] fieldOrder) {
 		super(fieldOrder);
-		
-		header = new Header(this);
-        trailer = new Trailer();
-		
 		<xsl:choose>
 			<xsl:when test="//fix/@major='4'">
 		getHeader().setField(new BeginString("FIX.<xsl:value-of select="//fix/@major"/>.<xsl:value-of select="//fix/@minor"/>"));
@@ -79,6 +75,11 @@ public class Message extends quickfix.Message {
 		</xsl:choose>
 	}
 
+    @Override
+    protected Header newHeader() {
+        return new Header(this);
+    }
+
 	public static class Header extends quickfix.Message.Header {
 
 		static final long serialVersionUID = <xsl:value-of select="$serialVersionUID"/>;
@@ -86,7 +87,14 @@ public class Message extends quickfix.Message {
 		public Header(Message msg) {
 			// JNI compatibility
 		}
+		<xsl:apply-templates select="//fix/header/field" mode="field-accessors"/>
+		<xsl:apply-templates select="//fix/header/group" mode="field-accessors"/>
+		<xsl:apply-templates select="//fix/header/component" mode="field-accessors"/>
 	}
+	<!-- TODO Must talk to Oren about why these are defined at the message level -->
+	<xsl:apply-templates select="//fix/trailer/field" mode="field-accessors"/>
+	<xsl:apply-templates select="//fix/trailer/group" mode="field-accessors"/>
+	<xsl:apply-templates select="//fix/trailer/component" mode="field-accessors"/>
 }
 </xsl:template>
 
