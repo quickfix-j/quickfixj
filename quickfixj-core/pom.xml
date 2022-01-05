@@ -219,7 +219,7 @@
                             <decimal>${generator.decimal}</decimal>
                         </configuration>
                     </execution>
-                    <!-- execution>
+                    <execution>
                         <id>fix50sp2</id>
                         <goals>
                             <goal>generate</goal>
@@ -230,7 +230,7 @@
                             <fieldPackage>quickfix.field</fieldPackage>
                             <decimal>${generator.decimal}</decimal>
                         </configuration>
-                    </execution -->
+                    </execution>
                     <execution>
                         <id>fix50sp1</id>
                         <goals>
@@ -318,6 +318,7 @@
                 </executions>
             </plugin>
             <plugin>
+                <!-- Generate FIX Latest -->
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
@@ -334,7 +335,7 @@
                     <classpathScope>runtime</classpathScope>
                     <mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
                     <arguments>
-                        <argument>${project.basedir}/../quickfixj-orchestration/target/generated-resources/OrchestraEP255.xml</argument>
+                        <argument>${project.basedir}/../quickfixj-orchestration/target/generated-resources/OrchestraFIXLatest.xml</argument>
                         <argument>${project.build.directory}/generated-sources</argument>
                     </arguments>
                 </configuration>
@@ -371,7 +372,7 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <executions>
@@ -380,8 +381,9 @@
                       <goals>
                           <goal>jar</goal>
                       </goals>
-                      <configuration>
-                          <skip>true</skip> <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
+                      <configuration -->
+                          <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
+                          <!-- skip>true</skip>
                           <source>8</source>
                           <additionalparam>-Xdoclint:none</additionalparam>
                           <maxmemory>3g</maxmemory>
@@ -390,7 +392,7 @@
                       </configuration>
                   </execution>
                 </executions>
-           </plugin>
+           </plugin -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

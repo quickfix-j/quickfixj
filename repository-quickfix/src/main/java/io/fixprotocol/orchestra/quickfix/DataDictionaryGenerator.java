@@ -113,6 +113,7 @@ public class DataDictionaryGenerator {
   private final Map<Integer, GroupType> groups = new HashMap<>();
   private final Map<Integer, FieldType> fields = new HashMap<>();
   private Document xmlDocument;
+  private static final String FIX_LATEST = "FIX.Latest";
 
   public void generate(InputStream inputFile, File outputDir) throws JAXBException, IOException,
       ParserConfigurationException, SAXException, XPathExpressionException {
@@ -146,19 +147,35 @@ public class DataDictionaryGenerator {
     }
 
     String version = repository.getVersion();
-    int major = 0;
-    int minor = 0;
-    final String regex = "(FIX\\.)(?<major>\\d+)(\\.)(?<minor>\\d+)(.*)";
-    final Pattern pattern = Pattern.compile(regex);
-    final Matcher matcher = pattern.matcher(version);
-    if (matcher.find()) {
-      String extensionPack = extractExtensionPack(version);
-      String servicePack = extractServicePack(version);
-      major = Integer.parseInt(matcher.group("major"));
-      minor = Integer.parseInt(matcher.group("minor"));
+    String major = "Latest"; // will be over-written if version is not FIX.Latest
+    String minor = "0";
+    String fileName = splitOffVersion(version);
+    String extensionPack = extractExtensionPack(version);
+    String servicePack = extractServicePack(version);
+    
+    if (FIX_LATEST.equals(fileName)) {
+    	writeFile(repository, outputDir, requiredGroupIds, componentList, groupList, fieldList, major, minor, fileName,
+    			extensionPack, servicePack);
+    } else {
+	    final String regex = "(FIX\\.)(?<major>\\d+)(\\.)(?<minor>\\d+)(.*)";
+	    final Pattern pattern = Pattern.compile(regex);
+	    final Matcher matcher = pattern.matcher(version);
+	
+	    if (matcher.find()) {
+	      major = matcher.group("major");
+	      minor = matcher.group("minor");
+	      writeFile(repository, outputDir, requiredGroupIds, componentList, groupList, fieldList, major, minor, fileName,
+	  			extensionPack, servicePack);
+	    } else {
+	        System.err.format("Failed to parse FIX major and minor version in %s%n", version);
+	    }
+    }
+  }
 
-      String fileName = splitOffVersion(version);
-      final String versionPath = fileName.replaceAll("[\\.]", "");
+  private void writeFile(Repository repository, File outputDir, Set<Integer> requiredGroupIds,
+		final List<ComponentType> componentList, final List<GroupType> groupList, final List<FieldType> fieldList,
+		String major, String minor, String fileName, String extensionPack, String servicePack) throws IOException {
+	  final String versionPath = fileName.replaceAll("[\\.]", "");
       final File file = getSpecFilePath(outputDir, versionPath, ".xml");
       outputDir.mkdirs();
       try (FileWriter writer = new FileWriter(file)) {
@@ -192,9 +209,6 @@ public class DataDictionaryGenerator {
         writeElementEnd(writer, "fields", 1);
         writeElementEnd(writer, "fix", 0);
       }
-    } else {
-      System.err.format("Failed to parse FIX major and minor version in %s%n", version);
-    }
   }
 
   String splitOffVersion(String version) {

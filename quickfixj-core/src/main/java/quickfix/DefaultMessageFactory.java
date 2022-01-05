@@ -35,6 +35,7 @@ import static quickfix.FixVersions.BEGINSTRING_FIXT11;
 import static quickfix.FixVersions.FIX50;
 import static quickfix.FixVersions.FIX50SP1;
 import static quickfix.FixVersions.FIX50SP2;
+import static quickfix.FixVersions.FIXLATEST;
 
 /**
  * The default factory for creating FIX message instances.
@@ -84,6 +85,7 @@ public class DefaultMessageFactory implements MessageFactory {
         addFactory(FIX50);
         addFactory(FIX50SP1);
         addFactory(FIX50SP2);
+        addFactory(FIXLATEST);
     }
 
     private void addFactory(String beginString) {

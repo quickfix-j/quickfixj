@@ -812,7 +812,7 @@ public class CodeGeneratorJ {
           getQualifiedClassName(packageName, name)));
     }
 
-    writer.write(String.format("%s}%n%sreturn new quickfix.fix50sp2.Message();%n%s}%n", indent(2),
+    writer.write(String.format("%s}%n%sreturn new quickfix.fixlatest.Message();%n%s}%n", indent(2),
         indent(2), indent(1)));
 
     return writer;

@@ -27,6 +27,11 @@
 			<artifactId>quickfixj-codegenerator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>repository-quickfix</artifactId>
+            <version>${project.version}</version>
+        </dependency>		
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-dictgenerator</artifactId>
@@ -64,6 +69,11 @@
 			<artifactId>quickfixj-messages-all</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.quickfixj</groupId>
+            <artifactId>quickfixj-messages-fixlatest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix50sp2</artifactId>
@@ -126,7 +136,7 @@
 	<build>
 		<plugins>
 			<!-- generate javadocs into apidocs folder -->
-			<plugin>
+			<!-- plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
 					<execution>
@@ -142,20 +152,20 @@
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-codegenerator</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-dictgenerator</dependencySourceInclude>
-							</dependencySourceIncludes>
+							</dependencySourceIncludes-->
 							<!-- disable links otherwise it runs again on all modules and it's too slow -->
-							<detectOfflineLinks>false</detectOfflineLinks>
+							<!--  etectOfflineLinks>false</detectOfflineLinks>
 							<overview>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc_overview.html</overview>
-							<noindex>true</noindex>
+							<noindex>true</noindex -->
 							<!-- don't use custom stylesheet since it just breaks all style -->
-							<stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile>
+							<!-- stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile>
 							<show>protected</show>
 							<maxmemory>3g</maxmemory>
 							<breakiterator>true</breakiterator>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin -->
 			<!-- assemble the sources and bin distribution archives -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>

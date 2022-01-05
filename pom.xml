@@ -95,7 +95,7 @@
         <exec-maven-plugin-version>3.0.0</exec-maven-plugin-version>
         <xml-maven-plugin-version>1.0.2</xml-maven-plugin-version>
         <!-- TODO figure out these two versions -->
-        <fix.orchestra.version>1.5.1</fix.orchestra.version>
+        <fix.orchestra.version>1.5.4</fix.orchestra.version>
         <orchestra.version>1.6.8</orchestra.version>
         <docgen.version>1.6.8</docgen.version>
         <!-- repository-quickfix.version>1.0.0-SNAPSHOT</repository-quickfix.version -->

@@ -20,7 +20,10 @@ public class CodeGeneratorJTest {
   public void testGenerate() throws IOException {
     generator.generate(
         Thread.currentThread().getContextClassLoader().getResource("trade.xml").openStream(),
-        new File("target/spec/generated-sources"));
+        new File("target/spec/generated-sources/fix50sp2"));
+    generator.generate(
+            Thread.currentThread().getContextClassLoader().getResource("trade-latest.xml").openStream(),
+            new File("target/spec/generated-sources/latest"));
   }
   
   @Test void testTransformStaticFieldNameCarriedNonCustomerSideCrossMargined() {
