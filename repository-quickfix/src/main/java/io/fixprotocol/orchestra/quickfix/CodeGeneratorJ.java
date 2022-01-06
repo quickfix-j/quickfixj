@@ -180,7 +180,7 @@ public class CodeGeneratorJ {
       writeGroupFieldIds(writer, componentGroupFields);
       writeComponentNoArgConstructor(writer, name);
 
-      writeMemberAccessors(writer, members, packageName, packageName);
+      writeMemberAccessors(writer, members, packageName, packageName, true);
 
       writeEndClassDeclaration(writer);
     }
@@ -252,7 +252,7 @@ public class CodeGeneratorJ {
       writeGroupInnerClass(writer, groupType, packageName, packageName);
 
       final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
-      writeMemberAccessors(writer, members, packageName, packageName);
+      writeMemberAccessors(writer, members, packageName, packageName, true);
 
       writeEndClassDeclaration(writer);
     }
@@ -280,7 +280,7 @@ public class CodeGeneratorJ {
       final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
       writeMessageNoArgConstructor(writer, messageClassname);
 
-      writeMemberAccessors(writer, members, messagePackage, componentPackage);
+      writeMemberAccessors(writer, members, messagePackage, componentPackage, true);
 
       writeEndClassDeclaration(writer);
     }
@@ -533,8 +533,8 @@ public class CodeGeneratorJ {
 	        "%n%spublic %s get(%s component) throws FieldNotFound {%n%sgetComponent(component);%n%sreturn component;%n%s}%n",
 	        indent(1), className, className, indent(2), indent(2), indent(1)));
 	    writer.write(String.format(
-        "%n%spublic %s get%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n", indent(1),
-        className, componentName, indent(2), className, indent(1)));
+        "%n%spublic %s get%s%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n", indent(1),
+        className, componentName, "Component", indent(2), className, indent(1)));
 	  }
       return writer;
   }
@@ -748,7 +748,7 @@ public class CodeGeneratorJ {
     writeGroupNoArgConstructor(writer, numInGroupFieldName, numInGroupId, firstFieldId);
 
     final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
-    writeMemberAccessors(writer, members, packageName, componentPackage);
+    writeMemberAccessors(writer, members, packageName, componentPackage, true);
 
     writeEndClassDeclaration(writer);
   }
@@ -768,7 +768,7 @@ public class CodeGeneratorJ {
   }
 
   private void writeMemberAccessors(FileWriter writer, List<Object> members, String packageName,
-      String componentPackage) throws IOException {
+      String componentPackage, boolean isWriteComponentAccessors) throws IOException {
     for (final Object member : members) {
       if (member instanceof FieldRefType) {
         final FieldRefType fieldRefType = (FieldRefType) member;
@@ -790,7 +790,16 @@ public class CodeGeneratorJ {
       } else if (member instanceof ComponentRefType) {
         final ComponentType componentType =
             components.get(((ComponentRefType) member).getId().intValue());
-        writeComponentAccessors(writer, componentType.getName(), componentPackage);
+        if (isWriteComponentAccessors) {
+        	writeComponentAccessors(writer, componentType.getName(), componentPackage);
+        }
+        final List<Object> componentMembers = componentType.getComponentRefOrGroupRefOrFieldRef();
+        // when recursing don't write out component accessors
+        writeMemberAccessors(writer, 
+    		componentMembers.stream().filter(componentMember -> componentMember instanceof FieldRefType || componentMember instanceof ComponentRefType).collect(Collectors.toList()), 
+    		packageName, 
+    		componentPackage, 
+    		true);
       }
     }
   }
