@@ -98,7 +98,7 @@
         <fix.orchestra.version>1.5.4</fix.orchestra.version>
         <orchestra.version>1.6.8</orchestra.version>
         <docgen.version>1.6.8</docgen.version>
-        <!-- repository-quickfix.version>1.0.0-SNAPSHOT</repository-quickfix.version -->
+        <jaxb.version>2.3.3</jaxb.version>
     </properties>
 
    <dependencyManagement>
@@ -124,6 +124,16 @@
                 <artifactId>junit-jupiter-params</artifactId>
                 <version>${junit.jupiter.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <version>${jaxb.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
