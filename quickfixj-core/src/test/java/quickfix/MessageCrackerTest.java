@@ -226,6 +226,23 @@ public class MessageCrackerTest {
 
         assertTrue(messageCracked > 0);
     }
+    
+    @Test
+    public void testFixtMessageCrackingWithFixLatestApplVerID() throws Exception {
+        quickfix.fixlatest.Email message = createFixLatestEmail();
+        message.getHeader().setString(ApplVerID.FIELD, ApplVerID.FIXLATEST);
+
+        MessageCracker cracker = new MessageCracker() {
+            @SuppressWarnings("unused")
+            public void onMessage(quickfix.fixlatest.Email email, SessionID sessionID) {
+                messageCracked++;
+            }
+        };
+
+        cracker.crack(message, new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET"));
+
+        assertTrue(messageCracked > 0);
+    }
 
     @Test
     public void testFixtMessageCrackingWithSessionDefaultApplVerID() throws Exception {
@@ -270,6 +287,14 @@ public class MessageCrackerTest {
 
     private quickfix.fix44.Email createFix44Email() {
         quickfix.fix44.Email message = new quickfix.fix44.Email();
+        message.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIXT11);
+        message.getHeader().setString(SenderCompID.FIELD, "SENDER");
+        message.getHeader().setString(TargetCompID.FIELD, "TARGET");
+        return message;
+    }
+    
+    private quickfix.fixlatest.Email createFixLatestEmail() {
+        quickfix.fixlatest.Email message = new quickfix.fixlatest.Email();
         message.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIXT11);
         message.getHeader().setString(SenderCompID.FIELD, "SENDER");
         message.getHeader().setString(TargetCompID.FIELD, "TARGET");

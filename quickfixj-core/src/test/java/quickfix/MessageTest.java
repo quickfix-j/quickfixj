@@ -483,6 +483,20 @@ public class MessageTest {
         mdsfr.fromString(data, sessDictionary, appDictionary, true);
         DataDictionary.validate(mdsfr, sessDictionary, appDictionary);
     }
+    
+    @Test
+    public void testAppMessageValidationFixLatest() throws Exception {
+        final String data = "8=FIXT.1.1\0019=234\00135=W\00134=2\00149=ABFX\00152=20080722-16:37:11.234\001" +
+            "56=X2RV1\00155=EUR/USD\001262=CAP0000011\001268=2\001269=0\001270=1.57844\00115=EUR\001" +
+            "271=500000\001272=20080724\001269=1\001270=1.57869\00115=EUR\001271=500000\001272=20080724\00110=097\001";
+        final quickfix.fixlatest.MarketDataSnapshotFullRefresh mdsfr = new quickfix.fixlatest.MarketDataSnapshotFullRefresh();
+        final DataDictionary sessDictionary = DataDictionaryTest.getDictionary("FIXT11.xml");
+        final DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIXLatest.xml");
+        assertNotNull(sessDictionary);
+        assertNotNull(appDictionary);
+        mdsfr.fromString(data, sessDictionary, appDictionary, true);
+        DataDictionary.validate(mdsfr, sessDictionary, appDictionary);
+    }
 
     @Test
     public void testAdminMessageValidation() throws Exception {
