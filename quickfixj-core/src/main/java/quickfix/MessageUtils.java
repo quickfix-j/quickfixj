@@ -277,6 +277,7 @@ public class MessageUtils {
             put(ApplVerID.FIX50, FixVersions.FIX50);
             put(ApplVerID.FIX50SP1, FixVersions.FIX50SP1);
             put(ApplVerID.FIX50SP2, FixVersions.FIX50SP2);
+            put(ApplVerID.FIXLATEST, FixVersions.FIXLATEST);
         }
     };
 
