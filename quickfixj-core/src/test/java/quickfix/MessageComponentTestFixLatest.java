@@ -89,7 +89,7 @@ public class MessageComponentTestFixLatest {
         assertEquals("ABC", noRelatedSym.getString(12345));
         assertEquals(0xCAFE, noRelatedSym.getInt(54321));
 
-        assertEquals("USD", noRelatedSym.getFinancingDetails().getAgreementCurrency().getValue());
+        assertEquals("USD", noRelatedSym.getFinancingDetailsComponent().getAgreementCurrency().getValue());
         assertEquals("DEF", noRelatedSym.getString(111222));
     }
 
@@ -125,7 +125,7 @@ public class MessageComponentTestFixLatest {
         assertEquals("XYZ", noRelatedSym.getString(12345));
         assertEquals(0xBABE, noRelatedSym.getInt(54321));
 
-        assertEquals("CAD", noRelatedSym.getFinancingDetails().getAgreementCurrency().getValue());
+        assertEquals("CAD", noRelatedSym.getFinancingDetailsComponent().getAgreementCurrency().getValue());
         assertEquals("GHI", noRelatedSym.getString(111222));
     }
 
@@ -146,7 +146,7 @@ public class MessageComponentTestFixLatest {
         noRelatedSym.set(instrument);
         noRelatedSym.set(financingDetails);
 
-        instrument = noRelatedSym.getInstrument();
+        instrument = noRelatedSym.getInstrumentComponent();
 
         assertEquals("EURUSD", instrument.getSymbol().getValue());
         assertEquals(Product.CURRENCY, instrument.getProduct().getValue());
@@ -154,7 +154,7 @@ public class MessageComponentTestFixLatest {
         assertFalse(instrument.isSetField(12345));
         assertFalse(instrument.isSetField(54321));
 
-        financingDetails = noRelatedSym.getFinancingDetails();
+        financingDetails = noRelatedSym.getFinancingDetailsComponent();
 
         assertEquals("USD", financingDetails.getAgreementCurrency().getValue());
         assertFalse(instrument.isSetField(111222));
