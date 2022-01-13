@@ -1,31 +1,36 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.quickfixj</groupId>
-		<artifactId>quickfixj-parent</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
-	</parent>
+    <parent>
+        <groupId>org.quickfixj</groupId>
+        <artifactId>quickfixj-parent</artifactId>
+        <version>3.0.0-SNAPSHOT</version>
+    </parent>
 
-	<artifactId>quickfixj-messages</artifactId>
-	<packaging>pom</packaging>
+    <artifactId>quickfixj-messages</artifactId>
+    <packaging>pom</packaging>
 
-	<name>QuickFIX/J Message classes for various FIX specs</name>
-	<description>QuickFIX/J Message classes for various FIX specs</description>
-	<url>http://www.quickfixj.org</url>
+    <name>QuickFIX/J Message classes for various FIX specs</name>
+    <description>QuickFIX/J Message classes for various FIX specs</description>
+    <url>http://www.quickfixj.org</url>
+    
+    <properties>
+        <generator.decimal>true</generator.decimal>
+    </properties>
 
-	<modules>
-		<module>quickfixj-messages-fix40</module>
-		<module>quickfixj-messages-fix41</module>
-		<module>quickfixj-messages-fix42</module>
-		<module>quickfixj-messages-fix43</module>
-		<module>quickfixj-messages-fix44</module>
-		<module>quickfixj-messages-fix50</module>
-		<module>quickfixj-messages-fix50sp1</module>
-		<module>quickfixj-messages-fix50sp2</module>
-		<module>quickfixj-messages-fixlatest</module>
-		<module>quickfixj-messages-fixt11</module>
-		<module>quickfixj-messages-all</module>
-	</modules>
+
+    <modules>
+        <module>quickfixj-messages-fix40</module>
+        <module>quickfixj-messages-fix41</module>
+        <module>quickfixj-messages-fix42</module>
+        <module>quickfixj-messages-fix43</module>
+        <module>quickfixj-messages-fix44</module>
+        <module>quickfixj-messages-fix50</module>
+        <module>quickfixj-messages-fix50sp1</module>
+        <module>quickfixj-messages-fix50sp2</module>
+        <module>quickfixj-messages-fixt11</module>
+        <module>quickfixj-messages-fixlatest</module>
+        <module>quickfixj-messages-all</module>
+    </modules>
 
 </project>

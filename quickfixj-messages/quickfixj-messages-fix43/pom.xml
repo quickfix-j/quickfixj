@@ -27,13 +27,14 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>prepare-package</phase>
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
+								<source>${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -42,6 +43,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin-version}</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -53,7 +55,7 @@
                             <maxmemory>3g</maxmemory>
                             <detectOfflineLinks>false</detectOfflineLinks>
                             <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fix43;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
+                            <sourcepath>${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/quickfix/fix43;${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/quickfix/field</sourcepath>
                         </configuration>
                     </execution>
                 </executions>
@@ -72,7 +74,7 @@
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix43;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
-								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+								<Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
 					</execution>
@@ -82,8 +84,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../quickfixj-messages-fixlatest/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX43.xml</include>
 						<include>quickfix/field/*.class</include>
@@ -98,6 +101,7 @@
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
+				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>FIX43.xml</include>
@@ -107,5 +111,12 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
 	</build>
+	<!--
+		<include>quickfix/field/QuantityType.java</include>
+		<include>quickfix/field/FutSettDate.java</include>
+		<include>quickfix/field/SettlmntTyp.java</include>
+		<include>quickfix/field/QuantityType.java</include>
+	-->
 </project>

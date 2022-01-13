@@ -14,7 +14,6 @@
     <url>http://www.quickfixj.org</url>
 
     <properties>
-        <orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
     </properties>
 
     <dependencies>

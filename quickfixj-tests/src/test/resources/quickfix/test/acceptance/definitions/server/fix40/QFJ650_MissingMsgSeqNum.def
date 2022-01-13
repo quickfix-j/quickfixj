@@ -1,0 +1,10 @@
+# Disconnect if MsgSeqNum is missing on incoming message.
+
+iCONNECT
+I8=FIX.4.035=A34=149=TW52=<TIME>56=ISLD98=0108=5
+E8=FIX.4.035=A34=149=ISLD52=<TIME>56=TW98=0108=5
+
+I8=FIX.4.035=149=TW52=<TIME>56=ISLD112=TEST
+# Expect a disconnect with reason stating we supplied no MsgSeqNum.
+E8=FIX.4.035=534=249=ISLD56=TW58=Received message without MsgSeqNum
+eDISCONNECT

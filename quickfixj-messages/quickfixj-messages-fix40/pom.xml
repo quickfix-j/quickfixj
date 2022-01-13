@@ -27,6 +27,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>prepare-package</phase>
@@ -34,32 +35,32 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
+								<source>${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-            <!--plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>3g</maxmemory>
-                            <detectOfflineLinks>false</detectOfflineLinks>
-                            <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fix40;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin-version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+							<maxmemory>3g</maxmemory>
+							<detectOfflineLinks>false</detectOfflineLinks>
+							<includeDependencySources>false</includeDependencySources>
+							<sourcepath>${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/quickfix/fix40;${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/quickfix/field</sourcepath>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -74,7 +75,7 @@
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix40;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
-								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+								<Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
 					</execution>
@@ -83,8 +84,9 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../quickfixj-messages-fixlatest/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX40.xml</include>
 						<include>quickfix/field/*.class</include>
@@ -95,10 +97,10 @@
 					</archive>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
+				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>FIX40.xml</include>
@@ -107,7 +109,17 @@
 					</includes>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
+	<!--
+				<includes>
+						<include>quickfix/fix40/**.java</include>
+						<include>quickfix/field/AllocShares.java</include>
+						<include>quickfix/field/LinesOfText.java</include>
+						< quickfix/field/OpenClose.class is not included here as the type changed in 4.2 >
+						<include>quickfix/field/FutSettDate.java</include>
+						<include>quickfix/field/ExecBroker.java</include>
+						<include>quickfix/field/ClientID.java</include>
+			    </includes>
+				-->
 </project>

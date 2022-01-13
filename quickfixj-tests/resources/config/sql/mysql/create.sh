@@ -1,0 +1,1 @@
+mysql -u root --execute="source mysql.sql";
