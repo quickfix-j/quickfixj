@@ -107,9 +107,8 @@
 								<artifactItem>
 									<groupId>org.quickfixj</groupId>
 									<artifactId>quickfixj-orchestration</artifactId>
-									<classifier>resources</classifier>
 									<version>${project.version}</version>
-									<includes>**/Fix*.xml,**/Orchestra*.xml</includes>
+									<includes>**/FIX*.xml,**/Orchestra*.xml</includes>
 									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
 								</artifactItem>            
 							</artifactItems>

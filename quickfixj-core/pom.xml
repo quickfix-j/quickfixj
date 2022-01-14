@@ -212,7 +212,6 @@
 								<artifactItem>
 									<groupId>org.quickfixj</groupId>
 									<artifactId>quickfixj-orchestration</artifactId>
-									<classifier>resources</classifier>
 									<version>${project.version}</version>
 									<includes>**/Orchestra*.xml</includes>
 									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
@@ -231,7 +230,6 @@
 								<artifactItem>
 									<groupId>org.quickfixj</groupId>
 									<artifactId>quickfixj-orchestration</artifactId>
-									<classifier>resources</classifier>
 									<version>${project.version}</version>
 									<includes>**/FIX*.xml</includes>
 									<outputDirectory>${project.build.directory}/generated-resources</outputDirectory>

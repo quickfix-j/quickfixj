@@ -98,24 +98,35 @@
                         <argument>${project.build.directory}/generated-resources</argument>
                     </arguments>
                 </configuration>
-            </plugin>            
+            </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>${build-helper-maven-plugin-version}</version>
                 <executions>
                     <execution>
-                        <id>resources</id>
-                        <phase>package</phase>
+                        <phase>generate-resources</phase>
                         <goals>
-                          <goal>single</goal>
+                            <goal>add-resource</goal>
                         </goals>
                         <configuration>
-                          <descriptors>
-                            <descriptor>${project.basedir}/src/main/assembly/assembly.xml</descriptor>
-                          </descriptors>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-resources</directory>
+                                </resource>
+                            </resources>
                         </configuration>
-                    </execution>                
+                    </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>*.xml</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
