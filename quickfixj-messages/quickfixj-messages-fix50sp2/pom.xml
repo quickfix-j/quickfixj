@@ -34,7 +34,7 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/</source>
+							<source>${project.basedir}/../quickfixj-generated/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -55,7 +55,7 @@
                             <maxmemory>3g</maxmemory>
                             <detectOfflineLinks>false</detectOfflineLinks>
                             <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/quickfix/fix50sp2;${project.basedir}/../quickfixj-messages-fixlatest/target/generated-sources/quickfix/field</sourcepath>
+                            <sourcepath>${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/fix50sp2;${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/field</sourcepath>
                         </configuration>
                     </execution>
                 </executions>
@@ -84,9 +84,8 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-messages-fixlatest/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../quickfixj-generated/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX50SP2.xml</include>
 						<include>FIX50SP2.modified.xml</include>
@@ -102,7 +101,6 @@
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>FIX50SP2.xml</include>

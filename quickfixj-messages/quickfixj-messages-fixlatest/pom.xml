@@ -8,7 +8,7 @@
 	</parent>
 
 	<artifactId>quickfixj-messages-fixlatest</artifactId>
-	<packaging>bundle</packaging>
+	<packaging>jar</packaging>
 
 	<name>QuickFIX/J Message classes for FIX Latest</name>
 	<description>QuickFIX/J Message classes for FIX Latest</description>
@@ -23,272 +23,43 @@
 	</dependencies>
 
 	<build>
-		<resources>
-			<resource>
-				<directory>${project.build.directory}/dependency/repository</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fixt11/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix50sp1/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix50/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix44/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix43/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix42/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix41/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages-fix40/src/main/resources</directory>
-			</resource>
-		</resources>
-
-		<testResources>
-			<testResource>
-				<directory>src/test/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fixt11/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix50sp1/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix50/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix44/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix43/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix42/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix41/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages-fix40/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>src/main/resources</directory>
-			</testResource>
-		</testResources>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>unpack-dependencies</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.quickfixj</groupId>
-									<artifactId>quickfixj-orchestration</artifactId>
-									<version>${project.version}</version>
-									<includes>**/FIX*.xml,**/Orchestra*.xml</includes>
-									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
-								</artifactItem>            
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
-				<executions>
-					<execution>
-						<id>fixt11</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fixt11/src/main/resources/FIXT11.xml</dictFile>
-							<packaging>quickfix.fixt11</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix50sp2</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix50sp2/src/main/resources/FIX50SP2.modified.xml</dictFile>
-							<packaging>quickfix.fix50sp2</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix50sp1</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix50sp1/src/main/resources/FIX50SP1.modified.xml</dictFile>
-							<packaging>quickfix.fix50sp1</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix50</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix50/src/main/resources/FIX50.xml</dictFile>
-							<packaging>quickfix.fix50</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix44</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix44/src/main/resources/FIX44.modified.xml</dictFile>
-							<packaging>quickfix.fix44</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix43</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix43/src/main/resources/FIX43.xml</dictFile>
-							<packaging>quickfix.fix43</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix42</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix42/src/main/resources/FIX42.xml</dictFile>
-							<packaging>quickfix.fix42</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix41</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix41/src/main/resources/FIX41.xml</dictFile>
-							<packaging>quickfix.fix41</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-					<execution>
-						<id>fix40</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<configuration>
-							<dictFile>../quickfixj-messages-fix40/src/main/resources/FIX40.xml</dictFile>
-							<packaging>quickfix.fix40</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>fixLatest</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<includeProjectDependencies>true</includeProjectDependencies>
-					<classpathScope>runtime</classpathScope>
-					<mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
-					<arguments>
-						<argument>${project.build.directory}/dependency/repository/${orchestra.file}</argument>
-						<argument>${project.build.directory}/generated-sources</argument>
-					</arguments>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<skip>true</skip> <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
-							<additionalparam>-Xdoclint:none</additionalparam>
-							<maxmemory>12g</maxmemory>
-							<detectOfflineLinks>false</detectOfflineLinks>
-							<includeDependencySources>false</includeDependencySources>
-							<sourcepath>${project.build.directory}/generated-sources/</sourcepath>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals><goal>add-source</goal></goals>
-						<configuration>
-							 <sources>
-								<source>${project.build.directory}/generated-sources/</source>
-							</sources>
-						</configuration>
-					</execution>
-			   </executions>
-			</plugin>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>build-helper-maven-plugin</artifactId>
+			<version>${build-helper-maven-plugin-version}</version>
+			<executions>
+				<execution>
+					<phase>prepare-package</phase>
+					<goals><goal>add-source</goal></goals>
+					<configuration>
+						<sources>
+							<source>${project.basedir}/../quickfixj-generated/target/generated-sources/</source>
+						</sources>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-javadoc-plugin</artifactId>
+			<version>${maven-javadoc-plugin-version}</version>
+			<executions>
+				<execution>
+					<id>attach-javadocs</id>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+					<configuration>
+						<additionalparam>-Xdoclint:none</additionalparam>
+						<maxmemory>3g</maxmemory>
+						<detectOfflineLinks>false</detectOfflineLinks>
+						<includeDependencySources>false</includeDependencySources>
+						<sourcepath>${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/fixlatest;${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/field</sourcepath>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -312,11 +83,15 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
+					<classesDirectory>${project.basedir}/../quickfixj-generated/target/classes/</classesDirectory>				
 					<includes>
 						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>
 						<include>quickfix/fixlatest/**</include>
 					</includes>
+					<archive>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
 				</configuration>
 			</plugin>
 
@@ -329,6 +104,9 @@
 						<include>quickfix/fixlatest/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
+					<archive>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
 				</configuration>
 			</plugin>
 		</plugins>

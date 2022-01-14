@@ -198,48 +198,6 @@
 
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>unpack-dependencies-orchestra</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.quickfixj</groupId>
-									<artifactId>quickfixj-orchestration</artifactId>
-									<version>${project.version}</version>
-									<includes>**/Orchestra*.xml</includes>
-									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
-								</artifactItem>            
-							</artifactItems>
-						</configuration>
-					</execution>
-					<execution>
-						<id>unpack-dependencies-qfj-dictionary</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.quickfixj</groupId>
-									<artifactId>quickfixj-orchestration</artifactId>
-									<version>${project.version}</version>
-									<includes>**/FIX*.xml</includes>
-									<outputDirectory>${project.build.directory}/generated-resources</outputDirectory>
-								</artifactItem>            
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>xml-maven-plugin</artifactId>
 				<executions>
@@ -252,7 +210,7 @@
 					<configuration>
 					  <transformationSets>
 						<transformationSet>
-						  <dir>${project.build.directory}/dependency/repository</dir>
+						  <dir>${project.basedir}/../quickfixj-orchestration/target/generated-resources</dir>
 						  <outputDir>${project.build.directory}/generated-resources</outputDir>
 						  <includes>
 							<include>${orchestra.file}</include>
