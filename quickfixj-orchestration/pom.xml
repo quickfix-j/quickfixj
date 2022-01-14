@@ -7,7 +7,7 @@
     </parent>
 
     <artifactId>quickfixj-orchestration</artifactId>
-    <packaging>pom</packaging>
+    <packaging>bundle</packaging>
 
     <name>QuickFIX/J from Orchestra</name>
     <description>QuickFIX/J from FIX Orchestra</description>
