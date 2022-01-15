@@ -93,30 +93,6 @@
 		</testResources>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>unpack-dependencies</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>unpack</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>org.quickfixj</groupId>
-									<artifactId>quickfixj-orchestration</artifactId>
-									<version>${project.version}</version>
-									<includes>**/FIX*.xml,**/Orchestra*.xml</includes>
-									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
-								</artifactItem>            
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
 				<version>${project.version}</version>
@@ -249,7 +225,7 @@
 					<classpathScope>runtime</classpathScope>
 					<mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
 					<arguments>
-						<argument>${project.build.directory}/dependency/repository/${orchestra.file}</argument>
+						<argument>${project.basedir}/../../quickfixj-orchestration/target/generated-resources/${orchestra.file}</argument>
 						<argument>${project.build.directory}/generated-sources</argument>
 					</arguments>
 				</configuration>
@@ -257,24 +233,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<skip>true</skip> <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
-							<additionalparam>-Xdoclint:none</additionalparam>
-							<maxmemory>12g</maxmemory>
-							<detectOfflineLinks>false</detectOfflineLinks>
-							<includeDependencySources>false</includeDependencySources>
-							<sourcepath>${project.build.directory}/generated-sources/</sourcepath>
-						</configuration>
-					</execution>
-				</executions>
+				<configuration>
+					<skip>true</skip> <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
+				</configuration>
 			</plugin>
-			<plugin>
+			<!-- plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
 				<executions>
@@ -288,12 +251,15 @@
 						</configuration>
 					</execution>
 			   </executions>
-			</plugin>
+			</plugin -->
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<executions>
 					<execution>
+						<phase/>
+					</execution>
+					<!-- execution>
 						<id>bundle-manifest</id>
 						<phase>process-classes</phase>
 						<goals>
@@ -305,7 +271,7 @@
 								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
-					</execution>
+					</execution -->
 				</executions>
 			</plugin>
 			<plugin>
