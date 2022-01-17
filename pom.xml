@@ -59,9 +59,9 @@
 		<module>quickfixj-codegenerator</module>
 		<module>repository-quickfix</module>
 		<module>quickfixj-orchestration</module>
-		<module>quickfixj-core</module>
+		<module>quickfixj-base</module>
 		<module>quickfixj-messages</module>
-		<module>quickfixj-tests</module>
+		<module>quickfixj-core</module>
 		<module>quickfixj-examples</module>
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
@@ -99,6 +99,7 @@
 		<orchestra.version>1.6.8</orchestra.version>
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>2.3.3</jaxb.version>
+		<apache.mina.version>2.1.5</apache.mina.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
    </properties>
 
@@ -137,6 +138,11 @@
 				<scope>runtime</scope>
 				<version>${jaxb.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.mina</groupId>
+				<artifactId>mina-core</artifactId>
+				<version>${apache.mina.version}</version>
+			</dependency>					
 		</dependencies>
 	</dependencyManagement>
 
@@ -182,6 +188,11 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${maven-surefire-plugin-version}</version>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-report-plugin</artifactId>
+					<version>${maven-surefire-plugin-version}</version>
+				</plugin>				
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-pmd-plugin</artifactId>

@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
+			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

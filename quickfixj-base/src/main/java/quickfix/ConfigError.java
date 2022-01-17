@@ -25,7 +25,12 @@ package quickfix;
  */
 public class ConfigError extends Exception {
 
-    public ConfigError() {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1128829425306977989L;
+
+	public ConfigError() {
         super();
     }
 

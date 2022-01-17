@@ -37,7 +37,7 @@ import quickfix.Session;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 
-import static quickfix.MessageUtils.parse;
+import static quickfix.MessageSessionUtils.parse;
 
 /**
  * Abstract class used for acceptor and initiator IO handlers.

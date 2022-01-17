@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
+			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -27,7 +27,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>prepare-package</phase>
@@ -44,7 +43,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${maven-javadoc-plugin-version}</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>

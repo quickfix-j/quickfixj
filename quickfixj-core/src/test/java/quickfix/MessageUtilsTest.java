@@ -120,7 +120,7 @@ public class MessageUtilsTest {
         String messageString = "8=FIX.4.0\0019=56\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
         try {
-            MessageUtils.getMessageType(messageString);
+        	MessageUtils.getMessageType(messageString);
             fail("expected exception");
         } catch (InvalidMessage e) {
             // expected
@@ -131,7 +131,7 @@ public class MessageUtilsTest {
     public void testMessageTypeError2() throws Exception {
         String messageString = "8=FIX.4.0\0019=56\00135=1";
         try {
-            MessageUtils.getMessageType(messageString);
+        	MessageUtils.getMessageType(messageString);
             fail("expected exception");
         } catch (InvalidMessage e) {
             // expected
@@ -161,7 +161,7 @@ public class MessageUtilsTest {
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
             "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=223\001";
 
-        Message message = MessageUtils.parse(mockSession, messageString);
+        Message message = MessageSessionUtils.parse(mockSession, messageString);
 
         assertThat(message, is(notNullValue()));
     }
@@ -191,7 +191,7 @@ public class MessageUtilsTest {
         email.getHeader().setField(new SenderCompID("SENDER"));
         email.getHeader().setField(new TargetCompID("TARGET"));
 
-        Message message = MessageUtils.parse(mockSession, email.toString());
+        Message message = MessageSessionUtils.parse(mockSession, email.toString());
 
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fix40.Email.class));
@@ -207,7 +207,7 @@ public class MessageUtilsTest {
         quickfix.fixt11.Logon logon = new quickfix.fixt11.Logon(new EncryptMethod(EncryptMethod.NONE_OTHER), new HeartBtInt(30),
                 new DefaultApplVerID(ApplVerID.FIX42));
 
-        Message message = MessageUtils.parse(mockSession, logon.toString());
+        Message message = MessageSessionUtils.parse(mockSession, logon.toString());
 
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fixt11.Logon.class));
@@ -222,7 +222,7 @@ public class MessageUtilsTest {
 
         quickfix.fixt11.Logout logout = new quickfix.fixt11.Logout();
 
-        Message message = MessageUtils.parse(mockSession, logout.toString());
+        Message message = MessageSessionUtils.parse(mockSession, logout.toString());
 
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fixt11.Logout.class));
@@ -240,7 +240,7 @@ public class MessageUtilsTest {
         email.getHeader().setField(new SenderCompID("SENDER"));
         email.getHeader().setField(new TargetCompID("TARGET"));
 
-        Message message = MessageUtils.parse(mockSession, email.toString());
+        Message message = MessageSessionUtils.parse(mockSession, email.toString());
 
         assertThat(message, is(notNullValue()));
         assertThat(message, is(quickfix.fix50.Email.class));
@@ -261,7 +261,7 @@ public class MessageUtilsTest {
         String messageString = "8=FIX.4.0\0019=56\00135=A\00134=1\00149=TW\001" +
                 "52=20060118-16:34:19\00156=ISLD\00198=0\001108=2\00110=283\001";
 
-        Message message = MessageUtils.parse(mockSession, messageString);
+        Message message = MessageSessionUtils.parse(mockSession, messageString);
 
         assertThat(message, is(notNullValue()));
     }

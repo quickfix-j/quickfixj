@@ -7,19 +7,12 @@
 	<xsl:output method="xml" />
 	<xsl:strip-space elements="*" />
 	<xsl:output omit-xml-declaration="no" indent="yes" />
-
+	
 	<xsl:template match="@* | node()">
 		<xsl:copy>
 			<xsl:apply-templates select="@* | node()" />
 		</xsl:copy>
 	</xsl:template>
-
-	<xsl:template match="node()|@*" name="identity">
-		<xsl:copy>
-			<xsl:apply-templates select="node()|@*" />
-		</xsl:copy>
-	</xsl:template>
-
 
 	<!-- remove all the fields that are not required by core -->
 	<xsl:template match="fixr:fields/fixr:field[not(
@@ -128,24 +121,6 @@
 	<!-- XmlData -->
 	<!-- XmlDataLen -->
 
-	<xsl:param name="addFields">
-	    <!-- Field not present in latest but used in FIX versions and expected by QFJ -->
-		<!-- OnBehalfOfSendingTime used only in FIX4.2 and 4.3 -->
-		<fixr:field id="370" name="OnBehalfOfSendingTime" type="UTCTimestamp" added="FIX.4.2">
-			<fixr:annotation>
-				<fixr:documentation purpose="SYNOPSIS">Used when a message is sent via a "hub" or "service bureau". If A sends to Q (the hub) who then sends to B via a separate FIX session, then when Q sends to B the value of this field should represent the SendingTime on the message A sent to Q. (always expressed in UTC (Universal Time Coordinated, also known as "GMT")
-				</fixr:documentation>
-			</fixr:annotation>
-		</fixr:field>
-	</xsl:param>
-
-	<!-- add fields -->
-	<xsl:template
-		match="fixr:fields/fixr:field[position()=last()]">
-		<xsl:call-template name="identity" />
-		<xsl:copy-of select="$addFields" />
-	</xsl:template>
-
 	<!-- filter out messages -->
 	<xsl:template
 		match="fixr:messages/fixr:message" />
@@ -168,18 +143,5 @@ MsgTypeCodeSet 35
 PossDupFlagCodeSet 43
 SessionRejectReasonCodeSet 373
 SessionStatusCodeSet 1409 -->
-
-	<!-- filter out codesets -->
-	<xsl:template
-		match="fixr:codeSet[not(@id='35'
-								or @id='43'
-								or @id='97'
-								or @id='98'
-								or @id='123'
-								or @id='373'
-								or @id='380'
-								or @id='1128'
-								or @id='1409'
-		)]"/>
 
 </xsl:stylesheet>

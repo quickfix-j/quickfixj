@@ -59,7 +59,11 @@ import io.fixprotocol._2020.orchestra.repository.Repository;
  */
 public class CodeGeneratorJ {
 
-  private static final List<String> DATE_TYPES =
+  private static final String FIXT_1_1 = "FIXT.1.1";
+
+private static final String FIX_LATEST = "FIX.Latest";
+
+private static final List<String> DATE_TYPES =
       Arrays.asList("UTCTimestamp", "UTCTimeOnly", "UTCDateOnly", "LocalMktDate", "LocalMktTime");
 
   private static final String FIELD_PACKAGE = "quickfix.field";
@@ -392,8 +396,8 @@ public class CodeGeneratorJ {
   }
 
   private String getBeginString(String version) {
-    if (version.startsWith("FIX.5")) {
-      return "FIXT.1.1";
+    if (version.startsWith("FIX.5") || version.equals(FIX_LATEST)) {
+      return FIXT_1_1;
     } else {
       return version;
     }

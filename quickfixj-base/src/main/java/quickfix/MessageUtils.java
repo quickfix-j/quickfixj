@@ -24,7 +24,6 @@ import org.quickfixj.QFJException;
 import quickfix.Message.Header;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
-import quickfix.field.DefaultApplVerID;
 import quickfix.field.MsgType;
 import quickfix.field.SenderCompID;
 import quickfix.field.SenderLocationID;
@@ -116,79 +115,6 @@ public class MessageUtils {
         final quickfix.Message message = messageFactory.create(beginString, messageType);
         message.fromString(messageString, dataDictionary, dataDictionary != null, validateChecksum);
         return message;
-    }
-
-    /**
-     * NOTE: This method is intended for internal use.
-     *
-     * @param session the Session that will process the message
-     * @param messageString
-     * @return the parsed message
-     * @throws InvalidMessage
-     */
-    public static Message parse(Session session, String messageString) throws InvalidMessage {
-        final String beginString = getStringField(messageString, BeginString.FIELD);
-        final String msgType = getMessageType(messageString);
-        final MessageFactory messageFactory = session.getMessageFactory();
-        final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
-        final ApplVerID applVerID;
-        final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
-                .getSessionDataDictionary(beginString);
-        final quickfix.Message message;
-        final DataDictionary payloadDictionary;
-
-        if (!isAdminMessage(msgType) || isLogon(messageString)) {
-            if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
-                applVerID = getApplVerID(session, messageString);
-            } else {
-                applVerID = toApplVerID(beginString);
-            }
-            final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
-                    .getApplicationDataDictionary(applVerID);
-            payloadDictionary = MessageUtils.isAdminMessage(msgType)
-                    ? sessionDataDictionary
-                    : applicationDataDictionary;
-        } else {
-            applVerID = null;
-            payloadDictionary = sessionDataDictionary;
-        }
-
-        final boolean doValidation = payloadDictionary != null;
-        final boolean validateChecksum = session.isValidateChecksum();
-
-        message = messageFactory.create(beginString, applVerID, msgType);
-        message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
-                validateChecksum);
-
-        return message;
-    }
-
-    private static ApplVerID getApplVerID(Session session, String messageString)
-            throws InvalidMessage {
-        ApplVerID applVerID = null;
-
-        final String applVerIdString = getStringField(messageString, ApplVerID.FIELD);
-        if (applVerIdString != null) {
-            applVerID = new ApplVerID(applVerIdString);
-        }
-
-        if (applVerID == null) {
-            applVerID = session.getTargetDefaultApplicationVersionID();
-        }
-
-        if (applVerID == null && isLogon(messageString)) {
-            final String defaultApplVerIdString = getStringField(messageString,
-                    DefaultApplVerID.FIELD);
-            if (defaultApplVerIdString != null) {
-                applVerID = new ApplVerID(defaultApplVerIdString);
-            }
-        }
-
-        if (applVerID == null) {
-            throw newInvalidMessageException("Can't determine ApplVerID from message " + messageString, getMinimalMessage(messageString));
-        }
-
-        return applVerID;
     }
 
     public static boolean isAdminMessage(String msgType) {

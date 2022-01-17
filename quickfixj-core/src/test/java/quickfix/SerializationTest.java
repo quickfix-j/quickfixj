@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.regex.Pattern;
@@ -36,8 +37,7 @@ import java.util.regex.Pattern;
 public class SerializationTest extends TestCase {
 
     private final String[] srcDirs = {
-        "../quickfixj-messages/quickfixj-messages-fixlatest/target/generated-sources",
-        "target/generated-sources"
+        "../quickfixj-messages/quickfixj-generated/target/generated-sources"
     };
 
     private String srcDir;
@@ -152,8 +152,9 @@ public class SerializationTest extends TestCase {
         Object res = null;
         try {
             Class<?> cl = Class.forName(className);
-            res = cl.newInstance();
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+            Constructor<?> ctor = cl.getConstructor();
+            res = ctor.newInstance();
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
             fail(e.getMessage());
         }
         return res;
@@ -244,7 +245,7 @@ public class SerializationTest extends TestCase {
                         args[0] = g;
                         addGroup.invoke(res, args);
                     } catch (SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException e) {
-                        fail(e.getMessage());
+                        fail(e.getClass().getName() + " : " + e.getMessage());
                     }
                 }
             }
@@ -282,9 +283,7 @@ public class SerializationTest extends TestCase {
     }
 
     private static final String[] classesBaseDirs = {
-        "../quickfixj-messages/quickfixj-messages-fixlatest/target/classes",
-        "target/classes",
-        "classes"
+        "../quickfixj-messages/quickfixj-generated/target/classes"
     };
 
     private String getBaseDirectory() {

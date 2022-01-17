@@ -34,7 +34,7 @@
         </dependency>		
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-dictgenerator</artifactId>
+			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -47,7 +47,6 @@
 			<artifactId>quickfixj-all</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-examples-banzai</artifactId>

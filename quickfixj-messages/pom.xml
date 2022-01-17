@@ -31,7 +31,7 @@
         <module>quickfixj-messages-fix50sp2</module>
         <module>quickfixj-messages-fixlatest</module>
         <module>quickfixj-messages-fixt11</module>
-        <module>quickfixj-messages-all</module>
+        <!-- module>quickfixj-messages-all</module -->
     </modules>
 
 </project>

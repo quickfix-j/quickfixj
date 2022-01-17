@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
+			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -27,7 +27,6 @@
 		<plugin>
 			<groupId>org.codehaus.mojo</groupId>
 			<artifactId>build-helper-maven-plugin</artifactId>
-			<version>${build-helper-maven-plugin-version}</version>
 			<executions>
 				<execution>
 					<phase>prepare-package</phase>
@@ -40,26 +39,13 @@
 				</execution>
 			</executions>
 		</plugin>
-		<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-javadoc-plugin</artifactId>
-			<version>${maven-javadoc-plugin-version}</version>
-			<executions>
-				<execution>
-					<id>attach-javadocs</id>
-					<goals>
-						<goal>jar</goal>
-					</goals>
-					<configuration>
-						<additionalparam>-Xdoclint:none</additionalparam>
-						<maxmemory>3g</maxmemory>
-						<detectOfflineLinks>false</detectOfflineLinks>
-						<includeDependencySources>false</includeDependencySources>
-						<sourcepath>${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/fixlatest;${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/field</sourcepath>
-					</configuration>
-				</execution>
-			</executions>
-		</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<skip>true</skip> 
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -72,8 +58,9 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Export-Package>quickfix,quickfix.field,quickfix.fixlatest;version="${project.version}";uses:=quickfix;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
-								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fixlatest;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
+								<Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
 					</execution>
@@ -83,7 +70,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-generated/target/classes/</classesDirectory>				
+					<classesDirectory>${project.basedir}/../quickfixj-generated/target/classes/</classesDirectory>		
 					<includes>
 						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>

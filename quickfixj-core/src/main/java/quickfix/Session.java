@@ -1350,7 +1350,7 @@ public class Session implements Closeable {
     }
 
     private Message parseMessage(String messageData) throws InvalidMessage {
-        return MessageUtils.parse(this, messageData);
+        return MessageSessionUtils.parse(this, messageData);
     }
 
     private boolean isTargetTooLow(int msgSeqNum) throws IOException {
