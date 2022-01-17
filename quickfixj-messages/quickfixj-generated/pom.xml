@@ -231,6 +231,74 @@
 				</configuration>
 			</plugin>
 			<plugin>
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-antrun-plugin</artifactId>
+			  <version>1.8</version>
+			  <executions>
+			    <execution>
+			      <phase>process-sources</phase>
+			      <goals>
+			        <goal>run</goal>
+			      </goals>
+			      <configuration>
+			        <target> <!-- exclude classes that are provided by the quickfixj-base dependency -->
+			          	<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplExtID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplVerID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BeginSeqNo.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BeginString.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BodyLength.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BusinessRejectReason.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/CheckSum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/CstmApplVerID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DefaultApplVerID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DeliverToCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DeliverToLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DeliverToSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/EncryptMethod.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/EndSeqNo.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/GapFillFlag.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/HeartBtInt.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/LastMsgSeqNumProcessed.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/MessageEncoding.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/MsgSeqNum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/MsgType.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/NewSeqNo.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/NextExpectedMsgSeqNum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/NoHops.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfSendingTime.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OrigSendingTime.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/PossDupFlag.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/PossResend.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/RefMsgType.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/RefSeqNum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/RefTagID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/ResetSeqNumFlag.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SecureData.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SecureDataLen.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SenderCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SenderLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SenderSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SendingTime.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SessionRejectReason.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SessionStatus.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/Signature.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SignatureLength.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TargetCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TargetLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TargetSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TestReqID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/Text.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/XmlData.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/XmlDataLen.java"/>
+			        </target>
+			      </configuration>
+			    </execution>
+			  </executions>
+			</plugin>			
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>

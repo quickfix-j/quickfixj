@@ -52,7 +52,7 @@
 				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
 			</resource>
 			<resource>
-				<directory>../quickfixj-orchestration/target/generated-resources</directory>
+				<directory>../../quickfixj-orchestration/target/generated-resources</directory>
 			</resource>
 		</resources>
 
@@ -66,7 +66,7 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../../quickfixj-generated/target/generated-sources/</source>
+								<source>${project.basedir}/../quickfixj-generated/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -98,7 +98,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<classesDirectory>${project.basedir}/../../quickfixj-generated/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../quickfixj-generated/target/classes/</classesDirectory>
 					<includes>
 						<include>*.xml</include>
 						<include>quickfix/field/*.class</include>
