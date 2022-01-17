@@ -9,7 +9,7 @@
 	<artifactId>quickfixj-base</artifactId>
 	<packaging>jar</packaging>
 
-	<name>QuickFIX/J Message Base</name>
+	<name>QuickFIX/J Base</name>
 	<description>Base classes for messages and fields</description>
 	<url>http://www.quickfixj.org</url>
 
