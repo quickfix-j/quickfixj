@@ -182,76 +182,16 @@
 	</dependencies>
 
 	<build>
-		<!-- resources>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fixt11/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>${project.build.directory}/generated-resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix50sp1/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix43/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix42/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix41/src/main/resources</directory>
-			</resource>
-			<resource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
-			</resource>
-		</resources -->
+		<resources>
+		</resources>
 
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
 			</testResource>
-			<!-- testResource>
-				<directory>../quickfixj-orchestration/target/generated-resources</directory>
-			</testResource>		
-			<testResource>
-				<directory>${project.build.directory}/generated-resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix50sp2/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix50sp1/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix43/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix42/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix41/src/main/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
-			</testResource>
 			<testResource>
 				<directory>src/main/resources</directory>
-			</testResource -->
+			</testResource>
 		</testResources>
 
 		<plugins>
