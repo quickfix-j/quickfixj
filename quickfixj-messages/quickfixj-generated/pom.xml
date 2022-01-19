@@ -25,7 +25,7 @@
 	<build>
 		<resources>
 			<resource>
-				<directory>../../quickfixj-orchestration/target/generated-resources</directory>
+				<directory>${project.build.directory}/dependency/repository</directory>
 			</resource>
 			<resource>
 				<directory>../quickfixj-messages-fixt11/src/main/resources</directory>
@@ -92,6 +92,31 @@
 			</testResource>
 		</testResources>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack-dependencies</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.quickfixj</groupId>
+									<artifactId>quickfixj-orchestration</artifactId>
+									<version>${project.version}</version>
+									<includes>**/FIX*.xml,**/Orchestra*.xml</includes>
+									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
+								</artifactItem>            
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		
 			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
@@ -207,7 +232,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -225,7 +249,7 @@
 					<classpathScope>runtime</classpathScope>
 					<mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
 					<arguments>
-						<argument>${project.basedir}/../../quickfixj-orchestration/target/generated-resources/${orchestra.file}</argument>
+						<argument>${project.build.directory}/dependency/repository/${orchestra.file}</argument>
 						<argument>${project.build.directory}/generated-sources</argument>
 					</arguments>
 				</configuration>
