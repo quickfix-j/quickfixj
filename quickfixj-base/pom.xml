@@ -209,8 +209,6 @@
 						  <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
 						  <skip>true</skip>
 						  <source>8</source>
-						  <maxmemory>3g</maxmemory>
-						  <includeDependencySources>false</includeDependencySources>
 						  <sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
 					  </configuration>
 				  </execution>

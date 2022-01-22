@@ -49,10 +49,6 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>3g</maxmemory>
-                            <detectOfflineLinks>false</detectOfflineLinks>
-                            <includeDependencySources>false</includeDependencySources>
                             <sourcepath>${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/fix50;${project.basedir}/../quickfixj-generated/target/generated-sources/quickfix/field</sourcepath>
                         </configuration>
                     </execution>

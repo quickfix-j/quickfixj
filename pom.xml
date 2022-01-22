@@ -226,8 +226,10 @@
 								<goal>jar</goal>
 							</goals>
 							<configuration>
+								<detectOfflineLinks>false</detectOfflineLinks>
+								<includeDependencySources>false</includeDependencySources>
 								<additionalparam>-Xdoclint:none</additionalparam>
-								<maxmemory>3g</maxmemory>
+								<maxmemory>6g</maxmemory>
 							</configuration>
 						</execution>
 					</executions>
