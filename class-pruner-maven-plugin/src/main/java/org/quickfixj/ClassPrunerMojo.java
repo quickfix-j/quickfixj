@@ -32,8 +32,9 @@ import org.xml.sax.SAXException;
 
 /**
  * Goal that prunes specified classes 
+ * This is intended to be used before javadoc and packaging to reduce memory requirements and build time
  */
-@Mojo( name = "prune", defaultPhase = LifecyclePhase.PROCESS_SOURCES )
+@Mojo( name = "prune", defaultPhase = LifecyclePhase.PREPARE_PACKAGE )
 public class ClassPrunerMojo extends AbstractMojo {
 	
     /**
@@ -100,31 +101,10 @@ public class ClassPrunerMojo extends AbstractMojo {
     }
 
 	private void pruneClasses(Set<String> fieldNames) throws IOException {
-		Set<String> classes = listFiles(this.classesDirectory);
-		Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(".class").toString()).collect(Collectors.toSet());
-		classes.removeAll(namesOfFilesToKeep);
-		List<String> classList = new ArrayList<String>(classes);
-		Collections.sort(classList);
-		this.getLog().info("Java Classes to delete : " + classList.size());
-		for (String clazz : classList) {
-			this.getLog().info("Deleting Class : " + clazz);
-			File classFile = new File( classesDirectory, clazz );
-			classFile.delete();
-		}
+		prune(fieldNames, this.classesDirectory, ".class", "Java class");
 	}
 
 	private void pruneGeneratedSources(Set<String> fieldNames) throws IOException {
-//		Set<String> sources = listFiles(this.generatedSourcesDirectory);
-//		Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(".java").toString()).collect(Collectors.toSet());
-//		sources.removeAll(namesOfFilesToKeep);
-//		List<String> sourceList = new ArrayList<String>(sources);
-//		Collections.sort(sourceList);
-//		this.getLog().info("Java Sources to delete : " + sourceList.size());
-//		for (String source  : sourceList) {
-//			this.getLog().info("Deleting Java Source : " + source);
-//			File sourceFile = new File( generatedSourcesDirectory, source );
-//			sourceFile.delete();
-//		}
 		prune(fieldNames, this.generatedSourcesDirectory, ".java", "Java source");
 	}
 	
@@ -136,7 +116,7 @@ public class ClassPrunerMojo extends AbstractMojo {
 		Collections.sort(fileList);
 		this.getLog().info(descriptor + " to delete : " + fileList.size());
 		for (String fileName  : fileList) {
-			this.getLog().info("Deleting " + descriptor + " :" + fileName);
+			this.getLog().info("Deleting " + descriptor + " : " + fileName);
 			File file = new File( targetDirectory, fileName );
 			file.delete();
 		}
