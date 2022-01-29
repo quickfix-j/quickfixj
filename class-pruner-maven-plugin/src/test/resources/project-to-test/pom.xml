@@ -25,8 +25,8 @@
                 <include>**/*.xml</include>
               </includes>
               <excludes>
-                <exclude>**/FIX50.xml</exclude>
-                <exclude>**/FIXLatest.xml</exclude>
+                <exclude>**/FIX50SP2.modified.xml</exclude>
+                <exclude>**/FIXT11.xml</exclude>
               </excludes>
               <followSymlinks>false</followSymlinks>
             </fileset>
