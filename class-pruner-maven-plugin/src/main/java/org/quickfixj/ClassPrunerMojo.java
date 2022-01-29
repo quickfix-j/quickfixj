@@ -114,20 +114,35 @@ public class ClassPrunerMojo extends AbstractMojo {
 	}
 
 	private void pruneGeneratedSources(Set<String> fieldNames) throws IOException {
-		Set<String> sources = listFiles(this.generatedSourcesDirectory);
-		Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(".java").toString()).collect(Collectors.toSet());
-		sources.removeAll(namesOfFilesToKeep);
-		List<String> sourceList = new ArrayList<String>(sources);
-		Collections.sort(sourceList);
-		this.getLog().info("Java Sources to delete : " + sourceList.size());
-		for (String source  : sourceList) {
-			this.getLog().info("Deleting Java Source : " + source);
-			File sourceFile = new File( generatedSourcesDirectory, source );
-			sourceFile.delete();
+//		Set<String> sources = listFiles(this.generatedSourcesDirectory);
+//		Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(".java").toString()).collect(Collectors.toSet());
+//		sources.removeAll(namesOfFilesToKeep);
+//		List<String> sourceList = new ArrayList<String>(sources);
+//		Collections.sort(sourceList);
+//		this.getLog().info("Java Sources to delete : " + sourceList.size());
+//		for (String source  : sourceList) {
+//			this.getLog().info("Deleting Java Source : " + source);
+//			File sourceFile = new File( generatedSourcesDirectory, source );
+//			sourceFile.delete();
+//		}
+		prune(fieldNames, this.generatedSourcesDirectory, ".java", "Java source");
+	}
+	
+	private void prune(Set<String> fieldNames, File targetDirectory, String fileSuffix, String descriptor) throws IOException {
+		Set<String> files = listFiles(targetDirectory);
+		Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(fileSuffix).toString()).collect(Collectors.toSet());
+		files.removeAll(namesOfFilesToKeep);
+		List<String> fileList = new ArrayList<String>(files);
+		Collections.sort(fileList);
+		this.getLog().info(descriptor + " to delete : " + fileList.size());
+		for (String fileName  : fileList) {
+			this.getLog().info("Deleting " + descriptor + " :" + fileName);
+			File file = new File( targetDirectory, fileName );
+			file.delete();
 		}
 	}
 	
-	private Set<String> listFiles(File directory) throws IOException {
+	private static Set<String> listFiles(File directory) throws IOException {
 		try (Stream<Path> stream = Files.list(directory.toPath())) {
 	        return stream
 	          .filter(file -> !Files.isDirectory(file))
