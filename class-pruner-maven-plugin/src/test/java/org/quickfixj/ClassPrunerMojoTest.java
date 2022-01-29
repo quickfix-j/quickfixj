@@ -11,13 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.maven.plugin.testing.AbstractMojoTestCase;
 import org.apache.maven.plugin.testing.MojoRule;
 import org.apache.maven.plugin.testing.WithoutMojo;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.quickfixj.ClassPrunerMojo;
 
 public class ClassPrunerMojoTest
 {
@@ -40,7 +38,7 @@ public class ClassPrunerMojoTest
      * @throws Exception if any
      */
     @Test
-    public void testSomething()
+    public void testPrune()
             throws Exception
     {
         File pom = new File( "target/test-classes/project-to-test/" );
@@ -67,7 +65,7 @@ public class ClassPrunerMojoTest
         assertNotNull( dictionaryFileSet );
 
         // The following are based on static test files in the project to test
-        List<String> someFieldNamesThatShouldStillExist = new ArrayList<>(Arrays.asList("WaveNo", "ValidUntilTime", "YieldType"));
+        List<String> someFieldNamesThatShouldStillExist = new ArrayList<>(Arrays.asList("WaveNo", "ValidUntilTime", "Account"));
         List<String> someFieldNamesThatShouldNoLongerExist = 
         		new ArrayList<>(Arrays.asList("ValuationBusinessCenter",
         				                      "ValuationDate",
@@ -116,7 +114,7 @@ public class ClassPrunerMojoTest
             assertFalse( clazz.exists() );
         }
         
-        int numberOfFieldsFromTheCombinedDictionaries = 221;
+        int numberOfFieldsFromTheCombinedDictionaries = 209;
 		assertEquals(classesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries + 4); // plus 4 for the dictionary files that are not deleted
         assertEquals(generatedSourcesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries);
     }
