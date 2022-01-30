@@ -25,43 +25,35 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>quickfixj-codegenerator</artifactId>
-				<version>${project.version}</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>fixt11</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
+						<phase>prepare-package</phase>
+						<goals><goal>add-source</goal></goals>
 						<configuration>
-							<dictFile>src/main/resources/FIXT11.xml</dictFile>
-							<packaging>quickfix.fixt11</packaging>
-							<fieldPackage>quickfix.field</fieldPackage>
-							<decimal>${generator.decimal}</decimal>
+							<sources>
+							<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-						<configuration>
-							<additionalparam>-Xdoclint:none</additionalparam>
-							<maxmemory>3g</maxmemory>
-							<detectOfflineLinks>false</detectOfflineLinks>
-							<includeDependencySources>false</includeDependencySources>
-							<sourcepath>${project.build.directory}/generated-sources/quickfix/fixt11;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fixt11;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -87,15 +79,12 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<!--classesDirectory>${project.build.directory}/classes/</classesDirectory -->
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
 						<include>FIXT11.xml</include>
-						<!-- include>quickfix/field/*.class</include -->
+						<include>quickfix/field/*.class</include>
 						<include>quickfix/fixt11/**</include>
 					</includes>
-					<excludes>
-						<exclude>quickfix/field/*</exclude>
-					</excludes>
 					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
 					</archive>

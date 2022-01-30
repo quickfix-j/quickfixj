@@ -20,18 +20,20 @@
 
 
     <modules>
-        <module>quickfixj-generated</module>
-        <module>quickfixj-messages-fix40</module>
-        <module>quickfixj-messages-fix41</module>
-        <module>quickfixj-messages-fix42</module>
-        <module>quickfixj-messages-fix43</module>
-        <module>quickfixj-messages-fix44</module>
-        <module>quickfixj-messages-fix50</module>
-        <module>quickfixj-messages-fix50sp1</module>
-        <module>quickfixj-messages-fix50sp2</module>
-        <module>quickfixj-messages-fixlatest</module>
-        <module>quickfixj-messages-fixt11</module>
+		<!-- The order in which these modules is run is signficant -->
         <module>quickfixj-messages-all</module>
+        <module>quickfixj-messages-fixlatest</module>
+		<module>quickfixj-messages-all-excluding-latest</module>
+        <module>quickfixj-messages-fix50sp2</module>
+        <module>quickfixj-messages-fix50sp1</module>
+        <module>quickfixj-messages-fix50</module>
+        <module>quickfixj-messages-fixt11</module>
+        <module>quickfixj-messages-fix44</module>
+        <module>quickfixj-messages-fix43</module>
+        <module>quickfixj-messages-fix42</module>
+        <module>quickfixj-messages-fix41</module>
+        <module>quickfixj-messages-fix40</module>
+
     </modules>
 
 </project>

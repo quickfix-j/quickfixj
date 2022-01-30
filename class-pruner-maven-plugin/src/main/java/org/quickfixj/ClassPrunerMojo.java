@@ -61,7 +61,7 @@ public class ClassPrunerMojo extends AbstractMojo {
     {
     	this.getLog().info("executing mojo.");
     	
-    	if ( !classesDirectory.exists() && classesDirectory.isDirectory() )
+    	if ( !classesDirectory.exists() || !classesDirectory.isDirectory() )
         {
     		String errorMsg = new StringBuilder(classesDirectory.getAbsolutePath()).append(" must exist and be a directory.").toString();
     		this.getLog().error(errorMsg.toString());
@@ -70,13 +70,13 @@ public class ClassPrunerMojo extends AbstractMojo {
         	this.getLog().info(new StringBuilder("Classes Directory : ").append(classesDirectory.getAbsolutePath()).toString());
         }
     	
-    	if ( !generatedSourcesDirectory.exists() && generatedSourcesDirectory.isDirectory() )
+    	if ( !generatedSourcesDirectory.exists() || !generatedSourcesDirectory.isDirectory() )
         {
     		String errorMsg = new StringBuilder(generatedSourcesDirectory.getAbsolutePath()).append(" must exist and be a directory.").toString();
     		this.getLog().error(errorMsg.toString());
     		throw new MojoExecutionException( errorMsg.toString() );
         } else {
-        	this.getLog().info(new StringBuilder("Generated Sources Directory : ").append(classesDirectory.getAbsolutePath()).toString());
+        	this.getLog().info(new StringBuilder("Generated Sources Directory : ").append(generatedSourcesDirectory.getAbsolutePath()).toString());
         }
     	
     	if (null == fileset) {
@@ -92,7 +92,6 @@ public class ClassPrunerMojo extends AbstractMojo {
         try {
 			pruneGeneratedSources(fieldNames);
 	        pruneClasses(fieldNames);
-
         } catch (IOException e) {
 			String errorMsg = "Exception pruning directories.";
     		this.getLog().error(errorMsg, e);
@@ -114,11 +113,11 @@ public class ClassPrunerMojo extends AbstractMojo {
 		files.removeAll(namesOfFilesToKeep);
 		List<String> fileList = new ArrayList<String>(files);
 		Collections.sort(fileList);
-		this.getLog().info(descriptor + " to delete : " + fileList.size());
+		this.getLog().info(descriptor + "s to delete : " + fileList.size());
 		for (String fileName  : fileList) {
 			this.getLog().info("Deleting " + descriptor + " : " + fileName);
 			File file = new File( targetDirectory, fileName );
-			file.delete();
+			Files.delete(file.toPath());
 		}
 	}
 	

@@ -16,7 +16,6 @@
         <groupId>org.quickfixj</groupId>
         <artifactId>class-pruner-maven-plugin</artifactId>
         <configuration>
-          <!-- Specify the MyMojo parameter -->
           	<classesDirectory>not-really-classes</classesDirectory>
           	<generatedSourcesDirectory>not-really-generated-sources</generatedSourcesDirectory>
             <fileset>

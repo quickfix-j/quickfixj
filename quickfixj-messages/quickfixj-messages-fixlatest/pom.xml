@@ -33,7 +33,7 @@
 					<goals><goal>add-source</goal></goals>
 					<configuration>
 						<sources>
-							<source>${project.basedir}/../quickfixj-generated/target/generated-sources/</source>
+							<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
 						</sources>
 					</configuration>
 				</execution>
@@ -70,7 +70,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-generated/target/classes/</classesDirectory>		
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>		
 					<includes>
 						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>

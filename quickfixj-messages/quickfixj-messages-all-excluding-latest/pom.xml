@@ -7,11 +7,11 @@
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>quickfixj-messages-fix43</artifactId>
+	<artifactId>quickfixj-messages-all-excluding-latest</artifactId>
 	<packaging>jar</packaging>
 
-	<name>QuickFIX/J Message classes for FIX 4.3</name>
-	<description>QuickFIX/J Message classes for FIX 4.3</description>
+	<name>QuickFIX/J Message classes for all FIX specs exlcuding Fix Latest</name>
+	<description>QuickFIX/J Message classes for all FIX specs</description>
 	<url>http://www.quickfixj.org</url>
 
 	<dependencies>
@@ -23,6 +23,36 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>../quickfixj-messages-fixt11/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix50/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix44/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix43/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix42/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix41/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix40/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix50sp1/src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>../quickfixj-messages-fix50sp2/src/main/resources</directory>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<!-- prune classes that are not in the FIX Dictionaries specified below -->
@@ -44,22 +74,18 @@
 								<include>**/*.xml</include>
 							  </includes>
 							  <excludes>
-								<exclude>**/FIXLatest.xml</exclude>
+								<exclude>**/FIXLatest.xml</exclude> <!-- Exclude FIX latest -->
 								<exclude>OrchestraFIXLatest.xml</exclude> 
-								<exclude>FIX50SP2.modified.xml</exclude> <!-- exclude fields from FIX50SP2 -->
-								<exclude>FIX50SP1.modified.xml</exclude> <!-- exclude fields from FIX50SP1 -->
-								<exclude>FIX50.xml</exclude>          <!-- exclude fields from FIX50 -->
-								<exclude>FIX44.modified.xml</exclude> <!-- exclude fields from FIX44 -->
-								<exclude>FIX50SP2.xml</exclude>       <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX50SP1.xml</exclude>       <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX44.xml</exclude>          <!-- QFJ code generation uses a modified version of this dictionary -->
+								<exclude>FIX50SP2.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
+								<exclude>FIX50SP1.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
+								<exclude>FIX44.xml</exclude>    <!-- QFJ code generation uses a modified version of this dictionary -->
 							  </excludes>
 							  <followSymlinks>false</followSymlinks>
 							</fileset>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>		
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
@@ -69,27 +95,13 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-							<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+								<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fix43;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -102,9 +114,9 @@
 						</goals>
 						<configuration>
 							<instructions>
-								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix43;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
+								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix41;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
-								<Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
 					</execution>
@@ -117,9 +129,9 @@
 				<configuration>
 					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
-						<include>FIX43.xml</include>
+						<include>*.xml</include>
 						<include>quickfix/field/*.class</include>
-						<include>quickfix/fix43/**</include>
+						<include>quickfix/fix*/**</include>
 					</includes>
 					<archive>
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
@@ -132,22 +144,13 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<configuration>
 					<includes>
-						<include>FIX43.xml</include>
-						<include>quickfix/fix43/**</include>
+						<include>*.xml</include>
+						<include>quickfix/fix*/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
-					<archive>
-						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-					</archive>
 				</configuration>
 			</plugin>
 		</plugins>
-
 	</build>
-	<!--
-		<include>quickfix/field/QuantityType.java</include>
-		<include>quickfix/field/FutSettDate.java</include>
-		<include>quickfix/field/SettlmntTyp.java</include>
-		<include>quickfix/field/QuantityType.java</include>
-	-->
+
 </project>
