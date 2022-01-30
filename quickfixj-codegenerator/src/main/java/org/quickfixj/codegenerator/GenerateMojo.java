@@ -94,6 +94,13 @@ public class GenerateMojo extends AbstractMojo {
     private String utcTimestampPrecision;
 
     /**
+     * Defines whether the code generator should overwrite existing files with the same name
+     *
+     * @parameter default-value = "true"
+     */
+    private boolean overwrite = true;
+    
+    /**
      * The Maven project to act upon.
      *
      * @parameter expression="${project}"
@@ -143,7 +150,7 @@ public class GenerateMojo extends AbstractMojo {
             task.setOutputBaseDirectory(outputDirectory);
             task.setFieldPackage(fieldPackage);
             task.setUtcTimestampPrecision(utcTimestampPrecision);
-            task.setOverwrite(true);
+            task.setOverwrite(overwrite);
             task.setOrderedFields(orderedFields);
             task.setDecimalGenerated(decimal);
             generator.generate(task);
@@ -326,4 +333,18 @@ public class GenerateMojo extends AbstractMojo {
     public void setUtcTimestampPrecision(String utcTimestampPrecision) {
         this.utcTimestampPrecision = utcTimestampPrecision;
     }
+
+	/**
+	 * @return whether the code generator should overwrite existing files with the same name
+	 */
+	public boolean isOverwrite() {
+		return overwrite;
+	}
+
+	/**
+	 * @param sets whether the code generator should overwrite existing files with the same name
+	 */
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
 }
