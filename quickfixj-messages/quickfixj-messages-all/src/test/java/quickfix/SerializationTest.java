@@ -36,35 +36,27 @@ import java.util.regex.Pattern;
 
 public class SerializationTest extends TestCase {
 
-    private final String[] srcDirs = {
-        "./target/generated-sources"
-    };
-
     private String srcDir;
-
+	
     public SerializationTest(String name) {
         super(name);
     }
 
     public void testSerialization() {
-        srcDir = findSrcDir();
-        // Check messages
-        assertAllSerializations(srcDir, new MessageSerializationAssertion(),
-                new JavaMessageFileFilter(".*/fix42/.*"));
-        // Check fields
-        assertAllSerializations(srcDir, new FieldSerializationAssertion(),
-                new JavaFieldFileFilter());
-    }
-
-    private String findSrcDir() {
-        // The srcDir might be the Eclipse and/or Ant srcDir. We'll
-        // take the first one we find.
-        for (String dir : srcDirs) {
-            if (new File(dir).exists()) {
-                return dir;
-            }
+        String buildDirectoryName = System.getProperty("buildDirectory");
+        // generated-sources
+        this.srcDir = buildDirectoryName + "/generated-sources";
+        File sourceDirectory = new File(this.srcDir);
+		if (sourceDirectory.exists() && sourceDirectory.isDirectory()) {
+	        // Check messages
+	        assertAllSerializations(this.srcDir, new MessageSerializationAssertion(),
+	                new JavaMessageFileFilter(".*/fix42/.*"));
+	        // Check fields
+	        assertAllSerializations(this.srcDir, new FieldSerializationAssertion(),
+	                new JavaFieldFileFilter());
+        } else {
+        	fail();
         }
-        return null;
     }
 
     private final class JavaMessageFileFilter implements FileFilter {
@@ -97,7 +89,7 @@ public class SerializationTest extends TestCase {
     }
 
     private String classNameFromFile(File file) {
-        String res = file.getPath().substring(srcDir.length() + 1); // Extract
+        String res = file.getPath().substring(this.srcDir.length() + 1); // Extract
         // package
         res = res.substring(0, res.length() - 5); // Remove .java extension
         res = res.replace(File.separatorChar, '.'); // Replace \ by . to build package names
@@ -151,7 +143,7 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private Object buildSerializedObject(Object sourceMsg) {
+    private static Object buildSerializedObject(Object sourceMsg) {
         Object res = null;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -273,35 +265,28 @@ public class SerializationTest extends TestCase {
         return res;
     }
 
-    private static final String[] classesBaseDirs = {
-        "./target/classes"
-    };
-
-    private String getBaseDirectory() {
-        for (String p : classesBaseDirs) {
-            if (new File(p).exists()) {
-                return p;
-            }
-        }
-        return null;
-    }
-
     public void testSerialVersionUUID() throws ClassNotFoundException {
-        String baseDirectory = getBaseDirectory();
-        checkSerialVersionUID(baseDirectory, "quickfix/field");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix40");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix41");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix42");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix43");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix44");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix50");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix50sp1");
-        checkSerialVersionUID(baseDirectory, "quickfix/fix50sp2");
-        checkSerialVersionUID(baseDirectory, "quickfix/fixlatest");
-        checkSerialVersionUID(baseDirectory, "quickfix/fixt11");
+        String buildDirectoryName = System.getProperty("buildDirectory");
+    	String baseDirectory = buildDirectoryName + "/classes";
+        File classesDirectory = new File(baseDirectory);
+		if (classesDirectory.exists() && classesDirectory.isDirectory()) {
+	        checkSerialVersionUID(baseDirectory, "quickfix/field");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix40");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix41");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix42");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix43");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix44");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix50");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix50sp1");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fix50sp2");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fixlatest");
+	        checkSerialVersionUID(baseDirectory, "quickfix/fixt11");
+		} else {
+			fail();
+		}
     }
 
-    private void checkSerialVersionUID(String baseDirectory, String path) throws ClassNotFoundException {
+    private static void checkSerialVersionUID(String baseDirectory, String path) throws ClassNotFoundException {
         File classesDir = new File(baseDirectory + "/" + path);
         File[] files = classesDir.listFiles();
         assertNotNull("no files in " + classesDir, files);

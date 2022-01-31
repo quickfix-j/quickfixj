@@ -374,6 +374,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<forkCount>0</forkCount>
+					<systemPropertyVariables>
+						<buildDirectory>${project.build.directory}</buildDirectory>
+					</systemPropertyVariables>
 				</configuration>
 				<!-- exceptions have been seen in github actions windows builds
 				[INFO] Running quickfix.SerializationTest
