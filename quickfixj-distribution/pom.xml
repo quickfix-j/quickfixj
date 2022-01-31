@@ -27,16 +27,16 @@
 			<artifactId>quickfixj-codegenerator</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>org.quickfixj</groupId>
-            <artifactId>repository-quickfix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>repository-quickfix</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>class-pruner-maven-plugin</artifactId>
 			<version>${project.version}</version>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-base</artifactId>
@@ -73,11 +73,11 @@
 			<artifactId>quickfixj-messages-all</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>org.quickfixj</groupId>
-            <artifactId>quickfixj-messages-fixlatest</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fixlatest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-fix50sp2</artifactId>

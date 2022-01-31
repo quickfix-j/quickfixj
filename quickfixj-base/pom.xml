@@ -63,7 +63,7 @@
 						<exclude>quickfix/fixlatest/**</exclude>
 					</excludes>
 				</configuration>
-			</plugin>		
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>xml-maven-plugin</artifactId>
@@ -113,7 +113,7 @@
 					</configuration>
 				  </execution>
 			   </executions>
-			</plugin>			
+			</plugin>
 			<plugin>
 				<!-- Generate FIX Latest -->
 				<groupId>org.codehaus.mojo</groupId>
@@ -166,7 +166,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<!-- This is the location which will be scanned for generating tattletale 
+					<!-- This is the location which will be scanned for generating tattletale
 						reports -->
 					<source>${project.build.directory}</source>
 					<!-- This is where the reports will be generated -->
@@ -226,7 +226,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<!-- This is the location which will be scanned for generating tattletale 
+					<!-- This is the location which will be scanned for generating tattletale
 						reports -->
 					<source>${project.build.directory}</source>
 					<!-- This is where the reports will be generated -->
@@ -290,7 +290,7 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile> 
+		</profile>
 		<!-- surefire for JDK9 and upwards -->
 		<profile>
 			<id>surefire</id>
@@ -316,6 +316,6 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile> 
+		</profile>
 	</profiles>
 </project>

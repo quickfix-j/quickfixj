@@ -69,18 +69,18 @@
 							<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix/field</classesDirectory>
 							<generatedSourcesDirectory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</generatedSourcesDirectory>
 							<fileset>
-							  <directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
-							  <includes>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
+								<includes>
 								<include>**/*.xml</include>
-							  </includes>
-							  <excludes>
-								<exclude>**/FIXLatest.xml</exclude> <!-- Exclude FIX latest -->
-								<exclude>OrchestraFIXLatest.xml</exclude> 
-								<exclude>FIX50SP2.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX50SP1.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX44.xml</exclude>    <!-- QFJ code generation uses a modified version of this dictionary -->
-							  </excludes>
-							  <followSymlinks>false</followSymlinks>
+								</includes>
+								<excludes>
+									<exclude>**/FIXLatest.xml</exclude> <!-- Exclude FIX latest -->
+									<exclude>OrchestraFIXLatest.xml</exclude> 
+									<exclude>FIX50SP2.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX50SP1.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX44.xml</exclude>    <!-- QFJ code generation uses a modified version of this dictionary -->
+								</excludes>
+								<followSymlinks>false</followSymlinks>
 							</fileset>
 						</configuration>
 					</execution>

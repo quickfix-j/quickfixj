@@ -23,7 +23,7 @@
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-core</artifactId>
@@ -72,8 +72,7 @@
 						</manifestEntries>
 					</archive>
 					<instructions>
-						<!-- transitive dependencies are not being set as optional,
-							 see https://issues.apache.org/jira/browse/FELIX-3877 -->
+						<!-- transitive dependencies are not being set as optional, see https://issues.apache.org/jira/browse/FELIX-3877 -->
 						<Import-Package>
 							com.sleepycat*;resolution:=optional,
 							org.apache.maven*;resolution:=optional,

@@ -39,26 +39,26 @@
 							<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix/field</classesDirectory>
 							<generatedSourcesDirectory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</generatedSourcesDirectory>
 							<fileset>
-							  <directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
-							  <includes>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
+								<includes>
 								<include>**/*.xml</include>
-							  </includes>
-							  <excludes>
-								<exclude>**/FIXLatest.xml</exclude>
-								<exclude>OrchestraFIXLatest.xml</exclude> 
-								<exclude>FIX50SP2.modified.xml</exclude> <!-- exclude fields from FIX50SP2 -->
-								<exclude>FIX50SP1.modified.xml</exclude> <!-- exclude fields from FIX50SP1 -->
-								<exclude>FIX50.xml</exclude>             <!-- exclude fields from FIX50 -->
-								<exclude>FIX50SP2.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX50SP1.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX44.xml</exclude>    <!-- QFJ code generation uses a modified version of this dictionary -->
-							  </excludes>
-							  <followSymlinks>false</followSymlinks>
+								</includes>
+								<excludes>
+									<exclude>**/FIXLatest.xml</exclude>
+									<exclude>OrchestraFIXLatest.xml</exclude>
+									<exclude>FIX50SP2.modified.xml</exclude>	<!-- exclude fields from FIX50SP2 -->
+									<exclude>FIX50SP1.modified.xml</exclude>	<!-- exclude fields from FIX50SP1 -->
+									<exclude>FIX50.xml</exclude>		<!-- exclude fields from FIX50 -->
+									<exclude>FIX50SP2.xml</exclude>		<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX50SP1.xml</exclude>		<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX44.xml</exclude>		<!-- QFJ code generation uses a modified version of this dictionary -->
+								</excludes>
+								<followSymlinks>false</followSymlinks>
 							</fileset>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>		
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>

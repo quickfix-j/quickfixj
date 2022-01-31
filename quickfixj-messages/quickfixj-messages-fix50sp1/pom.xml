@@ -39,24 +39,24 @@
 							<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix/field</classesDirectory>
 							<generatedSourcesDirectory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</generatedSourcesDirectory>
 							<fileset>
-							  <directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
-							  <includes>
-								<include>**/*.xml</include>
-							  </includes>
-							  <excludes>
-								<exclude>**/FIXLatest.xml</exclude>
-								<exclude>OrchestraFIXLatest.xml</exclude> 
-								<exclude>FIX50SP2.modified.xml</exclude> <!-- exclude fields from FIX50SP2 -->
-								<exclude>FIX50SP2.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX50SP1.xml</exclude> <!-- QFJ code generation uses a modified version of this dictionary -->
-								<exclude>FIX44.xml</exclude>    <!-- QFJ code generation uses a modified version of this dictionary -->
-							  </excludes>
-							  <followSymlinks>false</followSymlinks>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
+								<includes>
+									<include>**/*.xml</include>
+								</includes>
+								<excludes>
+									<exclude>**/FIXLatest.xml</exclude>
+									<exclude>OrchestraFIXLatest.xml</exclude>
+									<exclude>FIX50SP2.modified.xml</exclude>	<!-- exclude fields from FIX50SP2 -->
+									<exclude>FIX50SP2.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX50SP1.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX44.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary -->
+								</excludes>
+								<followSymlinks>false</followSymlinks>
 							</fileset>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>			
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
@@ -72,21 +72,21 @@
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fix50sp1;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fix50sp1;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>

@@ -13,7 +13,7 @@
 	<name>QuickFIX/J Message classes for all FIX specs including Fix Latest</name>
 	<description>QuickFIX/J Field classes</description>
 	<url>http://www.quickfixj.org</url>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
@@ -119,13 +119,13 @@
 									<version>${project.version}</version>
 									<includes>**/FIX*.xml,**/Orchestra*.xml</includes>
 									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
-								</artifactItem>            
+								</artifactItem>
 							</artifactItems>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-		
+
 			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
@@ -142,7 +142,7 @@
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
-					</execution>				
+					</execution>
 					<execution>
 						<id>fix41</id>
 						<goals>
@@ -154,7 +154,7 @@
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
-					</execution>				
+					</execution>
 					<execution>
 						<id>fix42</id>
 						<goals>
@@ -268,14 +268,14 @@
 			  <artifactId>maven-antrun-plugin</artifactId>
 			  <version>1.8</version>
 			  <executions>
-			    <execution>
-			      <phase>process-sources</phase>
-			      <goals>
-			        <goal>run</goal>
-			      </goals>
-			      <configuration>
-			        <target> <!-- exclude classes that are provided by the quickfixj-base dependency -->
-			          	<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplExtID.java"/>
+				<execution>
+				  <phase>process-sources</phase>
+				  <goals>
+					<goal>run</goal>
+				  </goals>
+				  <configuration>
+					<target> <!-- exclude classes that are provided by the quickfixj-base dependency -->
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplExtID.java"/>
 						<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplVerID.java"/>
 						<delete file="${project.build.directory}/generated-sources/quickfix/field/BeginSeqNo.java"/>
 						<delete file="${project.build.directory}/generated-sources/quickfix/field/BeginString.java"/>
@@ -326,16 +326,16 @@
 						<delete file="${project.build.directory}/generated-sources/quickfix/field/Text.java"/>
 						<delete file="${project.build.directory}/generated-sources/quickfix/field/XmlData.java"/>
 						<delete file="${project.build.directory}/generated-sources/quickfix/field/XmlDataLen.java"/>
-			        </target>
-			      </configuration>
-			    </execution>
+					</target>
+				  </configuration>
+				</execution>
 			  </executions>
-			</plugin>			
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-					<skip>true</skip> 
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -380,7 +380,7 @@
 				</configuration>
 				<!-- exceptions have been seen in github actions windows builds
 				[INFO] Running quickfix.SerializationTest
-                Warning:  Corrupted STDOUT by directly writing to native stream in forked JVM 1. ...
+				Warning:  Corrupted STDOUT by directly writing to native stream in forked JVM 1. ...
 				 -->
 			</plugin>
 		</plugins>

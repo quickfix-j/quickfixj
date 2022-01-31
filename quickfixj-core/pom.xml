@@ -81,7 +81,7 @@
 			<artifactId>quickfixj-messages-fixt11</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -259,7 +259,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<!-- This is the location which will be scanned for generating tattletale 
+					<!-- This is the location which will be scanned for generating tattletale
 						reports -->
 					<source>${project.build.directory}</source>
 					<!-- This is where the reports will be generated -->
@@ -346,7 +346,7 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile> 
+		</profile>
 		<!-- surefire for JDK9 and upwards -->
 		<profile>
 			<id>surefire</id>
@@ -383,6 +383,6 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile> 
+		</profile>
 	</profiles>
 </project>

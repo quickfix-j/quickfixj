@@ -13,7 +13,7 @@
 	<name>QuickFIX/J Message classes for FIX Latest</name>
 	<description>QuickFIX/J Message classes for FIX Latest</description>
 	<url>http://www.quickfixj.org</url>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
@@ -43,7 +43,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
-					<skip>true</skip> 
+					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -70,7 +70,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>		
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
 						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>
