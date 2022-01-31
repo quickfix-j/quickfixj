@@ -7,8 +7,8 @@
 		<artifactId>quickfixj-parent</artifactId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>repository-quickfix</artifactId>
-	<name>repository-quickfix</name>
+	<artifactId>repository-to-quickfixj</artifactId>
+	<name>repository-to-quickfixj</name>
 	<description>Generates QuickFIX data dictionary and message classes from a FIX Orchestra file</description>
 	<url>http://www.quickfixj.org</url>
 

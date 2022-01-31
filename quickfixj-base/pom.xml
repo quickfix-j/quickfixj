@@ -19,7 +19,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>repository-quickfix</artifactId>
+			<artifactId>repository-to-quickfixj</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

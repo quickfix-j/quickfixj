@@ -58,7 +58,7 @@
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>class-pruner-maven-plugin</module>
-		<module>repository-quickfix</module>
+		<module>repository-to-quickfixj</module>
 		<module>quickfixj-orchestration</module>
 		<module>quickfixj-base</module>
 		<module>quickfixj-messages</module>
@@ -231,6 +231,7 @@
 								<includeDependencySources>false</includeDependencySources>
 								<additionalOptions>-Xdoclint:none</additionalOptions>
 								<maxmemory>3g</maxmemory>
+								<quiet>true</quiet>
 							</configuration>
 						</execution>
 					</executions>
