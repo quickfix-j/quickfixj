@@ -230,7 +230,7 @@
 								<detectOfflineLinks>false</detectOfflineLinks>
 								<includeDependencySources>false</includeDependencySources>
 								<additionalparam>-Xdoclint:none</additionalparam>
-								<maxmemory>4g</maxmemory>
+								<maxmemory>5g</maxmemory>
 							</configuration>
 						</execution>
 					</executions>
