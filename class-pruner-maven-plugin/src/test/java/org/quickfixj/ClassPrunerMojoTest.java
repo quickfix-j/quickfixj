@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public class ClassPrunerMojoTest
 {
-	
+    
     @Rule
     public MojoRule rule = new MojoRule()
     {
@@ -67,32 +67,32 @@ public class ClassPrunerMojoTest
         // The following are based on static test files in the project to test
         List<String> someFieldNamesThatShouldStillExist = new ArrayList<>(Arrays.asList("WaveNo", "ValidUntilTime", "Account"));
         List<String> someFieldNamesThatShouldNoLongerExist = 
-        		new ArrayList<>(Arrays.asList("ValuationBusinessCenter",
-        				                      "ValuationDate",
-        				                      "ValuationMethod",
-        				                      "ValuationReferenceModel",
-        				                      "ValuationSource",
-        				                      "ValuationTime",
-        				                      "ValueCheckAction",
-        				                      "ValueCheckType",
-        				                      "ValueOfFutures",
-        				                      "VegaMultiplier",
-        				                      "VenueType",
-        				                      "VerificationMethod",
-        				                      "VersusPurchaseDate",
-        				                      "VersusPurchasePrice",
-        				                      "Volatility",
-        				                      "VoluntaryRegulatoryReport",
-        				                      "WarningText",
-        				                      "WireReference",
-        				                      "WorkingIndicator",
-        				                      "WtAverageLiquidity",
-        				                      "Yield",
-        				                      "YieldCalcDate",
-        				                      "YieldRedemptionDate",
-        				                      "YieldRedemptionPrice",
-        				                      "YieldRedemptionPriceType",
-        				                      "YieldType"));
+                new ArrayList<>(Arrays.asList("ValuationBusinessCenter",
+                                              "ValuationDate",
+                                              "ValuationMethod",
+                                              "ValuationReferenceModel",
+                                              "ValuationSource",
+                                              "ValuationTime",
+                                              "ValueCheckAction",
+                                              "ValueCheckType",
+                                              "ValueOfFutures",
+                                              "VegaMultiplier",
+                                              "VenueType",
+                                              "VerificationMethod",
+                                              "VersusPurchaseDate",
+                                              "VersusPurchasePrice",
+                                              "Volatility",
+                                              "VoluntaryRegulatoryReport",
+                                              "WarningText",
+                                              "WireReference",
+                                              "WorkingIndicator",
+                                              "WtAverageLiquidity",
+                                              "Yield",
+                                              "YieldCalcDate",
+                                              "YieldRedemptionDate",
+                                              "YieldRedemptionPrice",
+                                              "YieldRedemptionPriceType",
+                                              "YieldType"));
         List<String> xmlFileNamesThatShouldStillExist = new ArrayList<>(Arrays.asList("FIX40.xml", "FIX41.xml", "FIX50SP2.modified.xml", "FIXT11.xml"));
         
         for (String fieldName : someFieldNamesThatShouldStillExist) {
@@ -115,7 +115,7 @@ public class ClassPrunerMojoTest
         }
         
         int numberOfFieldsFromTheCombinedDictionaries = 209;
-		assertEquals(classesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries + 4); // plus 4 for the dictionary files that are not deleted
+        assertEquals(classesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries + 4); // plus 4 for the dictionary files that are not deleted
         assertEquals(generatedSourcesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries);
     }
 

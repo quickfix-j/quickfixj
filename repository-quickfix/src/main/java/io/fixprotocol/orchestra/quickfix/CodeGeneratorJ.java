@@ -92,7 +92,7 @@ private static final List<String> DATE_TYPES =
       try (FileInputStream inputStream = new FileInputStream(inputFile)) {
         generator.generate(inputStream, outputDir);
       } catch (Exception e) {
-    	  e.printStackTrace(System.err);
+          e.printStackTrace(System.err);
       }
     } else {
       generator.usage();
@@ -526,20 +526,20 @@ private static final List<String> DATE_TYPES =
 
   private Writer writeComponentAccessors(Writer writer, String componentName, String packageName)
       throws IOException {
-	  // QFJ Message Base class has accessors for the standard Header and Trailer components 
-	  // so omit accessor on derived class
-	  if (!componentName.equals("StandardHeader") && !componentName.equals("StandardTrailer") ) {
-		final String className = getQualifiedClassName(packageName, componentName);
-	    writer.write(
-	        String.format("%n%spublic void set(%s component) {%n%ssetComponent(component);%n%s}%n",
-	            indent(1), className, indent(2), indent(1)));
-	    writer.write(String.format(
-	        "%n%spublic %s get(%s component) throws FieldNotFound {%n%sgetComponent(component);%n%sreturn component;%n%s}%n",
-	        indent(1), className, className, indent(2), indent(2), indent(1)));
-	    writer.write(String.format(
+      // QFJ Message Base class has accessors for the standard Header and Trailer components 
+      // so omit accessor on derived class
+      if (!componentName.equals("StandardHeader") && !componentName.equals("StandardTrailer") ) {
+        final String className = getQualifiedClassName(packageName, componentName);
+        writer.write(
+            String.format("%n%spublic void set(%s component) {%n%ssetComponent(component);%n%s}%n",
+                indent(1), className, indent(2), indent(1)));
+        writer.write(String.format(
+            "%n%spublic %s get(%s component) throws FieldNotFound {%n%sgetComponent(component);%n%sreturn component;%n%s}%n",
+            indent(1), className, className, indent(2), indent(2), indent(1)));
+        writer.write(String.format(
         "%n%spublic %s get%s%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n", indent(1),
         className, componentName, "Component", indent(2), className, indent(1)));
-	  }
+      }
       return writer;
   }
 
@@ -794,13 +794,13 @@ private static final List<String> DATE_TYPES =
       } else if (member instanceof ComponentRefType) {
         final ComponentType componentType =
             components.get(((ComponentRefType) member).getId().intValue());
-      	writeComponentAccessors(writer, componentType.getName(), componentPackage);
+          writeComponentAccessors(writer, componentType.getName(), componentPackage);
         final List<Object> componentMembers = componentType.getComponentRefOrGroupRefOrFieldRef();
         // when recursing don't write out component accessors
         writeMemberAccessors(writer, 
-    		componentMembers.stream().filter(componentMember -> componentMember instanceof FieldRefType || componentMember instanceof ComponentRefType).collect(Collectors.toList()), 
-    		packageName, 
-    		componentPackage);
+            componentMembers.stream().filter(componentMember -> componentMember instanceof FieldRefType || componentMember instanceof ComponentRefType).collect(Collectors.toList()), 
+            packageName, 
+            componentPackage);
       }
     }
   }
@@ -897,7 +897,7 @@ private static final List<String> DATE_TYPES =
   private Writer writeValues(Writer writer, CodeSetType codeSet) throws IOException {
     final String type = codeSet.getType();
     for (final CodeType code : codeSet.getCode()) {
-      String name = CodeGeneratorTransformUtil.precedeCapsWithUnderscore(code.getName()); 	
+      String name = CodeGeneratorTransformUtil.precedeCapsWithUnderscore(code.getName());     
       switch (type) {
         case "Boolean":
           writer.write(String.format("%n%spublic static final boolean %s = %s;%n", indent(1),
@@ -905,15 +905,15 @@ private static final List<String> DATE_TYPES =
           break;
         case "char":
           writer.write(String.format("%n%spublic static final char %s = \'%s\';%n", indent(1),
-        	name, code.getValue()));
+            name, code.getValue()));
           break;
         case "int":
           writer.write(String.format("%n%spublic static final int %s = %s;%n", indent(1),
-        	name, code.getValue()));
+            name, code.getValue()));
           break;
         default:
           writer.write(String.format("%n%spublic static final String %s = \"%s\";%n", indent(1),
-        	name, code.getValue()));
+            name, code.getValue()));
       }
 
     }

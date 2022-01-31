@@ -12,21 +12,21 @@ import quickfix.SessionSettings;
 public class SSLSupportTest {
 
     @Test
-	public void shouldLoadDefaultSslConfig() {
-		SessionSettings sessionSettings = new SessionSettings();
-		SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "FROM", "TO");
+    public void shouldLoadDefaultSslConfig() {
+        SessionSettings sessionSettings = new SessionSettings();
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "FROM", "TO");
 
-		SSLConfig sslConfig = SSLSupport.getSslConfig(sessionSettings, sessionID);
+        SSLConfig sslConfig = SSLSupport.getSslConfig(sessionSettings, sessionID);
 
-		Assert.assertNull(sslConfig.getEnabledCipherSuites());
-		Assert.assertNull(sslConfig.getEnabledProtocols());
-		Assert.assertEquals("SunX509", sslConfig.getKeyManagerFactoryAlgorithm());
-		Assert.assertEquals(SSLSupport.QUICKFIXJ_KEY_STORE, sslConfig.getKeyStoreName());
-		Assert.assertTrue(Arrays.equals(SSLSupport.QUICKFIXJ_KEY_STORE_PWD.toCharArray(), sslConfig.getKeyStorePassword()));
-		Assert.assertEquals("JKS", sslConfig.getKeyStoreType());
-		Assert.assertEquals("PKIX", sslConfig.getTrustManagerFactoryAlgorithm());
-		Assert.assertNull(sslConfig.getTrustStoreName());
-		Assert.assertNull(sslConfig.getTrustStorePassword());
-		Assert.assertEquals("JKS", sslConfig.getTrustStoreType());
-	}
+        Assert.assertNull(sslConfig.getEnabledCipherSuites());
+        Assert.assertNull(sslConfig.getEnabledProtocols());
+        Assert.assertEquals("SunX509", sslConfig.getKeyManagerFactoryAlgorithm());
+        Assert.assertEquals(SSLSupport.QUICKFIXJ_KEY_STORE, sslConfig.getKeyStoreName());
+        Assert.assertTrue(Arrays.equals(SSLSupport.QUICKFIXJ_KEY_STORE_PWD.toCharArray(), sslConfig.getKeyStorePassword()));
+        Assert.assertEquals("JKS", sslConfig.getKeyStoreType());
+        Assert.assertEquals("PKIX", sslConfig.getTrustManagerFactoryAlgorithm());
+        Assert.assertNull(sslConfig.getTrustStoreName());
+        Assert.assertNull(sslConfig.getTrustStorePassword());
+        Assert.assertEquals("JKS", sslConfig.getTrustStoreType());
+    }
 }

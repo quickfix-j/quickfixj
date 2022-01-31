@@ -36,7 +36,7 @@ import org.xml.sax.SAXException;
  */
 @Mojo( name = "prune", defaultPhase = LifecyclePhase.PREPARE_PACKAGE )
 public class ClassPrunerMojo extends AbstractMojo {
-	
+    
     /**
      * <code>fileSet</code> defining the QFJ Dictionary Locations.
      */
@@ -59,117 +59,117 @@ public class ClassPrunerMojo extends AbstractMojo {
     public void execute()
         throws MojoExecutionException
     {
-    	this.getLog().info("executing mojo.");
-    	
-    	if ( !classesDirectory.exists() || !classesDirectory.isDirectory() )
+        this.getLog().info("executing mojo.");
+        
+        if ( !classesDirectory.exists() || !classesDirectory.isDirectory() )
         {
-    		String errorMsg = new StringBuilder(classesDirectory.getAbsolutePath()).append(" must exist and be a directory.").toString();
-    		this.getLog().error(errorMsg.toString());
-    		throw new MojoExecutionException( errorMsg.toString() );
+            String errorMsg = new StringBuilder(classesDirectory.getAbsolutePath()).append(" must exist and be a directory.").toString();
+            this.getLog().error(errorMsg.toString());
+            throw new MojoExecutionException( errorMsg.toString() );
         } else {
-        	this.getLog().info(new StringBuilder("Classes Directory : ").append(classesDirectory.getAbsolutePath()).toString());
+            this.getLog().info(new StringBuilder("Classes Directory : ").append(classesDirectory.getAbsolutePath()).toString());
         }
-    	
-    	if ( !generatedSourcesDirectory.exists() || !generatedSourcesDirectory.isDirectory() )
+        
+        if ( !generatedSourcesDirectory.exists() || !generatedSourcesDirectory.isDirectory() )
         {
-    		String errorMsg = new StringBuilder(generatedSourcesDirectory.getAbsolutePath()).append(" must exist and be a directory.").toString();
-    		this.getLog().error(errorMsg.toString());
-    		throw new MojoExecutionException( errorMsg.toString() );
+            String errorMsg = new StringBuilder(generatedSourcesDirectory.getAbsolutePath()).append(" must exist and be a directory.").toString();
+            this.getLog().error(errorMsg.toString());
+            throw new MojoExecutionException( errorMsg.toString() );
         } else {
-        	this.getLog().info(new StringBuilder("Generated Sources Directory : ").append(generatedSourcesDirectory.getAbsolutePath()).toString());
+            this.getLog().info(new StringBuilder("Generated Sources Directory : ").append(generatedSourcesDirectory.getAbsolutePath()).toString());
         }
-    	
-    	if (null == fileset) {
-    		String errorMsg = "filset must not be null.";
-    		this.getLog().error(errorMsg);
-    		throw new MojoExecutionException( errorMsg );
-    	}
+        
+        if (null == fileset) {
+            String errorMsg = "filset must not be null.";
+            this.getLog().error(errorMsg);
+            throw new MojoExecutionException( errorMsg );
+        }
 
-		Set<String> fieldNames = new HashSet<String>();
+        Set<String> fieldNames = new HashSet<String>();
 
         collectFieldNames(fieldNames);
         
         try {
-			pruneGeneratedSources(fieldNames);
-	        pruneClasses(fieldNames);
+            pruneGeneratedSources(fieldNames);
+            pruneClasses(fieldNames);
         } catch (IOException e) {
-			String errorMsg = "Exception pruning directories.";
-    		this.getLog().error(errorMsg, e);
-    		throw new MojoExecutionException( errorMsg, e);
-		}
+            String errorMsg = "Exception pruning directories.";
+            this.getLog().error(errorMsg, e);
+            throw new MojoExecutionException( errorMsg, e);
+        }
     }
 
-	private void pruneClasses(Set<String> fieldNames) throws IOException {
-		prune(fieldNames, this.classesDirectory, ".class", "Java class");
-	}
+    private void pruneClasses(Set<String> fieldNames) throws IOException {
+        prune(fieldNames, this.classesDirectory, ".class", "Java class");
+    }
 
-	private void pruneGeneratedSources(Set<String> fieldNames) throws IOException {
-		prune(fieldNames, this.generatedSourcesDirectory, ".java", "Java source");
-	}
-	
-	private void prune(Set<String> fieldNames, File targetDirectory, String fileSuffix, String descriptor) throws IOException {
-		Set<String> files = listFiles(targetDirectory);
-		Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(fileSuffix).toString()).collect(Collectors.toSet());
-		files.removeAll(namesOfFilesToKeep);
-		List<String> fileList = new ArrayList<String>(files);
-		Collections.sort(fileList);
-		this.getLog().info(descriptor + "s to delete : " + fileList.size());
-		for (String fileName  : fileList) {
-			this.getLog().info("Deleting " + descriptor + " : " + fileName);
-			File file = new File( targetDirectory, fileName );
-			Files.delete(file.toPath());
-		}
-	}
-	
-	private static Set<String> listFiles(File directory) throws IOException {
-		try (Stream<Path> stream = Files.list(directory.toPath())) {
-	        return stream
-	          .filter(file -> !Files.isDirectory(file))
-	          .map(Path::getFileName)
-	          .map(Path::toString)
-	          .filter(fileName -> !fileName.matches(".*\\.xml"))
-	          .collect(Collectors.toSet());
-	    }
-	}
+    private void pruneGeneratedSources(Set<String> fieldNames) throws IOException {
+        prune(fieldNames, this.generatedSourcesDirectory, ".java", "Java source");
+    }
+    
+    private void prune(Set<String> fieldNames, File targetDirectory, String fileSuffix, String descriptor) throws IOException {
+        Set<String> files = listFiles(targetDirectory);
+        Set<String> namesOfFilesToKeep =  fieldNames.stream().map(file -> new StringBuilder(file).append(fileSuffix).toString()).collect(Collectors.toSet());
+        files.removeAll(namesOfFilesToKeep);
+        List<String> fileList = new ArrayList<String>(files);
+        Collections.sort(fileList);
+        this.getLog().info(descriptor + "s to delete : " + fileList.size());
+        for (String fileName  : fileList) {
+            this.getLog().info("Deleting " + descriptor + " : " + fileName);
+            File file = new File( targetDirectory, fileName );
+            Files.delete(file.toPath());
+        }
+    }
+    
+    private static Set<String> listFiles(File directory) throws IOException {
+        try (Stream<Path> stream = Files.list(directory.toPath())) {
+            return stream
+              .filter(file -> !Files.isDirectory(file))
+              .map(Path::getFileName)
+              .map(Path::toString)
+              .filter(fileName -> !fileName.matches(".*\\.xml"))
+              .collect(Collectors.toSet());
+        }
+    }
 
-	private void collectFieldNames(Set<String> fieldNames) throws MojoExecutionException {
-		Set<String> fileNamesToParse = collectFileNameToParse();
+    private void collectFieldNames(Set<String> fieldNames) throws MojoExecutionException {
+        Set<String> fileNamesToParse = collectFileNameToParse();
 
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    	DocumentBuilder db;
-		try {
-			db = dbf.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			String msg = "ParserConfigurationException creating Document Builder";
-			this.getLog().error(msg, e);
-			throw new MojoExecutionException(msg, e);
-		}
-		
-	    for (String fileName: fileNamesToParse) {
-	    	Document document;
-			try {
-				document = db.parse(new File(fileName));
-		    	// optional, but recommended
-		        // http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-		    	document.getDocumentElement().normalize();
-		    	addNames(document.getDocumentElement(), "fields/field", fieldNames);
-			} catch (SAXException | IOException e) {
-				String msg = "Exception parsing file " + fileName;
-				this.getLog().error(msg, e);
-				throw new MojoExecutionException(msg, e);
-			}
-	    }
-	    
-	    List<String> fieldList = new ArrayList<String>(fieldNames);
-		Collections.sort(fieldList);
-	    for (String fieldName : fieldList) {
-	    	this.getLog().info("Found field : " + fieldName);
-	    }
-	    this.getLog().info("Found field total : " + fieldList.size());
-	}
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db;
+        try {
+            db = dbf.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            String msg = "ParserConfigurationException creating Document Builder";
+            this.getLog().error(msg, e);
+            throw new MojoExecutionException(msg, e);
+        }
+        
+        for (String fileName: fileNamesToParse) {
+            Document document;
+            try {
+                document = db.parse(new File(fileName));
+                // optional, but recommended
+                // http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
+                document.getDocumentElement().normalize();
+                addNames(document.getDocumentElement(), "fields/field", fieldNames);
+            } catch (SAXException | IOException e) {
+                String msg = "Exception parsing file " + fileName;
+                this.getLog().error(msg, e);
+                throw new MojoExecutionException(msg, e);
+            }
+        }
+        
+        List<String> fieldList = new ArrayList<String>(fieldNames);
+        Collections.sort(fieldList);
+        for (String fieldName : fieldList) {
+            this.getLog().info("Found field : " + fieldName);
+        }
+        this.getLog().info("Found field total : " + fieldList.size());
+    }
 
-	private Set<String> collectFileNameToParse() {
-		FileSetManager fileSetManager = new FileSetManager();
+    private Set<String> collectFileNameToParse() {
+        FileSetManager fileSetManager = new FileSetManager();
         this.getLog().info("fileset " + fileset.toString());
         
         String currentDir = System.getProperty("user.dir");
@@ -179,13 +179,13 @@ public class ClassPrunerMojo extends AbstractMojo {
         Set<String> fileNamesToParse = new HashSet<String>();
         
         String baseDirectory = fileset.getDirectory();
-		for (String includedFile: includedFiles) {
-			this.getLog().info("will parse file : " + includedFile);
-			String fileName = new StringBuilder(baseDirectory).append(File.separator).append(includedFile).toString();
-			fileNamesToParse.add(fileName);
-		}
-		return fileNamesToParse;
-	}
+        for (String includedFile: includedFiles) {
+            this.getLog().info("will parse file : " + includedFile);
+            String fileName = new StringBuilder(baseDirectory).append(File.separator).append(includedFile).toString();
+            fileNamesToParse.add(fileName);
+        }
+        return fileNamesToParse;
+    }
     
     private static void addNames(Element element, String path, Set<String> fieldNames) {
         int separatorOffset = path.indexOf("/");
@@ -198,7 +198,7 @@ public class ClassPrunerMojo extends AbstractMojo {
             String tag = path.substring(0, separatorOffset);
             NodeList subnodes = element.getElementsByTagName(tag);
             for (int i = 0; i < subnodes.getLength(); i++) {
-            	addNames((Element) subnodes.item(i), path.substring(separatorOffset + 1), fieldNames);
+                addNames((Element) subnodes.item(i), path.substring(separatorOffset + 1), fieldNames);
             }
         }
     }

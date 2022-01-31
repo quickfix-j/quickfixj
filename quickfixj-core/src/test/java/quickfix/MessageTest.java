@@ -159,8 +159,8 @@ public class MessageTest {
 
     private NewOrderSingle createNewOrderSingle() {
         return new NewOrderSingle(new ClOrdID("CLIENT"), new HandlInst(
-			HandlInst.AUTOMATED_EXECUTION_INTERVENTION_OK), new Symbol("ORCL"),
-			new Side(Side.BUY), new TransactTime(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)), new OrdType(OrdType.LIMIT));
+            HandlInst.AUTOMATED_EXECUTION_INTERVENTION_OK), new Symbol("ORCL"),
+            new Side(Side.BUY), new TransactTime(LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)), new OrdType(OrdType.LIMIT));
     }
 
     @Test
@@ -1977,15 +1977,15 @@ public class MessageTest {
         // https://bugs.openjdk.java.net/browse/JDK-8215543
         xml = xml.replaceAll("\\s+<!\\[CDATA\\[test-account\\]\\]>\\s+", "<![CDATA[test-account]]>");
         assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" +
-        			 "<message>\n" +
+                     "<message>\n" +
                      "   <header/>\n" + 
-        			 "   <body>\n" +
+                     "   <body>\n" +
                      "      <field tag=\"1\">test-account</field>\n" + 
-        			 "   </body>\n" +
+                     "   </body>\n" +
                      "   <trailer/>\n" + 
                      "</message>\n", xml);
     }
-    	
+        
     private void assertHeaderField(Message message, String expectedValue, int field)
             throws FieldNotFound {
         assertEquals(expectedValue, message.getHeader().getString(field));

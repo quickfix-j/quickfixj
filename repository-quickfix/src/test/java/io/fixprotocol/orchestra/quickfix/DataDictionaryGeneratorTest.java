@@ -69,18 +69,18 @@ public class DataDictionaryGeneratorTest {
   
   @Test
   public void testRegExp1() throws Exception {
-	  final String version = "FIX.5.0SP2_EP257";
-	  final String regex = "(FIX\\.)(?<major>\\d+)(\\.)(?<minor>\\d+)(.*)";
-	  final Pattern pattern = Pattern.compile(regex);
-	  final Matcher matcher = pattern.matcher(version);
-	  if (matcher.find()) {
-	    String extensionPack = generator.extractExtensionPack(version);
-	    String servicePack = generator.extractServicePack(version);
-	    int major = Integer.parseInt(matcher.group("major"));
-	    int minor = Integer.parseInt(matcher.group("minor"));
-	    assertEquals(major, 5);
-	    assertEquals(minor, 0);
-	  }
+      final String version = "FIX.5.0SP2_EP257";
+      final String regex = "(FIX\\.)(?<major>\\d+)(\\.)(?<minor>\\d+)(.*)";
+      final Pattern pattern = Pattern.compile(regex);
+      final Matcher matcher = pattern.matcher(version);
+      if (matcher.find()) {
+        String extensionPack = generator.extractExtensionPack(version);
+        String servicePack = generator.extractServicePack(version);
+        int major = Integer.parseInt(matcher.group("major"));
+        int minor = Integer.parseInt(matcher.group("minor"));
+        assertEquals(major, 5);
+        assertEquals(minor, 0);
+      }
    }
 
 }

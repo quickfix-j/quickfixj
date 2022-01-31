@@ -154,28 +154,28 @@ public class DataDictionaryGenerator {
     String servicePack = extractServicePack(version);
     
     if (FIX_LATEST.equals(fileName)) {
-    	writeFile(repository, outputDir, requiredGroupIds, componentList, groupList, fieldList, major, minor, fileName,
-    			extensionPack, servicePack);
+        writeFile(repository, outputDir, requiredGroupIds, componentList, groupList, fieldList, major, minor, fileName,
+                extensionPack, servicePack);
     } else {
-	    final String regex = "(FIX\\.)(?<major>\\d+)(\\.)(?<minor>\\d+)(.*)";
-	    final Pattern pattern = Pattern.compile(regex);
-	    final Matcher matcher = pattern.matcher(version);
-	
-	    if (matcher.find()) {
-	      major = matcher.group("major");
-	      minor = matcher.group("minor");
-	      writeFile(repository, outputDir, requiredGroupIds, componentList, groupList, fieldList, major, minor, fileName,
-	  			extensionPack, servicePack);
-	    } else {
-	        System.err.format("Failed to parse FIX major and minor version in %s%n", version);
-	    }
+        final String regex = "(FIX\\.)(?<major>\\d+)(\\.)(?<minor>\\d+)(.*)";
+        final Pattern pattern = Pattern.compile(regex);
+        final Matcher matcher = pattern.matcher(version);
+    
+        if (matcher.find()) {
+          major = matcher.group("major");
+          minor = matcher.group("minor");
+          writeFile(repository, outputDir, requiredGroupIds, componentList, groupList, fieldList, major, minor, fileName,
+                  extensionPack, servicePack);
+        } else {
+            System.err.format("Failed to parse FIX major and minor version in %s%n", version);
+        }
     }
   }
 
   private void writeFile(Repository repository, File outputDir, Set<Integer> requiredGroupIds,
-		final List<ComponentType> componentList, final List<GroupType> groupList, final List<FieldType> fieldList,
-		String major, String minor, String fileName, String extensionPack, String servicePack) throws IOException {
-	  final String versionPath = fileName.replaceAll("[\\.]", "");
+        final List<ComponentType> componentList, final List<GroupType> groupList, final List<FieldType> fieldList,
+        String major, String minor, String fileName, String extensionPack, String servicePack) throws IOException {
+      final String versionPath = fileName.replaceAll("[\\.]", "");
       final File file = getSpecFilePath(outputDir, versionPath, ".xml");
       outputDir.mkdirs();
       try (FileWriter writer = new FileWriter(file)) {

@@ -24,11 +24,11 @@ package org.quickfixj.codegenerator;
  */
 public class CodeGenerationException extends RuntimeException {
     /**
-	 * 
-	 */
-	private static final long serialVersionUID = -7143250551383159031L;
+     * 
+     */
+    private static final long serialVersionUID = -7143250551383159031L;
 
-	public CodeGenerationException(Throwable cause) {
+    public CodeGenerationException(Throwable cause) {
         super(cause);
     }
 }

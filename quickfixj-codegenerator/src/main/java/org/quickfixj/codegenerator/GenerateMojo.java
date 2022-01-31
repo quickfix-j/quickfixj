@@ -334,17 +334,17 @@ public class GenerateMojo extends AbstractMojo {
         this.utcTimestampPrecision = utcTimestampPrecision;
     }
 
-	/**
-	 * @return whether the code generator should overwrite existing files with the same name
-	 */
-	public boolean isOverwrite() {
-		return overwrite;
-	}
+    /**
+     * @return whether the code generator should overwrite existing files with the same name
+     */
+    public boolean isOverwrite() {
+        return overwrite;
+    }
 
-	/**
-	 * @param sets whether the code generator should overwrite existing files with the same name
-	 */
-	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
-	}
+    /**
+     * @param sets whether the code generator should overwrite existing files with the same name
+     */
+    public void setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+    }
 }
