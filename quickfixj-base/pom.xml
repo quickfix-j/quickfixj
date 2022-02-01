@@ -68,57 +68,44 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>xml-maven-plugin</artifactId>
 				<executions>
-				  <execution>
-					<id>extractRequiredFields</id>
-					<phase>generate-sources</phase>
-					<goals>
-					  <goal>transform</goal>
-					</goals>
-					<configuration>
-					  <transformationSets>
-						<transformationSet>
-						  <dir>${project.basedir}/../quickfixj-orchestration/target/generated-resources</dir>
-						  <outputDir>${project.build.directory}/generated-resources/extracted</outputDir>
-						  <includes>
-							<include>${orchestra.file}</include>
-						  </includes>
-						  <stylesheet>${project.basedir}/src/main/xsl/extractRequiredFields.xsl</stylesheet>
-						 </transformationSet>
-					   </transformationSets>
-					</configuration>
-				  </execution>
-			   </executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>xml-maven-plugin</artifactId>
-				<executions>
-				  <execution>
-					<id>addRequiredFields</id>
-					<phase>generate-sources</phase>
-					<goals>
-					  <goal>transform</goal>
-					</goals>
-					<configuration>
-					  <transformationSets>
-						<transformationSet>
-						  <dir>${project.build.directory}/generated-resources/extracted</dir>
-						  <outputDir>${project.build.directory}/generated-resources</outputDir>
-						  <includes>
-							<include>${orchestra.file}</include>
-						  </includes>
-						  <stylesheet>${project.basedir}/src/main/xsl/addRequiredFields.xsl</stylesheet>
-						 </transformationSet>
-					   </transformationSets>
-					</configuration>
-				  </execution>
-			   </executions>
-			</plugin>
-			<plugin>
-				<!-- Generate FIX Latest -->
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
+					<execution>
+						<id>extractRequiredFields</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>transform</goal>
+						</goals>
+						<configuration>
+						<transformationSets>
+							<transformationSet>
+								<dir>${project.basedir}/../quickfixj-orchestration/target/generated-resources</dir>
+								<outputDir>${project.build.directory}/generated-resources/extracted</outputDir>
+								<includes>
+									<include>${orchestra.file}</include>
+								</includes>
+								<stylesheet>${project.basedir}/src/main/xsl/extractRequiredFields.xsl</stylesheet>
+								</transformationSet>
+							</transformationSets>
+						</configuration>
+					</execution>
+					<execution>
+						<id>addRequiredFields</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>transform</goal>
+						</goals>
+						<configuration>
+							<transformationSets>
+								<transformationSet>
+									<dir>${project.build.directory}/generated-resources/extracted</dir>
+									<outputDir>${project.build.directory}/generated-resources</outputDir>
+									<includes>
+										<include>${orchestra.file}</include>
+									</includes>
+									<stylesheet>${project.basedir}/src/main/xsl/addRequiredFields.xsl</stylesheet>
+								</transformationSet>
+							</transformationSets>
+						</configuration>
+					</execution>
 					<execution>
 						<id>fixLatest</id>
 						<phase>generate-sources</phase>
@@ -166,13 +153,13 @@
 					</execution>
 				</executions>
 				<configuration>
-					<!-- This is the location which will be scanned for generating tattletale
-						reports -->
+					<!-- This is the location which will be scanned for generating tattletale reports -->
 					<source>${project.build.directory}</source>
 					<!-- This is where the reports will be generated -->
 					<destination>${project.build.directory}/tattle-tale-report</destination>
 				</configuration>
-			</plugin>			<plugin>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
@@ -200,38 +187,19 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
-				  <execution>
-					  <id>attach-javadocs</id>
-					  <goals>
-						  <goal>jar</goal>
-					  </goals>
-					  <configuration>
-						  <!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
-						  <skip>true</skip>
-						  <source>8</source>
-						  <sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
-					  </configuration>
-				  </execution>
-				</executions>
-		   </plugin>
-			<plugin>
-				<groupId>org.jboss.tattletale</groupId>
-				<artifactId>tattletale-maven</artifactId>
-				<executions>
 					<execution>
-						<phase>verify</phase>
+						<id>attach-javadocs</id>
 						<goals>
-							<goal>report</goal>
+							<goal>jar</goal>
 						</goals>
+						<configuration>
+							<!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
+							<skip>true</skip>
+							<source>8</source>
+							<sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<!-- This is the location which will be scanned for generating tattletale
-						reports -->
-					<source>${project.build.directory}</source>
-					<!-- This is where the reports will be generated -->
-					<destination>${project.build.directory}/tattle-tale-report</destination>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>

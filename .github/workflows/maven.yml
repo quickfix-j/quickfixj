@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest, macOS-latest]
         java: [8, 11, 17]
       fail-fast: false
       max-parallel: 1
@@ -28,4 +28,4 @@ jobs:
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms3g -Xmx5g"
-        run: mvn install -B -V -Dmaven.javadoc.skip=true -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: mvn install -B -V -D"maven.javadoc.skip=true" -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
