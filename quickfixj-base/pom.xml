@@ -106,6 +106,13 @@
 							</transformationSets>
 						</configuration>
 					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- Generate FIX Latest -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<executions>
 					<execution>
 						<id>fixLatest</id>
 						<phase>generate-sources</phase>

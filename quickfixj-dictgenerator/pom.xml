@@ -1,0 +1,88 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.quickfixj</groupId>
+		<artifactId>quickfixj-parent</artifactId>
+		<version>2.2.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>quickfixj-dictgenerator</artifactId>
+	<packaging>bundle</packaging>
+
+	<name>QuickFIX/J Dictionary Generator</name>
+	<description>
+		The Dictionary Generator allows creating a QuickFIX-compatible
+		XML spec file from a set of FIX repository definition XML files
+	</description>
+	<url>http://www.quickfixj.org</url>
+
+	<properties>
+		<mainClass>org.quickfixj.dictgenerator.Generator</mainClass>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<!-- used by dictgenerator package -->
+			<groupId>org.dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>2.1.3</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<!-- required by dom4j at runtime -->
+			<groupId>jaxen</groupId>
+			<artifactId>jaxen</artifactId>
+			<version>1.2.0</version>
+			<scope>runtime</scope>
+			<!-- we don't need any of the transient dependencies -->
+			<exclusions>
+				<exclusion>
+					<groupId>dom4j</groupId>
+					<artifactId>dom4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>jdom</groupId>
+					<artifactId>jdom</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xom</groupId>
+					<artifactId>xom</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>${mainClass}</mainClass>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<!-- automatically add all dependencies to classpath as jars in the ./lib folder -->
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>./lib/</classpathPrefix>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-pmd-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+</project>

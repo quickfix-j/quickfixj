@@ -57,6 +57,7 @@
 
 	<modules>
 		<module>quickfixj-codegenerator</module>
+		<module>quickfixj-dictgenerator</module>
 		<module>class-pruner-maven-plugin</module>
 		<module>repository-to-quickfixj</module>
 		<module>quickfixj-orchestration</module>

@@ -29,6 +29,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-dictgenerator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
 			<artifactId>repository-to-quickfixj</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -67,7 +72,6 @@
 			<artifactId>quickfixj-examples-ordermatch</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-all</artifactId>
