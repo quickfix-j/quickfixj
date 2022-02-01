@@ -15,8 +15,6 @@
 
 	<name>class-pruning-maven-plugin Maven Plugin</name>
 
-	<url>http://www.quickfixj.org</url>
-
 	<prerequisites>
 		<maven>${maven.version}</maven>
 	</prerequisites>

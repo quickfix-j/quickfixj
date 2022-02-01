@@ -79,24 +79,30 @@
 			   </executions>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.quickfixj</groupId>
+				<artifactId>repository-to-qfj-dictionary-maven-plugin</artifactId>
+				<version>${project.version}</version>
+				<configuration>
+					<orchestration>${project.build.directory}/generated-resources/${orchestra.file}</orchestration>
+					<outputDirectory>${project.build.directory}/generated-resources</outputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.quickfixj</groupId>
+				<artifactId>repository-to-qfj-dictionary-maven-plugin</artifactId>
+				<version>${project.version}</version>
 				<executions>
 					<execution>
 						<phase>generate-resources</phase>
 						<goals>
-							<goal>java</goal>
+							<goal>dictionaryGeneration</goal>
 						</goals>
 						<id>fixLatest</id>
 					</execution>
 				</executions>
 				<configuration>
-					<includeProjectDependencies>true</includeProjectDependencies>
-					<mainClass>io.fixprotocol.orchestra.quickfix.DataDictionaryGenerator</mainClass>
-					<arguments>
-						<argument>${project.build.directory}/generated-resources/${orchestra.file}</argument>
-						<argument>${project.build.directory}/generated-resources</argument>
-					</arguments>
+					<orchestration>${project.build.directory}/generated-resources/${orchestra.file}</orchestration>
+					<outputDirectory>${project.build.directory}/generated-resources</outputDirectory>
 				</configuration>
 			</plugin>
 			<plugin>

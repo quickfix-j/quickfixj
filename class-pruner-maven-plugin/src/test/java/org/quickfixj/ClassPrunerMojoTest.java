@@ -119,13 +119,13 @@ public class ClassPrunerMojoTest
         assertEquals(generatedSourcesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries);
     }
 
-    /** Do not need the MojoRule. */
+    /* Do not need the MojoRule.
     @WithoutMojo
     @Test
     public void testSomethingWhichDoesNotNeedTheMojoAndProbablyShouldBeExtractedIntoANewClassOfItsOwn()
     {
         assertTrue( true );
-    }
+    }  */
 
 }
 

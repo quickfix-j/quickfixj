@@ -242,25 +242,21 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
+				<groupId>org.quickfixj</groupId>
+				<artifactId>repository-to-qfj-codegen-maven-plugin</artifactId>
+				<version>${project.version}</version>
 				<executions>
 					<execution>
-						<id>fixLatest</id>
 						<phase>generate-sources</phase>
 						<goals>
-							<goal>java</goal>
+							<goal>codeGeneration</goal>
 						</goals>
+						<id>fixLatest</id>
 					</execution>
 				</executions>
 				<configuration>
-					<includeProjectDependencies>true</includeProjectDependencies>
-					<classpathScope>runtime</classpathScope>
-					<mainClass>io.fixprotocol.orchestra.quickfix.CodeGeneratorJ</mainClass>
-					<arguments>
-						<argument>${project.build.directory}/dependency/repository/${orchestra.file}</argument>
-						<argument>${project.build.directory}/generated-sources</argument>
-					</arguments>
+					<orchestration>${project.build.directory}/dependency/repository/${orchestra.file}</orchestration>
+					<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 				</configuration>
 			</plugin>
 			<plugin>
