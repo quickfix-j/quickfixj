@@ -346,7 +346,7 @@
                             <goal>jar</goal>
                         </goals>
                         <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <doclint>none</doclint>
                             <maxmemory>3g</maxmemory>
                             <includeDependencySources>false</includeDependencySources>
                             <!-- we do not want to have javadoc for the field and message classes in the core module -->

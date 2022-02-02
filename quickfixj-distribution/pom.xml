@@ -137,7 +137,7 @@
 							<goal>javadoc</goal>
 						</goals>
 						<configuration>
-							<additionalparam>${javadoc.opts}</additionalparam>
+							<additionalOptions>${javadoc.opts}</additionalOptions>
 							<includeDependencySources>true</includeDependencySources>
 							<dependencySourceIncludes>
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
