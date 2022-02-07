@@ -30,6 +30,7 @@ import quickfix.ConfigError;
 import quickfix.LogUtil;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
 import quickfix.SystemTime;
 import quickfix.mina.CompositeIoFilterChainBuilder;
 import quickfix.mina.EventHandlingStrategy;
@@ -64,7 +65,7 @@ public class IoSessionInitiator {
 
     public IoSessionInitiator(Session fixSession, SocketAddress[] socketAddresses,
             SocketAddress localAddress, int[] reconnectIntervalInSeconds,
-            ScheduledExecutorService executor, NetworkingOptions networkingOptions,
+            ScheduledExecutorService executor, SessionSettings sessionSettings, NetworkingOptions networkingOptions,
             EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, SSLConfig sslConfig,
             String proxyType, String proxyVersion, String proxyHost, int proxyPort,
@@ -77,7 +78,7 @@ public class IoSessionInitiator {
         try {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress,
                     userIoFilterChainBuilder, fixSession, reconnectIntervalInMillis,
-                    networkingOptions, eventHandlingStrategy, sslConfig,
+                    sessionSettings, networkingOptions, eventHandlingStrategy, sslConfig,
                     proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation, log);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
@@ -94,6 +95,7 @@ public class IoSessionInitiator {
         private IoConnector ioConnector;
         private final Session fixSession;
         private final long[] reconnectIntervalInMillis;
+        private final SessionSettings sessionSettings;
         private final NetworkingOptions networkingOptions;
         private final EventHandlingStrategy eventHandlingStrategy;
         private final SSLConfig sslConfig;
@@ -118,7 +120,7 @@ public class IoSessionInitiator {
         public ConnectTask(boolean sslEnabled, SocketAddress[] socketAddresses,
                 SocketAddress localAddress, IoFilterChainBuilder userIoFilterChainBuilder,
                 Session fixSession, long[] reconnectIntervalInMillis,
-                NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig,
+                SessionSettings sessionSettings, NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig,
                 String proxyType, String proxyVersion, String proxyHost,
                 int proxyPort, String proxyUser, String proxyPassword, String proxyDomain,
                 String proxyWorkstation, Logger log) throws ConfigError, GeneralSecurityException {
@@ -128,6 +130,7 @@ public class IoSessionInitiator {
             this.userIoFilterChainBuilder = userIoFilterChainBuilder;
             this.fixSession = fixSession;
             this.reconnectIntervalInMillis = reconnectIntervalInMillis;
+            this.sessionSettings = sessionSettings;
             this.networkingOptions = networkingOptions;
             this.eventHandlingStrategy = eventHandlingStrategy;
             this.sslConfig = sslConfig;
@@ -160,7 +163,7 @@ public class IoSessionInitiator {
             IoConnector newConnector;
             newConnector = ProtocolFactory.createIoConnector(socketAddresses[nextSocketAddressIndex]);
             networkingOptions.apply(newConnector);
-            newConnector.setHandler(new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy));
+            newConnector.setHandler(new InitiatorIoHandler(fixSession, sessionSettings, networkingOptions, eventHandlingStrategy));
             newConnector.setFilterChainBuilder(ioFilterChainBuilder);
 
             if (hasProxy) {
@@ -172,7 +175,7 @@ public class IoSessionInitiator {
                 );
 
                 proxyConnector.setHandler(new InitiatorProxyIoHandler(
-                        new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy),
+                        new InitiatorIoHandler(fixSession, sessionSettings, networkingOptions, eventHandlingStrategy),
                         sslFilter
                 ));
 
@@ -254,15 +257,16 @@ public class IoSessionInitiator {
         private void handleConnectException(Throwable e) {
             ++connectionFailureCount;
             SocketAddress socketAddress = socketAddresses[getCurrentSocketAddressIndex()];
-            unresolveCurrentSocketAddress(socketAddress);
             while (e.getCause() != null) {
                 e = e.getCause();
             }
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
             if (e instanceof IOException) {
                 fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
+                fixSession.getStateListener().onConnectException(fixSession.getSessionID(), (IOException) e);
             } else {
                 LogUtil.logThrowable(fixSession.getLog(), "Exception during connection to " + socketAddress + nextRetryMsg, e);
+                fixSession.getStateListener().onConnectException(fixSession.getSessionID(), new Exception(e));
             }
             connectFuture = null;
         }
@@ -270,26 +274,14 @@ public class IoSessionInitiator {
         private SocketAddress getNextSocketAddress() {
             SocketAddress socketAddress = socketAddresses[nextSocketAddressIndex];
 
-            // QFJ-266 Recreate socket address for unresolved addresses
+            // Recreate socket address to avoid cached address resolution
             if (socketAddress instanceof InetSocketAddress) {
                 InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
-                if (inetAddr.isUnresolved()) {
-                    socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr
-                            .getPort());
-                    socketAddresses[nextSocketAddressIndex] = socketAddress;
-                }
+                socketAddress = new InetSocketAddress(inetAddr.getHostName(), inetAddr.getPort());
+                socketAddresses[nextSocketAddressIndex] = socketAddress;
             }
             nextSocketAddressIndex = (nextSocketAddressIndex + 1) % socketAddresses.length;
             return socketAddress;
-        }
-
-        // QFJ-822 Reset cached DNS resolution information on connection failure.
-        private void unresolveCurrentSocketAddress(SocketAddress socketAddress) {
-            if (socketAddress instanceof InetSocketAddress) {
-                InetSocketAddress inetAddr = (InetSocketAddress) socketAddress;
-                socketAddresses[getCurrentSocketAddressIndex()] = InetSocketAddress.createUnresolved(
-                        inetAddr.getHostString(), inetAddr.getPort());
-            }
         }
 
         private int getCurrentSocketAddressIndex() {

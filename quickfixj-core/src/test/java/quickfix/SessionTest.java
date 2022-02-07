@@ -46,11 +46,13 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -62,7 +64,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -89,19 +90,18 @@ public class SessionTest {
 
         final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
         final CloseableMessageStore mockMessageStore = mock(CloseableMessageStore.class);
-        stub(mockMessageStoreFactory.create(sessionID)).toReturn(
-                mockMessageStore);
+        when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final CloseableLog mockLog = mock(CloseableLog.class);
-        stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
         }
@@ -130,19 +130,18 @@ public class SessionTest {
 
         final MessageStoreFactory mockMessageStoreFactory = mock(MessageStoreFactory.class);
         final MessageStore mockMessageStore = mock(MessageStore.class);
-        stub(mockMessageStoreFactory.create(sessionID)).toReturn(
-                mockMessageStore);
+        when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final Log mockLog = mock(Log.class);
-        stub(mockLogFactory.create(sessionID)).toReturn(mockLog);
+        when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
                 mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
             
@@ -556,6 +555,7 @@ public class SessionTest {
             // increment time to force logout and reset
             systemTimeSource.increment(3700000);
             session.next();
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
             assertEquals(SystemTime.getDate(), state.getCreationTime());
             systemTimeSource.increment(10000);
             session.next();
@@ -662,6 +662,7 @@ public class SessionTest {
             // increase time to be out of session time
             systemTimeSource.increment(1900000);
             session.next();
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
             Message logout = application.lastToAdminMessage();
             assertEquals(MsgType.LOGOUT, logout.getHeader()
                     .getString(MsgType.FIELD));
@@ -1211,7 +1212,7 @@ public class SessionTest {
             
             session.next(message);
             
-            verify(mockStateListener).onDisconnect();
+            verify(mockStateListener).onDisconnect(session.getSessionID());
             verifyNoMoreInteractions(mockStateListener);
         }
     }
@@ -1234,7 +1235,7 @@ public class SessionTest {
             
             session.next(message);
             
-            verify(mockStateListener).onDisconnect();
+            verify(mockStateListener).onDisconnect(session.getSessionID());
             verifyNoMoreInteractions(mockStateListener);
         }
     }
@@ -1872,7 +1873,7 @@ public class SessionTest {
 
     @Test
     // QFJ-457
-    public void testAcceptorRelogon() throws Exception {
+    public void testAcceptorRejectsLogonWhenLogoutInitiatedLocally() throws Exception {
         final UnitTestApplication application = new UnitTestApplication();
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
@@ -1891,13 +1892,40 @@ public class SessionTest {
                     UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
             logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
             session.next(logout);
-            
-            // session.reset();
+
+            assertFalse(session.isEnabled());
             assertFalse(session.isLoggedOn());
             logonTo(session, 3);
             Message lastToAdminMessage = application.lastToAdminMessage();
-            assertNotEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader()
-                    .getString(MsgType.FIELD));
+            assertEquals(Logout.MSGTYPE, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
+        }
+    }
+
+    @Test
+    public void testAcceptorAcceptsLogonWhenLogoutInitiatedExternally() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        try (Session session = setUpSession(application, false,
+                new UnitTestResponder())) {
+
+            logonTo(session);
+            assertTrue(session.isEnabled());
+            assertTrue(session.isLoggedOn());
+
+            final Message logout = new Logout();
+            logout.getHeader().setString(SenderCompID.FIELD, "TARGET");
+            logout.getHeader().setString(TargetCompID.FIELD, "SENDER");
+            logout.getHeader().setString(SendingTime.FIELD,
+                    UtcTimestampConverter.convert(LocalDateTime.now(ZoneOffset.UTC), UtcTimestampPrecision.SECONDS));
+            logout.getHeader().setInt(MsgSeqNum.FIELD, 2);
+            session.next(logout);
+
+            session.next();
+
+            assertTrue(session.isEnabled());
+            assertFalse(session.isLoggedOn());
+            logonTo(session, 3);
+            Message lastToAdminMessage = application.lastToAdminMessage();
+            assertEquals(Logon.MSGTYPE, lastToAdminMessage.getHeader().getString(MsgType.FIELD));
         }
     }
 
@@ -2074,7 +2102,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, false, false, false, true, false, true, false, null, true,
-                chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2136,7 +2164,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2184,7 +2212,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2233,7 +2261,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2269,7 +2297,7 @@ public class SessionTest {
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2321,7 +2349,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -2437,7 +2465,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
 
@@ -2468,6 +2496,349 @@ public class SessionTest {
         assertEquals(ResendRequest.MSGTYPE, app.lastToAdminMessage().getHeader().getString(MsgType.FIELD));
         assertEquals(4, app.lastToAdminMessage().getInt(BeginSeqNo.FIELD));
         assertEquals(0, app.lastToAdminMessage().getInt(EndSeqNo.FIELD));
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+
+            logonTo(session);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+
+            session.next();
+
+            logonTo(session);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutResponseBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+
+            session.next();
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            logoutFrom(session, state.getNextTargetMsgSeqNum());
+        }
+
+        assertFor244(application, responder, 1, 1, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            logonTo(session);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void acceptorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, false)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetInSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            session.next();
+
+            logonTo(session);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @Test
+    public void initiatorSession_ShouldWaitForLogoutTimeoutBeforeDisconnecting_WhenSendingLogoutDuringResetOutsideSessionTime()
+        throws ConfigError, IOException, IllegalAccessException, FieldConvertError, NoSuchFieldException,
+        InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType, IncorrectTagValue, IncorrectDataFormat {
+
+        final UnitTestApplication application = new UnitTestApplication();
+        final UnitTestResponder responder = new UnitTestResponder();
+        final MockSystemTimeSource systemTimeSource = new MockSystemTimeSource();
+        final int startTimeEndTimeOffsetHours = 1;
+
+        try (Session session =
+                 setupFor244(application, responder, systemTimeSource, startTimeEndTimeOffsetHours, true)) {
+
+            final SessionState state = getSessionState(session);
+            final long logoutTimeoutMs = TimeUnit.SECONDS.toMillis(state.getLogoutTimeout());
+
+            session.next();
+
+            logonTo(session);
+
+            systemTimeSource.increment(TimeUnit.HOURS.toMillis(startTimeEndTimeOffsetHours) * 2);
+
+            session.reset();
+
+            systemTimeSource.increment(logoutTimeoutMs * 2);
+
+            session.next();
+        }
+
+        assertFor244(application, responder, 1, 0, 1, true);
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @SuppressWarnings("SameParameterValue")
+    private Session setupFor244(UnitTestApplication application,
+                                UnitTestResponder responder,
+                                MockSystemTimeSource systemTimeSource,
+                                int startTimeEndTimeOffsetHours,
+                                boolean isInitiator)
+        throws ConfigError, FieldConvertError, IOException, NoSuchFieldException, IllegalAccessException {
+
+        final LocalDateTime now = LocalDateTime.now();
+        final ZoneOffset zoneOffset = ZoneOffset.systemDefault()
+            .getRules()
+            .getOffset(now);
+        final Instant nowInstant = now.toInstant(zoneOffset);
+        final long nowEpocMillis = nowInstant.toEpochMilli();
+
+        systemTimeSource.setSystemTimes(nowEpocMillis);
+        SystemTime.setTimeSource(systemTimeSource);
+
+        final LocalTime nowLocalTime = now.toLocalTime();
+        final LocalTime nowLocalTimeMinusStartTimeEndTimeOffsetHours =
+            nowLocalTime.minusHours(startTimeEndTimeOffsetHours);
+        final LocalTime nowLocalTimePlusStartTimeEndTimeOffsetHours =
+            nowLocalTime.plusHours(startTimeEndTimeOffsetHours);
+        final String startTime =
+            UtcTimeOnlyConverter.convert(nowLocalTimeMinusStartTimeEndTimeOffsetHours, UtcTimestampPrecision.SECONDS);
+        final String endTime =
+            UtcTimeOnlyConverter.convert(nowLocalTimePlusStartTimeEndTimeOffsetHours, UtcTimestampPrecision.SECONDS);
+        final String timeZone = TimeZone.getDefault()
+            .getID();
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        final SessionSettings sessionSettings = SessionSettingsTest.setUpSession(null);
+        sessionSettings.setString(Session.SETTING_START_TIME, startTime);
+        sessionSettings.setString(Session.SETTING_END_TIME, endTime);
+        sessionSettings.setString(Session.SETTING_TIMEZONE, timeZone);
+
+        setupFileStoreForQFJ357(sessionID, sessionSettings);
+
+        Session session = setUpFileStoreSession(application, isInitiator, responder, sessionSettings, sessionID);
+        session.addStateListener(application);
+
+        return session;
+    }
+
+    /**
+     * https://github.com/quickfix-j/quickfixj/issues/244
+     * */
+    @SuppressWarnings("SameParameterValue")
+    private void assertFor244(UnitTestApplication application,
+                              UnitTestResponder responder,
+                              long expectedLogoutMessageSentCount,
+                              long expectedLogoutMessageReceivedCount,
+                              int expectedSessionResetCount,
+                              boolean expectedDisconnectCalled) {
+
+        final long actualLogoutMessageSentCount = application.toAdminMessages.stream()
+            .filter(message -> message instanceof Logout)
+            .count();
+        final long actualLogoutMessageReceivedCount = application.fromAdminMessages.stream()
+            .filter(message -> message instanceof Logout)
+            .count();
+        final int actualSessionResets = application.sessionResets;
+        final boolean actualDisconnectCalled = responder.disconnectCalled;
+
+        assertEquals(
+            String.format("Expected logout message sent count: %d.", expectedLogoutMessageSentCount),
+            expectedLogoutMessageSentCount,
+            actualLogoutMessageSentCount
+        );
+        assertEquals(
+            String.format("Expected logout message received count: %d.", expectedLogoutMessageReceivedCount),
+            expectedLogoutMessageReceivedCount,
+            actualLogoutMessageReceivedCount
+        );
+        assertEquals(
+            String.format("Expected session reset count: %d.", expectedSessionResetCount),
+            expectedSessionResetCount,
+            actualSessionResets
+        );
+        assertEquals(
+            String.format("Expected disconnect called: %b.", expectedDisconnectCalled),
+            expectedDisconnectCalled,
+            actualDisconnectCalled
+        );
     }
 
     private News createPossDupAppMessage(int sequence) {
@@ -2608,4 +2979,70 @@ public class SessionTest {
         }
     }
 
+    @Test
+    public void testSendWithAllowPosDupAsFalse_ShouldRemovePossDupFlagAndOrigSendingTime() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        logonTo(session);
+
+        session.send(createPossDupAppMessage(1), false);
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertFalse(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertFalse(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testSendWithAllowPosDupAsFalse_ShouldRemovePossDupFlagAndOrigSendingTime_GivenAllowPosDupConfigurationPropertySetToTrue() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.setAllowPosDup(true);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1), false);
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertFalse(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertFalse(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testSendWithAllowPosDupAsTrue_ShouldKeepPossDupFlagAndOrigSendingTime() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1), true);
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testSend_ShouldKeepPossDupFlagAndOrigSendingTime_GivenAllowPosDupConfigurationPropertySetToTrue() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        session.setAllowPosDup(true);
+        logonTo(session);
+        session.send(createPossDupAppMessage(1));
+
+        final Message sentMessage = new Message(responder.sentMessageData);
+
+        assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
+        assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
 }

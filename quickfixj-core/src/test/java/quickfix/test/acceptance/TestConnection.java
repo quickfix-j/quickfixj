@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.message.FIXProtocolCodecFactory;
-import quickfix.test.util.ReflectionUtil;
+import quickfix.test.util.StackTraceUtil;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -68,8 +68,11 @@ public class TestConnection {
 
     public void tearDown() {
         for (TestIoHandler testIoHandler : ioHandlers.values()) {
-            CloseFuture closeFuture = testIoHandler.getSession().closeNow();
-            closeFuture.awaitUninterruptibly();
+            IoSession session = testIoHandler.getSession();
+            if (session != null) {
+                CloseFuture closeFuture = session.closeNow();
+                closeFuture.awaitUninterruptibly();
+            }
         }
         ioHandlers.clear();
     }
@@ -144,7 +147,7 @@ public class TestConnection {
                 boolean await = sessionCreatedLatch.await(70, TimeUnit.SECONDS); // 10 seconds more than retry time in ATServer.run()
                 if (!await) {
                     log.error("sessionCreatedLatch timed out. Dumping threads...");
-                    ReflectionUtil.dumpStackTraces();
+                    StackTraceUtil.dumpStackTraces(log);
 
                     final ThreadMXBean bean = ManagementFactory.getThreadMXBean();
                     long[] threadIds = bean.findDeadlockedThreads();
@@ -165,6 +168,7 @@ public class TestConnection {
                     }
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
             return session;

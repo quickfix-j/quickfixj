@@ -134,6 +134,7 @@ public class SessionDisconnectConcurrentlyTest {
             try {
                 logonLatch.await(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 fail(e.getMessage());
             }
         }
@@ -148,6 +149,7 @@ public class SessionDisconnectConcurrentlyTest {
                     fail("Timed out waiting for message");
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 fail(e.getMessage());
             }
         }
@@ -225,7 +227,7 @@ public class SessionDisconnectConcurrentlyTest {
             try {
                 Thread.sleep(12000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
             threadIds = bean.findDeadlockedThreads();
         }
@@ -330,37 +332,37 @@ public class SessionDisconnectConcurrentlyTest {
             }
         }
 
-        public void onConnect() {
+        public void onConnect(SessionID sessionID) {
         }
 
-        public void onDisconnect() {
+        public void onDisconnect(SessionID sessionID) {
         }
 
-        public void onLogon() {
+        public void onLogon(SessionID sessionID) {
         }
 
-        public void onLogout() {
+        public void onLogout(SessionID sessionID) {
         }
 
-        public void onReset() {
+        public void onReset(SessionID sessionID) {
         }
 
-        public void onRefresh() {
+        public void onRefresh(SessionID sessionID) {
         }
 
-        public void onMissedHeartBeat() {
+        public void onMissedHeartBeat(SessionID sessionID) {
         }
 
-        public void onHeartBeatTimeout() {
+        public void onHeartBeatTimeout(SessionID sessionID) {
         }
 
-        public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+        public void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
         }
 
-        public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+        public void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
         }
 
-        public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+        public void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
         }
     }
     

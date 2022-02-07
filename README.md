@@ -1,7 +1,7 @@
 QuickFIX/J
 ==========
-
-[![Build Status](https://travis-ci.com/quickfix-j/quickfixj.svg?branch=master)](https://travis-ci.com/quickfix-j/quickfixj)
+[![Java CI](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml)
+[![CodeQL](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/alerts/)
 [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/context:java)
@@ -58,6 +58,15 @@ $ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
+## importing the project into the IDE
+
+When the project is first created, it will not have the generated message classes and compile errors will occur! Best is to compile once on the command line before importing the project into the IDE.
+
+If the IDE reports some errors after the compilation with `mvn clean package`, try to use `mvn clean install`, like:
+```
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+```
+
 ## configuration options
 https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
@@ -77,7 +86,7 @@ Here are explanations of what these functions provide for you.
 
 `onLogout` notifies you when an FIX session is no longer online. This could happen during a normal logout exchange or because of a forced termination or a loss of network connection. 
 
-`toAdmin` provides you with a peek at the administrative messages that are being sent from your FIX engine to the counter party. This is normally not useful for an application however it is provided for any logging you may wish to do. Notice that the `quickfix.Message` is mutable. This allows you to add fields before an adminstrative message before it is sent out. 
+`toAdmin` provides you with a peek at the administrative messages that are being sent from your FIX engine to the counter party. This is normally not useful for an application however it is provided for any logging you may wish to do. Notice that the `quickfix.Message` is mutable. This allows you to add fields to an administrative message before it is sent out. 
 
 `toApp` is a callback for application messages that are being sent to a counterparty. If you throw a `DoNotSend` exception in this method, the application will not send the message. This is mostly useful if the application has been asked to resend a message such as an order that is no longer relevant for the current market. Messages that are being resent are marked with the `PossDupFlag` in the header set to true; If a `DoNotSend` exception is thrown and the flag is set to true, a sequence reset will be sent in place of the message. If it is set to false, the message will simply not be sent. Notice that the `quickfix.Message` is mutable. This allows you to add fields to an application message before it is sent out. 
 
