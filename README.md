@@ -293,8 +293,6 @@ This project builds artefacts for the standard published FIX specification versi
 
 These artefacts are <u>**test**</u> dependendencies of ```quickfixj-core```. They are not specified as _runtime_ dependencies to make it easier to customise QuickFIX/J deployments. If you have no need to specialise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as runtime dependencies of your application.
 
-Artefacts for unused FIX specification versions can be omitted from your runtime.
+Artefacts for unused FIX specification versions can be omitted from your runtime. Many integrations will not require ```quickfixj-messages-all``` and need only depend on artefacts for a subset of the FIX standard versions. Please note that FIX Protocol verisions 5.0 and later depend on ```quickfixj-messages-fixt11``` to provide the implementation for the FIXT1.1 transport messages.
 
-Please note that FIX Protocol verisions 5.0 and later depend on ```quickfixj-messages-fixt11``` to provide the implementation for the FIXT1.1 transport messages.
-
-Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more information.
+Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
