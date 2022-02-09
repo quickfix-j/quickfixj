@@ -2,8 +2,8 @@ name: Java CI
 
 on:
   push:
-  wow
-  w
+  pull_request:
+    types: [reopened, opened, synchronize]
   schedule:
     - cron:  '30 5 * * *'
 
