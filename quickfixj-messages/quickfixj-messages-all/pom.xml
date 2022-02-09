@@ -29,7 +29,7 @@
 	</dependencies>
 	<profiles>
 		<profile>
-			<id>codeql</id>
+			<id>minimal-fix-latest</id>
 			<!-- This profile must not be used as part of the CI build. It has a very specialised purpose.
 					This profile transforms the orchestra file to restrict fields, components, groups and messages to those that are used in tests
 					of the core module. This is exclusively to reduce the size and complexity of the FIX Latest package so that processes such as CodeQL

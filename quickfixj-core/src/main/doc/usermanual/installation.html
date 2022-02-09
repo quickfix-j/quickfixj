@@ -13,12 +13,14 @@
 <h2>Installation and Building the Code.</h2>
 <h3><a name="dependencies"></a>Runtime Dependencies</h3>
 <h4>Java Virtual Machine:</h4>
-<p>JVM compatible with Oracle JRE Java 1.7.x or higher.</p>
+<p>JVM compatible with JRE Java 1.8.x or higher.</p>
 
 <h4>Required run-time libraries:</h4>
 
+<p>Please note that you can build customised versiond of the FIX messages artefacts. Please refer to the QuickFIX/J github repository for <a href="https://github.com/quickfix-j/quickfixj#readme">details</a>.</p>
+
 <p>
-<em>(Note: The actual JAR files may have version numbers in them.)</em>
+<em>(Note: The actual JAR files have semantic version numbers in the name. For example : quickfixj-messages-fixlatest-3.0.0.jar)</em>
 </p>
 
 <table cellspacing="0" width="100%">
@@ -29,19 +31,22 @@
   <tr>
     <td>The QFJ core JAR and message JARs.
     <ul>
-    <li> quickfixj-core.jar
-    <li> quickfixj-msg-fix40.jar
-    <li> quickfixj-msg-fix41.jar
-    <li> quickfixj-msg-fix42.jar
-    <li> quickfixj-msg-fix43.jar
-    <li> quickfixj-msg-fix44.jar
-    <li> quickfixj-msg-fix50.jar
-    <li> quickfixj-msg-fix50sp1.jar
-    <li> quickfixj-msg-fix50sp2.jar
+    <li> quickfixj-base-{VERSION}.jar
+    <li> quickfixj-core-{VERSION}.jar
+    <li> quickfixj-messages-fix40-{VERSION}.jar
+    <li> quickfixj-messages-fix41-{VERSION}.jar
+    <li> quickfixj-messages-fix42-{VERSION}.jar
+    <li> quickfixj-messages-fix43-{VERSION}.jar
+    <li> quickfixj-messages-fix44-{VERSION}.jar
+    <li> quickfixj-messages-fix50-{VERSION}.jar
+    <li> quickfixj-messages-fix50sp1-{VERSION}.jar
+    <li> quickfixj-messages-fix50sp2-{VERSION}.jar
+    <li> quickfixj-messages-fixlatest-{VERSION}.jar
+    <li> quickfixj-messages-fixt11-{VERSION}.jar
     </ul>
     or
     <ul>
-    <li> quickfixj-all.jar (includes core and message JARs)
+    <li> quickfixj-all-{VERSION}.jar (includes core, base and message JARs)
     </ul>
     </td>
     <td>QFJ runtime libraries</td>
@@ -113,7 +118,7 @@ By default, the XML processing in QuickFIX/J uses the XML parser included
     to download and install Maven (version 3.2.5 or newer). If you are building from
     an IDE, Maven is usually included.
 
-<em>Building from source requires Java 7+.</em>
+<em>Building from source requires Java 8+.</em>
 
 </p>
 <ol>
@@ -163,6 +168,7 @@ There are various command-line switches you can pass to mvn to modify the produc
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
     the pre-built QuickFIX/J libraries hosted at the <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.quickfixj%22">Central Repository</a>
     repository.</p>
+<p>You need only include message libraries for the FIX protocol version that you require. <em>Note : the quickfixj-messages-fixt11 jar is also required for FIX versions 5.0 and later.</em></p>
 <p> Add the following to your <em>dependencies</em> section, with appropriate modifications based on
         the logging subsystem you choose:<br>
         <pre class="code">
@@ -208,6 +214,8 @@ There are various command-line switches you can pass to mvn to modify the produc
     &lt;version&gt;1.7.22&lt;/version&gt;
 &lt;/dependency&gt;</pre>
 </p>
+
+<p>Please refer to the QuickFIX/J github repository for more <a href="https://github.com/quickfix-j/quickfixj#readme">details</a>  about working with QuickFIX/J.</p>
 
 <h2><a name="database"></a>Generating the database for JDBC based store and log</h2>
 <p> Everything needed to generate your database is in the <a href="https://github.com/quickfix-j/quickfixj/tree/master/quickfixj-core/src/main/resources/config/sql"> src/main/resources/config/sql</a> subdirectories.
