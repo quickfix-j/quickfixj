@@ -15,7 +15,7 @@
 	<url>http://www.quickfixj.org</url>
 	
 	<properties>
-		<generator.decimal>true</generator.decimal>
+		<generator.decimal>false</generator.decimal>
 	</properties>
 
 

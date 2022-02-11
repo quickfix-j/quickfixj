@@ -42,6 +42,10 @@ import io.fixprotocol._2020.orchestra.repository.GroupRefType;
 import io.fixprotocol._2020.orchestra.repository.GroupType;
 import io.fixprotocol._2020.orchestra.repository.MessageType;
 import io.fixprotocol._2020.orchestra.repository.Repository;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 /**
  * Generates message classes for QuickFIX/J from a FIX Orchestra file
@@ -72,7 +76,9 @@ public class CodeGeneratorJ {
 	private static final long SERIALIZATION_VERSION = 552892318L;
 
 	private static final int SPACES_PER_LEVEL = 2;
-
+	
+	private boolean isGenerateBigDecimal = true;
+	
 	/**
 	 * Runs a CodeGeneratorJ with command line arguments
 	 *
@@ -83,22 +89,29 @@ public class CodeGeneratorJ {
 	 */
 	public static void main(String[] args) {
 		final CodeGeneratorJ generator = new CodeGeneratorJ();
-		if (args.length >= 1) {
-			final File inputFile = new File(args[0]);
-			File outputDir;
-			if (args.length >= 2) {
-				outputDir = new File(args[1]);
-			} else {
-				outputDir = new File("target/generated-sources");
-			}
-			try (FileInputStream inputStream = new FileInputStream(inputFile)) {
-				generator.generate(inputStream, outputDir);
-			} catch (Exception e) {
-				e.printStackTrace(System.err);
-			}
-		} else {
-			generator.usage();
+		Options options = new Options();
+		new CommandLine(options).execute(args);
+		try (FileInputStream inputStream = new FileInputStream(new File(options.orchestraFileName))) {
+			generator.setGenerateBigDecimal(!options.isDisableBigDecimal);
+			generator.generate(inputStream, new File(options.outputDir));
+		} catch (Exception e) {
+			e.printStackTrace(System.err);
 		}
+	}
+	
+	@Command(name = "Options", mixinStandardHelpOptions = true, description = "Options for generation of QuickFIX/J Code from a FIX Orchestra Repository")
+	static class Options {
+		@Option(names = { "-o", "--output-dir" }, defaultValue = "target/generated-sources", 
+				paramLabel = "OUTPUT_DIRECTORY", description = "The output directory, Default : ${DEFAULT-VALUE}")
+		String outputDir = "target/generated-sources";
+
+		@Option(names = { "-i", "--orchestra-file" }, required = true, 
+				paramLabel = "ORCHESTRA_FILE", description = "The path/name of the FIX OrchestraFile")
+		String orchestraFileName;
+
+		@Option(names = { "--disableBigDecimal" }, defaultValue = "false", fallbackValue = "true", 
+				paramLabel = "DISABLE_BIG_DECIMAL", description = "Disable the use of Big Decimal for Decimal Fields, Default : ${DEFAULT-VALUE}")
+		boolean isDisableBigDecimal = true;
 	}
 
 	private final Map<String, CodeSetType> codeSets = new HashMap<>();
@@ -505,10 +518,6 @@ public class CodeGeneratorJ {
 		return (Repository) jaxbUnmarshaller.unmarshal(inputFile);
 	}
 
-	private void usage() {
-		System.out.format("Usage: java %s <input-file> <output-dir>", this.getClass().getName());
-	}
-
 	private Writer writeClassDeclaration(Writer writer, String name) throws IOException {
 		writer.write(String.format("%npublic class %s {%n", name));
 		return writer;
@@ -889,6 +898,10 @@ public class CodeGeneratorJ {
 
 		}
 		return writer;
+	}
+
+	public void setGenerateBigDecimal(boolean isGenerateBigDecimal) {
+		this.isGenerateBigDecimal = isGenerateBigDecimal;
 	}
 
 }

@@ -12,6 +12,10 @@
 	<name>repository-to-quickfixj</name>
 	<description>Generates QuickFIX data dictionary and message classes from a FIX Orchestra file</description>
 	<url>http://www.quickfixj.org</url>
+	
+	<properties>
+		<picocli-version>4.6.3</picocli-version>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -33,6 +37,11 @@
 			<artifactId>jakarta.xml.bind-api</artifactId>
 		</dependency>
 		<dependency>
+		  <groupId>info.picocli</groupId>
+		  <artifactId>picocli</artifactId>
+		  <version>${picocli-version}</version>
+		</dependency>		
+		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
 			<scope>runtime</scope>
@@ -42,8 +51,21 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-compiler-plugin</artifactId>
+			  <version>${maven-compiler-plugin-version}</version>
+			  <configuration>
+			    <annotationProcessorPaths>
+			      <path>
+			        <groupId>info.picocli</groupId>
+			        <artifactId>picocli-codegen</artifactId>
+			        <version>${picocli-version}</version>
+			      </path>
+			    </annotationProcessorPaths>
+			    <compilerArgs>
+			      <arg>-Aproject=${project.groupId}/${project.artifactId}</arg>
+			    </compilerArgs>
+			  </configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

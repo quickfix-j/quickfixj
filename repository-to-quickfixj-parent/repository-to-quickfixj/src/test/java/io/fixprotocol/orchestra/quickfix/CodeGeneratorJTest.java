@@ -5,7 +5,13 @@ import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import picocli.CommandLine;
+import picocli.CommandLine.MissingParameterException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CodeGeneratorJTest {
 
@@ -42,6 +48,84 @@ public class CodeGeneratorJTest {
       final String testInput = "FIX44";
       final String expectedResult = "FIX44";
       assertEquals(expectedResult, CodeGeneratorTransformUtil.precedeCapsWithUnderscore(testInput) );
+  }
+  
+  @Test 
+  void testOptions() {
+	  /*
+		@Option(names = { "-o", "--output-dir" }, defaultValue = "target/generated-sources", 
+				paramLabel = "OUTPUT_DIRECTORY", description = "The output directory, Default : ${DEFAULT-VALUE}")
+		String outputDir = "target/generated-sources";
+
+		@Option(names = { "-i", "--orchestra-file" }, required = true, 
+				paramLabel = "ORCHESTRA_FILE", description = "The path/name of the FIX OrchestraFile")
+		String orchestraFileName;
+
+		@Option(names = { "--disableBigDecimal" }, defaultValue = "false", fallbackValue = "true", 
+				paramLabel = "DISABLE_BIG_DECIMAL", description = "Disable the use of Big Decimal for Decimal Fields, Default : ${DEFAULT-VALUE}")
+		boolean isDisableBigDecimal = true;
+		*/
+	  String outputDir = "somewhere/generated-sources";
+	  String input = "target/input";
+	  String[] args = { "--orchestra-file", input, "--output-dir", outputDir, "--disableBigDecimal"};
+	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
+	  new CommandLine(options).parseArgs(args);
+	  assertEquals(input, options.orchestraFileName);
+	  assertEquals(outputDir, options.outputDir);
+	  assertTrue(options.isDisableBigDecimal);
+  }
+
+  @Test 
+  void testOptionDefaults() {
+	  String outputDir = "target/generated-sources";
+	  String input = "target/input";
+	  String[] args = { "--orchestra-file", input};
+	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
+	  new CommandLine(options).parseArgs(args);
+	  assertEquals(input, options.orchestraFileName);
+	  assertEquals(outputDir, options.outputDir);
+	  assertFalse(options.isDisableBigDecimal);
+  }
+  
+  @Test 
+  void testOptionShortForm() {
+	  String outputDir = "target/generated-sources";
+	  String input = "target/input";
+	  String[] args = { "-i", input, "-o", outputDir};
+	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
+	  new CommandLine(options).parseArgs(args);
+	  assertEquals(input, options.orchestraFileName);
+	  assertEquals(outputDir, options.outputDir);
+	  assertFalse(options.isDisableBigDecimal);
+  }
+  
+  @Test
+  void testOptionNotProvided() {
+	  String outputDir = "target/generated-sources";
+	  String[] args = {"--output-dir", outputDir,};
+	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
+	  assertThrows(MissingParameterException.class, () -> new CommandLine(options).parseArgs(args) );
+  }
+
+  @Test 
+  void testExecute() {
+	  String outputDir = "target/generated-sources";
+	  String input = "target/input";
+	  String[] args = { "--orchestra-file", input};
+	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
+	  new CommandLine(options).parseArgs(args);
+	  assertEquals(input, options.orchestraFileName);
+	  assertEquals(outputDir, options.outputDir);
+	  assertFalse(options.isDisableBigDecimal);
+  }
+  
+  
+  @Test
+  void testExecuteOptionNotProvided() {
+	  String outputDir = "target/generated-sources";
+	  String[] args = {"--output-dir", outputDir,};
+	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
+	  new CommandLine(options).execute(args);
   }
 }
 

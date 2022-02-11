@@ -9,7 +9,10 @@
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Test MyMojo</name>
-
+    <properties>
+    	<generator.decimal>true</generator.decimal>
+    </properties>
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -18,6 +21,7 @@
 				<configuration>
 					<orchestration>resources/trade-latest.xml</orchestration>
 					<outputDirectory>target/generated-sources</outputDirectory>
+					<generateBigDecimal>${generator.decimal}</generateBigDecimal>
 				</configuration>
 			</plugin>
 		</plugins>
