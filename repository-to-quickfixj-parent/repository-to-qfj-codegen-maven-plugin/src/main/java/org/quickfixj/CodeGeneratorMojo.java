@@ -26,6 +26,12 @@ public class CodeGeneratorMojo extends AbstractMojo {
 	 */
 	@Parameter(defaultValue = "${project.build.directory}/generated-sources", property = "outputDirectory", required = true)
 	protected File outputDirectory;
+	
+	/**
+	 * Determines if FIX Decimal types will be generated using BigDecimal
+	 */
+	@Parameter(property = "generateBigDecimal", required = false)
+	protected boolean generateBigDecimal = false;
 
 	public void execute() throws MojoExecutionException {
         if ( orchestration.exists() && orchestration.isFile() ) {
@@ -45,6 +51,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
 		this.getLog().info(new StringBuilder("Output Directory : ").append(outputDirectory.getAbsolutePath()).toString());
 
 		final CodeGeneratorJ generator = new CodeGeneratorJ();
+		generator.setGenerateBigDecimal(generateBigDecimal);
 	    try {
 			generator.generate(new FileInputStream(orchestration), outputDirectory);
 		} catch (FileNotFoundException e) {

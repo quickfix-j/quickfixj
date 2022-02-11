@@ -151,7 +151,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             if (isOrderExecutable(order, price)) {
                 quickfix.fix40.ExecutionReport fill = new quickfix.fix40.ExecutionReport(genOrderID(), genExecID(),
                         new ExecTransType(ExecTransType.NEW), new OrdStatus(OrdStatus.FILLED), order.getSymbol(), order
-                                .getSide(), orderQty, new LastShares(orderQty.getValue().doubleValue()), new LastPx(price.getValue()),
+                                .getSide(), orderQty, new LastShares(orderQty.getValue()), new LastPx(price.getValue()),
                         new CumQty(orderQty.getValue()), new AvgPx(price.getValue()));
 
                 fill.set(order.getClOrdID());
@@ -249,7 +249,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
             quickfix.fix41.ExecutionReport executionReport = new quickfix.fix41.ExecutionReport(genOrderID(),
                     genExecID(), new ExecTransType(ExecTransType.NEW), new ExecType(ExecType.TRADE), new OrdStatus(
                             OrdStatus.FILLED), order.getSymbol(), order.getSide(), orderQty, new LastShares(orderQty
-                            .getValue().doubleValue()), new LastPx(price.getValue()), new LeavesQty(0), new CumQty(orderQty
+                            .getValue()), new LastPx(price.getValue()), new LeavesQty(0), new CumQty(orderQty
                             .getValue()), new AvgPx(price.getValue()));
 
             executionReport.set(order.getClOrdID());
@@ -284,7 +284,7 @@ public class Application extends quickfix.MessageCracker implements quickfix.App
 
             executionReport.set(order.getClOrdID());
             executionReport.set(orderQty);
-            executionReport.set(new LastShares(orderQty.getValue().doubleValue()));
+            executionReport.set(new LastShares(orderQty.getValue()));
             executionReport.set(new LastPx(price.getValue()));
 
             sendMessage(sessionID, executionReport);

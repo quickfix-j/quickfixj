@@ -108,7 +108,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>generate-resources</phase>
