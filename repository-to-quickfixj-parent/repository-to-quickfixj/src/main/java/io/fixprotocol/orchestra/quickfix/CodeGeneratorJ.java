@@ -64,6 +64,9 @@ import picocli.CommandLine.Parameters;
  */
 public class CodeGeneratorJ {
 
+	private static final String DOUBLE_FIELD = "DoubleField";
+	private static final String DECIMAL_FIELD = "DecimalField";
+
 	private static final String FIXT_1_1 = "FIXT.1.1";
 
 	private static final String FIX_LATEST = "FIX.Latest";
@@ -119,8 +122,13 @@ public class CodeGeneratorJ {
 	private final Map<Integer, FieldType> fields = new HashMap<>();
 	private final Map<Integer, GroupType> groups = new HashMap<>();
 
+	private String decimalTypeString = DECIMAL_FIELD;
+
 	public void generate(InputStream inputFile, File outputDir) {
 		try {
+			if (!this.isGenerateBigDecimal) {
+				decimalTypeString = DOUBLE_FIELD;
+			}
 			final Repository repository = unmarshal(inputFile);
 			final List<CodeSetType> codeSetList = repository.getCodeSets().getCodeSet();
 			for (final CodeSetType codeSet : codeSetList) {
@@ -220,10 +228,10 @@ public class CodeGeneratorJ {
 				writeImport(writer, "java.time.LocalDateTime");
 
 			}
-			final String baseClassname = getFieldBaseClass(fixType);
-			if (baseClassname.equals("DecimalField")) {
-				writeImport(writer, "java.math.BigDecimal");
-			}
+			final String baseClassname = getFieldBaseClass(fixType, this.decimalTypeString );
+			if (baseClassname.equals(DECIMAL_FIELD) && this.isGenerateBigDecimal) {
+					writeImport(writer, "java.math.BigDecimal"); 
+			} //else the primitive double is used 
 			final String qualifiedBaseClassname = getQualifiedClassName("quickfix", baseClassname);
 			writeImport(writer, qualifiedBaseClassname);
 			writeClassDeclaration(writer, name, baseClassname);
@@ -421,7 +429,7 @@ public class CodeGeneratorJ {
 		return new File(outputDir, sb.toString());
 	}
 
-	private String getFieldBaseClass(String type) {
+	private String getFieldBaseClass(String type, String decimalTypeString) {
 		String baseType;
 		switch (type) {
 		case "char":
@@ -431,7 +439,7 @@ public class CodeGeneratorJ {
 		case "Amt":
 		case "Qty":
 		case "PriceOffset":
-			baseType = "DecimalField";
+			baseType = decimalTypeString;
 			break;
 		case "int":
 		case "NumInGroup":
@@ -457,7 +465,7 @@ public class CodeGeneratorJ {
 			break;
 		case "float":
 		case "Percentage":
-			baseType = "DoubleField";
+			baseType = DOUBLE_FIELD;
 			break;
 		default:
 			baseType = "StringField";
@@ -616,13 +624,15 @@ public class CodeGeneratorJ {
 			writer.write(String.format("%n%spublic %s(LocalDateTime data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
 					className, indent(2), fieldId, indent(1)));
 			break;
-		case "DecimalField":
-			writer.write(String.format("%n%spublic %s(BigDecimal data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
-					className, indent(2), fieldId, indent(1)));
-			writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, BigDecimal.valueOf(data));%n%s}%n",
-					indent(1), className, indent(2), fieldId, indent(1)));
-			break;
-		case "DoubleField":
+		case DECIMAL_FIELD:
+			if (this.isGenerateBigDecimal) {
+				writer.write(String.format("%n%spublic %s(BigDecimal data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
+						className, indent(2), fieldId, indent(1)));
+				writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, BigDecimal.valueOf(data));%n%s}%n",
+						indent(1), className, indent(2), fieldId, indent(1)));
+				break;
+			}  // else drop through as DoubleField is extended
+		case DOUBLE_FIELD:
 			writer.write(String.format("%n%spublic %s(Double data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
 					indent(2), fieldId, indent(2)));
 			writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,

@@ -22,16 +22,6 @@ public class CodeGeneratorJTest {
     generator = new CodeGeneratorJ();
   }
 
-  @Test
-  public void testGenerate() throws IOException {
-    generator.generate(
-        Thread.currentThread().getContextClassLoader().getResource("trade.xml").openStream(),
-        new File("target/spec/generated-sources/fix50sp2"));
-    generator.generate(
-            Thread.currentThread().getContextClassLoader().getResource("trade-latest.xml").openStream(),
-            new File("target/spec/generated-sources/latest"));
-  }
-  
   @Test void testTransformStaticFieldNameCarriedNonCustomerSideCrossMargined() {
       final String testInput = "CarriedNonCustomerSideCrossMargined";
       final String expectedResult = "CARRIED_NON_CUSTOMER_SIDE_CROSS_MARGINED";
@@ -126,6 +116,27 @@ public class CodeGeneratorJTest {
 	  String[] args = {"--output-dir", outputDir,};
 	  CodeGeneratorJ.Options options = new CodeGeneratorJ.Options();
 	  new CommandLine(options).execute(args);
+  }
+  
+  @Test
+  public void testGenerateWithBigDecimal() throws IOException {
+    generator.generate(
+        Thread.currentThread().getContextClassLoader().getResource("trade.xml").openStream(),
+        new File("target/spec/generated-sources/fix50sp2"));
+    generator.generate(
+            Thread.currentThread().getContextClassLoader().getResource("trade-latest.xml").openStream(),
+            new File("target/spec/generated-sources/withBigDecimal/latest"));
+  }
+  
+  @Test
+  public void testGenerateWithDouble() throws IOException {
+	generator.setGenerateBigDecimal(false);
+	generator.generate(
+        Thread.currentThread().getContextClassLoader().getResource("trade.xml").openStream(),
+        new File("target/spec/generated-sources/fix50sp2"));
+    generator.generate(
+            Thread.currentThread().getContextClassLoader().getResource("trade-latest.xml").openStream(),
+            new File("target/spec/generated-sources/withDouble/latest"));
   }
 }
 
