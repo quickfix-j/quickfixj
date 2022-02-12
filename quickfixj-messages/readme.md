@@ -41,6 +41,14 @@ The other modules package the FIX Protocol specification versions independently.
 
 It is not neccessary for an application to depend on ```quickfixj-messages-all```. An application can depend only the artefacts for the FIX Protocol versions that it requires. Please note that application using FIX Protocol versions **5.0 and later** will also depend on ```quickfixj-messages-fixt11```. This provides the implementation for the FIXT1.1 Transport messages.
 
+## Techniques to customise a build
+
+* Omit FIX Protocol versions that are not required
+* For versions prior to FIX Latest, edit the QuickFIX Dictionary to control code generation
+* For FIX Latest, edit the FIX Orchestra Repository (Orchestration) to control code generation
+* Manipulate the order of code generation and/or the "over-write" behaviour of code generation
+* Choose whether to use ```Double``` or ```BigDecimal``` for FIX "Decimal" Data Types 
+
 ## Recommendation on how to implement a custom build
 
 The artefacts created by this module are <u>**test**</u> dependendencies of ```quickfixj-core```. They are not specified as _runtime_ dependencies, this makes it easier to customise QuickFIX/J deployments. Artefacts containing Field, Component and message packages will need to be included as **compile** dependencies for the application that depends on ```quickfixj-core```.
@@ -49,16 +57,16 @@ Artefacts for unused FIX specification versions can be omitted from your runtime
 
 A custom build can provide custom artefacts for the required Fields, Component and Message. The QuickFIX/J project can supply  ```quickfixj-core``` and tools.
 
-**Custom builds must provide all the Fields, Components and Messages and exclude those few Fields provided by ```quickfixj-base```.**  This avoids ambiguity, conflicts (*package name space collisions*) and jvm class verification exceptions. At run time the Components and Messages must use the Fields against which they have been compiled. Message artefacts from the QuickFIX/J project cannot be mixed with custom distributions but ```quickfixj-core```, ```quickfixj-base``` and tools can be used by dependent applications and builds.
+**Custom builds must provide all the Fields, Components and Messages excluding those few Fields provided by ```quickfixj-base```.**  This avoids ambiguity, conflicts (*package name space collisions*) and jvm class verification exceptions. At run time the Components and Messages must use the Fields against which they have been compiled. Message artefacts from the QuickFIX/J project cannot be mixed with custom distributions but ```quickfixj-core```, ```quickfixj-base``` and tools can be used by dependent applications and builds.
 
-One way to implement a custom build this is to copy this maven module with its directory structure into an independent build. If doing so:
-* The Maven ```groupId```s should be changed (it's not neccessary nor desirable to use ```org.quickfixj``` for custom distributions). The ```version```s and ```artefactId```s may likewise be changed. Artefacts can be published to public maven repositories as long as the QuickFIX/J ```groupId``` is not used. 
+One way to implement a custom build this is to start by copying this maven module with its directory structure into an independent build. If doing so:
+* The Maven ```groupId```s should be changed (it's not neccessary nor desirable to use ```org.quickfixj``` for custom distributions). The ```version```s and ```artefactId```s may likewise be changed. Artefacts can then be published to public maven repositories as long as the QuickFIX/J ```groupId``` is not used. 
 * Ensure the QuickFIX Software Licence is included in the distribution. It can be found in the root of this project.
 * Modules and directories for FIX Protcol versions that are not required can be removed. The ```quickfixj-messages-all``` contains the code generation. If removing unused FIX protocol versions then this module will need to be edited to omit these versions.
 * FIX versions **FIX4.0 to FIX5.0sp2 and for FIXT1.1**
   * Edit the QuickFIX dictionary for the FIX protocol version that you are customising. The dictionary is found in ```/src/main/resources``` directory of the module corresponding to the FIX protocol version.
 * FIX Latest:
   * The [```quickfixj-orchestration```](../quickfixj-orchestration/readme.md) module publishes a FIX Latest orchestration that is QuickFIX/J compatible. This can be a starting point for customisation. Please note that this is a complete representation of the FIX Latest specification and results in a very large distribution.The purpose of [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) is to provide a machine-readable Rules of Engagement so sustomisation is expected. See [```quickfixj-orchestration```](../quickfixj-orchestration/readme.md) for references to [FIX Trading Community](https://www.fixtrading.org/) tools.
-  * The custom orchestation should replace the ```org.quickfixj:quickfixj-orchestration``` dependency for this module
-  * The ```quickfixj-messages-all``` includes a ```codeql``` profile. The purpose of this is to minimise the FIX Latest packages in this profile. The minimal packages will include only those Fields, Componenents and Messages on which tests in the ```quickfixj-core``` module depend. This is done to reduce memory requirements so codeql can be run without OOM exceptions. This profile provides an example of customising an orchestration using xslt but is not required in a custom build and can be removed. A custom orchestration should be much smaller than the full FIX Latest orchestration.
+  * The custom orchestation should be used as the ```org.quickfixj:quickfixj-orchestration``` dependency for this module
+  * The ```quickfixj-messages-all``` includes a ```minimal-fix-latest``` profile. The purpose of this is to minimise the FIX Latest packages in this profile. The minimal packages will include only those Fields, Componenents and Messages on which tests in the ```quickfixj-core``` module depend. This is done to reduce memory requirements so build steps can be run without OOM exceptions. This profile can serve as an example of customising an orchestration using xslt but is not required in a custom build and can be removed. A custom orchestration should be much smaller than the full FIX Latest orchestration.
 * The modules can be refactored to meet your requirements. For example if only one FIX version is required the current structure can be simplified.

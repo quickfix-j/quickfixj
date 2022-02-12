@@ -275,7 +275,7 @@ void sendOrderCancelRequest() throws SessionNotFound {
 }
 ```
 
-## Customising QuickFIX/J for specialised Rules of Engagement
+## QuickFIX/J Runtime
 
 This project builds artefacts for the standard published FIX specification versions from FIX 4.0 to FIX Latest. 
 
@@ -291,8 +291,10 @@ This project builds artefacts for the standard published FIX specification versi
 * ```quickfixj-messages-fixt11```
 * ```quickfixj-messages-all``` - includes all of the above
 
-These artefacts are <u>**test**</u> dependendencies of ```quickfixj-core```. They are not specified as _runtime_ dependencies to make it easier to customise QuickFIX/J deployments. If you have no need to specialise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as runtime dependencies of your application.
+These artefacts are <u>**test**</u> dependendencies of ```quickfixj-core```. They are **not** specified as _runtime_ dependencies to make it easier to customise QuickFIX/J deployments. 
+
+If you have no need to specialise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as dependencies of your application.
 
 Artefacts for unused FIX specification versions can be omitted from your runtime. Many integrations will not require ```quickfixj-messages-all``` and need only depend on artefacts for a subset of the FIX standard versions. Please note that FIX Protocol verisions 5.0 and later depend on ```quickfixj-messages-fixt11``` to provide the implementation for the FIXT1.1 transport messages.
 
-Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
+Many integrations wil require specialisation of the FIX Messages, Components and/or Fields. This is accomplished by building and using custom artefacts. Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
