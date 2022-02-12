@@ -13,7 +13,7 @@
             <xsl:apply-templates select="@* | node()" />
         </xsl:copy>
     </xsl:template>
-    
+
     <!-- xsl:template match="node()|@*" name="identity">
         <xsl:copy>
             <xsl:apply-templates select="node()|@*" />
@@ -33,27 +33,27 @@
     <!-- fixr:groupRef added="FIX.5.0SP2" addedEP="254" id="2266" -->
     <!--     <fixr:component name="CollateralReinvestmentGrp" id="2266" category="Common" added="FIX.5.0SP2" addedEP="254" abbrName="CollRnvstmnt">     -->
     <xsl:template
-        match="fixr:groupRef[@id='2266']"/>     
+        match="fixr:groupRef[@id='2266']"/>
     <xsl:template
         match="fixr:component[@id='2266']"/>
     <xsl:template
-        match="fixr:componentRef[@id='2266']"/>      
+        match="fixr:componentRef[@id='2266']"/>
     <xsl:template
-        match="fixr:componentRef[@id='2266']"/>      
+        match="fixr:componentRef[@id='2266']"/>
     <!-- The following code has type "char" but is multi-character -->
     <!--    <fixr:code name="ManualOrderIdentifier" id="1081011" value="10" sort="10" added="FIX.5.0SP2" addedEP="253"> -->
     <xsl:template
-        match="fixr:codeSet[@id='1081']/fixr:code[@id='1081011']"/> 
-    
-    <!-- the following are members of fixr:codeSet name="EntitlementAttribDatatypeCodeSet" id="1779" that have names which are Java primitive types  
+        match="fixr:codeSet[@id='1081']/fixr:code[@id='1081011']"/>
+
+    <!-- the following are members of fixr:codeSet name="EntitlementAttribDatatypeCodeSet" id="1779" that have names which are Java primitive types
          and thereby cause compilation failures in the generated code -->
     <xsl:template
         match="fixr:codeSet[@id='1779']/fixr:code[@id='1779022']"/>
     <xsl:template
-        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779024']"/> 
+        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779024']"/>
     <xsl:template
-        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779030']"/> 
-    
+        match="fixr:codeSet[@id='1779']/fixr:code[@id='1779030']"/>
+
     <!-- replace incorrect type for NoStreamAssetAttributesCodeSet -->
     <xsl:template match="fixr:fields/fixr:field/@type">
         <xsl:attribute name="type">
@@ -69,7 +69,7 @@
             </xsl:choose>
         </xsl:attribute>
     </xsl:template>
-    
+
 	<!-- The following are work arounds for compatibility with static field definitions for QuickFIX -->
 	<!-- Update name attribute to match the static field definitions for QuickFIX , work around for the 2 consecutive Caps in AValue-->
     <xsl:template match="fixr:codeSet[@id='373']/fixr:code[@name='TagSpecifiedWithoutAValue']">
@@ -139,11 +139,21 @@
 			<xsl:apply-templates select="node()" />
 		</xsl:copy>
     </xsl:template>
-    <!-- MsgType Code Set -->    
+    <!-- MsgType Code Set -->
     <xsl:template match="fixr:codeSet[@id='35']/fixr:code[@name='IOI']">
         <xsl:copy>
             <xsl:attribute name="name">
                 <xsl:value-of select="'INDICATION_OF_INTEREST'" />
+            </xsl:attribute>
+            <xsl:apply-templates select="@id | @value | @sort | @added" />
+            <xsl:apply-templates select="node()" />
+        </xsl:copy>
+    </xsl:template>
+    <!-- MassStatusReqTypeCodeSet -->
+    <xsl:template match="fixr:codeSet[@id='585']/fixr:code[@name='StatusForOrdersForAPartyID']">
+        <xsl:copy>
+            <xsl:attribute name="name">
+                <xsl:value-of select="'STATUS_FOR_ORDERS_FOR_A_PARTY_ID'" />
             </xsl:attribute>
             <xsl:apply-templates select="@id | @value | @sort | @added" />
             <xsl:apply-templates select="node()" />
