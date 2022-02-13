@@ -20,25 +20,84 @@
 			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fixt11</artifactId>
+			<scope>runtime</scope>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
+			<artifactId>maven-resources-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>copy-sources</id>
+					<phase>generate-sources</phase>
+					<goals>
+						<goal>copy-resources</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>${project.build.directory}/generated-sources/quickfix</outputDirectory>
+						<resources>
+							<resource>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
+								<includes>
+									<include>**/fix50sp2/**/*.java</include>
+								</includes>
+							</resource>
+							<resource>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
+								<includes>
+									<include>**/field/*.java</include>
+								</includes>
+							</resource>
+						</resources>
+					</configuration>
+				</execution>
+				<execution>
+					<id>copy-classes</id>
+					<phase>generate-sources</phase>
+					<goals>
+						<goal>copy-resources</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>${project.build.directory}/classes/quickfix</outputDirectory>
+						<resources>
+							<resource>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
+								<includes>
+									<include>**/fix50sp2/**/*.class</include>
+								</includes>
+							</resource>
+							<resource>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
+								<includes>
+									<include>**/field/*.class</include>
+								</includes>
+							</resource>
+						</resources>
+					</configuration>
+				</execution>
+			</executions>
+			</plugin>
+			<plugin>
 				<!-- prune classes that are not in the FIX Dictionaries specified below -->
-				<!-- this step is redundant if quickfixj-messages-all-excluding-latest module is run  -->
 				<groupId>org.quickfixj</groupId>
 				<artifactId>class-pruner-maven-plugin</artifactId>
 				<version>${project.version}</version>
 				<executions>
 					<execution>
 						<id>prune</id>
+						<phase>process-classes</phase>
 						<goals>
 							<goal>prune</goal>
 						</goals>
 						<configuration>
-							<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix/field</classesDirectory>
-							<generatedSourcesDirectory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</generatedSourcesDirectory>
+							<classesDirectory>${project.build.directory}/classes/quickfix/field</classesDirectory>
+							<generatedSourcesDirectory>${project.build.directory}/generated-sources/quickfix/field</generatedSourcesDirectory>
 							<fileset>
 								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
 								<includes>
@@ -46,10 +105,11 @@
 								</includes>
 								<excludes>
 									<exclude>**/FIXLatest.xml</exclude>	<!-- Exclude FIX latest -->
+									<exclude>FIXT11.xml</exclude>		<!-- Exclude FIXT11 which has been built separately -->
 									<exclude>OrchestraFIXLatest.xml</exclude>
-									<exclude>FIX50SP2.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary -->
-									<exclude>FIX50SP1.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary -->
-									<exclude>FIX44.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX50SP2.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary, this one is redundant -->
+									<exclude>FIX50SP1.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary, this one is redundant -->
+									<exclude>FIX44.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary, this one is redundant -->
 								</excludes>
 								<followSymlinks>false</followSymlinks>
 							</fileset>
@@ -66,7 +126,7 @@
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-							<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
+								<source>${project.build.directory}/generated-sources</source>
 							</sources>
 						</configuration>
 					</execution>
@@ -82,7 +142,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fix50sp2;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
+							<sourcepath>${project.build.directory}/generated-sources/quickfix/fix50sp2;${project.build.directory}/generated-sources/generated-sources/quickfix/field</sourcepath>
 						</configuration>
 					</execution>
 				</executions>
@@ -112,7 +172,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX50SP2.xml</include>
 						<include>FIX50SP2.modified.xml</include>

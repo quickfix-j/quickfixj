@@ -94,6 +94,8 @@
 		<maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
+		<plantuml-version>8059</plantuml-version>
 		<xml-maven-plugin-version>1.0.2</xml-maven-plugin-version>
 		<!-- TODO figure out these two versions -->
 		<fix.orchestra.version>1.5.4</fix.orchestra.version>
@@ -303,14 +305,50 @@
 					<artifactId>build-helper-maven-plugin</artifactId>
 					<version>${build-helper-maven-plugin-version}</version>
 				</plugin>
+				<plugin>
+					<groupId>net.sourceforge.plantuml</groupId>
+					<artifactId>plantuml</artifactId>
+					<version>${plantuml-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.jeluard</groupId>
+					<artifactId>plantuml-maven-plugin</artifactId>
+					<version>${plantuml-maven-plugin-version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>net.sourceforge.plantuml</groupId>
+							<artifactId>plantuml</artifactId>
+						</dependency>
+					</dependencies>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
-			   <!-- enable bundle packaging -->
-				<plugin>
-						<groupId>org.apache.felix</groupId>
-						<artifactId>maven-bundle-plugin</artifactId>
-				</plugin>
+			<!-- enable bundle packaging -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<!-- run "mvn com.github.jeluard:plantuml-maven-plugin:generate" to generate diagrams in target -->
+				<groupId>com.github.jeluard</groupId>
+				<artifactId>plantuml-maven-plugin</artifactId>
+				<configuration>
+					<sourceFiles>
+						<directory>${basedir}</directory>
+						<includes>
+							<include>src/main/plantuml/*.txt</include>
+						</includes>
+					</sourceFiles>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>net.sourceforge.plantuml</groupId>
+						<artifactId>plantuml</artifactId>
+						<version>${plantuml-version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
 	<profiles>

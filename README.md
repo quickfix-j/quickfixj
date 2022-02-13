@@ -298,3 +298,5 @@ If you have no need to specialise a FIX integration then you can use the ```org.
 Artefacts for unused FIX specification versions can be omitted from your runtime. Many integrations will not require ```quickfixj-messages-all``` and need only depend on artefacts for a subset of the FIX standard versions. Please note that FIX Protocol verisions 5.0 and later depend on ```quickfixj-messages-fixt11``` to provide the implementation for the FIXT1.1 transport messages.
 
 Many integrations wil require specialisation of the FIX Messages, Components and/or Fields. This is accomplished by building and using custom artefacts. Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
+
+![image info](./dependencies.png)

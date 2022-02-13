@@ -1,0 +1,56 @@
+@startuml
+
+package "org.quickfixj:quickfixj-base"  as base {
+component quickfixj_base
+}
+
+package "org.quickfixj:quickfixj-messages-all"  as all {
+component quickfixj_messages_fixlatest
+component quickfixj_messages_fixt11
+component quickfixj_messages_fix50sp2
+component quickfixj_messages_fix50sp1
+component quickfixj_messages_fix50
+component quickfixj_messages_fix44
+component quickfixj_messages_fix43
+component quickfixj_messages_fix42
+component quickfixj_messages_fix41
+component quickfixj_messages_fix40
+}
+
+quickfixj_messages_fixlatest -up-> quickfixj_messages_fixt11 : runtime depends
+quickfixj_messages_fix50sp2 -up-> quickfixj_messages_fixt11 : runtime depends
+quickfixj_messages_fix50sp1 -up-> quickfixj_messages_fixt11 : runtime depends
+quickfixj_messages_fix50 -up-> quickfixj_messages_fixt11 : runtime depends
+
+package "org.quickfixj:quickfixj-orchestration"  as orc {
+component quickfixj_orchestration
+}
+
+package "io.fixprotocol.orchestrations:fix-standard"  as ftc {
+component fix_standard_orchestration
+}
+
+quickfixj_orchestration  .up.> fix_standard_orchestration  : derived from
+orc .up.> ftc  : build depends
+all ..> prune : build depends
+all -up-> base : depends
+
+package "org.quickfixj:class-pruner-maven-plugin"  as prune {
+component class_pruner_maven_plugin
+}
+
+package "org.quickfixj:quickfixj-codegenerator"  as codegen {
+component quickfixj_codegenerator
+}
+
+package "org.quickfixj:repository-to-qfj-codegen-maven-plugin"  as r2q {
+component repository_to_qfj_codegen_maven_plugin
+component repository_to_qfj_dictionary_maven_plugin
+}
+
+quickfixj_messages_fixlatest ..> r2q : build depends
+quickfixj_messages_fixlatest .up.> orc : build depends
+
+all .up.> codegen  : build depends
+
+@enduml
