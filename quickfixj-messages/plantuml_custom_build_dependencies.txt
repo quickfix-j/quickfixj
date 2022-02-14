@@ -1,7 +1,7 @@
 @startuml
 
 package "org.quickfixj:quickfixj-base"  as base {
-component quickfixj_base
+package quickfixj_base
 }
 
 package "org.quickfixj:quickfixj-orchestration"  as orc {
@@ -14,17 +14,15 @@ component custom_orchestration
 
 custom_orchestration .up.> quickfixj_orchestration : derived from
 
-package "com.some-company:custom-messages"  as custom_msg {
-component some_company_messages_fixlatest
-component some_company_messages_fixt11
-component some_company_messages_fix50sp2
-component some_company_messages_fix44
+package "com.some-company:messages"  as custom_msg {
+package field
+package fixlatest
+package fixt11
+package fix50sp2
+package fix44
 }
 
-some_company_messages_fixlatest ..> custom_orc : build depends
-
-some_company_messages_fixlatest -up-> some_company_messages_fixt11 : runtime depends
-some_company_messages_fix50sp2 -up-> some_company_messages_fixt11 : runtime depends
+fixlatest .up.> custom_orc : build depends
 
 note bottom of custom_orc
 Build may depend on the QuickFIX/J Orchestration 
@@ -37,14 +35,21 @@ package "org.quickfixj:quickfixj-codegenerator"  as codegen {
 component quickfixj_codegenerator
 }
 
+note top of codegen
+quickfixj-codegenerator is not required if only fixlatest is built
+
+end note
+
 package "org.quickfixj:repository-to-qfj-codegen-maven-plugin"  as r2q {
 component repository_to_qfj_codegen_maven_plugin
 component repository_to_qfj_dictionary_maven_plugin
 }
 
-some_company_messages_fixlatest ..> r2q : build depends
-some_company_messages_fixt11 ..> codegen  : build depends
-some_company_messages_fix50sp2 ..> codegen  : build depends
-some_company_messages_fix44 ..> codegen  : build depends
+field .up.> codegen  : build depends
+field .up.> r2q  : build depends
+fixlatest ..> r2q : build depends
+fixt11 .up.> codegen  : build depends
+fix50sp2 .up.> codegen  : build depends
+fix44 .up.> codegen  : build depends
 
 @enduml

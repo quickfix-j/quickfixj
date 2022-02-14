@@ -82,15 +82,6 @@
 				<groupId>org.quickfixj</groupId>
 				<artifactId>repository-to-qfj-dictionary-maven-plugin</artifactId>
 				<version>${project.version}</version>
-				<configuration>
-					<orchestration>${project.build.directory}/generated-resources/${orchestra.file}</orchestration>
-					<outputDirectory>${project.build.directory}/generated-resources</outputDirectory>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>repository-to-qfj-dictionary-maven-plugin</artifactId>
-				<version>${project.version}</version>
 				<executions>
 					<execution>
 						<phase>generate-resources</phase>

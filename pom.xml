@@ -337,9 +337,10 @@
 					<sourceFiles>
 						<directory>${basedir}</directory>
 						<includes>
-							<include>src/main/plantuml/*.txt</include>
+							<include>**/plantuml*.txt</include>
 						</includes>
 					</sourceFiles>
+					<outputInSourceDirectory>true</outputInSourceDirectory>
 				</configuration>
 				<dependencies>
 					<dependency>

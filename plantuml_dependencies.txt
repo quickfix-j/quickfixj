@@ -1,0 +1,61 @@
+@startuml
+
+package "org.quickfixj:quickfixj-core" as core {
+component quickfixj_core
+}
+
+package "org.quickfixj:quickfixj-base"  as base {
+component quickfixj_base
+}
+
+package "org.quickfixj:quickfixj-messages-all"  as all {
+package field
+package fixlatest
+package fixt11
+package fix50sp2
+package fix50sp1
+package fix50
+package fix44
+package fix43
+package fix42
+package fix41
+package fix40
+}
+
+package "com.some-company:application"  as userapp {
+component application
+}
+
+package "org.quickfixj:quickfixj-messages-fixlatest"  as fix_latest {
+package fixlatest_subset_of_field
+package duplicate_of_fixlatest
+}
+
+package "org.quickfixj:quickfixj-messages-fixt11"  as fix_t11 {
+package fixt11_subset_of_field
+package duplicate_of_fixt11t
+}
+
+note bottom of fix_latest
+The alternative way of publishing packages used in the QuickFIX/J, a jar for each FIX protocol version.
+This allows an application to depend on artefacts for only the FIX version that it uses.
+Message, Component and Field classes are copied to each of these artefacts as required.
+Package names are the same as in quickfixj-messages-all,
+Plant UML does not render this correctly so the package names are changed.
+
+end note
+
+
+core -up-> base
+core .up.> all : test depends
+all -up-> base
+userapp -up-> core
+userapp -up-> all
+
+fix_latest -up-> fix_t11  : runtime depends
+fix_latest -up-> base : depends
+fix_t11 -up-> base : depends
+
+userapp .up.> fix_latest : alternative messages dependency
+
+@enduml

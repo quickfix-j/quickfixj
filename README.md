@@ -299,4 +299,10 @@ Artefacts for unused FIX specification versions can be omitted from your runtime
 
 Many integrations wil require specialisation of the FIX Messages, Components and/or Fields. This is accomplished by building and using custom artefacts. Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
 
-![image info](./dependencies.png)
+### Application Dependencies for QuickFIX/J Messages Build
+
+![image info](./plantuml_dependencies.png)
+
+### Application Dependencies for Custom Messages Build
+
+![image info](./plantuml_custom_dependencies.png)

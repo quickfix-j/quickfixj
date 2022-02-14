@@ -5,22 +5,18 @@ component quickfixj_base
 }
 
 package "org.quickfixj:quickfixj-messages-all"  as all {
-component quickfixj_messages_fixlatest
-component quickfixj_messages_fixt11
-component quickfixj_messages_fix50sp2
-component quickfixj_messages_fix50sp1
-component quickfixj_messages_fix50
-component quickfixj_messages_fix44
-component quickfixj_messages_fix43
-component quickfixj_messages_fix42
-component quickfixj_messages_fix41
-component quickfixj_messages_fix40
+package field
+package fixlatest
+package fixt11
+package fix50sp2
+package fix50sp1
+package fix50
+package fix44
+package fix43
+package fix42
+package fix41
+package fix40
 }
-
-quickfixj_messages_fixlatest -up-> quickfixj_messages_fixt11 : runtime depends
-quickfixj_messages_fix50sp2 -up-> quickfixj_messages_fixt11 : runtime depends
-quickfixj_messages_fix50sp1 -up-> quickfixj_messages_fixt11 : runtime depends
-quickfixj_messages_fix50 -up-> quickfixj_messages_fixt11 : runtime depends
 
 package "org.quickfixj:quickfixj-orchestration"  as orc {
 component quickfixj_orchestration
@@ -32,7 +28,7 @@ component fix_standard_orchestration
 
 quickfixj_orchestration  .up.> fix_standard_orchestration  : derived from
 orc .up.> ftc  : build depends
-all ..> prune : build depends
+all .left.> prune : build depends
 all -up-> base : depends
 
 package "org.quickfixj:class-pruner-maven-plugin"  as prune {
@@ -48,9 +44,29 @@ component repository_to_qfj_codegen_maven_plugin
 component repository_to_qfj_dictionary_maven_plugin
 }
 
-quickfixj_messages_fixlatest ..> r2q : build depends
-quickfixj_messages_fixlatest .up.> orc : build depends
+fixlatest ..> r2q : build depends
+fixlatest .left.> orc : build depends
 
 all .up.> codegen  : build depends
+
+package "org.quickfixj:quickfixj-messages-fixlatest" as fix_latest {
+package fixlatest_subset_of_field
+package duplicate_of_fixlatest
+}
+
+package "org.quickfixj:quickfixj-messages-fixt11"  as  fix_t11 {
+package fixt11_subset_of_field
+package duplicate_of_fixt11t
+}
+
+note bottom of fix_latest
+example: alternative way of publishing packages
+package names are the same as in quickfixj-messages-all, the classes are copied to these artefacts
+end note
+
+
+fix_latest -up-> fix_t11  : runtime depends
+fix_latest -up-> base : depends
+fix_t11 -up-> base : depends
 
 @enduml
