@@ -20,12 +20,15 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -45,7 +48,6 @@ import io.fixprotocol._2020.orchestra.repository.Repository;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 /**
  * Generates message classes for QuickFIX/J from a FIX Orchestra file
@@ -64,6 +66,11 @@ import picocli.CommandLine.Parameters;
  */
 public class CodeGeneratorJ {
 
+	private static final int COMPONENT_ID_STANDARD_TRAILER = 1025;
+	private static final int COMPONENT_ID_STANDARD_HEADER = 1024;
+	private static final int GRP_HOP_GRP = 2085;
+	private static final int GRP_MSG_TYPE_GRP = 2098;
+	private static final int FAIL_STATUS = 1;
 	private static final String DOUBLE_FIELD = "DoubleField";
 	private static final String DECIMAL_FIELD = "DecimalField";
 
@@ -74,13 +81,17 @@ public class CodeGeneratorJ {
 	private static final List<String> DATE_TYPES = Arrays.asList("UTCTimestamp", "UTCTimeOnly", "UTCDateOnly",
 			"LocalMktDate", "LocalMktTime");
 
-	private static final String FIELD_PACKAGE = "quickfix.field";
+	private static final String FIELD_PACKAGE  = "quickfix.field";
 
 	private static final long SERIALIZATION_VERSION = 552892318L;
 
 	private static final int SPACES_PER_LEVEL = 2;
 	
 	private boolean isGenerateBigDecimal = true;
+	private boolean isGenerateMessageBaseClass = false;
+	private boolean isExcludeSession = false;
+	private boolean isGenerateFixt11Package = true;
+
 	
 	/**
 	 * Runs a CodeGeneratorJ with command line arguments
@@ -96,7 +107,16 @@ public class CodeGeneratorJ {
 		new CommandLine(options).execute(args);
 		try (FileInputStream inputStream = new FileInputStream(new File(options.orchestraFileName))) {
 			generator.setGenerateBigDecimal(!options.isDisableBigDecimal);
-			generator.generate(inputStream, new File(options.outputDir));
+			generator.setGenerateMessageBaseClass(options.isGenerateMessageBaseClass);
+			if (generator.isExcludeSession && generator.isGenerateFixt11Package) {
+				System.err.printf("Options %s == %s and %s == %s are mutually exclusive.%n", Options.EXCLUDE_SESSION, options.isExcludeSession, 
+						                                                                   Options.GENERATE_FIXT11_PACKAGE, options.isGenerateFixt11Package );
+				System.exit(FAIL_STATUS);
+			}
+			generator.setExcludeSession(options.isExcludeSession);
+			generator.setGenerateFixt11Package(options.isGenerateFixt11Package);
+            generator.generate(inputStream, new File(options.outputDir));
+
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
 		}
@@ -104,6 +124,9 @@ public class CodeGeneratorJ {
 	
 	@Command(name = "Options", mixinStandardHelpOptions = true, description = "Options for generation of QuickFIX/J Code from a FIX Orchestra Repository")
 	static class Options {
+		static final String GENERATE_FIXT11_PACKAGE = "--generateFixt11Package";
+		static final String EXCLUDE_SESSION = "--excludeSession";
+
 		@Option(names = { "-o", "--output-dir" }, defaultValue = "target/generated-sources", 
 				paramLabel = "OUTPUT_DIRECTORY", description = "The output directory, Default : ${DEFAULT-VALUE}")
 		String outputDir = "target/generated-sources";
@@ -115,6 +138,18 @@ public class CodeGeneratorJ {
 		@Option(names = { "--disableBigDecimal" }, defaultValue = "false", fallbackValue = "true", 
 				paramLabel = "DISABLE_BIG_DECIMAL", description = "Disable the use of Big Decimal for Decimal Fields, Default : ${DEFAULT-VALUE}")
 		boolean isDisableBigDecimal = true;
+
+		@Option(names = { "--generateMessageBaseClass" }, defaultValue = "false", fallbackValue = "true", 
+				paramLabel = "GENERATE_MESSAGE_BASE_CLASS", description ="Generates Message Base Class, Standard Header & Trailer Default : ${DEFAULT-VALUE}")
+		boolean isGenerateMessageBaseClass = true;
+
+		@Option(names = { EXCLUDE_SESSION }, defaultValue = "false", fallbackValue = "true", 
+				paramLabel = "EXCLUDE_SESSION", description ="Excludes Session Category Messages, Components exclusive to Session Layer and Fields exclusive to Session Layer from the generated code, Default : ${DEFAULT-VALUE}")
+		boolean isExcludeSession = false;
+
+		@Option(names = { GENERATE_FIXT11_PACKAGE }, defaultValue = "true", fallbackValue = "true", 
+				paramLabel = "GENERATE_FIXT_PACKAGE", description ="Generates FIXT11 Package : ${DEFAULT-VALUE}")
+		boolean isGenerateFixt11Package = true;
 	}
 
 	private final Map<String, CodeSetType> codeSets = new HashMap<>();
@@ -124,23 +159,59 @@ public class CodeGeneratorJ {
 
 	private String decimalTypeString = DECIMAL_FIELD;
 
+	private Repository repository;
+	
+	protected void initialise(InputStream inputFile) throws JAXBException {
+		this.repository = unmarshal(inputFile);
+	}
+	
 	public void generate(InputStream inputFile, File outputDir) {
 		try {
 			if (!this.isGenerateBigDecimal) {
 				decimalTypeString = DOUBLE_FIELD;
 			}
-			final Repository repository = unmarshal(inputFile);
+			List<MessageType> sessionMessages = new ArrayList<>();
+			//Set<BigInteger> fieldIds = new HashSet<BigInteger>();
+			Set<BigInteger> sessionFieldIds = new HashSet<BigInteger>();
+			Set<BigInteger> nonSessionFieldIds = new HashSet<BigInteger>();
+			
+			initialise(inputFile);
+			final List<MessageType> messages = repository.getMessages().getMessage();
+			final List<FieldType> fieldList = this.repository.getFields().getField();
+			final List<ComponentType> componentList = repository.getComponents().getComponent();
+			for (final FieldType fieldType : fieldList) {
+				BigInteger id = fieldType.getId();
+				fields.put(id.intValue(), fieldType);
+			}
+			for (final ComponentType component : componentList) {
+				components.put(component.getId().intValue(), component);
+			}
+			final List<GroupType> groupList = repository.getGroups().getGroup();
+			for (final GroupType group : groupList) {
+				groups.put(group.getId().intValue(), group);
+			}
+
+			sessionMessages = excludeSessionMessages(messages);
+			collectFieldIds(messages, nonSessionFieldIds);
+			//collect fields  ids from the session messages
+			collectFieldIds(sessionMessages, sessionFieldIds);
+			printFieldIds(sessionFieldIds);
+			//restrict sessionFieldIds to fields  that are used only in session messages
+			sessionFieldIds.removeAll(nonSessionFieldIds);
+			printFieldIds(sessionFieldIds);
+			
 			final List<CodeSetType> codeSetList = repository.getCodeSets().getCodeSet();
 			for (final CodeSetType codeSet : codeSetList) {
 				codeSets.put(codeSet.getName(), codeSet);
 			}
 
-			final List<FieldType> fieldList = repository.getFields().getField();
 			final File fileDir = getPackagePath(outputDir, FIELD_PACKAGE);
 			fileDir.mkdirs();
 			for (final FieldType fieldType : fieldList) {
-				fields.put(fieldType.getId().intValue(), fieldType);
-				generateField(outputDir, fieldType, FIELD_PACKAGE);
+				BigInteger id = fieldType.getId();				
+				if (!isExcludeSession || nonSessionFieldIds.contains(id)) {
+					generateField(outputDir, fieldType, FIELD_PACKAGE);
+				}
 			}
 
 			String version = repository.getVersion();
@@ -153,35 +224,82 @@ public class CodeGeneratorJ {
 			final String componentPackage = getPackage("quickfix", versionPath, "component");
 			final File componentDir = getPackagePath(outputDir, componentPackage);
 			componentDir.mkdirs();
-			final List<ComponentType> componentList = repository.getComponents().getComponent();
-			for (final ComponentType component : componentList) {
-				components.put(component.getId().intValue(), component);
-			}
-			final List<GroupType> groupList = repository.getGroups().getGroup();
-			for (final GroupType group : groupList) {
-				groups.put(group.getId().intValue(), group);
-			}
 
 			for (final GroupType group : groupList) {
-				generateGroup(outputDir, group, componentPackage);
+				int id = group.getId().intValue();
+				if (!isExcludeSession || (id != GRP_HOP_GRP && id != GRP_MSG_TYPE_GRP) ) {
+					generateGroup(outputDir, group, componentPackage);
+				}
 			}
 			for (final ComponentType component : componentList) {
-				generateComponent(outputDir, component, componentPackage);
+				int id = component.getId().intValue();
+				// if isGenerateMessageBaseClass excluded, standard header and trailer must be excluded
+				if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || isGenerateMessageBaseClass) {
+					generateComponent(outputDir, component, componentPackage);
+				}
 			}
 			final String messagePackage = getPackage("quickfix", versionPath);
 			final File messageDir = getPackagePath(outputDir, messagePackage);
 			messageDir.mkdirs();
-			final List<MessageType> messageList = repository.getMessages().getMessage();
-			for (final MessageType message : messageList) {
-				generateMessage(outputDir, message, messagePackage, componentPackage);
+			
+			generateMessages(outputDir, messages, componentPackage, messagePackage);
+			if (!isExcludeSession) {
+				generateMessages(outputDir, sessionMessages, componentPackage, messagePackage);
 			}
-			generateMessageBaseClass(outputDir, version, messagePackage);
-			generateMessageFactory(outputDir, messagePackage, messageList);
-			generateMessageCracker(outputDir, messagePackage, messageList);
+			if (isGenerateMessageBaseClass) {
+				generateMessageBaseClass(outputDir, version, messagePackage);
+			}
+			generateMessageFactory(outputDir, messagePackage, messages);
+			generateMessageCracker(outputDir, messagePackage, messages);
 
 		} catch (JAXBException | IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void printFieldIds(Set<BigInteger> sessionFieldIds) {
+		for (BigInteger id : sessionFieldIds) {
+			System.out.printf("Found Session Field %s%n", id.toString());
+		}
+		System.out.printf("Number of Session Fields %d%n", sessionFieldIds.size());
+	}
+
+	public boolean isGenerateMessageBaseClass() {
+		return isGenerateMessageBaseClass;
+	}
+
+	public void setGenerateMessageBaseClass(boolean isGenerateMessageBaseClass) {
+		this.isGenerateMessageBaseClass = isGenerateMessageBaseClass;
+	}
+
+	private void generateMessages(File outputDir, final List<MessageType> messages, final String componentPackage,
+			final String messagePackage) throws IOException {
+		for (final MessageType message : messages) {
+			generateMessage(outputDir, message, messagePackage, componentPackage);
+		}
+	}
+	
+	private void collectFieldIds(List<MessageType> messageList, Set<BigInteger> includedFieldIds) throws IOException {
+		for (final MessageType messageType : messageList) {
+			final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
+			collectFieldIdsFromMembers(members, includedFieldIds);
+		}
+	}
+
+	/**
+	 * Excludes Session messages
+	 * @param messageList2 
+	 * @return the MessageTypes that have been excluded
+	 */
+	private static List<MessageType> excludeSessionMessages(List<MessageType> messageList) {
+		List<MessageType> excludedMessages = new ArrayList<MessageType>(); 
+		for (final MessageType message : messageList) {
+			if (message.getCategory().equals("Session")) {
+				excludedMessages.add(message);
+			}
+		}
+		messageList.removeAll(excludedMessages);
+		return excludedMessages;
 	}
 
 	private void generateComponent(File outputDir, ComponentType componentType, String packageName) throws IOException {
@@ -803,6 +921,38 @@ public class CodeGeneratorJ {
 			}
 		}
 	}
+	
+	private void collectFieldIdsFromMembers(List<Object> members, Set<BigInteger> includedFieldIds) throws IOException {
+		for (final Object member : members) {
+			if (member instanceof FieldRefType) {
+				final FieldRefType fieldRefType = (FieldRefType) member;
+				includedFieldIds.add(fieldRefType.getId());
+			} else if (member instanceof GroupRefType) {
+				final int id = ((GroupRefType) member).getId().intValue();
+				final GroupType groupType = this.groups.get(id);
+				if (groupType != null) {
+					final int numInGroupId = groupType.getNumInGroup().getId().intValue();
+					final FieldType numInGroupField = this.fields.get(numInGroupId);
+					if (!isExcludeSession || (numInGroupId != GRP_HOP_GRP && id != GRP_MSG_TYPE_GRP) ) {
+						includedFieldIds.add(numInGroupField.getId());
+						collectFieldIdsFromMembers(groupType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds);
+					}
+				} else {
+					System.err.format("Group missing from repository; id=%d%n", id);
+				}
+			} else if (member instanceof ComponentRefType) {
+				final int id = ((ComponentRefType) member).getId().intValue();
+				final ComponentType componentType = this.components.get(id);
+				if (null != componentType) {
+					if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || isGenerateMessageBaseClass) {
+						collectFieldIdsFromMembers(componentType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds);
+					}
+				} else {
+					System.err.format("Component missing from repository; id=%d%n", id);
+				}
+			}
+		}
+	}
 
 	// In this method, only create messages with base scenario
 	private Writer writeMessageCreateMethod(Writer writer, List<MessageType> messageList, String packageName)
@@ -912,6 +1062,28 @@ public class CodeGeneratorJ {
 
 	public void setGenerateBigDecimal(boolean isGenerateBigDecimal) {
 		this.isGenerateBigDecimal = isGenerateBigDecimal;
+	}
+
+	public boolean isExcludeSession() {
+		return isExcludeSession;
+	}
+
+	public void setExcludeSession(boolean isExcludeSession) {
+		if (isExcludeSession && this.isGenerateFixt11Package) {
+			throw new IllegalArgumentException("ExcludeSession == true and GenerateFixt11Package == true are mutually exclusive.");
+		}
+		this.isExcludeSession = isExcludeSession;
+	}
+
+	public boolean isGenerateFixt11Package() {
+		return isGenerateFixt11Package;
+	}
+
+	public void setGenerateFixt11Package(boolean isGenerateFixt11Package) {
+		if (isGenerateFixt11Package && this.isExcludeSession) {
+			throw new IllegalArgumentException("GenerateFixt11Package == true and ExcludeSession = true are mutually exclusive.");
+		}
+		this.isGenerateFixt11Package = isGenerateFixt11Package;
 	}
 
 }

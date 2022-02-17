@@ -14,12 +14,6 @@
         </xsl:copy>
     </xsl:template>
 
-    <!-- xsl:template match="node()|@*" name="identity">
-        <xsl:copy>
-            <xsl:apply-templates select="node()|@*" />
-        </xsl:copy>
-    </xsl:template -->
-
     <!-- filter out deprecated codes -->
     <!-- this is added to remove duplicates with differing case as these cause a problem with QFJ code generation"
          only remove this specific deprecated case to avoid problems with QuickFIX/J test compilation
@@ -70,7 +64,7 @@
         </xsl:attribute>
     </xsl:template>
 
-	<!-- The following are work arounds for compatibility with static field definitions for QuickFIX -->
+	<!-- The following are work-arounds for compatibility with static field definitions for QuickFIX -->
 	<!-- Update name attribute to match the static field definitions for QuickFIX , work around for the 2 consecutive Caps in AValue-->
     <xsl:template match="fixr:codeSet[@id='373']/fixr:code[@name='TagSpecifiedWithoutAValue']">
 		<xsl:copy>
