@@ -66,10 +66,10 @@ import picocli.CommandLine.Option;
  */
 public class CodeGeneratorJ {
 
-	private static final int COMPONENT_ID_STANDARD_TRAILER = 1025;
-	private static final int COMPONENT_ID_STANDARD_HEADER = 1024;
-	private static final int GRP_HOP_GRP = 2085;
-	private static final int GRP_MSG_TYPE_GRP = 2098;
+	public static final int COMPONENT_ID_STANDARD_TRAILER = 1025;
+	public static final int COMPONENT_ID_STANDARD_HEADER = 1024;
+	public static final int GRP_HOP_GRP = 2085;
+	public static final int GRP_MSG_TYPE_GRP = 2098;
 	private static final int FAIL_STATUS = 1;
 	private static final String DOUBLE_FIELD = "DoubleField";
 	private static final String DECIMAL_FIELD = "DecimalField";
@@ -141,10 +141,10 @@ public class CodeGeneratorJ {
 
 		@Option(names = { "--generateMessageBaseClass" }, defaultValue = "false", fallbackValue = "true", 
 				paramLabel = "GENERATE_MESSAGE_BASE_CLASS", description ="Generates Message Base Class, Standard Header & Trailer Default : ${DEFAULT-VALUE}")
-		boolean isGenerateMessageBaseClass = true;
+		boolean isGenerateMessageBaseClass = false;
 
 		@Option(names = { EXCLUDE_SESSION }, defaultValue = "false", fallbackValue = "true", 
-				paramLabel = "EXCLUDE_SESSION", description ="Excludes Session Category Messages, Components exclusive to Session Layer and Fields exclusive to Session Layer from the generated code, Default : ${DEFAULT-VALUE}")
+				paramLabel = "EXCLUDE_SESSION", description ="Excludes Session Category Messages, Components and Groups exclusive to Session Layer and Fields used by Session Layer from the generated code, Default : ${DEFAULT-VALUE}")
 		boolean isExcludeSession = false;
 
 		@Option(names = { GENERATE_FIXT11_PACKAGE }, defaultValue = "true", fallbackValue = "true", 
@@ -195,10 +195,8 @@ public class CodeGeneratorJ {
 			collectFieldIds(messages, nonSessionFieldIds);
 			//collect fields  ids from the session messages
 			collectFieldIds(sessionMessages, sessionFieldIds);
-			printFieldIds(sessionFieldIds);
-			//restrict sessionFieldIds to fields  that are used only in session messages
-			sessionFieldIds.removeAll(nonSessionFieldIds);
-			printFieldIds(sessionFieldIds);
+			//restrict nonSessionFieldIds to fields removing fields that are used in session messages
+			nonSessionFieldIds.removeAll(sessionFieldIds);
 			
 			final List<CodeSetType> codeSetList = repository.getCodeSets().getCodeSet();
 			for (final CodeSetType codeSet : codeSetList) {
@@ -210,7 +208,7 @@ public class CodeGeneratorJ {
 			for (final FieldType fieldType : fieldList) {
 				BigInteger id = fieldType.getId();				
 				if (!isExcludeSession || nonSessionFieldIds.contains(id)) {
-					generateField(outputDir, fieldType, FIELD_PACKAGE);
+					generateField(outputDir, fieldType, FIELD_PACKAGE, this.codeSets, this.isGenerateBigDecimal, this.decimalTypeString);
 				}
 			}
 
@@ -234,8 +232,8 @@ public class CodeGeneratorJ {
 			for (final ComponentType component : componentList) {
 				int id = component.getId().intValue();
 				// if isGenerateMessageBaseClass excluded, standard header and trailer must be excluded
-				if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || isGenerateMessageBaseClass) {
-					generateComponent(outputDir, component, componentPackage);
+				if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || this.isGenerateMessageBaseClass) {
+					generateComponent(outputDir, component, componentPackage, this.groups, this.components, this.fields);
 				}
 			}
 			final String messagePackage = getPackage("quickfix", versionPath);
@@ -246,7 +244,7 @@ public class CodeGeneratorJ {
 			if (!isExcludeSession) {
 				generateMessages(outputDir, sessionMessages, componentPackage, messagePackage);
 			}
-			if (isGenerateMessageBaseClass) {
+			if (this.isGenerateMessageBaseClass) {
 				generateMessageBaseClass(outputDir, version, messagePackage);
 			}
 			generateMessageFactory(outputDir, messagePackage, messages);
@@ -257,15 +255,8 @@ public class CodeGeneratorJ {
 		}
 	}
 
-	private void printFieldIds(Set<BigInteger> sessionFieldIds) {
-		for (BigInteger id : sessionFieldIds) {
-			System.out.printf("Found Session Field %s%n", id.toString());
-		}
-		System.out.printf("Number of Session Fields %d%n", sessionFieldIds.size());
-	}
-
 	public boolean isGenerateMessageBaseClass() {
-		return isGenerateMessageBaseClass;
+		return this.isGenerateMessageBaseClass;
 	}
 
 	public void setGenerateMessageBaseClass(boolean isGenerateMessageBaseClass) {
@@ -275,7 +266,7 @@ public class CodeGeneratorJ {
 	private void generateMessages(File outputDir, final List<MessageType> messages, final String componentPackage,
 			final String messagePackage) throws IOException {
 		for (final MessageType message : messages) {
-			generateMessage(outputDir, message, messagePackage, componentPackage);
+			generateMessage(outputDir, message, messagePackage, componentPackage, this.groups,  this.components, this.fields);
 		}
 	}
 	
@@ -283,6 +274,36 @@ public class CodeGeneratorJ {
 		for (final MessageType messageType : messageList) {
 			final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
 			collectFieldIdsFromMembers(members, includedFieldIds);
+		}
+	}
+
+	private void collectFieldIdsFromMembers(List<Object> members, Set<BigInteger> includedFieldIds) throws IOException {
+		for (final Object member : members) {
+			if (member instanceof FieldRefType) {
+				final FieldRefType fieldRefType = (FieldRefType) member;
+				includedFieldIds.add(fieldRefType.getId());
+			} else if (member instanceof GroupRefType) {
+				final int id = ((GroupRefType) member).getId().intValue();
+				final GroupType groupType = this.groups.get(id);
+				if (groupType != null) {
+					final int numInGroupId = groupType.getNumInGroup().getId().intValue();
+					final FieldType numInGroupField = this.fields.get(numInGroupId);
+					includedFieldIds.add(numInGroupField.getId());
+					collectFieldIdsFromMembers(groupType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds);
+				} else {
+					System.err.format("Group missing from repository; id=%d%n", id);
+				}
+			} else if (member instanceof ComponentRefType) {
+				final int id = ((ComponentRefType) member).getId().intValue();
+				final ComponentType componentType = this.components.get(id);
+				if (null != componentType) {
+					if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || this.isGenerateMessageBaseClass) {
+						collectFieldIdsFromMembers(componentType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds);
+					}
+				} else {
+					System.err.format("Component missing from repository; id=%d%n", id);
+				}
+			}
 		}
 	}
 
@@ -302,7 +323,12 @@ public class CodeGeneratorJ {
 		return excludedMessages;
 	}
 
-	private void generateComponent(File outputDir, ComponentType componentType, String packageName) throws IOException {
+	private static void generateComponent(File outputDir, 
+			              				  ComponentType componentType, 
+			              				  String packageName, 
+			              				  Map<Integer, GroupType> groups, 
+			              				  Map<Integer, ComponentType> components, 
+			              				  Map<Integer, FieldType> fields) throws IOException {
 		final String name = toTitleCase(componentType.getName());
 		final File file = getClassFilePath(outputDir, packageName, name);
 		try (FileWriter writer = new FileWriter(file)) {
@@ -324,13 +350,18 @@ public class CodeGeneratorJ {
 			writeGroupFieldIds(writer, componentGroupFields);
 			writeComponentNoArgConstructor(writer, name);
 
-			writeMemberAccessors(writer, members, packageName, packageName);
+			writeMemberAccessors(writer, members, packageName, packageName, groups, components, fields);
 
 			writeEndClassDeclaration(writer);
 		}
 	}
 
-	private void generateField(File outputDir, FieldType fieldType, String packageName) throws IOException {
+	private static void generateField(File outputDir, 
+									  FieldType fieldType, 
+									  String packageName, 
+									  Map<String, CodeSetType> codeSets, 
+									  boolean isGenerateBigDecimal, 
+									  String decimalTypeString) throws IOException {
 		final String name = toTitleCase(fieldType.getName());
 		final File file = getClassFilePath(outputDir, packageName, name);
 		try (FileWriter writer = new FileWriter(file)) {
@@ -346,8 +377,8 @@ public class CodeGeneratorJ {
 				writeImport(writer, "java.time.LocalDateTime");
 
 			}
-			final String baseClassname = getFieldBaseClass(fixType, this.decimalTypeString );
-			if (baseClassname.equals(DECIMAL_FIELD) && this.isGenerateBigDecimal) {
+			final String baseClassname = getFieldBaseClass(fixType, decimalTypeString );
+			if (baseClassname.equals(DECIMAL_FIELD) && isGenerateBigDecimal) {
 					writeImport(writer, "java.math.BigDecimal"); 
 			} //else the primitive double is used 
 			final String qualifiedBaseClassname = getQualifiedClassName("quickfix", baseClassname);
@@ -360,7 +391,7 @@ public class CodeGeneratorJ {
 				writeValues(writer, codeSet);
 			}
 			writeFieldNoArgConstructor(writer, name, fieldId);
-			writeFieldArgConstructor(writer, name, fieldId, baseClassname);
+			writeFieldArgConstructor(writer, name, fieldId, baseClassname, isGenerateBigDecimal);
 			writeEndClassDeclaration(writer);
 		}
 	}
@@ -391,17 +422,22 @@ public class CodeGeneratorJ {
 			final FieldType numInGroupField = fields.get(numInGroupId);
 			final String numInGroupFieldName = numInGroupField.getName();
 			writeFieldAccessors(writer, numInGroupFieldName, numInGroupId);
-			writeGroupInnerClass(writer, groupType, packageName, packageName);
+			writeGroupInnerClass(writer, groupType, packageName, packageName, groups, components, fields);
 
 			final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
-			writeMemberAccessors(writer, members, packageName, packageName);
+			writeMemberAccessors(writer, members, packageName, packageName, groups, components, fields);
 
 			writeEndClassDeclaration(writer);
 		}
 	}
 
-	private void generateMessage(File outputDir, MessageType messageType, String messagePackage,
-			String componentPackage) throws IOException {
+	private static void generateMessage(File outputDir, 
+										MessageType messageType, 
+										String messagePackage,
+										String componentPackage, 
+										Map<Integer, GroupType> groups,
+										Map<Integer, ComponentType> components, 
+										Map<Integer, FieldType> fields) throws IOException {
 		String messageClassname = toTitleCase(messageType.getName());
 		final String scenario = messageType.getScenario();
 		if (!scenario.equals("base")) {
@@ -422,7 +458,7 @@ public class CodeGeneratorJ {
 			final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
 			writeMessageNoArgConstructor(writer, messageClassname);
 
-			writeMemberAccessors(writer, members, messagePackage, componentPackage);
+			writeMemberAccessors(writer, members, messagePackage, componentPackage, groups, components, fields);
 
 			writeEndClassDeclaration(writer);
 		}
@@ -538,7 +574,7 @@ public class CodeGeneratorJ {
 		}
 	}
 
-	private File getClassFilePath(File outputDir, String packageName, String className) {
+	private static File getClassFilePath(File outputDir, String packageName, String className) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(packageName.replace('.', File.separatorChar));
 		sb.append(File.separatorChar);
@@ -547,7 +583,7 @@ public class CodeGeneratorJ {
 		return new File(outputDir, sb.toString());
 	}
 
-	private String getFieldBaseClass(String type, String decimalTypeString) {
+	private static String getFieldBaseClass(String type, String decimalTypeString) {
 		String baseType;
 		switch (type) {
 		case "char":
@@ -591,7 +627,10 @@ public class CodeGeneratorJ {
 		return baseType;
 	}
 
-	private void getGroupFields(List<Object> members, List<Integer> groupComponentFields) {
+	private static void getGroupFields(List<Object> members, 
+									   List<Integer> groupComponentFields, 
+									   Map<Integer, GroupType> groups, 
+									   Map<Integer, ComponentType> components) {
 		for (final Object member : members) {
 			if (member instanceof FieldRefType) {
 				groupComponentFields.add(((FieldRefType) member).getId().intValue());
@@ -605,7 +644,7 @@ public class CodeGeneratorJ {
 				}
 			} else if (member instanceof ComponentRefType) {
 				final ComponentType componentType = components.get(((ComponentRefType) member).getId().intValue());
-				getGroupFields(componentType.getComponentRefOrGroupRefOrFieldRef(), groupComponentFields);
+				getGroupFields(componentType.getComponentRefOrGroupRefOrFieldRef(), groupComponentFields, groups, components);
 			}
 		}
 	}
@@ -620,11 +659,11 @@ public class CodeGeneratorJ {
 		return new File(outputDir, sb.toString());
 	}
 
-	private String getQualifiedClassName(String packageName, String className) {
+	private static String getQualifiedClassName(String packageName, String className) {
 		return String.format("%s.%s", packageName, className);
 	}
 
-	private String indent(int level) {
+	private static String indent(int level) {
 		final char[] chars = new char[level * SPACES_PER_LEVEL];
 		Arrays.fill(chars, ' ');
 		return new String(chars);
@@ -632,7 +671,7 @@ public class CodeGeneratorJ {
 
 	// Capitalize first char and any after underscore or space. Leave other caps
 	// as-is.
-	private String toTitleCase(String text) {
+	private static String toTitleCase(String text) {
 		final String[] parts = text.split("_ ");
 		return Arrays.stream(parts).map(part -> part.substring(0, 1).toUpperCase() + part.substring(1))
 				.collect(Collectors.joining());
@@ -649,12 +688,12 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeClassDeclaration(Writer writer, String name, String baseClassname) throws IOException {
+	private static Writer writeClassDeclaration(Writer writer, String name, String baseClassname) throws IOException {
 		writer.write(String.format("%npublic class %s extends %s {%n", name, baseClassname));
 		return writer;
 	}
 
-	private Writer writeComponentAccessors(Writer writer, String componentName, String packageName) throws IOException {
+	private static Writer writeComponentAccessors(Writer writer, String componentName, String packageName) throws IOException {
 		// QFJ Message Base class has accessors for the standard Header and Trailer
 		// components
 		// so omit accessor on derived class
@@ -671,7 +710,7 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeComponentFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
+	private static Writer writeComponentFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
 		writer.write(String.format("%Sprivate int[] componentFields = {", indent(1)));
 		for (final Integer fieldId : componentFields) {
 			writer.write(String.format("%d, ", fieldId));
@@ -681,17 +720,17 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeComponentNoArgConstructor(Writer writer, String className) throws IOException {
+	private static Writer writeComponentNoArgConstructor(Writer writer, String className) throws IOException {
 		writer.write(String.format("%n%spublic %s() {%n%ssuper();%n%s}%n", indent(1), className, indent(2), indent(1)));
 		return writer;
 	}
 
-	private Writer writeEndClassDeclaration(Writer writer) throws IOException {
+	private static Writer writeEndClassDeclaration(Writer writer) throws IOException {
 		writer.write("}\n");
 		return writer;
 	}
 
-	private Writer writeFieldAccessors(Writer writer, String name, int id) throws IOException {
+	private static Writer writeFieldAccessors(Writer writer, String name, int id) throws IOException {
 		final String qualifiedClassName = getQualifiedClassName(FIELD_PACKAGE, name);
 
 		writer.write(String.format("%n%spublic void set(%s value) {%n%ssetField(value);%n%s}%n", indent(1),
@@ -708,7 +747,11 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeFieldArgConstructor(Writer writer, String className, int fieldId, String baseClassname)
+	private static Writer writeFieldArgConstructor(Writer writer, 
+			 									   String className, 
+			 									   int fieldId, 
+			 									   String baseClassname, 
+			 									   boolean isGenerateBigDecimal)
 			throws IOException {
 		switch (baseClassname) {
 		case "BooleanField":
@@ -743,7 +786,7 @@ public class CodeGeneratorJ {
 					className, indent(2), fieldId, indent(1)));
 			break;
 		case DECIMAL_FIELD:
-			if (this.isGenerateBigDecimal) {
+			if (isGenerateBigDecimal) {
 				writer.write(String.format("%n%spublic %s(BigDecimal data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
 						className, indent(2), fieldId, indent(1)));
 				writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, BigDecimal.valueOf(data));%n%s}%n",
@@ -769,18 +812,18 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeFieldId(Writer writer, int fieldId) throws IOException {
+	private static Writer writeFieldId(Writer writer, int fieldId) throws IOException {
 		writer.write(String.format("%n%spublic static final int FIELD = %d;%n", indent(1), fieldId));
 		return writer;
 	}
 
-	private Writer writeFieldNoArgConstructor(Writer writer, String className, int fieldId) throws IOException {
+	private static Writer writeFieldNoArgConstructor(Writer writer, String className, int fieldId) throws IOException {
 		writer.write(String.format("%n%spublic %s() {%n%ssuper(%d);%n%s}%n", indent(1), className, indent(2), fieldId,
 				indent(1)));
 		return writer;
 	}
 
-	private Writer writeFileHeader(Writer writer) throws IOException {
+	private static Writer writeFileHeader(Writer writer) throws IOException {
 		writer.write("/* Generated Java Source File */\n");
 		return writer;
 	}
@@ -842,7 +885,7 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeGroupFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
+	private static Writer writeGroupFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
 		writer.write(String.format("%Sprivate int[] componentGroups = {", indent(1)));
 		for (final Integer fieldId : componentFields) {
 			writer.write(String.format("%d, ", fieldId));
@@ -852,8 +895,13 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private void writeGroupInnerClass(FileWriter writer, GroupType groupType, String packageName,
-			String componentPackage) throws IOException {
+	private static void writeGroupInnerClass(FileWriter writer, 
+											 GroupType groupType, 
+											 String packageName,
+											 String componentPackage, 
+											 Map<Integer, GroupType> groups,
+											 Map<Integer, ComponentType> components,
+											 Map<Integer, FieldType> fields) throws IOException {
 		final int numInGroupId = groupType.getNumInGroup().getId().intValue();
 		final String numInGroupFieldName = fields.get(groupType.getNumInGroup().getId().intValue()).getName();
 
@@ -861,34 +909,39 @@ public class CodeGeneratorJ {
 		writeSerializationVersion(writer, SERIALIZATION_VERSION);
 
 		final List<Integer> groupComponentFields = new ArrayList<>();
-		getGroupFields(groupType.getComponentRefOrGroupRefOrFieldRef(), groupComponentFields);
+		getGroupFields(groupType.getComponentRefOrGroupRefOrFieldRef(), groupComponentFields, groups, components);
 		writeOrderFieldIds(writer, groupComponentFields);
 
 		final Integer firstFieldId = groupComponentFields.get(0);
 		writeGroupNoArgConstructor(writer, numInGroupFieldName, numInGroupId, firstFieldId);
 
 		final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
-		writeMemberAccessors(writer, members, packageName, componentPackage);
+		writeMemberAccessors(writer, members, packageName, componentPackage, groups, components, fields);
 
 		writeEndClassDeclaration(writer);
 	}
 
-	private Writer writeGroupNoArgConstructor(Writer writer, String className, int numInGrpId, int firstFieldId)
+	private static Writer writeGroupNoArgConstructor(Writer writer, String className, int numInGrpId, int firstFieldId)
 			throws IOException {
 		writer.write(String.format("%n%spublic %s() {%n%ssuper(%d, %d, ORDER);%n%s}%n", indent(1), className, indent(2),
 				numInGrpId, firstFieldId, indent(1)));
 		return writer;
 	}
 
-	private Writer writeImport(Writer writer, String className) throws IOException {
+	private static Writer writeImport(Writer writer, String className) throws IOException {
 		writer.write("import ");
 		writer.write(className);
 		writer.write(";\n");
 		return writer;
 	}
 
-	private void writeMemberAccessors(FileWriter writer, List<Object> members, String packageName,
-			String componentPackage) throws IOException {
+	private static void writeMemberAccessors(FileWriter writer, 
+									  List<Object> members, 
+									  String packageName,
+									  String componentPackage, 
+									  Map<Integer, GroupType> groups, 
+									  Map<Integer, ComponentType> components, 
+									  Map<Integer, FieldType> fields) throws IOException {
 		for (final Object member : members) {
 			if (member instanceof FieldRefType) {
 				final FieldRefType fieldRefType = (FieldRefType) member;
@@ -903,7 +956,7 @@ public class CodeGeneratorJ {
 					final FieldType numInGroupField = fields.get(numInGroupId);
 					final String numInGroupName = numInGroupField.getName();
 					writeFieldAccessors(writer, numInGroupName, numInGroupId);
-					writeGroupInnerClass(writer, groupType, packageName, componentPackage);
+					writeGroupInnerClass(writer, groupType, packageName, componentPackage, groups, components, fields);
 				} else {
 					System.err.format("Group missing from repository; id=%d%n", id);
 				}
@@ -913,47 +966,18 @@ public class CodeGeneratorJ {
 				final List<Object> componentMembers = componentType.getComponentRefOrGroupRefOrFieldRef();
 				// when recursing don't write out component accessors
 				writeMemberAccessors(writer,
-						componentMembers.stream()
-								.filter(componentMember -> componentMember instanceof FieldRefType
-										|| componentMember instanceof ComponentRefType)
-								.collect(Collectors.toList()),
-						packageName, componentPackage);
+									componentMembers.stream()
+										.filter(componentMember -> componentMember instanceof FieldRefType || componentMember instanceof ComponentRefType)
+										.collect(Collectors.toList()),
+									packageName, 
+									componentPackage,
+									groups,
+									components,
+									fields);
 			}
 		}
 	}
 	
-	private void collectFieldIdsFromMembers(List<Object> members, Set<BigInteger> includedFieldIds) throws IOException {
-		for (final Object member : members) {
-			if (member instanceof FieldRefType) {
-				final FieldRefType fieldRefType = (FieldRefType) member;
-				includedFieldIds.add(fieldRefType.getId());
-			} else if (member instanceof GroupRefType) {
-				final int id = ((GroupRefType) member).getId().intValue();
-				final GroupType groupType = this.groups.get(id);
-				if (groupType != null) {
-					final int numInGroupId = groupType.getNumInGroup().getId().intValue();
-					final FieldType numInGroupField = this.fields.get(numInGroupId);
-					if (!isExcludeSession || (numInGroupId != GRP_HOP_GRP && id != GRP_MSG_TYPE_GRP) ) {
-						includedFieldIds.add(numInGroupField.getId());
-						collectFieldIdsFromMembers(groupType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds);
-					}
-				} else {
-					System.err.format("Group missing from repository; id=%d%n", id);
-				}
-			} else if (member instanceof ComponentRefType) {
-				final int id = ((ComponentRefType) member).getId().intValue();
-				final ComponentType componentType = this.components.get(id);
-				if (null != componentType) {
-					if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || isGenerateMessageBaseClass) {
-						collectFieldIdsFromMembers(componentType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds);
-					}
-				} else {
-					System.err.format("Component missing from repository; id=%d%n", id);
-				}
-			}
-		}
-	}
-
 	// In this method, only create messages with base scenario
 	private Writer writeMessageCreateMethod(Writer writer, List<MessageType> messageList, String packageName)
 			throws IOException {
@@ -989,19 +1013,19 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeMessageNoArgConstructor(Writer writer, String className) throws IOException {
+	private static Writer writeMessageNoArgConstructor(Writer writer, String className) throws IOException {
 		writer.write(String.format(
 				"%n%spublic %s() {%n%ssuper();%n%sgetHeader().setField(new quickfix.field.MsgType(MSGTYPE));%n%s}%n",
 				indent(1), className, indent(2), indent(2), indent(1)));
 		return writer;
 	}
 
-	private Writer writeMsgType(Writer writer, String msgType) throws IOException {
+	private static Writer writeMsgType(Writer writer, String msgType) throws IOException {
 		writer.write(String.format("%n%spublic static final String MSGTYPE = \"%s\";%n", indent(1), msgType));
 		return writer;
 	}
 
-	private Writer writeOrderFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
+	private static Writer writeOrderFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
 		writer.write(String.format("%Sprivate static final int[]  ORDER = {", indent(1)));
 		for (final Integer fieldId : componentFields) {
 			writer.write(String.format("%d, ", fieldId));
@@ -1010,7 +1034,7 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writePackage(Writer writer, String packageName) throws IOException {
+	private static Writer writePackage(Writer writer, String packageName) throws IOException {
 		writer.write("package ");
 		writer.write(packageName);
 		writer.write(";\n");
@@ -1025,17 +1049,17 @@ public class CodeGeneratorJ {
 		return writer;
 	}
 
-	private Writer writeSerializationVersion(Writer writer, long serializationVersion) throws IOException {
+	private static Writer writeSerializationVersion(Writer writer, long serializationVersion) throws IOException {
 		writer.write(String.format("%sstatic final long serialVersionUID = %dL;%n", indent(1), serializationVersion));
 		return writer;
 	}
 
-	private Writer writeStaticClassDeclaration(Writer writer, String name, String baseClassname) throws IOException {
+	private static Writer writeStaticClassDeclaration(Writer writer, String name, String baseClassname) throws IOException {
 		writer.write(String.format("%npublic static class %s extends %s {%n", name, baseClassname));
 		return writer;
 	}
 
-	private Writer writeValues(Writer writer, CodeSetType codeSet) throws IOException {
+	private static Writer writeValues(Writer writer, CodeSetType codeSet) throws IOException {
 		final String type = codeSet.getType();
 		for (final CodeType code : codeSet.getCode()) {
 			String name = CodeGeneratorTransformUtil.precedeCapsWithUnderscore(code.getName());
