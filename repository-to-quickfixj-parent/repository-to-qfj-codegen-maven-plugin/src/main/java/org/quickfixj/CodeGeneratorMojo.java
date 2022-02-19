@@ -33,6 +33,24 @@ public class CodeGeneratorMojo extends AbstractMojo {
 	@Parameter(property = "generateBigDecimal", required = false)
 	protected boolean generateBigDecimal = false;
 
+	/**
+	 * Determines if Message base class and Standard Header and Trailer are generated
+	 */
+	@Parameter(property = "generateMessageBaseClass", required = false)
+	boolean generateMessageBaseClass = false;
+			
+	/**
+	 * Determines if FIX Session Layer is generated in FIXT11 package
+	 */
+	@Parameter(property = "generateFixt11Package", required = false)
+	boolean  generateFixt11Package  = true;
+
+	/**
+	 * Determines if FIX Session Layer is excluded from Code Generation
+	 */
+	@Parameter(property = "excludeSession", required = false)
+	boolean excludeSession = false;
+	
 	public void execute() throws MojoExecutionException {
         if ( orchestration.exists() && orchestration.isFile() ) {
             this.getLog().info(new StringBuilder("Orchestration : ").append(orchestration.getAbsolutePath()).toString());
@@ -52,6 +70,10 @@ public class CodeGeneratorMojo extends AbstractMojo {
 
 		final CodeGeneratorJ generator = new CodeGeneratorJ();
 		generator.setGenerateBigDecimal(generateBigDecimal);
+		generator.setGenerateMessageBaseClass(generateMessageBaseClass);
+		generator.setGenerateFixt11Package(generateFixt11Package);
+		generator.setExcludeSession(excludeSession);
+
 	    try {
 			generator.generate(new FileInputStream(orchestration), outputDirectory);
 		} catch (FileNotFoundException e) {

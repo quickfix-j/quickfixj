@@ -123,7 +123,14 @@ class CodeGeneratorJSessionExclusionTest {
 
 	@AfterEach
 	public void clearDown() throws Exception {
-		FileUtils.cleanDirectory(new File("target/spec/"));
+		File workingDir = new File("target/spec/generated-sources/withSessionInclusion");
+		if (workingDir.exists()) {
+			FileUtils.cleanDirectory(workingDir);
+		}
+		workingDir = new File("target/spec/generated-sources/withSessionExclusion");
+		if (workingDir.exists()) {
+			FileUtils.cleanDirectory(workingDir);
+		}
 	}
 	
 	@Test
@@ -188,7 +195,7 @@ class CodeGeneratorJSessionExclusionTest {
 	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
 	            withSessionInclusionLatest);
 		assertMessageBaseClassNotGenerated();
-		assertSessionFilesGenerated(withSessionInclusionFixLatest, withSessionInclusionFixLatestComponent, withSessionInclusionField);
+		assertFixT11PackageNotGenerated(withSessionInclusionFixLatest, withSessionInclusionFixLatestComponent, withSessionInclusionField);
 	}
 	
 	private void assertFixT11PackageGenerated(File messagesDirectory, File fixt11MessagesDirectory, File componentsDirectory, File fieldsDirectory) {
@@ -253,7 +260,7 @@ class CodeGeneratorJSessionExclusionTest {
 	    assertEquals(0,matchingFiles.length);
 	}
 	
-	private void assertSessionFilesGenerated(File messagesDirectory, File componentDirectory, File fieldDirectory) {
+	private void assertFixT11PackageNotGenerated(File messagesDirectory, File componentDirectory, File fieldDirectory) {
 	    File[] matchingFiles = messagesDirectory.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
 	            return sessionMessageClasses.contains(name);
