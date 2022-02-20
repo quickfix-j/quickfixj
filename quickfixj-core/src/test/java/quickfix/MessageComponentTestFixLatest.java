@@ -82,10 +82,10 @@ public class MessageComponentTestFixLatest {
         QuoteRequest.NoRelatedSym noRelatedSym = new QuoteRequest.NoRelatedSym();
         noRelatedSym.set(instrument);
         noRelatedSym.set(financingDetails);
-
-        assertEquals("EURUSD", noRelatedSym.getSymbol().getValue());
-        assertEquals(Product.CURRENCY, noRelatedSym.getProduct().getValue());
-        assertEquals(SecurityType.FOREIGN_EXCHANGE_CONTRACT, noRelatedSym.getSecurityType().getValue());
+        
+        assertEquals("EURUSD", noRelatedSym.getInstrumentComponent().getSymbol().getValue());
+        assertEquals(Product.CURRENCY, noRelatedSym.getInstrumentComponent().getProduct().getValue());
+        assertEquals(SecurityType.FOREIGN_EXCHANGE_CONTRACT, noRelatedSym.getInstrumentComponent().getSecurityType().getValue());
         assertEquals("ABC", noRelatedSym.getString(12345));
         assertEquals(0xCAFE, noRelatedSym.getInt(54321));
 
@@ -119,9 +119,9 @@ public class MessageComponentTestFixLatest {
         financingDetails.setInt(54321, 0xBABE);
         noRelatedSym.set(financingDetails);
 
-        assertEquals("USDCAD", noRelatedSym.getSymbol().getValue());
-        assertEquals(Product.CURRENCY, noRelatedSym.getProduct().getValue());
-        assertEquals(SecurityType.FOREIGN_EXCHANGE_CONTRACT, noRelatedSym.getSecurityType().getValue());
+        assertEquals("USDCAD", noRelatedSym.getInstrumentComponent().getSymbol().getValue());
+        assertEquals(Product.CURRENCY, noRelatedSym.getInstrumentComponent().getProduct().getValue());
+        assertEquals(SecurityType.FOREIGN_EXCHANGE_CONTRACT, noRelatedSym.getInstrumentComponent().getSecurityType().getValue());
         assertEquals("XYZ", noRelatedSym.getString(12345));
         assertEquals(0xBABE, noRelatedSym.getInt(54321));
 

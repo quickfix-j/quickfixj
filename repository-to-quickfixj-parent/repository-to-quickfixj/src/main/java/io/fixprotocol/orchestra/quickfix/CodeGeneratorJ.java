@@ -73,7 +73,7 @@ public class CodeGeneratorJ {
 	public static final int COMPONENT_ID_STANDARD_HEADER = 1024;
 	public static final int GRP_HOP_GRP = 2085;
 	public static final int GRP_MSG_TYPE_GRP = 2098;
-	private static final Set<BigInteger> GROUPS_EXCLUSIVE_TO_SESSION = new HashSet<BigInteger>(Arrays.asList(BigInteger.valueOf(GRP_HOP_GRP), BigInteger.valueOf(GRP_MSG_TYPE_GRP)));
+	//TODO private static final Set<BigInteger> GROUPS_EXCLUSIVE_TO_SESSION = new HashSet<BigInteger>(Arrays.asList(BigInteger.valueOf(GRP_HOP_GRP), BigInteger.valueOf(GRP_MSG_TYPE_GRP)));
 	
 	private static final int FAIL_STATUS = 1;
 	private static final String DOUBLE_FIELD = "DoubleField";
@@ -93,7 +93,7 @@ public class CodeGeneratorJ {
 	private static final int SPACES_PER_LEVEL = 2;
 	
 	private boolean isGenerateBigDecimal = true;
-	private boolean isGenerateMessageBaseClass = false;
+	private boolean isGenerateMessageBaseClass = true;
 	private boolean isExcludeSession = false;
 	private boolean isGenerateFixt11Package = true;
 
@@ -143,9 +143,9 @@ public class CodeGeneratorJ {
 				paramLabel = "DISABLE_BIG_DECIMAL", description = "Disable the use of Big Decimal for Decimal Fields, Default : ${DEFAULT-VALUE}")
 		boolean isDisableBigDecimal = true;
 
-		@Option(names = { "--generateMessageBaseClass" }, defaultValue = "false", fallbackValue = "true", 
+		@Option(names = { "--generateMessageBaseClass" }, defaultValue = "true", fallbackValue = "true", 
 				paramLabel = "GENERATE_MESSAGE_BASE_CLASS", description ="Generates Message Base Class, Standard Header & Trailer Default : ${DEFAULT-VALUE}")
-		boolean isGenerateMessageBaseClass = false;
+		boolean isGenerateMessageBaseClass = true;
 
 		@Option(names = { EXCLUDE_SESSION }, defaultValue = "false", fallbackValue = "true", 
 				paramLabel = "EXCLUDE_SESSION", description ="Excludes Session Category Messages, Components and Groups exclusive to Session Layer and Fields used by Session Layer from the generated code, Default : ${DEFAULT-VALUE}")
@@ -173,7 +173,6 @@ public class CodeGeneratorJ {
 			Map<Integer, ComponentType> components = new HashMap<>();
 			Map<Integer, FieldType> fields = new HashMap<>();
 			Map<Integer, GroupType> groups = new HashMap<>();
-			List<MessageType> sessionMessages = new ArrayList<>();
 			Set<BigInteger> sessionFieldIds = new HashSet<BigInteger>();
 			Set<BigInteger> nonSessionFieldIds = new HashSet<BigInteger>();
 			
@@ -192,12 +191,20 @@ public class CodeGeneratorJ {
 			for (final GroupType group : groupList) {
 				groups.put(group.getId().intValue(), group);
 			}
-			sessionMessages = excludeSessionMessages(messages);
-			collectFieldIds(messages, nonSessionFieldIds, groups, components, fields, this.isGenerateMessageBaseClass);
-			//collect fields  ids from the session messages
-			collectFieldIds(sessionMessages, sessionFieldIds, groups, components, fields, this.isGenerateMessageBaseClass);
-			//restrict nonSessionFieldIds to fields removing fields that are used in session messages
+			// create new maps of groups so that we can keep original groups map unaltered 
+			Map<Integer, GroupType> nonSessionGroups = new HashMap<Integer, GroupType>();
+			Map<Integer, GroupType> sessionGroups = new HashMap<Integer, GroupType>();
+			// derive set of session messages
+			List<MessageType> sessionMessages = excludeSessionMessages(messages);
+			//collect groups and field ids from the non-session messages
+			collectGroupsAndFields(messages, nonSessionFieldIds, groups, nonSessionGroups, components, fields, false);
+			//collect groups and field ids from the session messages
+			collectGroupsAndFields(sessionMessages, sessionFieldIds, groups, sessionGroups, components, fields, true);
+			//restrict nonSessionFieldIds, removing fields that are used in session messages 
+			//if option is selected for separate package of session messages and fields, the fields will be provided by the session package and not duplicated
 			nonSessionFieldIds.removeAll(sessionFieldIds);
+			// some groups are used only by session messages, these are segregated so that they can (optionally) be packaged with session messages 
+			///TODO Map<Integer, GroupType> sessionOnlyGroups = excludeSessionGroups(sessionGroups, nonSessionGroups);
 			
 			final List<CodeSetType> codeSetList = repository.getCodeSets().getCodeSet();
 			for (final CodeSetType codeSet : codeSetList) {
@@ -227,15 +234,12 @@ public class CodeGeneratorJ {
 				getPackagePath(outputDir, getPackage(QUICKFIX, FIXT11, COMPONENT)).mkdirs();
 			}
 
-			// shallow copy groups so that we can keep original while segregating session from non sesssion 
-			Map<Integer, GroupType> nonSessionGroups = new HashMap<Integer, GroupType>(groups);  
-			Map<Integer, GroupType> sessionGroups = excludeSessionGroups(nonSessionGroups);
 			for (final GroupType group : nonSessionGroups.values()) {
 				generateGroup(outputDir, group, componentPackage, nonSessionGroups, components, fields);
 			}
-			if (!isExcludeSession) { // process groups that are exclusive to session messages
+			if (!isExcludeSession) { // process groups that are used by session messages
 				for (final GroupType group : sessionGroups.values()) {
-					if (isGenerateFixt11Package) {
+					if (isGenerateFixt11Package) { // groups will be packaged with fixt11, this can result in some duplication
 						generateGroup(outputDir, group, getPackage(QUICKFIX, FIXT11, COMPONENT), sessionGroups, components, fields);
 					} else {
 						generateGroup(outputDir, group, componentPackage, sessionGroups, components, fields);
@@ -245,7 +249,8 @@ public class CodeGeneratorJ {
 			for (final ComponentType component : componentList) {
 				int id = component.getId().intValue();
 				// if isGenerateMessageBaseClass excluded, standard header and trailer must be excluded
-				if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || this.isGenerateMessageBaseClass) {
+				//if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || this.isGenerateMessageBaseClass) {
+				if (id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) {
 					generateComponent(outputDir, component, componentPackage, groups, components, fields);
 				}
 			}
@@ -263,6 +268,9 @@ public class CodeGeneratorJ {
 			}
 			if (this.isGenerateMessageBaseClass) {
 				generateMessageBaseClass(outputDir, version, messagePackage);
+				if (isGenerateFixt11Package) { // each message package has message base class
+					generateMessageBaseClass(outputDir, version, getPackage(QUICKFIX, FIXT11));
+				}
 			}
 			generateMessageFactory(outputDir, messagePackage, messages, groups, fields);
 			generateMessageCracker(outputDir, messagePackage, messages);
@@ -274,19 +282,21 @@ public class CodeGeneratorJ {
 
 	/**
 	 * Excludes Session GroupType
+	 * @param nonSessionGroups 
 	 * @param groupList 
 	 * @return the GroupType that have been excluded
 	 */
-	private static Map<Integer, GroupType> excludeSessionGroups(Map<Integer, GroupType> groups) {
-		Map<Integer, GroupType> excludedGroups = new HashMap<Integer, GroupType>(); 
-		for (final GroupType group : groups.values()) {
-			if (GROUPS_EXCLUSIVE_TO_SESSION.contains(group.getId())) {
-				excludedGroups.put(group.getId().intValue(), group);
-			}
-		}
-		groups.keySet().removeAll(excludedGroups.keySet());
-		return excludedGroups;
-	}
+// TODO	
+//	private static Map<Integer, GroupType> excludeSessionGroups(Map<Integer, GroupType> sessionGroups, Map<Integer, GroupType> nonSessionGroups) {
+//		Map<Integer, GroupType> excludedGroups = new HashMap<Integer, GroupType>(); 
+//		for (final GroupType group : groups.values()) {
+//			if (GROUPS_EXCLUSIVE_TO_SESSION.contains(group.getId())) {
+//				excludedGroups.put(group.getId().intValue(), group);
+//			}
+//		}
+//		groups.keySet().removeAll(excludedGroups.keySet());
+//		return excludedGroups;
+//	}
 	
 	/**
 	 * Excludes Session messages
@@ -324,22 +334,24 @@ public class CodeGeneratorJ {
 		}
 	}
 	
-	private static void collectFieldIds(List<MessageType> messageList, Set<BigInteger> includedFieldIds, 
+	private static void collectGroupsAndFields(List<MessageType> messageList, Set<BigInteger> includedFieldIds, 
 			                    Map<Integer, GroupType> groups, 
+			                    Map<Integer, GroupType> collectedGroups, 
 			                    Map<Integer, ComponentType> components, 
-			                    Map<Integer, FieldType> fields, 
-			                    boolean isGenerateMessageBaseClass) throws IOException {
+			                    Map<Integer, FieldType> fields,
+                                boolean isParseHeaderAndTrailer) throws IOException {
 		for (final MessageType messageType : messageList) {
 			final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
-			collectFieldIdsFromMembers(members, includedFieldIds, groups, components, fields, isGenerateMessageBaseClass);
+			collectGroupsAndFieldsFromMembers(members, includedFieldIds, groups, collectedGroups, components, fields, isParseHeaderAndTrailer);
 		}
 	}
 
-	private static void collectFieldIdsFromMembers(List<Object> members, Set<BigInteger> includedFieldIds, 
+	private static void collectGroupsAndFieldsFromMembers(List<Object> members, Set<BigInteger> includedFieldIds, 
 			                                      Map<Integer, GroupType> groups, 
+			                                      Map<Integer, GroupType> collectedGroups, 
 			                                      Map<Integer, ComponentType> components, 
 			                                      Map<Integer, FieldType> fields,
-			                                      boolean isGenerateMessageBaseClass) throws IOException {
+			                                      boolean isParseHeaderAndTrailer) throws IOException {
 		for (final Object member : members) {
 			if (member instanceof FieldRefType) {
 				final FieldRefType fieldRefType = (FieldRefType) member;
@@ -348,10 +360,11 @@ public class CodeGeneratorJ {
 				final int id = ((GroupRefType) member).getId().intValue();
 				final GroupType groupType = groups.get(id);
 				if (groupType != null) {
+					collectedGroups.put(groupType.getId().intValue(), groupType);
 					final int numInGroupId = groupType.getNumInGroup().getId().intValue();
 					final FieldType numInGroupField = fields.get(numInGroupId);
 					includedFieldIds.add(numInGroupField.getId());
-					collectFieldIdsFromMembers(groupType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds, groups, components, fields, isGenerateMessageBaseClass);
+					collectGroupsAndFieldsFromMembers(groupType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds, groups, collectedGroups, components, fields, isParseHeaderAndTrailer);
 				} else {
 					System.err.format("collectFieldIdsFromMembers : Group missing from repository; id=%d%n", id);
 				}
@@ -359,8 +372,8 @@ public class CodeGeneratorJ {
 				final int id = ((ComponentRefType) member).getId().intValue();
 				final ComponentType componentType = components.get(id);
 				if (null != componentType) {
-					if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || isGenerateMessageBaseClass) {
-						collectFieldIdsFromMembers(componentType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds, groups, components, fields, isGenerateMessageBaseClass);
+					if ((id != COMPONENT_ID_STANDARD_HEADER && id != COMPONENT_ID_STANDARD_TRAILER) || isParseHeaderAndTrailer) {
+						collectGroupsAndFieldsFromMembers(componentType.getComponentRefOrGroupRefOrFieldRef(),includedFieldIds, groups, collectedGroups, components, fields, isParseHeaderAndTrailer);
 					}
 				} else {
 					System.err.format("Component missing from repository; id=%d%n", id);
@@ -471,14 +484,18 @@ public class CodeGeneratorJ {
 			writeComponentNoArgConstructor(writer, name);
 
 			final FieldType numInGroupField = fields.get(numInGroupId);
-			final String numInGroupFieldName = numInGroupField.getName();
-			writeFieldAccessors(writer, numInGroupFieldName, numInGroupId);
-			writeGroupInnerClass(writer, groupType, packageName, packageName, groups, components, fields);
-
-			final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
-			writeMemberAccessors(writer, members, packageName, packageName, groups, components, fields);
-
-			writeEndClassDeclaration(writer);
+			if (null == numInGroupField ) {
+				System.err.format("generateGroup : numInGroup field is missing from repository; id=%d%n", numInGroupId);
+			} else {
+				final String numInGroupFieldName = numInGroupField.getName();
+				writeFieldAccessors(writer, numInGroupFieldName, numInGroupId);
+				writeGroupInnerClass(writer, groupType, packageName, packageName, groups, components, fields);
+	
+				final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
+				writeMemberAccessors(writer, members, packageName, packageName, groups, components, fields);
+	
+				writeEndClassDeclaration(writer);
+			}
 		}
 	}
 
@@ -1026,17 +1043,17 @@ public class CodeGeneratorJ {
 			} else if (member instanceof ComponentRefType) {
 				final ComponentType componentType = components.get(((ComponentRefType) member).getId().intValue());
 				writeComponentAccessors(writer, componentType.getName(), componentPackage);
-				final List<Object> componentMembers = componentType.getComponentRefOrGroupRefOrFieldRef();
+				//TODO final List<Object> componentMembers = componentType.getComponentRefOrGroupRefOrFieldRef();
 				// when recursing don't write out component accessors
-				writeMemberAccessors(writer,
-									componentMembers.stream()
-										.filter(componentMember -> componentMember instanceof FieldRefType || componentMember instanceof ComponentRefType)
-										.collect(Collectors.toList()),
-									packageName, 
-									componentPackage,
-									groups,
-									components,
-									fields);
+//				writeMemberAccessors(writer,
+//									componentMembers.stream()
+//										.filter(componentMember -> componentMember instanceof FieldRefType || componentMember instanceof ComponentRefType)
+//										.collect(Collectors.toList()),
+//									packageName, 
+//									componentPackage,
+//									groups,
+//									components,
+//									fields);
 			}
 		}
 	}

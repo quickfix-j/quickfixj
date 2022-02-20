@@ -37,7 +37,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
 	 * Determines if Message base class and Standard Header and Trailer are generated
 	 */
 	@Parameter(property = "generateMessageBaseClass", required = false)
-	boolean generateMessageBaseClass = false;
+	boolean generateMessageBaseClass = true;
 			
 	/**
 	 * Determines if FIX Session Layer is generated in FIXT11 package

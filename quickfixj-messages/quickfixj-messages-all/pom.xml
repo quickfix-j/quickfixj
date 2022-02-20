@@ -30,12 +30,15 @@
 	<profiles>
 		<profile>
 			<id>minimal-fix-latest</id>
-			<!-- This profile must not be used as part of the CI build. It has a very specialised purpose.
-					This profile transforms the orchestra file to restrict fields, components, groups and messages to those that are used in tests
-					of the core module. This is exclusively to reduce the size and complexity of the FIX Latest package so that processes such as CodeQL
-					do not use unreasonable heap size and can successfully run as part of the pull request workflow.
-					This profile does not produce a coherent orchestration nor FIX Latest package representing a sensible Rules of Enagement.
+			<!-- This profile has a very specialised purpose.
+				This profile transforms the orchestra file to restrict fields, components, groups and messages to those that are used in tests
+				of the core module. This is to reduce the size and complexity of the FIX Latest package so that processes such as CodeQL
+				do not use unreasonable heap size and can successfully run as part of the pull request workflow.
+				This profile does not produce a coherent orchestration nor FIX Latest package representing a sensible Rules of Enagement.
 			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -52,7 +55,7 @@
 								<transformationSets>
 									<transformationSet>
 										<dir>${project.build.directory}/dependency/repository</dir>
-										<outputDir>${project.build.directory}/generated-resources</outputDir>
+										<outputDir>${project.build.directory}/generated-resources/min</outputDir>
 										<includes>
 											<include>${orchestra.file}</include>
 										</includes>
@@ -77,7 +80,34 @@
 							</execution>
 						</executions>
 						<configuration>
-							<orchestration>${project.build.directory}/generated-resources/${orchestra.file}</orchestration>
+							<orchestration>${project.build.directory}/generated-resources/min/${orchestra.file}</orchestration>
+							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>full-fix-latest</id>
+			<!-- This profile build the full fix latest specification to testing that a new version of the full specification 
+			     does not introduce issues in the core QuickFIX/J build -->
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.quickfixj</groupId>
+						<artifactId>repository-to-qfj-codegen-maven-plugin</artifactId>
+						<version>${project.version}</version>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>codeGeneration</goal>
+								</goals>
+								<id>fixLatest</id>
+							</execution>
+						</executions>
+						<configuration>
+							<orchestration>${project.build.directory}/dependency/repository/${orchestra.file}</orchestration>
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 						</configuration>
 					</plugin>
@@ -86,6 +116,10 @@
 		</profile>
 	</profiles>
 	<build>
+		<pluginManagement>
+			<plugins>
+			</plugins>
+		</pluginManagement>
 		<resources>
 			<resource>
 				<directory>${project.build.directory}/dependency/repository</directory>
@@ -247,7 +281,7 @@
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
 					</execution>
-					<execution>
+					<!-- execution>
 						<id>fixt11</id>
 						<goals>
 							<goal>generate</goal>
@@ -258,7 +292,7 @@
 							<fieldPackage>quickfix.field</fieldPackage>
 							<decimal>${generator.decimal}</decimal>
 						</configuration>
-					</execution>
+					</execution -->
 					<execution>
 						<id>fix50</id>
 						<goals>
@@ -296,24 +330,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>repository-to-qfj-codegen-maven-plugin</artifactId>
-				<version>${project.version}</version>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>codeGeneration</goal>
-						</goals>
-						<id>fixLatest</id>
-					</execution>
-				</executions>
-				<configuration>
-					<orchestration>${project.build.directory}/dependency/repository/${orchestra.file}</orchestration>
-					<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
-				</configuration>
 			</plugin>
 			<plugin>
 			  <groupId>org.apache.maven.plugins</groupId>

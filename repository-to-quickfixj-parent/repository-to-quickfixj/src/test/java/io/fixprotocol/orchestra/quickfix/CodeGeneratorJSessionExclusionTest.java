@@ -104,6 +104,12 @@ class CodeGeneratorJSessionExclusionTest {
 			,"XmlData.java"
 			,"XmlDataLen.java"));
 	
+	private Set<String> sessionGroups = new HashSet<String>(Arrays.asList(	
+			"HopGrp.java",
+			"MsgTypeGrp.java",
+			"AttachmentGrp.java",
+			"AttachmentKeywordGrp.java"));
+	
 	File withSessionInclusionLatest =    new File("target/spec/generated-sources/withSessionInclusion/latest/");
 	File withSessionInclusionFixLatest = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/fixlatest");
 	File withSessionInclusionFixLatestComponent = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/fixlatest/component");
@@ -140,7 +146,7 @@ class CodeGeneratorJSessionExclusionTest {
 	            withSessionInclusionLatest);
 	    // default should not exclude session files
 	    assertFixT11PackageGenerated(withSessionInclusionFixLatest, withSessionInclusionFixt11, withSessionInclusionFixt11Component, withSessionInclusionField);
-	    assertMessageBaseClassNotGenerated();
+	    assertMessageBaseClassGenerated();
 	}
 	
 	@Test
@@ -168,33 +174,30 @@ class CodeGeneratorJSessionExclusionTest {
 
 
 	@Test
-	void testBaseClassGenerationTrue() throws IOException {
-		generator.setGenerateMessageBaseClass(true);
-		generator.generate(
-	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
-	            withSessionInclusionLatest);
-		assertMessageBaseClassGenerated();
-	}
-	
-	@Test
-	void testFixT11Generation() throws IOException {
+	void testBaseClassGenerationFalse() throws IOException {
 		generator.setGenerateMessageBaseClass(false);
-		generator.setGenerateFixt11Package(true);
 		generator.generate(
 	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
 	            withSessionInclusionLatest);
 		assertMessageBaseClassNotGenerated();
+	}
+	
+	@Test
+	void testFixT11Generation() throws IOException {
+		generator.setGenerateFixt11Package(true);
+		generator.generate(
+	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
+	            withSessionInclusionLatest);
 		assertFixT11PackageGenerated(withSessionInclusionFixLatest, withSessionInclusionFixt11, withSessionInclusionFixt11Component, withSessionInclusionField);
 	}
 	
 	@Test
 	void testFixT11PackageNotGenerated() throws IOException {
-		generator.setGenerateMessageBaseClass(false);
 		generator.setGenerateFixt11Package(false);
 		generator.generate(
 	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
 	            withSessionInclusionLatest);
-		assertMessageBaseClassNotGenerated();
+		assertMessageBaseClassGenerated();
 		assertFixT11PackageNotGenerated(withSessionInclusionFixLatest, withSessionInclusionFixLatestComponent, withSessionInclusionField);
 	}
 	
@@ -242,7 +245,7 @@ class CodeGeneratorJSessionExclusionTest {
 	            return name.equals("StandardHeader.java") || name.equals("StandardTrailer.java");
 	        }
 	    });
-	    assertEquals(2,matchingFiles.length);
+	    assertEquals(0,matchingFiles.length);
 	}
 	
 	private void assertMessageBaseClassNotGenerated() {
@@ -280,10 +283,10 @@ class CodeGeneratorJSessionExclusionTest {
 	private void assertSessionGroupCreated(File componentDirectory) {
 	    File[] matchingFiles = componentDirectory.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
-	            return name.equals("HopGrp.java") || name.equals("MsgTypeGrp.java");
+	            return sessionGroups.contains(name);
 	        }
 	    });
-	    assertEquals(2,matchingFiles.length);
+	    assertEquals(4,matchingFiles.length);
 	}
 	
 	/**
@@ -306,16 +309,17 @@ class CodeGeneratorJSessionExclusionTest {
 	    	System.err.printf("Found File %s%n", matchingFiles[i]);
 	    }
 	    assertEquals(0, matchingFiles.length);
-	    assertSessionGroupNotCreated();
+	    assertSessionOnlyGroupsNotCreated();
 	}
 
-	private void assertSessionGroupNotCreated() {
+	private void assertSessionOnlyGroupsNotCreated() {
 	    File[] matchingFiles = withSessionExclusionFixLatestComponent.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
-	            return name.equals("HopGrp.java") || name.equals("MsgTypeGrp.java");
+	            return sessionGroups.contains(name);
 	        }
 	    });
-	    assertEquals(0,matchingFiles.length);
+	    // "AttachmentGrp.java" and "AttachmentKeywordGrp.java" are not only used in session msgs
+	    assertEquals(2,matchingFiles.length);
 	}
 
 }
