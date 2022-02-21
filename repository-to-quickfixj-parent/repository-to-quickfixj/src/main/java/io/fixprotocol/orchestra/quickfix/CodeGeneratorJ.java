@@ -66,6 +66,8 @@ import picocli.CommandLine.Option;
  */
 public class CodeGeneratorJ {
 
+	static final int SPACES_PER_LEVEL = 2;
+	
 	private static final String QUICKFIX = "quickfix";
 	private static final String COMPONENT = "component";
 	private static final String FIXT11 = "fixt11";
@@ -89,8 +91,6 @@ public class CodeGeneratorJ {
 	private static final String FIELD_PACKAGE  = "quickfix.field";
 
 	private static final long SERIALIZATION_VERSION = 552892318L;
-
-	private static final int SPACES_PER_LEVEL = 2;
 	
 	private boolean isGenerateBigDecimal = true;
 	private boolean isGenerateMessageBaseClass = true;
@@ -382,6 +382,17 @@ public class CodeGeneratorJ {
 		}
 	}
 
+	private static List<FieldType> collectMandatoryFields(List<Object> members, Map<Integer, FieldType> fields) throws IOException {
+		List<FieldType> result = new ArrayList<FieldType>();
+		for (final Object member : members) {
+			if (member instanceof FieldRefType) {
+				final FieldRefType fieldRefType = (FieldRefType) member;
+				result.add(fields.get(fieldRefType.getId().intValue()));
+			} 
+		}
+		return result;
+	}
+	
 	private static void generateComponent(File outputDir, 
 			              				  ComponentType componentType, 
 			              				  String packageName, 
@@ -525,11 +536,20 @@ public class CodeGeneratorJ {
 
 			final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
 			writeMessageNoArgConstructor(writer, messageClassname);
-
+			List<FieldType> mandatoryFields = collectMandatoryFields(members, fields);
+			if (mandatoryFields.size() > 0) {
+				writeMessageArgConstructor(writer, messageClassname, mandatoryFields);
+			}
+			
 			writeMemberAccessors(writer, members, messagePackage, componentPackage, groups, components, fields);
 
 			writeEndClassDeclaration(writer);
 		}
+	}
+
+	private static FileWriter writeMessageArgConstructor(FileWriter writer, String clazzName, List<FieldType> mandatoryFields) throws IOException {
+		writer.write(CodeGeneratorUtil.formatConstructorWithArguments(clazzName, mandatoryFields));
+		return writer;
 	}
 
 	private static void generateMessageBaseClass(File outputDir, String version, String messagePackage) throws IOException {
@@ -560,9 +580,9 @@ public class CodeGeneratorJ {
 
 			writer.write(String.format(
 					"%n%spublic void onMessage(quickfix.Message message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {%n",
-					indent(1)));
-			writer.write(String.format("%sthrow new UnsupportedMessageType();%n", indent(2)));
-			writer.write(String.format("%s}%n", indent(1)));
+					CodeGeneratorUtil.indent(1)));
+			writer.write(String.format("%sthrow new UnsupportedMessageType();%n", CodeGeneratorUtil.indent(2)));
+			writer.write(String.format("%s}%n", CodeGeneratorUtil.indent(1)));
 
 			for (final MessageType messageType : messageList) {
 				final String name = messageType.getName();
@@ -571,49 +591,49 @@ public class CodeGeneratorJ {
 					continue;
 				}
 
-				writer.write(String.format("%s/**%n", indent(1)));
-				writer.write(String.format("%s * Callback for %s message.%n", indent(1), name));
-				writer.write(String.format("%s * @param message%n", indent(1)));
-				writer.write(String.format("%s * @param sessionID%n", indent(1)));
-				writer.write(String.format("%s * @throws FieldNotFound%n", indent(1)));
-				writer.write(String.format("%s * @throws UnsupportedMessageType%n", indent(1)));
-				writer.write(String.format("%s * @throws IncorrectTagValue%n", indent(1)));
-				writer.write(String.format("%s */%n", indent(1)));
+				writer.write(String.format("%s/**%n", CodeGeneratorUtil.indent(1)));
+				writer.write(String.format("%s * Callback for %s message.%n", CodeGeneratorUtil.indent(1), name));
+				writer.write(String.format("%s * @param message%n", CodeGeneratorUtil.indent(1)));
+				writer.write(String.format("%s * @param sessionID%n", CodeGeneratorUtil.indent(1)));
+				writer.write(String.format("%s * @throws FieldNotFound%n", CodeGeneratorUtil.indent(1)));
+				writer.write(String.format("%s * @throws UnsupportedMessageType%n", CodeGeneratorUtil.indent(1)));
+				writer.write(String.format("%s * @throws IncorrectTagValue%n", CodeGeneratorUtil.indent(1)));
+				writer.write(String.format("%s */%n", CodeGeneratorUtil.indent(1)));
 				writer.write(String.format(
 						"%n%spublic void onMessage(%s message, SessionID sessionID) throws FieldNotFound, UnsupportedMessageType, IncorrectTagValue {%n",
-						indent(1), name));
-				writer.write(String.format("%sthrow new UnsupportedMessageType();%n", indent(2)));
-				writer.write(String.format("%s}%n", indent(1)));
+						CodeGeneratorUtil.indent(1), name));
+				writer.write(String.format("%sthrow new UnsupportedMessageType();%n", CodeGeneratorUtil.indent(2)));
+				writer.write(String.format("%s}%n", CodeGeneratorUtil.indent(1)));
 			}
 
 			final String crackMethodName = "crack" + messagePackage.split("\\.")[1];
 			writer.write(
-					String.format("%n%spublic void crack(quickfix.Message message, SessionID sessionID)%n", indent(1)));
+					String.format("%n%spublic void crack(quickfix.Message message, SessionID sessionID)%n", CodeGeneratorUtil.indent(1)));
 			writer.write(
-					String.format("%sthrows UnsupportedMessageType, FieldNotFound, IncorrectTagValue {%n", indent(2)));
-			writer.write(String.format("%s%s((Message) message, sessionID);%n", indent(2), crackMethodName));
-			writer.write(String.format("%s}%n", indent(1)));
+					String.format("%sthrows UnsupportedMessageType, FieldNotFound, IncorrectTagValue {%n", CodeGeneratorUtil.indent(2)));
+			writer.write(String.format("%s%s((Message) message, sessionID);%n", CodeGeneratorUtil.indent(2), crackMethodName));
+			writer.write(String.format("%s}%n", CodeGeneratorUtil.indent(1)));
 
-			writer.write(String.format("%n%spublic void %s(Message message, SessionID sessionID)%n", indent(1),
+			writer.write(String.format("%n%spublic void %s(Message message, SessionID sessionID)%n", CodeGeneratorUtil.indent(1),
 					crackMethodName));
 			writer.write(
-					String.format("%sthrows UnsupportedMessageType, FieldNotFound, IncorrectTagValue {%n", indent(2)));
-			writer.write(String.format("%sString type = message.getHeader().getString(MsgType.FIELD);%n", indent(2)));
+					String.format("%sthrows UnsupportedMessageType, FieldNotFound, IncorrectTagValue {%n", CodeGeneratorUtil.indent(2)));
+			writer.write(String.format("%sString type = message.getHeader().getString(MsgType.FIELD);%n", CodeGeneratorUtil.indent(2)));
 
-			writer.write(String.format("%sswitch (type) {%n", indent(2)));
+			writer.write(String.format("%sswitch (type) {%n", CodeGeneratorUtil.indent(2)));
 			for (final MessageType messageType : messageList) {
 				final String name = messageType.getName();
 				final String scenario = messageType.getScenario();
 				if (!scenario.equals("base")) {
 					continue;
 				}
-				writer.write(String.format("%scase %s.MSGTYPE:%n", indent(2), name));
+				writer.write(String.format("%scase %s.MSGTYPE:%n", CodeGeneratorUtil.indent(2), name));
 				writer.write(
-						String.format("%sonMessage((%s)message, sessionID);%n%sbreak;%n", indent(3), name, indent(3)));
+						String.format("%sonMessage((%s)message, sessionID);%n%sbreak;%n", CodeGeneratorUtil.indent(3), name, CodeGeneratorUtil.indent(3)));
 			}
 
-			writer.write(String.format("%sdefault:%n%sonMessage(message, sessionID);%n%s}%n%s}%n", indent(2), indent(3),
-					indent(2), indent(1)));
+			writer.write(String.format("%sdefault:%n%sonMessage(message, sessionID);%n%s}%n%s}%n", CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(3),
+					CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 			writeEndClassDeclaration(writer);
 		}
 	}
@@ -735,12 +755,6 @@ public class CodeGeneratorJ {
 		return String.format("%s.%s", packageName, className);
 	}
 
-	private static String indent(int level) {
-		final char[] chars = new char[level * SPACES_PER_LEVEL];
-		Arrays.fill(chars, ' ');
-		return new String(chars);
-	}
-
 	// Capitalize first char and any after underscore or space. Leave other caps
 	// as-is.
 	private static String toTitleCase(String text) {
@@ -772,28 +786,28 @@ public class CodeGeneratorJ {
 		if (!componentName.equals("StandardHeader") && !componentName.equals("StandardTrailer")) {
 			final String className = getQualifiedClassName(packageName, componentName);
 			writer.write(String.format("%n%spublic void set(%s component) {%n%ssetComponent(component);%n%s}%n",
-					indent(1), className, indent(2), indent(1)));
+					CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 			writer.write(String.format(
 					"%n%spublic %s get(%s component) throws FieldNotFound {%n%sgetComponent(component);%n%sreturn component;%n%s}%n",
-					indent(1), className, className, indent(2), indent(2), indent(1)));
+					CodeGeneratorUtil.indent(1), className, className, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 			writer.write(String.format("%n%spublic %s get%s%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n",
-					indent(1), className, componentName, "Component", indent(2), className, indent(1)));
+					CodeGeneratorUtil.indent(1), className, componentName, "Component", CodeGeneratorUtil.indent(2), className, CodeGeneratorUtil.indent(1)));
 		}
 		return writer;
 	}
 
 	private static Writer writeComponentFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
-		writer.write(String.format("%Sprivate int[] componentFields = {", indent(1)));
+		writer.write(String.format("%Sprivate int[] componentFields = {", CodeGeneratorUtil.indent(1)));
 		for (final Integer fieldId : componentFields) {
 			writer.write(String.format("%d, ", fieldId));
 		}
 		writer.write(String.format("};%n"));
-		writer.write(String.format("%sprotected int[] getFields() { return componentFields; }%n", indent(1)));
+		writer.write(String.format("%sprotected int[] getFields() { return componentFields; }%n", CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
 	private static Writer writeComponentNoArgConstructor(Writer writer, String className) throws IOException {
-		writer.write(String.format("%n%spublic %s() {%n%ssuper();%n%s}%n", indent(1), className, indent(2), indent(1)));
+		writer.write(String.format("%n%spublic %s() {%n%ssuper();%n%s}%n", CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
@@ -805,17 +819,17 @@ public class CodeGeneratorJ {
 	private static Writer writeFieldAccessors(Writer writer, String name, int id) throws IOException {
 		final String qualifiedClassName = getQualifiedClassName(FIELD_PACKAGE, name);
 
-		writer.write(String.format("%n%spublic void set(%s value) {%n%ssetField(value);%n%s}%n", indent(1),
-				qualifiedClassName, indent(2), indent(1)));
+		writer.write(String.format("%n%spublic void set(%s value) {%n%ssetField(value);%n%s}%n", CodeGeneratorUtil.indent(1),
+				qualifiedClassName, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 		writer.write(String.format(
 				"%n%spublic %s get(%s value) throws FieldNotFound {%n%sgetField(value);%n%sreturn value;%n%s}%n",
-				indent(1), qualifiedClassName, qualifiedClassName, indent(2), indent(2), indent(1)));
+				CodeGeneratorUtil.indent(1), qualifiedClassName, qualifiedClassName, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 		writer.write(String.format("%n%spublic %s get%s() throws FieldNotFound {%n%sreturn get(new %s());%n%s}%n",
-				indent(1), qualifiedClassName, name, indent(2), qualifiedClassName, indent(1)));
+				CodeGeneratorUtil.indent(1), qualifiedClassName, name, CodeGeneratorUtil.indent(2), qualifiedClassName, CodeGeneratorUtil.indent(1)));
 		writer.write(String.format("%n%spublic boolean isSet(%s field) {%n%sreturn isSetField(field);%n%s}%n",
-				indent(1), qualifiedClassName, indent(2), indent(1)));
-		writer.write(String.format("%n%spublic boolean isSet%s() {%n%sreturn isSetField(%d);%n%s}%n", indent(1), name,
-				indent(2), id, indent(1)));
+				CodeGeneratorUtil.indent(1), qualifiedClassName, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
+		writer.write(String.format("%n%spublic boolean isSet%s() {%n%sreturn isSetField(%d);%n%s}%n", CodeGeneratorUtil.indent(1), name,
+				CodeGeneratorUtil.indent(2), id, CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
@@ -827,71 +841,71 @@ public class CodeGeneratorJ {
 			throws IOException {
 		switch (baseClassname) {
 		case "BooleanField":
-			writer.write(String.format("%n%spublic %s(Boolean data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
-			writer.write(String.format("%n%spublic %s(boolean data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(Boolean data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
+			writer.write(String.format("%n%spublic %s(boolean data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		case "BytesField":
-			writer.write(String.format("%n%spublic %s(byte[] data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(byte[] data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		case "CharField":
-			writer.write(String.format("%n%spublic %s(Character data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
-					className, indent(2), fieldId, indent(1)));
-			writer.write(String.format("%n%spublic %s(char data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(Character data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1),
+					className, CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
+			writer.write(String.format("%n%spublic %s(char data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		case "UtcDateOnlyField":
-			writer.write(String.format("%n%spublic %s(LocalDate data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
-					className, indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(LocalDate data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1),
+					className, CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			// added for compatibility with existing QFJ tests
-			writer.write(String.format("%n%spublic %s(String data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(String data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		case "UtcTimeOnlyField":
-			writer.write(String.format("%n%spublic %s(LocalTime data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
-					className, indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(LocalTime data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1),
+					className, CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		case "UtcTimeStampField":
-			writer.write(String.format("%n%spublic %s(LocalDateTime data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
-					className, indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(LocalDateTime data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1),
+					className, CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		case DECIMAL_FIELD:
 			if (isGenerateBigDecimal) {
-				writer.write(String.format("%n%spublic %s(BigDecimal data) {%n%ssuper(%d, data);%n%s}%n", indent(1),
-						className, indent(2), fieldId, indent(1)));
+				writer.write(String.format("%n%spublic %s(BigDecimal data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1),
+						className, CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 				writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, BigDecimal.valueOf(data));%n%s}%n",
-						indent(1), className, indent(2), fieldId, indent(1)));
+						CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 				break;
 			}  // else drop through as DoubleField is extended
 		case DOUBLE_FIELD:
-			writer.write(String.format("%n%spublic %s(Double data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(2)));
-			writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(2)));
+			writer.write(String.format("%n%spublic %s(Double data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(2)));
+			writer.write(String.format("%n%spublic %s(double data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(2)));
 			break;
 		case "IntField":
-			writer.write(String.format("%n%spublic %s(Integer data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
-			writer.write(String.format("%n%spublic %s(int data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(Integer data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
+			writer.write(String.format("%n%spublic %s(int data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 			break;
 		default:
-			writer.write(String.format("%n%spublic %s(String data) {%n%ssuper(%d, data);%n%s}%n", indent(1), className,
-					indent(2), fieldId, indent(1)));
+			writer.write(String.format("%n%spublic %s(String data) {%n%ssuper(%d, data);%n%s}%n", CodeGeneratorUtil.indent(1), className,
+					CodeGeneratorUtil.indent(2), fieldId, CodeGeneratorUtil.indent(1)));
 		}
 		return writer;
 	}
 
 	private static Writer writeFieldId(Writer writer, int fieldId) throws IOException {
-		writer.write(String.format("%n%spublic static final int FIELD = %d;%n", indent(1), fieldId));
+		writer.write(String.format("%n%spublic static final int FIELD = %d;%n", CodeGeneratorUtil.indent(1), fieldId));
 		return writer;
 	}
 
 	private static Writer writeFieldNoArgConstructor(Writer writer, String className, int fieldId) throws IOException {
-		writer.write(String.format("%n%spublic %s() {%n%ssuper(%d);%n%s}%n", indent(1), className, indent(2), fieldId,
-				indent(1)));
+		writer.write(String.format("%n%spublic %s() {%n%ssuper(%d);%n%s}%n", CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), fieldId,
+				CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
@@ -910,8 +924,8 @@ public class CodeGeneratorJ {
 		final String numInGroupFieldName = numInGroupField.getName();
 
 		final String numInGroupFieldClassname = getQualifiedClassName(FIELD_PACKAGE, numInGroupFieldName);
-		writer.write(String.format("%scase %s.FIELD:%n", indent(3), numInGroupFieldClassname));
-		writer.write(String.format("%sreturn new %s.%s();%n", indent(4), parentQualifiedName, numInGroupFieldName));
+		writer.write(String.format("%scase %s.FIELD:%n", CodeGeneratorUtil.indent(3), numInGroupFieldClassname));
+		writer.write(String.format("%sreturn new %s.%s();%n", CodeGeneratorUtil.indent(4), parentQualifiedName, numInGroupFieldName));
 		final List<Object> members = groupType.getComponentRefOrGroupRefOrFieldRef();
 		for (final Object member : members) {
 			if (member instanceof GroupRefType) {
@@ -932,16 +946,16 @@ public class CodeGeneratorJ {
 			throws IOException {
 		writer.write(String.format(
 				"%n%spublic Group create(String beginString, String msgType, int correspondingFieldID) {%n",
-				indent(1)));
-		writer.write(String.format("%sswitch (msgType) {%n", indent(2)));
+				CodeGeneratorUtil.indent(1)));
+		writer.write(String.format("%sswitch (msgType) {%n", CodeGeneratorUtil.indent(2)));
 		for (final MessageType messageType : messageList) {
 			final String messageName = messageType.getName();
 			final String scenario = messageType.getScenario();
 			if (!scenario.equals("base")) {
 				continue;
 			}
-			writer.write(String.format("%scase %s.%s.MSGTYPE:%n", indent(1), messagePackage, messageName));
-			writer.write(String.format("%sswitch (correspondingFieldID) {%n", indent(2)));
+			writer.write(String.format("%scase %s.%s.MSGTYPE:%n", CodeGeneratorUtil.indent(1), messagePackage, messageName));
+			writer.write(String.format("%sswitch (correspondingFieldID) {%n", CodeGeneratorUtil.indent(2)));
 
 			final List<Object> members = messageType.getStructure().getComponentRefOrGroupRefOrFieldRef();
 			for (final Object member : members) {
@@ -957,21 +971,21 @@ public class CodeGeneratorJ {
 
 				}
 			}
-			writer.write(String.format("%s}%n%sbreak;%n", indent(2), indent(2)));
+			writer.write(String.format("%s}%n%sbreak;%n", CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2)));
 		}
 
-		writer.write(String.format("%s}%n%sreturn null;%n%s}%n", indent(2), indent(2), indent(1)));
+		writer.write(String.format("%s}%n%sreturn null;%n%s}%n", CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 
 		return writer;
 	}
 
 	private static Writer writeGroupFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
-		writer.write(String.format("%Sprivate int[] componentGroups = {", indent(1)));
+		writer.write(String.format("%Sprivate int[] componentGroups = {", CodeGeneratorUtil.indent(1)));
 		for (final Integer fieldId : componentFields) {
 			writer.write(String.format("%d, ", fieldId));
 		}
 		writer.write(String.format("};%n"));
-		writer.write(String.format("%sprotected int[] getGroupFields() { return componentGroups; }%n", indent(1)));
+		writer.write(String.format("%sprotected int[] getGroupFields() { return componentGroups; }%n", CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
@@ -1003,8 +1017,8 @@ public class CodeGeneratorJ {
 
 	private static Writer writeGroupNoArgConstructor(Writer writer, String className, int numInGrpId, int firstFieldId)
 			throws IOException {
-		writer.write(String.format("%n%spublic %s() {%n%ssuper(%d, %d, ORDER);%n%s}%n", indent(1), className, indent(2),
-				numInGrpId, firstFieldId, indent(1)));
+		writer.write(String.format("%n%spublic %s() {%n%ssuper(%d, %d, ORDER);%n%s}%n", CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2),
+				numInGrpId, firstFieldId, CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
@@ -1061,20 +1075,20 @@ public class CodeGeneratorJ {
 	// In this method, only create messages with base scenario
 	private static  Writer writeMessageCreateMethod(Writer writer, List<MessageType> messageList, String packageName)
 			throws IOException {
-		writer.write(String.format("%n%spublic Message create(String beginString, String msgType) {%n", indent(1)));
-		writer.write(String.format("%sswitch (msgType) {%n", indent(2)));
+		writer.write(String.format("%n%spublic Message create(String beginString, String msgType) {%n", CodeGeneratorUtil.indent(1)));
+		writer.write(String.format("%sswitch (msgType) {%n", CodeGeneratorUtil.indent(2)));
 		for (final MessageType messageType : messageList) {
 			final String name = messageType.getName();
 			final String scenario = messageType.getScenario();
 			if (!scenario.equals("base")) {
 				continue;
 			}
-			writer.write(String.format("%scase %s.%s.MSGTYPE:%n", indent(2), packageName, name));
-			writer.write(String.format("%sreturn new %s();%n", indent(3), getQualifiedClassName(packageName, name)));
+			writer.write(String.format("%scase %s.%s.MSGTYPE:%n", CodeGeneratorUtil.indent(2), packageName, name));
+			writer.write(String.format("%sreturn new %s();%n", CodeGeneratorUtil.indent(3), getQualifiedClassName(packageName, name)));
 		}
 
-		writer.write(String.format("%s}%n%sreturn new quickfix.fixlatest.Message();%n%s}%n", indent(2), indent(2),
-				indent(1)));
+		writer.write(String.format("%s}%n%sreturn new quickfix.fixlatest.Message();%n%s}%n", CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2),
+				CodeGeneratorUtil.indent(1)));
 
 		return writer;
 	}
@@ -1082,31 +1096,31 @@ public class CodeGeneratorJ {
 	private static Writer writeMessageDerivedHeaderClass(Writer writer) throws IOException {
 		writeStaticClassDeclaration(writer, "Header", "quickfix.Message.Header");
 		writeSerializationVersion(writer, SERIALIZATION_VERSION);
-		writer.write(String.format("%n%spublic Header(Message msg) {%n%n%s}%n", indent(1), indent(1)));
+		writer.write(String.format("%n%spublic Header(Message msg) {%n%n%s}%n", CodeGeneratorUtil.indent(1), CodeGeneratorUtil.indent(1)));
 		writeEndClassDeclaration(writer);
 		return writer;
 	}
 
 	private static Writer writeMessageNoArgBaseConstructor(Writer writer, String className) throws IOException {
 		writer.write(
-				String.format("%n%spublic %s() {%n%sthis(null);%n%s}%n", indent(1), className, indent(2), indent(1)));
+				String.format("%n%spublic %s() {%n%sthis(null);%n%s}%n", CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
 	private static Writer writeMessageNoArgConstructor(Writer writer, String className) throws IOException {
 		writer.write(String.format(
 				"%n%spublic %s() {%n%ssuper();%n%sgetHeader().setField(new quickfix.field.MsgType(MSGTYPE));%n%s}%n",
-				indent(1), className, indent(2), indent(2), indent(1)));
+				CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
 	private static Writer writeMsgType(Writer writer, String msgType) throws IOException {
-		writer.write(String.format("%n%spublic static final String MSGTYPE = \"%s\";%n", indent(1), msgType));
+		writer.write(String.format("%n%spublic static final String MSGTYPE = \"%s\";%n", CodeGeneratorUtil.indent(1), msgType));
 		return writer;
 	}
 
 	private static Writer writeOrderFieldIds(Writer writer, List<Integer> componentFields) throws IOException {
-		writer.write(String.format("%Sprivate static final int[]  ORDER = {", indent(1)));
+		writer.write(String.format("%Sprivate static final int[]  ORDER = {", CodeGeneratorUtil.indent(1)));
 		for (final Integer fieldId : componentFields) {
 			writer.write(String.format("%d, ", fieldId));
 		}
@@ -1125,12 +1139,12 @@ public class CodeGeneratorJ {
 			throws IOException {
 		writer.write(String.format(
 				"%sprotected %s(int[] fieldOrder) {%n%ssuper(fieldOrder);%n%sheader = new Header(this);%n%strailer = new Trailer();%n%sgetHeader().setField(new BeginString(\"%s\"));%n%s}%n",
-				indent(1), className, indent(2), indent(2), indent(2), indent(2), beginString, indent(1)));
+				CodeGeneratorUtil.indent(1), className, CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), CodeGeneratorUtil.indent(2), beginString, CodeGeneratorUtil.indent(1)));
 		return writer;
 	}
 
 	private static Writer writeSerializationVersion(Writer writer, long serializationVersion) throws IOException {
-		writer.write(String.format("%sstatic final long serialVersionUID = %dL;%n", indent(1), serializationVersion));
+		writer.write(String.format("%sstatic final long serialVersionUID = %dL;%n", CodeGeneratorUtil.indent(1), serializationVersion));
 		return writer;
 	}
 
@@ -1142,21 +1156,21 @@ public class CodeGeneratorJ {
 	private static Writer writeValues(Writer writer, CodeSetType codeSet) throws IOException {
 		final String type = codeSet.getType();
 		for (final CodeType code : codeSet.getCode()) {
-			String name = CodeGeneratorTransformUtil.precedeCapsWithUnderscore(code.getName());
+			String name = CodeGeneratorUtil.precedeCapsWithUnderscore(code.getName());
 			switch (type) {
 			case "Boolean":
-				writer.write(String.format("%n%spublic static final boolean %s = %s;%n", indent(1), name,
+				writer.write(String.format("%n%spublic static final boolean %s = %s;%n", CodeGeneratorUtil.indent(1), name,
 						code.getValue().equals("Y")));
 				break;
 			case "char":
 				writer.write(
-						String.format("%n%spublic static final char %s = \'%s\';%n", indent(1), name, code.getValue()));
+						String.format("%n%spublic static final char %s = \'%s\';%n", CodeGeneratorUtil.indent(1), name, code.getValue()));
 				break;
 			case "int":
-				writer.write(String.format("%n%spublic static final int %s = %s;%n", indent(1), name, code.getValue()));
+				writer.write(String.format("%n%spublic static final int %s = %s;%n", CodeGeneratorUtil.indent(1), name, code.getValue()));
 				break;
 			default:
-				writer.write(String.format("%n%spublic static final String %s = \"%s\";%n", indent(1), name,
+				writer.write(String.format("%n%spublic static final String %s = \"%s\";%n", CodeGeneratorUtil.indent(1), name,
 						code.getValue()));
 			}
 

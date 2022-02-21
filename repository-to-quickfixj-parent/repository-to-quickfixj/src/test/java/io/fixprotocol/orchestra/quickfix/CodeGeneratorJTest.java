@@ -25,19 +25,19 @@ public class CodeGeneratorJTest {
   @Test void testTransformStaticFieldNameCarriedNonCustomerSideCrossMargined() {
       final String testInput = "CarriedNonCustomerSideCrossMargined";
       final String expectedResult = "CARRIED_NON_CUSTOMER_SIDE_CROSS_MARGINED";
-      assertEquals(expectedResult, CodeGeneratorTransformUtil.precedeCapsWithUnderscore(testInput) );
+      assertEquals(expectedResult, CodeGeneratorUtil.precedeCapsWithUnderscore(testInput) );
   }
   
   @Test void testTransformStaticFieldNameFIX50SP2() {
       final String testInput = "FIX50SP2";
       final String expectedResult = "FIX50SP2";
-      assertEquals(expectedResult, CodeGeneratorTransformUtil.precedeCapsWithUnderscore(testInput) );
+      assertEquals(expectedResult, CodeGeneratorUtil.precedeCapsWithUnderscore(testInput) );
   }
   
   @Test void testTransformStaticFieldNameFIX44() {
       final String testInput = "FIX44";
       final String expectedResult = "FIX44";
-      assertEquals(expectedResult, CodeGeneratorTransformUtil.precedeCapsWithUnderscore(testInput) );
+      assertEquals(expectedResult, CodeGeneratorUtil.precedeCapsWithUnderscore(testInput) );
   }
   
   @Test 
