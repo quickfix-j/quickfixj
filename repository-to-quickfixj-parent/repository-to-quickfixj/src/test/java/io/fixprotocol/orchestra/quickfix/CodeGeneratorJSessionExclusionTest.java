@@ -1,6 +1,7 @@
 package io.fixprotocol.orchestra.quickfix;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -18,6 +19,12 @@ import org.apache.commons.io.FileUtils;
 class CodeGeneratorJSessionExclusionTest {
 
 	private CodeGeneratorJ generator;
+	
+	private Set<String> sessionMessageBaseClasses = new HashSet<String>(Arrays.asList(
+			"Message.java",
+			"MessageFactory.java", 
+			"MessageCracker.java"));
+	
 	private Set<String> sessionMessageClasses = new HashSet<String>(Arrays.asList(
 		  "Logon.java" 
 		 ,"Logout.java" 
@@ -104,23 +111,36 @@ class CodeGeneratorJSessionExclusionTest {
 			,"XmlData.java"
 			,"XmlDataLen.java"));
 	
+	private Set<String> fieldClassesCommonToSessionAndNonSession  = new HashSet<String>(Arrays.asList(
+			"NoAttachments.java",
+			"UnencodedAttachmentLen.java",
+			"AttachmentEncodingType.java",
+			"AttachmentExternalURL.java",
+			"AttachmentClassification.java",
+			"EncodedAttachment.java",
+			"AttachmentKeyword.java",
+			"EncodedAttachmentLen.java",
+			"AttachmentName.java",
+			"AttachmentMediaType.java",
+			"NoAttachmentKeywords.java"));
+	
 	private Set<String> sessionGroups = new HashSet<String>(Arrays.asList(	
 			"HopGrp.java",
 			"MsgTypeGrp.java",
 			"AttachmentGrp.java",
 			"AttachmentKeywordGrp.java"));
 	
-	File withSessionInclusionLatest =    new File("target/spec/generated-sources/withSessionInclusion/latest/");
-	File withSessionInclusionFixLatest = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/fixlatest");
-	File withSessionInclusionFixLatestComponent = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/fixlatest/component");
-	File withSessionInclusionFixt11 = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/fixt11");
-	File withSessionInclusionFixt11Component = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/fixt11/component");
-	File withSessionInclusionField     = new File("target/spec/generated-sources/withSessionInclusion/latest/quickfix/field");
+	File withSessionInclusionLatest =    new File("target/spec/generated-sources/withSessionInclusion/");
+	File withSessionInclusionFixLatest = new File("target/spec/generated-sources/withSessionInclusion/quickfix/fixlatest");
+	File withSessionInclusionFixLatestComponent = new File("target/spec/generated-sources/withSessionInclusion/quickfix/fixlatest/component");
+	File withSessionInclusionFixt11 = new File("target/spec/generated-sources/withSessionInclusion/quickfix/fixt11");
+	File withSessionInclusionFixt11Component = new File("target/spec/generated-sources/withSessionInclusion/quickfix/fixt11/component");
+	File withSessionInclusionField     = new File("target/spec/generated-sources/withSessionInclusion/quickfix/field");
 
-	File withSessionExclusionLatest =    new File("target/spec/generated-sources/withSessionExclusion/latest/");
-	File withSessionExclusionFixLatest = new File("target/spec/generated-sources/withSessionExclusion/latest/quickfix/fixlatest");
-	File withSessionExclusionFixLatestComponent = new File("target/spec/generated-sources/withSessionExclusion/latest/quickfix/fixlatest/component");
-	File withSessionExclusionField     = new File("target/spec/generated-sources/withSessionExclusion/latest/quickfix/field");;
+	File withSessionExclusionLatest =    new File("target/spec/generated-sources/withSessionExclusion/");
+	File withSessionExclusionFixLatest = new File("target/spec/generated-sources/withSessionExclusion/quickfix/fixlatest");
+	File withSessionExclusionFixLatestComponent = new File("target/spec/generated-sources/withSessionExclusion/quickfix/fixlatest/component");
+	File withSessionExclusionField     = new File("target/spec/generated-sources/withSessionExclusion/quickfix/field");;
 	
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -146,7 +166,19 @@ class CodeGeneratorJSessionExclusionTest {
 	            withSessionInclusionLatest);
 	    // default should not exclude session files
 	    assertFixT11PackageGenerated(withSessionInclusionFixLatest, withSessionInclusionFixt11, withSessionInclusionFixt11Component, withSessionInclusionField);
-	    assertMessageBaseClassGenerated();
+	    assertMessageBaseClassesGenerated(withSessionInclusionFixLatest, withSessionInclusionFixLatestComponent);
+	    assertMessageBaseClassesGenerated(withSessionInclusionFixt11, withSessionInclusionFixt11Component);
+	}
+	
+	@Test
+	void assertOnlySessionGenerated() throws IOException {
+		generator.setGenerateOnlySession(true);
+		generator.generate(
+	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
+	            withSessionInclusionLatest);
+	    // default should not exclude session files
+		assertOnlySessionGenerated(withSessionInclusionFixLatest, withSessionInclusionFixt11, withSessionInclusionFixt11Component, withSessionInclusionField);
+	    assertMessageBaseClassesGenerated(withSessionInclusionFixt11, withSessionInclusionFixt11Component);
 	}
 	
 	@Test
@@ -154,6 +186,22 @@ class CodeGeneratorJSessionExclusionTest {
 		assertThrows(IllegalArgumentException.class, () -> {
 			generator.setExcludeSession(true);
 	    });
+		assertThrows(IllegalArgumentException.class, () -> {
+			generator.setExcludeSession(true);
+			generator.setGenerateFixt11Package(true);
+	    });
+	}
+	
+	@Test
+	void testMutuallyExclusiveSessionOptions() throws IOException {
+		assertThrows(IllegalArgumentException.class, () -> {
+			generator.setExcludeSession(true);
+			generator.setGenerateOnlySession(true);
+	    });
+		assertThrows(IllegalArgumentException.class, () -> {
+			generator.setGenerateOnlySession(true);
+			generator.setExcludeSession(true);
+		});
 	}
 	
 	@Test
@@ -172,16 +220,6 @@ class CodeGeneratorJSessionExclusionTest {
 		assertNoSessionOnlyFilesGenerated();
 	}
 
-
-	@Test
-	void testBaseClassGenerationFalse() throws IOException {
-		generator.setGenerateMessageBaseClass(false);
-		generator.generate(
-	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
-	            withSessionInclusionLatest);
-		assertMessageBaseClassNotGenerated();
-	}
-	
 	@Test
 	void testFixT11Generation() throws IOException {
 		generator.setGenerateFixt11Package(true);
@@ -197,7 +235,7 @@ class CodeGeneratorJSessionExclusionTest {
 		generator.generate(
 	            Thread.currentThread().getContextClassLoader().getResource("OrchestraFIXLatest.xml").openStream(),
 	            withSessionInclusionLatest);
-		assertMessageBaseClassGenerated();
+		assertMessageBaseClassesGenerated(withSessionInclusionFixLatest, withSessionInclusionFixLatestComponent);
 		assertFixT11PackageNotGenerated(withSessionInclusionFixLatest, withSessionInclusionFixLatestComponent, withSessionInclusionField);
 	}
 	
@@ -219,10 +257,10 @@ class CodeGeneratorJSessionExclusionTest {
 	    // following components should be under fixt11
 	    matchingFiles = componentsDirectory.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
-	            return name.equals("HopGrp.java") || name.equals("MsgTypeGrp.java");
+	            return sessionGroups.contains(name);
 	        }
 	    });
-	    assertEquals(2,matchingFiles.length);
+	    assertEquals(4,matchingFiles.length);
 	    //Fields
 	    matchingFiles = fieldsDirectory.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
@@ -232,15 +270,48 @@ class CodeGeneratorJSessionExclusionTest {
 	    assertEquals(sessionFieldClasses.size(), matchingFiles.length);
 	    assertSessionGroupCreated(componentsDirectory);
 	}
-
-	private void assertMessageBaseClassGenerated() {
-	    File[] matchingFiles = withSessionInclusionFixLatest.listFiles(new FilenameFilter() {
+	
+	private void assertOnlySessionGenerated(File messagesDirectory, File fixt11MessagesDirectory, File componentsDirectory, File fieldsDirectory) {
+		// Session file should be in fixt11 package 
+		File[] matchingFiles = fixt11MessagesDirectory.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
-	            return name.equals("Message.java");
+	            return sessionMessageClasses.contains(name);
 	        }
 	    });
-	    assertEquals(1,matchingFiles.length);
-	    matchingFiles = withSessionInclusionFixLatestComponent.listFiles(new FilenameFilter() {
+	    assertEquals(sessionMessageClasses.size(), matchingFiles.length);
+	    // fixlatest package not generated
+	    assertFalse(messagesDirectory.exists());
+
+	    // following components should be under fixt11
+	    matchingFiles = componentsDirectory.listFiles(new FilenameFilter() {
+	        public boolean accept(File dir, String name) {
+	            return sessionGroups.contains(name);
+	        }
+	    });
+	    assertEquals(4,matchingFiles.length);
+	    //Fields
+	    File[] foundFiles  = fieldsDirectory.listFiles();
+	    Set<String> found = new HashSet<String>();
+	    for (int i =0; i< foundFiles.length; i++) {
+	    	found.add(foundFiles[i].getName());
+	    }
+	    found.stream().forEach(f -> {System.out.printf("Found File %s%n", f);});
+	    found.removeAll(sessionFieldClasses);
+	    found.stream().forEach(f -> {System.out.printf("Superset %s%n", f);});
+
+	    assertEquals(sessionFieldClasses.size() + fieldClassesCommonToSessionAndNonSession.size(), foundFiles.length);
+	    assertEquals(sessionFieldClasses.size() + fieldClassesCommonToSessionAndNonSession.size(), foundFiles.length );
+	    assertSessionGroupCreated(componentsDirectory);
+	}
+
+	private void assertMessageBaseClassesGenerated(File messagesDirectory, File componentDirectory) {
+	    File[] matchingFiles = messagesDirectory.listFiles(new FilenameFilter() {
+	        public boolean accept(File dir, String name) {
+	            return sessionMessageBaseClasses.contains(name);
+	        }
+	    });
+	    assertEquals(3,matchingFiles.length);
+	    matchingFiles = componentDirectory.listFiles(new FilenameFilter() {
 	        public boolean accept(File dir, String name) {
 	            return name.equals("StandardHeader.java") || name.equals("StandardTrailer.java");
 	        }
@@ -248,20 +319,20 @@ class CodeGeneratorJSessionExclusionTest {
 	    assertEquals(0,matchingFiles.length);
 	}
 	
-	private void assertMessageBaseClassNotGenerated() {
-	    File[] matchingFiles = withSessionInclusionFixLatestComponent.listFiles(new FilenameFilter() {
-	        public boolean accept(File dir, String name) {
-	            return name.equals("Message.java");
-	        }
-	    });
-	    assertEquals(0,matchingFiles.length);
-	    matchingFiles = withSessionInclusionFixLatestComponent.listFiles(new FilenameFilter() {
-	        public boolean accept(File dir, String name) {
-	            return name.equals("StandardHeader.java") || name.equals("StandardTrailer.java");
-	        }
-	    });
-	    assertEquals(0,matchingFiles.length);
-	}
+//	private void assertMessageBaseClassNotGenerated() {
+//	    File[] matchingFiles = withSessionInclusionFixLatestComponent.listFiles(new FilenameFilter() {
+//	        public boolean accept(File dir, String name) {
+//	            return name.equals("Message.java");
+//	        }
+//	    });
+//	    assertEquals(0,matchingFiles.length);
+//	    matchingFiles = withSessionInclusionFixLatestComponent.listFiles(new FilenameFilter() {
+//	        public boolean accept(File dir, String name) {
+//	            return name.equals("StandardHeader.java") || name.equals("StandardTrailer.java");
+//	        }
+//	    });
+//	    assertEquals(0,matchingFiles.length);
+//	}
 	
 	private void assertFixT11PackageNotGenerated(File messagesDirectory, File componentDirectory, File fieldDirectory) {
 	    File[] matchingFiles = messagesDirectory.listFiles(new FilenameFilter() {

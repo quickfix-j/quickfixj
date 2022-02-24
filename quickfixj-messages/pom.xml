@@ -24,9 +24,9 @@
 			ordering affects the precendence of field generation from FIX Protocol Versions
 			ordering affects the pruning of generated sources and classes 
 			See the ./readme.md -->
+		<module>quickfixj-messages-fixt11</module>
 		<module>quickfixj-messages-all</module>
 		<module>quickfixj-messages-fixlatest</module>
-		<module>quickfixj-messages-fixt11</module>
 		<module>quickfixj-messages-fix50sp2</module>
 		<module>quickfixj-messages-fix50sp1</module>
 		<module>quickfixj-messages-fix50</module>

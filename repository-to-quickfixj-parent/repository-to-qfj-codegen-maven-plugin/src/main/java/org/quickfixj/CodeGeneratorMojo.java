@@ -36,8 +36,8 @@ public class CodeGeneratorMojo extends AbstractMojo {
 	/**
 	 * Determines if Message base class and Standard Header and Trailer are generated
 	 */
-	@Parameter(property = "generateMessageBaseClass", required = false)
-	boolean generateMessageBaseClass = true;
+	@Parameter(property = "generateOnlySession", required = false)
+	boolean generateOnlySession = false;
 			
 	/**
 	 * Determines if FIX Session Layer is generated in FIXT11 package
@@ -70,7 +70,7 @@ public class CodeGeneratorMojo extends AbstractMojo {
 
 		final CodeGeneratorJ generator = new CodeGeneratorJ();
 		generator.setGenerateBigDecimal(generateBigDecimal);
-		generator.setGenerateMessageBaseClass(generateMessageBaseClass);
+		generator.setGenerateOnlySession(generateOnlySession);
 		generator.setGenerateFixt11Package(generateFixt11Package);
 		generator.setExcludeSession(excludeSession);
 

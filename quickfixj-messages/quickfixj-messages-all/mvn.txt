@@ -1,0 +1,269 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< org.quickfixj:quickfixj-messages-all >----------------
+[INFO] Building QuickFIX/J Message classes for all FIX specs including Fix Latest 3.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ quickfixj-messages-all ---
+[INFO] Deleting F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:unpack (unpack-repository) @ quickfixj-messages-all ---
+[INFO] Configured Artifact: org.quickfixj:quickfixj-orchestration:3.0.0-SNAPSHOT:jar
+[INFO] Unpacking C:\Users\dave\.m2\repository\org\quickfixj\quickfixj-orchestration\3.0.0-SNAPSHOT\quickfixj-orchestration-3.0.0-SNAPSHOT.jar to F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\dependency\repository with includes "**/FIX*.xml,**/Orchestra*.xml" and excludes ""
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:unpack (unpack-fixt11-sources) @ quickfixj-messages-all ---
+[INFO] Configured Artifact: org.quickfixj:quickfixj-messages-fixt11:sources:3.0.0-SNAPSHOT:jar
+[INFO] Unpacking C:\Users\dave\.m2\repository\org\quickfixj\quickfixj-messages-fixt11\3.0.0-SNAPSHOT\quickfixj-messages-fixt11-3.0.0-SNAPSHOT-sources.jar to F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources with includes "" and excludes ""
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix40) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix40\src\main\resources\FIX40.xml
+[INFO] FIX40.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX40.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX40.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX40.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix41) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix41\src\main\resources\FIX41.xml
+[INFO] FIX41.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX41.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX41.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX41.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix42) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix42\src\main\resources\FIX42.xml
+[INFO] FIX42.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX42.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX42.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX42.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix43) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix43\src\main\resources\FIX43.xml
+[INFO] FIX43.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX43.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX43.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX43.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix44) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix44\src\main\resources\FIX44.modified.xml
+[INFO] FIX44.modified.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX44.modified.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX44.modified.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX44.modified.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix50) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix50\src\main\resources\FIX50.xml
+[INFO] FIX50.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX50.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX50.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX50.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix50sp1) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix50sp1\src\main\resources\FIX50SP1.modified.xml
+[INFO] FIX50SP1.modified.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX50SP1.modified.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX50SP1.modified.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX50SP1.modified.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- quickfixj-codegenerator:3.0.0-SNAPSHOT:generate (fix50sp2) @ quickfixj-messages-all ---
+[INFO] Successfully created an instance of the QuickFIX source generator
+[INFO] Initialising code generator task
+[INFO] Processing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-fix50sp2\src\main\resources\FIX50SP2.modified.xml
+[INFO] FIX50SP2.modified.xml: generating field classes in F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources/quickfix/field/
+[INFO] Loading predefined xslt file:Fields.xsl
+[INFO] FIX50SP2.modified.xml: generating message base class
+[INFO] Loading predefined xslt file:Message.xsl
+[INFO] Loading predefined xslt file:MessageFactory.xsl
+[INFO] Loading predefined xslt file:MessageCracker.xsl
+[INFO] FIX50SP2.modified.xml: generating component classes
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] FIX50SP2.modified.xml: generating message subclasses
+[INFO] Loading predefined xslt file:MessageSubclass.xsl
+[INFO] 
+[INFO] --- xml-maven-plugin:1.0.2:transform (MinimiseOrchestraRepo) @ quickfixj-messages-all ---
+[INFO] Transforming file: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\dependency\repository\OrchestraFIXLatest.xml
+[INFO] Transformed 1 file(s).
+[INFO] 
+[INFO] --- repository-to-qfj-codegen-maven-plugin:3.0.0-SNAPSHOT:codeGeneration (fixLatest) @ quickfixj-messages-all ---
+[INFO] Orchestration : F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-resources\min\OrchestraFIXLatest.xml
+[INFO] Output Directory : F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.8:run (default) @ quickfixj-messages-all ---
+[INFO] Executing tasks
+
+main:
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\ApplExtID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\ApplVerID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\BeginSeqNo.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\BeginString.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\BodyLength.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\BusinessRejectReason.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\CheckSum.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\CstmApplVerID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\DefaultApplVerID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\DeliverToCompID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\DeliverToLocationID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\DeliverToSubID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\EncryptMethod.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\EndSeqNo.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\GapFillFlag.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\HeartBtInt.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\LastMsgSeqNumProcessed.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\MessageEncoding.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\MsgSeqNum.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\MsgType.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\NewSeqNo.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\NextExpectedMsgSeqNum.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\NoHops.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\OnBehalfOfCompID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\OnBehalfOfLocationID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\OnBehalfOfSendingTime.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\OnBehalfOfSubID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\OrigSendingTime.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\PossDupFlag.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\PossResend.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\RefMsgType.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\RefSeqNum.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\RefTagID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\ResetSeqNumFlag.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SecureData.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SecureDataLen.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SenderCompID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SenderLocationID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SenderSubID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SendingTime.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SessionRejectReason.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\Signature.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\SignatureLength.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\TargetCompID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\TargetLocationID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\TargetSubID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\TestReqID.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\Text.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\XmlData.java
+   [delete] Deleting: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources\quickfix\field\XmlDataLen.java
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- build-helper-maven-plugin:3.0.0:add-source (default) @ quickfixj-messages-all ---
+[INFO] Source directory: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\generated-sources added.
+[INFO] 
+[INFO] --- maven-resources-plugin:3.1.0:resources (default-resources) @ quickfixj-messages-all ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO] Copying 2 resources
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO] Copying 1 resource
+[INFO] Copying 1 resource
+[INFO] Copying 1 resource
+[INFO] Copying 2 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.8.0:compile (default-compile) @ quickfixj-messages-all ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 2607 source files to F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\classes
+[INFO] 
+[INFO] --- maven-resources-plugin:3.1.0:testResources (default-testResources) @ quickfixj-messages-all ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\src\test\resources
+[INFO] Copying 1 resource
+[INFO] Copying 2 resources
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO] Copying 1 resource
+[INFO] Copying 1 resource
+[INFO] Copying 1 resource
+[INFO] skip non existing resourceDirectory F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\src\main\resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.8.0:testCompile (default-testCompile) @ quickfixj-messages-all ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 1 source file to F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.22.0:test (default-test) @ quickfixj-messages-all ---
+[WARNING] useSystemClassloader setting has no effect when not forking
+[INFO] Running quickfix.SerializationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.605 s - in quickfix.SerializationTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- maven-jar-plugin:3.2.0:jar (default-jar) @ quickfixj-messages-all ---
+[INFO] Building jar: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\quickfixj-messages-all-3.0.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- maven-javadoc-plugin:3.3.2:jar (attach-javadocs) @ quickfixj-messages-all ---
+[INFO] Skipping javadoc generation
+[INFO] 
+[INFO] --- maven-source-plugin:3.0.1:jar-no-fork (attach-sources) @ quickfixj-messages-all ---
+[INFO] Building jar: F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\quickfixj-messages-all-3.0.0-SNAPSHOT-sources.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.4:install (default-install) @ quickfixj-messages-all ---
+[INFO] Installing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\quickfixj-messages-all-3.0.0-SNAPSHOT.jar to C:\Users\dave\.m2\repository\org\quickfixj\quickfixj-messages-all\3.0.0-SNAPSHOT\quickfixj-messages-all-3.0.0-SNAPSHOT.jar
+[INFO] Installing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\pom.xml to C:\Users\dave\.m2\repository\org\quickfixj\quickfixj-messages-all\3.0.0-SNAPSHOT\quickfixj-messages-all-3.0.0-SNAPSHOT.pom
+[INFO] Installing F:\dev\git\quickfixj\quickfixj-messages\quickfixj-messages-all\target\quickfixj-messages-all-3.0.0-SNAPSHOT-sources.jar to C:\Users\dave\.m2\repository\org\quickfixj\quickfixj-messages-all\3.0.0-SNAPSHOT\quickfixj-messages-all-3.0.0-SNAPSHOT-sources.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:32 min
+[INFO] Finished at: 2022-02-24T12:35:21Z
+[INFO] ------------------------------------------------------------------------

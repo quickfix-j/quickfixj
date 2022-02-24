@@ -167,11 +167,15 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<includes>
-						<include>quickfix/**</include>
+						<include>quickfix/*</include>
 						<include>org/**</include>
 						<include>quickfix/field/*</include>
 						<include>quickfix/field/converter/*</include>
 					</includes>
+					<excludes>
+						<exclude>quickfix/fixt11</exclude>
+						<exclude>quickfix/fixlatest</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -179,11 +183,16 @@
 				<artifactId>maven-source-plugin</artifactId>
 				<configuration>
 					<includes>
-						<include>quickfix/**</include>
+						<include>quickfix/*</include>
+						<include>quickfix/mina/*</include>
 						<include>org/**</include>
 						<include>quickfix/field/*</include>
 						<include>quickfix/field/converter/*</include>
 					</includes>
+					<excludes>
+						<exclude>quickfix/fixt11</exclude>
+						<exclude>quickfix/fixlatest</exclude>
+					</excludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -197,9 +206,10 @@
 						</goals>
 						<configuration>
 							<!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
-							<skip>true</skip>
+							<!--  skip>true</skip -->
 							<source>8</source>
 							<sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
+							<excludePackageNames>quickfix.fixt11:quickfix.fixlatest</excludePackageNames>
 						</configuration>
 					</execution>
 				</executions>

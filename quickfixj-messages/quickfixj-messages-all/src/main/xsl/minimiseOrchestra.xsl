@@ -142,10 +142,13 @@
         match="fixr:messages/fixr:message[not(@id = '8' or
         									  @id = '12' or
         									  @id = '13' or
+        									  @id = '14' or
         									  @id = '26' or
         									  @id = '30' or
         									  @id = '31' or
         									  @id = '35' or
+        									  @id = '52' or
+        									  @id = '60' or
         									  @id = '90')]"/>
 
  	<!-- ******************************** -->
@@ -196,7 +199,8 @@
 	<xsl:template
         match="fixr:groups/fixr:group[(@id='1012')]/fixr:componentRef" />
     <xsl:template
-       	match="fixr:groups/fixr:group[(@id='1012')]/fixr:fieldRef[not(@id='448' or
+       	match="fixr:groups/fixr:group[(@id='1012')]/fixr:fieldRef[not(@id='447' or
+       																  @id='448' or
                                                                       @id='452')]" />
 
  	<!-- LinesOfTextGrp ______________ -->
@@ -281,6 +285,18 @@
     <xsl:template
         match="fixr:message[@id='13']/fixr:structure/fixr:fieldRef" />
 
+	<!--  ******* New Single Order : This is very much a hack just  to ensure that HandlInst gets included in the code gen 
+	      and overwrites legacy code gen, the orchestra code gen does not write fields that are not included in messages 
+	      or their group/components -->
+ 	<xsl:template
+        match="fixr:message[@id='14']/fixr:structure/fixr:componentRef[not(@id='1024' or
+                                                                           @id='1025')]" />
+    <xsl:template
+        match="fixr:message[@id='14']/fixr:structure/fixr:fieldRef[not(@id='21' or
+                                                                       @id='40')]" />
+    <xsl:template
+        match="fixr:message[@id='14']/fixr:structure/fixr:groupRef[not(@id='1012')]" />
+
     <!-- ******* QuoteRequest -->
  	<xsl:template
         match="fixr:message[@id='26']/fixr:structure/fixr:componentRef[not(@id='1024' or
@@ -318,6 +334,27 @@
         match="fixr:message[@id='35']/fixr:structure/fixr:groupRef" />
     <xsl:template
         match="fixr:message[@id='35']/fixr:structure/fixr:fieldRef" />
+        
+ 	<!-- ******* Cross Order -->
+ 	<xsl:template
+        match="fixr:message[@id='52']/fixr:structure/fixr:componentRef[not(@id='1003' or
+        															       @id='1024' or
+                                                                           @id='1025')]" />
+    <xsl:template
+        match="fixr:message[@id='52']/fixr:structure/fixr:groupRef[not(@id='2059')]" />
+    <xsl:template
+        match="fixr:message[@id='52']/fixr:structure/fixr:fieldRef[not(@id='548' or 
+        															   @id='549' or
+        															   @id='550')]" />        
+        															   
+	<!-- ******* Derivative Security List -->
+ 	<xsl:template
+        match="fixr:message[@id='60']/fixr:structure/fixr:componentRef[not(@id='1003' or
+                                                                           @id='1025')]" />
+    <xsl:template
+        match="fixr:message[@id='60']/fixr:structure/fixr:groupRef" />
+    <xsl:template
+        match="fixr:message[@id='60']/fixr:structure/fixr:fieldRef[not(@id='560')]" />  
 
  	<!-- ******* UserRequest -->
  	<xsl:template
