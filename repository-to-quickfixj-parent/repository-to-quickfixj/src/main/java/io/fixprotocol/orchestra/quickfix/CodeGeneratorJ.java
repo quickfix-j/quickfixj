@@ -301,24 +301,6 @@ public class CodeGeneratorJ {
 	}
 
 	/**
-	 * Excludes Session GroupType
-	 * @param nonSessionGroups 
-	 * @param groupList 
-	 * @return the GroupType that have been excluded
-	 */
-// TODO	
-//	private static Map<Integer, GroupType> excludeSessionGroups(Map<Integer, GroupType> sessionGroups, Map<Integer, GroupType> nonSessionGroups) {
-//		Map<Integer, GroupType> excludedGroups = new HashMap<Integer, GroupType>(); 
-//		for (final GroupType group : groups.values()) {
-//			if (GROUPS_EXCLUSIVE_TO_SESSION.contains(group.getId())) {
-//				excludedGroups.put(group.getId().intValue(), group);
-//			}
-//		}
-//		groups.keySet().removeAll(excludedGroups.keySet());
-//		return excludedGroups;
-//	}
-	
-	/**
 	 * Excludes Session messages
 	 * @param messageList 
 	 * @return the MessageTypes that have been excluded

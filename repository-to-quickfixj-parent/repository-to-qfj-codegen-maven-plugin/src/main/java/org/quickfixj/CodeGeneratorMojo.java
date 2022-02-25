@@ -3,6 +3,7 @@ package org.quickfixj;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -74,9 +75,9 @@ public class CodeGeneratorMojo extends AbstractMojo {
 		generator.setGenerateFixt11Package(generateFixt11Package);
 		generator.setExcludeSession(excludeSession);
 
-	    try {
-			generator.generate(new FileInputStream(orchestration), outputDirectory);
-		} catch (FileNotFoundException e) {
+	    try (FileInputStream inputFile = new FileInputStream(orchestration)) {
+			generator.generate(inputFile, outputDirectory);
+		} catch (IOException e) {
 			throw new MojoExecutionException(e.toString());
 		}
 	}

@@ -50,8 +50,8 @@ public class DictionaryGeneratorMojo extends AbstractMojo {
 		this.getLog().info(new StringBuilder("Output Directory : ").append(outputDirectory.getAbsolutePath()).toString());
 
 		final DataDictionaryGenerator generator = new DataDictionaryGenerator();
-	    try {
-			generator.generate(new FileInputStream(orchestration), outputDirectory);
+	    try (FileInputStream inputFile = new FileInputStream(orchestration)) {
+			generator.generate(inputFile, outputDirectory);
 		} catch (XPathExpressionException | JAXBException | IOException | ParserConfigurationException | SAXException  e) {
 			throw new MojoExecutionException(e.toString());
 		}

@@ -342,7 +342,7 @@ public class GenerateMojo extends AbstractMojo {
     }
 
     /**
-     * @param sets whether the code generator should overwrite existing files with the same name
+     * @param overwrite sets whether the code generator should overwrite existing files with the same name
      */
     public void setOverwrite(boolean overwrite) {
         this.overwrite = overwrite;
