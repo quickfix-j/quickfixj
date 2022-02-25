@@ -1,9 +1,4 @@
-name: "lgtm"
 
-on:
-  push:
-  pull_request:
-    types: [reopened, opened, synchronize]  
 extraction:
   java:
     before_index:
