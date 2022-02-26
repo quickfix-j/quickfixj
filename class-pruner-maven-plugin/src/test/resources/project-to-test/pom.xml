@@ -19,7 +19,7 @@
 					<classesDirectory>not-really-classes</classesDirectory>
 					<generatedSourcesDirectory>not-really-generated-sources</generatedSourcesDirectory>
 					<fileset>
-						<directory>target/test-classes/project-to-test/not-really-classes</directory>
+						<directory>target/test-classes/qfj-dictionaries</directory>
 						<includes>
 							<include>**/*.xml</include>
 						</includes>

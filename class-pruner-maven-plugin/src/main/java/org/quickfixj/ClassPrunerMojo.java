@@ -34,7 +34,7 @@ import org.xml.sax.SAXException;
  * Goal that prunes specified classes 
  * This is intended to be used before javadoc and packaging to reduce memory requirements and build time
  */
-@Mojo( name = "prune", defaultPhase = LifecyclePhase.PREPARE_PACKAGE )
+@Mojo( name = "prune", defaultPhase = LifecyclePhase.INSTALL )
 public class ClassPrunerMojo extends AbstractMojo {
     
     /**
