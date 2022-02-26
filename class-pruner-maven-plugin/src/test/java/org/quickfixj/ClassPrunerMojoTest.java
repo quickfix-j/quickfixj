@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.maven.plugin.testing.MojoRule;
-import org.apache.maven.plugin.testing.WithoutMojo;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,14 +117,5 @@ public class ClassPrunerMojoTest
         assertEquals(classesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries + 4); // plus 4 for the dictionary files that are not deleted
         assertEquals(generatedSourcesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries);
     }
-
-    /* Do not need the MojoRule.
-    @WithoutMojo
-    @Test
-    public void testSomethingWhichDoesNotNeedTheMojoAndProbablyShouldBeExtractedIntoANewClassOfItsOwn()
-    {
-        assertTrue( true );
-    }  */
-
 }
 
