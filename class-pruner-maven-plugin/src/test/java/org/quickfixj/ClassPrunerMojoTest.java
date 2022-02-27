@@ -288,6 +288,8 @@ public class ClassPrunerMojoTest
                                           "YieldRedemptionPrice",
                                           "YieldRedemptionPriceType",
                                           "YieldType"));
+    private File classesDirectory;
+    private File generatedSourcesDirectory;
     
     @Rule
     public MojoRule rule = new MojoRule()
@@ -305,11 +307,22 @@ public class ClassPrunerMojoTest
     
 	@After
 	public void clearDown() throws Exception {
-
+		ClassPrunerMojoTest.clearDownDirectory(generatedSourcesDirectory);
+		ClassPrunerMojoTest.clearDownDirectory(classesDirectory);
 	}
 	
+	private static void clearDownDirectory(File directory) throws Exception {
+		if (null != directory && directory.exists()) {
+			FileUtils.cleanDirectory(directory);
+		}
+		directory.delete();
+	}
 
     /**
+     * This test represents pruning Field classes that do not exist if FIX 5.0sp2 and earlier. 
+     * The inputs are QFJ dictionaries for FIX 5.0sp2 (and some earlier versions) and 
+     * directories that contain files with the names of Fields found in FIX Latest.
+     * The files for Fields found in FIX 5.0sp2 and earlier are retained, the excess files are pruned.  
      * @throws Exception if any
      */
     @Test
@@ -323,7 +336,7 @@ public class ClassPrunerMojoTest
         ClassPrunerMojo myMojo = ( ClassPrunerMojo ) rule.lookupConfiguredMojo( pom, "prune" );
         assertNotNull( myMojo );
 
-        File classesDirectory = ( File ) rule.getVariableValueFromObject( myMojo, "classesDirectory" );
+        classesDirectory = ( File ) rule.getVariableValueFromObject( myMojo, "classesDirectory" );
         assertNotNull( classesDirectory );
         if (!classesDirectory.exists()) {
         	classesDirectory.mkdirs();
@@ -333,7 +346,7 @@ public class ClassPrunerMojoTest
         createFilesForTest(classesList, classesDirectory, ".class");
         createFilesForTest(someFieldNamesThatShouldBePruned, classesDirectory, ".class");
 
-        File generatedSourcesDirectory = ( File ) rule.getVariableValueFromObject( myMojo, "generatedSourcesDirectory" );
+        generatedSourcesDirectory = ( File ) rule.getVariableValueFromObject( myMojo, "generatedSourcesDirectory" );
         assertNotNull( generatedSourcesDirectory );
         if (!generatedSourcesDirectory.exists()) {
         	generatedSourcesDirectory.mkdirs();
@@ -368,9 +381,6 @@ public class ClassPrunerMojoTest
         int numberOfFieldsFromTheCombinedDictionaries = 209;
         assertEquals(classesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries);
         assertEquals(generatedSourcesDirectory.list().length, numberOfFieldsFromTheCombinedDictionaries);
-        
-		FileUtils.cleanDirectory(generatedSourcesDirectory);
-		FileUtils.cleanDirectory(classesDirectory);
     }
 
 	private static void createFilesForTest(List<String> classesList, File classesDirectory, String extension) throws IOException {
