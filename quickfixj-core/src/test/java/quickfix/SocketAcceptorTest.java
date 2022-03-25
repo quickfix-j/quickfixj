@@ -375,7 +375,7 @@ public class SocketAcceptorTest {
         defaults.put("EndTime", "00:00:00");
         defaults.put("BeginString", "FIX.4.2");
         defaults.put("NonStopSession", "Y");
-        settings.setString(acceptorSessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        settings.setString(acceptorSessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         settings.setString(acceptorSessionID, "SocketAcceptPort", "10000");
         settings.set(defaults);
         return settings;
@@ -393,7 +393,7 @@ public class SocketAcceptorTest {
         defaults.put("ValidateUserDefinedFields", "Y");
         defaults.put("NonStopSession", "Y");
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
-        settings.setString(initiatorSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        settings.setString(initiatorSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         settings.setString(initiatorSessionID, "SocketConnectHost", "127.0.0.1");
         settings.setString(initiatorSessionID, "SocketConnectPort", "10000");
         settings.set(defaults);
