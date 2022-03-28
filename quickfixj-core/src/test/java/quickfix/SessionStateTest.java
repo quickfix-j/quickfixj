@@ -23,8 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class SessionStateTest  {
 
@@ -42,9 +41,25 @@ public class SessionStateTest  {
     }
 
     @Test
+    public void testMaxMessagesPendingResend() {
+        SessionState state = new SessionState(new Object(), null, 0, false, null,
+            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, 1);
+        Message message1 = new Message();
+        message1.getHeader().setString(35, "D");
+        Message message2 = new Message();
+        message2.getHeader().setString(35, "D");
+        state.enqueue(1, message1);
+        state.enqueue(2, message2);
+        assertNull(state.dequeue(2));
+        state.dequeue(1);
+        state.enqueue(2, message2);
+        assertNotNull(state.dequeue(2));
+    }
+
+    @Test
     public void testTimeoutDefaultsAreNonzero() {
         SessionState state = new SessionState(new Object(), null, 0, false, null,
-            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, Session.DEFAULT_MAX_MESSAGES_PENDING_RESEND);
         state.setLastReceivedTime(900);
         assertFalse("logon timeout not init'ed", state.isLogonTimedOut());
 
@@ -56,7 +71,7 @@ public class SessionStateTest  {
     @Test
     public void testTestRequestTiming() {
         SessionState state = new SessionState(new Object(), null, 0, false, null,
-            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, Session.DEFAULT_MAX_MESSAGES_PENDING_RESEND);
         state.setLastReceivedTime(950);
         state.setHeartBeatInterval(50);
         assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
@@ -74,7 +89,7 @@ public class SessionStateTest  {
     public void testHeartbeatTiming() {
         // we set a HB interval of 2 seconds = 2000ms
         SessionState state = new SessionState(new Object(), null, 2 /* HB interval */, false, null,
-                Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+                Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, Session.DEFAULT_MAX_MESSAGES_PENDING_RESEND);
 
         long now = System.currentTimeMillis();
         timeSource.setSystemTimes(now);
@@ -90,7 +105,7 @@ public class SessionStateTest  {
     @Test
     public void testSessionTimeout() {
         SessionState state = new SessionState(new Object(), null, 30, false, null,
-            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+            Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, Session.DEFAULT_MAX_MESSAGES_PENDING_RESEND);
 
         // session should timeout after 2.4 * 30 = 72 seconds
         state.setLastReceivedTime(950_000);

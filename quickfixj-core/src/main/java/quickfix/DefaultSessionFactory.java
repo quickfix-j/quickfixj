@@ -221,6 +221,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final SessionSchedule sessionSchedule = sessionScheduleFactory.create(sessionID, settings);
 
             final List<StringField> logonTags = getLogonTags(settings, sessionID);
+            final int maxMessagesQueuedWhilePendingResend = getSetting(settings, sessionID, Session.SETTING_MAX_MESSAGES_QUEUED_WHILE_PENDING_RESEND, 2000);
 
             final Session session = new Session(application, messageStoreFactory, sessionID,
                     dataDictionaryProvider, sessionSchedule, logFactory,
@@ -232,7 +233,7 @@ public class DefaultSessionFactory implements SessionFactory {
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup);
+                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup, maxMessagesQueuedWhilePendingResend);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);

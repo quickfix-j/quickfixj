@@ -59,6 +59,7 @@ public final class SessionState {
     private final double heartBeatTimeoutMultiplier;
     private long heartBeatMillis = Long.MAX_VALUE;
     private int heartBeatInterval;
+    private final int maxMessagesQueuedWhilePendingResend;
 
     private final ResendRange resendRange = new ResendRange();
     private boolean resetSent;
@@ -83,7 +84,7 @@ public final class SessionState {
     private final Map<Integer, Message> messageQueue = new LinkedHashMap<>();
 
     public SessionState(Object lock, Log log, int heartBeatInterval, boolean initiator, MessageStore messageStore,
-                        double testRequestDelayMultiplier, double heartBeatTimeoutMultiplier) {
+                        double testRequestDelayMultiplier, double heartBeatTimeoutMultiplier, int maxMessagesQueuedWhilePendingResend) {
         this.lock = lock;
         this.initiator = initiator;
         this.messageStore = messageStore;
@@ -91,6 +92,7 @@ public final class SessionState {
         this.log = log == null ? new NullLog() : log;
         this.testRequestDelayMultiplier = testRequestDelayMultiplier;
         this.heartBeatTimeoutMultiplier = heartBeatTimeoutMultiplier;
+        this.maxMessagesQueuedWhilePendingResend = maxMessagesQueuedWhilePendingResend;
     }
 
     public int getHeartBeatInterval() {
@@ -306,7 +308,9 @@ public final class SessionState {
     }
 
     public void enqueue(int sequence, Message message) {
-        messageQueue.put(sequence, message);
+        if (messageQueue.size() < maxMessagesQueuedWhilePendingResend || maxMessagesQueuedWhilePendingResend == -1) {
+            messageQueue.put(sequence, message);
+        }
     }
 
     public Message dequeue(int sequence) {
