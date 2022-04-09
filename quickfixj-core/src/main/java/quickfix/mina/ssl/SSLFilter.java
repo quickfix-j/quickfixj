@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * An extended SSL filter based on MINA {@link org.apache.mina.filter.ssl.SSLFilter} that applies
  * some adaptations.
  */
-public class SSLFilter extends org.apache.mina.filter.ssl.SSLFilter {
+public class SSLFilter extends org.apache.mina.filter.ssl.SslFilter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private boolean useSNI;
