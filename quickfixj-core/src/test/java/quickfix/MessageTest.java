@@ -63,7 +63,9 @@ import quickfix.field.MaturityMonthYear;
 import quickfix.field.MsgDirection;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.NoHops;
 import quickfix.field.NoOrders;
+import quickfix.field.NoSides;
 import quickfix.field.OrdStatus;
 import quickfix.field.OrdType;
 import quickfix.field.OrderID;
@@ -1967,6 +1969,82 @@ public class MessageTest {
                      "    <header/>\n" + "    <body>\n" +
                      "        <field tag=\"1\"><![CDATA[test-account]]></field>\n" + "    </body>\n" +
                      "    <trailer/>\n" + "</message>\n", xml);
+    }
+
+    @Test
+    public void testValidateFieldsOutOfOrder() throws Exception {
+        final DataDictionary sessDictionary = DataDictionaryTest.getDictionary("FIXT11.xml");
+        final DataDictionary appDictionary = DataDictionaryTest.getDictionary("FIX50SP2.xml");
+        assertNotNull(sessDictionary);
+        assertNotNull(appDictionary);
+
+        final String orderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u000134=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u00011128=9\u0001" +
+                "627=2\u0001" +
+                "628=HOPID1\u0001629=20220414-15:22:54\u0001" +
+                "628=HOPID2\u0001629=20220414-15:22:54\u0001" +
+                "15=AUD\u000122=4\u000131=27\u000132=5000.000000000000\u000148=AU000000ANZ3\u000155=ANZ\u000160=20220210-02:43:27.796\u000164=20220214\u000175=20220210\u0001106=4075\u0001167=CS\u0001381=135000\u0001461=Exxxxx\u0001487=0\u0001762=1\u0001880=7533509260093686098:0#NORMAL#1644451200000000000\u00011003=1120000338\u00011015=0\u00011301=XASX\u0001" +
+                "552=2\u0001" +
+                "54=1\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093758035\u0001" +
+                "54=2\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093757876\u0001" +
+                "10=129\u0001";
+        final TradeCaptureReport tcrOrdered = new TradeCaptureReport();
+        tcrOrdered.fromString(orderedData, sessDictionary, appDictionary, true);
+        DataDictionary.validate(tcrOrdered, sessDictionary, appDictionary);
+        // As this is our reference message created with all validations switched on, make sure some message components
+        // are as expected
+        assertEquals(tcrOrdered.getHeader().getGroupCount(NoHops.FIELD), 2);
+        assertEquals(tcrOrdered.getGroupCount(NoSides.FIELD), 2);
+
+        sessDictionary.setCheckFieldsOutOfOrder(false);
+        appDictionary.setCheckFieldsOutOfOrder(false);
+
+        String unorderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u0001" +
+                "15=AUD\u000122=4\u000131=27\u000132=5000.000000000000\u000148=AU000000ANZ3\u000155=ANZ\u000160=20220210-02:43:27.796\u000164=20220214\u000175=20220210\u0001106=4075\u0001167=CS\u0001381=135000\u0001461=Exxxxx\u0001487=0\u0001762=1\u0001880=7533509260093686098:0#NORMAL#1644451200000000000\u00011003=1120000338\u00011015=0\u00011301=XASX\u0001" +
+                "552=2\u0001" +
+                "54=1\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093758035\u0001" +
+                "54=2\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093757876\u0001" +
+                // Repeating Header Group, found just after a Repeating group within the body
+                "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001" +
+                "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u00011128=9\u0001" +
+                "10=129\u0001";
+        TradeCaptureReport tcrUnOrdered = new TradeCaptureReport();
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+
+        assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
+
+        unorderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u0001" +
+                "15=AUD\u000122=4\u000131=27\u000132=5000.000000000000\u000148=AU000000ANZ3\u000155=ANZ\u000160=20220210-02:43:27.796\u000164=20220214\u000175=20220210\u0001106=4075\u0001167=CS\u0001381=135000\u0001461=Exxxxx\u0001487=0\u0001762=1\u0001880=7533509260093686098:0#NORMAL#1644451200000000000\u00011003=1120000338\u00011015=0\u00011301=XASX\u0001" +
+                "552=2\u0001" +
+                "54=1\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093758035\u0001" +
+                "54=2\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093757876\u0001" +
+                // Header tag found just after Repeating group within the body
+                "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u00011128=9\u0001" +
+                "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001" +
+                "10=129\u0001";
+        tcrUnOrdered = new TradeCaptureReport();
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+
+        assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
+
+        unorderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u0001" +
+                "15=AUD\u000122=4\u000131=27\u000132=5000.000000000000\u000148=AU000000ANZ3\u000155=ANZ\u000160=20220210-02:43:27.796\u000164=20220214\u000175=20220210\u0001106=4075\u0001167=CS\u0001381=135000\u0001461=Exxxxx\u0001487=0\u0001762=1\u0001880=7533509260093686098:0#NORMAL#1644451200000000000\u00011003=1120000338\u00011015=0\u00011301=XASX\u0001" +
+                // Some Header fields found after body fields detected
+                "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u00011128=9\u0001" +
+                // Repeating Group
+                "552=2\u0001" +
+                "54=1\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093758035\u0001" +
+                "54=2\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u000111=7533509260093757876\u0001" +
+                // Some repeating Header tags
+                "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001" +
+                "10=129\u0001";
+        tcrUnOrdered = new TradeCaptureReport();
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+
+        assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
+
     }
 
     private void assertHeaderField(Message message, String expectedValue, int field)
