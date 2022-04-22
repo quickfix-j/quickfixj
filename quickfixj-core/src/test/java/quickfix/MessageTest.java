@@ -1978,7 +1978,9 @@ public class MessageTest {
         assertNotNull(sessDictionary);
         assertNotNull(appDictionary);
 
-        final String orderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u000134=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u00011128=9\u0001" +
+        final String orderedData = "8=FIXT.1.1\u00019=561\u000135=AE\u0001" +
+                "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u0001" +
+                "1128=9\u0001" +
                 "627=2\u0001" +
                 "628=HOPID1\u0001629=20220414-15:22:54\u0001" +
                 "628=HOPID2\u0001629=20220414-15:22:54\u0001" +
