@@ -2054,12 +2054,7 @@ public class MessageTest {
     @Test
     public void testValidateFieldsOutOfOrderPreFIXT11() throws Exception {
         final DataDictionary sessDictionary = DataDictionaryTest.getDictionary("FIX44.xml");
-        final DataDictionary appDictionary = sessDictionary;
         assertNotNull(sessDictionary);
-        assertEquals(sessDictionary.getVersion(), appDictionary.getVersion());
-
-        sessDictionary.setCheckFieldsOutOfOrder(true);
-        sessDictionary.setCheckUnorderedGroupFields(true);
 
         final String orderedData =
                 "8=FIX.4.4\u00019=551\u000135=AE\u0001"
@@ -2071,8 +2066,8 @@ public class MessageTest {
                         + "54=2\u000137=OrderID2\u000111=7533509260093757876\u0001453=1\u0001448=338-3\u0001447=D\u0001452=1\u00011=1040445\u0001576=1\u0001577=0\u0001"
                         + "10=191\u0001";
         final TradeCaptureReport tcrOrdered = new TradeCaptureReport();
-        tcrOrdered.fromString(orderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrOrdered, sessDictionary, appDictionary);
+        tcrOrdered.fromString(orderedData, sessDictionary, true);
+        DataDictionary.validate(tcrOrdered, sessDictionary, sessDictionary);
 
         // As this is our reference message created with all validations switched on,
         // make sure some message components
@@ -2092,8 +2087,8 @@ public class MessageTest {
                 + "34=545\u000149=SENDER\u000152=20220210-02:44:00.820\u000156=TARGET\u0001115=ON_BHEHALF\u0001"
                 + "10=191\u0001";
         TradeCaptureReport tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -2108,8 +2103,8 @@ public class MessageTest {
 
                 + "10=191\u0001";
         tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
@@ -2126,8 +2121,8 @@ public class MessageTest {
                 + "627=2\u0001628=HOPID1\u0001629=20220414-15:22:54\u0001628=HOPID2\u0001629=20220414-15:22:54\u0001"
                 + "10=191\u0001";
         tcrUnOrdered = new TradeCaptureReport();
-        tcrUnOrdered.fromString(unorderedData, sessDictionary, appDictionary, true);
-        DataDictionary.validate(tcrUnOrdered, sessDictionary, appDictionary);
+        tcrUnOrdered.fromString(unorderedData, sessDictionary, true);
+        DataDictionary.validate(tcrUnOrdered, sessDictionary, sessDictionary);
 
         assertEquals(tcrOrdered.toString(), tcrUnOrdered.toString());
 
