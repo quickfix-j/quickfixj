@@ -272,6 +272,7 @@ public abstract class SessionConnector implements Connector {
                 Thread.sleep(100L);
             } catch (InterruptedException e) {
                 log.error(e.getMessage(), e);
+                Thread.currentThread().interrupt();
             }
             final long elapsed = System.currentTimeMillis() - start;
             Iterator<Session> sessionItr = loggedOnSessions.iterator();
@@ -375,6 +376,7 @@ public abstract class SessionConnector implements Connector {
             try {
                 delegate.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -449,9 +451,10 @@ public abstract class SessionConnector implements Connector {
                     completed = closeFuture.await(1000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
-                }
-                if (!completed) {
-                    logger.warn("Could not close IoSession {}", ioSession);
+                } finally {
+                    if (!completed) {
+                        logger.warn("Could not close IoSession {}", ioSession);
+                    }
                 }
             }
         }

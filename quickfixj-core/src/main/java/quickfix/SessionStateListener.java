@@ -23,57 +23,58 @@ public interface SessionStateListener {
     /**
      * Called when connection has been established.
      */
-    default void onConnect() {
+    default void onConnect(SessionID sessionID) {
     }
 
     /**
      * Called when Exception occurs during connection establishment.
      *
+     * @param sessionID affected SessionID
      * @param exception thrown Exception
      */
-    default void onConnectException(Exception exception) {
+    default void onConnectException(SessionID sessionID, Exception exception) {
     }
 
     /**
      * Called when connection has been disconnected.
      */
-    default void onDisconnect() {
+    default void onDisconnect(SessionID sessionID) {
     }
 
     /**
      * Called when session has been logged on.
      */
-    default void onLogon() {
+    default void onLogon(SessionID sessionID) {
     }
 
     /**
      * Called when session has been logged out.
      */
-    default void onLogout() {
+    default void onLogout(SessionID sessionID) {
     }
 
     /**
      * Called when message store gets reset.
      */
-    default void onReset() {
+    default void onReset(SessionID sessionID) {
     }
 
     /**
      * Called when message store gets refreshed on Logon.
      */
-    default void onRefresh() {
+    default void onRefresh(SessionID sessionID) {
     }
 
     /**
      * Called when TestRequest is sent out due to missed Heartbeat.
      */
-    default void onMissedHeartBeat() {
+    default void onMissedHeartBeat(SessionID sessionID) {
     }
 
     /**
      * Called when Heartbeat timeout has been detected.
      */
-    default void onHeartBeatTimeout() {
+    default void onHeartBeatTimeout(SessionID sessionID) {
     }
 
     /**
@@ -84,7 +85,7 @@ public interface SessionStateListener {
      * @param currentEndSeqNo last seqnum of range that gets requested on
      * chunked ResendRequests
      */
-    default void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
+    default void onResendRequestSent(SessionID sessionID, int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
     }
 
     /**
@@ -93,7 +94,7 @@ public interface SessionStateListener {
      * @param newSeqNo NewSeqNo from SequenceReset
      * @param gapFillFlag GapFillFlag from SequenceReset
      */
-    default void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
+    default void onSequenceResetReceived(SessionID sessionID, int newSeqNo, boolean gapFillFlag) {
     }
 
     /**
@@ -102,7 +103,6 @@ public interface SessionStateListener {
      * @param beginSeqNo first seqnum that was requested
      * @param endSeqNo last seqnum that was requested
      */
-    default void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
+    default void onResendRequestSatisfied(SessionID sessionID, int beginSeqNo, int endSeqNo) {
     }
-
 }

@@ -23,58 +23,69 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class UnitTestApplication implements ApplicationExtended, SessionStateListener {
+
     private final Logger log = LoggerFactory.getLogger(UnitTestApplication.class);
 
-    public final List<Message> fromAppMessages = new ArrayList<>();
-    public final List<Message> toAppMessages = new ArrayList<>();
-    public final List<Message> fromAdminMessages = new ArrayList<>();
-    public final List<Message> toAdminMessages = new ArrayList<>();
-    public final List<SessionID> logonSessions = new ArrayList<>();
-    public final List<SessionID> logoutSessions = new ArrayList<>();
-    public final List<SessionID> createSessions = new ArrayList<>();
+    public final List<Message> fromAppMessages = Collections.synchronizedList(new ArrayList<>());
+    public final List<Message> toAppMessages = Collections.synchronizedList(new ArrayList<>());
+    public final List<Message> fromAdminMessages = Collections.synchronizedList(new ArrayList<>());
+    public final List<Message> toAdminMessages = Collections.synchronizedList(new ArrayList<>());
+    public final List<SessionID> logonSessions = Collections.synchronizedList(new ArrayList<>());
+    public final List<SessionID> logoutSessions = Collections.synchronizedList(new ArrayList<>());
+    public final List<SessionID> createSessions = Collections.synchronizedList(new ArrayList<>());
     public int sessionResets = 0;
 
+    @Override
     public boolean canLogon(SessionID sessionID) {
         return true;
     }
 
+    @Override
     public void fromApp(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         log.info("from app [{}] {}", sessionId, message);
         fromAppMessages.add(message);
     }
 
+    @Override
     public void toApp(Message message, SessionID sessionId) throws DoNotSend {
         log.info("to app [{}] {}", sessionId, message);
         toAppMessages.add(message);
     }
 
+    @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         log.info("from admin [{}] {}", sessionId, message);
         fromAdminMessages.add(message);
     }
 
+    @Override
     public void toAdmin(Message message, SessionID sessionId) {
         log.info("to admin [{}] {}", sessionId, message);
         toAdminMessages.add(message);
     }
 
+    @Override
     public void onBeforeSessionReset(SessionID sessionId) {
         log.info("onBeforeSessionReset [{}]", sessionId);
     }
 
+    @Override
     public void onLogout(SessionID sessionId) {
         logoutSessions.add(sessionId);
     }
 
+    @Override
     public void onLogon(SessionID sessionId) {
         logonSessions.add(sessionId);
     }
 
+    @Override
     public void onCreate(SessionID sessionId) {
         createSessions.add(sessionId);
     }
@@ -90,60 +101,35 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
     }
 
     public Message lastFromAppMessage() {
-        if (fromAppMessages.isEmpty())
+        if (fromAppMessages.isEmpty()) {
             return null;
+        }
         return fromAppMessages.get(fromAppMessages.size() - 1);
     }
 
     public Message lastFromAdminMessage() {
-        if (fromAdminMessages.isEmpty())
+        if (fromAdminMessages.isEmpty()) {
             return null;
+        }
         return fromAdminMessages.get(fromAdminMessages.size() - 1);
     }
 
     public Message lastToAppMessage() {
-        if (toAppMessages.isEmpty())
+        if (toAppMessages.isEmpty()) {
             return null;
+        }
         return toAppMessages.get(toAppMessages.size() - 1);
     }
 
     public Message lastToAdminMessage() {
-        if (toAdminMessages.isEmpty())
+        if (toAdminMessages.isEmpty()) {
             return null;
+        }
         return toAdminMessages.get(toAdminMessages.size() - 1);
     }
 
-    public void onConnect() {
-    }
-
-    public void onDisconnect() {
-    }
-
-    public void onLogon() {
-    }
-
-    public void onLogout() {
-    }
-
-    public void onReset() {
+    @Override
+    public void onReset(SessionID sessionID) {
         sessionResets++;
-    }
-
-    public void onRefresh() {
-    }
-
-    public void onMissedHeartBeat() {
-    }
-
-    public void onHeartBeatTimeout() {
-    }
-
-    public void onResendRequestSent(int beginSeqNo, int endSeqNo, int currentEndSeqNo) {
-    }
-
-    public void onSequenceResetReceived(int newSeqNo, boolean gapFillFlag) {
-    }
-
-    public void onResendRequestSatisfied(int beginSeqNo, int endSeqNo) {
     }
 }
