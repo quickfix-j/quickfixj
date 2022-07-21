@@ -680,6 +680,7 @@ public class CodeGeneratorJ {
 		case "Price":
 		case "Amt":
 		case "Qty":
+		case "float":
 		case "PriceOffset":
 			baseType = decimalTypeString;
 			break;
@@ -705,7 +706,6 @@ public class CodeGeneratorJ {
 		case "Boolean":
 			baseType = "BooleanField";
 			break;
-		case "float":
 		case "Percentage":
 			baseType = DOUBLE_FIELD;
 			break;
