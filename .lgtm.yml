@@ -2,7 +2,7 @@
 extraction:
   java:
     before_index:
-        - export MAVEN_OPTS="-Xms3g -Xmx5g"
+        - export MAVEN_OPTS="-Xms3g -Xmx5g -Djdk.xml.xpathExprGrpLimit=200 -Djdk.xml.xpathExprOpLimit=200"
     index:
         build_command:
-        - mvn -Djdk.xml.xpathExprGrpLimit=200 -Djdk.xml.xpathExprOpLimit=200 clean package -f "pom.xml" -Pminimal-fix-latest -B -V -e -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Dspotbugs.skip -Denforcer.skip -Dmaven.javadoc.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true -Dspotless.check.skip=true  -t /opt/work/.m2/toolchains.xml
+        - mvn clean package -f "pom.xml" -Pminimal-fix-latest -B -V -e -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Dspotbugs.skip -Denforcer.skip -Dmaven.javadoc.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true -Dspotless.check.skip=true  -t /opt/work/.m2/toolchains.xml

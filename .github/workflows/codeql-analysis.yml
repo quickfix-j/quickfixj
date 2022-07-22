@@ -60,9 +60,9 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
     - run: |
-        export MAVEN_OPTS='-Xms3g -Xmx6g'
+        export MAVEN_OPTS='-Xms3g -Xmx6g -Djdk.xml.xpathExprGrpLimit=200 -Djdk.xml.xpathExprOpLimit=200'
         echo $MAVEN_OPTS
-        mvn -Djdk.xml.xpathExprGrpLimit=200 -Djdk.xml.xpathExprOpLimit=200 clean package -Pminimal-fix-latest -f "pom.xml" -B -V -e -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Denforcer.skip -Dmaven.javadoc.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true
+        mvn clean package -Pminimal-fix-latest -f "pom.xml" -B -V -e -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Denforcer.skip -Dmaven.javadoc.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
