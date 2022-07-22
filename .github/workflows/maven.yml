@@ -28,4 +28,4 @@ jobs:
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms3g -Xmx5g"
-        run: mvn install  -B -V -Pminimal-fix-latest -Djdk.xml.xpathExprGrpLimit=0 -Djdk.xml.xpathExprOpLimit=0 -Djdk.xml.xpathTotalOpLimit=0 -D"maven.javadoc.skip=true" -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: mvn -Djdk.xml.xpathExprGrpLimit=200 -Djdk.xml.xpathExprOpLimit=200 install  -B -V -Pminimal-fix-latest -D"maven.javadoc.skip=true" -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
