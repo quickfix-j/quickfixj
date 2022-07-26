@@ -52,6 +52,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.mina.core.future.CloseFuture;
+import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.core.service.IoService;
 
 /**
