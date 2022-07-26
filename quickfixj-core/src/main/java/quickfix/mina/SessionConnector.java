@@ -454,9 +454,10 @@ public abstract class SessionConnector implements Connector {
                     completed = closeFuture.await(1000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
-                }
-                if (!completed) {
-                    logger.warn("Could not close IoSession {}", ioSession);
+                } finally {
+                    if (!completed) {
+                        logger.warn("Could not close IoSession {}", ioSession);
+                    }
                 }
             }
         }
