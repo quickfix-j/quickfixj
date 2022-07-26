@@ -442,6 +442,9 @@ public abstract class SessionConnector implements Connector {
      * @param logger used for logging WARNING when IoSession could not be closed
      */
     public static void closeManagedSessionsAndDispose(IoService ioService, boolean awaitTermination, Logger logger) {
+        if (ioService instanceof IoAcceptor) {
+            ((IoAcceptor) ioService).setCloseOnDeactivation(true);
+        }
         Map<Long, IoSession> managedSessions = ioService.getManagedSessions();
         for (IoSession ioSession : managedSessions.values()) {
             if (!ioSession.isClosing()) {
@@ -451,12 +454,14 @@ public abstract class SessionConnector implements Connector {
                     completed = closeFuture.await(1000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
-                } finally {
-                    if (!completed) {
-                        logger.warn("Could not close IoSession {}", ioSession);
-                    }
+                }
+                if (!completed) {
+                    logger.warn("Could not close IoSession {}", ioSession);
                 }
             }
+        }
+        if (ioService instanceof IoAcceptor) {
+            ((IoAcceptor) ioService).unbind();
         }
         if (!ioService.isDisposing()) {
             ioService.dispose(awaitTermination);
