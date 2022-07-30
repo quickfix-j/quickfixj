@@ -7,13 +7,6 @@ updates:
     directory: "/quickfixj-core" # Location of package manifests
     schedule:
       interval: "daily"
-
-
-# Set update schedule for GitHub Actions
-
-version: 2
-updates:
-
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
