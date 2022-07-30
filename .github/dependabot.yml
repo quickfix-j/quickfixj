@@ -4,7 +4,7 @@
 version: 2
 updates:
   - package-ecosystem: "maven" # See documentation for possible values
-    directory: "/quickfixj-core" # Location of package manifests
+    directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
   - package-ecosystem: "github-actions"
