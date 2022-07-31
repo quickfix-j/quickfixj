@@ -617,7 +617,7 @@ public class Session implements Closeable {
     private boolean isCurrentSession(final long time)
             throws IOException {
         return sessionSchedule == null || sessionSchedule.isSameSession(
-                SystemTime.getUtcCalendar(time), SystemTime.getUtcCalendar(state.getCreationTime()));
+                SystemTime.getUtcCalendar(time), state.getCreationTimeCalendar());
     }
 
     /**
