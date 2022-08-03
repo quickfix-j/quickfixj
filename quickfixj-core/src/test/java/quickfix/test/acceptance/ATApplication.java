@@ -38,6 +38,8 @@ public class ATApplication implements Application {
     private final MessageCracker outboundCracker = new MessageCracker(new Object());
     private boolean isLoggedOn;
 
+    private static int count = 0;
+
     public void onCreate(SessionID sessionID) {
         assertNoSessionLock(sessionID);
         Session.lookupSession(sessionID).reset();
@@ -81,6 +83,11 @@ public class ATApplication implements Application {
     public void fromAdmin(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, RejectLogon {
         assertNoSessionLock(sessionID);
+
+        if (count > 2) { // leave the logon and some heartbeats go through, then logout the session.
+            Session.lookupSession(sessionID).logout();
+        }
+        count++;
     }
 
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,

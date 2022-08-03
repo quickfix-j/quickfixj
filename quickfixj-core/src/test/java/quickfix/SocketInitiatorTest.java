@@ -527,8 +527,8 @@ public class SocketInitiatorTest {
         defaults.put("SocketConnectPort", Integer.toString(port));
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
-        defaults.put("HeartBtInt", "30");
-        defaults.put("ReconnectInterval", "2");
+        defaults.put("HeartBtInt", "2");
+        defaults.put("ReconnectInterval", "10");
         defaults.put("ResetOnLogon", "Y");
         defaults.put("FileStorePath", "target/data/client");
         defaults.put("ValidateUserDefinedFields", "Y");
@@ -703,6 +703,43 @@ public class SocketInitiatorTest {
         File path = File.createTempFile("test", "");
         File tempdir = path.getParentFile();
         return tempdir.getAbsolutePath();
+    }
+
+    @Test
+    public void testLogoutFromAcceptor() throws Exception {
+        final WriteCounter initiatorWriteCounter = new WriteCounter("initiator");
+        int freePort = AvailablePortFinder.getNextAvailable();
+        ServerThread serverThread = new ServerThread(freePort);
+        try {
+            serverThread.setDaemon(true);
+            serverThread.start();
+            serverThread.waitForInitialization();
+
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
+            ClientApplication clientApplication = new ClientApplication();
+            ThreadedSocketInitiator initiator = new ThreadedSocketInitiator(clientApplication,
+                new MemoryStoreFactory(), settings, new DefaultMessageFactory());
+            initiator.setIoFilterChainBuilder(chain -> chain.addLast("TestFilter", initiatorWriteCounter));
+
+            try {
+                log.info("Do first login");
+                initiator.start();
+
+                Thread.sleep(30000l);
+                // sleep for 30 seconds to let some heartbeats be sent.
+                // This will trigger at some point the logout from the acceptor.
+                // The acceptor will set the enabled flag to false, and the initiator will not be able to connect until a restart.
+                // Until the restart, each logon attempt will be rejected with the following message: "Logon rejected: quickfix.RejectLogon: Logon attempt when session is disabled"
+
+            } finally {
+                initiator.stop();
+            }
+        } finally {
+            serverThread.interrupt();
+            serverThread.join();
+        }
+
     }
 
 }
