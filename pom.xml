@@ -87,7 +87,7 @@
 		<maven-bundle-plugin-version>5.1.8</maven-bundle-plugin-version>
 		<maven-gpg-plugin-version>3.0.1</maven-gpg-plugin-version>
 		<maven-deploy-plugin-version>3.0.0</maven-deploy-plugin-version>
-		<nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
+		<nexus-staging-maven-plugin-version>1.6.13</nexus-staging-maven-plugin-version>
 		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
 	</properties>
 
