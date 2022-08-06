@@ -32,9 +32,9 @@ import java.util.TimeZone;
  */
 public class SystemTime {
     public static final TimeZone UTC_TIMEZONE = TimeZone.getTimeZone("UTC");
-    public static final Clock UTC_CLOCK = Clock.systemUTC();
+    private static final Clock UTC_CLOCK = Clock.systemUTC();
 
-    public static final SystemTimeSource UTC = new SystemTimeSource() {
+    static final SystemTimeSource UTC = new SystemTimeSource() {
         @Override
         public long getTime() {
             return System.currentTimeMillis();
