@@ -135,23 +135,23 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
      */
     public static LocalDateTime convertToLocalDateTime(String value) throws FieldConvertError {
         verifyFormat(value);
-        try {
-            int length = value.length();
-            int ns = 0;
-            if (length >= LENGTH_INCL_NANOS) {
-                ns = parseInt(value, 18, 9);
-            } else if (length == LENGTH_INCL_MICROS) {
-                ns = parseInt(value, 18, 6) * 1000;
-            } else if (length == LENGTH_INCL_MILLIS) {
-                ns = parseInt(value, 18, 3) * 1000000;
-            }
+        int length = value.length();
+        int ns = 0;
+        if (length >= LENGTH_INCL_NANOS) {
+            ns = parseInt(value, 18, 9);
+        } else if (length == LENGTH_INCL_MICROS) {
+            ns = parseInt(value, 18, 6) * 1000;
+        } else if (length == LENGTH_INCL_MILLIS) {
+            ns = parseInt(value, 18, 3) * 1000000;
+        }
     
-            int yy = parseInt(value, 0, 4);
-            int mm = parseInt(value, 4, 2);
-            int dd = parseInt(value, 6, 2);
-            int h = parseInt(value, 9, 2);
-            int m = parseInt(value, 12, 2);
-            int s = parseInt(value, 15, 2);
+        int yy = parseInt(value, 0, 4);
+        int mm = parseInt(value, 4, 2);
+        int dd = parseInt(value, 6, 2);
+        int h = parseInt(value, 9, 2);
+        int m = parseInt(value, 12, 2);
+        int s = parseInt(value, 15, 2);
+        try {
             return LocalDateTime.of(yy, mm, dd, h, m, s, ns);
         } catch (DateTimeException e) {
             throwFieldConvertError(value, TYPE);
