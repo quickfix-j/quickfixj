@@ -24,10 +24,10 @@ import quickfix.FieldConvertError;
 import quickfix.SystemTime;
 
 import java.text.DateFormat;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -136,25 +136,36 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     public static LocalDateTime convertToLocalDateTime(String value) throws FieldConvertError {
         verifyFormat(value);
         int length = value.length();
+        int ns = 0;
+        if (length >= LENGTH_INCL_NANOS) {
+            ns = parseInt(value, 18, 9);
+        } else if (length == LENGTH_INCL_MICROS) {
+            ns = parseInt(value, 18, 6) * 1000;
+        } else if (length == LENGTH_INCL_MILLIS) {
+            ns = parseInt(value, 18, 3) * 1000000;
+        }
+    
+        int yy = parseInt(value, 0, 4);
+        int mm = parseInt(value, 4, 2);
+        int dd = parseInt(value, 6, 2);
+        int h = parseInt(value, 9, 2);
+        int m = parseInt(value, 12, 2);
+        int s = parseInt(value, 15, 2);
         try {
-            switch (length) {
-                case LENGTH_INCL_SECONDS:
-                    return LocalDateTime.parse(value, FORMATTER_SECONDS);
-                case LENGTH_INCL_MILLIS:
-                    return LocalDateTime.parse(value, FORMATTER_MILLIS);
-                case LENGTH_INCL_MICROS:
-                    return LocalDateTime.parse(value, FORMATTER_MICROS);
-                case LENGTH_INCL_NANOS:
-                case LENGTH_INCL_PICOS:
-                    return LocalDateTime.parse(value.substring(0, LENGTH_INCL_NANOS), FORMATTER_NANOS);
-                default:
-                    throwFieldConvertError(value, TYPE);
-            }
-        } catch (DateTimeParseException e) {
+            return LocalDateTime.of(yy, mm, dd, h, m, s, ns);
+        } catch (DateTimeException e) {
             throwFieldConvertError(value, TYPE);
         }
         return null;
-    } 
+    }
+    
+    private static int parseInt(String value, int off, int len) {
+        int num = 0;
+        for (int index = 0; index < len; index++) {
+            num = (num * 10) + value.charAt(off + index) - '0';
+        }
+        return num;
+    }
 
     private static Long getMillisForDay(String value) {
         // Performance optimization: the calendar for the start of the day is cached.
