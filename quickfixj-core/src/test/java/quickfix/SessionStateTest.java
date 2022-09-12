@@ -74,7 +74,7 @@ public class SessionStateTest  {
     public void testHeartbeatTiming() {
         // we set a HB interval of 2 seconds = 2000ms
         SessionState state = new SessionState(new Object(), null, 2 /* HB interval */, false, null,
-                Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+                null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
 
         long now = System.currentTimeMillis();
         timeSource.setSystemTimes(now);
