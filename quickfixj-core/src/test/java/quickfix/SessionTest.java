@@ -94,7 +94,7 @@ public class SessionTest {
 
         final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
         final MessageQueue mockMessageQueue = mock(MessageQueue.class);
-        stub(mockMessageQueueFactory.create(sessionID)).toReturn(mockMessageQueue);
+        when(mockMessageQueueFactory.create(sessionID)).thenReturn(mockMessageQueue);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final CloseableLog mockLog = mock(CloseableLog.class);
@@ -138,7 +138,7 @@ public class SessionTest {
 
         final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
         final MessageQueue mockMessageQueue = mock(MessageQueue.class);
-        stub(mockMessageQueueFactory.create(sessionID)).toReturn(mockMessageQueue);
+        when(mockMessageQueueFactory.create(sessionID)).thenReturn(mockMessageQueue);
 
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final Log mockLog = mock(Log.class);
