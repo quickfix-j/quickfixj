@@ -3023,7 +3023,7 @@ public class SessionTest {
         setUpHeader(session.getSessionID(), receivedLogon, true, sequence);
         receivedLogon.setInt(HeartBtInt.FIELD, 30);
         receivedLogon.setInt(EncryptMethod.FIELD, 0);
-        receivedLogon.setBoolean(ResetSeqNumFlag.FIELD, true);
+        receivedLogon.setBoolean(ResetSeqNumFlag.FIELD, resetSeqNumFlag);
         receivedLogon.toString();   // calculate length and checksum
         session.next(receivedLogon);
     }
