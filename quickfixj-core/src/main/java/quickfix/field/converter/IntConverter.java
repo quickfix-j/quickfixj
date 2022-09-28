@@ -27,7 +27,7 @@ import quickfix.FieldConvertError;
 public final class IntConverter {
 
     /**
-     * Convert and integer to a String
+     * Convert an integer to a String
      *
      * @param i the integer to convert
      * @return the String representing the integer
@@ -42,7 +42,8 @@ public final class IntConverter {
      *
      * @param value the String to convert
      * @return the converted integer
-     * @throws FieldConvertError raised if the String does not represent a valid integer
+     * @throws FieldConvertError raised if the String does not represent a valid
+     * integer
      * @see java.lang.Integer#parseInt(String)
      */
     public static int convert(String value) throws FieldConvertError {
@@ -52,9 +53,41 @@ public final class IntConverter {
                     throw new FieldConvertError("invalid integral value: " + value);
                 }
             }
-            return Integer.parseInt(value);
+            return parseInt(value, 0, value.length());
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid integral value: " + value + ": " + e);
         }
+    }
+
+    /**
+     * Please note that input needs to be validated first, otherwise unexpected
+     * results may occur.
+     *
+     * @param value the String to convert
+     * @param off offset position from which String should be parsed
+     * @param len length to parse
+     * @return the converted int
+     */
+    static int parseInt(String value, int off, int len) {
+        int num = 0;
+        for (int index = 0; index < len; index++) {
+            num = (num * 10) + value.charAt(off + index) - '0';
+        }
+        return num;
+    }
+
+    /**
+     * Please note that input needs to be validated first, otherwise unexpected
+     * results may occur.
+     * 
+     * @param value the String to convert
+     * @return the converted long
+     */
+    static long parseLong(String value) {
+        long num = 0;
+        for (int index = 0; index < value.length(); index++) {
+            num = (num * 10) + (value.charAt(index) - '0');
+        }
+        return num;
     }
 }
