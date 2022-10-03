@@ -54,6 +54,7 @@ public final class IntConverter {
                 }
             }
             return parseInt(value, 0, value.length());
+//            return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid integral value: " + value + ": " + e);
         }
@@ -70,10 +71,16 @@ public final class IntConverter {
      */
     static int parseInt(String value, int off, int len) {
         int num = 0;
+        boolean negative = false;
         for (int index = 0; index < len; index++) {
-            num = (num * 10) + value.charAt(off + index) - '0';
+            final char charAt = value.charAt(off + index);
+            if (index == 0 && charAt == '-') {
+                negative = true;
+                continue;
+            }
+            num = (num * 10) + charAt - '0';
         }
-        return num;
+        return negative ? -num : num;
     }
 
     /**
@@ -85,9 +92,15 @@ public final class IntConverter {
      */
     static long parseLong(String value) {
         long num = 0;
+        boolean negative = false;
         for (int index = 0; index < value.length(); index++) {
+            final char charAt = value.charAt(index);
+            if (index == 0 && charAt == '-') {
+                negative = true;
+                continue;
+            }
             num = (num * 10) + (value.charAt(index) - '0');
         }
-        return num;
+        return negative ? -num : num;
     }
 }
