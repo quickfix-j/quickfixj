@@ -53,8 +53,7 @@ public final class IntConverter {
                     throw new FieldConvertError("invalid integral value: " + value);
                 }
             }
-            return parseInt(value, 0, value.length());
-//            return Integer.parseInt(value);
+            return Integer.parseInt(value);
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid integral value: " + value + ": " + e);
         }
@@ -62,7 +61,9 @@ public final class IntConverter {
 
     /**
      * Please note that input needs to be validated first, otherwise unexpected
-     * results may occur.
+     * results may occur. Please also note that this method has no range or overflow
+     * check, so please only use it when you are sure that no overflow might occur
+     * (e.g. for parsing seconds or smaller integers).
      *
      * @param value the String to convert
      * @param off offset position from which String should be parsed
@@ -85,7 +86,9 @@ public final class IntConverter {
 
     /**
      * Please note that input needs to be validated first, otherwise unexpected
-     * results may occur.
+     * results may occur. Please also note that this method has no range or overflow
+     * check, so please only use it when you are sure that no overflow might occur
+     * (e.g. for parsing seconds or smaller integers).
      * 
      * @param value the String to convert
      * @return the converted long
