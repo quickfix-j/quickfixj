@@ -27,6 +27,7 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
+import quickfix.field.ResetSeqNumFlag;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
 import quickfix.fix44.Logout;
@@ -2762,6 +2763,83 @@ public class SessionTest {
     }
 
     /**
+     * https://github.com/quickfix-j/quickfixj/issues/474
+     * */
+    @Test
+    public void msgseqnum_getting_reset_in_rejected_logon_scenario_fix() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication(){
+            int logonCount = 0;
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                if (message.getHeader().getString(MsgType.FIELD).equals(Logon.MSGTYPE)) {
+                    logonCount += 1;
+                }
+                if (logonCount == 2) {
+                    logonCount += 1;
+                    throw new RejectLogon("RejectLogon");
+                }
+            }
+        };
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        Session initSession = createSession(sessionID, application, true,
+                true, true);
+        final SessionState state = getSessionState(initSession);
+
+        final UnitTestResponder responder = new UnitTestResponder();
+
+        try{
+            initSession.setResponder(responder);
+            initSession.next();
+            logonTo(initSession);
+
+            Message logon = application.toAdminMessages.get(0);
+            assertEquals(MsgType.LOGON, logon.getHeader().getString(MsgType.FIELD));
+
+
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertTrue(initSession.isLoggedOn());
+
+            initSession.generateHeartbeat();
+            initSession.next(createHeartbeatMessage(2));
+            assertEquals(3, state.getNextSenderMsgSeqNum());
+
+            initSession.generateHeartbeat();
+            initSession.next(createHeartbeatMessage(3));
+            assertEquals(4, state.getNextSenderMsgSeqNum());
+
+            initSession.logout();
+            initSession.next();
+
+            assertEquals(5, state.getNextSenderMsgSeqNum());
+            assertEquals(4, state.getNextTargetMsgSeqNum());
+
+
+        } catch (Exception e) {
+            throw new Exception(e);}
+
+        try {
+            initSession.logon();
+
+            // logon message which will get rejected
+            initSession.next();
+            logonTo(initSession,1,true);
+
+        } catch (Exception e){
+            throw e;
+        }
+
+        assertEquals(6, state.getNextSenderMsgSeqNum());
+        assertEquals(4, state.getNextTargetMsgSeqNum());
+
+    }
+
+    /**
      * https://github.com/quickfix-j/quickfixj/issues/244
      * */
     @SuppressWarnings("SameParameterValue")
@@ -2941,6 +3019,18 @@ public class SessionTest {
         setUpHeader(session.getSessionID(), receivedLogon, true, sequence);
         receivedLogon.setInt(HeartBtInt.FIELD, 30);
         receivedLogon.setInt(EncryptMethod.FIELD, 0);
+        receivedLogon.toString();   // calculate length and checksum
+        session.next(receivedLogon);
+    }
+
+    private void logonTo(Session session, int sequence, boolean resetSeqNumFlag) throws FieldNotFound,
+            RejectLogon, IncorrectDataFormat, IncorrectTagValue,
+            UnsupportedMessageType, IOException, InvalidMessage {
+        final Logon receivedLogon = new Logon();
+        setUpHeader(session.getSessionID(), receivedLogon, true, sequence);
+        receivedLogon.setInt(HeartBtInt.FIELD, 30);
+        receivedLogon.setInt(EncryptMethod.FIELD, 0);
+        receivedLogon.setBoolean(ResetSeqNumFlag.FIELD, resetSeqNumFlag);
         receivedLogon.toString();   // calculate length and checksum
         session.next(receivedLogon);
     }

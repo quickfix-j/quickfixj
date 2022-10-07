@@ -1815,12 +1815,14 @@ public class Session implements Closeable {
                 return false;
             }
 
-            if (checkTooHigh && isTargetTooHigh(msgSeqNum)) {
-                doTargetTooHigh(msg);
-                return false;
-            } else if (checkTooLow && isTargetTooLow(msgSeqNum)) {
-                doTargetTooLow(msg);
-                return false;
+            if(!state.isResetReceived()){
+                if (checkTooHigh && isTargetTooHigh(msgSeqNum)) {
+                    doTargetTooHigh(msg);
+                    return false;
+                } else if (checkTooLow && isTargetTooLow(msgSeqNum)) {
+                    doTargetTooLow(msg);
+                    return false;
+                }
             }
 
             // Handle poss dup where msgSeq is as expected
@@ -2174,6 +2176,10 @@ public class Session implements Closeable {
             state.setResetReceived(true);
         }
 
+        if (!verify(logon, false, validateSequenceNumbers)) {
+            return;
+        }
+
         if (state.isResetReceived()) {
             getLog().onEvent("Logon contains ResetSeqNumFlag=Y, resetting sequence numbers to 1");
             if (!state.isResetSent()) {
@@ -2190,9 +2196,6 @@ public class Session implements Closeable {
             resetState();
         }
 
-        if (!verify(logon, false, validateSequenceNumbers)) {
-            return;
-        }
 
         // reset logout messages
         state.setLogoutReceived(false);
