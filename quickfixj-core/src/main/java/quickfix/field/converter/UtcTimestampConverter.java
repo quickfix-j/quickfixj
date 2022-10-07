@@ -1,4 +1,4 @@
-/** *****************************************************************************
+/*******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
  * This file is part of the QuickFIX FIX Engine
@@ -15,7 +15,7 @@
  *
  * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
- ***************************************************************************** */
+ ******************************************************************************/
 package quickfix.field.converter;
 
 import quickfix.UtcTimestampPrecision;
@@ -120,7 +120,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
         long timeOffset = getTimeOffsetSeconds(value);
         if (value.length() >= LENGTH_INCL_MILLIS) { // format has already been verified
             // accept up to picosenconds but parse only up to milliseconds
-            timeOffset += parseLong(value.substring(18, LENGTH_INCL_MILLIS));
+            timeOffset += IntConverter.parseLong(value.substring(18, LENGTH_INCL_MILLIS));
         }
         return new Date(getMillisForDay(value) + timeOffset);
     }
@@ -160,11 +160,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     }
     
     private static int parseInt(String value, int off, int len) {
-        int num = 0;
-        for (int index = 0; index < len; index++) {
-            num = (num * 10) + value.charAt(off + index) - '0';
-        }
-        return num;
+        return IntConverter.parseInt(value, off, len);
     }
 
     private static Long getMillisForDay(String value) {
@@ -173,9 +169,9 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     }
 
     private static long getTimeOffsetSeconds(String value) {
-        return (parseLong(value.substring(9, 11)) * 3600000L)
-                + (parseLong(value.substring(12, 14)) * 60000L)
-                + (parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
+        return (IntConverter.parseLong(value.substring(9, 11)) * 3600000L)
+                + (IntConverter.parseLong(value.substring(12, 14)) * 60000L)
+                + (IntConverter.parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
     }
 
     private static void verifyFormat(String value) throws FieldConvertError {
