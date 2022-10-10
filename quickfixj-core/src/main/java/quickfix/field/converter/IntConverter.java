@@ -20,6 +20,7 @@
 package quickfix.field.converter;
 
 import quickfix.FieldConvertError;
+import quickfix.NumbersCache;
 
 /**
  * Convert between an integer and a String
@@ -31,10 +32,10 @@ public final class IntConverter {
      *
      * @param i the integer to convert
      * @return the String representing the integer
-     * @see java.lang.Long#toString(long)
+     * @see NumbersCache#get(int) 
      */
     public static String convert(int i) {
-        return Long.toString(i);
+        return NumbersCache.get(i);
     }
 
     /**
