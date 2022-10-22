@@ -22,25 +22,25 @@ package quickfix.mina.initiator;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-public class ConnectionException extends IOException {
+public class ConnectException extends IOException {
 
     private final SocketAddress socketAddress;
 
-    public ConnectionException(SocketAddress socketAddress) {
+    public ConnectException(SocketAddress socketAddress) {
         this.socketAddress = socketAddress;
     }
 
-    public ConnectionException(String message, Throwable cause, SocketAddress socketAddress) {
+    public ConnectException(String message, Throwable cause, SocketAddress socketAddress) {
         super(message, cause);
         this.socketAddress = socketAddress;
     }
 
-    public ConnectionException(String message, SocketAddress socketAddress) {
+    public ConnectException(String message, SocketAddress socketAddress) {
         super(message);
         this.socketAddress = socketAddress;
     }
 
-    public ConnectionException(Throwable cause, SocketAddress socketAddress) {
+    public ConnectException(Throwable cause, SocketAddress socketAddress) {
         super(cause.getMessage(), cause);
         this.socketAddress = socketAddress;
     }
