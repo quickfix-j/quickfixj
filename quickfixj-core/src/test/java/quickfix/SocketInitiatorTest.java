@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
-import quickfix.mina.initiator.ConnectionException;
+import quickfix.mina.initiator.ConnectException;
 import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.StackTraceUtil;
@@ -237,7 +237,7 @@ public class SocketInitiatorTest {
     }
 
     @Test
-    public void testInitiatorConnectionException() throws Exception {
+    public void testInitiatorConnectException() throws Exception {
         // use a free port to make sure nothing is listening
         int freePort = AvailablePortFinder.getNextAvailable();
         Initiator initiator = null;
@@ -255,7 +255,7 @@ public class SocketInitiatorTest {
                 @Override
                 public void onConnectException(SessionID sessionID, Exception e) {
                     onConnectExceptionWasCalled.set(true);
-                    socketAddress.set(((ConnectionException) e).getSocketAddress());
+                    socketAddress.set(((ConnectException) e).getSocketAddress());
                 }
             };
             // add state listener on creation of Session
