@@ -261,7 +261,7 @@ public class IoSessionInitiator {
                 e = e.getCause();
             }
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
-            ConnectionException wrappedException = new ConnectionException(e, socketAddress);
+            ConnectException wrappedException = new ConnectException(e, socketAddress);
             if (e instanceof IOException) {
                 fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
                 fixSession.getStateListener().onConnectException(fixSession.getSessionID(), wrappedException);
