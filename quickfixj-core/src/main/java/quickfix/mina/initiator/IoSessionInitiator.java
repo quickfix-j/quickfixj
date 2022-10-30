@@ -264,11 +264,10 @@ public class IoSessionInitiator {
             ConnectException wrappedException = new ConnectException(e, socketAddress);
             if (e instanceof IOException) {
                 fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
-                fixSession.getStateListener().onConnectException(fixSession.getSessionID(), wrappedException);
             } else {
                 LogUtil.logThrowable(fixSession.getLog(), "Exception during connection to " + socketAddress + nextRetryMsg, e);
-                fixSession.getStateListener().onConnectException(fixSession.getSessionID(), wrappedException);
             }
+            fixSession.getStateListener().onConnectException(fixSession.getSessionID(), wrappedException);
             connectFuture = null;
         }
 
