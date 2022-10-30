@@ -32,19 +32,19 @@
 			<version>2.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>net.sf.saxon</groupId>
-			<artifactId>Saxon-HE</artifactId>
-			<version>9.9.1-8</version>
+		    <groupId>net.sf.saxon</groupId>
+		    <artifactId>Saxon-HE</artifactId>
+		    <version>11.4</version>
 		</dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<scope>test</scope>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+           <scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -70,10 +70,10 @@
 			<plugin>
 				<artifactId>maven-pmd-plugin</artifactId>
 			</plugin>
-						<plugin>
-								<artifactId>maven-plugin-plugin</artifactId>
-								<version>3.6.1</version>
-						</plugin>
+                        <plugin>
+                                <artifactId>maven-plugin-plugin</artifactId>
+                                <version>3.6.4</version>
+                        </plugin>
 		</plugins>
 	</build>
 </project>

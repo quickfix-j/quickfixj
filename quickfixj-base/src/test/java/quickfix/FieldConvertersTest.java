@@ -53,6 +53,8 @@ public class FieldConvertersTest {
 
     @Test
     public void testIntegerConversion() throws Exception {
+        String intMaxValuePlus3 = "2147483650";
+        String intMinValueMinus3 = "-2147483651";
         assertEquals("123", IntConverter.convert(123));
         assertEquals(123, IntConverter.convert("123"));
         assertEquals(-1, IntConverter.convert("-1"));
@@ -71,6 +73,20 @@ public class FieldConvertersTest {
         }
         try {
             IntConverter.convert("+200");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        // this should fail and not overflow
+        try {
+            IntConverter.convert(intMaxValuePlus3);
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        // this should fail and not overflow
+        try {
+            IntConverter.convert(intMinValueMinus3);
             fail();
         } catch (FieldConvertError e) {
             // expected

@@ -129,22 +129,10 @@
 		</dependency>
 	</dependencies>
 
-	<profiles>
-		<profile>
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
-			</properties>
-		</profile>
-	</profiles>
-
 	<build>
 		<plugins>
 			<!-- generate javadocs into apidocs folder -->
-			<!-- plugin>
+			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
 					<execution>
@@ -154,26 +142,26 @@
 							<goal>javadoc</goal>
 						</goals>
 						<configuration>
-							<additionalparam>${javadoc.opts}</additionalparam>
-							<includeDependencySources>true</includeDependencySources>
+							<doclint>none</doclint>
+							<includeDependencySources>false</includeDependencySources>
 							<dependencySourceIncludes>
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-codegenerator</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-dictgenerator</dependencySourceInclude>
-							</dependencySourceIncludes-->
+							</dependencySourceIncludes>
 							<!-- disable links otherwise it runs again on all modules and it's too slow -->
-							<!--  etectOfflineLinks>false</detectOfflineLinks>
+							<detectOfflineLinks>false</detectOfflineLinks>
 							<overview>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc_overview.html</overview>
-							<noindex>true</noindex -->
+							<noindex>true</noindex>
 							<!-- don't use custom stylesheet since it just breaks all style -->
-							<!-- stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile>
+							<!-- stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile -->
 							<show>protected</show>
 							<maxmemory>3g</maxmemory>
 							<breakiterator>true</breakiterator>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin -->
+			</plugin>
 			<!-- assemble the sources and bin distribution archives -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>

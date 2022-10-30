@@ -65,14 +65,6 @@ abstract class AbstractDateTimeConverter {
         throw new FieldConvertError("invalid UTC " + type + " value: " + value);
     }
 
-    protected static long parseLong(String s) {
-        long n = 0;
-        for (int i = 0; i < s.length(); i++) {
-            n = (n * 10) + (s.charAt(i) - '0');
-        }
-        return n;
-    }
-
     protected DateFormat createDateFormat(String format) {
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));

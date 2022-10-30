@@ -47,6 +47,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
+    private final MessageQueueFactory messageQueueFactory;
     private final LogFactory logFactory;
     private final MessageFactory messageFactory;
     private final SessionScheduleFactory sessionScheduleFactory;
@@ -55,6 +56,7 @@ public class DefaultSessionFactory implements SessionFactory {
             LogFactory logFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = new InMemoryMessageQueueFactory();
         this.logFactory = logFactory;
         this.messageFactory = new DefaultMessageFactory();
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
@@ -64,6 +66,7 @@ public class DefaultSessionFactory implements SessionFactory {
             LogFactory logFactory, MessageFactory messageFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = new InMemoryMessageQueueFactory();
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
@@ -74,6 +77,18 @@ public class DefaultSessionFactory implements SessionFactory {
                                  SessionScheduleFactory sessionScheduleFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = new InMemoryMessageQueueFactory();
+        this.logFactory = logFactory;
+        this.messageFactory = messageFactory;
+        this.sessionScheduleFactory = sessionScheduleFactory;
+    }
+
+    public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+                                 MessageQueueFactory messageQueueFactory, LogFactory logFactory,
+                                 MessageFactory messageFactory, SessionScheduleFactory sessionScheduleFactory) {
+        this.application = application;
+        this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = messageQueueFactory;
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = sessionScheduleFactory;
@@ -222,8 +237,8 @@ public class DefaultSessionFactory implements SessionFactory {
 
             final List<StringField> logonTags = getLogonTags(settings, sessionID);
 
-            final Session session = new Session(application, messageStoreFactory, sessionID,
-                    dataDictionaryProvider, sessionSchedule, logFactory,
+            final Session session = new Session(application, messageStoreFactory, messageQueueFactory,
+                    sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
                     resetOnLogon, resetOnLogout, resetOnDisconnect, refreshOnLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,

@@ -27,6 +27,7 @@ import quickfix.field.TestReqID;
 import quickfix.field.Text;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 import quickfix.field.converter.UtcTimestampConverter;
+import quickfix.field.ResetSeqNumFlag;
 import quickfix.fix44.Heartbeat;
 import quickfix.fix44.Logon;
 import quickfix.fix44.Logout;
@@ -92,12 +93,16 @@ public class SessionTest {
         final CloseableMessageStore mockMessageStore = mock(CloseableMessageStore.class);
         when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
 
+        final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
+        final MessageQueue mockMessageQueue = mock(MessageQueue.class);
+        when(mockMessageQueueFactory.create(sessionID)).thenReturn(mockMessageQueue);
+
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final CloseableLog mockLog = mock(CloseableLog.class);
         when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
-                mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
@@ -132,12 +137,16 @@ public class SessionTest {
         final MessageStore mockMessageStore = mock(MessageStore.class);
         when(mockMessageStoreFactory.create(sessionID)).thenReturn(mockMessageStore);
 
+        final MessageQueueFactory mockMessageQueueFactory = mock(MessageQueueFactory.class);
+        final MessageQueue mockMessageQueue = mock(MessageQueue.class);
+        when(mockMessageQueueFactory.create(sessionID)).thenReturn(mockMessageQueue);
+
         final LogFactory mockLogFactory = mock(LogFactory.class);
         final Log mockLog = mock(Log.class);
         when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
-                mockMessageStoreFactory, sessionID, null, null, mockLogFactory,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
@@ -1298,7 +1307,8 @@ public class SessionTest {
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
             final SessionState state = getSessionState(session);
-            
+            final InMemoryMessageQueue queue = (InMemoryMessageQueue) state.getMessageQueue();
+
             logonTo(session, 1);
             
             assertTrue(session.isLoggedOn());
@@ -1321,7 +1331,7 @@ public class SessionTest {
             assertEquals(52, state.getNextTargetMsgSeqNum());
             assertTrue(session.isLoggedOn());
             assertFalse(state.isResendRequested());
-            assertTrue(state.getQueuedSeqNums().isEmpty());
+            assertTrue(queue.getBackingMap().isEmpty());
         }
     }
 
@@ -1525,6 +1535,7 @@ public class SessionTest {
         try (Session session = setUpSession(application, false,
                 new UnitTestResponder())) {
             final SessionState state = getSessionState(session);
+            final InMemoryMessageQueue queue = (InMemoryMessageQueue) state.getMessageQueue();
             
             final int from = 10;
             int numberOfMsgs = 200;
@@ -1536,10 +1547,10 @@ public class SessionTest {
                 processMessage(session, createAppMessage(i));
             }
             for (int i = from; i < to; i++) {
-                assertTrue(state.getQueuedSeqNums().contains(i));
+                assertTrue(queue.getBackingMap().containsKey(i));
             }
 
-            assertEquals(state.getQueuedSeqNums().size(), numberOfMsgs);
+            assertEquals(queue.getBackingMap().size(), numberOfMsgs);
             assertTrue(application.fromAppMessages.isEmpty());
             // Create a sequence reset which will cause deletion of almost all
             // messages
@@ -1551,7 +1562,7 @@ public class SessionTest {
             assertEquals(application.fromAppMessages.size(), two);
             assertFalse(state.isResendRequested());
             assertTrue(session.isLoggedOn());
-            assertTrue(state.getQueuedSeqNums().isEmpty());
+            assertTrue(queue.getBackingMap().isEmpty());
         }
     }
 
@@ -2096,7 +2107,7 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
         try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2151,99 +2162,99 @@ public class SessionTest {
         }
     }
 
-    @Test
-    public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_the_last_message_resent()
-            throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
-            IncorrectTagValue, IncorrectDataFormat, NoSuchFieldException, IllegalAccessException {
-        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final boolean resetOnLogon = false;
-        final boolean validateSequenceNumbers = true;
+	@Test
+	public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_the_last_message_resent()
+			throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
+			IncorrectTagValue, IncorrectDataFormat, NoSuchFieldException, IllegalAccessException {
+		final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+		final boolean resetOnLogon = false;
+		final boolean validateSequenceNumbers = true;
 
-        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, null, null, null,
-                new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
-                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-                new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
+				sessionID, null, null, null,
+				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
+				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
+				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
-        Responder mockResponder = mock(Responder.class);
-        when(mockResponder.send(anyString())).thenReturn(true);
-        session.setResponder(mockResponder);
+		Responder mockResponder = mock(Responder.class);
+		when(mockResponder.send(anyString())).thenReturn(true);
+		session.setResponder(mockResponder);
 
-        session.logon();
-        session.next();
+		session.logon();
+		session.next();
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(mockResponder).send(messageCaptor.capture());
-        session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
-        MessageStore messageStore = session.getStore();
+		ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+		verify(mockResponder).send(messageCaptor.capture());
+		session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
+		MessageStore messageStore = session.getStore();
 
-        for (int i=messageStore.getNextSenderMsgSeqNum(); i<=5; i++) {
-            String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
-            messageStore.set(i, executionReportString);
-            messageStore.incrNextSenderMsgSeqNum();
-        }
+		for (int i=messageStore.getNextSenderMsgSeqNum(); i<=5; i++) {
+			String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
+			messageStore.set(i, executionReportString);
+			messageStore.incrNextSenderMsgSeqNum();
+		}
 
-        //simulate a bunch of admin messages that were not persisted
-        for (int i=0; i<5; i++)
-            messageStore.incrNextSenderMsgSeqNum();
+		//simulate a bunch of admin messages that were not persisted
+		for (int i=0; i<5; i++)
+			messageStore.incrNextSenderMsgSeqNum();
 
-        final Message resendRequest = createResendRequest(1, 1);
-        session.next(resendRequest);
+		final Message resendRequest = createResendRequest(1, 1);
+		session.next(resendRequest);
 
-        verify(mockResponder, times(7)).send(messageCaptor.capture());
-        Message lastGapFill = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size()-1));
-        assertEquals("4", lastGapFill.getHeader().getString(MsgType.FIELD));
-        assertEquals(lastGapFill.getHeader().getString(MsgSeqNum.FIELD), "6");
-    }
+		verify(mockResponder, times(7)).send(messageCaptor.capture());
+		Message lastGapFill = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size()-1));
+		assertEquals("4", lastGapFill.getHeader().getString(MsgType.FIELD));
+		assertEquals(lastGapFill.getHeader().getString(MsgSeqNum.FIELD), "6");
+	}
 
-    @Test
-    public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_last_message_resent_when_enableNextExpectedMsgSeqNum_is_true()
-            throws FieldNotFound, InvalidMessage, IOException, RejectLogon, IncorrectDataFormat, IncorrectTagValue,
-            UnsupportedMessageType {
-        boolean enableNextExpectedMsgSeqNum = true;
+	@Test
+	public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_last_message_resent_when_enableNextExpectedMsgSeqNum_is_true()
+			throws FieldNotFound, InvalidMessage, IOException, RejectLogon, IncorrectDataFormat, IncorrectTagValue,
+			UnsupportedMessageType {
+		boolean enableNextExpectedMsgSeqNum = true;
 
-        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
-        final boolean resetOnLogon = false;
-        final boolean validateSequenceNumbers = true;
+		final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+		final boolean resetOnLogon = false;
+		final boolean validateSequenceNumbers = true;
 
-        Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, null, null, null,
-                new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
-                false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
-                new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
+				sessionID, null, null, null,
+				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
+				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
+				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
 
-        Responder mockResponder = mock(Responder.class);
-        when(mockResponder.send(anyString())).thenReturn(true);
-        session.setResponder(mockResponder);
+		Responder mockResponder = mock(Responder.class);
+		when(mockResponder.send(anyString())).thenReturn(true);
+		session.setResponder(mockResponder);
 
-        session.logon();
-        session.next();
+		session.logon();
+		session.next();
 
-        ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
-        verify(mockResponder).send(messageCaptor.capture());
-        session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
-        MessageStore messageStore = session.getStore();
+		ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
+		verify(mockResponder).send(messageCaptor.capture());
+		session.next(createLogonResponse(sessionID, new Message(messageCaptor.getValue()), 101));
+		MessageStore messageStore = session.getStore();
 
-        for (int i=messageStore.getNextSenderMsgSeqNum(); i<=5; i++) {
-            String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
-            messageStore.set(i, executionReportString);
-            messageStore.incrNextSenderMsgSeqNum();
-        }
+		for (int i=messageStore.getNextSenderMsgSeqNum(); i<=5; i++) {
+			String executionReportString = "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=" + i + "\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001";
+			messageStore.set(i, executionReportString);
+			messageStore.incrNextSenderMsgSeqNum();
+		}
 
-        //simulate a bunch of admin messages that were not persisted
-        for (int i=0; i<5; i++)
-            messageStore.incrNextSenderMsgSeqNum();
+		//simulate a bunch of admin messages that were not persisted
+		for (int i=0; i<5; i++)
+			messageStore.incrNextSenderMsgSeqNum();
 
-        final Message resendRequest = createResendRequest(1, 1);
-        session.next(resendRequest);
+		final Message resendRequest = createResendRequest(1, 1);
+		session.next(resendRequest);
 
-        verify(mockResponder, times(7)).send(messageCaptor.capture());
-        Message lastGapFill = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size()-1));
-        assertEquals("4", lastGapFill.getHeader().getString(MsgType.FIELD));
-        assertEquals(lastGapFill.getHeader().getString(MsgSeqNum.FIELD), "6");
-    }
+		verify(mockResponder, times(7)).send(messageCaptor.capture());
+		Message lastGapFill = new Message(messageCaptor.getAllValues().get(messageCaptor.getAllValues().size()-1));
+		assertEquals("4", lastGapFill.getHeader().getString(MsgType.FIELD));
+		assertEquals(lastGapFill.getHeader().getString(MsgSeqNum.FIELD), "6");
+	}
 
     @Test
     // QFJ-795
@@ -2255,7 +2266,7 @@ public class SessionTest {
         final boolean disconnectOnError = true;
 
         try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2291,7 +2302,7 @@ public class SessionTest {
         UnitTestApplication unitTestApplication = new UnitTestApplication();
 
         try (Session session = new Session(unitTestApplication,
-                new MemoryStoreFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
@@ -2344,7 +2355,7 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
         final UnitTestApplication unitTestApplication = new UnitTestApplication();
 
-        Session session = new Session(unitTestApplication, new MemoryStoreFactory(),
+        Session session = new Session(unitTestApplication, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
                 sessionID, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
@@ -2460,7 +2471,7 @@ public class SessionTest {
             }
         };
 
-        Session session = new Session(app, new MemoryStoreFactory(),
+        Session session = new Session(app, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
                 sessionID, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
@@ -2752,6 +2763,83 @@ public class SessionTest {
     }
 
     /**
+     * https://github.com/quickfix-j/quickfixj/issues/474
+     * */
+    @Test
+    public void msgseqnum_getting_reset_in_rejected_logon_scenario_fix() throws Exception {
+
+        final UnitTestApplication application = new UnitTestApplication(){
+            int logonCount = 0;
+            @Override
+            public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                super.fromAdmin(message, sessionId);
+                if (message.getHeader().getString(MsgType.FIELD).equals(Logon.MSGTYPE)) {
+                    logonCount += 1;
+                }
+                if (logonCount == 2) {
+                    logonCount += 1;
+                    throw new RejectLogon("RejectLogon");
+                }
+            }
+        };
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+
+        Session initSession = createSession(sessionID, application, true,
+                true, true);
+        final SessionState state = getSessionState(initSession);
+
+        final UnitTestResponder responder = new UnitTestResponder();
+
+        try{
+            initSession.setResponder(responder);
+            initSession.next();
+            logonTo(initSession);
+
+            Message logon = application.toAdminMessages.get(0);
+            assertEquals(MsgType.LOGON, logon.getHeader().getString(MsgType.FIELD));
+
+
+            assertEquals(2, state.getNextSenderMsgSeqNum());
+            assertTrue(initSession.isLoggedOn());
+
+            initSession.generateHeartbeat();
+            initSession.next(createHeartbeatMessage(2));
+            assertEquals(3, state.getNextSenderMsgSeqNum());
+
+            initSession.generateHeartbeat();
+            initSession.next(createHeartbeatMessage(3));
+            assertEquals(4, state.getNextSenderMsgSeqNum());
+
+            initSession.logout();
+            initSession.next();
+
+            assertEquals(5, state.getNextSenderMsgSeqNum());
+            assertEquals(4, state.getNextTargetMsgSeqNum());
+
+
+        } catch (Exception e) {
+            throw new Exception(e);}
+
+        try {
+            initSession.logon();
+
+            // logon message which will get rejected
+            initSession.next();
+            logonTo(initSession,1,true);
+
+        } catch (Exception e){
+            throw e;
+        }
+
+        assertEquals(6, state.getNextSenderMsgSeqNum());
+        assertEquals(4, state.getNextTargetMsgSeqNum());
+
+    }
+
+    /**
      * https://github.com/quickfix-j/quickfixj/issues/244
      * */
     @SuppressWarnings("SameParameterValue")
@@ -2931,6 +3019,18 @@ public class SessionTest {
         setUpHeader(session.getSessionID(), receivedLogon, true, sequence);
         receivedLogon.setInt(HeartBtInt.FIELD, 30);
         receivedLogon.setInt(EncryptMethod.FIELD, 0);
+        receivedLogon.toString();   // calculate length and checksum
+        session.next(receivedLogon);
+    }
+
+    private void logonTo(Session session, int sequence, boolean resetSeqNumFlag) throws FieldNotFound,
+            RejectLogon, IncorrectDataFormat, IncorrectTagValue,
+            UnsupportedMessageType, IOException, InvalidMessage {
+        final Logon receivedLogon = new Logon();
+        setUpHeader(session.getSessionID(), receivedLogon, true, sequence);
+        receivedLogon.setInt(HeartBtInt.FIELD, 30);
+        receivedLogon.setInt(EncryptMethod.FIELD, 0);
+        receivedLogon.setBoolean(ResetSeqNumFlag.FIELD, resetSeqNumFlag);
         receivedLogon.toString();   // calculate length and checksum
         session.next(receivedLogon);
     }

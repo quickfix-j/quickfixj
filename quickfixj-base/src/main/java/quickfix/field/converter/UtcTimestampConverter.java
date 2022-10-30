@@ -1,4 +1,4 @@
-/** *****************************************************************************
+/*******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
  *
  * This file is part of the QuickFIX FIX Engine
@@ -15,7 +15,7 @@
  *
  * Contact ask@quickfixengine.org if any conditions of this licensing
  * are not clear to you.
- ***************************************************************************** */
+ ******************************************************************************/
 package quickfix.field.converter;
 
 import quickfix.UtcTimestampPrecision;
@@ -24,10 +24,10 @@ import quickfix.FieldConvertError;
 import quickfix.SystemTime;
 
 import java.text.DateFormat;
+import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -120,7 +120,7 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
         long timeOffset = getTimeOffsetSeconds(value);
         if (value.length() >= LENGTH_INCL_MILLIS) { // format has already been verified
             // accept up to picosenconds but parse only up to milliseconds
-            timeOffset += parseLong(value.substring(18, LENGTH_INCL_MILLIS));
+            timeOffset += IntConverter.parseLong(value.substring(18, LENGTH_INCL_MILLIS));
         }
         return new Date(getMillisForDay(value) + timeOffset);
     }
@@ -136,25 +136,32 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     public static LocalDateTime convertToLocalDateTime(String value) throws FieldConvertError {
         verifyFormat(value);
         int length = value.length();
+        int ns = 0;
+        if (length >= LENGTH_INCL_NANOS) {
+            ns = parseInt(value, 18, 9);
+        } else if (length == LENGTH_INCL_MICROS) {
+            ns = parseInt(value, 18, 6) * 1000;
+        } else if (length == LENGTH_INCL_MILLIS) {
+            ns = parseInt(value, 18, 3) * 1000000;
+        }
+    
+        int yy = parseInt(value, 0, 4);
+        int mm = parseInt(value, 4, 2);
+        int dd = parseInt(value, 6, 2);
+        int h = parseInt(value, 9, 2);
+        int m = parseInt(value, 12, 2);
+        int s = parseInt(value, 15, 2);
         try {
-            switch (length) {
-                case LENGTH_INCL_SECONDS:
-                    return LocalDateTime.parse(value, FORMATTER_SECONDS);
-                case LENGTH_INCL_MILLIS:
-                    return LocalDateTime.parse(value, FORMATTER_MILLIS);
-                case LENGTH_INCL_MICROS:
-                    return LocalDateTime.parse(value, FORMATTER_MICROS);
-                case LENGTH_INCL_NANOS:
-                case LENGTH_INCL_PICOS:
-                    return LocalDateTime.parse(value.substring(0, LENGTH_INCL_NANOS), FORMATTER_NANOS);
-                default:
-                    throwFieldConvertError(value, TYPE);
-            }
-        } catch (DateTimeParseException e) {
+            return LocalDateTime.of(yy, mm, dd, h, m, s, ns);
+        } catch (DateTimeException e) {
             throwFieldConvertError(value, TYPE);
         }
         return null;
-    } 
+    }
+    
+    private static int parseInt(String value, int off, int len) {
+        return IntConverter.parseInt(value, off, len);
+    }
 
     private static Long getMillisForDay(String value) {
         // Performance optimization: the calendar for the start of the day is cached.
@@ -162,9 +169,9 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
     }
 
     private static long getTimeOffsetSeconds(String value) {
-        return (parseLong(value.substring(9, 11)) * 3600000L)
-                + (parseLong(value.substring(12, 14)) * 60000L)
-                + (parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
+        return (IntConverter.parseLong(value.substring(9, 11)) * 3600000L)
+                + (IntConverter.parseLong(value.substring(12, 14)) * 60000L)
+                + (IntConverter.parseLong(value.substring(15, LENGTH_INCL_SECONDS)) * 1000L);
     }
 
     private static void verifyFormat(String value) throws FieldConvertError {

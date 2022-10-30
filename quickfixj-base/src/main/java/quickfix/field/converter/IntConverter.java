@@ -27,7 +27,7 @@ import quickfix.FieldConvertError;
 public final class IntConverter {
 
     /**
-     * Convert and integer to a String
+     * Convert an integer to a String
      *
      * @param i the integer to convert
      * @return the String representing the integer
@@ -42,7 +42,8 @@ public final class IntConverter {
      *
      * @param value the String to convert
      * @return the converted integer
-     * @throws FieldConvertError raised if the String does not represent a valid integer
+     * @throws FieldConvertError raised if the String does not represent a valid
+     * integer
      * @see java.lang.Integer#parseInt(String)
      */
     public static int convert(String value) throws FieldConvertError {
@@ -56,5 +57,53 @@ public final class IntConverter {
         } catch (NumberFormatException e) {
             throw new FieldConvertError("invalid integral value: " + value + ": " + e);
         }
+    }
+
+    /**
+     * Please note that input needs to be validated first, otherwise unexpected
+     * results may occur. Please also note that this method has no range or overflow
+     * check, so please only use it when you are sure that no overflow might occur
+     * (e.g. for parsing seconds or smaller integers).
+     *
+     * @param value the String to convert
+     * @param off offset position from which String should be parsed
+     * @param len length to parse
+     * @return the converted int
+     */
+    static int parseInt(String value, int off, int len) {
+        int num = 0;
+        boolean negative = false;
+        for (int index = 0; index < len; index++) {
+            final char charAt = value.charAt(off + index);
+            if (index == 0 && charAt == '-') {
+                negative = true;
+                continue;
+            }
+            num = (num * 10) + charAt - '0';
+        }
+        return negative ? -num : num;
+    }
+
+    /**
+     * Please note that input needs to be validated first, otherwise unexpected
+     * results may occur. Please also note that this method has no range or overflow
+     * check, so please only use it when you are sure that no overflow might occur
+     * (e.g. for parsing seconds or smaller integers).
+     * 
+     * @param value the String to convert
+     * @return the converted long
+     */
+    static long parseLong(String value) {
+        long num = 0;
+        boolean negative = false;
+        for (int index = 0; index < value.length(); index++) {
+            final char charAt = value.charAt(index);
+            if (index == 0 && charAt == '-') {
+                negative = true;
+                continue;
+            }
+            num = (num * 10) + (value.charAt(index) - '0');
+        }
+        return negative ? -num : num;
     }
 }

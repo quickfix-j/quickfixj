@@ -102,7 +102,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
                     quickFixSession.disconnect(reason, true);
                 } else {
                     log.error(reason, cause);
-                    ioSession.closeNow();
+                    ioSession.closeOnFlush();
                 }
             } finally {
                 ioSession.setAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR, Boolean.TRUE);
@@ -127,7 +127,7 @@ public abstract class AbstractIoHandler extends IoHandlerAdapter {
             throw e;
         } finally {
             ioSession.removeAttribute(SessionConnector.QF_SESSION);
-            ioSession.closeNow();
+            ioSession.closeOnFlush();
         }
     }
 
