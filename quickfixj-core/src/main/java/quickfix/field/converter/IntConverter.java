@@ -54,7 +54,7 @@ public final class IntConverter {
         if (!value.isEmpty()) {
             final char firstChar = value.charAt(0);
             boolean isNegative = (firstChar == '-');
-            if (!Character.isDigit(firstChar) && !isNegative) {
+            if (!isDigit(firstChar) && !isNegative) {
                 throw new FieldConvertError("invalid integral value: " + value);
             }
             int minLength = (isNegative ? 2 : 1);
@@ -99,7 +99,7 @@ public final class IntConverter {
         int num = 0;
         int firstIndex = (isNegative ? 1 : 0);
         for (int i = firstIndex; i < value.length(); i++) {
-            if (Character.isDigit(value.charAt(i))) {
+            if (isDigit(value.charAt(i))) {
                 num = (num * 10) + (value.charAt(i) - '0');
             } else {
                 throw new FieldConvertError("invalid integral value: " + value);
@@ -155,4 +155,15 @@ public final class IntConverter {
         }
         return negative ? -num : num;
     }
+    
+    /**
+     * Check if a character is a digit, i.e. in the range between 0 and 9.
+     *
+     * @param character character to check
+     * @return true if character is a digit between 0 and 9
+     */
+    static boolean isDigit(char character) {
+        return (character >= '0' && character <= '9');
+    }
+
 }
