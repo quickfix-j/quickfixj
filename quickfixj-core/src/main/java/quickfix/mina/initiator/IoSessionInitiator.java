@@ -261,13 +261,13 @@ public class IoSessionInitiator {
                 e = e.getCause();
             }
             final String nextRetryMsg = " (Next retry in " + computeNextRetryConnectDelay() + " milliseconds)";
+            ConnectException wrappedException = new ConnectException(e, socketAddress);
             if (e instanceof IOException) {
                 fixSession.getLog().onErrorEvent(e.getClass().getName() + " during connection to " + socketAddress + ": " + e + nextRetryMsg);
-                fixSession.getStateListener().onConnectException(fixSession.getSessionID(), (IOException) e);
             } else {
                 LogUtil.logThrowable(fixSession.getLog(), "Exception during connection to " + socketAddress + nextRetryMsg, e);
-                fixSession.getStateListener().onConnectException(fixSession.getSessionID(), new Exception(e));
             }
+            fixSession.getStateListener().onConnectException(fixSession.getSessionID(), wrappedException);
             connectFuture = null;
         }
 
