@@ -47,7 +47,7 @@ abstract class AbstractDateTimeConverter {
     protected static void assertDigitSequence(String value, int i, int j, String type)
             throws FieldConvertError {
         for (int offset = i; offset < j; offset++) {
-            if (!Character.isDigit(value.charAt(offset))) {
+            if (!IntConverter.isDigit(value.charAt(offset))) {
                 throwFieldConvertError(value, type);
             }
         }
