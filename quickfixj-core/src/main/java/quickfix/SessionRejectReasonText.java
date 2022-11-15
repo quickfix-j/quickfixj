@@ -43,6 +43,7 @@ class SessionRejectReasonText extends SessionRejectReason {
         rejectReasonText.put(TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER, "Tag specified out of required order");
         rejectReasonText.put(INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP, "Incorrect NumInGroup count for repeating group");
         rejectReasonText.put(REPEATING_GROUP_FIELDS_OUT_OF_ORDER, "Out of order repeating group members");
+        rejectReasonText.put(OTHER, "Field value is null");
     }
 
     public static String getMessage(int sessionRejectReason) {
