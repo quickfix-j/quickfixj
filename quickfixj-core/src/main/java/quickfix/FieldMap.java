@@ -337,7 +337,7 @@ public abstract class FieldMap implements Serializable, Iterable<Field<?>> {
 
     public void setField(StringField field) {
         if (field.getValue() == null) {
-            throw new FieldException(SessionRejectReason.OTHER, field.getField());
+            throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE, field.getField());
         }
         fields.put(field.getField(), field);
     }
