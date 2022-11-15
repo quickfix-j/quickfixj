@@ -210,6 +210,24 @@ public class DefaultSessionSchedule implements SessionSchedule {
 
             if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
                 intervalEnd.add(Calendar.DAY_OF_WEEK, 1);
+
+                // go back even further so both start and end time are weekdays
+                // this allows handling schedules like "Sun 17:05 - Mon 16:55,  ..., Thu 17:05 - Fri 16:55"
+                // in case of a really screwed up configuration we may not find a suitable interval,
+                // so limit this loop to a week and undo the change afterwards if we failed
+                int undoOffset = 0;
+                for (int i = 0; i < 7; i++) {
+                    if (validDayOfWeek(intervalStart) && validDayOfWeek(intervalEnd)) {
+                        undoOffset = 0;
+                        break;
+                    }
+
+                    undoOffset++;
+                    intervalStart.add(Calendar.DAY_OF_WEEK, -1);
+                    intervalEnd.add(Calendar.DAY_OF_WEEK, -1);
+                }
+                intervalStart.add(Calendar.DAY_OF_WEEK, undoOffset);
+                intervalEnd.add(Calendar.DAY_OF_WEEK, undoOffset);
             }
 
         } else {
