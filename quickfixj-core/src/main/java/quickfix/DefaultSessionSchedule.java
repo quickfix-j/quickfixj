@@ -208,7 +208,7 @@ public class DefaultSessionSchedule implements SessionSchedule {
                 intervalEnd.add(Calendar.DAY_OF_WEEK, -1);
             }
 
-            if (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
+            while (intervalEnd.getTimeInMillis() <= intervalStart.getTimeInMillis()) {
                 intervalEnd.add(Calendar.DAY_OF_WEEK, 1);
             }
 
