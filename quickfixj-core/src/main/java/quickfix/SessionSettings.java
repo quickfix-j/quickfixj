@@ -366,7 +366,7 @@ public class SessionSettings {
      * @throws FieldConvertError error during field type conversion.
      */
     public boolean getBool(SessionID sessionID, String key) throws FieldConvertError, ConfigError {
-            return BooleanConverter.convert(getString(sessionID, key));
+        return BooleanConverter.convert(getString(sessionID, key));
     }
 
     /**
