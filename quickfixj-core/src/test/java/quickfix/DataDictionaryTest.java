@@ -750,7 +750,7 @@ public class DataDictionaryTest {
     public void testMessageValidateBodyOnly() throws Exception {
         final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
                 new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(
-                        OrdType.LIMIT));
+                OrdType.LIMIT));
         newSingle.setField(new OrderQty(42));
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
@@ -774,7 +774,7 @@ public class DataDictionaryTest {
     public void testMessageDataDictionaryMismatch() throws Exception {
         final quickfix.fix43.NewOrderSingle newSingle = new quickfix.fix43.NewOrderSingle(
                 new ClOrdID("123"), new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION), new Side(Side.BUY), new TransactTime(), new OrdType(
-                        OrdType.LIMIT));
+                OrdType.LIMIT));
         newSingle.setField(new OrderQty(42));
         newSingle.setField(new Price(42.37));
         newSingle.setField(new Symbol("QFJ"));
@@ -794,7 +794,7 @@ public class DataDictionaryTest {
         //   If bodyOnly is true, the correct data dictionary is not checked.
         dd.validate(newSingle, true);
     }
-    
+
     // QF C++ treats the string argument as a filename although it's
     // named 'url'. QFJ string argument can be either but this test
     // ensures the DD works correctly with a regular file path.
@@ -808,7 +808,7 @@ public class DataDictionaryTest {
     // Support finding DD in classpath
     @Test
     public void testDictionaryInClassPath() throws Exception {
-        URLClassLoader customClassLoader = new URLClassLoader(new URL[] { new URL("file:etc") },
+        URLClassLoader customClassLoader = new URLClassLoader(new URL[]{new URL("file:etc")},
                 getClass().getClassLoader());
         Thread currentThread = Thread.currentThread();
         ClassLoader previousContextClassLoader = currentThread.getContextClassLoader();
@@ -842,7 +842,7 @@ public class DataDictionaryTest {
     public void testAllowUnknownFields() throws Exception {
         final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
                 new ClOrdID("123"), new Side(Side.BUY), new TransactTime(), new OrdType(
-                        OrdType.LIMIT));
+                OrdType.LIMIT));
         newSingle.getHeader().setField(new SenderCompID("SENDER"));
         newSingle.getHeader().setField(new TargetCompID("TARGET"));
         newSingle.getHeader().setField(new BodyLength(100));
@@ -879,17 +879,17 @@ public class DataDictionaryTest {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
         dictionary.setCheckUnorderedGroupFields(false);
         Message messageWithGroupLevel1 = new Message(
-            "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
-            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
-            "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
-            dictionary);
+                "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+                        "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
+                        "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
+                dictionary);
         dictionary.validate(messageWithGroupLevel1);
 
         Message messageWithGroupLevel2 = new Message(
-            "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
-            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
-            "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
-            dictionary);
+                "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
+                        "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
+                        "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
+                dictionary);
         dictionary.validate(messageWithGroupLevel2);
     }
 
@@ -901,9 +901,9 @@ public class DataDictionaryTest {
         dataDictionary.setCheckFieldsOutOfOrder(true);
 
         String correctFixMessage = "8=FIX.4.4\0019=218\00135=D\00149=cust\00150=trader\001" +
-            "56=FixGateway\00134=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\001" +
-            "59=6\00140=2\00144=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\001" +
-            "48=CH1234.CHF\00121=1\00160=20110420-11:17:39.000\00163=0\001207=VX\00110=009\001";
+                "56=FixGateway\00134=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\001" +
+                "59=6\00140=2\00144=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\001" +
+                "48=CH1234.CHF\00121=1\00160=20110420-11:17:39.000\00163=0\001207=VX\00110=009\001";
 
         // in any case, it must be validated as the message is correct
         //doValidation and checkFieldsOutOfOrder
@@ -940,9 +940,9 @@ public class DataDictionaryTest {
         dataDictionary.setCheckFieldsOutOfOrder(true);
 
         String incorrectFixMessage = "8=FIX.4.4\0019=218\00135=D\00149=cust\00156=FixGateway\001" +
-            "34=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\00159=6\00140=2\001" +
-            "44=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\00148=CH1234.CHF\00121=1\001" +
-            "60=20110420-11:17:39.000\00163=0\001207=VX\00150=trader\00110=009\001";
+                "34=449\00152=20110420-09:17:40\00111=clordid\00154=1\00138=50\00159=6\00140=2\001" +
+                "44=77.1\001432=20110531\00115=CHF\00122=8\00155=symbol\00148=CH1234.CHF\00121=1\001" +
+                "60=20110420-11:17:39.000\00163=0\001207=VX\00150=trader\00110=009\001";
 
         //doValidation and checkFieldsOutOfOrder -> should fail
         final NewOrderSingle nos1 = new NewOrderSingle();
@@ -985,13 +985,13 @@ public class DataDictionaryTest {
 
         DataDictionary ddCopy = new DataDictionary(dataDictionary);
 
-        assertEquals(ddCopy.isAllowUnknownMessageFields(),dataDictionary.isAllowUnknownMessageFields());
-        assertEquals(ddCopy.isCheckFieldsHaveValues(),dataDictionary.isCheckFieldsHaveValues());
-        assertEquals(ddCopy.isCheckFieldsOutOfOrder(),dataDictionary.isCheckFieldsOutOfOrder());
-        assertEquals(ddCopy.isCheckUnorderedGroupFields(),dataDictionary.isCheckUnorderedGroupFields());
-        assertEquals(ddCopy.isCheckUserDefinedFields(),dataDictionary.isCheckUserDefinedFields());
-        assertArrayEquals(getDictionary().getOrderedFields(),ddCopy.getOrderedFields());
-        assertArrayEquals(getDictionary().getOrderedFields(),dataDictionary.getOrderedFields());
+        assertEquals(ddCopy.isAllowUnknownMessageFields(), dataDictionary.isAllowUnknownMessageFields());
+        assertEquals(ddCopy.isCheckFieldsHaveValues(), dataDictionary.isCheckFieldsHaveValues());
+        assertEquals(ddCopy.isCheckFieldsOutOfOrder(), dataDictionary.isCheckFieldsOutOfOrder());
+        assertEquals(ddCopy.isCheckUnorderedGroupFields(), dataDictionary.isCheckUnorderedGroupFields());
+        assertEquals(ddCopy.isCheckUserDefinedFields(), dataDictionary.isCheckUserDefinedFields());
+        assertArrayEquals(getDictionary().getOrderedFields(), ddCopy.getOrderedFields());
+        assertArrayEquals(getDictionary().getOrderedFields(), dataDictionary.getOrderedFields());
 
         DataDictionary.GroupInfo groupFromDDCopy = ddCopy.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD);
         assertTrue(groupFromDDCopy.getDataDictionary().isAllowUnknownMessageFields());
@@ -1022,11 +1022,11 @@ public class DataDictionaryTest {
         final DataDictionary dataDictionary = getDictionary();
 
         final DataDictionary partyIDsDictionary = dataDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartyIDs.FIELD).getDataDictionary();
-        int[] expectedPartyIDsFieldOrder = new int[] {PartyID.FIELD, PartyIDSource.FIELD, PartyRole.FIELD, NoPartySubIDs.FIELD};
+        int[] expectedPartyIDsFieldOrder = new int[]{PartyID.FIELD, PartyIDSource.FIELD, PartyRole.FIELD, NoPartySubIDs.FIELD};
         assertArrayEquals(expectedPartyIDsFieldOrder, partyIDsDictionary.getOrderedFields());
 
         final DataDictionary partySubIDsDictionary = partyIDsDictionary.getGroup(NewOrderSingle.MSGTYPE, NoPartySubIDs.FIELD).getDataDictionary();
-        int[] expectedPartySubIDsFieldOrder = new int[] {PartySubID.FIELD, PartySubIDType.FIELD};
+        int[] expectedPartySubIDsFieldOrder = new int[]{PartySubID.FIELD, PartySubIDType.FIELD};
         assertArrayEquals(expectedPartySubIDsFieldOrder, partySubIDsDictionary.getOrderedFields());
     }
 
@@ -1305,6 +1305,7 @@ public class DataDictionaryTest {
      *       field name=Symbol required=Y
      * </pre>
      * Field Symbol(55) is required, so validation must fail.
+     *
      * @throws Exception
      */
     @Test
@@ -1334,6 +1335,7 @@ public class DataDictionaryTest {
     /**
      * Field EffectiveTime(168) is defined as UTCTIMESTAMP so an empty string value is invalid but if we allow blank values that should not fail
      * validation
+     *
      * @throws Exception
      */
     @Test
@@ -1412,7 +1414,7 @@ public class DataDictionaryTest {
             assertEquals("External DTD: Failed to read external DTD 'mathml.dtd', because 'http' access is not allowed due to restriction set by the accessExternalDTD property.", e.getCause().getCause().getMessage());
         }
     }
-    
+
     /**
      * For FIX.Latest a minor version is not required.
      */
@@ -1456,7 +1458,7 @@ public class DataDictionaryTest {
 
         DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
         assertEquals(0, dataDictionary.getMinorVersion());
-        assertEquals("FIX.5.0", dataDictionary.getVersion());
+        assertEquals("FIX.5.02", dataDictionary.getVersion());
         assertEquals("FIX.5.0SP2", dataDictionary.getFullVersion());
     }
 
@@ -1468,7 +1470,7 @@ public class DataDictionaryTest {
 
         DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
         assertEquals(0, dataDictionary.getMinorVersion());
-        assertEquals("FIX.5.0", dataDictionary.getVersion());
+        assertEquals("FIX.5.02", dataDictionary.getVersion());
         assertEquals("FIX.5.0SP2_EP260", dataDictionary.getFullVersion());
     }
 
