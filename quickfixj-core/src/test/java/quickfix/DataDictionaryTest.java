@@ -1458,7 +1458,7 @@ public class DataDictionaryTest {
 
         DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
         assertEquals(0, dataDictionary.getMinorVersion());
-        assertEquals("FIX.5.02", dataDictionary.getVersion());
+        assertEquals("FIX.5.0SP2", dataDictionary.getVersion());
         assertEquals("FIX.5.0SP2", dataDictionary.getFullVersion());
     }
 
@@ -1470,7 +1470,7 @@ public class DataDictionaryTest {
 
         DataDictionary dataDictionary = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
         assertEquals(0, dataDictionary.getMinorVersion());
-        assertEquals("FIX.5.02", dataDictionary.getVersion());
+        assertEquals("FIX.5.0SP2", dataDictionary.getVersion());
         assertEquals("FIX.5.0SP2_EP260", dataDictionary.getFullVersion());
     }
 

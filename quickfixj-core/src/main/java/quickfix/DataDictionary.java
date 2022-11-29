@@ -94,6 +94,7 @@ public class DataDictionary {
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
     private String beginString;
+    private String servicePackVersion;
     private String fullVersion;
     private String majorVersion;
     private int minorVersion;
@@ -181,7 +182,7 @@ public class DataDictionary {
      * @return the FIX version
      */
     public String getVersion() {
-        return isServicePackVersion() ? beginString + servicePack : beginString;
+        return isServicePackVersion() ? servicePackVersion : beginString;
     }
 
     private boolean isServicePackVersion() {
@@ -906,7 +907,7 @@ public class DataDictionary {
     }
 
     /**
-     * Check if group count matches number of groups in
+     * Check if group count matches number of groups in message
      **/
     private void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
         final int fieldNum = field.getField();
@@ -1030,7 +1031,8 @@ public class DataDictionary {
             setVersion(version);
             String fullVersion = version;
             if (servicePack > 0) {
-                fullVersion = fullVersion + "SP" + servicePack;
+                servicePackVersion = fullVersion + "SP" + servicePack;
+                fullVersion = servicePackVersion;
             }
             if (extensionPack > 0) {
                 fullVersion = fullVersion + "_EP" + extensionPack;
