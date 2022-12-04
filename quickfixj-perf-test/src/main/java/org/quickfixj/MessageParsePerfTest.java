@@ -18,7 +18,7 @@ public class MessageParsePerfTest extends AbstractPerfTest {
     private String data;
 
     @Setup
-    public void prepare() throws ConfigError, InvalidMessage {
+    public void prepare() throws ConfigError {
 
         data = "8=FIX.4.4\0019=309\00135=8\00149=ASX\00156=CL1_FIX44\00134=4\001" +
                 "52=20060324-01:05:58\00117=X-B-WOW-1494E9A0:58BD3F9D-1109\001150=D\001" +
