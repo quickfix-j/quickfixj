@@ -10,7 +10,6 @@ import org.quickfixj.sample.SampleQuickFixJApplication;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
 import quickfix.FieldNotFound;
-import quickfix.IncorrectDataFormat;
 import quickfix.IncorrectTagValue;
 import quickfix.InvalidMessage;
 import quickfix.SessionID;
@@ -50,7 +49,7 @@ public class MessageCrackerPerfTest extends AbstractPerfTest {
     }
 
     @Benchmark
-    public void crack() throws UnsupportedMessageType, IncorrectTagValue, FieldNotFound, IncorrectDataFormat {
+    public void crack() throws UnsupportedMessageType, IncorrectTagValue, FieldNotFound {
         application.fromApp(executionReport, sessionID);
     }
 
