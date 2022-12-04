@@ -63,6 +63,7 @@
 		<module>quickfixj-examples</module>
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
+		<module>quickfixj-perf-test</module>
 	</modules>
 
 	<properties>
@@ -71,6 +72,7 @@
 		<jdkLevel>1.8</jdkLevel>
 		<slf4j.version>2.0.5</slf4j.version>
 		<junit.version>4.13.2</junit.version>
+		<jmh.version>1.36</jmh.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
