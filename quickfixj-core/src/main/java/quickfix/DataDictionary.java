@@ -176,7 +176,7 @@ public class DataDictionary {
     }
 
     /**
-     * Get the FIX major/minor version associated with this dictionary.
+     * Get the FIX major/minor version - including service pack if existing - associated with this dictionary.
      * E.g. FIX.5.0
      *
      * @return the FIX version
