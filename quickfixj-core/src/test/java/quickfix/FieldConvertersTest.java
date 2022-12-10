@@ -55,6 +55,12 @@ public class FieldConvertersTest {
     public void testIntegerConversion() throws Exception {
         String intMaxValuePlus3 = "2147483650";
         String intMinValueMinus3 = "-2147483651";
+        String intLargeValue  = "999999999";
+        String intLargeValue2 = "2000000000";
+        assertEquals(String.valueOf(Integer.MAX_VALUE), IntConverter.convert(Integer.MAX_VALUE));
+        assertEquals(String.valueOf(Integer.MIN_VALUE), IntConverter.convert(Integer.MIN_VALUE));
+        assertEquals(999999999, IntConverter.convert(intLargeValue));
+        assertEquals(2000000000, IntConverter.convert(intLargeValue2));
         assertEquals("123", IntConverter.convert(123));
         assertEquals(123, IntConverter.convert("123"));
         assertEquals(-1, IntConverter.convert("-1"));
@@ -87,6 +93,24 @@ public class FieldConvertersTest {
         // this should fail and not overflow
         try {
             IntConverter.convert(intMinValueMinus3);
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            IntConverter.convert("");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            IntConverter.convert("-");
+            fail();
+        } catch (FieldConvertError e) {
+            // expected
+        }
+        try {
+            IntConverter.convert("+");
             fail();
         } catch (FieldConvertError e) {
             // expected
