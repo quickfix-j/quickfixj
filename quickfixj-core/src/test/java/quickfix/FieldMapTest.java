@@ -1,20 +1,21 @@
 package quickfix;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import org.junit.Test;
 import quickfix.field.EffectiveTime;
 import quickfix.field.MDEntryTime;
 import quickfix.field.converter.UtcTimeOnlyConverter;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.Iterator;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
 
 /**
  * Tests the {@link FieldMap} class.
@@ -79,16 +80,16 @@ public class FieldMapTest {
 
     @Test
     public void testOrdering() {
-        testOrdering(new int[] { 1, 2, 3 }, null, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 3, 2, 1 }, null, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
+        testOrdering(new int[]{1, 2, 3}, null, new int[]{1, 2, 3});
+        testOrdering(new int[]{3, 2, 1}, null, new int[]{1, 2, 3});
+        testOrdering(new int[]{1, 2, 3}, new int[]{1, 2, 3}, new int[]{1, 2, 3});
+        testOrdering(new int[]{3, 2, 1}, new int[]{1, 2, 3}, new int[]{1, 2, 3});
+        testOrdering(new int[]{1, 2, 3}, new int[]{1, 3, 2}, new int[]{1, 3, 2});
+        testOrdering(new int[]{3, 2, 1}, new int[]{1, 3, 2}, new int[]{1, 3, 2});
+        testOrdering(new int[]{1, 2, 3}, new int[]{1, 3}, new int[]{1, 3, 2});
+        testOrdering(new int[]{3, 2, 1}, new int[]{1, 3}, new int[]{1, 3, 2});
+        testOrdering(new int[]{1, 2, 3}, new int[]{3, 1}, new int[]{3, 1, 2});
+        testOrdering(new int[]{3, 2, 1}, new int[]{3, 1}, new int[]{3, 1, 2});
     }
 
     @Test
@@ -111,6 +112,13 @@ public class FieldMapTest {
         assertFalse(map.getOptionalDecimal(6).isPresent());
     }
 
+    @Test
+    public void testNullFieldException() {
+        FieldMap map = new Message();
+        StringField field = new StringField(0, null);
+        assertThrows(FieldException.class, () -> map.setField(field));
+    }
+
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {
         return localDateTime.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
@@ -118,7 +126,7 @@ public class FieldMapTest {
     @Test
     public void testRemoveGroup() {
         FieldMap map = new Message();
-        Group group = new Group(73,11);
+        Group group = new Group(73, 11);
         map.addGroup(group);
         assertTrue(map.hasGroup(73));
         map.removeGroup(73);

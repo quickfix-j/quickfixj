@@ -32,19 +32,21 @@ public final class NumbersCache {
 
     static {
         LITTLE_NUMBERS = new ArrayList<>(LITTLE_NUMBERS_LENGTH);
-        for (int i = 0; i < LITTLE_NUMBERS_LENGTH; i++)
+        for (int i = 0; i < LITTLE_NUMBERS_LENGTH; i++) {
             LITTLE_NUMBERS.add(Integer.toString(i));
+        }
     }
 
     /**
      * Get the String representing the given number
      *
-     * @param i the long to convert
-     * @return the String representing the long
+     * @param i the int to convert
+     * @return the String representing the integer
      */
     public static String get(int i) {
-        if (i < LITTLE_NUMBERS_LENGTH)
+        if (i < LITTLE_NUMBERS_LENGTH && i >= 0) {
             return LITTLE_NUMBERS.get(i);
+        }
         return String.valueOf(i);
     }
 
@@ -56,10 +58,10 @@ public final class NumbersCache {
       * @return the String representing the double or null if the double is not an integer
       */
     public static String get(double d) {
-        long l = (long)d;
-        if (d == (double)l)
+        long l = (long) d;
+        if (d == (double) l) {
             return get(l);
+        }
         return null;
-      }
-
+    }
 }
