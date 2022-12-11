@@ -55,7 +55,6 @@ jobs:
     # If this step fails, then you should remove it and run the build manually (see below)
     #- name: Autobuild
     #  env:
-    #    MAVEN_OPTS: "-Xms3g -Xmx5g -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500"
     #  uses: github/codeql-action/autobuild@v2
 
     # ℹ️ Command-line programs to run using the OS shell.
@@ -65,7 +64,7 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
     - run: |
-        mvn clean package -B -V -e -Pminimal-fix-latest,skipBundlePlugin -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Dspotbugs.skip -Denforcer.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true -Dspotless.check.skip=true -D"maven.javadoc.skip=true" -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
- 
+        mvn clean package -B -V -e -Pminimal-fix-latest -Dmaven.javadoc.skip=true -Dfindbugs.skip -Dcheckstyle.skip -Dpmd.skip=true -Dspotbugs.skip -Denforcer.skip -DskipTests -Dmaven.test.skip.exec -Dlicense.skip=true -Drat.skip=true -Dspotless.check.skip=true -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
