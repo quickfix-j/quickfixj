@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.quickfixj</groupId>
             <artifactId>quickfixj-messages-all</artifactId>
-            <version>3.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
