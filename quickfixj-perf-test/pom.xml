@@ -14,10 +14,6 @@
     <description>QuickFIX/J Performance test for regression and improvements</description>
     <url>http://www.quickfixj.org</url>
 
-    <properties>
-        <mainClass>org.openjdk.jmh.Main</mainClass>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.quickfixj</groupId>
