@@ -49,6 +49,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>create-self-executing-jar</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
@@ -61,6 +62,9 @@
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>standalone</shadedClassifierName>
                         </configuration>
                     </execution>
                 </executions>
