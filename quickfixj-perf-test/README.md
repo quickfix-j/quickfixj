@@ -12,38 +12,38 @@ Performance regression classes can be individually run using your favorite IDE.
 
 Build executable jar using following maven command
 
-```shell
-  mvn clean package    
+```
+$ mvn clean package    
 ```
 
 Use following command to run complete set of performance regression test cases
 
-```shell
-  java -jar target/quickfixj-perf-test.jar
+```
+$ java -jar target/quickfixj-perf-test.jar
 ```
 
 You can list available performance benchmarks using `-l` option
-```shell
-  java -jar target/quickfixj-perf-test.jar -l
+```
+$ java -jar target/quickfixj-perf-test.jar -l
 ```
 
 You can run individual benchmarks by providing the class name or benchmark method name
-```shell
-  java -jar target/quickfixj-perf-test.jar MessageCrackerPerfTest.crack
+```
+$ java -jar target/quickfixj-perf-test.jar MessageCrackerPerfTest.crack
 
-  java -jar target/quickfixj-perf-test.jar MessageCrackerPerfTest
+$ java -jar target/quickfixj-perf-test.jar MessageCrackerPerfTest
 ```
 
 You can change the time unit used in the benchmark test using `-tu` option
 Following command is an example of using micro second for describing benchmark test results.
-```shell
-  java -jar target/quickfixj-perf-test.jar MessageCrackerPerfTest -tu us
+```
+$ java -jar target/quickfixj-perf-test.jar MessageCrackerPerfTest -tu us
 ```
 
 For more available options use `-h` option
 
-```shell
-  java -jar target/quickfixj-perf-test.jar -h
+```
+$ java -jar target/quickfixj-perf-test.jar -h
 ```
 
 #### Guideline for future performance enhancements
