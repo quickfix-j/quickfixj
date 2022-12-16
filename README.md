@@ -70,6 +70,12 @@ https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/userm
 
 ## basics
 
+## example applications
+
+QuickFIX/J includes some example applications in the `quickfixj-examples` module. Moreover, here are some links to example applications:
+
+to-be-filled
+
 ### Creating a QuickFIX/J application
 
 Implement the `quickfix.Application` interface.
