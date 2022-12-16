@@ -70,6 +70,17 @@ https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/userm
 
 ## basics
 
+## example applications
+
+QuickFIX/J includes some example applications in the `quickfixj-examples` module. Moreover, here are some links to example applications:
+
+Examples by Geoffrey Gershaw: https://github.com/ggershaw/Examples
+
+Examples from QuickFIX/J Spring Boot Starter: https://github.com/esanchezros/quickfixj-spring-boot-starter-examples
+
+If you would like to be added to this list, please open a PR with the changes.
+
+
 ### Creating a QuickFIX/J application
 
 Implement the `quickfix.Application` interface.
