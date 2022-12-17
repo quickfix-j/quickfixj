@@ -61,7 +61,7 @@
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
-		<module>repository-to-quickfixj-parent</module>		
+		<module>quickfixj-from-fix-orchestra</module>		
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
 	</modules>
@@ -365,11 +365,6 @@
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>xml-maven-plugin</artifactId>
 					<version>${xml-maven-plugin-version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.jboss.tattletale</groupId>
-					<artifactId>tattletale-maven</artifactId>
-					<version>1.1.2.Final</version>
 				</plugin>
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
