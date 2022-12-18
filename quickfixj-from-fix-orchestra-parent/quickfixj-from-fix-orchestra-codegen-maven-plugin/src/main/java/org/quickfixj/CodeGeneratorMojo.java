@@ -11,7 +11,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import io.fixprotocol.orchestra.quickfix.CodeGeneratorJ;
+import io.fixprotocol.orchestra.quickfixj.CodeGeneratorJ;
 
 @Mojo(name = "codeGeneration", defaultPhase = LifecyclePhase.PROCESS_SOURCES)
 public class CodeGeneratorMojo extends AbstractMojo {

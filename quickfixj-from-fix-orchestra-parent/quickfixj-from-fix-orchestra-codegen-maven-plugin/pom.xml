@@ -27,7 +27,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>repository-to-quickfixj</artifactId>
+			<artifactId>quickfixj-from-fix-orchestra</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

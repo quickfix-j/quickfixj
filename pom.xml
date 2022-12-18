@@ -61,7 +61,7 @@
 		<module>quickfixj-core</module>
 		<module>quickfixj-messages</module>
 		<module>quickfixj-examples</module>
-		<module>quickfixj-from-fix-orchestra</module>		
+		<module>quickfixj-from-fix-orchestra-parent</module>
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
 	</modules>
