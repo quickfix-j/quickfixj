@@ -108,7 +108,6 @@
 		<jaxb.version>2.3.3</jaxb.version>
 		<apache.mina.version>2.1.5</apache.mina.version>
 		<commons.io.version>2.11.0</commons.io.version>
-		<guava.version>31.0.1-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
    </properties>
 
@@ -174,11 +173,6 @@
 			    <groupId>commons-io</groupId>
 			    <artifactId>commons-io</artifactId>
 			    <version>${commons.io.version}</version>
-			</dependency>
-			<dependency>
-			  <groupId>com.google.guava</groupId>
-			  <artifactId>guava</artifactId>
-			  <version>${guava.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>

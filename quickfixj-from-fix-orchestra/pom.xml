@@ -20,8 +20,8 @@
 
 	<modules>
 		<module>quickfixj-from-fix-orchestra</module>
-		<module>quickfixj-codegen-from-fix-orchestra-maven-plugin</module>
-		<module>quickfixj-dictionary-from-fix-orchestra-maven-plugin</module>
+		<module>quickfixj-from-fix-orchestra-codegen-maven-plugin</module>
+		<module>quickfixj-from-fix-orchestra-dictionary-maven-plugin</module>
 	</modules>
 
 </project>
