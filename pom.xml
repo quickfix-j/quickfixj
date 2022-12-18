@@ -66,6 +66,7 @@
 		<module>quickfixj-core</module>
 		<module>quickfixj-examples</module>
 		<module>quickfixj-all</module>
+		<module>quickfixj-distribution</module>
 	</modules>
 
 	<properties>
