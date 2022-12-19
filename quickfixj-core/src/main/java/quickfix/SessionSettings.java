@@ -111,7 +111,7 @@ public class SessionSettings {
      *
      * @param filename the path to the file containing the session settings
      * @param variableValues custom source of variable values in the settings
-     * @throws quickfix.ConfigError when file could not be loaded
+     * @throws ConfigError when file could not be loaded
      */
     public SessionSettings(String filename, Properties variableValues) throws ConfigError {
         this(variableValues);
@@ -122,7 +122,7 @@ public class SessionSettings {
      * Loads session settings from a file.
      *
      * @param filename the path to the file containing the session settings
-     * @throws quickfix.ConfigError when file could not be loaded
+     * @throws ConfigError when file could not be loaded
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
@@ -365,12 +365,8 @@ public class SessionSettings {
      * @throws ConfigError configuration error, probably a missing setting.
      * @throws FieldConvertError error during field type conversion.
      */
-    public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
-        try {
-            return BooleanConverter.convert(getString(sessionID, key));
-        } catch (final FieldConvertError e) {
-            throw new ConfigError(e);
-        }
+    public boolean getBool(SessionID sessionID, String key) throws FieldConvertError, ConfigError {
+        return BooleanConverter.convert(getString(sessionID, key));
     }
 
     /**
@@ -472,8 +468,7 @@ public class SessionSettings {
             }
             storeSection(currentSectionId, currentSection);
         } catch (final IOException e) {
-            final ConfigError configError = new ConfigError(e.getMessage());
-            throw configError;
+            throw new ConfigError(e.getMessage());
         }
     }
 

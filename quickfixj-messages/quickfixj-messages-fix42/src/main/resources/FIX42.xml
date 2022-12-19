@@ -1726,7 +1726,7 @@
       <value enum="D" description="ORDER_SINGLE" />
       <value enum="E" description="ORDER_LIST" />
       <value enum="F" description="ORDER_CANCEL_REQUEST" />
-      <value enum="G" description="ORDER_CANCEL" />
+      <value enum="G" description="ORDER_CANCEL_REPLACE_REQUEST" />
       <value enum="H" description="ORDER_STATUS_REQUEST" />
       <value enum="J" description="ALLOCATION" />
       <value enum="K" description="LIST_CANCEL_REQUEST" />

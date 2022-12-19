@@ -47,7 +47,7 @@ abstract class AbstractDateTimeConverter {
     protected static void assertDigitSequence(String value, int i, int j, String type)
             throws FieldConvertError {
         for (int offset = i; offset < j; offset++) {
-            if (!Character.isDigit(value.charAt(offset))) {
+            if (!IntConverter.isDigit(value.charAt(offset))) {
                 throwFieldConvertError(value, type);
             }
         }
@@ -63,14 +63,6 @@ abstract class AbstractDateTimeConverter {
     protected static void throwFieldConvertError(String value, String type)
             throws FieldConvertError {
         throw new FieldConvertError("invalid UTC " + type + " value: " + value);
-    }
-
-    protected static long parseLong(String s) {
-        long n = 0;
-        for (int i = 0; i < s.length(); i++) {
-            n = (n * 10) + (s.charAt(i) - '0');
-        }
-        return n;
     }
 
     protected DateFormat createDateFormat(String format) {
