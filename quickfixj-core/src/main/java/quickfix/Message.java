@@ -770,7 +770,7 @@ public class Message extends FieldMap {
                 }
             } else {
                 // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
-                if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType) || isHeaderField(tag))) {
+                if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType) || isHeaderField(field, dd))) {
                     if (checkFieldValidation(parent, parentDD, field, msgType, doValidation, group)) {
                         continue;
                     }
