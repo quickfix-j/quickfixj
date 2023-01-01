@@ -21,11 +21,6 @@
 			<groupId>io.fixprotocol.orchestrations</groupId>
 			<artifactId>fix-standard</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.quickfixj</groupId>
-			<artifactId>repository-to-quickfixj</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -79,9 +74,8 @@
 			   </executions>
 			</plugin>
 			<plugin>
-				<groupId>org.quickfixj</groupId>
-				<artifactId>repository-to-qfj-dictionary-maven-plugin</artifactId>
-				<version>${project.version}</version>
+				<groupId>org.quickfixj.orchestra</groupId>
+				<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
 				<executions>
 					<execution>
 						<phase>generate-resources</phase>

@@ -59,7 +59,6 @@
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
 		<module>class-pruner-maven-plugin</module>
-		<module>repository-to-quickfixj-parent</module>
 		<module>quickfixj-orchestration</module>
 		<module>quickfixj-base</module>
 		<module>quickfixj-messages</module>
@@ -113,6 +112,7 @@
 		<commons.io.version>2.11.0</commons.io.version>
 		<guava.version>31.0.1-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
+		<org.quickfixj.orchestra.tools.version>1.0.0-SNAPSHOT</org.quickfixj.orchestra.tools.version>
 	</properties>
 
    <dependencyManagement>
@@ -410,6 +410,16 @@
 				<plugin>
 					<artifactId>maven-clean-plugin</artifactId>
 					<version>3.1.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj.orchestra</groupId>
+					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
+					<version>${org.quickfixj.orchestra.tools.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj.orchestra</groupId>
+					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
+					<version>${org.quickfixj.orchestra.tools.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
