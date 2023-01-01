@@ -36,11 +36,11 @@
 		    <artifactId>Saxon-HE</artifactId>
 		    <version>11.4</version>
 		</dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>

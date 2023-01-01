@@ -72,10 +72,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>2.0.5</slf4j.version>
-		<junit.version>4.13.2</junit.version>
-		<mockito-core.version>3.12.4</mockito-core.version>
-		<hamcrest-all.version>1.3</hamcrest-all.version>
+		<slf4j.version>2.0.6</slf4j.version>
+		<mockito-core.version>4.10.0</mockito-core.version>
+		<hamcrest.version>2.2</hamcrest.version>
 		<junit.jupiter.version>5.6.1</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
@@ -134,11 +133,11 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
+				<groupId>org.junit.vintage</groupId>
+				<artifactId>junit-vintage-engine</artifactId>
+				<version>${junit.jupiter.version}</version>
 				<scope>test</scope>
-			</dependency>			
+			</dependency>
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter-params</artifactId>
@@ -153,8 +152,8 @@
 			</dependency>
 			<dependency>
 				<groupId>org.hamcrest</groupId>
-				<artifactId>hamcrest-all</artifactId>
-				<version>${hamcrest-all.version}</version>
+				<artifactId>hamcrest</artifactId>
+				<version>${hamcrest.version}</version>
 				<scope>test</scope>
 			</dependency>			
 			<dependency>

@@ -19,16 +19,6 @@
 
 package quickfix;
 
-import static  org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.junit.Test;
 
 import quickfix.field.ApplVerID;
@@ -44,6 +34,18 @@ import quickfix.field.Subject;
 import quickfix.field.TargetCompID;
 import quickfix.fix40.Logon;
 import quickfix.fix50.Email;
+
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MessageUtilsTest {
 
@@ -194,7 +196,7 @@ public class MessageUtilsTest {
 
         Message message = MessageSessionUtils.parse(mockSession, email.toString());
 
-        assertThat(message, notNullValue());
+        assertThat(message, is(notNullValue()));
         assertThat(message, instanceOf(quickfix.fix40.Email.class));
     }
 
@@ -210,7 +212,7 @@ public class MessageUtilsTest {
 
         Message message = MessageSessionUtils.parse(mockSession, logon.toString());
 
-        assertThat(message, notNullValue());
+        assertThat(message, is(notNullValue()));
         assertThat(message, instanceOf(quickfix.fixt11.Logon.class));
     }
 
@@ -225,7 +227,7 @@ public class MessageUtilsTest {
 
         Message message = MessageSessionUtils.parse(mockSession, logout.toString());
 
-        assertThat(message, notNullValue());
+        assertThat(message, is(notNullValue()));
         assertThat(message, instanceOf(quickfix.fixt11.Logout.class));
     }
 
@@ -243,7 +245,7 @@ public class MessageUtilsTest {
 
         Message message = MessageSessionUtils.parse(mockSession, email.toString());
 
-        assertThat(message, notNullValue());
+        assertThat(message, is(notNullValue()));
         assertThat(message, instanceOf(quickfix.fix50.Email.class));
     }
 

@@ -50,7 +50,7 @@ public class ApplicationExtendedFunctionalAdapterTest {
 
         verify(predicate2).test(sessionID);
         verifyNoMoreInteractions(predicate2);
-        verifyZeroInteractions(predicate);
+        verifyNoInteractions(predicate);
     }
 
     @Test
@@ -146,7 +146,7 @@ public class ApplicationExtendedFunctionalAdapterTest {
         adapter.removeBeforeSessionResetListener(listener);
         adapter.onBeforeSessionReset(sessionID);
 
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
 
