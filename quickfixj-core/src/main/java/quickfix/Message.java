@@ -604,7 +604,7 @@ public class Message extends FieldMap {
 
         try {
             parseHeader(sessionDataDictionary, doValidation);
-            parseBody(applicationDataDictionary, doValidation);
+            parseBody(sessionDataDictionary, applicationDataDictionary, doValidation);
             parseTrailer(sessionDataDictionary);
             if (doValidation && validateChecksum) {
                 validateCheckSum(messageData);
@@ -670,34 +670,34 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseBody(DataDictionary dd, boolean doValidation) throws InvalidMessage {
-        StringField field = extractField(dd, this);
+    private void parseBody(DataDictionary sessionDataDictionary, DataDictionary applicationDataDictionary, boolean doValidation) throws InvalidMessage {
+        StringField field = extractField(applicationDataDictionary, this);
         while (field != null) {
             if (isTrailerField(field.getField())) {
                 pushBack(field);
                 return;
             }
 
-            if (isHeaderField(field.getField())) {
+            if (isHeaderField(field, sessionDataDictionary)) {
                 // An acceptance test requires the sequence number to
                 // be available even if the related field is out of order
                 setField(header, field);
                 // Group case
-                if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                    parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation);
+                if (sessionDataDictionary != null && sessionDataDictionary.isGroup(DataDictionary.HEADER_ID, field.getField())) {
+                    parseGroup(DataDictionary.HEADER_ID, field, sessionDataDictionary, sessionDataDictionary, header, doValidation);
                 }
-                if (doValidation && dd != null && dd.isCheckFieldsOutOfOrder())
+                if (doValidation && sessionDataDictionary != null && sessionDataDictionary.isCheckFieldsOutOfOrder())
                     throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
                         field.getTag());
             } else {
                 setField(this, field);
                 // Group case
-                if (dd != null && dd.isGroup(getMsgType(), field.getField())) {
-                    parseGroup(getMsgType(), field, dd, dd, this, doValidation);
+                if (applicationDataDictionary != null && applicationDataDictionary.isGroup(getMsgType(), field.getField())) {
+                    parseGroup(getMsgType(), field, applicationDataDictionary, applicationDataDictionary, this, doValidation);
                 }
             }
 
-            field = extractField(dd, this);
+            field = extractField(applicationDataDictionary, this);
         }
     }
 
@@ -770,7 +770,7 @@ public class Message extends FieldMap {
                 }
             } else {
                 // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
-                if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType))) {
+                if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType) || isHeaderField(field, dd))) {
                     if (checkFieldValidation(parent, parentDD, field, msgType, doValidation, group)) {
                         continue;
                     }

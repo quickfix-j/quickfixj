@@ -33,14 +33,15 @@ import quickfix.field.TargetCompID;
 import quickfix.fix40.Logon;
 import quickfix.fix50.Email;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import org.junit.Test;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -194,7 +195,7 @@ public class MessageUtilsTest {
         Message message = MessageUtils.parse(mockSession, email.toString());
 
         assertThat(message, is(notNullValue()));
-        assertThat(message, is(quickfix.fix40.Email.class));
+        assertThat(message, instanceOf(quickfix.fix40.Email.class));
     }
 
     @Test
@@ -210,7 +211,7 @@ public class MessageUtilsTest {
         Message message = MessageUtils.parse(mockSession, logon.toString());
 
         assertThat(message, is(notNullValue()));
-        assertThat(message, is(quickfix.fixt11.Logon.class));
+        assertThat(message, instanceOf(quickfix.fixt11.Logon.class));
     }
 
     @Test
@@ -225,7 +226,7 @@ public class MessageUtilsTest {
         Message message = MessageUtils.parse(mockSession, logout.toString());
 
         assertThat(message, is(notNullValue()));
-        assertThat(message, is(quickfix.fixt11.Logout.class));
+        assertThat(message, instanceOf(quickfix.fixt11.Logout.class));
     }
 
     @Test
@@ -243,7 +244,7 @@ public class MessageUtilsTest {
         Message message = MessageUtils.parse(mockSession, email.toString());
 
         assertThat(message, is(notNullValue()));
-        assertThat(message, is(quickfix.fix50.Email.class));
+        assertThat(message, instanceOf(quickfix.fix50.Email.class));
     }
 
     // QFJ-973
