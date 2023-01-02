@@ -108,7 +108,7 @@
 		<commons.io.version>2.11.0</commons.io.version>
 		<guava.version>31.0.1-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
-		<org.quickfixj.orchestra.tools.version>1.0.0-SNAPSHOT</org.quickfixj.orchestra.tools.version>
+		<org.quickfixj.orchestra.tools.version>1.0.0</org.quickfixj.orchestra.tools.version>
 	</properties>
 
    <dependencyManagement>
