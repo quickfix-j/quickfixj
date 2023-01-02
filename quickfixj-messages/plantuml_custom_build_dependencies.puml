@@ -40,9 +40,9 @@ quickfixj-codegenerator is not required if only fixlatest is built
 
 end note
 
-package "org.quickfixj:repository-to-qfj-codegen-maven-plugin"  as r2q {
-component repository_to_qfj_codegen_maven_plugin
-component repository_to_qfj_dictionary_maven_plugin
+package "org.quickfixj:quickfixj-orchestra"  as r2q {
+component quickfixj_from_fix_orchestra_code_generator_maven_plugin
+component quickfixj_from_fix_orchestra_dictionary_generator_maven_plugin
 }
 
 field .up.> codegen  : build depends

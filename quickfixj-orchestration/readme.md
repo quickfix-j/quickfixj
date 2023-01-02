@@ -1,8 +1,10 @@
 QuickFIX/J support for FIX Orchestra
 
-![](../repository-to-quickfix-parent/repository-to-quickfix/FIXorchestraLogo.png)
+![](./FIXorchestraLogo.png)
 
-The module publishes a QUICKFIX/J compatible FIX dictionary and FIX "orchestration".
+The module publishes a QUICKFIX/J compatible FIX dictionary and a QUICKFIX/J FIX "orchestration".
+
+An "orchestration" is an implementation of a FIX Orchestra standard repository. 
 This module depends on the FIX Latest standard "orchestration" published by the FIX Trading Community.
 
 Before generating the dictionary this module runs XSL transformation to remove elements from the standard repository that cause issues in the QFJ build. If and when the published standard is corrected then this transform can be edited or removed.
@@ -12,7 +14,9 @@ This module publishes the resulting artefact which is subsequently used to gener
 
 The published artefact can also be the basis of a custom implementation of FIX Latest.
 
-The complete FIX Latest specification results in a very large distribution. This project builds the entire specification to prove compatibility. To use FIX Latest for an integration customisation is advisable to more clearly represent the Rules of Engagement, to aid maintainability as well as to speed build time and reduce memory requirements for the build.
+The complete FIX Latest specification results in a very large distribution. This project builds the entire specification to prove compatibility. 
+
+Customisation is advisable to use FIX Latest for an integration. This will allow a more clear representation  the Rules of Engagement, and aids maintainability as well as speeding build time and reducing memory requirements for the build.
 
 See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the build and recommendations of how to implement custom builds.
 

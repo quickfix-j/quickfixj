@@ -1,0 +1,43 @@
+@startuml
+
+package "org.quickfixj:quickfixj-core" as core {
+component quickfixj_core
+}
+
+package "org.quickfixj:quickfixj-base"  as base {
+component quickfixj_base
+}
+
+package "com.some-company:application"  as userapp {
+component application
+}
+
+package "org.quickfixj:quickfixj-messages-fixlatest"  as fix_latest {
+package field
+package fixlatest
+}
+
+package "org.quickfixj:quickfixj-messages-fixt11"  as fix_t11 {
+package fixt11
+}
+
+note bottom of  fix_t11
+N.B. in this scenario quickfixj-messages-fixt11 also contains a field package
+end note
+
+note bottom of fix_latest
+The alternative way of publishing packages used with QuickFIX/J, a jar for each FIX protocol version.
+This allows an application to depend on artefacts for only the FIX version that it requries.
+Message, Component and Field classes are included in each of these artefacts as required.
+end note
+
+
+core -up-> base : compile dependency
+userapp -up-> core : compile dependency
+userapp -up-> fix_t11  : compile/runtime dependendency
+userapp -up-> fix_latest  : compile dependendency
+
+fix_latest -up-> base : compile dependency
+fix_t11 -up-> base : compile dependency
+
+@enduml

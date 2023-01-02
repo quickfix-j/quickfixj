@@ -42,17 +42,17 @@ Pull requests are always welcome! Best is if you added a unit test to show that 
 
 Fastest: clone the repo and issue the following command.
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
 ```
 
 Slower: if you only want to skip the acceptance test suite:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin
+$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin,minimal-fix-latest
 ```
 
 Slow: if you want to run all tests:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
+$ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
@@ -62,7 +62,7 @@ When the project is first created, it will not have the generated message classe
 
 If the IDE reports some errors after the compilation with `mvn clean package`, try to use `mvn clean install`, like:
 ```
-$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
 ```
 
 ## configuration options
@@ -300,18 +300,23 @@ This project builds artefacts for the standard published FIX specification versi
 * ```quickfixj-messages-fixt11```
 * ```quickfixj-messages-all``` - includes all of the above
 
-These artefacts are <u>**test**</u> dependendencies of ```quickfixj-core```. They are **not** specified as _runtime_ dependencies to make it easier to customise QuickFIX/J deployments. 
+These artefacts are <u>**test**</u> dependendencies of ```quickfixj-core```. They are **not** specified as _runtime_ dependencies, this makes it easier to customise QuickFIX/J deployments. 
 
-If you have no need to specialise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as dependencies of your application.
+If you have no need to customise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as dependencies of your application.
 
-Artefacts for unused FIX specification versions can be omitted from your runtime. Many integrations will not require ```quickfixj-messages-all``` and need only depend on artefacts for a subset of the FIX standard versions. Please note that FIX Protocol verisions 5.0 and later depend on ```quickfixj-messages-fixt11``` to provide the implementation for the FIXT1.1 transport messages.
+Artefacts for unused FIX specification versions can be omitted from your runtime. 
+Many integrations will not require ```quickfixj-messages-all``` and need only depend on artefacts for a subset of the FIX standard versions. Please note that FIX Protocol verisions 5.0 and later depend on ```quickfixj-messages-fixt11``` which provides the implementation for the FIXT1.1 transport messages.
 
-Many integrations wil require specialisation of the FIX Messages, Components and/or Fields. This is accomplished by building and using custom artefacts. Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
+Many integrations require specialisation of the FIX Messages, Components and/or Fields. This is accomplished by building and using custom artefacts. Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
 
 ### Application Dependencies for QuickFIX/J Messages Build
 
-![image info](./plantuml_dependencies.png)
+![image info](./plantuml_dependencies_fixt11_fixlatest.png)
+
+![image info](./plantuml_dependencies_qfj_all.png)
 
 ### Application Dependencies for Custom Messages Build
 
 ![image info](./plantuml_custom_dependencies.png)
+
+![image info](./plantuml_custom_dependencies_fixt11_fixlatest.png)

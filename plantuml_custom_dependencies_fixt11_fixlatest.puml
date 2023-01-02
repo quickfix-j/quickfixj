@@ -1,0 +1,42 @@
+@startuml
+
+package "org.quickfixj:quickfixj-core" as core {
+component quickfixj_core
+}
+
+package "org.quickfixj:quickfixj-base"  as base {
+component quickfixj_base
+}
+
+package "com.some-company:application"  as customapp {
+component application
+}
+
+package "com.some-company:messages-fixlatest"  as customfixlatest {
+package field
+package fixlatest
+}
+
+package "com.some-company:messages-fixt11"  as customfixt11 {
+package fixt11
+}
+
+note left of customapp
+An alternative way of publishing packages as seen in the QuickFIX/J build,
+This is more complex and may not offer any benefit for a custom build.
+end note
+
+note bottom of  customfixt11
+N.B. in this scenario messages-fixt11 also contains a field package
+end note
+
+core -up-> base : compile dependency
+
+customfixlatest -up-> base : compile dependency
+customfixt11 -up-> base : compile dependency
+
+customapp -up-> core : compile dependency
+customapp -up-> customfixt11 : compile dependency
+customapp -up-> customfixlatest : compile dependency
+
+@enduml

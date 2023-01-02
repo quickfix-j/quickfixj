@@ -14,6 +14,6 @@ The Fields in question are those defined in the (perhaps counter-intuitive) temp
 <xsl:template match="fixr:fields/fixr:field[not( @id='1156' or ....)] />
 ```
 
-The build extracts the specifications for the required fields <u>only</u> from a FIX Latest orchestration and uses the ```repository-to-qfj-codegen-maven-plugin``` to generate the Field sources.
+The build extracts the specifications for the required fields <u>only</u> from a FIX Latest orchestration and uses the ```quickfixj-from-fix-orchestra-code-generator-maven-plugin``` to generate the Field sources.
 
 See [```quickfixj-orchestration```](../quickfixj-orchestration/readme.md) for more information about [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/).
