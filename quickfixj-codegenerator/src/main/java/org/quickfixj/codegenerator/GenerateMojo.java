@@ -23,6 +23,9 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 
 import java.io.File;
 
@@ -30,82 +33,70 @@ import java.io.File;
  * A mojo that uses the quickfix code generator to generate
  * Java source files from a QuickFIX Dictionary.
  *
- * @goal generate
- * @phase generate-sources
  * @description QuickFIX/J code generation plugin
  * @author Claudio Bantaloukas <rockdreamer@gmail.com>
  */
+@Mojo( name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES )
 public class GenerateMojo extends AbstractMojo {
 
     /**
      * The dictionary file to use for mapping messages to java.
-     *
-     * @parameter expression="${basedir}/src/main/quickfixj/dictionary/FIX44.xml"
      */
+    @Parameter(defaultValue="${basedir}/src/main/quickfixj/dictionary/FIX44.xml")
     private File dictFile;
 
     /**
      * The source directory containing *.xsd files.
-     *
-     * @parameter expression="${basedir}/src/resources/quickfixj/codegenerator"
      */
+    @Parameter(defaultValue="${basedir}/src/resources/quickfixj/codegenerator")
     private File schemaDirectory;
 
     /**
      * The directory to output the generated sources to.
-     *
-     * @parameter expression="${project.build.directory}/generated-sources/"
      */
+    @Parameter(defaultValue="${project.build.directory}/generated-sources/")
     private File outputDirectory;
 
     /**
      * Enable BigDecimal representation.
-     *
-     * @parameter default-value="false"
      */
+    @Parameter(defaultValue="false")
     private boolean decimal;
 
     /**
      * Enable orderedFields.
-     *
-     * @parameter default-value="false"
      */
+    @Parameter(defaultValue="false")
     private boolean orderedFields;
 
     /**
      * The package for the generated source.
-     *
-     * @parameter
      */
+    @Parameter(required = true)
     private String packaging;
 
     /**
      * The base field class to use.
-     *
-     * @parameter default-value = "quickfix.field"
      */
+    @Parameter(defaultValue = "quickfix.field")
     private String fieldPackage = "quickfix.field";
 
     /**
      * The default UtcTimestampPrecision to be used during field code generation.
-     *
-     * @parameter
      */
+    @Parameter(required = false)
     private String utcTimestampPrecision;
 
     /**
      * Defines whether the code generator should overwrite existing files with the same name
-     *
-     * @parameter default-value = "true"
      */
+    @Parameter(defaultValue = "true")
     private boolean overwrite = true;
-    
+
     /**
      * The Maven project to act upon.
-     *
-     * @parameter expression="${project}"
-     * @required
      */
+    @Parameter(defaultValue = "${project}", required = true)
     private MavenProject project;
 
     /**

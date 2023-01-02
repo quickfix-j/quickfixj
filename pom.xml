@@ -51,10 +51,6 @@
 		<url>http://www.quickfixj.org/jira/</url>
 	</issueManagement>
 
-	<prerequisites>
-		<maven>3.5.0</maven>
-	</prerequisites>
-
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
@@ -79,6 +75,7 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
+		<maven.version>3.5.0</maven.version>
 		<maven-resources-plugin-version>3.3.0</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
@@ -186,6 +183,7 @@
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-plugin-api</artifactId>
 				<version>${maven-plugin-api.version}</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 			  <groupId>org.apache.maven.shared</groupId>
@@ -206,6 +204,7 @@
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-artifact</artifactId>
 				<version>${maven.version}</version>
+				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
@@ -221,6 +220,12 @@
 				<groupId>org.apache.maven.plugin-testing</groupId>
 				<artifactId>maven-plugin-testing-harness</artifactId>
 				<version>${maven-plugin-testing-harness.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-project</artifactId>
+				<scope>provided</scope>
+				<version>2.2.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -412,13 +417,18 @@
 				</plugin>
 				<plugin>
 					<groupId>org.quickfixj.orchestra</groupId>
-					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
+					<artifactId>quickfixj-from-fix-orchestra-code-generator-maven-plugin</artifactId>
 					<version>${org.quickfixj.orchestra.tools.version}</version>
 				</plugin>
 				<plugin>
 					<groupId>org.quickfixj.orchestra</groupId>
 					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
 					<version>${org.quickfixj.orchestra.tools.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.1.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -448,6 +458,25 @@
 						<version>${plantuml-version}</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>${maven.version}</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
