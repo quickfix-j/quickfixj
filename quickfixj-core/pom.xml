@@ -115,7 +115,6 @@
 			<version>${slf4j.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
@@ -125,7 +124,6 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.cloudhopper.proxool</groupId>
 			<artifactId>proxool</artifactId>
