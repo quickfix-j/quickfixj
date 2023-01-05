@@ -1956,14 +1956,14 @@ public class MessageTest {
         String xml = message.toXML(dataDictionary);
         xml = xml.replace("\r", "").replace("\n", "").replaceAll(">\\s+<", "><");
         System.out.println(xml);
-        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><message><header/><body><field name=\"Account\" tag=\"1\">test-account</field></body><trailer/></message>", xml);
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?><message><header/><body><field name=\"Account\" tag=\"1\"><![CDATA[test-account]]></field></body><trailer/></message>", xml);
     }
 
     @Test
     public void shouldConvertToXMLWithoutIndent() {
         Message message = new Message();
         message.setString(Account.FIELD, "test-account");
-        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><message><header/><body><field tag=\"1\">test-account</field></body><trailer/></message>", message.toXML());
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?><message><header/><body><field tag=\"1\"><![CDATA[test-account]]></field></body><trailer/></message>", message.toXML());
     }
     
     @Test
@@ -1976,14 +1976,10 @@ public class MessageTest {
         // formatting CDATA elements can be different across JVM's so we have to strip whitespaces before and after for the test to pass
         // https://bugs.openjdk.java.net/browse/JDK-8215543
         xml = xml.replaceAll("\\s+<!\\[CDATA\\[test-account\\]\\]>\\s+", "<![CDATA[test-account]]>");
-        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n" + 
-                "<message>\n" +
-                "   <header/>\n" + 
-        		"   <body>\n" +
-                "      <field tag=\"1\">test-account</field>\n" + 
-        		"   </body>\n" +
-                "   <trailer/>\n" + 
-        		"</message>\n", xml);
+        assertEquals("<?xml version=\"1.0\" encoding=\"ISO-8859-1\" standalone=\"no\"?>\n" + "<message>\n" +
+                    "    <header/>\n" + "    <body>\n" +
+                    "        <field tag=\"1\"><![CDATA[test-account]]></field>\n" + "    </body>\n" +
+                    "    <trailer/>\n" + "</message>\n", xml);
     }
 
     @Test
