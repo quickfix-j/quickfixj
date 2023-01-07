@@ -311,12 +311,12 @@ Many integrations require specialisation of the FIX Messages, Components and/or 
 
 ### Application Dependencies for QuickFIX/J Messages Build
 
-![image info](./plantuml_dependencies_fixt11_fixlatest.png)
+![image info](./src/main/puml/dependencies_fixt11_fixlatest.png)
 
-![image info](./plantuml_dependencies_qfj_all.png)
+![image info](./src/main/puml/dependencies_qfj_all.png)
 
 ### Application Dependencies for Custom Messages Build
 
-![image info](./plantuml_custom_dependencies.png)
+![image info](./src/main/puml/custom_dependencies.png)
 
-![image info](./plantuml_custom_dependencies_fixt11_fixlatest.png)
+![image info](./src/main/puml/custom_dependencies_fixt11_fixlatest.png)

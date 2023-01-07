@@ -451,7 +451,7 @@
 					<sourceFiles>
 						<directory>${basedir}</directory>
 						<includes>
-							<include>**/plantuml*.puml</include>
+							<include>**/*.puml</include>
 						</includes>
 					</sourceFiles>
 					<outputInSourceDirectory>true</outputInSourceDirectory>
