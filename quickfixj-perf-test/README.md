@@ -49,5 +49,7 @@ $ java -jar target/quickfixj-perf-test.jar -h
 #### Guideline for future performance enhancements
 
 1. Check if there is already benchmark available for the code you are planning to optimize.
-2. If there is no benchmark code, first create a benchmark and make pull request.
-3. Your performance improvement can use the benchmark code as the baseline for comparison.
+2. If there is no benchmark code, first create a benchmark (Example `a-missing-perf-regression` branch) and make pull request to `master` branch.
+3. Make your performance improvement in a new branch (Example `a-perf-improvement` branch).
+4. When you make pull request provide comparison between current benchmark (`master`) and new benchmark values (`a-perf-improvement`)
+5. This means providing output of the benchmark execution in two branches in a PR comment
