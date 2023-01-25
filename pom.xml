@@ -379,11 +379,6 @@
 					<version>${xml-maven-plugin-version}</version>
 				</plugin>
 				<plugin>
-					<groupId>org.jboss.tattletale</groupId>
-					<artifactId>tattletale-maven</artifactId>
-					<version>1.1.2.Final</version>
-				</plugin>
-				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>build-helper-maven-plugin</artifactId>
 					<version>${build-helper-maven-plugin-version}</version>

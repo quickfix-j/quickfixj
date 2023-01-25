@@ -13,7 +13,7 @@
 	<artifactId>class-pruner-maven-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
 
-	<name>class-pruning-maven-plugin Maven Plugin</name>
+	<name>QuickFIX/J Class Pruner Maven Plugin</name>
 
 	<prerequisites>
 		<maven>${maven.version}</maven>

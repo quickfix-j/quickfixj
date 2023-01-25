@@ -243,25 +243,6 @@
 				</executions>
 		   </plugin>
 			<plugin>
-				<groupId>org.jboss.tattletale</groupId>
-				<artifactId>tattletale-maven</artifactId>
-				<executions>
-					<execution>
-						<phase>verify</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<!-- This is the location which will be scanned for generating tattletale
-						reports -->
-					<source>${project.build.directory}</source>
-					<!-- This is where the reports will be generated -->
-					<destination>${project.build.directory}/tattle-tale-report</destination>
-				</configuration>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<configuration>
