@@ -53,6 +53,12 @@
 			<testResource>
 				<directory>../quickfixj-messages/quickfixj-messages-fix50/src/main/resources</directory>
 			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix44/src/main/resources</directory>
+			</testResource>
+			<testResource>
+				<directory>../quickfixj-messages/quickfixj-messages-fix40/src/main/resources</directory>
+			</testResource>
 		</testResources>
 
 		<plugins>
