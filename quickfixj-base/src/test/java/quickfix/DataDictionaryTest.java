@@ -899,5 +899,5 @@ public class DataDictionaryTest {
         return new DataDictionary(DataDictionaryTest.class.getClassLoader()
                 .getResourceAsStream(fileName));
     }
-
+    
 }
