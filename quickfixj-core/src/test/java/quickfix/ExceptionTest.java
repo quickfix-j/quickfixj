@@ -23,24 +23,18 @@ import junit.framework.TestCase;
 
 public class ExceptionTest extends TestCase {
 
-    public void testDoNotSend() {
-        new DoNotSend();
+    public void testRejectLogon() {
+        new RejectLogon();
     }
-
-    public void testIncorrectDataFormat() {
-        IncorrectDataFormat e = new IncorrectDataFormat(5, "test");
-        assertEquals(5, e.getField());
-        assertEquals("test", e.getData());
+    
+    public void testSessionNotFound() {
+        new SessionNotFound();
+        new SessionNotFound("test");
     }
-
-    public void testIncorrectTagValue() {
-        new IncorrectTagValue(5);
-        IncorrectTagValue e = new IncorrectTagValue(5, "test");
-    }
-
-    public void testRuntimeError() {
-        new RuntimeError();
-        new RuntimeError("test");
-        new RuntimeError(new Exception());
+    
+    public void testSessionException() {
+        new SessionException();
+        new SessionException("test");
+        new SessionException(new Exception());
     }
 }
