@@ -68,7 +68,7 @@ See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the bui
 
 A Rules of Engagement can include customisation Messages, Components and Fields, including User Defined elements.
 
-This can be accomplised by editing the QuickFIX Dictionary or FIX Orchestra Repository (Orchestration) for the specific Rules of Engagement.
+This can be accomplished by editing the QuickFIX Dictionary or FIX Orchestra Repository (Orchestration) for the specific Rules of Engagement.
 
 Omission of unused elements accelerates comprehension and faciliates the generation of documents and other artefacts.
 
