@@ -93,20 +93,17 @@
 		<maven-plugin-api.version>3.8.7</maven-plugin-api.version>
 		<maven-shared-utils.version>3.3.4</maven-shared-utils.version>
 		<file-management.version>3.0.0</file-management.version>
-		<maven.version>3.3.9</maven.version>
 		<maven-plugin-annotations.version>3.6.0</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
 		<xml-maven-plugin-version>1.0.2</xml-maven-plugin-version>
-		<!-- TODO figure out these two versions -->
-		<fix.orchestra.version>1.5.4</fix.orchestra.version>
-		<orchestra.version>1.6.8</orchestra.version>
+		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
+		<fix-orchestra.repository.version>1.6.8</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>2.3.3</jaxb.version>
 		<apache.mina.version>2.1.6</apache.mina.version>
 		<commons.io.version>2.11.0</commons.io.version>
-		<guava.version>31.0.1-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.0</org.quickfixj.orchestra.tools.version>
 	</properties>
@@ -116,12 +113,12 @@
 			<dependency>
 				<groupId>io.fixprotocol.orchestrations</groupId>
 				<artifactId>fix-standard</artifactId>
-				<version>${fix.orchestra.version}</version>
+				<version>${fix-orchestra.standard.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>io.fixprotocol.orchestra</groupId>
 				<artifactId>repository</artifactId>
-				<version>${orchestra.version}</version>
+				<version>${fix-orchestra.repository.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
@@ -173,11 +170,6 @@
 			    <groupId>commons-io</groupId>
 			    <artifactId>commons-io</artifactId>
 			    <version>${commons.io.version}</version>
-			</dependency>
-			<dependency>
-			  <groupId>com.google.guava</groupId>
-			  <artifactId>guava</artifactId>
-			  <version>${guava.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>

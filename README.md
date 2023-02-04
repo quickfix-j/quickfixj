@@ -300,7 +300,7 @@ This project builds artefacts for the standard published FIX specification versi
 * ```quickfixj-messages-fixt11```
 * ```quickfixj-messages-all``` - includes all of the above
 
-These artefacts are <u>**test**</u> dependendencies of ```quickfixj-core```. They are **not** specified as _runtime_ dependencies, this makes it easier to customise QuickFIX/J deployments. 
+These artefacts are <u>**test**</u> dependencies of ```quickfixj-core```. They are **not** specified as _runtime_ dependencies, this makes it easier to customise QuickFIX/J deployments. 
 
 If you have no need to customise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as dependencies of your application.
 

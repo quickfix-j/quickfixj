@@ -3,7 +3,7 @@
 
 The core QuickFIX/J module is agnostic to FIX Protocol Versions. At runtime a QuickFIX/J dictionary with supporting implementation packages is required to use type-safe classes.
 
-The specification for a FIX integration is called a "Rules of Engagement". The Rules of Engagement can be customised with the mutual agreement of the repective counter-parties.
+The specification for a FIX integration is called a "Rules of Engagement". The Rules of Engagement can be customised with the mutual agreement of the respective counter-parties.
 
 The message, component and field implementations can be provided by a specialised build, along with the corresponding QuickFIX/J dictionary for the custom Rules of Engagement. 
 
@@ -23,7 +23,7 @@ The complete FIX Latest specification results in a very large distribution. To u
 
 This behaviour is controlled by the ```${generator.decimal}``` build property. It is "false" by default to avoid surprising side effects of Incompatible Data Types.
 
-To enable the use of  ```BigDecimal``` in code generation, set the  ```${generator.decimal}``` property to "true" in [quickfix-messages](./quickfixj-messages/readme.md) and build the message artefacts.
+To enable the use of  ```BigDecimal``` in code generation, set the  ```${generator.decimal}``` property to "true" in [quickfixj-messages](./quickfixj-messages/readme.md) and build the message artefacts.
 
 ```
 	<properties>
@@ -34,7 +34,7 @@ See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the bui
 
 ### **Incompatible Data Types**
 
-Some incompatable changes have occurred in the evolution of the FIX protocol. For example see below changes to the type of **OrderQty (38)** :
+Some incompatible changes have occurred in the evolution of the FIX protocol. For example see below changes to the type of **OrderQty (38)** :
 
 |FIX Version|Field Name|FIX Datatype|Base Type|QuickFIX/J Datatype|
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ Only one ```quickfix.Field``` class with the same name may be loaded by the Java
 
 Code generation using ```BigDecimal``` is incompatible at runtime with ```int``` for **OrderQty**. In this case, ```double``` is compatible with ```int``` at run time due to [widening primitive conversion](http://titanium.cs.berkeley.edu/doc/java-langspec-1.0/5.doc.html). 
 
-Runtime incompatabilities can be resolved by:
+Runtime incompatibilities can be resolved by:
 * Amending the QuickFIX Dictionary to coerce the code generation and/or validation
 * Changing the ordering of code generation and/or overwrite behaviour of code generation
 * Building independent artefacts for conflicting versions and not using them in the same runtime
@@ -58,7 +58,7 @@ From QuickFIX/J 3.0.0 the code generation for ```quickfix.Field``` prefers the F
 
 For example : ```SettlType.REGULAR_FX_SPOT_SETTLEMENT``` becomes ```SettlType.REGULAR```. 
 
-The required code changes may be trvial in most cases but they are elective. To use ```quickfix-core``` from QuickFIX/J  3.0.0 or later without needing to implement code changes:
+The required code changes may be trivial in most cases but they are elective. To use ```quickfixj-core``` from QuickFIX/J  3.0.0 or later without needing to implement code changes:
 * build the required Message artefacts without the FIX Latest code generation. The Fields will then be generated only from legacy FIX Protocol Versions as they were prior to QuickFIX/J 3.0.0 - **or**
 * if you want to use Messages, Components and/or Fields from FIX Latest while preferring legacy constants, manipulate the order of code generation and/or the over-write behaviour to prefer earlier versions of FIX. For example, prevent FIX Latest code generation from over-writing existing generated sources (Fields).
 
@@ -68,9 +68,9 @@ See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the bui
 
 A Rules of Engagement can include customisation Messages, Components and Fields, including User Defined elements.
 
-This can be accomplised by editing the QuickFIX Dictionary or FIX Orchestra Repository (Orchestration) for the specific Rules of Engagement.
+This can be accomplished by editing the QuickFIX Dictionary or FIX Orchestra Repository (Orchestration) for the specific Rules of Engagement.
 
-Omission of unused elements accelerates comprehension and faciliates the generation of documents and other artefacts.
+Omission of unused elements accelerates comprehension and facilitates the generation of documents and other artefacts.
 
 [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) is intended for customisation to produce machine-readable Rules of Engagement.
 

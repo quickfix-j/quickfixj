@@ -8,7 +8,7 @@ An "orchestration" is an implementation of a FIX Orchestra standard repository.
 This module depends on the FIX Latest standard "orchestration" published by the FIX Trading Community.
 
 Before generating the dictionary this module runs XSL transformation to remove elements from the standard repository that cause issues in the QFJ build. If and when the published standard is corrected then this transform can be edited or removed.
-This transformation contains additional work-arounds such as updating some CodeSet element names help generation of appropriate static field names.
+This transformation contains additional workarounds such as updating some CodeSet element names help generation of appropriate static field names.
 
 This module publishes the resulting artefact which is subsequently used to generate a QuickFIX/J implementation for FIX Latest. 
 

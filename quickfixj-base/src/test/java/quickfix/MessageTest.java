@@ -26,6 +26,7 @@ import quickfix.field.CheckSum;
 import quickfix.field.CstmApplVerID;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
+import quickfix.field.SecureData;
 import quickfix.field.SenderCompID;
 import quickfix.field.SendingTime;
 import quickfix.field.SessionRejectReason;
@@ -727,5 +728,14 @@ public class MessageTest {
 
         final Message seventhConstructor = new Message(rawMessage, dataDictionary, dataDictionary, false);
         assertNotNull(seventhConstructor.getHeader());
+    }
+
+    // QFJ-66 Should not throw exception when parsing data field in header
+    @Test
+    public void testHeaderDataField() throws Exception {
+        final Message m = new Message("8=FIX.4.2\0019=53\00135=A\00190=4\00191=ABCD\001"
+                + "98=0\001384=2\001372=D\001385=R\001372=8\001385=S\00110=241\001",
+                DataDictionaryTest.getDictionary());
+        assertEquals("ABCD", m.getHeader().getString(SecureData.FIELD));
     }
 }

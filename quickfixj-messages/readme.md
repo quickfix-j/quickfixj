@@ -5,7 +5,7 @@
 This module builds artefacts for the standard published FIX specification versions from FIX 4.0 to FIX Latest. 
 
 * ```quickfixj-messages-fixt11```
-* ```quickfixj-messages-all``` - generates sources for and compiles classes for all of FIX Protcol versions
+* ```quickfixj-messages-all``` - generates sources for and compiles classes for all of FIX Protocol versions
 * ```quickfixj-messages-fixlatest```
 * ```quickfixj-messages-fix50sp2```
 * ```quickfixj-messages-fix50sp1```
@@ -89,13 +89,13 @@ These tools should facilitate building custom Fields, Components and Message pac
 
 ## Recommendation on how to implement a custom build
 
-The artefacts created by the ```quickfixj-messages``` module are <u>**test**</u> dependendencies of ```quickfixj-core```. 
+The artefacts created by the ```quickfixj-messages``` module are <u>**test**</u> dependencies of ```quickfixj-core```. 
 They are not specified as _compile_ or _runtime_ dependencies. This is intended to make it easier to customise QuickFIX/J deployments. 
 **Applications** that depend on ```quickfixj-core```  will need to include artefacts containing Field, Component and Message packages  as **compile** or **runtime** dependencies.
 
-Artefacts for unused FIX specification versions can be omitted from your runtime and it is not neccessary to build artefacts that are not used. 
+Artefacts for unused FIX specification versions can be omitted from your runtime and it is not necessary to build artefacts that are not used. 
 
-**Please note**: In the conventions of the QuickFIX/J build, applications using FIX Protocol verisions 5.0 and later will also depend on a ```quickfixj-messages-fixt11``` jar. 
+**Please note**: In the conventions of the QuickFIX/J build, applications using FIX Protocol versions 5.0 and later will also depend on a ```quickfixj-messages-fixt11``` jar. 
 This provides the FIXT1.1 transport classes. 
 The intention is that a custom build should not need to generate the FIXT1.1 classes and can depend on the ```org.quickfixj:quickfixj-messages-fixt11``` artefact. 
 This convention is not mandatory. You may choose to package the FIXT1.1 classes in the same artefact as the Message and Field classes.
@@ -111,9 +111,9 @@ Use the same version of code and dictionary generators that are used by the Quic
 
 One way to start a custom build this is to **copying** this maven module, or only ```quickfixj-messages-all```, into an independent build. If doing so:
 * The Maven ```groupId```s should be changed (it's not necessary nor desirable to use ```org.quickfixj``` for custom distributions). The ```version```s and ```artefactId```s may likewise be changed. Artefacts can then be published to public maven repositories as long as the QuickFIX/J ```groupId``` is not used. 
-* Ensure the QuickFIX Software Licence and/or Apache 2 license is included in the distribution. It can be found in the root of this project and/or the [quickfixj-orchestra](https://github.com/quickfix-j/quickfixj-orchestra) project
+* Ensure the QuickFIX Software License and/or Apache 2 license is included in the distribution. It can be found in the root of this project and/or the [quickfixj-orchestra](https://github.com/quickfix-j/quickfixj-orchestra) project
 * Modules and directories for FIX Protocol versions that are not required can be removed. The ```quickfixj-messages-all``` contains the code generation. If removing unused FIX protocol versions then the copy of this module will need to be edited to omit these versions.
-* The structure of these modules can be refactored to meet your requirements. This build has a complex structure to normalise the ```quickfixj-messages-all``` into a set of more minimal artefacts for specific FIX versions. This complexity should be unneccesary for more specialised and compact Rules of Enagement. A practical approach is to remove unneccessary dependencies from ```quickfixj-messages-all``` and build a single artefact per Rules of Engagement. This artefact can have a new ```groupId``` and ```artefactId``` as aforementioned.
+* The structure of these modules can be refactored to meet your requirements. This build has a complex structure to normalise the ```quickfixj-messages-all``` into a set of more minimal artefacts for specific FIX versions. This complexity should be unnecessary for more specialised and compact Rules of Engagement. A practical approach is to remove unnecessary dependencies from ```quickfixj-messages-all``` and build a single artefact per Rules of Engagement. This artefact can have a new ```groupId``` and ```artefactId``` as aforementioned.
 * FIX versions **FIX4.0 to FIX5.0sp2**
   * Edit the QuickFIX dictionary for the FIX protocol version that you are customising. The dictionary is found in ```/src/main/resources``` directory of the module corresponding to the FIX protocol version.
     * **N.B.** [FIX Trading Community](https://www.fixtrading.org/) does publish repositories for FIX 4.2 and FIX 4.4 but these are not used by the QuickFIX/J build. These may be used as the basis of a customised build.
@@ -121,7 +121,7 @@ One way to start a custom build this is to **copying** this maven module, or onl
   * The [quickfixj-orchestration](../quickfixj-orchestration/readme.md) module publishes a QuickFIX/J compatible __FIX Latest__ orchestration as ```org.quickfixj:quickfixj-orchestration```. This can be a starting point for customisation. Please note that this is a complete representation of the FIX Latest specification and results in a very large distribution.The purpose of [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) is to provide a machine-readable Rules of Engagement. __FIX Latest__ is a very large distribution so customisation is **expected**. 
 See [quickfixj-orchestration](../quickfixj-orchestration/readme.md) for references to [FIX Trading Community](https://www.fixtrading.org/) tools.
   * A custom orchestration should be used in place of the ```org.quickfixj:quickfixj-orchestration``` dependency to build the messages.
-  * The ```quickfixj-messages-all``` maven build includes a ```minimal-fix-latest``` profile. The purpose of this profile is to minimise the size of FIX Latest packages. The minimal packages will include only those Fields, Componenents and Messages on which tests in the ```quickfixj-core``` module depend. This is done to reduce memory requirements and speed up the build of QuickFIX/J. This profile may serve as a very simple example of customising an orchestration using ```xslt```. Thos profile serves no purpose in a custom build of Messages and Fields. If you are not building ```quickfixj-core``` the ```minimal-fix-latest``` profile can be removed. 
+  * The ```quickfixj-messages-all``` maven build includes a ```minimal-fix-latest``` profile. The purpose of this profile is to minimise the size of FIX Latest packages. The minimal packages will include only those Fields, Components and Messages on which tests in the ```quickfixj-core``` module depend. This is done to reduce memory requirements and speed up the build of QuickFIX/J. This profile may serve as a very simple example of customising an orchestration using ```xslt```. This profile serves no purpose in a custom build of Messages and Fields. If you are not building ```quickfixj-core``` the ```minimal-fix-latest``` profile can be removed. 
 
   ## QuickFIX/J Build Dependencies
 
