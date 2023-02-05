@@ -34,12 +34,6 @@
 			<artifactId>maven-core</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<!--guava transitive dependency version managed to resolve security vulnerability -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
 			<artifactId>maven-artifact</artifactId>
