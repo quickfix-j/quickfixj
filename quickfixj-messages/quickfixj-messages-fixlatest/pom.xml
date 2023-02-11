@@ -21,7 +21,24 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
+	<profiles>
+		<profile>
+			<id>full-fix-latest</id>
+			<!-- This profile builds the full fix latest specification to testing that a new version of the full specification
+					 does not introduce issues in the core QuickFIX/J build -->
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 	<build>
 		<plugins>
 		<plugin>
@@ -39,13 +56,6 @@
 				</execution>
 			</executions>
 		</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>

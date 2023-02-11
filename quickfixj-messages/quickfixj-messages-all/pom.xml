@@ -35,6 +35,9 @@
 				do not use unreasonable heap size and can successfully run as part of the pull request workflow.
 				This profile does not produce a coherent orchestration nor a FIX Latest package representing a sensible Rules of Engagement.
 			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -86,11 +89,8 @@
 		</profile>
 		<profile>
 			<id>full-fix-latest</id>
-			<!-- This profile build the full fix latest specification to testing that a new version of the full specification 
+			<!-- This profile builds the full fix latest specification to testing that a new version of the full specification
 			     does not introduce issues in the core QuickFIX/J build -->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -110,6 +110,13 @@
 							<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 							<excludeSession>true</excludeSession><!-- fixt11 has already been generated -->
 							<generateFixt11Package>false</generateFixt11Package>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -217,7 +224,7 @@
 					</execution>
 					<execution>
 						<id>unpack-fixt11-sources</id>
-						<phase>initialize</phase>
+						<phase>generate-sources</phase>
 						<goals>
 							<goal>unpack</goal>
 						</goals>
@@ -228,6 +235,7 @@
 									<artifactId>quickfixj-messages-fixt11</artifactId>
 									<classifier>sources</classifier>
 									<version>${project.version}</version>
+									<includes>**/*.java</includes>
 									<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
 								</artifactItem>
 							</artifactItems>
@@ -423,13 +431,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<executions>
@@ -469,7 +470,7 @@
 						<buildDirectory>${project.build.directory}</buildDirectory>
 					</systemPropertyVariables>
 				</configuration>
-				<!-- exceptions have been seen in github actions windows builds
+				<!-- exceptions have been seen in gitHub actions windows builds
 				[INFO] Running quickfix.SerializationTest
 				Warning:  Corrupted STDOUT by directly writing to native stream in forked JVM 1. ...
 				 -->

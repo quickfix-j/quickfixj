@@ -143,10 +143,4 @@
 		</plugins>
 
 	</build>
-				<!-- includes>
-					<include>quickfix/fix41/**.java</include>
-					<quickfix/field/FutSettDate2.class is not included here as the type changed in 4.2>
-					<include>quickfix/field/CustomerOrFirm.java</include>
-					<include>quickfix/field/PegDifference.java</include>
-				</includes -->
 </project>

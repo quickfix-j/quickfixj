@@ -272,7 +272,7 @@ public class Session implements Closeable {
     /**
      * Session setting to control precision in message timestamps.
      * Valid values are "SECONDS", "MILLIS", "MICROS", "NANOS". Default is "MILLIS".
-     * Only valid for FIX version >= 4.2.
+     * Only valid for FIX version "&gt;"= 4.2.
      */
     public static final String SETTING_TIMESTAMP_PRECISION = "TimeStampPrecision";
 
@@ -283,7 +283,7 @@ public class Session implements Closeable {
 
     /**
      * Session setting that causes the session to reset sequence numbers when initiating
-     * a logon (>= FIX 4.2).
+     * a logon ("&gt;"= FIX 4.2).
      */
     public static final String SETTING_RESET_ON_LOGON = "ResetOnLogon";
 
@@ -317,7 +317,7 @@ public class Session implements Closeable {
     public static final String SETTING_USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
 
     /**
-     * Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
+     * Allow unknown fields in messages. This is intended for unknown fields with tags "&lt;" 5000
      * (not user defined fields)
      */
     public static final String SETTING_ALLOW_UNKNOWN_MSG_FIELDS = "AllowUnknownMsgFields";

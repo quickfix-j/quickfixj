@@ -24,7 +24,7 @@ import quickfix.field.ApplVerID;
 /**
  * Used by a Session to create a Message.
  *
- * @see quickfix.Session
+ * quickfix.Session
  */
 public interface MessageFactory {
 
@@ -53,9 +53,9 @@ public interface MessageFactory {
      * Creates a group for the specified parent message type and
      * for the fields with the corresponding field ID
      *
-     * Example: to create a {@link quickfix.fix42.MarketDataRequest.NoMDEntryTypes}
+     * Example: to create a {quickfix.fix42.MarketDataRequest.NoMDEntryTypes}
      * you need to call
-     * create({@link quickfix.field.MsgType#MARKET_DATA_REQUEST}, {@link quickfix.field.NoMDEntryTypes#FIELD})
+     * create({quickfix.field.MsgType#MARKET_DATA_REQUEST}, {quickfix.field.NoMDEntryTypes#FIELD})
      *
      * Function returns null if the group cannot be created.
      *

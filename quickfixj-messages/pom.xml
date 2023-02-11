@@ -20,8 +20,8 @@
 
 
 	<modules>
-		<!-- The order in which these modules is run is signficant
-			ordering affects the precendence of field generation from FIX Protocol Versions
+		<!-- The order in which these modules is run is significant
+			ordering affects the precedence of field generation from FIX Protocol Versions
 			ordering affects the pruning of generated sources and classes 
 			See the ./readme.md -->
 		<module>quickfixj-messages-fixt11</module>

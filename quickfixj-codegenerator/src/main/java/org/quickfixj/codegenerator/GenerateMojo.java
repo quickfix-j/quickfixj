@@ -34,7 +34,7 @@ import java.io.File;
  * Java source files from a QuickFIX Dictionary.
  *
  * @description QuickFIX/J code generation plugin
- * @author Claudio Bantaloukas <rockdreamer@gmail.com>
+ * @author <a href="mailto:rockdreamer@gmail.com">Claudio Bantaloukas</a>
  */
 @Mojo( name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES )
 public class GenerateMojo extends AbstractMojo {
