@@ -97,6 +97,24 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-fixlatest-xml</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/classes</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/classes</directory>
+									<includes>
+										<include>FIXLatest.xml</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
