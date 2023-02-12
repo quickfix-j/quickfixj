@@ -31,57 +31,57 @@
 	<build>
 		<plugins>
 			<plugin>
-			<artifactId>maven-resources-plugin</artifactId>
-			<executions>
-				<execution>
-					<id>copy-sources</id>
-					<phase>generate-sources</phase>
-					<goals>
-						<goal>copy-resources</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>${project.build.directory}/generated-sources/quickfix</outputDirectory>
-						<resources>
-							<resource>
-								<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
-								<includes>
-									<include>**/fix50sp2/**/*.java</include>
-								</includes>
-							</resource>
-							<resource>
-								<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
-								<includes>
-									<include>**/field/*.java</include>
-								</includes>
-							</resource>
-						</resources>
-					</configuration>
-				</execution>
-				<execution>
-					<id>copy-classes</id>
-					<phase>generate-sources</phase>
-					<goals>
-						<goal>copy-resources</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>${project.build.directory}/classes/quickfix</outputDirectory>
-						<resources>
-							<resource>
-								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
-								<includes>
-									<include>**/fix50sp2/**/*.class</include>
-								</includes>
-							</resource>
-							<resource>
-								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
-								<includes>
-									<include>**/field/*.class</include>
-								</includes>
-							</resource>
-						</resources>
-					</configuration>
-				</execution>
-			</executions>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/generated-sources/quickfix</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
+									<includes>
+										<include>**/fix50sp2/**/*.java</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
+									<includes>
+										<include>**/field/*.java</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-classes</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/classes/quickfix</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
+									<includes>
+										<include>**/fix50sp2/**/*.class</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
+									<includes>
+										<include>**/field/*.class</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<!-- prune classes that are not in the FIX Dictionaries specified below -->
@@ -142,7 +142,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<sourcepath>${project.build.directory}/generated-sources/quickfix/fix50sp2;${project.build.directory}/generated-sources/generated-sources/quickfix/field</sourcepath>
+							<sourcepath>${project.build.directory}/generated-sources/quickfix/fix50sp2;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
 						</configuration>
 					</execution>
 				</executions>
@@ -189,9 +189,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<configuration>
 					<includes>
-						<include>FIX50SP2.xml</include>
-						<include>FIX50SP2.modified.xml</include>
-						<include>quickfix/fix50sp2/**</include>
+						<include>FIXLatest.xml</include>
+						<include>quickfix/fixlatest/**</include>
 						<include>quickfix/field/**</include>
 					</includes>
 					<archive>

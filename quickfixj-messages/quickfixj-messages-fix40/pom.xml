@@ -145,15 +145,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<!--
-				<includes>
-						<include>quickfix/fix40/**.java</include>
-						<include>quickfix/field/AllocShares.java</include>
-						<include>quickfix/field/LinesOfText.java</include>
-						< quickfix/field/OpenClose.class is not included here as the type changed in 4.2 >
-						<include>quickfix/field/FutSettDate.java</include>
-						<include>quickfix/field/ExecBroker.java</include>
-						<include>quickfix/field/ClientID.java</include>
-				</includes>
-				-->
 </project>

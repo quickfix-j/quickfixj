@@ -143,7 +143,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<sourcepath>${project.build.directory}/generated-sources/quickfix/fix50;${project.build.directory}/generated-sources/generated-sources/quickfix/field</sourcepath>
+							<sourcepath>${project.build.directory}/generated-sources/quickfix/fix50;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
 						</configuration>
 					</execution>
 				</executions>

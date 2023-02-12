@@ -27,7 +27,7 @@ This is more complex and may not offer any benefit for a custom build.
 end note
 
 note bottom of  customfixt11
-N.B. in this scenario messages-fixt11 also contains a field package
+N.B. quickfixj-messages-fixt11-{version}.jar also contains a field package
 end note
 
 core -up-> base : compile dependency

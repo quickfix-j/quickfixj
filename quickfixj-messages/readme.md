@@ -2,10 +2,10 @@
 
 ## How the build is organised
 
-This module builds artefacts for the standard published FIX specification versions from FIX 4.0 to FIX Latest. 
+The `quickfixj-messages` module builds reference artefacts for the published FIX specification versions from FIX 4.0 to FIX Latest. 
 
 * ```quickfixj-messages-fixt11```
-* ```quickfixj-messages-all``` - generates sources for and compiles classes for all of FIX Protocol versions
+* ```quickfixj-messages-all``` - generates source and compiles classes for all FIX protocol major versions
 * ```quickfixj-messages-fixlatest```
 * ```quickfixj-messages-fix50sp2```
 * ```quickfixj-messages-fix50sp1```
@@ -19,9 +19,9 @@ This module builds artefacts for the standard published FIX specification versio
 QuickFIX/J core is agnostic to FIX Protocol specification versions. It is designed to support multiple concurrent versions at run time. 
 
 Messages and Components are effectively compositions of ```Maps``` of ```quickfix.Fields```.
-The Messages and Components are in distinct packages for the FIX protocol versions. 
+The Messages and Components are in distinct packages for the corresponding FIX protocol versions. 
 A result of this design is that the ```quickfix.Fields``` package is common to all the FIX protocol version packages. 
-By and large the more recent versions are super-sets of the Fields of prior versions.
+The more recent versions of the FIX protocol are, in general, super-sets of prior versions.
 
 The generated Fields, Components and Messages depend on packages provided by ```quickfixj-base```. 
 Some Standard Header and Trailer ```quickfix.Fields``` are provided by  ```quickfixj-base```. 
@@ -29,54 +29,64 @@ These fields are removed from the generated code for other artefacts before asse
 
 In the QuickFIX/J build, implementations for FIX versions from **FIX4.0 to FIX5.0sp2** are generated from the QuickFIX dictionaries for the specific version. 
 The dictionaries are located in the ```src/main/resources``` directory of the respective modules of the ```quickfixj-messages``` module.
+This intentionally provides consistency with the prior QuickFIX/J 2 release to ease migration to QuickFIX/J 3.
 
-In the QuickFIX/J build, implementations for **FIX Latest** and **FIX T1.1** are generated from a [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) "repository" file. The official standard FIX Orchestra repository requires some modification to work well with QuickFIX/J. This is done by the [```quickfixj-orchestration```](../quickfixj-orchestration/readme.md) module. An implementation based on the FIX Orchestra standard is known as an "orchestration". 
+In the QuickFIX/J build, implementations for **FIX Latest** and **FIX T1.1** are generated from a [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) "_repository_" file. 
+The official standard FIX Orchestra repository requires some modification to work well with QuickFIX/J. 
+This is done by the [```quickfixj-orchestration```](../quickfixj-orchestration/readme.md) module. 
+An implementation based on the FIX Orchestra standard is known as an "_orchestration_". 
 The code generation for FIX Latest and FIX T1.1 depends on the orchestration published by the ```quickfixj-orchestration``` module.
 
 The code generation for the FIX Protocol specification versions is done in the ```quickfixj-messages-all``` module. 
 It proceeds in order from oldest to most recent (latest), with the class generated from most recent specification of a Field over-writing any prior classes. 
 This behaviour can be controlled using the ```overwrite``` parameter on the ```quickfixj-codegenerator``` maven plugin and by changing the order of processing.
-Consequently, in the QuickFIX/J build, almost all the Field classes are those generated from the FIX Latest Orchestration. 
+Consequently, in the reference QuickFIX/J build, almost all the Field classes are those generated from the 
+FIX Latest specification as in the orchestration published by the ```quickfixj-orchestration``` module.. 
 
-This scheme works well though in a few cases the data type of a Field, with the same designated java class name, has changed between legacy versions.
+This scheme works well though in a few cases, a Field data type, having the same designated java class name, has changed between legacy versions.
 In these cases a choice needs to be made which data type to use. 
 The QuickFIX/J project build prefers the most recent specification of the field. The Field class generated from most recent specification will overwrite the Field generated from the obsolete specification. 
 In the unlikely event that a legacy version of a Field is required, a custom build can be implemented. 
-Please note that a legacy implementation of a Field cannot deterministically be used in the same Java runtime as an incompatible class with the same name (provided by a different jar)
+Please note; avoid class conflicts by ensuring that generated classes with the same package name only exist in one jar 
+in your classpath.
 
 [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) and ***FIX Latest*** are designed to provide machine-readable Rules of Engagement and are intended for customisation. 
 See "Recommendation on how to implement a custom build" below.
 
-```quickfixj-messages-all``` generates (or imports) the sources for all FIX Protocol versions and packages all the versions versions together. 
-The other modules package the FIX Protocol specification versions independently. 
+```quickfixj-messages-all``` generates (or imports) the sources for all FIX Protocol versions and packages all the versions together. 
+The other modules package the distinct FIX Protocol specification versions independently. 
 The packaging is done in reverse order so that Fields not present in older versions of the FIX protocol versions can be pruned prior to packaging. 
 This results in smaller, concise distributions and quicker build times.
 
 It is not necessary for an application to depend on ```quickfixj-messages-all```. 
 An application need only depend on the artefacts for the FIX Protocol versions that it requires. 
-Please note that if using the conventional QuickFIX/J build, an application using FIX Protocol versions **5.0 and later** will also depend on ```quickfixj-messages-fixt11```. 
-This package provides the FIXT1.1 Transport classes.
+Please note that if using the reference QuickFIX/J build, an application using FIX Protocol versions **5.0 and later** will also depend on ```quickfixj-messages-fixt11```. 
+_Detail: The modules for  FIX Protocol versions **5.0 and later** build in a slightly different way to the older versions so that
+ they can exclude classes present in ```quickfixj-messages-all-{version}.jar```_
 
 ## Tools to use in a custom build
 * The [```quickfixj-orchestration```](../quickfixj-orchestration/readme.md) module publishes a FIX Latest orchestration that is QuickFIX/J compatible. 
-This can serve as a foundation for a custom Orchestration. **N.B.** 
-There is also an orchestration available for FIX4.2 and FIX4.4, but the QuickFIX/J project does not employ these resources.
-QuickFIX/J uses the legacy QuickFIX Dictionaries for greater legacy compatibility. 
-* This project publishes the legacy ```quickfixj-codegenerator``` maven plug-in used to generate FIX Field, Component and Message sources from a QuickFIX Dictionary. 
-* This project depends on the [```quickfixj-orchestra```](https://github.com/quickfix-j/quickfixj-orchestra) artefacts used to:  
+This can serve as a foundation for a custom Orchestration. 
+  * **N.B.** There is also an orchestration available for `FIX4.2` and `FIX4.4`, but the QuickFIX/J project does not employ these resources.
+  QuickFIX/J uses the legacy QuickFIX Dictionaries for greater consistency with legacy QuickFIX/J implementations. 
+* This project publishes the legacy ```quickfixj-codegenerator``` maven plug-in that is used to generate FIX Field, Component and Message sources from a QuickFIX Dictionary. 
+* This project depends on [```quickfixj-orchestra```](https://github.com/quickfix-j/quickfixj-orchestra) project artefacts:  
   * ```quickfixj-from-fix-orchestra-code-generator-maven-plugin``` generates FIX Field, Component and Message sources directly from a FIX Orchestration. 
   * ```quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin``` generates QuickFIX compatible dictionaries from FIX Orchestrations. 
 * This project publishes the [```class-pruner-maven-plugin```](../class-pruner-maven-plugin/readme.md) that can be used to delete (generated) sources and classes that are not present in provided QuickFIX Dictionaries. 
 This is a very specialised plug-in and is not expected to be needed for custom builds, see recommendations below.
 
-These tools should facilitate building custom Fields, Components and Message packages without needing to maintain a customised Fork of the entire QuickFIX/J project for this purpose. This a custom build for the Fields, Components and Message to be implemented that is decoupled from the QuickFIX/J build.
+These tools should facilitate building custom Fields, Components and Message packages without needing to maintain a customised Fork of the entire QuickFIX/J project for this purpose. 
+
+Customised builds for Fields, Components and Message can be maintained in projects that depend on the QuickFIX/J build and tools but are independent.
+Elements of the structure and process of the ```quickfixj-messages``` can be copied if this is helpful (see below).
 
 ## Techniques to customise the generated code
 
 * Omit FIX Protocol versions that are not required
 * For versions prior to FIX Latest, edit the QuickFIX Dictionary to control code generation.  
-  * **N.B.** [FIX Trading Community](https://www.fixtrading.org/) does publish repositories for FIX 4.2 and FIX 4.4 but these are not used by the QuickFIX/J build. These may be used as the basis of a custom build.
-* For FIX Latest, edit the FIX Orchestra Repository (Orchestration) to customise code generation.
+  * **N.B.** [FIX Trading Community](https://www.fixtrading.org/) does publish repositories for `FIX 4.2` and `FIX 4.4` but these are not used by the QuickFIX/J build. These may be used as the basis of a custom build.
+* For __FIX Latest__, edit the FIX Orchestra Repository (Orchestration) to customise code generation.
 * Manipulate the order of code generation and/or the "over-write" behaviour of code generation
 * Use features of the ```quickfixj-from-fix-orchestra-code-generator-maven-plugin``` (generates code from an orchestration) to :
   * Generate only Messages, Components and Fields used by the FIXT1.1 Session Layer [```generateOnlySession```]
@@ -88,6 +98,10 @@ These tools should facilitate building custom Fields, Components and Message pac
   * ```generateBigDecimal``` for ```quickfixj-from-fix-orchestra-code-generator-maven-plugin```
 
 ## Recommendation on how to implement a custom build
+
+Omission of unused elements may accelerate comprehension and facilitate the generation of documents and other artefacts.
+Be aware any such changes during integration and conformance testing to test that Reject and/or Business Message Reject 
+messages are handled correctly.
 
 The artefacts created by the ```quickfixj-messages``` module are <u>**test**</u> dependencies of ```quickfixj-core```. 
 They are not specified as _compile_ or _runtime_ dependencies. This is intended to make it easier to customise QuickFIX/J deployments. 
@@ -113,7 +127,7 @@ One way to start a custom build this is to **copying** this maven module, or onl
 * The Maven ```groupId```s should be changed (it's not necessary nor desirable to use ```org.quickfixj``` for custom distributions). The ```version```s and ```artefactId```s may likewise be changed. Artefacts can then be published to public maven repositories as long as the QuickFIX/J ```groupId``` is not used. 
 * Ensure the QuickFIX Software License and/or Apache 2 license is included in the distribution. It can be found in the root of this project and/or the [quickfixj-orchestra](https://github.com/quickfix-j/quickfixj-orchestra) project
 * Modules and directories for FIX Protocol versions that are not required can be removed. The ```quickfixj-messages-all``` contains the code generation. If removing unused FIX protocol versions then the copy of this module will need to be edited to omit these versions.
-* The structure of these modules can be refactored to meet your requirements. This build has a complex structure to normalise the ```quickfixj-messages-all``` into a set of more minimal artefacts for specific FIX versions. This complexity should be unnecessary for more specialised and compact Rules of Engagement. A practical approach is to remove unnecessary dependencies from ```quickfixj-messages-all``` and build a single artefact per Rules of Engagement. This artefact can have a new ```groupId``` and ```artefactId``` as aforementioned.
+* The structure of these modules can be refactored to meet your requirements. This build has a complex structure to normalise the ```quickfixj-messages-all``` into a set of more minimal artefacts for specific FIX versions. This complexity should be unnecessary for more specialised and compact Rules of Engagement. One practical approach is to remove unnecessary dependencies from ```quickfixj-messages-all``` and build a single artefact per Rules of Engagement. This artefact can have a new ```groupId``` and ```artefactId``` as aforementioned.
 * FIX versions **FIX4.0 to FIX5.0sp2**
   * Edit the QuickFIX dictionary for the FIX protocol version that you are customising. The dictionary is found in ```/src/main/resources``` directory of the module corresponding to the FIX protocol version.
     * **N.B.** [FIX Trading Community](https://www.fixtrading.org/) does publish repositories for FIX 4.2 and FIX 4.4 but these are not used by the QuickFIX/J build. These may be used as the basis of a customised build.

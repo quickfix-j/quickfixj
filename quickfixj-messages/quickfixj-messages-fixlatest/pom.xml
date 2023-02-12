@@ -13,11 +13,16 @@
 	<name>QuickFIX/J Message classes for FIX Latest</name>
 	<description>QuickFIX/J Message classes for FIX Latest</description>
 	<url>http://www.quickfixj.org</url>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fixt11</artifactId>
+			<scope>runtime</scope>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -41,21 +46,107 @@
 	</profiles>
 	<build>
 		<plugins>
-		<plugin>
-			<groupId>org.codehaus.mojo</groupId>
-			<artifactId>build-helper-maven-plugin</artifactId>
-			<executions>
-				<execution>
-					<phase>prepare-package</phase>
-					<goals><goal>add-source</goal></goals>
-					<configuration>
-						<sources>
-							<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
-						</sources>
-					</configuration>
-				</execution>
-			</executions>
-		</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/generated-sources/quickfix</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
+									<includes>
+										<include>**/fixlatest/**/*.java</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix</directory>
+									<includes>
+										<include>**/field/*.java</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-classes</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/classes/quickfix</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
+									<includes>
+										<include>**/fixlatest/**/*.class</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix</directory>
+									<includes>
+										<include>**/field/*.class</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- prune classes that are not in the FIX Dictionaries specified below -->
+				<groupId>org.quickfixj</groupId>
+				<artifactId>class-pruner-maven-plugin</artifactId>
+				<version>${project.version}</version>
+				<executions>
+					<execution>
+						<id>prune</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>prune</goal>
+						</goals>
+						<configuration>
+							<classesDirectory>${project.build.directory}/classes/quickfix/field</classesDirectory>
+							<generatedSourcesDirectory>${project.build.directory}/generated-sources/quickfix/field</generatedSourcesDirectory>
+							<fileset>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
+								<includes>
+									<include>**/*.xml</include>
+								</includes>
+								<excludes>
+									<exclude>FIXT11.xml</exclude>		<!-- Exclude FIXT11 which has been built separately -->
+									<exclude>OrchestraFIXLatest.xml</exclude>
+									<exclude>FIX50SP2.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary, this one is redundant -->
+									<exclude>FIX50SP1.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary, this one is redundant -->
+									<exclude>FIX44.xml</exclude>	<!-- QFJ code generation uses a modified version of this dictionary, this one is redundant -->
+								</excludes>
+								<followSymlinks>false</followSymlinks>
+							</fileset>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals><goal>add-source</goal></goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -80,7 +171,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
-					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
 						<include>FIXLatest.xml</include>
 						<include>quickfix/field/*.class</include>
@@ -91,7 +181,6 @@
 					</archive>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -105,6 +194,21 @@
 						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
 					</archive>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<sourcepath>${project.build.directory}/generated-sources/quickfix/fixlatest;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
