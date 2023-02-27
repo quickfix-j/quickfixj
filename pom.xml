@@ -379,7 +379,7 @@
 							</goals>
 							<configuration>
 								<doclint>none</doclint>
-								<maxmemory>4g</maxmemory>
+								<maxmemory>5g</maxmemory>
 							</configuration>
 						</execution>
 					</executions>

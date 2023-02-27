@@ -158,7 +158,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<maxmemory>4g</maxmemory>
+							<maxmemory>5g</maxmemory>
 							<detectOfflineLinks>false</detectOfflineLinks>
 							<includeDependencySources>false</includeDependencySources>
 							<sourcepath>${project.build.directory}/generated-sources/quickfix/fixt11;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
