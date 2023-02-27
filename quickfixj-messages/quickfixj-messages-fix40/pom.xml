@@ -89,7 +89,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<maxmemory>6g</maxmemory>
+							<maxmemory>3g</maxmemory>
 							<detectOfflineLinks>false</detectOfflineLinks>
 							<includeDependencySources>false</includeDependencySources>
 							<sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fix40;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
