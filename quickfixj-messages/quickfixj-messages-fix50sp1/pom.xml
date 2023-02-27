@@ -142,7 +142,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-							<maxmemory>3g</maxmemory>
+							<maxmemory>4g</maxmemory>
 							<detectOfflineLinks>false</detectOfflineLinks>
 							<includeDependencySources>false</includeDependencySources>
 							<sourcepath>${project.build.directory}/generated-sources/quickfix/fix50sp1;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
