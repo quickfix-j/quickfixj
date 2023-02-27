@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import javax.sql.DataSource;
+
 /**
  * Class for storing JDBC setting constants shared by both the log and message
  * store classes.
@@ -103,40 +105,62 @@ public class JdbcSetting {
     public static final String SETTING_JDBC_SESSION_ID_DEFAULT_PROPERTY_VALUE = "JdbcSessionIdDefaultPropertyValue";
 
     /**
-     * Specifies the maximum number of connections to the database
-     *
-     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     * Controls the maximum size that the pool is allowed to reach, including both idle and in-use connections.
+     * Basically this value will determine the maximum number of actual connections to the database backend.
+     * A reasonable value for this is best determined by your execution environment. When the pool reaches this size,
+     * and no idle connections are available, calls to {@link DataSource#getConnection()} will block for up to
+     * {@link JdbcSetting#SETTING_JDBC_CONNECTION_TIMEOUT} milliseconds before timing out.
      */
     public static final String SETTING_JDBC_MAX_ACTIVE_CONNECTION = "JdbcMaxActiveConnection";
 
     /**
-     * Specifies if the housekeeper comes across a thread that has been active for longer than
-     * this then it will kill it. So make sure you set this to a number bigger than your
-     * slowest expected response!
-     *
-     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     * Controls the minimum number of idle connections that HikariCP tries to maintain in the pool.
+     * If the idle connections dip below this value and total connections in the pool are less than
+     * {@link JdbcSetting#SETTING_JDBC_MAX_ACTIVE_CONNECTION}, HikariCP will make the best effort to add
+     * additional connections quickly and efficiently. However, for maximum performance and responsiveness
+     * to spike demands, we recommend not setting this value and instead allowing HikariCP to act as a fixed
+     * size connection pool.
      */
-    public static final String SETTING_JDBC_MAX_ACTIVE_TIME = "JdbcMaxActiveTime";
+    public static final String SETTING_JDBC_MIN_IDLE_CONNECTION = "JdbcMinIdleConnection";
 
     /**
-     * Specifies the maximum amount of time that a connection exists for before
-     * it is killed (milliseconds).
-     *
-     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     * Controls the maximum lifetime of a connection in the pool. An in-use connection will never be retired, only when
+     * it is closed will it then be removed. On a connection-by-connection basis, minor negative attenuation is applied to
+     * avoid mass-extinction in the pool. We strongly recommend setting this value, and it should be several seconds shorter
+     * than any database or infrastructure imposed connection time limit. A value of 0 indicates no maximum lifetime (infinite
+     * lifetime), subject of course to the {@link JdbcSetting#SETTING_JDBC_CONNECTION_IDLE_TIMEOUT} setting.
      */
     public static final String SETTING_JDBC_MAX_CONNECTION_LIFETIME = "JdbcMaxConnectionLifeTime";
 
     /**
-     * Specifies the maximum number of connections we can be building at any one time.
-     * That is, the number of new connections that have been requested but aren't yet
-     * available for use. Because connections can be built using more than one thread
-     * (for instance, when they are built on demand) and it takes a finite time between
-     * deciding to build the connection and it becoming available we need some way of
-     * ensuring that a lot of threads don't all decide to build a connection at once.
-     * (We could solve this in a smarter way - and indeed we will one day)
-     *
-     * @see <a href="http://proxool.sourceforge.net/properties.html">http://proxool.sourceforge.net/properties.html</a>
+     * Controls the maximum number of milliseconds that a client (that's you) will wait for a connection from the pool. If this time
+     * is exceeded without a connection becoming available, a SQLException will be thrown. Lowest acceptable connection timeout is 250 ms.
      */
-    public static final String SETTING_JDBC_SIMULTANEOUS_BUILD_THROTTLE = "JdbcSimultaneousBuildThrottle";
+    public static final String SETTING_JDBC_CONNECTION_TIMEOUT = "JdbcConnectionTimeout";
 
+    /**
+     * Controls the maximum amount of time that a connection is allowed to sit idle in the pool.
+     * This setting only applies when {@link JdbcSetting#SETTING_JDBC_MIN_IDLE_CONNECTION}  is defined to be less than
+     * {@link JdbcSetting#SETTING_JDBC_MAX_ACTIVE_CONNECTION}. Idle connections will not be retired once the pool
+     * reaches {@link JdbcSetting#SETTING_JDBC_MIN_IDLE_CONNECTION} connections.
+     */
+    public static final String SETTING_JDBC_CONNECTION_IDLE_TIMEOUT = "JdbcConnectionIdleTimeout";
+
+    /**
+     * Controls how frequently HikariCP will attempt to keep a connection alive, in order to prevent it from being timed out by the
+     * database or network infrastructure. This value must be less than the {@link JdbcSetting#SETTING_JDBC_MAX_CONNECTION_LIFETIME} value.
+     * A "keepalive" will only occur on an idle connection. When the time arrives for a "keepalive" against a given connection, that connection
+     * will be removed from the pool, "pinged", and then returned to the pool. The 'ping' is one of either: invocation of the JDBC4
+     * {@link java.sql.Connection#isValid(int)} method, or execution of the {@link JdbcSetting#SETTING_JDBC_CONNECTION_TEST_QUERY}. Typically, the duration
+     * out-of-the-pool should be measured in single digit milliseconds or even sub-millisecond, and therefore should have little or no noticeable
+     * performance impact. The minimum allowed value is 30000ms (30 seconds), but a value in the range of minutes is most desirable.
+     */
+    public static final String SETTING_JDBC_CONNECTION_KEEPALIVE_TIME = "JdbcConnectionKeepaliveTime";
+
+    /**
+     * If your driver supports JDBC4 we strongly recommend not setting this property. This is for "legacy" drivers that do not support the
+     * JDBC4 {@link java.sql.Connection#isValid(int)} API. This is the query that will be executed just before a connection is given to you
+     * from the pool to validate that the connection to the database is still alive.
+     */
+    public static final String SETTING_JDBC_CONNECTION_TEST_QUERY = "JdbcConnectionTestQuery";
 }

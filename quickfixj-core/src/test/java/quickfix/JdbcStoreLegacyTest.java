@@ -33,7 +33,7 @@ public class JdbcStoreLegacyTest extends JdbcStoreTest {
             throws ConfigError, SQLException, IOException {
         Connection connection = null;
         try {
-            connection = getDataSource().getConnection();
+            connection = getTestDataSource().getConnection();
             JdbcTestSupport.loadSQL(connection,
                     "config/sql/hsqldb/messages_table.sql",
                     new JdbcTestSupport.HypersonicLegacyPreprocessor(messagesTableName));
