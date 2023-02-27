@@ -145,16 +145,4 @@
 		</plugins>
 
 	</build>
-	<!--
-						<include>quickfix/fix42/**.java</include>
-						<include>quickfix/field/FutSettDate2.java</include> <included here as in 4.1 it has a different type>
-						<include>quickfix/field/OpenClose.java</include>	<included here as in 4.0, 4.1 it has a different type>
-						<include>quickfix/field/ClearingAccount.java</include>
-						<include>quickfix/field/ClearingFirm.java</include>
-						<include>quickfix/field/DiscretionOffset.java</include>
-						<include>quickfix/field/Rule80A.java</include>
-						<include>quickfix/field/OnBehalfOfSendingTime.java</include>
-						<include>quickfix/field/IDSource.java</include>
-						<include>quickfix/field/MaturityDay.java</include>
-	-->
 </project>

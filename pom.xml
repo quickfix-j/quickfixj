@@ -106,6 +106,8 @@
 		<guava.version>31.0.1-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.0</org.quickfixj.orchestra.tools.version>
+		<proxool.version>0.9.1</proxool.version>
+		<jaxen.version>2.0.0</jaxen.version>
 	</properties>
 
    <dependencyManagement>
@@ -230,7 +232,69 @@
 			  <groupId>com.google.guava</groupId>
 			  <artifactId>guava</artifactId>
 			  <version>${guava.version}</version>
-			</dependency>				
+			</dependency>
+			<dependency>
+				<groupId>com.sleepycat</groupId>
+				<artifactId>je</artifactId>
+				<version>18.3.12</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<!-- used by dictgenerator package -->
+				<groupId>org.dom4j</groupId>
+				<artifactId>dom4j</artifactId>
+				<version>2.1.3</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>com.cloudhopper.proxool</groupId>
+				<artifactId>proxool</artifactId>
+				<version>${proxool.version}</version>
+				<optional>true</optional>
+				<exclusions>
+					<!-- bug in proxool pom - should be test scope -->
+					<exclusion>
+						<groupId>avalon-framework</groupId>
+						<artifactId>avalon-framework-api</artifactId>
+					</exclusion>
+					<!-- we use slf4j which provides this API -->
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.cloudhopper.proxool</groupId>
+				<artifactId>proxool-cglib</artifactId>
+				<version>${proxool.version}</version>
+				<optional>true</optional>
+				<exclusions>
+					<!-- bug in proxool pom - should be test scope -->
+					<exclusion>
+						<groupId>avalon-framework</groupId>
+						<artifactId>avalon-framework-api</artifactId>
+					</exclusion>
+					<!-- we use slf4j which provides this API -->
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<!-- required by dom4j at runtime -->
+				<groupId>jaxen</groupId>
+				<artifactId>jaxen</artifactId>
+				<version>${jaxen.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<!-- https://github.com/quickfix-j/quickfixj/discussions/566 -->
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-jdk14</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
