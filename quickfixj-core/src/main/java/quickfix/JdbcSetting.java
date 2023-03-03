@@ -134,7 +134,7 @@ public class JdbcSetting {
 
     /**
      * Controls the maximum number of milliseconds that a client (that's you) will wait for a connection from the pool. If this time
-     * is exceeded without a connection becoming available, a SQLException will be thrown. Lowest acceptable connection timeout is 250 ms.
+     * is exceeded without a connection becoming available, an SQLException will be thrown. Lowest acceptable connection timeout is 250 ms.
      */
     public static final String SETTING_JDBC_CONNECTION_TIMEOUT = "JdbcConnectionTimeout";
 
