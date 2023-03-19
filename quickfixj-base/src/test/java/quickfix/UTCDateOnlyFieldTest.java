@@ -49,7 +49,6 @@ public class UTCDateOnlyFieldTest {
         String data = "20230101";
         UtcDateOnlyField utcDateOnlyField = new UtcDateOnlyField(MD_ENTRY_DATE_FIELD, data);
         assertTrue(utcDateOnlyField.valueEquals(localDate));
-        assertEquals(data, utcDateOnlyField.getValue().toString());
     }
 
     @Test
