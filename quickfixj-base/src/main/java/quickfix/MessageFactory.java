@@ -24,7 +24,7 @@ import quickfix.field.ApplVerID;
 /**
  * Used by a Session to create a Message.
  *
- * quickfix.Session
+ * see quickfix.Session
  */
 public interface MessageFactory {
 
