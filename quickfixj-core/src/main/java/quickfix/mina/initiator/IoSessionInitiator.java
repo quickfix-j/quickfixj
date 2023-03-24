@@ -69,7 +69,7 @@ public class IoSessionInitiator {
             EventHandlingStrategy eventHandlingStrategy,
             IoFilterChainBuilder userIoFilterChainBuilder, boolean sslEnabled, SSLConfig sslConfig,
             String proxyType, String proxyVersion, String proxyHost, int proxyPort,
-            String proxyUser, String proxyPassword, String proxyDomain, String proxyWorkstation) throws ConfigError {
+            String proxyUser, String proxyPassword, String proxyDomain, String proxyWorkstation, int retryCount) throws ConfigError {
         this.executor = executor;
         final long[] reconnectIntervalInMillis = new long[reconnectIntervalInSeconds.length];
         for (int ii = 0; ii != reconnectIntervalInSeconds.length; ++ii) {
@@ -79,7 +79,7 @@ public class IoSessionInitiator {
             reconnectTask = new ConnectTask(sslEnabled, socketAddresses, localAddress,
                     userIoFilterChainBuilder, fixSession, reconnectIntervalInMillis,
                     sessionSettings, networkingOptions, eventHandlingStrategy, sslConfig,
-                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation, log);
+                    proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation, log, retryCount);
         } catch (GeneralSecurityException e) {
             throw new ConfigError(e);
         }
@@ -106,6 +106,9 @@ public class IoSessionInitiator {
         private long lastConnectTime;
         private int nextSocketAddressIndex;
         private int connectionFailureCount;
+        private int retryCount = 1;
+        private int retryAttempt = 0;
+        private boolean isFirstTime = true;
         private ConnectFuture connectFuture;
 
         private final String proxyType;
@@ -123,7 +126,7 @@ public class IoSessionInitiator {
                 SessionSettings sessionSettings, NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy, SSLConfig sslConfig,
                 String proxyType, String proxyVersion, String proxyHost,
                 int proxyPort, String proxyUser, String proxyPassword, String proxyDomain,
-                String proxyWorkstation, Logger log) throws ConfigError, GeneralSecurityException {
+                String proxyWorkstation, Logger log, int retryCount) throws ConfigError, GeneralSecurityException {
             this.sslEnabled = sslEnabled;
             this.socketAddresses = socketAddresses;
             this.localAddress = localAddress;
@@ -144,6 +147,7 @@ public class IoSessionInitiator {
             this.proxyPassword = proxyPassword;
             this.proxyDomain = proxyDomain;
             this.proxyWorkstation = proxyWorkstation;
+            this.retryCount = retryCount;
 
             setupIoConnector();
         }
@@ -221,7 +225,14 @@ public class IoSessionInitiator {
         private void connect() {
             try {
                 lastReconnectAttemptTime = SystemTime.currentTimeMillis();
-                SocketAddress nextSocketAddress = getNextSocketAddress();
+                SocketAddress nextSocketAddress = socketAddresses[getCurrentSocketAddressIndex()];
+                if (retryCount == 1 || retryAttempt == retryCount || isFirstTime){
+                    nextSocketAddress = getNextSocketAddress();
+                    retryAttempt = 1;
+                    isFirstTime = false;
+                } else {
+                    ++retryAttempt;
+                }
                 if (localAddress == null) {
                     connectFuture = ioConnector.connect(nextSocketAddress);
                 } else {

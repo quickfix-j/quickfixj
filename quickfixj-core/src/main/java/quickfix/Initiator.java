@@ -122,5 +122,11 @@ public interface Initiator extends Connector {
      * AbstractSocketInitiator.createDynamicSession is called
      */
     String SETTING_DYNAMIC_SESSION = "DynamicSession";
-
+    /**
+     * Initiator setting for reconnect attempts. Only valid when
+     * session connection type is "initiator".
+     *
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    String SETTING_RECONNECT_ATTEMPT = "ReconnectAttempt";
 }
