@@ -86,23 +86,6 @@ public class ATApplication implements Application {
     public void fromApp(Message message, SessionID sessionID) throws FieldNotFound,
             IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType {
         assertNoSessionLock(sessionID);
-        // some ugly debug logging for 2r_UnregisteredMsgType.def
-        if (quickfix.FixVersions.BEGINSTRING_FIXT11.equals(sessionID.getBeginString())) {
-            if ("8".equals(message.getHeader().getString(35))) {
-                System.out.println("XXXX " + inboundCracker.getClass().getName());
-                final java.lang.reflect.Method[] methods = inboundCracker.getClass().getMethods();
-                for (java.lang.reflect.Method method : methods) {
-                    System.out.println("    XXXX " + method.toGenericString());
-                }
-                Class superclass = inboundCracker.getClass().getSuperclass();
-                if (superclass != null) {
-                    java.lang.reflect.Method[] methods1 = superclass.getMethods();
-                    for (java.lang.reflect.Method method : methods1) {
-                        System.out.println("        XXXX " + method.toGenericString());
-                    }
-                }
-            }
-        }
         inboundCracker.crack(message, sessionID);
     }
 }
