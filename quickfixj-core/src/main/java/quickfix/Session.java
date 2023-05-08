@@ -1742,8 +1742,8 @@ public class Session implements Closeable {
         final String reason = BusinessRejectReasonText.getMessage(err);
         setRejectReason(reject, field, reason, field != 0);
         getLog().onErrorEvent(
-                "Reject sent for message " + msgSeqNum + (reason != null ? (": " + reason) : "")
-                        + (field != 0 ? (": tag=" + field) : ""));
+                "Reject sent for message number " + msgSeqNum + (reason != null ? (": " + reason) : "")
+                        + (field != 0 ? (": tag=" + field) : "") + " Message [" + message + "]" + "Reject [" + reject + "]");
 
         sendRaw(reject, 0);
     }

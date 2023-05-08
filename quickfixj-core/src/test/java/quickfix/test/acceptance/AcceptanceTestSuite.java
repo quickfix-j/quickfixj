@@ -73,6 +73,7 @@ public class AcceptanceTestSuite extends TestSuite {
             TestConnection connection = null;
             String failureString = "test " + filename + " failed with message: ";
             try {
+                log.info("Running test {}, filename : {}", this.testname, this.filename);
                 connection = new TestConnection();
                 List<TestStep> testSteps = load(filename);
                 for (TestStep testStep : testSteps) {

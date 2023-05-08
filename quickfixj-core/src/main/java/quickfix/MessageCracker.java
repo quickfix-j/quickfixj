@@ -156,14 +156,6 @@ public class MessageCracker {
      */
     protected void onMessage(quickfix.Message message, SessionID sessionID) throws FieldNotFound,
             UnsupportedMessageType, IncorrectTagValue {
-        // some ugly debug logging for 2r_UnregisteredMsgType.def
-        // if (quickfix.FixVersions.BEGINSTRING_FIXT11.equals(sessionID.getBeginString())) {
-            if ("8".equals(message.getHeader().getString(35))) {
-                System.out.println("        XXXX " );
-                new Exception().printStackTrace();
-            }
-        // }
-
         throw new UnsupportedMessageType();
     }
 }

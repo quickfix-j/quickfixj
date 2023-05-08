@@ -99,9 +99,10 @@ public class InitiateMessageStep implements TestStep {
         log.debug("sending to client " + clientId + ": " + message);
         try {
             connection.sendMessage(clientId, message);
-        } catch (IOException e) {
+        } catch (Exception e) {
             AssertionFailedError error = new AssertionFailedError(message);
             error.setStackTrace(e.getStackTrace());
+            log.error("Exception in InitiateMessageStep", e);
             throw error;
         }
     }
