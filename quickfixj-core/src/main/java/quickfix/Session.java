@@ -1726,9 +1726,10 @@ public class Session implements Closeable {
 
     private void generateBusinessReject(Message message, int err, int field) throws FieldNotFound,
             IOException {
-        final Message reject = messageFactory.create(sessionID.getBeginString(),
-                MsgType.BUSINESS_MESSAGE_REJECT);
         final Header header = message.getHeader();
+        ApplVerID targetDefaultApplicationVersionID = getTargetDefaultApplicationVersionID();
+        final Message reject = messageFactory.create(sessionID.getBeginString(), targetDefaultApplicationVersionID,
+                MsgType.BUSINESS_MESSAGE_REJECT);
         reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
 
