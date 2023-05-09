@@ -14,7 +14,7 @@
 		<plugins>
 			<plugin>
 				<groupId>org.quickfixj</groupId>
-				<artifactId>class-pruner-maven-plugin</artifactId>
+				<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
 				<configuration>
 					<classesDirectory>not-really-classes</classesDirectory>
 					<generatedSourcesDirectory>not-really-generated-sources</generatedSourcesDirectory>
