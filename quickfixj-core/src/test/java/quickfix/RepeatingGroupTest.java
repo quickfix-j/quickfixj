@@ -32,6 +32,8 @@ import quickfix.field.Symbol;
 import quickfix.fix44.Quote;
 import quickfix.fix50sp2.QuoteRequest;
 
+import java.time.LocalDate;
+
 public class RepeatingGroupTest {
 
     // In this testcase we use only FIX4.4 message, but we could use the others
@@ -359,7 +361,7 @@ public class RepeatingGroupTest {
 
         final quickfix.fix50sp2.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithStandardFieldsFIX50SP2("DEFAULT_VALUE");
         gNoRelatedSym.setField(new Symbol("SYM00"));
-        gNoRelatedSym.setField(new SettlDate2("20120801"));
+        gNoRelatedSym.setField(new SettlDate2(LocalDate.of(2012,8,1)));
 
         quoteRequest.addGroup(gNoRelatedSym);
         quoteRequest.addGroup(gNoRelatedSym);
@@ -385,7 +387,7 @@ public class RepeatingGroupTest {
 
         final quickfix.fixlatest.QuoteRequest.NoRelatedSym gNoRelatedSym = buildNestedGroupWithStandardFieldsFIXLatest("DEFAULT_VALUE");
         gNoRelatedSym.setField(new Symbol("SYM00"));
-        gNoRelatedSym.setField(new SettlDate2("20120801"));
+        gNoRelatedSym.setField(new SettlDate2(LocalDate.of(2012,8,1)));
 
         quoteRequest.addGroup(gNoRelatedSym);
         quoteRequest.addGroup(gNoRelatedSym);

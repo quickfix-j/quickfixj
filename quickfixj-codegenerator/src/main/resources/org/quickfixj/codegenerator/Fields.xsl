@@ -89,10 +89,6 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
 
     public <xsl:value-of select="@name"/>(double data) {
         super(<xsl:value-of select="@number"/>, new <xsl:value-of select="$dataType"/>(data));
-    }</xsl:if><xsl:if test="@type='UTCDATE' or @type='UTCDATEONLY' or @type='LOCALMKTDATE'">
-    
-    public <xsl:value-of select="@name"/>(String data) {
-        super(<xsl:value-of select="@number"/>, data);
     }</xsl:if><xsl:if test="@type='UTCTIMESTAMP' or @type='UTCTIME' or @type='UTCTIMEONLY'">
     <xsl:choose><xsl:when test="$utcTimestampPrecision">
 

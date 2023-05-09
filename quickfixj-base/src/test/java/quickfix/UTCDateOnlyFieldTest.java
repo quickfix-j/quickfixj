@@ -28,30 +28,6 @@ public class UTCDateOnlyFieldTest {
     }
 
     @Test
-    public void testUtcDateOnlyFieldFromString() {
-        assertThrows(DateTimeParseException.class, () -> {
-            String incorrectDateFormat = "20230101+01:00";
-            new UtcDateOnlyField(MD_ENTRY_DATE_FIELD, incorrectDateFormat);
-        });
-        assertThrows(DateTimeParseException.class, () -> {
-            String incorrectDateFormat = "20230101+010000";
-            new UtcDateOnlyField(MD_ENTRY_DATE_FIELD, incorrectDateFormat);
-        });
-        assertThrows(DateTimeParseException.class, () -> {
-            String incorrectDateFormat = "202301";
-            new UtcDateOnlyField(MD_ENTRY_DATE_FIELD, incorrectDateFormat);
-        });
-        assertThrows(DateTimeParseException.class, () -> {
-            String incorrectDateFormat = "2023-01-01";
-            new UtcDateOnlyField(MD_ENTRY_DATE_FIELD, incorrectDateFormat);
-        });
-        LocalDate localDate = LocalDate.of(2023, 1, 1);
-        String data = "20230101";
-        UtcDateOnlyField utcDateOnlyField = new UtcDateOnlyField(MD_ENTRY_DATE_FIELD, data);
-        assertTrue(utcDateOnlyField.valueEquals(localDate));
-    }
-
-    @Test
     public void testAssignment() {
         LocalDate localDate = LocalDate.of(2023, 12, 31);
         UtcDateOnlyField utcDateOnlyField = new UtcDateOnlyField(MD_ENTRY_DATE_FIELD);

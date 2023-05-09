@@ -21,27 +21,11 @@ package quickfix;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-
-import static java.time.temporal.ChronoField.DAY_OF_MONTH;
-import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
-import static java.time.temporal.ChronoField.YEAR;
 
 /**
  * A date-valued message field.
  */
 public class UtcDateOnlyField extends Field<LocalDate> {
-
-    public static final DateTimeFormatter UTC_DATE_ONLY_FORMATTER;
-    static {
-        UTC_DATE_ONLY_FORMATTER = new DateTimeFormatterBuilder()
-                .parseCaseInsensitive()
-                .appendValue(YEAR, 4)
-                .appendValue(MONTH_OF_YEAR, 2)
-                .appendValue(DAY_OF_MONTH, 2)
-                .toFormatter();
-    }
 
     public UtcDateOnlyField(int field) {
         super(field, LocalDate.now(ZoneOffset.UTC));
@@ -51,10 +35,6 @@ public class UtcDateOnlyField extends Field<LocalDate> {
         super(field, data);
     }
     
-    protected UtcDateOnlyField(int field, String data) {
-        super(field, LocalDate.parse(data, UTC_DATE_ONLY_FORMATTER));
-    }
-            
     public void setValue(LocalDate value) {
         setObject(value);
     }

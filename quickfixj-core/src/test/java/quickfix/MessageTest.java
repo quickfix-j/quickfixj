@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
@@ -848,8 +849,11 @@ public class MessageTest {
          * Prepare a very simple TradeCaptureReport message template and two
          * legs.
          */
-        Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"), new PreviouslyReported(
-                false), new LastQty(1000), new LastPx(5.6789), new TradeDate("20140101"),
+        Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"),
+                new PreviouslyReported(false),
+                new LastQty(1000),
+                new LastPx(5.6789),
+                new TradeDate(LocalDate.of(2014,1,1)),
                 new TransactTime(LocalDateTime.now(ZoneOffset.UTC)));
         tcr.getHeader().setField(new SenderCompID("SENDER"));
         tcr.getHeader().setField(new TargetCompID("TARGET"));
@@ -919,8 +923,11 @@ public class MessageTest {
     // QFJ-791
     public void testUnknownFieldsInRepeatingGroupsAndValidation() throws Exception {
 
-        Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"), new PreviouslyReported(
-                false), new LastQty(1000), new LastPx(5.6789), new TradeDate("20140101"),
+        Message tcr = new TradeCaptureReport(new TradeReportID("ABC1234"),
+                new PreviouslyReported(false),
+                new LastQty(1000),
+                new LastPx(5.6789),
+                new TradeDate(LocalDate.of(2014,1,1)),
                 new TransactTime(LocalDateTime.now(ZoneOffset.UTC)));
         tcr.getHeader().setField(new SenderCompID("SENDER"));
         tcr.getHeader().setField(new TargetCompID("TARGET"));
@@ -1177,7 +1184,7 @@ public class MessageTest {
         tcr.setField(new PreviouslyReported(false));
         tcr.setField(new LastQty(1000));
         tcr.setField(new LastPx(5.6789));
-        tcr.setField(new TradeDate("20140101"));
+        tcr.setField(new TradeDate(LocalDate.of(2014,1,1)));
         tcr.setField(new TransactTime(LocalDateTime.now(ZoneOffset.UTC)));
         Group leg1 = new Group(555, 600, fieldOrder);
         leg1.setField(new LegSymbol("L1-XYZ"));
