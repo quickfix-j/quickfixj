@@ -155,7 +155,7 @@ public class IoSessionInitiator {
 
             SSLFilter sslFilter = null;
             if (sslEnabled) {
-                sslFilter = installSslFilter(ioFilterChainBuilder, !hasProxy);
+                sslFilter = installSslFilter(ioFilterChainBuilder);
             }
 
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME, new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
@@ -188,16 +188,15 @@ public class IoSessionInitiator {
             ioConnector = newConnector;
         }
 
-        private SSLFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder, boolean autoStart)
+        private SSLFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SSLFilter sslFilter = new SSLFilter(sslContext, autoStart);
-            sslFilter.setUseClientMode(true);
-            sslFilter.setCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
+            final SSLFilter sslFilter = new SSLFilter(sslContext);
+            sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
-            sslFilter.setUseSNI(sslConfig.isUseSNI());
+            sslFilter.setEndpointIdentificationAlgorithm(sslConfig.getEndpointIdentificationAlgorithm());
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
             return sslFilter;
         }

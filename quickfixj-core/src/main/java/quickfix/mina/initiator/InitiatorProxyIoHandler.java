@@ -61,8 +61,8 @@ class InitiatorProxyIoHandler extends AbstractProxyIoHandler {
 
     @Override
     public void proxySessionOpened(IoSession ioSession) throws Exception {
-        if (this.sslFilter != null) {
-            this.sslFilter.initiateHandshake(ioSession);
-        }
+//        if (this.sslFilter != null) {
+//            this.sslFilter.initiateHandshake(ioSession);
+//        }
     }
 }
