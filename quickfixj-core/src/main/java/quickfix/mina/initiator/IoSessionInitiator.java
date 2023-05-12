@@ -152,7 +152,7 @@ public class IoSessionInitiator {
 
             SslFilter sslFilter = null;
             if (sslEnabled) {
-                sslFilter = installSslFilter(ioFilterChainBuilder, !hasProxy);
+                sslFilter = installSslFilter(ioFilterChainBuilder);
             }
 
             ioFilterChainBuilder.addLast(FIXProtocolCodecFactory.FILTER_NAME, new ProtocolCodecFilter(new FIXProtocolCodecFactory()));
@@ -191,7 +191,7 @@ public class IoSessionInitiator {
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
-            sslFilter.setUseSNI(sslConfig.isUseSNI());
+            sslFilter.setEndpointIdentificationAlgorithm(sslConfig.getEndpointIdentificationAlgorithm());
             ioFilterChainBuilder.addLast(SSLSupport.FILTER_NAME, sslFilter);
             return sslFilter;
         }
