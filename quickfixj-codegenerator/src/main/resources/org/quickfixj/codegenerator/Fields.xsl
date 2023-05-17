@@ -67,7 +67,7 @@ import quickfix.<xsl:call-template name="get-field-type"/>Field;
 <xsl:if test="@type='UTCTIMESTAMP'">
 import java.time.LocalDateTime;
 </xsl:if>
-<xsl:if test="@type='UTCDATE' or @type='UTCDATEONLY' or @type='LOCALMKTDATE'">
+<xsl:if test="@type='UTCDATE' or @type='UTCDATEONLY'">
 import java.time.LocalDate;
 </xsl:if>
 <xsl:if test="@type='UTCTIME' or @type='UTCTIMEONLY'">
@@ -112,7 +112,8 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='UTCTIMEONLY'">LocalTime</xsl:when>
      <xsl:when test="@type='UTCDATE'">LocalDate</xsl:when>
      <xsl:when test="@type='UTCDATEONLY'">LocalDate</xsl:when>
-     <xsl:when test="@type='LOCALMKTDATE'">LocalDate</xsl:when>
+     <xsl:when test="@type='LOCALMKTDATE'">String</xsl:when>
+     <xsl:when test="@type='LOCALMKTTIME'">String</xsl:when>
      <xsl:when test="@type='BOOLEAN'">boolean</xsl:when>
      <xsl:when test="@type='FLOAT'">double</xsl:when>
      <xsl:when test="@type='PRICEOFFSET'"><xsl:value-of select="$decimalType"/></xsl:when>
@@ -141,7 +142,8 @@ public class <xsl:value-of select="@name"/> extends <xsl:call-template name="get
      <xsl:when test="@type='UTCTIMEONLY'">UtcTimeOnly</xsl:when>
      <xsl:when test="@type='UTCDATE'">UtcDateOnly</xsl:when>
      <xsl:when test="@type='UTCDATEONLY'">UtcDateOnly</xsl:when>
-     <xsl:when test="@type='LOCALMKTDATE'">UtcDateOnly</xsl:when>
+     <xsl:when test="@type='LOCALMKTDATE'">String</xsl:when>
+     <xsl:when test="@type='LOCALMKTTIME'">String</xsl:when>
      <xsl:when test="@type='BOOLEAN'">Boolean</xsl:when>
      <xsl:when test="@type='FLOAT'">Double</xsl:when>
      <xsl:when test="@type='PRICEOFFSET'"><xsl:value-of select="$decimalConverter"/></xsl:when>
