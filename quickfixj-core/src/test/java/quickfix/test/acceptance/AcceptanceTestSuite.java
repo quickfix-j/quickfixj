@@ -166,12 +166,13 @@ public class AcceptanceTestSuite extends TestSuite {
 
         this.skipSlowTests = Boolean.getBoolean(ATEST_SKIPSLOW_KEY);
 
-        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix40"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix41"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix42"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix43"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix44"));
-        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix50"));
+//        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix40"));
+//        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix41"));
+//        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix42"));
+//        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix43"));
+//        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix44"));
+//        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix50"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fixLatest"));
     }
 
     public String toString() {
