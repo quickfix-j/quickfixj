@@ -74,7 +74,7 @@ public class ATServer implements Runnable {
     private String keyStorePassword;
     private Map<Object, Object> overridenProperties = null;
 
-    //Pattern to get FIX version from test location "fixLatest/20_SimultaneousResendRequest.def"
+    //Pattern to get FIX version from test location example :"fixLatest/20_SimultaneousResendRequest.def"
     private final Pattern fixVersionFromTestLocationPattern = Pattern.compile("^(.*?)(?:\\/.*)$");
 
     public ATServer() {

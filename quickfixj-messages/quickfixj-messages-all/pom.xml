@@ -243,7 +243,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<!-- plugin>
+			<plugin>
 				<groupId>org.quickfixj</groupId>
 				<artifactId>quickfixj-codegenerator</artifactId>
 				<version>${project.version}</version>
@@ -345,7 +345,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin -->
+			</plugin>
 			<!-- exclude classes that are provided by the quickfixj-base dependency -->
 			<plugin>
 			  <groupId>org.apache.maven.plugins</groupId>
