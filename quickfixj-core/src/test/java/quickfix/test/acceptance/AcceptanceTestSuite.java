@@ -172,6 +172,7 @@ public class AcceptanceTestSuite extends TestSuite {
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix43"));
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix44"));
         addTests(new File(acceptanceTestBaseDir + testDirectory + "/fix50"));
+        addTests(new File(acceptanceTestBaseDir + testDirectory + "/fixLatest"));
     }
 
     public String toString() {

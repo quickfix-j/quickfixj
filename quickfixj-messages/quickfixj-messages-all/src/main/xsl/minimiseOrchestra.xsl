@@ -78,8 +78,13 @@
 									      @id = '277' or
 									      @id = '278' or
 									      @id = '279' or
+			                              @id = '320' or
+			                              @id = '322' or
+			                              @id = '323' or
+			                              @id = '336' or
 			                              @id = '347' or
 			                              @id = '369' or
+			                              @id = '393' or
 			                              @id = '447' or
 			                              @id = '448' or
 			                              @id = '452' or
@@ -147,6 +152,7 @@
         									  @id = '30' or
         									  @id = '31' or
         									  @id = '35' or
+        									  @id = '37' or
         									  @id = '52' or
         									  @id = '60' or
         									  @id = '90')]"/>
@@ -165,9 +171,10 @@
 
  	<!-- Instrument -->
  	<xsl:template
-        match="fixr:components/fixr:component[(@id='1003')]/fixr:fieldRef[not(@id='55' or
-                                                                               @id='460' or
-                                                                               @id='167')]" />
+        match="fixr:components/fixr:component[(@id='1003')]/fixr:fieldRef[not(@id='22' or
+                                                                              @id='55' or
+                                                                              @id='167' or
+                                                                              @id='460')]" />
 <!--   	<xsl:template -->
 <!--         match="fixr:components/fixr:component[(@id='1003')]/fixr:fieldRef[not(@id='55')]" /> -->
    	<xsl:template
@@ -209,7 +216,7 @@
     <xsl:template
        	match="fixr:groups/fixr:group[(@id='2029')]/fixr:groupRef" />
 	<xsl:template
-        match="fixr:groups/fixr:group[(@id='2029')]/fixr:componentRef" />                                                                      
+        match="fixr:groups/fixr:group[(@id='2029')]/fixr:componentRef" />
 
     <!-- There are no nested groups or components -->
 
@@ -334,7 +341,23 @@
         match="fixr:message[@id='35']/fixr:structure/fixr:groupRef" />
     <xsl:template
         match="fixr:message[@id='35']/fixr:structure/fixr:fieldRef" />
-        
+
+	<!-- ******* SecurityDefinition -->
+	<xsl:template
+			match="fixr:message[@id='37']/fixr:structure/fixr:componentRef[not(@id='1024' or
+                                                                               @id='1025' or
+                                                                               @id='1003')]" />
+	<xsl:template
+			match="fixr:message[@id='37']/fixr:structure/fixr:groupRef" />
+	<xsl:template
+			match="fixr:message[@id='37']/fixr:structure/fixr:fieldRef[not(@id='58' or
+			                                                               @id='320' or
+																		   @id='322' or
+																		   @id='323')]" />
+	<!-- or
+			                                                               @id='336' or
+																		   @id='393')]" / -->
+
  	<!-- ******* Cross Order -->
  	<xsl:template
         match="fixr:message[@id='52']/fixr:structure/fixr:componentRef[not(@id='1003' or
@@ -345,8 +368,8 @@
     <xsl:template
         match="fixr:message[@id='52']/fixr:structure/fixr:fieldRef[not(@id='548' or 
         															   @id='549' or
-        															   @id='550')]" />        
-        															   
+        															   @id='550')]" />
+
 	<!-- ******* Derivative Security List -->
  	<xsl:template
         match="fixr:message[@id='60']/fixr:structure/fixr:componentRef[not(@id='1003' or
@@ -364,5 +387,4 @@
         match="fixr:message[@id='90']/fixr:structure/fixr:groupRef" />
     <xsl:template
         match="fixr:message[@id='90']/fixr:structure/fixr:fieldRef" />
-
 </xsl:stylesheet>
