@@ -32,6 +32,7 @@
 									      @id = '40' or
 									      @id = '43' or
 									      @id = '44' or
+									      @id = '45' or
 									      @id = '48' or
 									      @id = '49' or
 									      @id = '50' or
@@ -84,6 +85,8 @@
 			                              @id = '336' or
 			                              @id = '347' or
 			                              @id = '369' or
+			                              @id = '372' or
+			                              @id = '380' or
 			                              @id = '393' or
 			                              @id = '447' or
 			                              @id = '448' or
@@ -144,18 +147,19 @@
 
     <!-- filter out messages that are not used in QFJ tests -->
     <xsl:template
-        match="fixr:messages/fixr:message[not(@id = '8' or
-        									  @id = '12' or
-        									  @id = '13' or
-        									  @id = '14' or
-        									  @id = '26' or
-        									  @id = '30' or
-        									  @id = '31' or
-        									  @id = '35' or
-        									  @id = '37' or
-        									  @id = '52' or
-        									  @id = '60' or
-        									  @id = '90')]"/>
+        match="fixr:messages/fixr:message[not(@msgType = '7' or
+        									  @msgType = 'B' or
+        									  @msgType = 'C' or
+        									  @msgType = 'D' or
+        									  @msgType = 'R' or
+        									  @msgType = 'W' or
+        									  @msgType = 'X' or
+        									  @msgType = 'b' or
+        									  @msgType = 'd' or
+        									  @msgType = 's' or
+        									  @msgType = 'AA' or
+        									  @msgType = 'BE' or
+        									  @msgType = 'j')]"/>
 
  	<!-- ******************************** -->
  	<!-- COMPONENTS -->
@@ -266,91 +270,91 @@
 
  	<!-- ******* Advertisement -->
  	<xsl:template
-        match="fixr:message[@id='8']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='7']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                           @id='1025' or
                                                                           @id='1003')]" />
     <xsl:template
-        match="fixr:message[@id='8']/fixr:structure/fixr:groupRef" />
+        match="fixr:message[@msgType='7']/fixr:structure/fixr:groupRef" />
     <xsl:template
-        match="fixr:message[@id='8']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='7']/fixr:structure/fixr:fieldRef" />
 
  	<!-- ******* News -->
  	<xsl:template
-        match="fixr:message[@id='12']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='B']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='12']/fixr:structure/fixr:groupRef[not(@id='2029')]" />
+        match="fixr:message[@msgType='B']/fixr:structure/fixr:groupRef[not(@id='2029')]" />
     <xsl:template
-        match="fixr:message[@id='12']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='B']/fixr:structure/fixr:fieldRef" />
 
 	<!--  ******* Email -->
  	<xsl:template
-        match="fixr:message[@id='13']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='C']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='13']/fixr:structure/fixr:groupRef" />
+        match="fixr:message[@msgType='C']/fixr:structure/fixr:groupRef" />
     <xsl:template
-        match="fixr:message[@id='13']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='C']/fixr:structure/fixr:fieldRef" />
 
 	<!--  ******* New Single Order : This is very much a hack just  to ensure that HandlInst gets included in the code gen 
 	      and overwrites legacy code gen, the orchestra code gen does not write fields that are not included in messages 
 	      or their group/components -->
  	<xsl:template
-        match="fixr:message[@id='14']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='D']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='14']/fixr:structure/fixr:fieldRef[not(@id='21' or
+        match="fixr:message[@msgType='D']/fixr:structure/fixr:fieldRef[not(@id='21' or
                                                                        @id='40')]" />
     <xsl:template
-        match="fixr:message[@id='14']/fixr:structure/fixr:groupRef[not(@id='1012')]" />
+        match="fixr:message[@msgType='D']/fixr:structure/fixr:groupRef[not(@id='1012')]" />
 
     <!-- ******* QuoteRequest -->
  	<xsl:template
-        match="fixr:message[@id='26']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='R']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='26']/fixr:structure/fixr:groupRef[not(@id='2045')]" />
+        match="fixr:message[@msgType='R']/fixr:structure/fixr:groupRef[not(@id='2045')]" />
 	<xsl:template
-        match="fixr:message[@id='26']/fixr:structure/fixr:fieldRef[not(@id='131')]" />
+        match="fixr:message[@msgType='R']/fixr:structure/fixr:fieldRef[not(@id='131')]" />
 
  	<!-- ******* MarketDataSnapshotFullRefresh -->
  	<xsl:template
-        match="fixr:message[@id='30']/fixr:structure/fixr:componentRef[not(@id='1003' or
+        match="fixr:message[@msgType='W']/fixr:structure/fixr:componentRef[not(@id='1003' or
         																   @id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='30']/fixr:structure/fixr:groupRef[not(@id='2031')]" />
+        match="fixr:message[@msgType='W']/fixr:structure/fixr:groupRef[not(@id='2031')]" />
     <xsl:template
-        match="fixr:message[@id='30']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='W']/fixr:structure/fixr:fieldRef" />
 
  	<!-- ******* MarketDataIncrementalRefresh -->
  	<xsl:template
-        match="fixr:message[@id='31']/fixr:structure/fixr:componentRef[not(@id='1003' or
+        match="fixr:message[@msgType='X']/fixr:structure/fixr:componentRef[not(@id='1003' or
                                                                            @id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='31']/fixr:structure/fixr:groupRef" />
+        match="fixr:message[@msgType='X']/fixr:structure/fixr:groupRef" />
     <xsl:template
-        match="fixr:message[@id='31']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='X']/fixr:structure/fixr:fieldRef" />
 
  	<!-- ******* MassQuoteAck -->
  	<xsl:template
-        match="fixr:message[@id='35']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='b']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='35']/fixr:structure/fixr:groupRef" />
+        match="fixr:message[@msgType='b']/fixr:structure/fixr:groupRef" />
     <xsl:template
-        match="fixr:message[@id='35']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='b']/fixr:structure/fixr:fieldRef" />
 
 	<!-- ******* SecurityDefinition -->
 	<xsl:template
-			match="fixr:message[@id='37']/fixr:structure/fixr:componentRef[not(@id='1024' or
+			match="fixr:message[@msgType='d']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                                @id='1025' or
                                                                                @id='1003')]" />
 	<xsl:template
-			match="fixr:message[@id='37']/fixr:structure/fixr:groupRef" />
+			match="fixr:message[@msgType='d']/fixr:structure/fixr:groupRef" />
 	<xsl:template
-			match="fixr:message[@id='37']/fixr:structure/fixr:fieldRef[not(@id='58' or
+			match="fixr:message[@msgType='d']/fixr:structure/fixr:fieldRef[not(@id='58' or
 			                                                               @id='320' or
 																		   @id='322' or
 																		   @id='323')]" />
@@ -360,31 +364,43 @@
 
  	<!-- ******* Cross Order -->
  	<xsl:template
-        match="fixr:message[@id='52']/fixr:structure/fixr:componentRef[not(@id='1003' or
+        match="fixr:message[@msgType='s']/fixr:structure/fixr:componentRef[not(@id='1003' or
         															       @id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='52']/fixr:structure/fixr:groupRef[not(@id='2059')]" />
+        match="fixr:message[@msgType='s']/fixr:structure/fixr:groupRef[not(@id='2059')]" />
     <xsl:template
-        match="fixr:message[@id='52']/fixr:structure/fixr:fieldRef[not(@id='548' or 
+        match="fixr:message[@msgType='s']/fixr:structure/fixr:fieldRef[not(@id='548' or
         															   @id='549' or
         															   @id='550')]" />
 
 	<!-- ******* Derivative Security List -->
  	<xsl:template
-        match="fixr:message[@id='60']/fixr:structure/fixr:componentRef[not(@id='1003' or
+        match="fixr:message[@msgType='AA']/fixr:structure/fixr:componentRef[not(@id='1003' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='60']/fixr:structure/fixr:groupRef" />
+        match="fixr:message[@msgType='AA']/fixr:structure/fixr:groupRef" />
     <xsl:template
-        match="fixr:message[@id='60']/fixr:structure/fixr:fieldRef[not(@id='560')]" />  
+        match="fixr:message[@msgType='AA']/fixr:structure/fixr:fieldRef[not(@id='560')]" />
 
  	<!-- ******* UserRequest -->
  	<xsl:template
-        match="fixr:message[@id='90']/fixr:structure/fixr:componentRef[not(@id='1024' or
+        match="fixr:message[@msgType='BE']/fixr:structure/fixr:componentRef[not(@id='1024' or
                                                                            @id='1025')]" />
     <xsl:template
-        match="fixr:message[@id='90']/fixr:structure/fixr:groupRef" />
+        match="fixr:message[@msgType='BE']/fixr:structure/fixr:groupRef" />
     <xsl:template
-        match="fixr:message[@id='90']/fixr:structure/fixr:fieldRef" />
+        match="fixr:message[@msgType='BE']/fixr:structure/fixr:fieldRef" />
+
+	<!-- ******* Business Message Reject -->
+	<xsl:template
+			match="fixr:message[@msgType='j']/fixr:structure/fixr:componentRef[not(@id='1003' or
+                                                                               @id='1025')]" />
+	<xsl:template
+			match="fixr:message[@msgType='j']/fixr:structure/fixr:groupRef" />
+	<xsl:template
+			match="fixr:message[@msgType='j']/fixr:structure/fixr:fieldRef[not(@id='45' or
+																		   @id='58' or
+																		   @id='372' or
+                                                                           @id='380')]" />
 </xsl:stylesheet>
