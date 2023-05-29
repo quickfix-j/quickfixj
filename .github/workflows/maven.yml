@@ -21,13 +21,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name:
-          Configure pagefile
-        uses: al-cheb/configure-pagefile-action@7e234852c937eea04d6ee627c599fb24a5bfffee
-        if: runner.os == 'Windows'
-        with:
-          minimum-size: 8GB
-          maximum-size: 16GB
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
