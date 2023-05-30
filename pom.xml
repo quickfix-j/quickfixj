@@ -378,6 +378,7 @@
 								<goal>jar</goal>
 							</goals>
 							<configuration>
+								<quiet>true</quiet>
 								<doclint>none</doclint>
 								<maxmemory>5g</maxmemory>
 							</configuration>

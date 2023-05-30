@@ -195,6 +195,7 @@
 						<configuration>
 							<!-- Uncomment this to skip execution as this module requires more than 9gb memory -->
 							<!--  skip>true</skip -->
+							<quiet>true</quiet>
 							<source>8</source>
 							<sourcepath>src/main/java:${project.build.directory}/generated-sources</sourcepath>
 							<excludePackageNames>quickfix.fixt11:quickfix.fixlatest</excludePackageNames>

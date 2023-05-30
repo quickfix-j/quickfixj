@@ -223,6 +223,7 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
+							<quiet>true</quiet>
 							<doclint>none</doclint>
 							<maxmemory>6g</maxmemory>
 							<detectOfflineLinks>false</detectOfflineLinks>
