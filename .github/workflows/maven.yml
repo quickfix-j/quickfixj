@@ -29,7 +29,7 @@ jobs:
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms3g -Xmx5g -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500"
-        run: mvn install -B -V -Pminimal-fix-latest -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: mvn install -B -V -Pminimal-fix-latest -D"java.util.logging.config.file"="logging.properties" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
 
   test-windows:
     runs-on: ${{ matrix.os }}
@@ -56,4 +56,4 @@ jobs:
       - name: Test with Maven on Windows
         env:
           MAVEN_OPTS: "-Xms3g -Xmx5g -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500"
-        run: mvn install -B -V -Pminimal-fix-latest -D"java.util.logging.config.file"="logging.properties" -D"http.keepAlive"="false" -D"maven.wagon.http.pool"="false" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
+        run: mvn install -B -V  -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest -D"java.util.logging.config.file"="logging.properties" -D"maven.wagon.httpconnectionManager.ttlSeconds"="120"
