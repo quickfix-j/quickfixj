@@ -26,6 +26,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          cache: 'maven'
       - name: Test with Maven
         env:
           MAVEN_OPTS: "-Xms3g -Xmx5g -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500"
@@ -55,6 +56,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          cache: 'maven'
       - name: Test with Maven on Windows
         env:
           MAVEN_OPTS: "-Xms3g -Xmx5g -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500"
