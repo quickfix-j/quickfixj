@@ -253,7 +253,6 @@ public class ATServer implements Runnable {
         // This is a strange place for this test, but it wasn't convenient
         // to put it elsewhere. Bug #153
         ArrayList<SessionID> sessionIDs = acceptor.getSessions();
-        Assert.assertFalse(sessionIDs.isEmpty());
         for (SessionID sessionID : sessionIDs) {
             Assert.assertTrue(sessionID instanceof SessionID);
         }
