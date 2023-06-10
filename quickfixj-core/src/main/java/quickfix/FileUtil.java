@@ -145,7 +145,7 @@ public class FileUtil {
                 try {
                     URL url = new URL(name);
                     HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    httpURLConnection.setRequestProperty("User-Agent", "Java test agent");
+                    httpURLConnection.setRequestProperty("User-Agent", "Java-QuickFIXJ-FileUtil");
                     httpURLConnection.connect();
                     in = httpURLConnection.getInputStream();
                 } catch (IOException e) {
