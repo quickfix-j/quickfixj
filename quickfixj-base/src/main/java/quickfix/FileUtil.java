@@ -24,7 +24,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+
 
 public class FileUtil {
     public static String fileAppendPath(String pathPrefix, String pathSuffix) {
@@ -141,7 +143,11 @@ public class FileUtil {
                 break;
             case URL:
                 try {
-                    in = new URL(name).openStream();
+                    URL url = new URL(name);
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestProperty("User-Agent", "Java test agent");
+                    httpURLConnection.connect();
+                    in = httpURLConnection.getInputStream();
                 } catch (IOException e) {
                     // ignore
                 }
