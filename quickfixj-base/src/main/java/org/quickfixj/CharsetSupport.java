@@ -64,6 +64,10 @@ public class CharsetSupport {
         CharsetSupport.isStringEquivalent = isStringEquivalent(charsetInstance);
     }
 
+    public static void setDefaultCharset() throws UnsupportedEncodingException {
+        setCharset(getDefaultCharset());
+    }
+
     public static String getCharset() {
         return charset;
     }

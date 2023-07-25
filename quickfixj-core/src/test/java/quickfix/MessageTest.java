@@ -189,7 +189,7 @@ public class MessageTest {
             final Message msg = new Message(order.toString(), DataDictionaryTest.getDictionary());
             assertEquals(charset + " encoded field", text, msg.getString(EncodedText.FIELD));
         } finally {
-            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+            CharsetSupport.setDefaultCharset();
         }
     }
 
