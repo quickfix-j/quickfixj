@@ -10,6 +10,6 @@ This module does have <u>**test**</u> dependency on generated message classes. T
 
 To develop this module build ```quickfixj-base``` and ```quickfixj-messages``` first, or build the whole project. 
 
-Full ```quickfixj-messages``` build times can be long. See [the ```quickfixj-messages``` readme](../quickfixj-messages/readme.md) for how to do a minimal development build of the messages. Once these dependencies are built then ```quickfixj-core``` can be built and tested independently for higher productively.
+Full ```quickfixj-messages``` build times can be long. See [the ```quickfixj-messages``` readme](../quickfixj-messages/readme.md) for how to do a minimal development build of the messages. Once these dependencies are built then ```quickfixj-core``` can be built and tested independently for higher productivity.
 
 If and when you import the project into an IDE it can be better to exclude or close the ```quickfixj-messages``` module(s) to reduce the memory and computation overheads of importing these large packages.

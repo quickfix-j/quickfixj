@@ -16,7 +16,7 @@ The `quickfixj-messages` module builds reference artefacts for the published FIX
 * ```quickfixj-messages-fix41```
 * ```quickfixj-messages-fix40```
 
-QuickFIX/J core is agnostic to FIX Protocol specification versions. It is designed to support multiple concurrent versions at run time. 
+QuickFIX/J core is agnostic to FIX Protocol specification versions. It is designed to support multiple concurrent versions at runtime. 
 
 Messages and Components are effectively compositions of ```Maps``` of ```quickfix.Fields```.
 The Messages and Components are in distinct packages for the corresponding FIX protocol versions. 
@@ -59,9 +59,9 @@ The packaging is done in reverse order so that Fields not present in older versi
 This results in smaller, concise distributions and quicker build times.
 
 It is not necessary for an application to depend on ```quickfixj-messages-all```. 
-An application need only depend on the artefacts for the FIX Protocol versions that it requires. 
+An application needs only depend on the artefacts for the FIX Protocol versions that it requires. 
 Please note that if using the reference QuickFIX/J build, an application using FIX Protocol versions **5.0 and later** will also depend on ```quickfixj-messages-fixt11```. 
-_Detail: The modules for  FIX Protocol versions **5.0 and later** build in a slightly different way to the older versions so that
+_Detail: The modules for FIX Protocol versions **5.0 and later** build in a slightly different way to the older versions so that
  they can exclude classes present in ```quickfixj-messages-all-{version}.jar```_
 
 ## Tools to use in a custom build

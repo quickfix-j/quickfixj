@@ -16,7 +16,7 @@ The published artefact can also be the basis of a custom implementation of FIX L
 
 The complete FIX Latest specification results in a very large distribution. This project builds the entire specification to prove compatibility. 
 
-Customisation is advisable to use FIX Latest for an integration. This will allow a more clear representation  the Rules of Engagement, and aids maintainability as well as speeding build time and reducing memory requirements for the build.
+Customisation is advisable to use FIX Latest for an integration. This will allow a more clear representation of the Rules of Engagement, and aids maintainability as well as speeding build time and reducing memory requirements for the build.
 
 See [QuickFIX/J Messages](./quickfixj-messages/readme.md) for details of the build and recommendations of how to implement custom builds.
 
