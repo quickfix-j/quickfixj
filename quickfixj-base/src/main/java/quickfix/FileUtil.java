@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+
 
 
 public class FileUtil {
@@ -144,10 +146,17 @@ public class FileUtil {
             case URL:
                 try {
                     URL url = new URL(name);
-                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                    httpURLConnection.setRequestProperty("User-Agent", "Java-QuickFIXJ-FileUtil");
-                    httpURLConnection.connect();
-                    in = httpURLConnection.getInputStream();
+                    URLConnection urlConnection = url.openConnection();
+                    if (urlConnection instanceof HttpURLConnection) {
+                        HttpURLConnection httpURLConnection = (HttpURLConnection)urlConnection;
+                        httpURLConnection.setRequestProperty("User-Agent", "Java-QuickFIXJ-FileUtil");
+                        httpURLConnection.connect();
+                        in = httpURLConnection.getInputStream();
+                    } else {
+                        if (urlConnection != null) {
+                            in = urlConnection.getInputStream();
+                        }
+                    }
                 } catch (IOException e) {
                     // ignore
                 }
