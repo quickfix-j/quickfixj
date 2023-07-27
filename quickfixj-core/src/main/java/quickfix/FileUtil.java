@@ -24,7 +24,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+
 
 public class FileUtil {
     public static String fileAppendPath(String pathPrefix, String pathSuffix) {
@@ -141,7 +144,18 @@ public class FileUtil {
                 break;
             case URL:
                 try {
-                    in = new URL(name).openStream();
+                    URL url = new URL(name);
+                    URLConnection urlConnection = url.openConnection();
+                    if (urlConnection instanceof HttpURLConnection) {
+                        HttpURLConnection httpURLConnection = (HttpURLConnection)urlConnection;
+                        httpURLConnection.setRequestProperty("User-Agent", "Java-QuickFIXJ-FileUtil");
+                        httpURLConnection.connect();
+                        in = httpURLConnection.getInputStream();
+                    } else {
+                        if (urlConnection != null) {
+                            in = urlConnection.getInputStream();
+                        }
+                    }
                 } catch (IOException e) {
                     // ignore
                 }
