@@ -68,6 +68,15 @@ public class FileUtilTest {
     }
 
     @Test
+    public void testJARURLLocation() throws Exception {
+        // just test that we don't run into a ClassCastException
+        InputStream in = FileUtil.open(Message.class, "jar:file:/foo.bar!/");
+        if (in != null) {
+            in.close();
+        }
+    }
+
+    @Test
     // QFJ-775
     public void testSessionIDFileName() {
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER???",
