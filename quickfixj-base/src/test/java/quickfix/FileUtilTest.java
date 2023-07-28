@@ -43,7 +43,7 @@ public class FileUtilTest {
 
     @Test
     public void testClassResourceLocation() throws Exception {
-        InputStream in = FileUtil.open(Message.class, "Session.class");
+        InputStream in = FileUtil.open(Message.class, "FixVersions.class");
         in.close();
         assertNotNull("Resource not found", in);
     }
