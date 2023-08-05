@@ -27,14 +27,15 @@ import java.time.ZoneOffset;
  */
 public class UtcTimeStampField extends Field<LocalDateTime> {
 
-    private UtcTimestampPrecision precision = getDefaultUtcTimestampPrecision();
+    private final UtcTimestampPrecision precision;
 
     public UtcTimeStampField(int field) {
-        super(field, LocalDateTime.now(ZoneOffset.UTC));
+        this(field, SystemTime.UTC.getNow());
     }
 
     protected UtcTimeStampField(int field, LocalDateTime data) {
         super(field, data);
+        this.precision = getDefaultUtcTimestampPrecision();
     }
 
     protected UtcTimeStampField(int field, LocalDateTime data, UtcTimestampPrecision precision) {
@@ -43,18 +44,15 @@ public class UtcTimeStampField extends Field<LocalDateTime> {
     }
 
     public UtcTimeStampField(int field, boolean includeMilliseconds) {
-        super(field, LocalDateTime.now(ZoneOffset.UTC));
-        this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+        this(field, includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS);
     }
 
     public UtcTimeStampField(int field, UtcTimestampPrecision precision) {
-        super(field, LocalDateTime.now(ZoneOffset.UTC));
-        this.precision = precision;
+        this(field, SystemTime.UTC.getNow(), precision);
     }
 
     protected UtcTimeStampField(int field, LocalDateTime data, boolean includeMilliseconds) {
-        super(field, data);
-        this.precision = includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS;
+        this(field, data, includeMilliseconds ? UtcTimestampPrecision.MILLIS : UtcTimestampPrecision.SECONDS);
     }
     
     public UtcTimestampPrecision getPrecision() {
