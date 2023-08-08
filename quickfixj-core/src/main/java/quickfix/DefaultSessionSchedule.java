@@ -332,10 +332,9 @@ public class DefaultSessionSchedule implements SessionSchedule {
     private void formatTimeInterval(StringBuilder buf, TimeInterval timeInterval,
                                     SimpleDateFormat timeFormat, boolean local) {
         if (isNonStopSession) {
-            buf.append("nonstop (NonstopSession is active)");
+            buf.append("nonstop");
             return;
-        }
-        else if (isWeekdaySession) {
+        } else if (isWeekdaySession) {
             try {
                 for (int i = 0; i < weekdayOffsets.length; i++) {
                     buf.append(DayConverter.toString(weekdayOffsets[i]));
