@@ -172,7 +172,7 @@ public class IoSessionInitiator {
                 );
 
                 proxyConnector.setHandler(new InitiatorProxyIoHandler(
-                        new InitiatorIoHandler(fixSession, sessionSettings, networkingOptions, eventHandlingStrategy)));
+                        new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy)));
 
                 newConnector = proxyConnector;
             }
