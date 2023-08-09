@@ -22,6 +22,8 @@ package quickfix.mina.ssl;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.ssl.SslFilter;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -475,12 +477,12 @@ public class SSLCertificateTest {
                 return null;
 
             IoFilterChain filterChain = ioSession.getFilterChain();
-            SSLFilter sslFilter = (SSLFilter) filterChain.get(SSLSupport.FILTER_NAME);
+            SslFilter sslFilter = (SslFilter) filterChain.get(SSLSupport.FILTER_NAME);
 
             if (sslFilter == null)
                 return null;
 
-            return sslFilter.getSslSession(ioSession);
+            return (SSLSession) ioSession.getAttribute(SslFilter.SSL_SECURED);
         }
 
         private Session findSession(SessionID sessionID) {

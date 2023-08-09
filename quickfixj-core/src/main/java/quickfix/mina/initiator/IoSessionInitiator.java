@@ -24,6 +24,7 @@ import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.ssl.SslFilter;
 import org.apache.mina.proxy.ProxyConnector;
 import org.apache.mina.transport.socket.SocketConnector;
 import quickfix.ConfigError;
@@ -39,7 +40,6 @@ import quickfix.mina.SessionConnector;
 import quickfix.mina.message.FIXProtocolCodecFactory;
 import quickfix.mina.ssl.SSLConfig;
 import quickfix.mina.ssl.SSLContextFactory;
-import quickfix.mina.ssl.SSLFilter;
 import quickfix.mina.ssl.SSLSupport;
 
 import javax.net.ssl.SSLContext;
@@ -150,7 +150,7 @@ public class IoSessionInitiator {
 
             boolean hasProxy = proxyType != null && proxyPort > 0 && socketAddresses[nextSocketAddressIndex] instanceof InetSocketAddress;
 
-            SSLFilter sslFilter = null;
+            SslFilter sslFilter = null;
             if (sslEnabled) {
                 sslFilter = installSslFilter(ioFilterChainBuilder, !hasProxy);
             }
@@ -172,9 +172,7 @@ public class IoSessionInitiator {
                 );
 
                 proxyConnector.setHandler(new InitiatorProxyIoHandler(
-                        new InitiatorIoHandler(fixSession, networkingOptions, eventHandlingStrategy),
-                        sslFilter
-                ));
+                        new InitiatorIoHandler(fixSession, sessionSettings, networkingOptions, eventHandlingStrategy)));
 
                 newConnector = proxyConnector;
             }
@@ -185,12 +183,11 @@ public class IoSessionInitiator {
             ioConnector = newConnector;
         }
 
-        private SSLFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder, boolean autoStart)
+        private SslFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SSLFilter sslFilter = new SSLFilter(sslContext, autoStart);
-            sslFilter.setUseClientMode(true);
-            sslFilter.setCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
+            final SslFilter sslFilter = new SslFilter(sslContext);
+            sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
                     : SSLSupport.getSupportedProtocols(sslContext));
