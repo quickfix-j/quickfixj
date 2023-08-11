@@ -79,7 +79,7 @@ public interface Application {
      * @throws RejectLogon causes a logon reject
      */
     void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound, IncorrectDataFormat,
-            IncorrectTagValue, RejectLogon;
+            IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest;
 
     /**
      * This is a callback for application messages that you are sending to a
