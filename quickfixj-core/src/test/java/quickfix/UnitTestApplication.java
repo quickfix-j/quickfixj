@@ -59,7 +59,7 @@ public class UnitTestApplication implements ApplicationExtended, SessionStateLis
 
     @Override
     public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
-            IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+            IncorrectDataFormat, IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
         log.info("from admin [{}] {}", sessionId, message);
         fromAdminMessages.add(message);
     }
