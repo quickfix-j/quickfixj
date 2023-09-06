@@ -93,6 +93,7 @@ public class DataDictionary {
     private boolean checkUserDefinedFields = true;
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
+    private boolean firstFieldInGroupIsDelimiter = false;
     private String beginString;
     private String fullVersion;
     private String majorVersion;
@@ -559,6 +560,24 @@ public class DataDictionary {
 
     public boolean isAllowUnknownMessageFields() {
         return allowUnknownMessageFields;
+    }
+
+    public boolean isFirstFieldInGroupIsDelimiter() {
+        return firstFieldInGroupIsDelimiter;
+    }
+    /**
+     * Controls whether any field which is
+     * first in the group would be used as delimiter
+     *
+     * @param flag true = use first field from message, false = follow data dictionary
+     */
+    public void setFirstFieldInGroupIsDelimiter(boolean flag) {
+        firstFieldInGroupIsDelimiter = flag;
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setFirstFieldInGroupIsDelimiter(flag);
+            }
+        }
     }
 
     /**
