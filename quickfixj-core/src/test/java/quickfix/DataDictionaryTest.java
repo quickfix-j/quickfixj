@@ -54,6 +54,7 @@ import quickfix.field.Symbol;
 import quickfix.field.TargetCompID;
 import quickfix.field.TimeInForce;
 import quickfix.field.TransactTime;
+import quickfix.fix44.NewOrderMultileg;
 import quickfix.fix44.NewOrderSingle;
 import quickfix.fix44.Quote;
 import quickfix.fix44.QuoteRequest;
@@ -78,6 +79,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 public class DataDictionaryTest {
 
@@ -1491,6 +1493,55 @@ public class DataDictionaryTest {
         data += "  </messages>";
         data += "</fix>";
         return data;
+    }
+
+    @Test
+    public void testFirstFieldInGroupIsDelimiter() throws Exception {
+
+        final DataDictionary dataDictionary = new DataDictionary(getDictionary());
+        dataDictionary.setCheckUnorderedGroupFields(false);
+        dataDictionary.setFirstFieldInGroupIsDelimiter(true);
+
+        String fixMsg = "8=FIX.4.4\u00019=688\u000135=AB\u000149=AAA\u000156=BBB\u000134=21133\u000150=ABCABC" +
+                "\u000152=20230905-13:24:37.022\u000155=AAPL\u00011=ACC1\u000111=123456abcedf\u000121=1\u000138=5\u000154=1\u000140=2\u000144=-0.8" +
+                "\u000159=0\u000160=20230905-13:24:36.984\u0001100=ALGO\u0001167=MLEG\u0001555=3\u0001602=111\u0001600=AAA" +
+                "\u0001602=222\u0001654=231\u0001600=BBB\u0001602=333\u0001654=332\u0001600=CCC\u000158=TEXT\u000110=168\u0001";
+
+        String byDictFixMsg = "8=FIX.4.4\u00019=688\u000135=AB\u000149=AAA\u000156=BBB\u000134=21133\u000150=ABCABC" +
+                "\u000152=20230905-13:24:37.022\u000155=AAPL\u00011=ACC1\u000111=123456abcedf\u000121=1\u000138=5\u000154=1\u000140=2\u000144=-0.8" +
+                "\u000159=0\u000160=20230905-13:24:36.984\u0001100=ALGO\u0001167=MLEG\u0001555=3\u0001600=AAA\u0001602=111" +
+                "\u0001600=BBB\u0001602=222\u0001654=231\u0001600=CCC\u0001602=333\u0001654=332\u000158=TEXT\u000110=168\u0001";
+
+        //doValidation and firstFieldInGroupIsDelimiter -> should NOT fail
+        final NewOrderMultileg noml1 = new NewOrderMultileg();
+        noml1.fromString(fixMsg, dataDictionary, true);
+        dataDictionary.validate(noml1);
+        assertTrue(noml1.hasGroup(555));
+        assertEquals(3, noml1.getGroupCount(555));
+        //delimiter should be first tag in group
+        assertEquals(602, noml1.getGroup(1, 555).delim());
+
+        dataDictionary.setFirstFieldInGroupIsDelimiter(false);
+        dataDictionary.setCheckUnorderedGroupFields(true);
+        final NewOrderMultileg noml2 = new NewOrderMultileg();
+        noml2.fromString(fixMsg, dataDictionary, true);
+        //when firstFieldInGroupIsDelimiter = false and setCheckUnorderedGroupFields = true - exception is thrown
+        assertThrows(FieldException.class, () -> dataDictionary.validate(noml2));
+
+        final NewOrderMultileg noml3 = new NewOrderMultileg();
+        noml3.fromString(fixMsg, dataDictionary, true);
+        //when firstFieldInGroupIsDelimiter = true and setCheckUnorderedGroupFields = true - exception is thrown
+        assertThrows(FieldException.class, () -> dataDictionary.validate(noml3));
+
+        dataDictionary.setCheckUnorderedGroupFields(true);
+        final NewOrderMultileg noml4 = new NewOrderMultileg();
+        noml4.fromString(byDictFixMsg, dataDictionary, true);
+        //when firstFieldInGroupIsDelimiter = true and setCheckUnorderedGroupFields = true, message aligns with dictionary - do NOT fail
+        dataDictionary.validate(noml4);
+        assertTrue(noml4.hasGroup(555));
+        assertEquals(3, noml4.getGroupCount(555));
+        //delimiter should be dictionary first tag = 600
+        assertEquals(600, noml4.getGroup(1, 555).delim());
     }
 
 
