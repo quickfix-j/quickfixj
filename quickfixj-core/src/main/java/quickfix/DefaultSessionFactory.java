@@ -309,6 +309,11 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
         }
 
+        if (settings.isSetting(sessionID, Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER)) {
+            dataDictionary.setCheckUnorderedGroupFields(settings.getBool(sessionID,
+                    Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER));
+        }
+
         return dataDictionary;
     }
 
