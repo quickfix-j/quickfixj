@@ -310,7 +310,7 @@ public class DefaultSessionFactory implements SessionFactory {
         }
 
         if (settings.isSetting(sessionID, Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER)) {
-            dataDictionary.setCheckUnorderedGroupFields(settings.getBool(sessionID,
+            dataDictionary.setFirstFieldInGroupIsDelimiter(settings.getBool(sessionID,
                     Session.SETTING_FIRST_FIELD_IN_GROUP_IS_DELIMITER));
         }
 
