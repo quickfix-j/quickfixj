@@ -283,7 +283,7 @@
     <TD> Valid XML data dictionary file, QuickFIX/J comes with the following defaults in the <code>etc</code> directory:
         FIXT11.xml, FIX50.xml, FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
     </TD>
-    <TD>If DataDictionary is not specified and UserDataDictionary=Y, then QuickFIX/J will look for a
+    <TD>If DataDictionary is not specified and UseDataDictionary=Y, then QuickFIX/J will look for a
         default dictionary based on the session's BeginString (e.g., FIX.4.2 = FIX42.xml). The DataDictionary
         file search strategy is to use a URL, then the file system, and then the thread context classloader (if any),
         and then the DataDictionary instance's classloader. Default data dictionary files
@@ -1267,7 +1267,7 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResendRequestChunkSize</I> </TD>
     <TD> Setting to limit the size of a resend request in case of missing messages.
-        This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest.
+        This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest. It also allows you to prevent a 'self-DDOS' by accidentally requesting a huge flood of messages your system isn't capable of processing if you are substantially behind for some reason.
         <P>
          E.g. if the ResendRequestChunkSize is set to 5 and a gap of 7 messages is detected,
          a first resend request will be sent for 5 messages.
