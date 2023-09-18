@@ -570,7 +570,7 @@ public class DataDictionary {
      * first in the group would be used as delimiter
      *
      * @param flag true = use first field from message, false = follow data dictionary
-     * Must be used with enabled {@link #setCheckUnorderedGroupFields(boolean)}
+     * Must be used with disabled {@link #setCheckUnorderedGroupFields(boolean)}
      */
     public void setFirstFieldInGroupIsDelimiter(boolean flag) {
         firstFieldInGroupIsDelimiter = flag;

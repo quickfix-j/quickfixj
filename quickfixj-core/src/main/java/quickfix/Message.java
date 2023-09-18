@@ -733,7 +733,7 @@ public class Message extends FieldMap {
                 break;
             }
             int tag = field.getTag();
-            boolean shouldCreateNewGroup = tag == firstField || (groupDataDictionary.isFirstFieldInGroupIsDelimiter() && firstField < 0);
+            boolean shouldCreateNewGroup = tag == firstField || (groupDataDictionary.isFirstFieldInGroupIsDelimiter() && firstField == -1);
             if (shouldCreateNewGroup) {
                 firstField = tag;
                 addGroupRefToParent(group, parent);
