@@ -93,6 +93,7 @@ public class DataDictionary {
     private boolean checkUserDefinedFields = true;
     private boolean checkUnorderedGroupFields = true;
     private boolean allowUnknownMessageFields = false;
+    private boolean firstFieldInGroupIsDelimiter = false;
     private String beginString;
     private String fullVersion;
     private String majorVersion;
@@ -561,8 +562,27 @@ public class DataDictionary {
         return allowUnknownMessageFields;
     }
 
+    public boolean isFirstFieldInGroupIsDelimiter() {
+        return firstFieldInGroupIsDelimiter;
+    }
     /**
-     * Controls whether group fields are in the same order
+     * Controls whether any field which is
+     * first in the repeating group would be used as delimiter
+     *
+     * @param flag true = use first field from repeating group, false = follow data dictionary
+     * Must be used with disabled {@link #setCheckUnorderedGroupFields(boolean)}
+     */
+    public void setFirstFieldInGroupIsDelimiter(boolean flag) {
+        firstFieldInGroupIsDelimiter = flag;
+        for (Map<Integer, GroupInfo> gm : groups.values()) {
+            for (GroupInfo gi : gm.values()) {
+                gi.getDataDictionary().setFirstFieldInGroupIsDelimiter(flag);
+            }
+        }
+    }
+
+    /**
+     * Controls whether repeating group fields are in the same order
      *
      * @param flag true = checked, false = not checked
      */
@@ -638,6 +658,7 @@ public class DataDictionary {
         setCheckUserDefinedFields(rhs.checkUserDefinedFields);
         setCheckUnorderedGroupFields(rhs.checkUnorderedGroupFields);
         setAllowUnknownMessageFields(rhs.allowUnknownMessageFields);
+        setFirstFieldInGroupIsDelimiter(rhs.firstFieldInGroupIsDelimiter);
 
         calculateOrderedFields();
     }
