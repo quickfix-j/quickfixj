@@ -19,8 +19,6 @@
 
 package quickfix;
 
-import org.junit.Test;
-
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginString;
 import quickfix.field.DefaultApplVerID;
