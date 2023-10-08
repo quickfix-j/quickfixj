@@ -362,7 +362,7 @@ public class FileStore implements MessageStore, Closeable {
     @Override
     public boolean set(int sequence, String message) throws IOException {
         final long offset = messageFileWriter.getFilePointer();
-        byte[] messageBytes = message.getBytes(CharsetSupport.getCharset());
+        final byte[] messageBytes = message.getBytes(CharsetSupport.getCharset());
         final int size = messageBytes.length;
         if (messageIndex != null) {
             updateMessageIndex(sequence, offset, size);

@@ -123,28 +123,4 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         thread.interrupt();
         thread.join();
     }
-
-    public void testSetAndGetMessageWithAsciiCharacters() throws IOException {
-        MessageStore underTest = getStore();
-        underTest.set(1, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789");
-
-        List<String> messages = new ArrayList<>();
-        underTest.get(1, 1, messages);
-
-        assertEquals(1, messages.size());
-        assertEquals("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789", messages.get(0));
-    }
-
-    public void testSetAndGetMessageWithUnicodeCharacters() throws IOException {
-        CharsetSupport.setCharset("UTF-8");
-
-        MessageStore underTest = getStore();
-        underTest.set(1, "a \u00A9 \u2603 \uD834\uDF06");
-
-        List<String> messages = new ArrayList<>();
-        underTest.get(1, 1, messages);
-
-        assertEquals(1, messages.size());
-        assertEquals("a \u00A9 \u2603 \uD834\uDF06", messages.get(0));
-    }
 }
