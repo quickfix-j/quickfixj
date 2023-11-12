@@ -12,3 +12,5 @@ target/
 # ignore NetBeans configuration
 nb-configuration.xml
 *.bak
+.mvn/
+mvn*

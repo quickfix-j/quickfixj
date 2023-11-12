@@ -15,6 +15,7 @@
     </xsl:template>
 
     <!-- filter out fields that are not used in QFJ tests -->
+	<!-- Field 1492 ComplexEventStartDate is included to prove successful compilation of a field extending UTCDateOnly -->
     <xsl:template
         match="fixr:fields/fixr:field[not(
 									      @id = '6' or
@@ -124,6 +125,10 @@
 		                                  @id = '1402' or
 		                                  @id = '1403' or
 		                                  @id = '1404' or
+		                                  @id = '1483' or
+		                                  @id = '1484' or
+		                                  @id = '1491' or
+		                                  @id = '1492' or
 		                                  @id = '1779' or
 		                                  @id = '321007')]"/>
 
@@ -143,7 +148,9 @@
         								  @id = '2045' or
         								  @id = '2046' or
         								  @id = '2059' or
-                                          @id = '2085')]"/>
+                                          @id = '2085' or
+                                          @id = '2145' or
+                                          @id = '2146' )]"/>
 
     <!-- filter out messages that are not used in QFJ tests -->
     <xsl:template
@@ -184,7 +191,7 @@
    	<xsl:template
         match="fixr:components/fixr:component[(@id='1003')]/fixr:componentRef" />
    	<xsl:template
-        match="fixr:components/fixr:component[(@id='1003')]/fixr:groupRef" />
+        match="fixr:components/fixr:component[(@id='1003')]/fixr:groupRef[not(@id='2145')]" />
 
  	<!-- InstrumentLeg -->
  	<xsl:template
@@ -261,7 +268,23 @@
 	    match="fixr:groups/fixr:group[(@id='2059')]/fixr:fieldRef[not(@id='54' or
                                                                       @id='11')]" />
 
- 	<!-- HopGrp 2085 ______________ -->
+	<!-- Complex Events -->
+	<xsl:template
+			match="fixr:groups/fixr:group[(@id='2145')]/fixr:componentRef" />
+	<xsl:template
+			match="fixr:groups/fixr:group[(@id='2145')]/fixr:fieldRef[not(@id='1484')]" />
+	<xsl:template
+			match="fixr:groups/fixr:group[(@id='2145')]/fixr:groupRef[not(@id='2146')]" />
+
+	<!-- Complex Event Dates -->
+	<xsl:template
+			match="fixr:groups/fixr:group[(@id='2146')]/fixr:componentRef" />
+	<xsl:template
+			match="fixr:groups/fixr:group[(@id='2146')]/fixr:groupRef" />
+	<xsl:template
+			match="fixr:groups/fixr:group[(@id='2146')]/fixr:fieldRef[not(@id='1492')]" />
+
+	<!-- HopGrp 2085 ______________ -->
  	<!-- include everything -->
 
  	<!-- ******************************** -->
