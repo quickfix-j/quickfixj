@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
  * One in quickfixj-base, one in quickfixj-core, which each test
  * some functionality. This test covers some test cases that cannot
  * be tested in the quickfixj-base module due to classes that are
- * generated later in the comile process, e.g. MessageFactories.
+ * generated later in the compile process, e.g. MessageFactories.
  */
 public class MessageUtilsTest {
 
