@@ -30,7 +30,7 @@ import quickfix.Session;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -81,8 +81,8 @@ public class IoSessionResponder implements Responder {
 
     @Override
     public int prioritySend(List<String> data){
-        final List<WriteRequest> pendingWrites = new LinkedList<>();
         final WriteRequestQueue writeRequestQueue = ioSession.getWriteRequestQueue();
+        final List<WriteRequest> pendingWrites = new ArrayList<>(writeRequestQueue.size());
         int successfulMessageCount = 0;
         try {
             ioSession.suspendWrite();

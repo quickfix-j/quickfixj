@@ -62,6 +62,7 @@ import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -2352,7 +2353,8 @@ public class Session implements Closeable {
         int current = beginSeqNo;
         boolean appMessageJustSent = false;
 
-        final ArrayList<Message> prioritizedResendAccumulator = new ArrayList<>(messages.size());
+        final List<Message> prioritizedResendAccumulator = prioritizeResend ? new ArrayList<>(messages.size()) :
+           Collections.emptyList();
 
         for (final String message : messages) {
             appMessageJustSent = false;
