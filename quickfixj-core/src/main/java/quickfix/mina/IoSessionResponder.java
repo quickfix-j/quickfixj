@@ -101,8 +101,12 @@ public class IoSessionResponder implements Responder {
             }
         } finally {
             // reschedule de-prioritized over existing priority send to the end of the queue
-            for(WriteRequest pendingWrite : pendingWrites) {
-                writeRequestQueue.offer(ioSession, pendingWrite);
+            try {
+                for (WriteRequest pendingWrite : pendingWrites) {
+                    writeRequestQueue.offer(ioSession, pendingWrite);
+                }
+            } catch (Exception e) {
+                log.error("Failed to reschedule pending writes: {}", e.getMessage());
             }
             ioSession.resumeWrite();
         }

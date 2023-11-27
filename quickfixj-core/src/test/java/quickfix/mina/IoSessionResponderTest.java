@@ -179,6 +179,7 @@ public class IoSessionResponderTest {
 
         // ensure writes resume even if exception
         Mockito.reset(ioSession);
+        when(ioSession.getWriteRequestQueue()).thenReturn(writeRequestQueue);
         doAnswer(invocation -> {
                 throw new RuntimeException("Ensure resume writes even if exception");
         }).when(writeRequestQueue).poll(eq(ioSession));
