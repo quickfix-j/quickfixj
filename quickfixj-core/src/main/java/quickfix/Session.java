@@ -69,6 +69,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static quickfix.LogUtil.logThrowable;
 
@@ -385,6 +386,12 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_POS_DUP_MESSAGES = "AllowPosDup";
 
+    /**
+     * Option to enable prioritization of resend responses allowing lagging counterparty app to catch up
+     * instead of being overwhelmed by new messages.
+     */
+    public static final String PRIORITIZE_RESEND = "PrioritizeResend";
+
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
     private final Application application;
@@ -436,6 +443,7 @@ public class Session implements Closeable {
     private boolean enableLastMsgSeqNumProcessed = false;
     private boolean validateChecksum = true;
     private boolean allowPosDup = false;
+    private boolean prioritizeResend = false;
 
     private int maxScheduledWriteRequests = 0;
 
@@ -501,7 +509,7 @@ public class Session implements Closeable {
             messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
             false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
             false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-            false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, allowPossDup);
+            false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, allowPossDup, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, MessageQueueFactory messageQueueFactory,
@@ -520,7 +528,7 @@ public class Session implements Closeable {
             boolean validateIncomingMessage, int resendRequestChunkSize,
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
-            boolean allowPossDup) {
+            boolean allowPossDup, boolean prioritizeResend) {
         this.application = application;
         this.sessionID = sessionID;
         this.sessionSchedule = sessionSchedule;
@@ -556,6 +564,7 @@ public class Session implements Closeable {
         this.validateChecksum = validateChecksum;
         this.logonTags = logonTags;
         this.allowPosDup = allowPossDup;
+        this.prioritizeResend = prioritizeResend;
 
         final Log engineLog = (logFactory != null) ? logFactory.create(sessionID) : null;
         if (engineLog instanceof SessionStateListener) {
@@ -2343,6 +2352,8 @@ public class Session implements Closeable {
         int current = beginSeqNo;
         boolean appMessageJustSent = false;
 
+        final ArrayList<Message> prioritizedResendAccumulator = new ArrayList<>(messages.size());
+
         for (final String message : messages) {
             appMessageJustSent = false;
             final Message msg;
@@ -2375,9 +2386,13 @@ public class Session implements Closeable {
                         generateSequenceReset(receivedMessage, begin, msgSeqNum);
                     }
                     getLog().onEvent("Resending message: " + msgSeqNum);
-                    send(msg.toString());
+                    if(prioritizeResend) {
+                        prioritizedResendAccumulator.add(msg);
+                    } else {
+                        send(msg.toString());
+                        appMessageJustSent = true;
+                    }
                     begin = 0;
-                    appMessageJustSent = true;
                 } else {
                     if (begin == 0) {
                         begin = msgSeqNum;
@@ -2385,6 +2400,12 @@ public class Session implements Closeable {
                 }
             }
             current = msgSeqNum + 1;
+        }
+
+        // schedule prioritized resend messages if any
+        if (!prioritizedResendAccumulator.isEmpty()) {
+            sendPrioritized(prioritizedResendAccumulator);
+            appMessageJustSent = true;
         }
 
         int newBegin = beginSeqNo;
@@ -2759,6 +2780,20 @@ public class Session implements Closeable {
         message.getHeader().removeField(PossDupFlag.FIELD);
         message.getHeader().removeField(OrigSendingTime.FIELD);
         return sendRaw(message, 0);
+    }
+
+    private int sendPrioritized(List<Message> prioritizedMessages) {
+        Responder responder = getResponder();
+        if(responder == null) {
+            getLog().onEvent("No responder, not sending message: " + prioritizedMessages.toString());
+            return 0;
+        }
+        final List<String> data = prioritizedMessages.stream().map(m -> {
+            String msg = m.toString();
+            getLog().onOutgoing(msg);
+            return msg;
+        }).collect(Collectors.toList());
+        return responder.prioritySend(data);
     }
 
     private boolean send(String messageString) {

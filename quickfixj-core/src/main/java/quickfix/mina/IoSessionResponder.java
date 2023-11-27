@@ -21,6 +21,8 @@ package quickfix.mina;
 
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.core.write.WriteRequest;
+import org.apache.mina.core.write.WriteRequestQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Responder;
@@ -28,6 +30,8 @@ import quickfix.Session;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The class that partially integrates the QuickFIX/J Session to
@@ -73,6 +77,36 @@ public class IoSessionResponder implements Responder {
             }
         }
         return true;
+    }
+
+    @Override
+    public int prioritySend(List<String> data){
+        final List<WriteRequest> pendingWrites = new LinkedList<>();
+        final WriteRequestQueue writeRequestQueue = ioSession.getWriteRequestQueue();
+        int successfulMessageCount = 0;
+        try {
+            ioSession.suspendWrite();
+            // drain existing pending writes, to be rescheduled in the end
+            // a work around as WriteRequestQueue is currently not a Deque
+            WriteRequest pending;
+            while ((pending = writeRequestQueue.poll(ioSession)) != null) {
+                pendingWrites.add(pending);
+            }
+            for (String d : data) {
+                if (this.send(d)) {
+                    successfulMessageCount++;
+                } else {
+                    break;
+                }
+            }
+        } finally {
+            // reschedule de-prioritized over existing priority send to the end of the queue
+            for(WriteRequest pendingWrite : pendingWrites) {
+                writeRequestQueue.offer(ioSession, pendingWrite);
+            }
+            ioSession.resumeWrite();
+        }
+        return successfulMessageCount;
     }
 
     @Override
