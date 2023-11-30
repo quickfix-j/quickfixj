@@ -272,7 +272,7 @@ public class Session implements Closeable {
     /**
      * Session setting to control precision in message timestamps.
      * Valid values are "SECONDS", "MILLIS", "MICROS", "NANOS". Default is "MILLIS".
-     * Only valid for FIX version >= 4.2.
+     * Only valid for FIX version "&gt;"= 4.2.
      */
     public static final String SETTING_TIMESTAMP_PRECISION = "TimeStampPrecision";
 
@@ -283,7 +283,7 @@ public class Session implements Closeable {
 
     /**
      * Session setting that causes the session to reset sequence numbers when initiating
-     * a logon (>= FIX 4.2).
+     * a logon ("&gt;"= FIX 4.2).
      */
     public static final String SETTING_RESET_ON_LOGON = "ResetOnLogon";
 
@@ -317,7 +317,7 @@ public class Session implements Closeable {
     public static final String SETTING_USE_CLOSED_RESEND_INTERVAL = "ClosedResendInterval";
 
     /**
-     * Allow unknown fields in messages. This is intended for unknown fields with tags < 5000
+     * Allow unknown fields in messages. This is intended for unknown fields with tags "&lt;" 5000
      * (not user defined fields)
      */
     public static final String SETTING_ALLOW_UNKNOWN_MSG_FIELDS = "AllowUnknownMsgFields";
@@ -1379,7 +1379,7 @@ public class Session implements Closeable {
     }
 
     private Message parseMessage(String messageData) throws InvalidMessage {
-        return MessageUtils.parse(this, messageData);
+        return MessageSessionUtils.parse(this, messageData);
     }
 
     private boolean isTargetTooLow(int msgSeqNum) throws IOException {
@@ -1726,9 +1726,10 @@ public class Session implements Closeable {
 
     private void generateBusinessReject(Message message, int err, int field) throws FieldNotFound,
             IOException {
-        final Message reject = messageFactory.create(sessionID.getBeginString(),
-                MsgType.BUSINESS_MESSAGE_REJECT);
         final Header header = message.getHeader();
+        ApplVerID targetDefaultApplicationVersionID = getTargetDefaultApplicationVersionID();
+        final Message reject = messageFactory.create(sessionID.getBeginString(), targetDefaultApplicationVersionID,
+                MsgType.BUSINESS_MESSAGE_REJECT);
         reject.reverseRoute(header);
         initializeHeader(reject.getHeader());
 
@@ -1742,8 +1743,8 @@ public class Session implements Closeable {
         final String reason = BusinessRejectReasonText.getMessage(err);
         setRejectReason(reject, field, reason, field != 0);
         getLog().onErrorEvent(
-                "Reject sent for message " + msgSeqNum + (reason != null ? (": " + reason) : "")
-                        + (field != 0 ? (": tag=" + field) : ""));
+                "Reject sent for message number " + msgSeqNum + (reason != null ? (": " + reason) : "")
+                        + (field != 0 ? (": tag=" + field) : "") + " Message [" + message + "]" + " Reject [" + reject + "]");
 
         sendRaw(reject, 0);
     }
