@@ -306,8 +306,6 @@ public class MessageCodeGenerator {
                 return;
             }
         }
-        logDebug("spec has mod " + task.getSpecificationLastModified() +
-                " output has mod " + outputFile.lastModified());
 
         DOMSource source = new DOMSource(document);
         FileOutputStream fos = new FileOutputStream(outputFile);
