@@ -41,6 +41,7 @@ public class DefaultMessageFactoryTest {
         assertMessage(quickfix.fix50.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(FixVersions.FIX50, MsgType.ADVERTISEMENT));
         assertMessage(quickfix.fix50sp1.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(FixVersions.FIX50SP1, MsgType.ADVERTISEMENT));
         assertMessage(quickfix.fix50sp2.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(FixVersions.FIX50SP2, MsgType.ADVERTISEMENT));
+        assertMessage(quickfix.fixlatest.Advertisement.class, MsgType.ADVERTISEMENT, factory.create(FixVersions.FIXLATEST, MsgType.ADVERTISEMENT));
         assertMessage(quickfix.Message.class, MsgType.ADVERTISEMENT, factory.create("unknown", MsgType.ADVERTISEMENT));
     }
 
@@ -56,6 +57,7 @@ public class DefaultMessageFactoryTest {
         assertMessage(quickfix.fix50.Email.class, MsgType.EMAIL, factory.create(BEGINSTRING_FIXT11, new ApplVerID(ApplVerID.FIX50), MsgType.EMAIL));
         assertMessage(quickfix.fix50sp1.Email.class, MsgType.EMAIL, factory.create(BEGINSTRING_FIXT11, new ApplVerID(ApplVerID.FIX50SP1), MsgType.EMAIL));
         assertMessage(quickfix.fix50sp2.Email.class, MsgType.EMAIL, factory.create(BEGINSTRING_FIXT11, new ApplVerID(ApplVerID.FIX50SP2), MsgType.EMAIL));
+        assertMessage(quickfix.fixlatest.Email.class, MsgType.EMAIL, factory.create(BEGINSTRING_FIXT11, new ApplVerID(ApplVerID.FIXLATEST), MsgType.EMAIL));
     }
 
     @Test
@@ -74,6 +76,7 @@ public class DefaultMessageFactoryTest {
         assertEquals(quickfix.fix50.News.NoLinesOfText.class, factory.create(FixVersions.FIX50, MsgType.NEWS, NoLinesOfText.FIELD).getClass());
         assertEquals(quickfix.fix50sp1.News.NoLinesOfText.class, factory.create(FixVersions.FIX50SP1, MsgType.NEWS, NoLinesOfText.FIELD).getClass());
         assertEquals(quickfix.fix50sp2.News.NoLinesOfText.class, factory.create(FixVersions.FIX50SP2, MsgType.NEWS, NoLinesOfText.FIELD).getClass());
+        assertEquals(quickfix.fixlatest.News.NoLinesOfText.class, factory.create(FixVersions.FIXLATEST, MsgType.NEWS, NoLinesOfText.FIELD).getClass());
         assertNull("if group can't be created return null",
                 factory.create(BEGINSTRING_FIX40, MsgType.MARKET_DATA_SNAPSHOT_FULL_REFRESH, NoMDEntries.FIELD));
     }
@@ -93,7 +96,8 @@ public class DefaultMessageFactoryTest {
                 {ApplVerID.FIX44, quickfix.fix44.Email.class},
                 {ApplVerID.FIX50, quickfix.fix50.Email.class},
                 {ApplVerID.FIX50SP1, quickfix.fix50sp1.Email.class},
-                {ApplVerID.FIX50SP2, quickfix.fix50sp2.Email.class}
+                {ApplVerID.FIX50SP2, quickfix.fix50sp2.Email.class},
+                {ApplVerID.FIXLATEST, quickfix.fixlatest.Email.class}
         };
     }
 }
