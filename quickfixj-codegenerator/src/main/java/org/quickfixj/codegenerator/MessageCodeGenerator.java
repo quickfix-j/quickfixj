@@ -138,7 +138,7 @@ public class MessageCodeGenerator {
             Transformer transformer = createTransformer(task, "Fields.xsl");
             for (String fieldName : fieldNames) {
                 String outputFile = outputDirectory + fieldName + ".java";
-                if (!new File(outputFile).exists()) {
+                if (!new File(outputFile).exists() || task.isOverwrite()) { // if overwrite is set, then transform and generate the file
                     logDebug("field: " + fieldName);
                     Map<String, String> parameters = new HashMap<>();
                     parameters.put("fieldName", fieldName);
@@ -305,13 +305,7 @@ public class MessageCodeGenerator {
             if (!task.isOverwrite()) {
                 return;
             }
-            if (outputFile.lastModified() > task.getSpecificationLastModified()) {
-                logDebug("Skipping file " + outputFile.getName());
-                return;
-            }
         }
-        logDebug("spec has mod " + task.getSpecificationLastModified() +
-                " output has mod " + outputFile.lastModified());
 
         DOMSource source = new DOMSource(document);
         FileOutputStream fos = new FileOutputStream(outputFile);
