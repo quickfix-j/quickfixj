@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Copyright (c) quickfixengine.org  All rights reserved.
- *
+ * 
  * This file is part of the QuickFIX FIX Engine
  *
  * This file may be distributed under the terms of the quickfixengine.org
@@ -575,7 +575,7 @@ public class BanzaiApplication implements Application {
 
         typeMap.put(OrderType.MARKET, new OrdType(OrdType.MARKET));
         typeMap.put(OrderType.LIMIT, new OrdType(OrdType.LIMIT));
-        typeMap.put(OrderType.STOP, new OrdType(OrdType.STOP_STOP_LOSS));
+        typeMap.put(OrderType.STOP, new OrdType(OrdType.STOP));
         typeMap.put(OrderType.STOP_LIMIT, new OrdType(OrdType.STOP_LIMIT));
 
         tifMap.put(OrderTIF.DAY, new TimeInForce(TimeInForce.DAY));
