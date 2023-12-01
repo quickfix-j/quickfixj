@@ -80,7 +80,7 @@
 		<maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
 		<maven-surefire-plugin-version>3.0.0</maven-surefire-plugin-version>
-		<maven-pmd-plugin-version>3.19.0</maven-pmd-plugin-version>
+		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.2.1</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>3.5.0</maven-javadoc-plugin-version>
 		<maven-shade-plugin-version>3.4.1</maven-shade-plugin-version>
@@ -101,7 +101,7 @@
 		<fix-orchestra.repository.version>1.6.8</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>2.3.3</jaxb.version>
-		<apache.mina.version>2.1.6</apache.mina.version>
+		<apache.mina.version>2.2.3</apache.mina.version>
 		<commons.io.version>2.11.0</commons.io.version>
 		<guava.version>32.0.0-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
