@@ -22,6 +22,8 @@ package quickfix.mina.ssl;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
+import org.apache.mina.filter.ssl.SslFilter;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,7 @@ import quickfix.mina.IoSessionResponder;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SessionConnector;
 
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import java.lang.reflect.Field;
@@ -51,9 +54,13 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 public class SSLCertificateTest {
 
@@ -93,6 +100,111 @@ public class SSLCertificateTest {
 
                 acceptor.assertNoSslExceptionThrown();
                 acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+            } finally {
+                initiator.stop();
+            }
+        } finally {
+            acceptor.stop();
+        }
+    }
+
+    /**
+     * Server certificate has Common Name = localhost and no Server Alternative Name extension.
+     */
+    @Test
+    public void shouldAuthenticateServerNameUsingServerCommonName() throws Exception {
+        int freePort = AvailablePortFinder.getNextAvailable();
+        TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-cn.keystore", false,
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+
+        try {
+            acceptor.start();
+
+            TestInitiator initiator = new TestInitiator(
+                    createInitiatorSettings("single-session/empty.keystore", "single-session/client-cn.truststore",
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+
+            try {
+                initiator.start();
+
+                initiator.assertNoSslExceptionThrown();
+                initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
+                initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
+                        new BigInteger("1683903911"));
+
+                acceptor.assertNoSslExceptionThrown();
+                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+            } finally {
+                initiator.stop();
+            }
+        } finally {
+            acceptor.stop();
+        }
+    }
+
+    /**
+     * Server certificate has Common Name = server, but it has Server Alternative Name extension (DNS name).
+     */
+    @Test
+    public void shouldAuthenticateServerNameUsingSNIExtension() throws Exception {
+        int freePort = AvailablePortFinder.getNextAvailable();
+        TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-sni.keystore", false,
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+
+        try {
+            acceptor.start();
+
+            TestInitiator initiator = new TestInitiator(
+                    createInitiatorSettings("single-session/empty.keystore", "single-session/client-sni.truststore",
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+
+            try {
+                initiator.start();
+
+                initiator.assertNoSslExceptionThrown();
+                initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
+                initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"),
+                        new BigInteger("1683904647"));
+
+                acceptor.assertNoSslExceptionThrown();
+                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+            } finally {
+                initiator.stop();
+            }
+        } finally {
+            acceptor.stop();
+        }
+    }
+
+    /**
+     * Server certificate has Common Name = server and no Server Alternative Name extension.
+     */
+    @Test
+    public void shouldFailWhenHostnameDoesNotMatchServerName() throws Exception {
+        int freePort = AvailablePortFinder.getNextAvailable();
+
+        TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-bad-cn.keystore", false,
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+
+        try {
+            acceptor.start();
+
+            TestInitiator initiator = new TestInitiator(
+                    createInitiatorSettings("single-session/empty.keystore", "single-session/client-bad-cn.truststore",
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+
+            try {
+                initiator.start();
+
+                initiator.assertSslExceptionThrown("No name matching localhost found", SSLHandshakeException.class);
+                initiator.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
+                initiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
+
+                acceptor.assertSslExceptionThrown("Received fatal alert: certificate_unknown", SSLHandshakeException.class);
+                acceptor.assertNotLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
                 acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
             } finally {
                 initiator.stop();
@@ -446,19 +558,21 @@ public class SSLCertificateTest {
 
         private final SessionConnector connector;
         private final CountDownLatch exceptionThrownLatch;
+        private final AtomicReference<Throwable> exception;
 
         public TestConnector(SessionSettings sessionSettings) throws ConfigError {
             this.connector = prepareConnector(sessionSettings);
             this.exceptionThrownLatch = new CountDownLatch(1);
+            this.exception = new AtomicReference<>();
         }
 
         private SessionConnector prepareConnector(SessionSettings sessionSettings) throws ConfigError {
             SessionConnector sessionConnector = createConnector(sessionSettings);
             sessionConnector.setIoFilterChainBuilder(chain -> chain.addFirst("Exception handler", new IoFilterAdapter() {
                 @Override
-                public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause)
-                        throws Exception {
+                public void exceptionCaught(NextFilter nextFilter, IoSession session, Throwable cause) {
                     LOGGER.info("exceptionCaught", cause);
+                    exception.set(cause);
                     exceptionThrownLatch.countDown();
                     nextFilter.exceptionCaught(session, cause);
                 }
@@ -476,12 +590,12 @@ public class SSLCertificateTest {
                 return null;
 
             IoFilterChain filterChain = ioSession.getFilterChain();
-            SSLFilter sslFilter = (SSLFilter) filterChain.get(SSLSupport.FILTER_NAME);
+            SslFilter sslFilter = (SslFilter) filterChain.get(SSLSupport.FILTER_NAME);
 
             if (sslFilter == null)
                 return null;
 
-            return sslFilter.getSslSession(ioSession);
+            return (SSLSession) ioSession.getAttribute(SslFilter.SSL_SECURED);
         }
 
         private Session findSession(SessionID sessionID) {
@@ -541,14 +655,14 @@ public class SSLCertificateTest {
             }
         }
 
-        public void assertLoggedOn(SessionID sessionID) throws InterruptedException {
+        public void assertLoggedOn(SessionID sessionID) {
             Session session = findSession(sessionID);
 
             if (!session.isLoggedOn())
                 throw new AssertionError("Session is not logged on");
         }
 
-        public void assertNotLoggedOn(SessionID sessionID) throws InterruptedException {
+        public void assertNotLoggedOn(SessionID sessionID) {
             Session session = findSession(sessionID);
 
             if (session.isLoggedOn())
@@ -556,10 +670,24 @@ public class SSLCertificateTest {
         }
 
         public void assertSslExceptionThrown() throws Exception {
+            assertSslExceptionThrown(null, null);
+        }
+
+        public void assertSslExceptionThrown(String errorMessage, Class<?> errorType) throws Exception {
             boolean reachedZero = exceptionThrownLatch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
             if (!reachedZero) {
                 throw new AssertionError("No SSL exception thrown");
+            }
+
+            Throwable throwable = exception.get();
+
+            if (errorMessage != null) {
+                assertEquals(errorMessage, throwable.getMessage());
+            }
+
+            if (errorType != null) {
+                assertSame(errorType, throwable.getClass());
             }
         }
 
@@ -711,8 +839,14 @@ public class SSLCertificateTest {
     }
 
     private SessionSettings createInitiatorSettings(String keyStoreName, String trustStoreName, String cipherSuites,
-            String protocols, String senderId, String targetId, String port, String keyStoreType,
-            String trustStoreType) {
+                                                    String protocols, String senderId, String targetId, String port, String keyStoreType,
+                                                    String trustStoreType) {
+        return createInitiatorSettings(keyStoreName, trustStoreName, cipherSuites, protocols, senderId, targetId, port,keyStoreType, trustStoreType, null);
+    }
+
+    private SessionSettings createInitiatorSettings(String keyStoreName, String trustStoreName, String cipherSuites,
+                                                    String protocols, String senderId, String targetId, String port, String keyStoreType,
+                                                    String trustStoreType, String endpointIdentificationAlgorithm) {
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
@@ -746,6 +880,10 @@ public class SSLCertificateTest {
 
         if (protocols != null) {
             defaults.put(SSLSupport.SETTING_ENABLED_PROTOCOLS, protocols);
+        }
+
+        if (endpointIdentificationAlgorithm != null) {
+            defaults.put(SSLSupport.SETTING_ENDPOINT_IDENTIFICATION_ALGORITHM, endpointIdentificationAlgorithm);
         }
 
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, senderId, targetId);

@@ -125,9 +125,6 @@ public class SocketInitiator extends AbstractSocketInitiator {
             if (isStarted.compareAndSet(false, true)) {
                 eventHandlingStrategy.setExecutor(longLivedExecutor);
                 createSessionInitiators();
-                for (Session session : getSessionMap().values()) {
-                    Session.registerSession(session);
-                }
                 startInitiators();
                 eventHandlingStrategy.blockInThread();
             }
