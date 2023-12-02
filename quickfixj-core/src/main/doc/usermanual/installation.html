@@ -13,39 +13,77 @@
 <h2>Installation and Building the Code.</h2>
 <h3><a name="dependencies"></a>Runtime Dependencies</h3>
 <h4>Java Virtual Machine:</h4>
-<p>JVM compatible with Oracle JRE Java 1.7.x or higher.</p>
+<p>JVM compatible with JRE Java 1.8.x or higher.</p>
 
 <h4>Required run-time libraries:</h4>
 
+<p>QuickFIX/J has "base" and "core" libraries for the FIX "Engine" and one or more Message libraries are required at runtime.</p>
+
+<p>The required Message libraries depend on the FIX Protocol Version. A QuickFIX/J process can support more than one FIX Protocol version at runtime, using different Session configurations.</p>
+
+<p>Please note that customised versions of the FIX message artefacts can be built to meet specific Rules of Engagement. Please refer to the QuickFIX/J github repository for <a href="https://github.com/quickfix-j/quickfixj#readme">details</a>.</p>
+
 <p>
-<em>(Note: The actual JAR files may have version numbers in them.)</em>
+<em>(Note: The actual JAR files have <a href="https://semver.org/">semantic version numbers</a> in the name. For example : quickfixj-messages-fixlatest-3.0.0.jar)</em>
 </p>
 
 <table cellspacing="0" width="100%">
-  <tr>
-    <th>Library</th>
-    <th>Description</th>
-  </tr>
-  <tr>
-    <td>The QFJ core JAR and message JARs.
-    <ul>
-    <li> quickfixj-core.jar
-    <li> quickfixj-msg-fix40.jar
-    <li> quickfixj-msg-fix41.jar
-    <li> quickfixj-msg-fix42.jar
-    <li> quickfixj-msg-fix43.jar
-    <li> quickfixj-msg-fix44.jar
-    <li> quickfixj-msg-fix50.jar
-    <li> quickfixj-msg-fix50sp1.jar
-    <li> quickfixj-msg-fix50sp2.jar
-    </ul>
-    or
-    <ul>
-    <li> quickfixj-all.jar (includes core and message JARs)
-    </ul>
-    </td>
-    <td>QFJ runtime libraries</td>
-  </tr>
+    <tr>
+        <th>Library</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>The QuickFIX/J base and core JARs and message JARs.
+          <ul>
+              <li>quickfixj-base-{VERSION}.jar
+              <li>quickfixj-core-{VERSION}.jar
+          </ul>
+        </td>
+        <td>QuickFIX/J fundamental libraries</td>
+    </tr>
+    <tr>
+        <td>With one or more message JAR for FIX versions before FIX 5.0
+            <ul>
+                <li>quickfixj-messages-fix40-{VERSION}.jar
+                <li>quickfixj-messages-fix41-{VERSION}.jar
+                <li>quickfixj-messages-fix42-{VERSION}.jar
+                <li>quickfixj-messages-fix43-{VERSION}.jar
+                <li>quickfixj-messages-fix44-{VERSION}.jar
+            </ul>
+            <b>AND/OR</b>
+            <table cellspacing="0" width="100%">
+                <tr>
+                    <td>
+                        The FIX Transport Layer JAR
+                        <ul>
+                            <li> quickfixj-messages-fixt11-{VERSION}.jar</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        With one or more FIX Application Layer message JAR for FIX versions 5.0 and later
+                        <ul>
+                            <li>quickfixj-messages-fix50-{VERSION}.jar
+                            <li>quickfixj-messages-fix50sp1-{VERSION}.jar
+                            <li>quickfixj-messages-fix50sp2-{VERSION}.jar
+                            <li>quickfixj-messages-fixlatest-{VERSION}.jar
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>Message Libraries required at runtime</td>
+    </tr>
+    <tr><td><b>OR</b></td></tr>
+      <tr>
+          <td>
+          <ul>
+              <li>quickfixj-all-{VERSION}.jar (includes core, base and message JARs)
+          </ul>
+          </td>
+            <td>JAR including base, core and message JARs</td>
+      </tr>
 </table>
 
 <p></p>
@@ -108,12 +146,11 @@ By default, the XML processing in QuickFIX/J uses the XML parser included
 <h2><a name="build"></a>Building QuickFIX/J</h2>
 
 <p><em>These instructions are for developers who don't want
-    to use the prebuilt binaries or are intending to modify and rebuild the QuickFIX/J
+    to use the pre-built binaries or are intending to modify and rebuild the QuickFIX/J
     code. </em>If you are building the code from the command line you'll need
-    to download and install Maven (version 3.2.5 or newer). If you are building from
-    an IDE, Maven is usually included.
+    to download and install Maven (version 3.5.0 or newer).
 
-<em>Building from source requires Java 7+.</em>
+<em>Building from source requires Java 8 or later.</em>
 
 </p>
 <ol>
@@ -152,6 +189,7 @@ There are various command-line switches you can pass to mvn to modify the produc
   For example, in order to generate fields with BigDecimals and skip acceptance tests:<br>
 <code>mvn test -Dgenerator.decimal=true -DskipAT=true</code>
 </p>
+<p>Find further details in the project <a href="https://github.com/quickfix-j/quickfixj#readme">readme</a></p>
 <h3>IDE support:</h3>
 <p><em style="color:red">When the project is first created, it will not have the generated message classes
    and compile errors will occur!</em> Best is to compile once on the command line before importing
@@ -163,51 +201,61 @@ There are various command-line switches you can pass to mvn to modify the produc
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference
     the pre-built QuickFIX/J libraries hosted at the <a href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.quickfixj%22">Central Repository</a>
     repository.</p>
-<p> Add the following to your <em>dependencies</em> section, with appropriate modifications based on
-        the logging subsystem you choose:<br>
-        <pre class="code">
+<p>You need only include message libraries for the FIX protocol version that you require.</p>
+<p><em>Note : the quickfixj-messages-fixt11 jar is required for FIX versions 5.0 and later.</em></p>
+<p>The following example shows maven <em>dependencies</em>, any SLF4J compatible logging implementation can be used:<br>
+<pre class="code">
 &lt;!-- QuickFIX/J dependencies --&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-core&lt;/artifactId&gt;
-    &lt;version&gt;2.0.0&lt;/version&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
+    &lt;artifactId&gt;quickfixj-base&lt;/artifactId&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-messages-fix40&lt;/artifactId&gt;
-    &lt;version&gt;2.0.0&lt;/version&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-messages-fix41&lt;/artifactId&gt;
-    &lt;version&gt;2.0.0&lt;/version&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-messages-fix42&lt;/artifactId&gt;
-    &lt;version&gt;2.0.0&lt;/version&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-messages-fix43&lt;/artifactId&gt;
-    &lt;version&gt;2.0.0&lt;/version&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.quickfixj&lt;/groupId&gt;
     &lt;artifactId&gt;quickfixj-messages-fix44&lt;/artifactId&gt;
-    &lt;version&gt;2.0.0&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
-    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
-    &lt;version&gt;1.7.22&lt;/version&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
     &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
-    &lt;version&gt;1.7.22&lt;/version&gt;
-&lt;/dependency&gt;</pre>
+    &lt;version&gt;2.0.6&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+    &lt;version&gt;2.0.6/version&gt;
+&lt;/dependency&gt;
+
+</pre>
 </p>
+
+<p>Please refer to the QuickFIX/J github repository for more <a href="https://github.com/quickfix-j/quickfixj#readme">details</a>  about working with QuickFIX/J.</p>
 
 <h2><a name="database"></a>Generating the database for JDBC based store and log</h2>
 <p> Everything needed to generate your database is in the <a href="https://github.com/quickfix-j/quickfixj/tree/master/quickfixj-core/src/main/resources/config/sql"> src/main/resources/config/sql</a> subdirectories.
@@ -219,7 +267,7 @@ There are various command-line switches you can pass to mvn to modify the produc
   'root' to another user. To add a password, use pass the -p option after the
 username. Similar scripts are provided for MSSQL, PostgreSQL and Oracle.
 </p>
-<h3><a name="oracle">Special notes for Oracle</h3>
+<h3><a name="oracle">Special notes for Oracle</a></h3>
 <p>
 Oracle treats empty strings as null values. Null values are not allowed for primary key
 fields. The fields used in the primary keys are:
