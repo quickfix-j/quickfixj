@@ -24,7 +24,7 @@ package quickfix;
  *
  * @see quickfix.Session
  */
-interface MessageQueue {
+public interface MessageQueue {
 
     /**
      * Enqueue a message.
