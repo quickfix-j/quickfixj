@@ -1,0 +1,36 @@
+<fix major="4" minor="1">
+  <header>
+    <field name="BeginString" required="Y"/>
+    <field name="BodyLength" required="Y"/>
+    <field name="MsgType" required="Y"/>
+    <field name="SenderCompID" required="Y"/>
+    <field name="TargetCompID" required="Y"/>
+    <field name="OnBehalfOfCompID" required="N"/>
+    <field name="DeliverToCompID" required="N"/>
+    <field name="SecureDataLen" required="N"/>
+    <field name="SecureData" required="N"/>
+    <field name="MsgSeqNum" required="Y"/>
+    <field name="SenderSubID" required="N"/>
+    <field name="SenderLocationID" required="N"/>
+    <field name="TargetSubID" required="N"/>
+    <field name="TargetLocationID" required="N"/>
+    <field name="OnBehalfOfSubID" required="N"/>
+    <field name="OnBehalfOfLocationID" required="N"/>
+    <field name="DeliverToSubID" required="N"/>
+    <field name="DeliverToLocationID" required="N"/>
+    <field name="PossDupFlag" required="N"/>
+    <field name="PossResend" required="N"/>
+    <field name="SendingTime" required="Y"/>
+    <field name="OrigSendingTime" required="N"/>
+  </header>
+  <trailer>
+    <field name="SignatureLength" required="N"/>
+    <field name="Signature" required="N"/>
+    <field name="CheckSum" required="Y"/>
+  </trailer>
+  <messages>
+  </messages>
+  <fields>
+    <field number="80" name="AllocShares" type="INT"/>
+  </fields>
+</fix>
