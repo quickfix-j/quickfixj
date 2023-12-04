@@ -84,7 +84,7 @@
 		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.3.0</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>3.6.2</maven-javadoc-plugin-version>
-		<maven-shade-plugin-version>3.4.1</maven-shade-plugin-version>
+		<maven-shade-plugin-version>3.5.1</maven-shade-plugin-version>
 		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
 		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
 		<maven-gpg-plugin-version>3.0.1</maven-gpg-plugin-version>
