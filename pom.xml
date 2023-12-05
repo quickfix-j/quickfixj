@@ -227,6 +227,11 @@
 				<version>4.0.0</version>
 			</dependency>
 			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-xml</artifactId>
+				<version>4.0.0</version>
+			</dependency>
+			<dependency>
 				<groupId>com.sleepycat</groupId>
 				<artifactId>je</artifactId>
 				<version>18.3.12</version>
