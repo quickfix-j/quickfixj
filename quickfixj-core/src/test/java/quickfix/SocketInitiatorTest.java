@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.initiator.ConnectException;
 import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
 import quickfix.test.util.StackTraceUtil;
@@ -41,8 +42,10 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +53,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static junit.framework.TestCase.assertNotNull;
@@ -233,22 +237,25 @@ public class SocketInitiatorTest {
     }
 
     @Test
-    public void testInitiatorConnectionException() throws Exception {
+    public void testInitiatorConnectException() throws Exception {
         // use a free port to make sure nothing is listening
         int freePort = AvailablePortFinder.getNextAvailable();
         Initiator initiator = null;
+        String host = "localhost";
         AtomicBoolean onConnectExceptionWasCalled = new AtomicBoolean(false);
+        AtomicReference<SocketAddress> socketAddress = new AtomicReference<>(null);
         try {
             SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
             SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
             settings.setString(clientSessionID, "ReconnectInterval", "1");
-            settings.setString(clientSessionID, "SocketConnectHost", "localhost");
-            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+            settings.setString(clientSessionID, "SocketConnectHost", host);
+            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
 
             SessionStateListener sessionStateListener = new SessionStateListener() {
                 @Override
                 public void onConnectException(SessionID sessionID, Exception e) {
                     onConnectExceptionWasCalled.set(true);
+                    socketAddress.set(((ConnectException) e).getSocketAddress());
                 }
             };
             // add state listener on creation of Session
@@ -261,12 +268,16 @@ public class SocketInitiatorTest {
             DefaultSessionFactory sessionFactory = new DefaultSessionFactory(clientApplication, new MemoryStoreFactory(), new ScreenLogFactory(settings), new DefaultMessageFactory());
             initiator = new SocketInitiator(sessionFactory, settings, 10000);
             initiator.start();
-            Thread.sleep(3000); // make sure we try to connect
+            Thread.sleep(5000); // make sure we try to connect
         } finally {
             if (initiator != null) {
                 initiator.stop(true);
             }
             assertTrue(onConnectExceptionWasCalled.get());
+            InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress.get();
+            assertNotNull(inetSocketAddress);
+            assertEquals(host, inetSocketAddress.getHostName());
+            assertEquals(freePort, inetSocketAddress.getPort());
         }
     }
 

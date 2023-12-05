@@ -34,6 +34,16 @@
 		</dependency>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -42,7 +52,6 @@
 			<artifactId>quickfixj-all</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-examples-banzai</artifactId>
@@ -58,10 +67,14 @@
 			<artifactId>quickfixj-examples-ordermatch</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.quickfixj</groupId>
 			<artifactId>quickfixj-messages-all</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-messages-fixlatest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -109,26 +122,34 @@
 			<artifactId>quickfixj-messages-fix40</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.cloudhopper.proxool</groupId>
+			<artifactId>proxool</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.sleepycat</groupId>
+			<artifactId>je</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<!-- used by dictgenerator package -->
+			<groupId>org.dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<!-- https://github.com/quickfix-j/quickfixj/discussions/566 -->
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+		</dependency>
 	</dependencies>
-
-	<profiles>
-		<profile>
-			<id>doclint-java8-disable</id>
-			<activation>
-				<jdk>[1.8,)</jdk>
-			</activation>
-			<properties>
-				<javadoc.opts>-Xdoclint:none</javadoc.opts>
-			</properties>
-		</profile>
-	</profiles>
 
 	<build>
 		<plugins>
 			<!-- generate javadocs into apidocs folder -->
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${maven-javadoc-plugin-version}</version>
 				<executions>
 					<execution>
 						<id>javadoc-jar</id>
@@ -137,9 +158,10 @@
 							<goal>javadoc</goal>
 						</goals>
 						<configuration>
-							<additionalparam>${javadoc.opts}</additionalparam>
+							<doclint>none</doclint>
 							<includeDependencySources>true</includeDependencySources>
 							<dependencySourceIncludes>
+								<dependencySourceInclude>org.quickfixj:quickfixj-base</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-core</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-codegenerator</dependencySourceInclude>
 								<dependencySourceInclude>org.quickfixj:quickfixj-dictgenerator</dependencySourceInclude>
@@ -149,7 +171,7 @@
 							<overview>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc_overview.html</overview>
 							<noindex>true</noindex>
 							<!-- don't use custom stylesheet since it just breaks all style -->
-							<!--<stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile>-->
+							<!-- stylesheetfile>${project.parent.basedir}/quickfixj-core/src/main/doc/javadoc.css</stylesheetfile -->
 							<show>protected</show>
 							<maxmemory>3g</maxmemory>
 							<breakiterator>true</breakiterator>

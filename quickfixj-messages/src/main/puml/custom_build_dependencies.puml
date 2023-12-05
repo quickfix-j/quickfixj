@@ -1,0 +1,55 @@
+@startuml
+
+package "org.quickfixj:quickfixj-base"  as base {
+package quickfixj_base
+}
+
+package "org.quickfixj:quickfixj-orchestration"  as orc {
+component quickfixj_orchestration
+}
+
+package "com.some-company:custom-orchestration"  as custom_orc {
+component custom_orchestration
+}
+
+custom_orchestration .up.> quickfixj_orchestration : derived from
+
+package "com.some-company:messages"  as custom_msg {
+package field
+package fixlatest
+package fixt11
+package fix50sp2
+package fix44
+}
+
+fixlatest .up.> custom_orc : build depends
+
+note bottom of custom_orc
+Build may depend on the QuickFIX/J Orchestration 
+where automation such as XSLT is used
+end note
+
+custom_msg -up-> base : depends
+
+package "org.quickfixj:quickfixj-codegenerator"  as codegen {
+component quickfixj_codegenerator
+}
+
+note top of codegen
+quickfixj-codegenerator is not required if only fixlatest is built
+
+end note
+
+package "org.quickfixj:quickfixj-orchestra"  as r2q {
+component quickfixj_from_fix_orchestra_code_generator_maven_plugin
+component quickfixj_from_fix_orchestra_dictionary_generator_maven_plugin
+}
+
+field .up.> codegen  : build depends
+field .up.> r2q  : build depends
+fixlatest ..> r2q : build depends
+fixt11 .up.> codegen  : build depends
+fix50sp2 .up.> codegen  : build depends
+fix44 .up.> codegen  : build depends
+
+@enduml

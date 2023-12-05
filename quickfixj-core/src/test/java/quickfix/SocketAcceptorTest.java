@@ -82,9 +82,10 @@ public class SocketAcceptorTest {
         Acceptor acceptor = null;
         Initiator initiator = null;
         try {
-            acceptor = createAcceptor(testAcceptorApplication);
+            final int port = AvailablePortFinder.getNextAvailable();
+            acceptor = createAcceptor(testAcceptorApplication, port);
             acceptor.start();
-            initiator = createInitiator(testInitiatorApplication);
+            initiator = createInitiator(testInitiatorApplication, port);
 
             assertNotNull("Session should be registered", lookupSession(acceptorSessionID));
 
@@ -132,7 +133,8 @@ public class SocketAcceptorTest {
         try {
             ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
-            acceptor = createAcceptor(testAcceptorApplication);
+            final int port = AvailablePortFinder.getNextAvailable();
+            acceptor = createAcceptor(testAcceptorApplication, port);
             acceptor.start();
             Thread.sleep(2500L);
             acceptor.stop();
@@ -153,7 +155,8 @@ public class SocketAcceptorTest {
         try {
             ThreadMXBean bean = ManagementFactory.getThreadMXBean();
             TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
-            acceptor = createAcceptor(testAcceptorApplication);
+            final int port = AvailablePortFinder.getNextAvailable();
+            acceptor = createAcceptor(testAcceptorApplication, port);
             acceptor.start();
             // second start should be ignored
             acceptor.start();
@@ -171,7 +174,8 @@ public class SocketAcceptorTest {
         Acceptor acceptor = null;
         try {
             TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
-            acceptor = createAcceptor(testAcceptorApplication);
+            final int port = AvailablePortFinder.getNextAvailable();
+            acceptor = createAcceptor(testAcceptorApplication, port);
             acceptor.start();
             assertEquals(1, acceptor.getSessions().size() );
             assertEquals(1 + SESSION_COUNT, Session.numSessions() );
@@ -190,7 +194,8 @@ public class SocketAcceptorTest {
         Acceptor acceptor = null;
         try {
             TestConnectorApplication testAcceptorApplication = new TestConnectorApplication();
-            acceptor = createAcceptorThreaded(testAcceptorApplication);
+            final int port = AvailablePortFinder.getNextAvailable();
+            acceptor = createAcceptorThreaded(testAcceptorApplication, port);
             acceptor.start();
             assertEquals(1, acceptor.getSessions().size() );
             assertEquals(1 + SESSION_COUNT, Session.numSessions() );
@@ -350,10 +355,10 @@ public class SocketAcceptorTest {
     }
 
     
-    private Acceptor createAcceptor(TestConnectorApplication testAcceptorApplication)
+    private Acceptor createAcceptor(TestConnectorApplication testAcceptorApplication, int port)
             throws ConfigError {
 
-        SessionSettings settings = createAcceptorSettings();
+        SessionSettings settings = createAcceptorSettings(port);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
         quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
@@ -361,10 +366,10 @@ public class SocketAcceptorTest {
                 new DefaultMessageFactory());
     }
 
-    private Acceptor createAcceptorThreaded(TestConnectorApplication testAcceptorApplication)
+    private Acceptor createAcceptorThreaded(TestConnectorApplication testAcceptorApplication, int port)
             throws ConfigError {
 
-        SessionSettings settings = createAcceptorSettings();
+        SessionSettings settings = createAcceptorSettings(port);
 
         MessageStoreFactory factory = new MemoryStoreFactory();
         quickfix.LogFactory logFactory = new SLF4JLogFactory(new SessionSettings());
@@ -372,7 +377,7 @@ public class SocketAcceptorTest {
                 new DefaultMessageFactory());
     }
     
-    private SessionSettings createAcceptorSettings() {
+    private SessionSettings createAcceptorSettings(int socketAcceptPort) {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "acceptor");
@@ -380,13 +385,13 @@ public class SocketAcceptorTest {
         defaults.put("EndTime", "00:00:00");
         defaults.put("BeginString", "FIX.4.2");
         defaults.put("NonStopSession", "Y");
-        settings.setString(acceptorSessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
-        settings.setString(acceptorSessionID, "SocketAcceptPort", "10000");
+        settings.setString(acceptorSessionID, "SocketAcceptProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        settings.setString(acceptorSessionID, "SocketAcceptPort", String.valueOf(socketAcceptPort));
         settings.set(defaults);
         return settings;
     }
 
-    private Initiator createInitiator(TestConnectorApplication testInitiatorApplication) throws ConfigError {
+    private Initiator createInitiator(TestConnectorApplication testInitiatorApplication, int socketConnectPort) throws ConfigError {
         SessionSettings settings = new SessionSettings();
         HashMap<Object, Object> defaults = new HashMap<>();
         defaults.put("ConnectionType", "initiator");
@@ -398,9 +403,9 @@ public class SocketAcceptorTest {
         defaults.put("ValidateUserDefinedFields", "Y");
         defaults.put("NonStopSession", "Y");
         settings.setString("BeginString", FixVersions.BEGINSTRING_FIX42);
-        settings.setString(initiatorSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
+        settings.setString(initiatorSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         settings.setString(initiatorSessionID, "SocketConnectHost", "127.0.0.1");
-        settings.setString(initiatorSessionID, "SocketConnectPort", "10000");
+        settings.setString(initiatorSessionID, "SocketConnectPort", String.valueOf(socketConnectPort));
         settings.set(defaults);
 
         MessageStoreFactory factory = new MemoryStoreFactory();

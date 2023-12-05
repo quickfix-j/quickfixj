@@ -51,6 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
@@ -70,6 +72,9 @@ public class ATServer implements Runnable {
     private String keyStorePassword;
     private Map<Object, Object> overridenProperties = null;
 
+    //Pattern to get FIX version from test location example :"fixLatest/20_SimultaneousResendRequest.def"
+    protected static final Pattern fixVersionFromTestLocationPattern = Pattern.compile("^(.*?)(?:[\\/,\\\\].*)$");
+
     public ATServer() {
         // defaults
     }
@@ -88,9 +93,13 @@ public class ATServer implements Runnable {
         this.overridenProperties = overridenProperties;
         this.transportType = transportType;
         this.port = port;
+        // determine the FIX versions, by convention the first part of the name (location) of the test.
         Enumeration<junit.framework.Test> e = suite.tests();
         while (e.hasMoreElements()) {
-            fixVersions.add(e.nextElement().toString().substring(0, 5));
+            Matcher matcher = fixVersionFromTestLocationPattern.matcher(e.nextElement().toString());
+            if (matcher.find()) {
+                fixVersions.add(matcher.group(1));
+            }
         }
         resetOnDisconnect = true;
         log.info("creating sessions for {}", fixVersions);
@@ -154,6 +163,10 @@ public class ATServer implements Runnable {
             }
 
             if (fixVersions.contains("fix50")) {
+                acceptFixVersion(FixVersions.BEGINSTRING_FIXT11);
+            }
+
+            if (fixVersions.contains("fixLatest")) {
                 acceptFixVersion(FixVersions.BEGINSTRING_FIXT11);
             }
 

@@ -283,7 +283,7 @@
     <TD> Valid XML data dictionary file, QuickFIX/J comes with the following defaults in the <code>etc</code> directory:
         FIXT11.xml, FIX50.xml, FIX44.xml, FIX43.xml, FIX42.xml, FIX41.xml, FIX40.xml.
     </TD>
-    <TD>If DataDictionary is not specified and UserDataDictionary=Y, then QuickFIX/J will look for a
+    <TD>If DataDictionary is not specified and UseDataDictionary=Y, then QuickFIX/J will look for a
         default dictionary based on the session's BeginString (e.g., FIX.4.2 = FIX42.xml). The DataDictionary
         file search strategy is to use a URL, then the file system, and then the thread context classloader (if any),
         and then the DataDictionary instance's classloader. Default data dictionary files
@@ -528,23 +528,31 @@
     <TD>&nbsp; </TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-
     <TD> <I>SocketConnectHost&lt;n&gt;</I> </TD>
     <TD> Alternate socket host(s) for connecting to a session for failover or load balancing,
          where <B>n</B> is a positive integer, i.e. SocketConnectHost1, SocketConnectHost2, etc.
          Must be consecutive and have a matching SocketConnectPort&lt;n&gt;
-         <p>
-      Connection list iteration rules:
-      <ul>
-        <li>Connections are tried one after another until one is successful: SocketConnectHost:SocketConnectPort,
-          SocketConnectHost1:SocketConnectPort1, etc.</li>
-        <li>Next connection attempt after a successful connection will start at first defined connection again:
-          SocketConnectHost:SocketConnectPort.</li>
-      </ul>
     </TD>
     <TD> valid IP address in the format of x.x.x.x or a domain name </TD>
 
     <TD>&nbsp; </TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD> <I>SocketConnectProtocol&lt;n&gt;</I> </TD>
+    <TD> Alternate socket protocol(s) for connecting to a session for failover or load balancing,
+         where <B>n</B> is a positive integer, i.e. SocketConnectProtocol1, SocketConnectProtocol2, etc.
+         Must be consecutive and have a matching SocketConnectHost & SocketConnectPort
+      <p>
+      Connection list iteration rules:
+      <ul>
+        <li>Connections are tried one after another until one is successful: SocketConnectProtocol - SocketConnectHost:SocketConnectPort,
+          SocketConnectProtocol1 - SocketConnectHost1:SocketConnectPort1, etc.</li>
+        <li>Next connection attempt after a successful connection will start at first defined connection again:
+          SocketConnectHost:SocketConnectPort.</li>
+      </ul>
+    </TD>
+    <TD> "TCP" or "VM_PIPE".  </TD>
+    <TD>"TCP" </TD>
   </TR>
   <tr>
     <TR ALIGN="left" VALIGN="middle">
@@ -684,10 +692,12 @@
     <TD><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">Java default cipher suites</a></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD valign="top"> <I>UseSNI</I></TD>
-    <TD>Configures the SSL engine to use Server Name Indication. This option is only useful to initiators.</TD>
-    <TD>Y<BR>N</TD>
-    <TD>N</TD>
+    <TD valign="top"> <I>EndpointIdentificationAlgorithm</I></TD>
+      <TD>Sets the endpoint identification algorithm. If the algorithm parameter is non-null, the endpoint identification/verification procedures must be handled during SSL/TLS handshaking. See
+          <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#jssenames">Endpoint Identification
+          Algorithm Names</a></TD>
+    <TD></TD>
+    <TD></TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
@@ -1183,7 +1193,7 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>LogonTag</I> </TD>
-    <TD> Tag/value pair which will be set on sent or received Logon message. </TD>
+    <TD> Tag/value pair which will be set on sent Logon message. </TD>
     <TD> &lt;tag&gt;=&lt;value&gt;, where "tag" has to be a positive integer and "value" a String <br>
         Example: <br>
                  LogonTag=553=foo
@@ -1192,7 +1202,7 @@
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>LogonTag&lt;n&gt;</I> </TD>
-    <TD> Additional tag/value pairs which will be set on sent or received Logon message,<br>
+    <TD> Additional tag/value pairs which will be set on sent Logon message,<br>
          where <b>n</b> is a positive integer, i.e. LogonTag1, LogonTag2, etc.
          Must be consecutive.
     </TD>
@@ -1259,7 +1269,7 @@
   <TR ALIGN="left" VALIGN="middle">
     <TD> <I>ResendRequestChunkSize</I> </TD>
     <TD> Setting to limit the size of a resend request in case of missing messages.
-        This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest.
+        This is useful when the remote FIX engine does not allow to ask for more than n message for a ResendRequest. It also allows you to prevent a 'self-DDOS' by accidentally requesting a huge flood of messages your system isn't capable of processing if you are substantially behind for some reason.
         <P>
          E.g. if the ResendRequestChunkSize is set to 5 and a gap of 7 messages is detected,
          a first resend request will be sent for 5 messages.

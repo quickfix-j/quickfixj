@@ -1,0 +1,33 @@
+@startuml
+
+package "org.quickfixj:quickfixj-core" as core {
+component quickfixj_core
+}
+
+package "org.quickfixj:quickfixj-base"  as base {
+component quickfixj_base
+}
+
+package "com.some-company:application"  as customapp {
+component application
+}
+
+package "com.some-company:messages"  as custom_msg {
+package field
+package fixlatest
+package fixt11
+package fix50sp2
+package fix44
+}
+note top  of custom_msg
+Example of a single published jar representing 
+one or more versions of the FIX protocol
+end note
+
+core -up-> base
+
+customapp -up-> core : compile dependency
+customapp -up-> custom_msg  : compile dependency
+custom_msg -up-> base  : compile dependency
+
+@enduml

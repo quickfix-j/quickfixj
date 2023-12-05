@@ -44,7 +44,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -191,7 +191,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener).accept(message, sessionID);
         verifyNoMoreInteractions(listener);
-        verifyZeroInteractions(listener2);
+        verifyNoInteractions(listener2);
     }
 
     @Test
@@ -210,7 +210,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -248,7 +248,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -296,7 +296,7 @@ public class ApplicationFunctionalAdapterTest {
         verify(listener).accept(message, sessionID);
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener, listener2);
-        verifyZeroInteractions(listener3);
+        verifyNoInteractions(listener3);
     }
 
     @Test
@@ -333,7 +333,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener).accept(message, sessionID);
         verifyNoMoreInteractions(listener);
-        verifyZeroInteractions(listener2);
+        verifyNoInteractions(listener2);
     }
 
     @Test
@@ -399,7 +399,7 @@ public class ApplicationFunctionalAdapterTest {
         verify(listener).accept(message, sessionID);
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener, listener2);
-        verifyZeroInteractions(listener3);
+        verifyNoInteractions(listener3);
     }
 
     @Test
@@ -437,7 +437,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -467,7 +467,7 @@ public class ApplicationFunctionalAdapterTest {
         verify(listener).accept(message, sessionID);
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener, listener2);
-        verifyZeroInteractions(listener3);
+        verifyNoInteractions(listener3);
     }
 
     @Test
@@ -504,7 +504,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener).accept(message, sessionID);
         verifyNoMoreInteractions(listener);
-        verifyZeroInteractions(listener2);
+        verifyNoInteractions(listener2);
     }
 
     @Test
@@ -553,7 +553,7 @@ public class ApplicationFunctionalAdapterTest {
         verify(listener).accept(message, sessionID);
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener, listener2);
-        verifyZeroInteractions(listener3);
+        verifyNoInteractions(listener3);
     }
 
     @Test
@@ -591,7 +591,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener2);
-        verifyZeroInteractions(listener);
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -639,7 +639,7 @@ public class ApplicationFunctionalAdapterTest {
         verify(listener).accept(message, sessionID);
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener, listener2);
-        verifyZeroInteractions(listener3);
+        verifyNoInteractions(listener3);
     }
 
     @Test
@@ -676,7 +676,7 @@ public class ApplicationFunctionalAdapterTest {
 
         verify(listener).accept(message, sessionID);
         verifyNoMoreInteractions(listener);
-        verifyZeroInteractions(listener2);
+        verifyNoInteractions(listener2);
     }
 
     @Test
@@ -742,7 +742,7 @@ public class ApplicationFunctionalAdapterTest {
         verify(listener).accept(message, sessionID);
         verify(listener2).accept(message, sessionID);
         verifyNoMoreInteractions(listener, listener2);
-        verifyZeroInteractions(listener3);
+        verifyNoInteractions(listener3);
     }
 
     private static class MyMessage1 extends Message {

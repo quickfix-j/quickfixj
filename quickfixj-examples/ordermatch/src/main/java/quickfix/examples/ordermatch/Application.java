@@ -124,7 +124,7 @@ public class Application extends MessageCracker implements quickfix.Application 
 
         fixOrder.setString(ClOrdID.FIELD, clOrdId);
         fixOrder.setString(Text.FIELD, message);
-        fixOrder.setInt(OrdRejReason.FIELD, OrdRejReason.BROKER_EXCHANGE_OPTION);
+        fixOrder.setInt(OrdRejReason.FIELD, OrdRejReason.OTHER);
 
         try {
             Session.sendToTarget(fixOrder, senderCompId, targetCompId);

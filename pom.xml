@@ -51,15 +51,14 @@
 		<url>http://www.quickfixj.org/jira/</url>
 	</issueManagement>
 
-	<prerequisites>
-		<maven>3.5.0</maven>
-	</prerequisites>
-
 	<modules>
 		<module>quickfixj-codegenerator</module>
 		<module>quickfixj-dictgenerator</module>
-		<module>quickfixj-core</module>
+		<module>quickfixj-class-pruner-maven-plugin</module>
+		<module>quickfixj-orchestration</module>
+		<module>quickfixj-base</module>
 		<module>quickfixj-messages</module>
+		<module>quickfixj-core</module>
 		<module>quickfixj-examples</module>
 		<module>quickfixj-all</module>
 		<module>quickfixj-distribution</module>
@@ -69,25 +68,233 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>1.7.32</slf4j.version>
-		<junit.version>4.13.1</junit.version>
+		<slf4j.version>2.0.9</slf4j.version>
+		<mockito-core.version>4.11.0</mockito-core.version>
+		<hamcrest.version>2.2</hamcrest.version>
+		<junit.jupiter.version>5.10.1</junit.jupiter.version>
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-
-		<maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
-		<maven-compiler-plugin-version>3.8.0</maven-compiler-plugin-version>
-		<maven-jar-plugin-version>3.1.0</maven-jar-plugin-version>
-		<maven-surefire-plugin-version>2.22.0</maven-surefire-plugin-version>
-		<maven-pmd-plugin-version>3.10.0</maven-pmd-plugin-version>
-		<maven-source-plugin-version>3.0.1</maven-source-plugin-version>
-		<maven-javadoc-plugin-version>2.10.4</maven-javadoc-plugin-version>
-		<maven-shade-plugin-version>3.1.1</maven-shade-plugin-version>
-		<maven-assembly-plugin-version>3.1.0</maven-assembly-plugin-version>
-		<maven-bundle-plugin-version>3.5.1</maven-bundle-plugin-version>
-		<maven-gpg-plugin-version>1.6</maven-gpg-plugin-version>
-		<maven-deploy-plugin-version>2.8.2</maven-deploy-plugin-version>
-		<nexus-staging-maven-plugin-version>1.6.8</nexus-staging-maven-plugin-version>
-		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+		<maven.version>3.8.7</maven.version>
+		<maven-libs-version>3.9.6</maven-libs-version>
+		<maven-plugin-api-version>3.9.5</maven-plugin-api-version>
+		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
+		<maven-compiler-plugin-version>3.11.0</maven-compiler-plugin-version>
+		<maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
+		<maven-surefire-plugin-version>3.0.0</maven-surefire-plugin-version>
+		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
+		<maven-source-plugin-version>3.3.0</maven-source-plugin-version>
+		<maven-javadoc-plugin-version>3.6.3</maven-javadoc-plugin-version>
+		<maven-shade-plugin-version>3.5.1</maven-shade-plugin-version>
+		<maven-assembly-plugin-version>3.6.0</maven-assembly-plugin-version>
+		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
+		<maven-gpg-plugin-version>3.1.0</maven-gpg-plugin-version>
+		<maven-deploy-plugin-version>3.1.1</maven-deploy-plugin-version>
+		<nexus-staging-maven-plugin-version>1.6.13</nexus-staging-maven-plugin-version>
+		<build-helper-maven-plugin-version>3.5.0</build-helper-maven-plugin-version>
+		<maven-shared-utils.version>3.3.4</maven-shared-utils.version>
+		<file-management.version>3.0.0</file-management.version>
+		<maven-plugin-annotations.version>3.10.2</maven-plugin-annotations.version>
+		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
+		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
+		<plantuml-version>8059</plantuml-version>
+		<xml-maven-plugin-version>1.0.2</xml-maven-plugin-version>
+		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
+		<fix-orchestra.repository.version>1.6.8</fix-orchestra.repository.version>
+		<docgen.version>1.6.8</docgen.version>
+		<jaxb.version>4.0.1</jaxb.version>
+		<apache.mina.version>2.2.3</apache.mina.version>
+		<commons.io.version>2.11.0</commons.io.version>
+		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
+		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
+		<proxool.version>0.9.1</proxool.version>
+		<jaxen.version>2.0.0</jaxen.version>
 	</properties>
+
+   <dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.fixprotocol.orchestrations</groupId>
+				<artifactId>fix-standard</artifactId>
+				<version>${fix-orchestra.standard.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.fixprotocol.orchestra</groupId>
+				<artifactId>repository</artifactId>
+				<version>${fix-orchestra.repository.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${junit.jupiter.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.vintage</groupId>
+				<artifactId>junit-vintage-engine</artifactId>
+				<version>${junit.jupiter.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-params</artifactId>
+				<version>${junit.jupiter.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito-core.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest</artifactId>
+				<version>${hamcrest.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>${jaxb.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sun.xml.bind</groupId>
+				<artifactId>jaxb-impl</artifactId>
+				<scope>runtime</scope>
+				<version>${jaxb.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.mina</groupId>
+				<artifactId>mina-core</artifactId>
+				<version>${apache.mina.version}</version>
+			</dependency>
+			<dependency>
+			    <groupId>commons-io</groupId>
+			    <artifactId>commons-io</artifactId>
+			    <version>${commons.io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-plugin-api</artifactId>
+				<version>${maven-plugin-api-version}</version>
+			</dependency>
+			<dependency>
+			  <groupId>org.apache.maven.shared</groupId>
+			  <artifactId>maven-shared-utils</artifactId>
+			  <version>${maven-shared-utils.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.shared</groupId>
+				<artifactId>file-management</artifactId>
+				<version>${file-management.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-core</artifactId>
+				<version>${maven-libs-version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-artifact</artifactId>
+				<version>${maven-libs-version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-compat</artifactId>
+				<version>${maven-libs-version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.plugin-tools</groupId>
+				<artifactId>maven-plugin-annotations</artifactId>
+				<version>${maven-plugin-annotations.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.plugin-testing</groupId>
+				<artifactId>maven-plugin-testing-harness</artifactId>
+				<version>${maven-plugin-testing-harness.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-project</artifactId>
+				<scope>provided</scope>
+				<version>2.2.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-utils</artifactId>
+				<version>4.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-xml</artifactId>
+				<version>4.0.0</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sleepycat</groupId>
+				<artifactId>je</artifactId>
+				<version>18.3.12</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<!-- used by dictgenerator package -->
+				<groupId>org.dom4j</groupId>
+				<artifactId>dom4j</artifactId>
+				<version>2.1.4</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>com.cloudhopper.proxool</groupId>
+				<artifactId>proxool</artifactId>
+				<version>${proxool.version}</version>
+				<optional>true</optional>
+				<exclusions>
+					<!-- bug in proxool pom - should be test scope -->
+					<exclusion>
+						<groupId>avalon-framework</groupId>
+						<artifactId>avalon-framework-api</artifactId>
+					</exclusion>
+					<!-- we use slf4j which provides this API -->
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.cloudhopper.proxool</groupId>
+				<artifactId>proxool-cglib</artifactId>
+				<version>${proxool.version}</version>
+				<optional>true</optional>
+				<exclusions>
+					<!-- bug in proxool pom - should be test scope -->
+					<exclusion>
+						<groupId>avalon-framework</groupId>
+						<artifactId>avalon-framework-api</artifactId>
+					</exclusion>
+					<!-- we use slf4j which provides this API -->
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<!-- required by dom4j at runtime -->
+				<groupId>jaxen</groupId>
+				<artifactId>jaxen</artifactId>
+				<version>${jaxen.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<!-- https://github.com/quickfix-j/quickfixj/discussions/566 -->
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-jdk14</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>
@@ -108,8 +315,7 @@
 					<version>${maven-compiler-plugin-version}</version>
 					<inherited>true</inherited>
 					<configuration>
-						<source>${jdkLevel}</source>
-						<target>${jdkLevel}</target>
+						<forceJavacCompilerUse>true</forceJavacCompilerUse> <!-- https://bugs.openjdk.java.net/browse/JDK-8216202 -->
 						<meminitial>2g</meminitial>
 						<maxmem>4g</maxmem>
 					</configuration>
@@ -130,6 +336,11 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-report-plugin</artifactId>
 					<version>${maven-surefire-plugin-version}</version>
 				</plugin>
 				<plugin>
@@ -165,8 +376,9 @@
 								<goal>jar</goal>
 							</goals>
 							<configuration>
-								<additionalparam>-Xdoclint:none</additionalparam>
-							    <maxmemory>3g</maxmemory>
+								<quiet>true</quiet>
+								<doclint>none</doclint>
+								<maxmemory>5g</maxmemory>
 							</configuration>
 						</execution>
 					</executions>
@@ -223,18 +435,113 @@
 						</execution>
 					</executions>
 				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>xml-maven-plugin</artifactId>
+					<version>${xml-maven-plugin-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>build-helper-maven-plugin</artifactId>
+					<version>${build-helper-maven-plugin-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>net.sourceforge.plantuml</groupId>
+					<artifactId>plantuml</artifactId>
+					<version>${plantuml-version}</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.jeluard</groupId>
+					<artifactId>plantuml-maven-plugin</artifactId>
+					<version>${plantuml-maven-plugin-version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>net.sourceforge.plantuml</groupId>
+							<artifactId>plantuml</artifactId>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<artifactId>maven-invoker-plugin</artifactId>
+					<version>3.2.2</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-plugin-plugin</artifactId>
+					<version>3.10.2</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>3.1.1</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.3.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj.orchestra</groupId>
+					<artifactId>quickfixj-from-fix-orchestra-code-generator-maven-plugin</artifactId>
+					<version>${org.quickfixj.orchestra.tools.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.quickfixj.orchestra</groupId>
+					<artifactId>quickfixj-from-fix-orchestra-dictionary-generator-maven-plugin</artifactId>
+					<version>${org.quickfixj.orchestra.tools.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.4.1</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
-
 		<plugins>
 			<!-- enable bundle packaging -->
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<!-- run "mvn com.github.jeluard:plantuml-maven-plugin:generate" to generate diagrams in target -->
+				<groupId>com.github.jeluard</groupId>
+				<artifactId>plantuml-maven-plugin</artifactId>
+				<configuration>
+					<sourceFiles>
+						<directory>${basedir}</directory>
+						<includes>
+							<include>**/*.puml</include>
+						</includes>
+					</sourceFiles>
+					<outputInSourceDirectory>true</outputInSourceDirectory>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>net.sourceforge.plantuml</groupId>
+						<artifactId>plantuml</artifactId>
+						<version>${plantuml-version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>${maven.version}</version>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-
 	<profiles>
 		<profile>
 			<id>skipBundlePlugin</id>
@@ -243,15 +550,15 @@
 			</activation>
 			<build>
 				<plugins>
-			        <plugin>
-				        <groupId>org.apache.felix</groupId>
-				        <artifactId>maven-bundle-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase/>
-                            </execution>
-                        </executions>
-			        </plugin>
+					<plugin>
+						<groupId>org.apache.felix</groupId>
+						<artifactId>maven-bundle-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase/>
+							</execution>
+						</executions>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
@@ -291,8 +598,16 @@
 				</plugins>
 			</build>
 		</profile>
+		<profile>
+			<id>java-8-compilation</id>
+			<activation>
+			<jdk>[9,)</jdk>
+			</activation>
+			<properties>
+				<maven.compiler.release>8</maven.compiler.release>
+			</properties>
+		</profile>
 	</profiles>
-
 	<distributionManagement>
 		<snapshotRepository>
 			<id>ossrh</id>

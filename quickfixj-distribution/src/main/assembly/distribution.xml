@@ -26,18 +26,6 @@
 							<exclude>classworlds:*</exclude>
 						</excludes>
 					</dependencySet>
-					<!--
-						Due to an assembly bug, a dependency that appears both in test scope
-						and another scope (compile/runtime) in two different modules will be
-						excluded. We re-include these here manually for now.
-					-->
-					<dependencySet>
-						<outputDirectory>lib</outputDirectory>
-						<scope>test</scope>
-						<includes>
-							<include>org.slf4j:slf4j-jdk14</include>
-						</includes>
-					</dependencySet>
 				</dependencySets>
 			</binaries>
 		</moduleSet>

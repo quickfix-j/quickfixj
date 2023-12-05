@@ -3,8 +3,6 @@ QuickFIX/J
 [![Java CI](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/quickfix-j/quickfixj/actions/workflows/codeql-analysis.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.quickfixj/quickfixj-core)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/alerts/)
-[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/quickfix-j/quickfixj.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/quickfix-j/quickfixj/context:java)
 
 This is the official QuickFIX/J project repository.
 
@@ -44,17 +42,17 @@ Pull requests are always welcome! Best is if you added a unit test to show that 
 
 Fastest: clone the repo and issue the following command.
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
 ```
 
 Slower: if you only want to skip the acceptance test suite:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin
+$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
 ```
 
 Slow: if you want to run all tests:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin
+$ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
@@ -64,13 +62,24 @@ When the project is first created, it will not have the generated message classe
 
 If the IDE reports some errors after the compilation with `mvn clean package`, try to use `mvn clean install`, like:
 ```
-$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin
+$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
 ```
 
 ## configuration options
 https://rawgit.com/quickfix-j/quickfixj/master/quickfixj-core/src/main/doc/usermanual/usage/configuration.html
 
 ## basics
+
+### example applications
+
+QuickFIX/J includes some example applications in the `quickfixj-examples` module. Moreover, here are some links to example applications:
+
+Examples by Geoffrey Gershaw: https://github.com/ggershaw/Examples
+
+Examples from QuickFIX/J Spring Boot Starter: https://github.com/esanchezros/quickfixj-spring-boot-starter-examples
+
+If you would like to be added to this list, please open a PR with the changes.
+
 
 ### Creating a QuickFIX/J application
 
@@ -274,3 +283,40 @@ void sendOrderCancelRequest() throws SessionNotFound {
   Session.sendToTarget(message, "TW", "TARGET");
 }
 ```
+
+## QuickFIX/J Runtime
+
+This project builds artefacts for the standard published FIX specification versions from FIX 4.0 to FIX Latest. 
+
+* ```quickfixj-messages-fix40```
+* ```quickfixj-messages-fix41```
+* ```quickfixj-messages-fix42```
+* ```quickfixj-messages-fix43```
+* ```quickfixj-messages-fix44```
+* ```quickfixj-messages-fix50```
+* ```quickfixj-messages-fix50sp1```
+* ```quickfixj-messages-fix50sp2```
+* ```quickfixj-messages-fixlatest```
+* ```quickfixj-messages-fixt11```
+* ```quickfixj-messages-all``` - includes all of the above
+
+These artefacts are <u>**test**</u> dependencies of ```quickfixj-core```. They are **not** specified as _runtime_ dependencies, this makes it easier to customise QuickFIX/J deployments. 
+
+If you have no need to customise a FIX integration then you can use the ```org.quickfixj``` artefacts built by this project. Simply include them as dependencies of your application.
+
+Artefacts for unused FIX specification versions can be omitted from your runtime. 
+Many integrations will not require ```quickfixj-messages-all``` and need only depend on artefacts for a subset of the FIX standard versions. Please note that FIX Protocol versions 5.0 and later depend on ```quickfixj-messages-fixt11``` which provides the implementation for the FIXT1.1 transport messages.
+
+Many integrations require specialisation of the FIX Messages, Components and/or Fields. This is accomplished by building and using custom artefacts. Please see [Customising QuickFIX/J](./customising-quickfixj.md) for more detail.
+
+### Application Dependencies for QuickFIX/J Messages Build
+
+![image info](./src/main/puml/dependencies_fixt11_fixlatest.png)
+
+![image info](./src/main/puml/dependencies_qfj_all.png)
+
+### Application Dependencies for Custom Messages Build
+
+![image info](./src/main/puml/custom_dependencies.png)
+
+![image info](./src/main/puml/custom_dependencies_fixt11_fixlatest.png)
