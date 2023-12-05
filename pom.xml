@@ -105,7 +105,6 @@
 		<jaxb.version>4.0.1</jaxb.version>
 		<apache.mina.version>2.2.3</apache.mina.version>
 		<commons.io.version>2.11.0</commons.io.version>
-		<guava.version>32.0.0-jre</guava.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
 		<proxool.version>0.9.1</proxool.version>
@@ -226,14 +225,6 @@
 				<groupId>org.codehaus.plexus</groupId>
 				<artifactId>plexus-utils</artifactId>
 				<version>3.3.1</version>
-			</dependency>
-			<!-- the version of the guava transitive dependency is managed to resolve security vulnerability 
-			     reported for maven plugin dependencies, it is expected that this will be resolved in a 
-			     subsequent version of maven at which point this dependency management may be removed -->
-			<dependency>
-			  <groupId>com.google.guava</groupId>
-			  <artifactId>guava</artifactId>
-			  <version>${guava.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.sleepycat</groupId>
