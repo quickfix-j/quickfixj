@@ -224,7 +224,7 @@
 			<dependency>
 				<groupId>org.codehaus.plexus</groupId>
 				<artifactId>plexus-utils</artifactId>
-				<version>3.3.1</version>
+				<version>4.0.0</version>
 			</dependency>
 			<!-- the version of the guava transitive dependency is managed to resolve security vulnerability 
 			     reported for maven plugin dependencies, it is expected that this will be resolved in a 
