@@ -71,11 +71,12 @@
 		<slf4j.version>2.0.9</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>2.2</hamcrest.version>
-		<junit.jupiter.version>5.6.1</junit.jupiter.version>
+		<junit.jupiter.version>5.10.1</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
 		<maven.version>3.8.7</maven.version>
+		<maven-libs-version>3.9.6</maven-libs-version>
 		<maven-plugin-api-version>3.9.5</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
@@ -84,9 +85,9 @@
 		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.3.0</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>3.6.2</maven-javadoc-plugin-version>
-		<maven-shade-plugin-version>3.4.1</maven-shade-plugin-version>
+		<maven-shade-plugin-version>3.5.1</maven-shade-plugin-version>
 		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
-		<maven-bundle-plugin-version>5.1.8</maven-bundle-plugin-version>
+		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
 		<maven-gpg-plugin-version>3.0.1</maven-gpg-plugin-version>
 		<maven-deploy-plugin-version>3.1.1</maven-deploy-plugin-version>
 		<nexus-staging-maven-plugin-version>1.6.13</nexus-staging-maven-plugin-version>
@@ -191,18 +192,18 @@
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-core</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-artifact</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-compat</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven.plugin-tools</groupId>
