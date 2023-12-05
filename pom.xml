@@ -76,6 +76,7 @@
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
 		<maven.version>3.8.7</maven.version>
+		<maven-libs-version>3.9.6</maven-libs-version>
 		<maven-plugin-api-version>3.9.5</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
@@ -192,18 +193,18 @@
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-core</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-artifact</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-compat</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven.plugin-tools</groupId>
