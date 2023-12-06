@@ -77,7 +77,7 @@
 							com.sleepycat*;resolution:=optional,
 							org.apache.maven*;resolution:=optional,
 							org.codehaus.plexus*;resolution:=optional,
-							org.logicalcobwebs.proxool*;resolution:=optional,
+							com.zaxxer*;resolution:=optional,
 							org.dom4j*;resolution:=optional,
 							*
 						</Import-Package>

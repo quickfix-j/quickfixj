@@ -7,9 +7,6 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import org.apache.mina.util.AvailablePortFinder;
-import org.logicalcobwebs.proxool.ProxoolException;
-import org.logicalcobwebs.proxool.ProxoolFacade;
-import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Session;
@@ -92,20 +89,6 @@ public class AcceptanceTestSuite extends TestSuite {
             }
             result.endTest(this);
             //printDatabasePoolingStatistics();
-        }
-
-        @SuppressWarnings("unused")
-        protected void printDatabasePoolingStatistics() {
-            try {
-                for (String alias : ProxoolFacade.getAliases()) {
-                    SnapshotIF snapshot = ProxoolFacade.getSnapshot(alias, true);
-                    System.out.println("active:" + snapshot.getActiveConnectionCount() + ",max:"
-                            + snapshot.getMaximumConnectionCount() + ",served:"
-                            + snapshot.getServedCount());
-                }
-            } catch (ProxoolException e) {
-                e.printStackTrace();
-            }
         }
 
         private List<TestStep> load(String filename) throws IOException {
