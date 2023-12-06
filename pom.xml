@@ -463,7 +463,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-invoker-plugin</artifactId>
-					<version>3.2.2</version>
+					<version>3.6.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
