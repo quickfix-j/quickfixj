@@ -49,6 +49,7 @@ jobs:
         with:
           minimum-size: 8GB
           maximum-size: 16GB
+          disk-root: "C:"
       - name: Set up Windows JDK
         uses: actions/setup-java@v4
         with:
