@@ -19,12 +19,14 @@
 
 package quickfix;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static  org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.equalTo;
 import static quickfix.field.ApplVerID.*;
 
 import org.junit.BeforeClass;
@@ -51,7 +53,7 @@ public class DefaultDataDictionaryProviderTest {
 
         DataDictionary dd = provider.getSessionDataDictionary(FixVersions.BEGINSTRING_FIX44);
 
-        assertThat(dd, is(dictionaryForTest2));
+        assertThat(dd, sameInstance(dictionaryForTest2));
     }
 
     @Test
@@ -61,7 +63,7 @@ public class DefaultDataDictionaryProviderTest {
 
         DataDictionary dd = provider.getSessionDataDictionary(FixVersions.BEGINSTRING_FIX44);
 
-        assertThat(dd, is(nullValue()));
+        assertThat(dd, nullValue());
     }
 
     @Test
@@ -70,8 +72,8 @@ public class DefaultDataDictionaryProviderTest {
 
         DataDictionary dd = provider.getSessionDataDictionary(FixVersions.BEGINSTRING_FIX40);
 
-        assertThat(dd, is(notNullValue()));
-        assertThat(dd.getVersion(), is(FixVersions.BEGINSTRING_FIX40));
+        assertThat(dd, notNullValue());
+        assertThat(dd.getVersion(), equalTo(FixVersions.BEGINSTRING_FIX40));
     }
 
     @Test
@@ -93,7 +95,7 @@ public class DefaultDataDictionaryProviderTest {
 
         DataDictionary dd = provider.getApplicationDataDictionary(new ApplVerID(FIX40));
 
-        assertThat(dd, is(dictionaryForTest2));
+        assertThat(dd, sameInstance(dictionaryForTest2));
     }
 
     @Test
@@ -103,7 +105,7 @@ public class DefaultDataDictionaryProviderTest {
 
         DataDictionary dd = provider.getApplicationDataDictionary(new ApplVerID(FIX40));
 
-        assertThat(dd, is(nullValue()));
+        assertThat(dd, nullValue());
     }
 
     @Test
@@ -113,8 +115,8 @@ public class DefaultDataDictionaryProviderTest {
 
         DataDictionary dd = provider.getApplicationDataDictionary(new ApplVerID(FIX40));
 
-        assertThat(dd, is(notNullValue()));
-        assertThat(dd.getVersion(), is(FixVersions.BEGINSTRING_FIX40));
+        assertThat(dd, notNullValue());
+        assertThat(dd.getVersion(), equalTo(FixVersions.BEGINSTRING_FIX40));
     }
 
     @Test
