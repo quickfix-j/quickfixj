@@ -410,7 +410,14 @@ public class SessionSettings {
     public boolean getBool(SessionID sessionID, String key) throws FieldConvertError, ConfigError {
         return BooleanConverter.convert(getString(sessionID, key));
     }
-
+    
+    /**
+     * Get a settings boolean if present or use default value.
+     */
+    public boolean getBoolOrDefault(SessionID sessionID, String key, boolean defaultValue) throws FieldConvertError, ConfigError {
+        return isSetting(sessionID, key) ? getBool(sessionID, key) : defaultValue;
+    }
+    
     /**
      * Sets a string-valued session setting.
      *
