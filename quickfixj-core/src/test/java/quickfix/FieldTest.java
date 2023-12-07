@@ -19,6 +19,14 @@
 
 package quickfix;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.Date;
+
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
 import quickfix.field.ClOrdID;
@@ -31,14 +39,6 @@ import quickfix.field.TradeCondition;
 import quickfix.field.TransactTime;
 import quickfix.fix50.MarketDataIncrementalRefresh;
 import quickfix.fix50.NewOrderSingle;
-
-import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -89,7 +89,7 @@ public class FieldTest {
         try {
             testFieldCalcuations("\u6D4B\u9A8C\u6570\u636E", 50, 16);
         } finally {
-            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+            CharsetSupport.setDefaultCharset();
         }
     }
 

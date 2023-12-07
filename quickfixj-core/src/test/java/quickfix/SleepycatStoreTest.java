@@ -23,7 +23,8 @@ import java.io.File;
 import java.io.IOException;
 
 public class SleepycatStoreTest extends AbstractMessageStoreTest {
-    protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
+
+    protected MessageStoreFactory getMessageStoreFactory() throws ConfigError {
         SessionSettings settings = new SessionSettings(getConfigurationFileName());
         File tmpfile;
         try {
@@ -62,5 +63,4 @@ public class SleepycatStoreTest extends AbstractMessageStoreTest {
         assertEquals(123, store.getNextSenderMsgSeqNum());
         assertEquals(321, store.getNextTargetMsgSeqNum());
     }
-
 }
