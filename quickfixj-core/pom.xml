@@ -135,7 +135,7 @@
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>4.0.3</version>
+      <version>5.1.0</version>
     </dependency>
   </dependencies>
 
