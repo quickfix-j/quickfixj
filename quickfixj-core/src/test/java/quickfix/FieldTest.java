@@ -19,11 +19,13 @@
 
 package quickfix;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Date;
 
 import org.junit.Test;
 import org.quickfixj.CharsetSupport;
@@ -38,6 +40,10 @@ import quickfix.field.TradeCondition;
 import quickfix.field.TransactTime;
 import quickfix.fix50.MarketDataIncrementalRefresh;
 import quickfix.fix50.NewOrderSingle;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class FieldTest {
 
