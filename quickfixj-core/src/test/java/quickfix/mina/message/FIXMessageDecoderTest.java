@@ -55,6 +55,7 @@ public class FIXMessageDecoderTest {
 
     @Before
     public void setUp() throws Exception {
+        CharsetSupport.setDefaultCharset();
         decoder = new FIXMessageDecoder();
         buffer = IoBuffer.allocate(8192);
         decoderOutput = new ProtocolDecoderOutputForTest();
@@ -62,17 +63,13 @@ public class FIXMessageDecoderTest {
 
     @After
     public void tearDown() throws Exception {
+        CharsetSupport.setDefaultCharset();
         buffer.clear();
     }
 
-    @Test
+    @Test(expected = UnsupportedEncodingException.class)
     public void testInvalidStringCharset() throws Exception {
-        try {
-            decoder = new FIXMessageDecoder("BOGUS");
-            fail("no exception thrown");
-        } catch (UnsupportedEncodingException e) {
-            // expected
-        }
+        decoder = new FIXMessageDecoder("BOGUS");
     }
 
     @Test
@@ -104,8 +101,6 @@ public class FIXMessageDecoderTest {
             doWesternEuropeanDecodingTest();
         } catch (InvalidMessage e) {
             // expected
-        } finally {
-            CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
         }
     }
 
