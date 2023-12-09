@@ -123,9 +123,8 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             throw new ConfigError("Must specify at least one socket address");
         }
 
-        int connectTimeout = 60; // 1 minute by default, matches MINA
-        if (getSettings().isSetting(sessionID, Initiator.SETTING_SOCKET_CONNECT_TIMEOUT)) {
-            connectTimeout = getSettings().getInt(sessionID, Initiator.SETTING_SOCKET_CONNECT_TIMEOUT);
+        // 1 minute by default, matches MINA
+        int connectTimeout = getSettings().getIntOrDefault(sessionID, Initiator.SETTING_SOCKET_CONNECT_TIMEOUT, 60);
         }
 
         SocketAddress localAddress = getLocalAddress(settings, sessionID);
