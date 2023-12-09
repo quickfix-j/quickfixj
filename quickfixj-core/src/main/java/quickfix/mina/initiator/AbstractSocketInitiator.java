@@ -125,7 +125,6 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
 
         // 1 minute by default, matches MINA
         int connectTimeout = getSettings().getIntOrDefault(sessionID, Initiator.SETTING_SOCKET_CONNECT_TIMEOUT, 60);
-        }
 
         SocketAddress localAddress = getLocalAddress(settings, sessionID);
 
