@@ -100,7 +100,7 @@
 		<plantuml-version>8059</plantuml-version>
 		<xml-maven-plugin-version>1.1.0</xml-maven-plugin-version>
 		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
-		<fix-orchestra.repository.version>1.6.8</fix-orchestra.repository.version>
+		<fix-orchestra.repository.version>1.7.3</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>4.0.1</jaxb.version>
 		<apache.mina.version>2.2.3</apache.mina.version>
