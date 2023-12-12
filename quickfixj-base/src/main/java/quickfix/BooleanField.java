@@ -19,8 +19,6 @@
 
 package quickfix;
 
-import java.lang.Boolean;
-
 public class BooleanField extends Field<Boolean> {
 
     public BooleanField(int field) {
