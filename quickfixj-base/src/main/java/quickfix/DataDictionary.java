@@ -1168,10 +1168,6 @@ public class DataDictionary {
     private void load(Document document, String msgtype, Node node) throws ConfigError {
         String name;
         final NodeList fieldNodes = node.getChildNodes();
-        if (countElementNodes(fieldNodes) == 0) {
-            throw new ConfigError("No fields found: msgType=" + msgtype);
-        }
-
         for (int j = 0; j < fieldNodes.getLength(); j++) {
             final Node fieldNode = fieldNodes.item(j);
 
