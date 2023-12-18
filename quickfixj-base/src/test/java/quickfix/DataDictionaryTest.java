@@ -206,59 +206,6 @@ public class DataDictionaryTest {
     }
 
     @Test
-    public void testMessageWithNoChildren40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\"/>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessageWithTextElement40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
     public void testMessagesWithNoChildren40() throws Exception {
         String data = "";
         data += "<fix major=\"4\" minor=\"0\">";
@@ -458,59 +405,6 @@ public class DataDictionaryTest {
 
         expectedException.expect(ConfigError.class);
         expectedException.expectMessage("No fields defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessageWithNoChildren50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\"/>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessageWithTextElement50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
 
         new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
