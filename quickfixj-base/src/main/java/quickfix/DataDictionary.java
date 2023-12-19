@@ -1155,8 +1155,7 @@ public class DataDictionary {
     private int getIntegerAttributeIfDefined(final Element documentElement, final String attribute) throws ConfigError {
         try {
             return documentElement.hasAttribute(attribute)
-                    // TODO
-                    ? Integer.valueOf(documentElement.getAttribute(attribute)) : 0;
+                    ? Integer.parseInt(documentElement.getAttribute(attribute)) : 0;
         } catch (NumberFormatException e) {
             throw new ConfigError("Attribute " + attribute + " could not be parsed as Integer.", e);
         }
@@ -1171,7 +1170,7 @@ public class DataDictionary {
         final NodeList fieldNodes = node.getChildNodes();
 
         if (countElementNodes(fieldNodes) == 0 && (msgtype == HEADER_ID || msgtype == TRAILER_ID)) {
-            throw new ConfigError("No fields found: msgType=" + msgtype);
+            throw new ConfigError("No fields found in " + msgtype);
         }
 
         for (int j = 0; j < fieldNodes.getLength(); j++) {

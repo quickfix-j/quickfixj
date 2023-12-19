@@ -275,7 +275,7 @@ public class DataDictionaryTest {
         data += "</fix>";
 
         expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=HEADER");
+        expectedException.expectMessage("No fields found in HEADER");
 
         new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
@@ -302,7 +302,7 @@ public class DataDictionaryTest {
         data += "</fix>";
 
         expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=HEADER");
+        expectedException.expectMessage("No fields found in HEADER");
 
         new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
@@ -328,7 +328,7 @@ public class DataDictionaryTest {
         data += "</fix>";
 
         expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=TRAILER");
+        expectedException.expectMessage("No fields found in TRAILER");
 
         new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
@@ -355,7 +355,7 @@ public class DataDictionaryTest {
         data += "</fix>";
 
         expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=TRAILER");
+        expectedException.expectMessage("No fields found in TRAILER");
 
         new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
