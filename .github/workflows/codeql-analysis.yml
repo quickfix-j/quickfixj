@@ -26,8 +26,6 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-    env:
-        MAVEN_OPTS: "-Xms3g -Xmx6g"
 
     strategy:
       fail-fast: false
