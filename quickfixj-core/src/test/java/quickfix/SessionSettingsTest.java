@@ -233,6 +233,17 @@ public class SessionSettingsTest {
     }
 
     @Test
+    public void testMissingValues() throws ConfigError, FieldConvertError {
+        final SessionSettings settings = new SessionSettings();
+        assertEquals("1", settings.getStringOrDefault("a", "1"));
+        assertEquals("2", settings.getStringOrDefault("b", "2"));
+        assertEquals(3, settings.getIntOrDefault("c", 3));
+        assertEquals(4, settings.getIntOrDefault("d", 4));
+        assertEquals(5L, settings.getLongOrDefault("e", 5L));
+        assertEquals(6L, settings.getLongOrDefault("f", 6L));
+    }
+
+    @Test
     public void testSpecialCharactersInKeys() throws Exception {
         final SessionSettings settings = setUpSession("$$$foo bar.baz@@@=value\n");
         final SessionID sessionID2 = new SessionID("FIX.4.2", "TW", "CLIENT2");

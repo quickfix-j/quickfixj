@@ -692,10 +692,12 @@
     <TD><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html">Java default cipher suites</a></TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD valign="top"> <I>UseSNI</I></TD>
-    <TD>Configures the SSL engine to use Server Name Indication. This option is only useful to initiators.</TD>
-    <TD>Y<BR>N</TD>
-    <TD>N</TD>
+    <TD valign="top"> <I>EndpointIdentificationAlgorithm</I></TD>
+      <TD>Sets the endpoint identification algorithm. If the algorithm parameter is non-null, the endpoint identification/verification procedures must be handled during SSL/TLS handshaking. See
+          <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#jssenames">Endpoint Identification
+          Algorithm Names</a></TD>
+    <TD></TD>
+    <TD></TD>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
@@ -970,8 +972,8 @@
     <TD><I>JdbcDriver</I></TD>
     <TD>JDBC driver for JDBC logger. Also used for JDBC log.</TD>
     <TD>Class name for the JDBC driver. Specify driver properties directly will cause the
-    creation of a Proxool data source that supports connection pooling. If you are using a
-    database with it's own pooling data source (e.g., Oracle) then use the <code>setDataSource()</code>
+    creation of a HikariCP data source that supports connection pooling. If you are using a
+    database with its own pooling data source (e.g., Oracle) then use the <code>setDataSource()</code>
     method on the Jdbc-related factories to set the data source directly.</TD>
     <TD>&nbsp;</TD>
   <TR ALIGN="left" VALIGN="middle">
@@ -1031,39 +1033,69 @@
     <TD>Any nonempty string.</TD>
     <TD>"" (empty string)</TD>
   </TR>
-
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>JdbcMaxActiveConnection</I></TD>
     <TD>Specifies the maximum number of connections to the database.</TD>
-    <TD>Any number</TD>
+    <TD>Positive number</TD>
     <TD>32</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD><I>JdbcMaxActiveTime</I></TD>
-    <TD>Specifies if the housekeeper comes across a thread that has been active for longer than
-      this (milliseconds) then it will kill it. So make sure you set this to a number bigger than your
-      slowest expected response!</TD>
-    <TD>Any number</TD>
-    <TD>5000</TD>
+      <TD><I>JdbcMinIdleConnection</I></TD>
+      <TD>Controls the minimum number of idle connections that HikariCP tries to maintain in
+          the pool, including both idle and in-use connections. If the idle connections dip
+          below this value, HikariCP will make the best effort to restore them quickly and
+          efficiently.
+      </TD>
+      <TD>[0, JdbcMaxActiveConnection]</TD>
+      <TD>Same as JdbcMaxActiveConnection</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
     <TD><I>JdbcMaxConnectionLifeTime</I></TD>
     <TD>Specifies the maximum amount of time that a connection exists for before
       it is killed (milliseconds).</TD>
-    <TD>Any number</TD>
-    <TD>28800000</TD>
+    <TD>Positive</TD>
+    <TD>28800000 ms (8 hours)</TD>
   </TR>
   <TR ALIGN="left" VALIGN="middle">
-    <TD><I>JdbcSimultaneousBuildThrottle</I></TD>
-    <TD>Specifies the maximum number of connections we can be building at any one time.
-        That is, the number of new connections that have been requested but aren't yet
-        available for use. Because connections can be built using more than one thread
-        (for instance, when they are built on demand) and it takes a finite time between
-        deciding to build the connection and it becoming available we need some way of
-        ensuring that a lot of threads don't all decide to build a connection at once.
-        (We could solve this in a smarter way - and indeed we will one day)</TD>
-    <TD>Any number</TD>
-    <TD>32</TD>
+    <TD><I>JdbcConnectionTimeout</I></TD>
+    <TD>Set the maximum number of milliseconds that a client will wait for a connection from the
+        pool. If this time is exceeded without a connection becoming available, an SQLException
+        will be thrown from javax.sql.DataSource.getConnection().</TD>
+    <TD>Non-negative number</TD>
+    <TD>250 ms</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcConnectionIdleTimeout</I></TD>
+    <TD>Controls the maximum amount of time that a connection is allowed to sit idle in the pool.
+        Whether a connection is retired as idle or not is subject to a maximum variation of +30 seconds, and
+        average variation of +15 seconds. A connection will never be retired as idle before this timeout.
+        A value of 0 means that idle connections are never removed from the pool.</TD>
+    <TD>Non-negative number</TD>
+    <TD>600000 ms (10 minutes)</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcConnectionKeepaliveTime</I></TD>
+    <TD>Controls the keepalive interval for a connection in the pool. An in-use connection will never be
+        tested by the keepalive thread, only when it is idle will it be tested.</TD>
+    <TD>Non-negative number</TD>
+    <TD>0 ms</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcConnectionKeepaliveTime</I></TD>
+    <TD>Controls the keepalive interval for a connection in the pool. An in-use connection will never be
+        tested by the keepalive thread, only when it is idle will it be tested.</TD>
+    <TD>Non-negative number</TD>
+    <TD>0 ms</TD>
+  </TR>
+  <TR ALIGN="left" VALIGN="middle">
+    <TD><I>JdbcConnectionTestQuery</I></TD>
+    <TD>Set the SQL query to be executed to test the validity of connections. Using the JDBC4
+        Connection.isValid() method to test connection validity can be more efficient on some
+        databases and is recommended. If your driver supports JDBC4 we strongly recommend not
+        setting this property.</TD>
+    <TD>Valid SQL query</TD>
+    <TD></TD>
+  </TR>
   </TR>
 
   <TR ALIGN="center" VALIGN="middle">
