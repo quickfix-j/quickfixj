@@ -19,7 +19,9 @@
 
 package quickfix;
 
-import org.logicalcobwebs.proxool.ProxoolDataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -31,89 +33,96 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 class JdbcUtil {
 
     static final String CONNECTION_POOL_ALIAS = "quickfixj";
+    static final int DEFAULT_MAX_CONNECTION_COUNT = 32;
+    static final long DEFAULT_MAX_CONNECTION_LIFETIME = TimeUnit.HOURS.toMillis(8);
+    static final long DEFAULT_CONNECTION_TIMEOUT = 250L;
+    static final long DEFAULT_CONNECTION_IDLE_TIMEOUT = TimeUnit.MINUTES.toMillis(10);
+    static final long DEFAULT_CONNECTION_KEEPALIVE_TIME = 0;
 
-    private static final Map<String, ProxoolDataSource> dataSources = new ConcurrentHashMap<>();
+    private static final Map<String, HikariDataSource> dataSources = new ConcurrentHashMap<>();
     private static final AtomicInteger dataSourceCounter = new AtomicInteger();
 
-    static DataSource getDataSource(SessionSettings settings, SessionID sessionID)
-            throws ConfigError, FieldConvertError {
+    static DataSource getDataSource(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
         if (settings.isSetting(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME)) {
-            String jndiName = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME);
-            try {
-                return (DataSource) new InitialContext().lookup(jndiName);
-            } catch (NamingException e) {
-                throw new ConfigError(e);
-            }
+            return getJNDIDataSource(settings, sessionID);
         } else {
-            String jdbcDriver = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER);
-            String connectionURL = settings.getString(sessionID,
-                    JdbcSetting.SETTING_JDBC_CONNECTION_URL);
-            String user = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_USER);
-            String password = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_PASSWORD);
-            int maxConnCount = settings
-                    .isSetting(JdbcSetting.SETTING_JDBC_MAX_ACTIVE_CONNECTION) ?
-                    settings.getInt(sessionID, JdbcSetting.SETTING_JDBC_MAX_ACTIVE_CONNECTION) :
-                    32;
-            int simultaneousBuildThrottle = settings
-                    .isSetting(JdbcSetting.SETTING_JDBC_SIMULTANEOUS_BUILD_THROTTLE) ?
-                    settings.getInt(sessionID, JdbcSetting.SETTING_JDBC_SIMULTANEOUS_BUILD_THROTTLE) :
-                    maxConnCount;
-            long maxActiveTime = settings
-                    .isSetting(JdbcSetting.SETTING_JDBC_MAX_ACTIVE_TIME) ?
-                    settings.getLong(sessionID, JdbcSetting.SETTING_JDBC_MAX_ACTIVE_TIME) :
-                    5000;
-            int maxConnLifetime = settings
-                    .isSetting(JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) ?
-                    settings.getInt(sessionID, JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME) :
-                    28800000;
-
-            return getDataSource(jdbcDriver, connectionURL, user, password, true, maxConnCount,
-                    simultaneousBuildThrottle, maxActiveTime, maxConnLifetime);
+            return getOrCreatePooledDataSource(settings, sessionID);
         }
     }
 
-    static DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password, boolean cache) {
-        return getDataSource(jdbcDriver, connectionURL, user, password, cache, 10, 10, 5000, 28800000);
+    private static DataSource getJNDIDataSource(SessionSettings settings, SessionID sessionID) throws ConfigError {
+        String jndiName = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DS_NAME);
+        try {
+            return (DataSource) new InitialContext().lookup(jndiName);
+        } catch (NamingException e) {
+            throw new ConfigError(e);
+        }
     }
 
-    /**
-     * This is typically called from a single thread, but just in case we are using an atomic loading function
-     * to avoid the creation of two data sources simultaneously. The cache itself is thread safe.
-     */
-    static DataSource getDataSource(String jdbcDriver, String connectionURL, String user, String password,
-                                                 boolean cache, int maxConnCount, int simultaneousBuildThrottle,
-                                                 long maxActiveTime, int maxConnLifetime) {
+    private static DataSource getOrCreatePooledDataSource(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
+        String jdbcDriver = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_DRIVER);
+        String connectionURL = settings.getString(sessionID,JdbcSetting.SETTING_JDBC_CONNECTION_URL);
+        String user = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_USER);
+        String password = settings.getString(sessionID, JdbcSetting.SETTING_JDBC_PASSWORD);
+        return getOrCreatePooledDataSource(settings, sessionID, jdbcDriver, connectionURL, user, password);
+    }
+
+    static DataSource getOrCreatePooledDataSource(SessionSettings settings, SessionID sessionID, String jdbcDriver, String connectionURL, String user, String password)
+            throws ConfigError, FieldConvertError {
         String key = jdbcDriver + "#" + connectionURL + "#" + user + "#" + password;
-        ProxoolDataSource ds = cache ? dataSources.get(key) : null;
 
-        if (ds == null) {
-            final Function<String, ProxoolDataSource> loadingFunction = dataSourceKey -> {
-                final ProxoolDataSource dataSource = new ProxoolDataSource(CONNECTION_POOL_ALIAS + "-" + dataSourceCounter.incrementAndGet());
+        HikariDataSource dataSource = dataSources.get(key);
 
-                dataSource.setDriver(jdbcDriver);
-                dataSource.setDriverUrl(connectionURL);
-
-                // Bug in Proxool 0.9RC2. Must set both delegate properties and individual setters. :-(
-                dataSource.setDelegateProperties("user=" + user + ","
-                        + (password != null && !"".equals(password) ? "password=" + password : ""));
-                dataSource.setUser(user);
-                dataSource.setPassword(password);
-
-                dataSource.setMaximumActiveTime(maxActiveTime);
-                dataSource.setMaximumConnectionLifetime(maxConnLifetime);
-                dataSource.setMaximumConnectionCount(maxConnCount);
-                dataSource.setSimultaneousBuildThrottle(simultaneousBuildThrottle);
-                return dataSource;
-            };
-            ds = cache ? dataSources.computeIfAbsent(key, loadingFunction) : loadingFunction.apply(key);
+        if (dataSource != null) {
+            return dataSource;
         }
-        return ds;
+
+        HikariDataSource newDataSource = createPooledDataSource(settings, sessionID, jdbcDriver, connectionURL, user, password);
+
+        if (dataSources.putIfAbsent(key, newDataSource) == null) {
+            return newDataSource;
+        } else {
+            return dataSources.get(key);
+        }
+    }
+
+    private static HikariDataSource createPooledDataSource(SessionSettings settings, SessionID sessionID, String jdbcDriver, String connectionURL, String user, String password)
+            throws ConfigError, FieldConvertError {
+        HikariConfig configuration = new HikariConfig();
+        configuration.setPoolName(CONNECTION_POOL_ALIAS + "-" + dataSourceCounter.incrementAndGet());
+        configuration.setDriverClassName(jdbcDriver);
+        configuration.setJdbcUrl(connectionURL);
+        configuration.setUsername(user);
+        configuration.setPassword(password);
+
+        int maxConnectionCount = settings.getIntOrDefault(sessionID, JdbcSetting.SETTING_JDBC_MAX_ACTIVE_CONNECTION, DEFAULT_MAX_CONNECTION_COUNT);
+        configuration.setMaximumPoolSize(maxConnectionCount);
+
+        int minIdleConnectionCount = settings.getIntOrDefault(sessionID, JdbcSetting.SETTING_JDBC_MIN_IDLE_CONNECTION, maxConnectionCount);
+        configuration.setMinimumIdle(minIdleConnectionCount);
+
+        long maxConnectionLifetime = settings.getLongOrDefault(sessionID, JdbcSetting.SETTING_JDBC_MAX_CONNECTION_LIFETIME, DEFAULT_MAX_CONNECTION_LIFETIME);
+        configuration.setMaxLifetime(maxConnectionLifetime);
+
+        long connectionTimeout = settings.getLongOrDefault(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT);
+        configuration.setConnectionTimeout(connectionTimeout);
+
+        long connectionIdleTimeout = settings.getLongOrDefault(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_IDLE_TIMEOUT, DEFAULT_CONNECTION_IDLE_TIMEOUT);
+        configuration.setIdleTimeout(connectionIdleTimeout);
+
+        long connectionKeepaliveTime = settings.getLongOrDefault(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_KEEPALIVE_TIME, DEFAULT_CONNECTION_KEEPALIVE_TIME);
+        configuration.setKeepaliveTime(connectionKeepaliveTime);
+
+        String connectionTestQuery = settings.getStringOrDefault(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, null);
+        configuration.setConnectionTestQuery(connectionTestQuery);
+
+        return new HikariDataSource(configuration);
     }
 
     static void close(SessionID sessionID, Connection connection) {
@@ -165,7 +174,7 @@ class JdbcUtil {
     static String getIDWhereClause(boolean isExtendedSessionID) {
         return isExtendedSessionID
                 ? ("beginstring=? and sendercompid=? and sendersubid=? and senderlocid=? and "
-                        + "targetcompid=? and targetsubid=? and targetlocid=? and session_qualifier=? ")
+                + "targetcompid=? and targetsubid=? and targetlocid=? and session_qualifier=? ")
                 : "beginstring=? and sendercompid=? and targetcompid=? and session_qualifier=? ";
     }
 
@@ -201,5 +210,4 @@ class JdbcUtil {
     private static String getSqlValue(String javaValue, String defaultSqlValue) {
         return !SessionID.NOT_SET.equals(javaValue) ? javaValue : defaultSqlValue;
     }
-
 }

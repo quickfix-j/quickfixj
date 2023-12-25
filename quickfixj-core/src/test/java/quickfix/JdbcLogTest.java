@@ -127,16 +127,17 @@ public class JdbcLogTest {
 
     private void setUpJdbcLog(boolean filterHeartbeats, DataSource dataSource) throws ClassNotFoundException, SQLException, ConfigError {
         connection = JdbcTestSupport.getConnection();
+        long now = System.currentTimeMillis();
+        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         SessionSettings settings = new SessionSettings();
         if (filterHeartbeats) {
             settings.setBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS, false);
         }
+        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, "SELECT COUNT(1) FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE 1 = 0;");
         JdbcTestSupport.setHypersonicSettings(settings);
         initializeTableDefinitions(connection);
         logFactory = new JdbcLogFactory(settings);
         logFactory.setDataSource(dataSource);
-        long now = System.currentTimeMillis();
-        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         settings.setString(sessionID, "ConnectionType", "acceptor");
         log = (JdbcLog) logFactory.create(sessionID);
         assertEquals(0, getRowCount(connection, log.getIncomingMessagesTableName()));
