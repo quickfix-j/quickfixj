@@ -391,7 +391,7 @@ public class Session implements Closeable {
      * Option to enable prioritization of resend responses allowing lagging counterparty app to catch up
      * instead of being overwhelmed by new messages.
      */
-    public static final String PRIORITIZE_RESEND = "PrioritizeResend";
+    public static final String SETTING_PRIORITIZE_RESEND = "PrioritizeResend";
 
     private static final ConcurrentMap<SessionID, Session> sessions = new ConcurrentHashMap<>();
 
