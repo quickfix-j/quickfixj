@@ -54,7 +54,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
     }
 
     protected void tearDown() throws Exception {
-        assertNoActiveConnections();
+        assertNoActiveConnections(getTestDataSource());
         if (initialContextFactory != null) {
             System.setProperty(Context.INITIAL_CONTEXT_FACTORY, initialContextFactory);
         }
@@ -62,7 +62,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
     }
 
     private void bindDataSource() throws NamingException {
-        new InitialContext().rebind("TestDataSource", getDataSource());
+        new InitialContext().rebind("TestDataSource", getTestDataSource());
     }
 
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, SQLException,
@@ -91,7 +91,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
     public void testExplicitDataSource() throws Exception {
         // No JNDI data source name is set up here
         JdbcStoreFactory factory = new JdbcStoreFactory(new SessionSettings());
-        factory.setDataSource(getDataSource());
+        factory.setDataSource(getTestDataSource());
         factory.create(new SessionID("FIX4.4", "SENDER", "TARGET"));
     }
 
@@ -124,7 +124,7 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
             throws ConfigError, SQLException, IOException {
         Connection connection = null;
         try {
-            connection = getDataSource().getConnection();
+            connection = getTestDataSource().getConnection();
             if (messagesTableName != null) {
                 dropTable(connection, messagesTableName);
             }
@@ -140,8 +140,8 @@ public class JdbcStoreTest extends AbstractMessageStoreTest {
         }
     }
 
-    protected DataSource getDataSource() {
-        return JdbcUtil.getDataSource(HSQL_DRIVER, HSQL_CONNECTION_URL, HSQL_USER, "", true);
+    protected DataSource getTestDataSource() {
+        return JdbcTestSupport.getTestDataSource(HSQL_DRIVER, HSQL_CONNECTION_URL, HSQL_USER, "");
     }
 
     public void testCreationTime() throws Exception {

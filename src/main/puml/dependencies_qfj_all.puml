@@ -1,0 +1,39 @@
+@startuml
+
+package "org.quickfixj:quickfixj-core" as core {
+component quickfixj_core
+}
+
+package "org.quickfixj:quickfixj-base"  as base {
+component quickfixj_base
+}
+
+package "org.quickfixj:quickfixj-messages-all"  as all {
+package field
+package fixlatest
+package fixt11
+package fix50sp2
+package fix50sp1
+package fix50
+package fix44
+package fix43
+package fix42
+package fix41
+package fix40
+}
+
+package "com.some-company:application"  as userapp {
+component application
+}
+
+note bottom of all
+An application may depend on org.quickfixj:quickfixj-messages-all which includes all the FIX Protocol versions
+end note
+
+core -up-> base : compile dependency
+core .up.> all : test dependency
+all -up-> base : compile dependency
+userapp -up-> core : compile dependency
+userapp -up-> all : compile dependency
+
+@enduml
