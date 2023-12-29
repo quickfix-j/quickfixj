@@ -19,9 +19,24 @@
 
 package quickfix;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import quickfix.field.Account;
 import quickfix.field.AvgPx;
 import quickfix.field.BodyLength;
@@ -32,7 +47,6 @@ import quickfix.field.HandlInst;
 import quickfix.field.LastMkt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
-import quickfix.field.NoHops;
 import quickfix.field.NoPartyIDs;
 import quickfix.field.NoPartySubIDs;
 import quickfix.field.NoRelatedSym;
@@ -59,689 +73,10 @@ import quickfix.fix44.Quote;
 import quickfix.fix44.QuoteRequest;
 import quickfix.test.util.ExpectedTestFailure;
 
-import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 public class DataDictionaryTest {
 
     @Rule
     public final ExpectedException expectedException = ExpectedException.none();
-
-    @Test
-    public void testDictionary() throws Exception {
-        DataDictionary dd = getDictionary();
-
-        assertEquals("wrong field name", "Currency", dd.getFieldName(15));
-        assertEquals("wrong value description", "BUY", dd.getValueName(4, "B"));
-        assertEquals("wrong value type", FieldType.STRING, dd.getFieldType(1));
-        assertEquals("wrong version", FixVersions.BEGINSTRING_FIX44, dd.getVersion());
-        assertFalse("unexpected field values existence", dd.hasFieldValue(1));
-        assertTrue("unexpected field values nonexistence", dd.hasFieldValue(4));
-        assertFalse("unexpected field existence", dd.isField(9999));
-        assertTrue("unexpected field nonexistence", dd.isField(4));
-        assertTrue("unexpected field value existence", !dd.isFieldValue(4, "C"));
-        assertTrue("unexpected field value nonexistence", dd.isFieldValue(4, "B"));
-        assertTrue("wrong group info", dd.isGroup("A", 384));
-        assertFalse("wrong group info", dd.isGroup("A", 1));
-        assertNotNull("wrong group info", dd.getGroup("6", 232));
-        assertTrue("incorrect header field", dd.isHeaderField(8));
-        assertFalse("incorrect header field", dd.isHeaderField(1));
-        assertTrue("incorrect trailer field", dd.isTrailerField(89));
-        assertFalse("incorrect trailer field", dd.isTrailerField(1));
-        assertTrue("incorrect message field", dd.isMsgField("A", 98));
-        assertFalse("incorrect message field", dd.isMsgField("A", 1));
-        // component field
-        assertTrue("incorrect message field", dd.isMsgField("6", 235));
-        // group->component field
-        //assertTrue("incorrect message field", dd.isMsgField("6", 311));
-        assertTrue("incorrect message type", dd.isMsgType("A"));
-        assertFalse("incorrect message type", dd.isMsgType("%"));
-        assertTrue("incorrect field requirement", dd.isRequiredField("A", 98));
-        assertFalse("incorrect field requirement", dd.isRequiredField("A", 95));
-        assertEquals("incorrect field name", "Account", dd.getFieldName(1));
-        assertEquals("incorrect msg type", "0", dd.getMsgType("Heartbeat"));
-        assertEquals("incorrect msg type", "B", dd.getMsgType("News"));
-        assertFalse(dd.isMsgField("UNKNOWN_TYPE", 1));
-    }
-
-    @Test
-    public void testMissingFieldAttributeForRequired() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
-        data += "      <field name=\"TestReqID\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        assertConfigErrorForMissingAttributeRequired(data);
-    }
-
-    private void assertConfigErrorForMissingAttributeRequired(String data) {
-        try {
-            new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-        } catch (ConfigError e) {
-            // Expected
-            assertTrue(e.getMessage().contains("does not have a 'required'"));
-        }
-    }
-
-    @Test
-    public void testMissingComponentAttributeForRequired() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
-        data += "      <component name=\"Instrument\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        assertConfigErrorForMissingAttributeRequired(data);
-    }
-
-    @Test
-    public void testMissingGroupAttributeForRequired() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "    <field number=\"112\" name=\"TestReqID\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
-        data += "      <group name=\"TestReqID\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        assertConfigErrorForMissingAttributeRequired(data);
-    }
-
-    @Test
-    public void testHeaderTrailerRequired() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "    <field name=\"OnBehalfOfCompID\" required=\"N\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "    <field name=\"Signature\" required=\"N\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"115\" name=\"OnBehalfOfCompID\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "    <field number=\"89\" name=\"Signature\" type=\"STRING\"/>";
-        data += "    <field number=\"37\" name=\"TestReqID\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"Heartbeat\" msgtype=\"0\" msgcat=\"admin\">";
-        data += "      <group name=\"TestReqID\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        DataDictionary dd = new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-        assertEquals(1, dd.getNumMessageCategories());
-        assertEquals("0", dd.getMsgType("Heartbeat"));
-
-        assertTrue("BeginString should be required", dd.isRequiredHeaderField(8));
-        assertFalse("OnBehalfOfCompID should not be required", dd.isRequiredHeaderField(115));
-        assertTrue("Checksum should be required", dd.isRequiredTrailerField(10));
-        assertFalse("Signature should not be required", dd.isRequiredTrailerField(89));
-
-        // now tests for fields that aren't actually in the dictionary - should come back false
-        assertFalse("Unknown header field shows up as required", dd.isRequiredHeaderField(666));
-        assertFalse("Unknown trailer field shows up as required", dd.isRequiredTrailerField(666));
-    }
-
-    @Test
-    public void testMessageWithNoChildren40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\"/>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessageWithTextElement40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessagesWithNoChildren40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages/>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No messages defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessagesWithTextElement40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No messages defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testHeaderWithNoChildren40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header/>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=HEADER");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testHeaderWithTextElement40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=HEADER");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testTrailerWithNoChildren40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer/>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=TRAILER");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testTrailerWithTextElement40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=TRAILER");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testFieldsWithNoChildren40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields/>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testFieldsWithTextElement40() throws Exception {
-        String data = "";
-        data += "<fix major=\"4\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessageWithNoChildren50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\"/>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessageWithTextElement50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields found: msgType=msg");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessagesWithNoChildren50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages/>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No messages defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testMessagesWithTextElement50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No messages defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testHeaderWithNoChildren50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header/>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testHeaderWithTextElement50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testTrailerWithNoChildren50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer/>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testTrailerWithTextElement50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header>";
-        data += "    <field name=\"BeginString\" required=\"Y\"/>";
-        data += "  </header>";
-        data += "  <trailer>";
-        data += "  </trailer>";
-        data += "  <fields>";
-        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
-        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
-        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testFieldsWithNoChildren50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header/>";
-        data += "  <trailer/>";
-        data += "  <fields/>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testFieldsWithTextElement50() throws Exception {
-        String data = "";
-        data += "<fix major=\"5\" minor=\"0\">";
-        data += "  <header/>";
-        data += "  <trailer/>";
-        data += "  <fields>";
-        data += "  </fields>";
-        data += "  <messages>";
-        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
-        data += "      <field name=\"Account\" required=\"N\"/>";
-        data += "    </message>";
-        data += "  </messages>";
-        data += "</fix>";
-
-        expectedException.expect(ConfigError.class);
-        expectedException.expectMessage("No fields defined");
-
-        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
-    }
-
-    @Test
-    public void testHeaderGroupField() throws Exception {
-        DataDictionary dd = getDictionary();
-        assertTrue(dd.isHeaderGroup(NoHops.FIELD));
-    }
 
     @Test
     public void testMessageValidateBodyOnly() throws Exception {
@@ -752,7 +87,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
 
@@ -770,7 +105,7 @@ public class DataDictionaryTest {
     @Test
     public void testMessageDataDictionaryMismatch() throws Exception {
         final quickfix.fix43.NewOrderSingle newSingle = new quickfix.fix43.NewOrderSingle(
-                new ClOrdID("123"), new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION), new Side(Side.BUY), new TransactTime(), new OrdType(
+                new ClOrdID("123"), new HandlInst(HandlInst.MANUAL_ORDER), new Side(Side.BUY), new TransactTime(), new OrdType(
                         OrdType.LIMIT));
         newSingle.setField(new OrderQty(42));
         newSingle.setField(new Price(42.37));
@@ -791,50 +126,7 @@ public class DataDictionaryTest {
         //   If bodyOnly is true, the correct data dictionary is not checked.
         dd.validate(newSingle, true);
     }
-
-    // QF C++ treats the string argument as a filename although it's
-    // named 'url'. QFJ string argument can be either but this test
-    // ensures the DD works correctly with a regular file path.
-    @Test
-    public void testDictionaryWithFilename() throws Exception {
-        DataDictionary dd = new DataDictionary("FIX40.xml");
-        assertEquals("wrong field name", "Currency", dd.getFieldName(15));
-        // It worked!
-    }
-
-    // Support finding DD in classpath
-    @Test
-    public void testDictionaryInClassPath() throws Exception {
-        URLClassLoader customClassLoader = new URLClassLoader(new URL[] { new URL("file:etc") },
-                getClass().getClassLoader());
-        Thread currentThread = Thread.currentThread();
-        ClassLoader previousContextClassLoader = currentThread.getContextClassLoader();
-        currentThread.setContextClassLoader(customClassLoader);
-        try {
-            DataDictionary dd = new DataDictionary("FIX40.xml");
-            assertEquals("wrong field name", "Currency", dd.getFieldName(15));
-            // It worked!
-        } finally {
-            currentThread.setContextClassLoader(previousContextClassLoader);
-        }
-    }
-
-    // QFJ-235
-    @Test
-    public void testWildcardEnumValue() throws Exception {
-        DataDictionary dd = getDictionary();
-        assertTrue(dd.isFieldValue(65, "FOO"));
-    }
-
-    @Test
-    public void testMessageCategory() throws Exception {
-        DataDictionary dd = getDictionary();
-        assertTrue(dd.isAdminMessage(MsgType.LOGON));
-        assertFalse(dd.isAppMessage(MsgType.LOGON));
-        assertFalse(dd.isAdminMessage(MsgType.ORDER_SINGLE));
-        assertTrue(dd.isAppMessage(MsgType.ORDER_SINGLE));
-    }
-
+    
     @Test
     public void testAllowUnknownFields() throws Exception {
         final quickfix.fix44.NewOrderSingle newSingle = new quickfix.fix44.NewOrderSingle(
@@ -850,7 +142,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
 
@@ -868,26 +160,6 @@ public class DataDictionaryTest {
 
         dictionary.setAllowUnknownMessageFields(true);
         dictionary.validate(newSingle);
-    }
-
-    // QFJ-535
-    @Test
-    public void testValidateFieldsOutOfOrderForGroups() throws Exception {
-        final DataDictionary dictionary = new DataDictionary(getDictionary());
-        dictionary.setCheckUnorderedGroupFields(false);
-        Message messageWithGroupLevel1 = new Message(
-            "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
-            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
-            "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
-            dictionary);
-        dictionary.validate(messageWithGroupLevel1);
-
-        Message messageWithGroupLevel2 = new Message(
-            "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
-            "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
-            "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
-            dictionary);
-        dictionary.validate(messageWithGroupLevel2);
     }
 
     // QFJ-535
@@ -1344,7 +616,7 @@ public class DataDictionaryTest {
         newSingle.setField(new Price(42.37));
         newSingle.setField(new HandlInst());
         newSingle.setField(new Symbol("QFJ"));
-        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER_BEST_EXECUTION));
+        newSingle.setField(new HandlInst(HandlInst.MANUAL_ORDER));
         newSingle.setField(new TimeInForce(TimeInForce.DAY));
         newSingle.setField(new Account("testAccount"));
         newSingle.setField(new StringField(EffectiveTime.FIELD));
@@ -1376,7 +648,7 @@ public class DataDictionaryTest {
                     Message msg = MessageUtils.parse(messageFactory, dd, msgString);
                     Group partyGroup = msg.getGroups(quickfix.field.NoPartyIDs.FIELD).get(0);
                     char partyIdSource = partyGroup.getChar(PartyIDSource.FIELD);
-                    assertEquals(PartyIDSource.PROPRIETARY_CUSTOM_CODE, partyIdSource);
+                    assertEquals(PartyIDSource.PROPRIETARY, partyIdSource);
                     return msg;
                 };
                 resultList.add(ptpe.submit(messageParser));
@@ -1394,8 +666,6 @@ public class DataDictionaryTest {
             }
         }
     }
-
-
 
     //
     // Group Validation Tests in RepeatingGroupTest
@@ -1432,4 +702,5 @@ public class DataDictionaryTest {
         return new DataDictionary(DataDictionaryTest.class.getClassLoader()
                 .getResourceAsStream(fileName));
     }
+
 }

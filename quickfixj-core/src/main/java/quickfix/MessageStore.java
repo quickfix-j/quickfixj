@@ -32,7 +32,7 @@ import java.io.IOException;
 public interface MessageStore {
 
     /**
-     * Adds a raw fix messages to the store with the given sequence number.
+     * Adds a raw fix message to the store with the given sequence number.
      * (Most implementations just append the message data to the store so be
      * careful about assuming random access behavior.)
      *

@@ -68,7 +68,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
-                // ignored
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -373,7 +373,7 @@ public class SingleThreadedEventHandlingStrategyTest {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
-                // ignored
+                Thread.currentThread().interrupt();
             }
             dumpAllThreads = bean.dumpAllThreads(false, false);
             qfjMPThreads = getMessageProcessorThreads(dumpAllThreads);

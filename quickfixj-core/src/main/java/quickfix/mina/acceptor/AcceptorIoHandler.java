@@ -23,8 +23,10 @@ import org.apache.mina.core.session.IoSession;
 import quickfix.Log;
 import quickfix.Message;
 import quickfix.MessageUtils;
+import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionID;
+import quickfix.SessionSettings;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.HeartBtInt;
@@ -45,8 +47,10 @@ class AcceptorIoHandler extends AbstractIoHandler {
     private final AcceptorSessionProvider sessionProvider;
 
     public AcceptorIoHandler(AcceptorSessionProvider sessionProvider,
-            NetworkingOptions networkingOptions, EventHandlingStrategy eventHandlingStrategy) {
-        super(networkingOptions, eventHandlingStrategy);
+                             SessionSettings sessionSettings,
+                             NetworkingOptions networkingOptions,
+                             EventHandlingStrategy eventHandlingStrategy) {
+        super(sessionSettings, networkingOptions, eventHandlingStrategy);
         this.sessionProvider = sessionProvider;
         this.eventHandlingStrategy = eventHandlingStrategy;
     }
@@ -67,10 +71,12 @@ class AcceptorIoHandler extends AbstractIoHandler {
                 qfSession = sessionProvider.getSession(sessionID, eventHandlingStrategy.getSessionConnector());
                 if (qfSession != null) {
                     final Log sessionLog = qfSession.getLog();
-                    if (qfSession.hasResponder()) {
+                    Responder responder = qfSession.getResponder();
+                    if (responder != null) {
                         // Session is already bound to another connection
-                        sessionLog
-                                .onErrorEvent("Multiple logons/connections for this session are not allowed");
+                        sessionLog.onErrorEvent("Multiple logons/connections for this session are not allowed."
+                                + " Closing connection from " + protocolSession.getRemoteAddress()
+                                + " since session is already established from " + responder.getRemoteAddress());
                         protocolSession.closeNow();
                         return;
                     }

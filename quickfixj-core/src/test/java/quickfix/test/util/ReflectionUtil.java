@@ -1,9 +1,24 @@
+/*******************************************************************************
+ * Copyright (c) quickfixengine.org  All rights reserved.
+ *
+ * This file is part of the QuickFIX FIX Engine
+ *
+ * This file may be distributed under the terms of the quickfixengine.org
+ * license as defined by quickfixengine.org and appearing in the file
+ * LICENSE included in the packaging of this file.
+ *
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING
+ * THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See http://www.quickfixengine.org/LICENSE for licensing information.
+ *
+ * Contact ask@quickfixengine.org if any conditions of this licensing
+ * are not clear to you.
+ ******************************************************************************/
+
 package quickfix.test.util;
 
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -11,7 +26,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
- * Helper class for using reflection. Initially it's focussed on
+ * Helper class for using reflection. Initially it's focused on
  * invoking methods, but other tools may be added in the future.
  */
 public class ReflectionUtil {
@@ -148,44 +163,6 @@ public class ReflectionUtil {
         String methodName = methodFqn.substring(n + 1, methodFqn.length());
         Class<?> targetClass = Thread.currentThread().getContextClassLoader().loadClass(className);
         return getMatchingMethod(targetClass, methodName, args).invoke(null, args);
-    }
-
-    public static void dumpStackTraces() {
-        try {
-            Object threadMXBean = ReflectionUtil.callStaticMethod(
-                    "java.lang.management.ManagementFactory.getThreadMXBean", null);
-            Class<?> threadMXBeanInterface = Class.forName("java.lang.management.ThreadMXBean");
-            long[] threadIds = (long[]) ReflectionUtil.callMethod(threadMXBean,
-                    threadMXBeanInterface, "getAllThreadIds", null);
-            Object[] threadInfos = (Object[]) ReflectionUtil.callMethod(threadMXBean,
-                    threadMXBeanInterface, "getThreadInfo", new Object[] { threadIds, 10 });
-            for (Object threadInfo : threadInfos) {
-                System.out.println((String) ReflectionUtil.callMethod(threadInfo,
-                        "getThreadName", null));
-                BeanInfo info = Introspector.getBeanInfo(threadInfo.getClass());
-                PropertyDescriptor[] parameters = info.getPropertyDescriptors();
-                for (PropertyDescriptor parameter : parameters) {
-                    if (parameter.getReadMethod() != null) {
-                        Object value = parameter.getReadMethod().invoke(threadInfo,
-                                (Object[]) null);
-                        if (value != null && value.getClass().isArray()) {
-                            System.out.println("  " + parameter.getName() + ":");
-                            for (int a = 0; a < Array.getLength(value); a++) {
-                                System.out.println("    " + Array.get(value, a));
-                            }
-                        } else {
-                            if (value != null) {
-                                System.out.println("  " + parameter.getName() + ": " + value);
-                            }
-                        }
-                    }
-                }
-                System.out.println();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // ignore, probably wrong JVM version
-        }
     }
 
 }

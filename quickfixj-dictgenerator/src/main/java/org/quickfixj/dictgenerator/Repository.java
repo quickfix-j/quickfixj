@@ -54,7 +54,7 @@ public class Repository {
             throw new Exception("Invalid repository: Missing required files: " + requiredFiles);
         }
 
-        SAXReader reader = new SAXReader();
+        SAXReader reader = SAXReader.createDefault();
         components = reader.read(new File(repository, "Components.xml"));
         enums = reader.read(new File(repository, "Enums.xml"));
         fields = reader.read(new File(repository, "Fields.xml"));

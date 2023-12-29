@@ -24,11 +24,8 @@ import javax.management.openmbean.TabularData;
 public interface SocketInitiatorAdminMBean extends ConnectorAdminMBean {
 
     /**
-     * Get initiator communication endpoints
-     *
-     * @return a table of endpoint information
-     * @throws IOException
+     * @return the initiator addresses configured for this connector's sessions.
      */
-    TabularData getEndpoints() throws IOException;
+    TabularData getInitiatorAddresses() throws IOException;
 
 }

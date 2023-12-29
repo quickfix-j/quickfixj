@@ -41,6 +41,7 @@ class JdbcStore implements MessageStore {
     private final String sessionTableName;
     private final String messageTableName;
     private final String defaultSessionIdPropertyValue;
+    private final boolean persistMessages;
 
     private String SQL_UPDATE_SEQNUMS;
     private String SQL_INSERT_SESSION;
@@ -73,6 +74,9 @@ class JdbcStore implements MessageStore {
         } else {
             defaultSessionIdPropertyValue = SessionID.NOT_SET;
         }
+
+        persistMessages = !settings.isSetting(sessionID, Session.SETTING_PERSIST_MESSAGES) ||
+            settings.getBool(sessionID, Session.SETTING_PERSIST_MESSAGES);
 
         dataSource = ds == null ? JdbcUtil.getDataSource(settings, sessionID) : ds;
 
@@ -184,9 +188,11 @@ class JdbcStore implements MessageStore {
         PreparedStatement updateTime = null;
         try {
             connection = dataSource.getConnection();
-            deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
-            setSessionIdParameters(deleteMessages, 1);
-            deleteMessages.execute();
+            if (persistMessages) {
+                deleteMessages = connection.prepareStatement(SQL_DELETE_MESSAGES);
+                setSessionIdParameters(deleteMessages, 1);
+                deleteMessages.execute();
+            }
 
             updateTime = connection.prepareStatement(SQL_UPDATE_SESSION);
             updateTime.setTimestamp(1, new Timestamp(Calendar.getInstance(

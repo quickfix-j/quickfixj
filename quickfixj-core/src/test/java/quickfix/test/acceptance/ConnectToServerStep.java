@@ -61,7 +61,7 @@ public class ConnectToServerStep implements TestStep {
             try {
                 Thread.sleep(reconnectDelay);
             } catch (InterruptedException e1) {
-                e1.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
         try {

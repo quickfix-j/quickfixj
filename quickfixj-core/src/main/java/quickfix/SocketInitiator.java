@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
 import quickfix.mina.initiator.AbstractSocketInitiator;
@@ -28,12 +29,12 @@ import quickfix.mina.initiator.AbstractSocketInitiator;
  * sessions.
  */
 public class SocketInitiator extends AbstractSocketInitiator {
-    private volatile Boolean isStarted = Boolean.FALSE;
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     private final SingleThreadedEventHandlingStrategy eventHandlingStrategy;
 
     private SocketInitiator(Builder builder) throws ConfigError {
         super(builder.application, builder.messageStoreFactory, builder.settings,
-                builder.logFactory, builder.messageFactory);
+                builder.logFactory, builder.messageFactory, builder.numReconnectThreads);
 
         if (builder.queueCapacity >= 0) {
             eventHandlingStrategy
@@ -49,8 +50,16 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
 
     public static final class Builder extends AbstractSessionConnectorBuilder<Builder, SocketInitiator> {
+        
+        int numReconnectThreads = 3;
+
         private Builder() {
             super(Builder.class);
+        }
+        
+        public Builder withReconnectThreads(int numReconnectThreads) throws ConfigError {
+            this.numReconnectThreads = numReconnectThreads;
+            return this;
         }
 
         @Override
@@ -112,33 +121,30 @@ public class SocketInitiator extends AbstractSocketInitiator {
     }
     
     private void initialize() throws ConfigError {
-        if (isStarted.equals(Boolean.FALSE)) {
-            eventHandlingStrategy.setExecutor(longLivedExecutor);
-            createSessionInitiators();
-            for (Session session : getSessionMap().values()) {
-                Session.registerSession(session);
+        synchronized (isStarted) {
+            if (isStarted.compareAndSet(false, true)) {
+                eventHandlingStrategy.setExecutor(longLivedExecutor);
+                createSessionInitiators();
+                startInitiators();
+                eventHandlingStrategy.blockInThread();
             }
-            startInitiators();
-            eventHandlingStrategy.blockInThread();
-            isStarted = Boolean.TRUE;
-        } else {
-            log.warn("Ignored attempt to start already running SocketInitiator.");
         }
     }
 
     @Override
     public void stop(boolean forceDisconnect) {
-        if (isStarted.equals(Boolean.TRUE)) {
-            try {
-                logoutAllSessions(forceDisconnect);
-                stopInitiators();
-            } finally {
+        synchronized (isStarted) {
+            if (isStarted.compareAndSet(true, false)) {
                 try {
-                    eventHandlingStrategy.stopHandlingMessages(true);
+                    logoutAllSessions(forceDisconnect);
+                    stopInitiators();
                 } finally {
-                    Session.unregisterSessions(getSessions(), true);
-                    clearConnectorSessions();
-                    isStarted = Boolean.FALSE;
+                    try {
+                        eventHandlingStrategy.stopHandlingMessages(true);
+                    } finally {
+                        Session.unregisterSessions(getSessions(), true);
+                        clearConnectorSessions();
+                    }
                 }
             }
         }

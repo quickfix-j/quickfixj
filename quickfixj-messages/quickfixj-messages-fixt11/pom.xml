@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-messages</artifactId>
-		<version>2.2.0-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>quickfixj-messages-fixt11</artifactId>
@@ -17,49 +17,157 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
+			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${build-helper-maven-plugin-version}</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
-						<phase>prepare-package</phase>
+						<id>unpack-dependencies</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.quickfixj</groupId>
+									<artifactId>quickfixj-orchestration</artifactId>
+									<version>${project.version}</version>
+									<includes>**/FIX*.xml,**/Orchestra*.xml</includes>
+									<outputDirectory>${project.build.directory}/dependency/repository</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.quickfixj.orchestra</groupId>
+				<artifactId>quickfixj-from-fix-orchestra-code-generator-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>codeGeneration</goal>
+						</goals>
+						<id>fixLatest</id>
+					</execution>
+				</executions>
+				<configuration>
+					<orchestration>${project.build.directory}/dependency/repository/${orchestra.file}</orchestration>
+					<outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+					<generateOnlySession>true</generateOnlySession>
+				</configuration>
+			</plugin>
+			<plugin>
+			  <groupId>org.apache.maven.plugins</groupId>
+			  <artifactId>maven-antrun-plugin</artifactId>
+			  <version>3.1.0</version>
+			  <executions>
+				<execution>
+				  <phase>process-sources</phase>
+				  <goals>
+					<goal>run</goal>
+				  </goals>
+				  <configuration>
+					<target> <!-- exclude classes that are provided by the quickfixj-base dependency -->
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplExtID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/ApplVerID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BeginSeqNo.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BeginString.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BodyLength.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/BusinessRejectReason.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/CheckSum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/CstmApplVerID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DefaultApplVerID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DeliverToCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DeliverToLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/DeliverToSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/EncryptMethod.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/EndSeqNo.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/GapFillFlag.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/HeartBtInt.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/LastMsgSeqNumProcessed.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/MessageEncoding.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/MsgSeqNum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/MsgType.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/NewSeqNo.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/NextExpectedMsgSeqNum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/NoHops.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfSendingTime.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OnBehalfOfSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/OrigSendingTime.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/PossDupFlag.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/PossResend.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/RefMsgType.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/RefSeqNum.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/RefTagID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/ResetSeqNumFlag.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SecureData.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SecureDataLen.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SenderCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SenderLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SenderSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SendingTime.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SessionRejectReason.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SessionStatus.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/Signature.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/SignatureLength.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TargetCompID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TargetLocationID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TargetSubID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/TestReqID.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/Text.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/XmlData.java"/>
+						<delete file="${project.build.directory}/generated-sources/quickfix/field/XmlDataLen.java"/>
+					</target>
+				  </configuration>
+				</execution>
+			  </executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
+								<source>${project.build.directory}/generated-sources</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>3g</maxmemory>
-                            <detectOfflineLinks>false</detectOfflineLinks>
-                            <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fixt11;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<quiet>true</quiet>
+							<doclint>none</doclint>
+							<maxmemory>6g</maxmemory>
+							<detectOfflineLinks>false</detectOfflineLinks>
+							<includeDependencySources>false</includeDependencySources>
+							<sourcepath>${project.build.directory}/generated-sources/quickfix/fixt11;${project.build.directory}/generated-sources/quickfix/field</sourcepath>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -80,14 +188,12 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
 					<includes>
+						<!-- TODO -->
 						<include>FIXT11.xml</include>
 						<include>quickfix/field/*.class</include>
 						<include>quickfix/fixt11/**</include>
@@ -97,13 +203,12 @@
 					</archive>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
+						<!-- TODO -->
 						<include>FIXT11.xml</include>
 						<include>quickfix/fixt11/**</include>
 						<include>quickfix/field/**</include>

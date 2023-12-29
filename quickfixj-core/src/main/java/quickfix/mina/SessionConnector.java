@@ -71,7 +71,7 @@ public abstract class SessionConnector implements Connector {
     private final Map<SessionID, Session> sessions = new ConcurrentHashMap<>();
     private final SessionSettings settings;
     private final SessionFactory sessionFactory;
-    private final static ScheduledExecutorService scheduledExecutorService = Executors
+    private static final ScheduledExecutorService SCHEDULED_EXECUTOR = Executors
             .newSingleThreadScheduledExecutor(new QFTimerThreadFactory());
     private ScheduledFuture<?> sessionTimerFuture;
     private IoFilterChainBuilder ioFilterChainBuilder;
@@ -272,6 +272,7 @@ public abstract class SessionConnector implements Connector {
                 Thread.sleep(100L);
             } catch (InterruptedException e) {
                 log.error(e.getMessage(), e);
+                Thread.currentThread().interrupt();
             }
             final long elapsed = System.currentTimeMillis() - start;
             Iterator<Session> sessionItr = loggedOnSessions.iterator();
@@ -314,7 +315,7 @@ public abstract class SessionConnector implements Connector {
         if (shortLivedExecutor != null) {
             timerTask = new DelegatingTask(timerTask, shortLivedExecutor);
         }
-        sessionTimerFuture = scheduledExecutorService.scheduleAtFixedRate(timerTask, 0, 1000L,
+        sessionTimerFuture = SCHEDULED_EXECUTOR.scheduleAtFixedRate(timerTask, 0, 1000L,
                 TimeUnit.MILLISECONDS);
         log.info("SessionTimer started");
     }
@@ -335,10 +336,11 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected ScheduledExecutorService getScheduledExecutorService() {
-        return scheduledExecutorService;
+        return SCHEDULED_EXECUTOR;
     }
 
     private class SessionTimerTask implements Runnable {
+        @Override
         public void run() {
             try {
                 for (Session session : sessions.values()) {
@@ -374,6 +376,7 @@ public abstract class SessionConnector implements Connector {
             try {
                 delegate.await();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -407,6 +410,7 @@ public abstract class SessionConnector implements Connector {
 
     private static class QFTimerThreadFactory implements ThreadFactory {
 
+        @Override
         public Thread newThread(Runnable runnable) {
             Thread thread = new Thread(runnable, "QFJ Timer");
             thread.setDaemon(true);
@@ -447,15 +451,28 @@ public abstract class SessionConnector implements Connector {
                     completed = closeFuture.await(1000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
-                }
-                if (!completed) {
-                    logger.warn("Could not close IoSession {}", ioSession);
+                } finally {
+                    if (!completed) {
+                        logger.warn("Could not close IoSession {}", ioSession);
+                    }
                 }
             }
         }
         if (!ioService.isDisposing()) {
             ioService.dispose(awaitTermination);
         }
+    }
+
+    protected boolean isContinueInitOnError() {
+        boolean continueInitOnError = false;
+        if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
+            try {
+                continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
+            } catch (ConfigError | FieldConvertError ex) {
+                // ignore and return default
+            }
+        }
+        return continueInitOnError;
     }
 
 }

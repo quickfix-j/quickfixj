@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.quickfixj</groupId>
 		<artifactId>quickfixj-messages</artifactId>
-		<version>2.2.0-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>quickfixj-messages-fix41</artifactId>
@@ -17,7 +17,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.quickfixj</groupId>
-			<artifactId>quickfixj-core</artifactId>
+			<artifactId>quickfixj-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
@@ -25,41 +25,78 @@
 	<build>
 		<plugins>
 			<plugin>
+				<!-- prune classes that are not in the FIX Dictionaries specified below -->
+				<groupId>org.quickfixj</groupId>
+				<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
+				<version>${project.version}</version>
+				<executions>
+					<execution>
+						<id>prune</id>
+						<goals>
+							<goal>prune</goal>
+						</goals>
+						<configuration>
+							<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/quickfix/field</classesDirectory>
+							<generatedSourcesDirectory>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</generatedSourcesDirectory>
+							<fileset>
+								<directory>${project.basedir}/../quickfixj-messages-all/target/classes/</directory>
+								<includes>
+								<include>**/*.xml</include>
+								</includes>
+								<excludes>
+									<exclude>**/FIXLatest.xml</exclude>
+									<exclude>OrchestraFIXLatest.xml</exclude>
+									<exclude>FIX50SP2.modified.xml</exclude>	<!-- exclude fields from FIX50SP2 -->
+									<exclude>FIX50SP1.modified.xml</exclude>	<!-- exclude fields from FIX50SP1 -->
+									<exclude>FIX50.xml</exclude>			<!-- exclude fields from FIX50 -->
+									<exclude>FIX44.modified.xml</exclude>	<!-- exclude fields from FIX44 -->
+									<exclude>FIX43.xml</exclude>			<!-- exclude fields from FIX43 -->
+									<exclude>FIX42.xml</exclude>			<!-- exclude fields from FIX42 -->
+									<exclude>FIX50SP2.xml</exclude>			<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX50SP1.xml</exclude>			<!-- QFJ code generation uses a modified version of this dictionary -->
+									<exclude>FIX44.xml</exclude>			<!-- QFJ code generation uses a modified version of this dictionary -->
+								</excludes>
+								<followSymlinks>false</followSymlinks>
+							</fileset>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${build-helper-maven-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>prepare-package</phase>
 						<goals><goal>add-source</goal></goals>
 						<configuration>
 							<sources>
-								<source>${project.basedir}/../../quickfixj-core/target/generated-sources/</source>
+							<source>${project.basedir}/../quickfixj-messages-all/target/generated-sources/</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin-version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                            <maxmemory>3g</maxmemory>
-                            <detectOfflineLinks>false</detectOfflineLinks>
-                            <includeDependencySources>false</includeDependencySources>
-                            <sourcepath>${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/fix41;${project.basedir}/../../quickfixj-core/target/generated-sources/quickfix/field</sourcepath>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<quiet>true</quiet>
+							<doclint>none</doclint>
+							<maxmemory>6g</maxmemory>
+							<detectOfflineLinks>false</detectOfflineLinks>
+							<includeDependencySources>false</includeDependencySources>
+							<sourcepath>${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/fix41;${project.basedir}/../quickfixj-messages-all/target/generated-sources/quickfix/field</sourcepath>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -74,7 +111,7 @@
 							<instructions>
 								<Export-Package>quickfix.field;version="${project.version}";uses:=quickfix,quickfix.fix41;version="${project.version}";uses:=quickfix,quickfix.field;version="${project.version}"</Export-Package>
 								<Import-Package>quickfix,quickfix.field;version="${project.version}"</Import-Package>
-								<Require-Capability>osgi.ee;filter:="(&#38;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
+								<Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version=${jdkLevel}))"</Require-Capability>
 							</instructions>
 						</configuration>
 					</execution>
@@ -84,9 +121,8 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin-version}</version>
 				<configuration>
-					<classesDirectory>${project.basedir}/../../quickfixj-core/target/classes/</classesDirectory>
+					<classesDirectory>${project.basedir}/../quickfixj-messages-all/target/classes/</classesDirectory>
 					<includes>
 						<include>FIX41.xml</include>
 						<include>quickfix/field/*.class</include>
@@ -101,7 +137,6 @@
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
 				<groupId>org.apache.maven.plugins</groupId>
-				<version>${maven-source-plugin-version}</version>
 				<configuration>
 					<includes>
 						<include>FIX41.xml</include>
@@ -111,5 +146,6 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
 	</build>
 </project>

@@ -19,22 +19,32 @@
 
 package quickfix;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-public class SessionStateTest extends TestCase {
-    protected void setUp() throws Exception {
-        super.setUp();
-        MockSystemTimeSource mockTimeSource = new MockSystemTimeSource(1000);
-        SystemTime.setTimeSource(mockTimeSource);
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class SessionStateTest  {
+
+    private MockSystemTimeSource timeSource;
+
+    @Before
+    public void setUp() {
+        timeSource = new MockSystemTimeSource(1000);
+        SystemTime.setTimeSource(timeSource);
     }
 
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         SystemTime.setTimeSource(null);
-        super.tearDown();
     }
 
-    public void testTimeoutDefaultsAreNonzero() throws Exception {
-        SessionState state = new SessionState(new Object(), null, 0, false, null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
+    @Test
+    public void testTimeoutDefaultsAreNonzero() {
+        SessionState state = new SessionState(new Object(), null, 0, false, null,
+            null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
         state.setLastReceivedTime(900);
         assertFalse("logon timeout not init'ed", state.isLogonTimedOut());
 
@@ -43,8 +53,10 @@ public class SessionStateTest extends TestCase {
         assertFalse("logout timeout not init'ed", state.isLogoutTimedOut());
     }
 
-    public void testTestRequestTiming() throws Exception {
-        SessionState state = new SessionState(new Object(), null, 0, false, null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
+    @Test
+    public void testTestRequestTiming() {
+        SessionState state = new SessionState(new Object(), null, 0, false, null,
+            null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
         state.setLastReceivedTime(950);
         state.setHeartBeatInterval(50);
         assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
@@ -56,5 +68,40 @@ public class SessionStateTest extends TestCase {
         // set the heartbeat interval to something small and we shouldn't need it again
         state.setHeartBeatInterval(3);
         assertFalse("testRequest shouldn't be needed yet", state.isTestRequestNeeded());
+    }
+
+    @Test
+    public void testHeartbeatTiming() {
+        // we set a HB interval of 2 seconds = 2000ms
+        SessionState state = new SessionState(new Object(), null, 2 /* HB interval */, false, null,
+                null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+
+        long now = System.currentTimeMillis();
+        timeSource.setSystemTimes(now);
+        state.setLastSentTime(now);
+        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded());
+        timeSource.increment(1000);
+        assertFalse("heartbeat shouldn't be needed yet", state.isHeartBeatNeeded());
+        timeSource.increment(1000);
+        // current time is now 2000ms further since the start, i.e. the HB interval has elapsed
+        assertTrue("heartbeat should be needed", state.isHeartBeatNeeded());
+    }
+
+    @Test
+    public void testSessionTimeout() {
+        SessionState state = new SessionState(new Object(), null, 30, false, null,
+            null, Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
+
+        // session should timeout after 2.4 * 30 = 72 seconds
+        state.setLastReceivedTime(950_000);
+
+        timeSource.setSystemTimes(1_000_000L);
+        assertFalse("session is still valid", state.isTimedOut());
+
+        timeSource.setSystemTimes(1_021_999L);
+        assertFalse("session is still valid", state.isTimedOut());
+
+        timeSource.setSystemTimes(1_022_000L);
+        assertTrue("session timed out", state.isTimedOut());
     }
 }

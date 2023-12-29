@@ -9,10 +9,10 @@
 </div>
 		<h2>Simple Failover for Socket-based Acceptors.</h2>
 		<p>
-		When using a MessageStore that supports shared data (FileStore, JdbcStore,
-			SleepycatStore) and that implements the new <code>RefreshableMessageStore</code> interface,
+		When using a MessageStore that supports shared data (FileStore, JdbcStore and SleepycatStore),
 			the Session can be configured to refresh the store information upon
-			logon. You would typically run two acceptor processes using a
+			logon with configuration <span style="color:grey">RefreshOnLogon=Y</span>.
+			You would typically run two acceptor processes using a
 			shared message store. One process would be the active acceptor
 			and the other would be the standby for any specific session. If
 			one acceptor process dies, the client (assuming they have been
@@ -33,7 +33,7 @@ StartTime=00:00:00
 EndTime=00:00:00
 HeartBtInt=30
 SocketAcceptPort=9877
-<span style="color: red">RefreshMessageStoreAtLogon=Y</span>
+<span style="color: red">RefreshOnLogon=Y</span>
 
 [session]
 SenderCompID=EXEC

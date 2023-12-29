@@ -27,9 +27,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidParameterException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Random;
@@ -145,6 +147,14 @@ public class SessionSettingsTest {
     }
 
     public static SessionSettings setUpSession(String extra) throws ConfigError {
+        String settingsString = getDefaultSettingString();
+        if (extra != null) {
+            settingsString += extra;
+        }
+        return createSettingsFromString(settingsString);
+    }
+
+    private static String getDefaultSettingString() {
         String settingsString = "";
         settingsString += "#comment\n";
         settingsString += "[DEFAULT]\n";
@@ -171,16 +181,19 @@ public class SessionSettingsTest {
         settingsString += "BeginString=FIX.4.2\n";
         settingsString += "TargetCompID=CLIENT2\n";
         settingsString += "DataDictionary=../spec/FIX42.xml\n";
-        if (extra != null) {
-            settingsString += extra;
-        }
-        return createSettingsFromString(settingsString);
+        return settingsString;
     }
 
     private static SessionSettings createSettingsFromString(String settingsString)
             throws ConfigError {
         final ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
         return new SessionSettings(cfg);
+    }
+
+    private static SessionSettings createSettingsFromString(String settingsString, Properties variableValues)
+            throws ConfigError {
+        final ByteArrayInputStream cfg = new ByteArrayInputStream(settingsString.getBytes());
+        return new SessionSettings(cfg, variableValues);
     }
 
     @Test
@@ -217,6 +230,17 @@ public class SessionSettingsTest {
         assertEquals("mumble", settings.getString("foo"));
         assertEquals("fargle", settings.getString("baz"));
         assertEquals("bargle", settings.getString("FileStorePath"));
+    }
+
+    @Test
+    public void testMissingValues() throws ConfigError, FieldConvertError {
+        final SessionSettings settings = new SessionSettings();
+        assertEquals("1", settings.getStringOrDefault("a", "1"));
+        assertEquals("2", settings.getStringOrDefault("b", "2"));
+        assertEquals(3, settings.getIntOrDefault("c", 3));
+        assertEquals(4, settings.getIntOrDefault("d", 4));
+        assertEquals(5L, settings.getLongOrDefault("e", 5L));
+        assertEquals(6L, settings.getLongOrDefault("f", 6L));
     }
 
     @Test
@@ -314,9 +338,102 @@ public class SessionSettingsTest {
     }
 
     @Test
+    public void testVariableInterpolationWithCustomPropsForSessionIdFromInputStream() throws Exception {
+        System.setProperty("test.2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("test.1", "FOO");
+
+        String settingsString = getDefaultSettingString();
+        settingsString += "\n";
+        settingsString += "[SESSION]\n";
+        settingsString += "BeginString=FIX.4.2\n";
+        settingsString += "TargetCompID=CLIENT3_${test.1}_${test.2}\n";
+        settingsString += "DataDictionary=../spec/FIX42.xml\n";
+
+        final SessionSettings settings = createSettingsFromString(settingsString, properties);
+
+        SessionID sessionId = findSessionId(settings, "CLIENT3");
+        assertNotNull("Settings for CLIENT3 are not found", sessionId);
+        assertEquals("Wrong TargetCompID", "CLIENT3_FOO_BAR", sessionId.getTargetCompID());
+    }
+
+    private SessionID findSessionId(SessionSettings settings, String targetCompIdPrefix) {
+        Iterator<SessionID> sessionIDIterator = settings.sectionIterator();
+        while (sessionIDIterator.hasNext()) {
+            SessionID sessionID = sessionIDIterator.next();
+            if (sessionID.getTargetCompID().startsWith(targetCompIdPrefix)) {
+                return sessionID;
+            }
+        }
+        return null;
+    }
+
+    @Test
+    public void testVariableInterpolationWithCustomPropsForSessionIdFromFile() throws Exception {
+        System.setProperty("CLIENT_PLACEHOLDER2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("CLIENT_PLACEHOLDER1", "FOO");
+
+        final SessionSettings settings = new SessionSettings(getConfigurationFileName(), properties);
+
+        SessionID sessionId = findSessionId(settings, "CLIENT3");
+        assertNotNull("Settings for CLIENT3 are not found", sessionId);
+        assertEquals("Wrong TargetCompID", "CLIENT3_FOO_BAR", sessionId.getTargetCompID());
+}
+
+    @Test
     public void testDefaultConstructor() {
         new SessionSettings();
         // Passes if no exception is thrown
+    }
+
+    @Test
+    public void testListConstructor() throws ConfigError {
+        List<String> listValues = new ArrayList<String>();
+        listValues.add("[SESSION]");
+        listValues.add("BeginString=FIX.4.2");
+        listValues.add("SenderCompID=Company");
+        listValues.add("SenderSubID=FixedIncome");
+        listValues.add("SenderLocationID=HongKong");
+        listValues.add("TargetCompID=CLIENT1");
+        listValues.add("TargetSubID=HedgeFund");
+        listValues.add("TargetLocationID=NYC\n");
+
+        final SessionSettings settings = new SessionSettings(listValues);
+        final SessionID id = settings.sectionIterator().next();
+        assertEquals("Company", id.getSenderCompID());
+        assertEquals("FixedIncome", id.getSenderSubID());
+        assertEquals("HongKong", id.getSenderLocationID());
+        assertEquals("CLIENT1", id.getTargetCompID());
+        assertEquals("HedgeFund", id.getTargetSubID());
+        assertEquals("NYC", id.getTargetLocationID());
+    }
+
+    @Test
+    public void testListPropertiesConstructor() throws ConfigError {
+        System.setProperty("test.2", "BAR");
+        final Properties properties = new Properties(System.getProperties());
+        properties.setProperty("test.1", "FOO");
+
+        List<String> listValues = new ArrayList<String>();
+        listValues.add("[SESSION]");
+        listValues.add("BeginString=FIX.4.2");
+        listValues.add("SenderCompID=Company");
+        listValues.add("SenderSubID=FixedIncome");
+        listValues.add("SenderLocationID=HongKong");
+        listValues.add("TargetCompID=CLIENT3_${test.1}_${test.2}");
+        listValues.add("TargetSubID=HedgeFund");
+        listValues.add("TargetLocationID=NYC\n");
+
+        final SessionSettings settings = new SessionSettings(listValues, properties);
+        final SessionID id = settings.sectionIterator().next();
+        assertEquals("Company", id.getSenderCompID());
+        assertEquals("FixedIncome", id.getSenderSubID());
+        assertEquals("HongKong", id.getSenderLocationID());
+        assertEquals("CLIENT3_FOO_BAR", id.getTargetCompID());
+        assertEquals("HedgeFund", id.getTargetSubID());
+        assertEquals("NYC", id.getTargetLocationID());
+
     }
 
     @Test
@@ -535,6 +652,10 @@ public class SessionSettingsTest {
         defaultSettings.put("AcceptorTemplate", "Y");
         defaultSettings.put("TargetCompID", "*");
         return defaultSettings;
+    }
+
+    private String getConfigurationFileName() {
+        return "configWithSessionVariables.ini";
     }
 
 }

@@ -44,6 +44,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration {
+
+    protected static final TabularDataAdapter TABULAR_DATA_ADAPTER = new TabularDataAdapter();
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     public final static String ACCEPTOR_ROLE = "ACCEPTOR";
@@ -52,9 +55,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
 
     private final Connector connector;
 
-    private static final TabularDataAdapter tabularDataAdapter = new TabularDataAdapter();
-
-    private final SessionJmxExporter sessionExporter;
+    protected final SessionJmxExporter sessionExporter;
 
     private final JmxExporter jmxExporter;
 
@@ -120,7 +121,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
             sessions.add(new ConnectorSession(session, sessionExporter.getSessionName(sessionID)));
         }
         try {
-            return tabularDataAdapter.fromBeanList("Sessions", "Session", "sessionID", sessions);
+            return TABULAR_DATA_ADAPTER.fromBeanList("Sessions", "Session", "sessionID", sessions);
         } catch (OpenDataException e) {
             throw JmxSupport.toIOException(e);
         }
@@ -134,7 +135,7 @@ abstract class ConnectorAdmin implements ConnectorAdminMBean, MBeanRegistration 
                 names.add(sessionExporter.getSessionName(sessionID));
             }
         }
-        return tabularDataAdapter.fromArray("Sessions", "SessionID", toObjectNameArray(names));
+        return TABULAR_DATA_ADAPTER.fromArray("Sessions", "SessionID", toObjectNameArray(names));
     }
 
     private ObjectName[] toObjectNameArray(List<ObjectName> sessions) {

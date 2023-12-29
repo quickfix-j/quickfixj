@@ -22,13 +22,19 @@ package quickfix;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.core.write.WriteRequest;
+import org.apache.mina.util.AvailablePortFinder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.field.MsgType;
 import quickfix.mina.ProtocolFactory;
 import quickfix.mina.SingleThreadedEventHandlingStrategy;
+import quickfix.mina.initiator.ConnectException;
+import quickfix.mina.ssl.SSLSupport;
 import quickfix.test.acceptance.ATServer;
+import quickfix.test.util.StackTraceUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +42,10 @@ import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -45,16 +53,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
-import static junit.framework.TestCase.assertNotNull;
-import org.apache.mina.util.AvailablePortFinder;
-import org.junit.After;
 
+import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import quickfix.field.MsgType;
-import quickfix.test.util.ReflectionUtil;
+
+
 
 public class SocketInitiatorTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -229,6 +236,52 @@ public class SocketInitiatorTest {
         }
     }
 
+    @Test
+    public void testInitiatorConnectException() throws Exception {
+        // use a free port to make sure nothing is listening
+        int freePort = AvailablePortFinder.getNextAvailable();
+        Initiator initiator = null;
+        String host = "localhost";
+        AtomicBoolean onConnectExceptionWasCalled = new AtomicBoolean(false);
+        AtomicReference<SocketAddress> socketAddress = new AtomicReference<>(null);
+        try {
+            SessionID clientSessionID = new SessionID(FixVersions.BEGINSTRING_FIX42, "TW", "ISLD");
+            SessionSettings settings = getClientSessionSettings(clientSessionID, freePort);
+            settings.setString(clientSessionID, "ReconnectInterval", "1");
+            settings.setString(clientSessionID, "SocketConnectHost", host);
+            settings.setString(clientSessionID, "SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+
+            SessionStateListener sessionStateListener = new SessionStateListener() {
+                @Override
+                public void onConnectException(SessionID sessionID, Exception e) {
+                    onConnectExceptionWasCalled.set(true);
+                    socketAddress.set(((ConnectException) e).getSocketAddress());
+                }
+            };
+            // add state listener on creation of Session
+            Application clientApplication = new ApplicationAdapter() {
+                @Override
+                public void onCreate(SessionID sessionId) {
+                    Session.lookupSession(clientSessionID).addStateListener(sessionStateListener);
+                }
+            };
+            DefaultSessionFactory sessionFactory = new DefaultSessionFactory(clientApplication, new MemoryStoreFactory(), new ScreenLogFactory(settings), new DefaultMessageFactory());
+            initiator = new SocketInitiator(sessionFactory, settings, 10000);
+            initiator.start();
+            Thread.sleep(5000); // make sure we try to connect
+        } finally {
+            if (initiator != null) {
+                initiator.stop(true);
+            }
+            assertTrue(onConnectExceptionWasCalled.get());
+            InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress.get();
+            assertNotNull(inetSocketAddress);
+            assertEquals(host, inetSocketAddress.getHostName());
+            assertEquals(freePort, inetSocketAddress.getPort());
+        }
+    }
+
+
     private interface LogSessionStateListener extends Log, SessionStateListener {}
 
     // QFJ-907
@@ -264,6 +317,7 @@ public class SocketInitiatorTest {
         socketThread.start();
 
         final SessionSettings settings = new SessionSettings();
+        settings.setString("NonStopSession", "Y");
         settings.setString("StartTime", "00:00:00");
         settings.setString("EndTime", "00:00:00");
         settings.setString("ReconnectInterval", "30");
@@ -301,37 +355,13 @@ public class SocketInitiatorTest {
             }
 
             @Override
-            public void onConnect() {
+            public void onConnect(SessionID sessionID) {
                 onConnectCallCount.incrementAndGet();
             }
 
             @Override
-            public void onDisconnect() {
+            public void onDisconnect(SessionID sessionID) {
                 onDisconnectCallCount.incrementAndGet();
-            }
-
-            @Override
-            public void onLogon() {
-            }
-
-            @Override
-            public void onLogout() {
-            }
-
-            @Override
-            public void onReset() {
-            }
-
-            @Override
-            public void onRefresh() {
-            }
-
-            @Override
-            public void onMissedHeartBeat() {
-            }
-
-            @Override
-            public void onHeartBeatTimeout() {
             }
         };
 
@@ -354,6 +384,37 @@ public class SocketInitiatorTest {
         assertEquals(1, onDisconnectCallCount.intValue());
     }
 
+    
+    @Test
+    public void testInitiatorContinueInitializationOnError() throws ConfigError, InterruptedException, IOException {
+        final ServerSocket serverSocket = new ServerSocket(0);
+        final int port = serverSocket.getLocalPort();
+        final SessionSettings settings = new SessionSettings();
+        final SessionID sessionId = new SessionID("FIX.4.4", "SENDER", "TARGET");
+        settings.setString(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, "Y");
+        settings.setString(sessionId, "BeginString", "FIX.4.4");
+        settings.setString("ConnectionType", "initiator");
+        settings.setLong(sessionId, "SocketConnectPort", port);
+        settings.setString(sessionId, "SocketConnectHost", "localhost");
+        settings.setString("NonStopSession", "Y");
+        settings.setString("StartTime", "00:00:00");
+        settings.setString("EndTime", "00:00:00");
+        settings.setString("HeartBtInt", "30");
+        settings.setString("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        settings.setString(sessionId, SSLSupport.SETTING_USE_SSL, "Y");
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_NAME, "test.keystore");
+        // supply a wrong password to make initialization fail
+        settings.setString(sessionId, SSLSupport.SETTING_KEY_STORE_PWD, "wrong-password");
+
+        final SocketInitiator initiator = new SocketInitiator(new ApplicationAdapter(), new MemoryStoreFactory(), settings,
+                new ScreenLogFactory(settings), new DefaultMessageFactory());
+        initiator.start();
+
+        assertTrue(initiator.getInitiators().isEmpty());
+        initiator.stop();
+    }
+
+
     private void doTestOfRestart(SessionID clientSessionID, ClientApplication clientApplication,
             final Initiator initiator, File messageLog, int port) throws InterruptedException, ConfigError {
         ServerThread serverThread = new ServerThread(port);
@@ -362,13 +423,14 @@ public class SocketInitiatorTest {
             serverThread.start();
             serverThread.waitForInitialization();
             long messageLogLength = 0;
+            Session clientSession = null;
             try {
                 clientApplication.setUpLogonExpectation();
                 initiator.start();
                 assertTrue(initiator.getSessions().contains(clientSessionID));
                 assertEquals(1, initiator.getSessions().size());
 
-                Session clientSession = Session.lookupSession(clientSessionID);
+                clientSession = Session.lookupSession(clientSessionID);
                 assertLoggedOn(clientApplication, clientSession);
 
                 clientApplication.setUpLogoutExpectation();
@@ -394,8 +456,13 @@ public class SocketInitiatorTest {
                     // QFJ-698: check that we were still able to write to the messageLog after the restart
                     assertTrue(messageLog.length() > messageLogLength);
                 }
+                
+                clientApplication.setUpLogoutExpectation();
             } finally {
                 initiator.stop();
+                if (clientSession != null) {
+                    assertLoggedOut(clientApplication, clientSession);
+                }
             }
         } finally {
             serverThread.interrupt();
@@ -443,6 +510,7 @@ public class SocketInitiatorTest {
         defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.VM_PIPE));
         defaults.put("SocketConnectHost", "localhost");
         defaults.put("SocketConnectPort", Integer.toString(port));
+        defaults.put("NonStopSession", "Y");
         defaults.put("StartTime", "00:00:00");
         defaults.put("EndTime", "00:00:00");
         defaults.put("HeartBtInt", "30");
@@ -470,7 +538,7 @@ public class SocketInitiatorTest {
                 }
                 if ( clientApplication.logonLatch.getCount() > 0 ) {
                     System.err.println("XXX Dumping threads since latch count is not zero...");
-                    ReflectionUtil.dumpStackTraces();
+                    StackTraceUtil.dumpStackTraces();
                 }
             });
         } finally {
@@ -487,7 +555,7 @@ public class SocketInitiatorTest {
         assertNotNull("no client session", clientSession);
         final boolean await = clientApplication.logoutLatch.await(20, TimeUnit.SECONDS);
         if (!await) {
-            ReflectionUtil.dumpStackTraces();
+            StackTraceUtil.dumpStackTraces();
         }
         assertTrue("Expected logout did not occur", await);
         assertFalse("client session logged in?", clientSession.isLoggedOn());
@@ -527,11 +595,11 @@ public class SocketInitiatorTest {
 
         @Override
         public void toAdmin(Message message, SessionID sessionId) {
-            log.info("[{}] {}", sessionId, message);
+            log.info("toAdmin: [{}] {}", sessionId, message);
 
             // Only countdown the latch if a logout message is actually sent
             try {
-                if (logoutLatch != null && message.getHeader().isSetField(MsgType.FIELD)
+                if (logoutLatch != null && logoutLatch.getCount() > 0 && message.getHeader().isSetField(MsgType.FIELD)
                         && MsgType.LOGOUT.equals(message.getHeader().getString(MsgType.FIELD))) {
                     log.info("Releasing logout latch for session [{}] with message {}", sessionId, message);
                     logoutLatch.countDown();

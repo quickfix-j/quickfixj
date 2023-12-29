@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import org.quickfixj.CharsetSupport;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,8 +28,9 @@ import java.util.List;
 
 public class FileStoreTest extends AbstractMessageStoreTest {
 
-    protected void tearDown() throws Exception {
+    public void tearDown() throws Exception {
         super.tearDown();
+        CharsetSupport.setDefaultCharset();
         FileStore fileStore = (FileStore) getStore();
         try {
             fileStore.closeAndDeleteFiles();
@@ -36,6 +39,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         }
     }
 
+    @Override
     protected MessageStoreFactory getMessageStoreFactory() throws ConfigError, FieldConvertError {
         SessionSettings settings = new SessionSettings(getConfigurationFileName());
         // Initialize the session settings from the defaults
@@ -44,6 +48,7 @@ public class FileStoreTest extends AbstractMessageStoreTest {
         return new FileStoreFactory(settings);
     }
 
+    @Override
     protected Class<?> getMessageStoreClass() {
         return FileStore.class;
     }

@@ -1,35 +1,26 @@
 package quickfix;
 
-import java.math.BigDecimal;
+import static org.junit.Assert.assertEquals;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+
+import org.junit.Test;
+
 import quickfix.field.EffectiveTime;
 import quickfix.field.MDEntryTime;
 import quickfix.field.converter.UtcTimeOnlyConverter;
-
-import java.util.Iterator;
-import java.util.Optional;
 
 /**
  * Tests the {@link FieldMap} class.
  * Specifically, verifies that the setters for {@link UtcTimeStampField} work correctly.
  *
  * @author toli
- * @version $Id$
  */
-public class FieldMapTest extends TestCase {
-    public FieldMapTest(String inName) {
-        super(inName);
-    }
+public class FieldMapTest {
 
-    public static Test suite() {
-        return new TestSuite(FieldMapTest.class);
-    }
-
+    @Test
     public void testSetUtcTimeStampField() throws Exception {
         FieldMap map = new Message();
         LocalDateTime aDate = LocalDateTime.now();
@@ -43,6 +34,7 @@ public class FieldMapTest extends TestCase {
                 epochMilliOfLocalDate(map.getField(new EffectiveTime()).getValue()));
     }
 
+    @Test
     public void testSetUtcTimeOnlyField() throws Exception {
         FieldMap map = new Message();
         LocalTime aDate = LocalTime.now();
@@ -59,6 +51,7 @@ public class FieldMapTest extends TestCase {
     /**
      * Try a subclass of {@link UtcTimeOnlyField} and {@link UtcTimeStampField} directly
      */
+    @Test
     public void testSpecificFields() throws Exception {
         FieldMap map = new Message();
         LocalDateTime aDate = LocalDateTime.now();
@@ -69,46 +62,6 @@ public class FieldMapTest extends TestCase {
         map.setField(new MDEntryTime(aTime));
         assertEquals("milliseconds should be preserved", UtcTimeOnlyConverter.convert(aTime, UtcTimestampPrecision.MILLIS),
                 UtcTimeOnlyConverter.convert(map.getField(new MDEntryTime()).getValue(), UtcTimestampPrecision.MILLIS));
-    }
-
-    private void testOrdering(int[] vals, int[] order, int[] expected) {
-        FieldMap map = new Message(order);
-        for (int v : vals)
-            map.setInt(v, v);
-        Iterator<Field<?>> it = map.iterator();
-        for (int e : expected)
-            assertEquals(String.valueOf(e), it.next().getObject());
-    }
-
-    public void testOrdering() {
-        testOrdering(new int[] { 1, 2, 3 }, null, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 3, 2, 1 }, null, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 2, 3 }, new int[] { 1, 2, 3 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3, 2 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 1, 3 }, new int[] { 1, 3, 2 });
-        testOrdering(new int[] { 1, 2, 3 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
-        testOrdering(new int[] { 3, 2, 1 }, new int[] { 3, 1 }, new int[] { 3, 1, 2 });
-    }
-
-    public void testOptionalString() {
-        FieldMap map = new Message();
-        map.setField(new StringField(128, "bigbank"));
-        Optional<String> optValue = map.getOptionalString(128);
-        assertTrue(optValue.isPresent());
-        assertEquals("bigbank", optValue.get());
-        assertFalse(map.getOptionalString(129).isPresent());
-    }
-
-    public void testOptionalDecimal() {
-        FieldMap map = new Message();
-        map.setField(new DecimalField(44, new BigDecimal("1565.10")));
-        Optional<BigDecimal> optValue = map.getOptionalDecimal(44);
-        assertTrue(optValue.isPresent());
-        assertEquals(0, optValue.get().compareTo(new BigDecimal("1565.10")));
-        assertFalse(map.getOptionalDecimal(6).isPresent());
     }
 
     private long epochMilliOfLocalDate(LocalDateTime localDateTime) {

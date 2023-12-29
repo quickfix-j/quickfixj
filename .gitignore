@@ -11,3 +11,4 @@ target/
 *.iws
 # ignore NetBeans configuration
 nb-configuration.xml
+*.bak

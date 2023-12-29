@@ -43,9 +43,15 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import javax.xml.XMLConstants;
 
 /**
  * Generates Message and Field related code for the various FIX versions.
@@ -55,6 +61,7 @@ public class MessageCodeGenerator {
     private static final String BIGDECIMAL_TYPE_OPTION = "generator.decimal";
     private static final String ORDERED_FIELDS_OPTION = "generator.orderedFields";
     private static final String OVERWRITE_OPTION = "generator.overwrite";
+    private static final String UTC_TIMESTAMP_PRECISION_OPTION = "generator.utcTimestampPrecision";
 
     // An arbitrary serial UID which will have to be changed when messages and fields won't be compatible with next versions in terms
     // of java serialization.
@@ -65,6 +72,9 @@ public class MessageCodeGenerator {
 
     // The name of the param in the .xsl files to pass the serialVersionUID
     private static final String XSLPARAM_SERIAL_UID = "serialVersionUID";
+
+    private static final Set<String> UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES =
+        Collections.unmodifiableSet(new HashSet<>(Arrays.asList("SECONDS", "MILLIS", "MICROS", "NANOS")));
 
     protected void logInfo(String msg) {
         System.out.println(msg);
@@ -128,11 +138,24 @@ public class MessageCodeGenerator {
             Transformer transformer = createTransformer(task, "Fields.xsl");
             for (String fieldName : fieldNames) {
                 String outputFile = outputDirectory + fieldName + ".java";
-                if (!new File(outputFile).exists()) {
+                if (!new File(outputFile).exists() || task.isOverwrite()) { // if overwrite is set, then transform and generate the file
                     logDebug("field: " + fieldName);
                     Map<String, String> parameters = new HashMap<>();
                     parameters.put("fieldName", fieldName);
                     parameters.put("fieldPackage", task.getFieldPackage());
+                    String utcTimestampPrecision = task.getUtcTimestampPrecision();
+                    if (utcTimestampPrecision != null) {
+                        String utcTimestampPrecisionParameterName = "utcTimestampPrecision";
+                        if (!UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES.contains(utcTimestampPrecision)) {
+                            throw new CodeGenerationException(new IllegalArgumentException(String.format(
+                                "Allowed values for parameter %s are %s. Supplied value: \"%s\".",
+                                utcTimestampPrecisionParameterName,
+                                String.join(", ", UTC_TIMESTAMP_PRECISION_ALLOWED_VALUES),
+                                utcTimestampPrecision
+                            )));
+                        }
+                        parameters.put(utcTimestampPrecisionParameterName, utcTimestampPrecision);
+                    }
                     if (task.isDecimalGenerated()) {
                         parameters.put("decimalType", "java.math.BigDecimal");
                         parameters.put("decimalConverter", "Decimal");
@@ -218,6 +241,8 @@ public class MessageCodeGenerator {
         Document document = specificationCache.get(task.getName());
         if (document == null) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
             DocumentBuilder builder = factory.newDocumentBuilder();
             document = builder.parse(task.getSpecification());
             specificationCache.put(task.getName(), document);
@@ -280,13 +305,7 @@ public class MessageCodeGenerator {
             if (!task.isOverwrite()) {
                 return;
             }
-            if (outputFile.lastModified() > task.getSpecificationLastModified()) {
-                logDebug("Skipping file " + outputFile.getName());
-                return;
-            }
         }
-        logDebug("spec has mod " + task.getSpecificationLastModified() +
-                " output has mod " + outputFile.lastModified());
 
         DOMSource source = new DOMSource(document);
         FileOutputStream fos = new FileOutputStream(outputFile);
@@ -327,6 +346,7 @@ public class MessageCodeGenerator {
         private File outputBaseDirectory;
         private String messagePackage;
         private String fieldPackage;
+        private String utcTimestampPrecision;
         private boolean overwrite = true;
         private File transformDirectory;
         private boolean orderedFields;
@@ -367,6 +387,14 @@ public class MessageCodeGenerator {
 
         public void setFieldPackage(String fieldPackage) {
             this.fieldPackage = fieldPackage;
+        }
+
+        public String getUtcTimestampPrecision() {
+            return utcTimestampPrecision;
+        }
+
+        public void setUtcTimestampPrecision(String utcTimestampPrecision) {
+            this.utcTimestampPrecision = utcTimestampPrecision;
         }
 
         public String getMessageDirectory() {
@@ -428,6 +456,7 @@ public class MessageCodeGenerator {
                 return;
             }
 
+            String utcTimestampPrecision = getOption(UTC_TIMESTAMP_PRECISION_OPTION, null);
             boolean overwrite = getOption(OVERWRITE_OPTION, true);
             boolean orderedFields = getOption(ORDERED_FIELDS_OPTION, false);
             boolean useDecimal = getOption(BIGDECIMAL_TYPE_OPTION, false);
@@ -444,6 +473,7 @@ public class MessageCodeGenerator {
                 task.setMessagePackage("quickfix." + version.toLowerCase());
                 task.setOutputBaseDirectory(new File(args[2]));
                 task.setFieldPackage("quickfix.field");
+                task.setUtcTimestampPrecision(utcTimestampPrecision);
                 task.setOverwrite(overwrite);
                 task.setOrderedFields(orderedFields);
                 task.setDecimalGenerated(useDecimal);
@@ -457,6 +487,11 @@ public class MessageCodeGenerator {
             codeGenerator.logError("error during code generation", e);
             System.exit(1);
         }
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static String getOption(String key, String defaultValue) {
+        return System.getProperties().getProperty(key, defaultValue);
     }
 
     private static boolean getOption(String key, boolean defaultValue) {

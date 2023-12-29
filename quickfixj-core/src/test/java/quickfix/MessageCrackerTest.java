@@ -22,12 +22,9 @@ package quickfix;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.stub;
 
 import java.io.InvalidObjectException;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import quickfix.MessageCracker.RedundantHandlerException;
@@ -41,14 +38,6 @@ import quickfix.field.TargetCompID;
 
 public class MessageCrackerTest {
     private int messageCracked;
-    private Session mockSession;
-
-    @Before
-    public void setUp() throws Exception {
-        mockSession = mock(Session.class);
-        stub(mockSession.getTargetDefaultApplicationVersionID()).toReturn(
-                new ApplVerID(ApplVerID.FIX50SP2));
-    }
 
     @Test(expected=UnsupportedMessageType.class)
     public void testInvokerException1() throws Exception {
@@ -237,12 +226,27 @@ public class MessageCrackerTest {
 
         assertTrue(messageCracked > 0);
     }
+    
+    @Test
+    public void testFixtMessageCrackingWithFixLatestApplVerID() throws Exception {
+        quickfix.fixlatest.Email message = createFixLatestEmail();
+        message.getHeader().setString(ApplVerID.FIELD, ApplVerID.FIXLATEST);
+
+        MessageCracker cracker = new MessageCracker() {
+            @SuppressWarnings("unused")
+            public void onMessage(quickfix.fixlatest.Email email, SessionID sessionID) {
+                messageCracked++;
+            }
+        };
+
+        cracker.crack(message, new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER", "TARGET"));
+
+        assertTrue(messageCracked > 0);
+    }
 
     @Test
     public void testFixtMessageCrackingWithSessionDefaultApplVerID() throws Exception {
         quickfix.fix44.Email message = createFix44Email();
-        stub(mockSession.getTargetDefaultApplicationVersionID()).toReturn(
-                new ApplVerID(ApplVerID.FIX44));
 
         MessageCracker cracker = new MessageCracker() {
             @SuppressWarnings("unused")
@@ -283,6 +287,14 @@ public class MessageCrackerTest {
 
     private quickfix.fix44.Email createFix44Email() {
         quickfix.fix44.Email message = new quickfix.fix44.Email();
+        message.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIXT11);
+        message.getHeader().setString(SenderCompID.FIELD, "SENDER");
+        message.getHeader().setString(TargetCompID.FIELD, "TARGET");
+        return message;
+    }
+    
+    private quickfix.fixlatest.Email createFixLatestEmail() {
+        quickfix.fixlatest.Email message = new quickfix.fixlatest.Email();
         message.getHeader().setString(BeginString.FIELD, FixVersions.BEGINSTRING_FIXT11);
         message.getHeader().setString(SenderCompID.FIELD, "SENDER");
         message.getHeader().setString(TargetCompID.FIELD, "TARGET");

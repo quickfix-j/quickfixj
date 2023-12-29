@@ -3,6 +3,8 @@ package quickfix;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -75,6 +77,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<SessionID> sessionIDSupplier = () -> new SessionID(beginString, senderCompID, targetCompID);
         private Supplier<Application> applicationSupplier = UnitTestApplication::new;
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
+        private Supplier<MessageQueueFactory> messageQueueFactorySupplier = InMemoryMessageQueueFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
@@ -92,6 +95,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean persistMessages = false;
         private final boolean useClosedRangeForResend = false;
         private final double testRequestDelayMultiplier = 1.5;
+        private final double heartBeatTimeoutMultiplier = 2.5;
         private DefaultApplVerID senderDefaultApplVerID = null;
         private boolean validateSequenceNumbers = true;
         private final int[] logonIntervals = new int[]{5};
@@ -108,10 +112,12 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private boolean enableNextExpectedMsgSeqNum = false;
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
+        private final boolean allowPosDup = false;
+        private List<StringField> logonTags = new ArrayList<>();
 
         public Session build() {
-            return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), sessionIDSupplier.get(),
-                    dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
+            return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), messageQueueFactorySupplier.get(),
+                    sessionIDSupplier.get(), dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
                     messageFactorySupplier.get(), sessionHeartbeatIntervalSupplier.get(), checkLatency, maxLatency,
                     timestampPrecision, resetOnLogon, resetOnLogout, resetOnDisconnect, refreshMessageStoreAtLogon,
                     checkCompID, redundantResentRequestsAllowed, persistMessages, useClosedRangeForResend,
@@ -119,7 +125,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup);
         }
 
         public Builder setBeginString(final String beginString) {
@@ -154,6 +160,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
             return this;
         }
 
+        public Builder setMessageQueueFactory(final MessageQueueFactory messageQueueFactory) {
+            this.messageQueueFactorySupplier = () -> messageQueueFactory;
+            return this;
+        }
+
         public Builder setDataDictionaryProvider(final DataDictionaryProvider dataDictionaryProvider) {
             this.dataDictionaryProviderSupplier = () -> dataDictionaryProvider;
             return this;
@@ -166,6 +177,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setLogFactory(final LogFactory logFactory) {
             this.logFactorySupplier = () -> logFactory;
+            return this;
+        }
+
+        public Builder setLogonTags(final List<StringField> logonTags) {
+            this.logonTags = logonTags;
             return this;
         }
 

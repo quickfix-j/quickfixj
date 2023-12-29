@@ -25,8 +25,10 @@ import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -45,6 +47,7 @@ public class DefaultSessionFactory implements SessionFactory {
 
     private final Application application;
     private final MessageStoreFactory messageStoreFactory;
+    private final MessageQueueFactory messageQueueFactory;
     private final LogFactory logFactory;
     private final MessageFactory messageFactory;
     private final SessionScheduleFactory sessionScheduleFactory;
@@ -53,6 +56,7 @@ public class DefaultSessionFactory implements SessionFactory {
             LogFactory logFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = new InMemoryMessageQueueFactory();
         this.logFactory = logFactory;
         this.messageFactory = new DefaultMessageFactory();
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
@@ -62,6 +66,7 @@ public class DefaultSessionFactory implements SessionFactory {
             LogFactory logFactory, MessageFactory messageFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = new InMemoryMessageQueueFactory();
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = new DefaultSessionScheduleFactory();
@@ -72,6 +77,18 @@ public class DefaultSessionFactory implements SessionFactory {
                                  SessionScheduleFactory sessionScheduleFactory) {
         this.application = application;
         this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = new InMemoryMessageQueueFactory();
+        this.logFactory = logFactory;
+        this.messageFactory = messageFactory;
+        this.sessionScheduleFactory = sessionScheduleFactory;
+    }
+
+    public DefaultSessionFactory(Application application, MessageStoreFactory messageStoreFactory,
+                                 MessageQueueFactory messageQueueFactory, LogFactory logFactory,
+                                 MessageFactory messageFactory, SessionScheduleFactory sessionScheduleFactory) {
+        this.application = application;
+        this.messageStoreFactory = messageStoreFactory;
+        this.messageQueueFactory = messageQueueFactory;
         this.logFactory = logFactory;
         this.messageFactory = messageFactory;
         this.sessionScheduleFactory = sessionScheduleFactory;
@@ -157,7 +174,7 @@ public class DefaultSessionFactory implements SessionFactory {
             if (connectionType.equals(SessionFactory.INITIATOR_CONNECTION_TYPE)) {
                 heartbeatInterval = (int) settings.getLong(sessionID, Session.SETTING_HEARTBTINT);
                 if (heartbeatInterval <= 0) {
-                    throw new ConfigError("Heartbeat must be greater than zero");
+                    throw new ConfigError("Heartbeat interval must be greater than zero");
                 }
             }
 
@@ -168,6 +185,9 @@ public class DefaultSessionFactory implements SessionFactory {
             final double testRequestDelayMultiplier = getSetting(settings, sessionID,
                     Session.SETTING_TEST_REQUEST_DELAY_MULTIPLIER,
                     Session.DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER);
+            final double heartBeatTimeoutMultiplier = getSetting(settings, sessionID,
+                    Session.SETTING_HEARTBEAT_TIMEOUT_MULTIPLIER,
+                    Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER);
 
             final UtcTimestampPrecision timestampPrecision = getTimestampPrecision(settings, sessionID,
                     UtcTimestampPrecision.MILLIS);
@@ -181,7 +201,7 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean resetOnLogon = getSetting(settings, sessionID, Session.SETTING_RESET_ON_LOGON,
                     false);
 
-            final boolean refreshAtLogon = getSetting(settings, sessionID,
+            final boolean refreshOnLogon = getSetting(settings, sessionID,
                     Session.SETTING_REFRESH_ON_LOGON, false);
 
             final boolean checkCompID = getSetting(settings, sessionID, Session.SETTING_CHECK_COMP_ID,
@@ -208,23 +228,26 @@ public class DefaultSessionFactory implements SessionFactory {
             final boolean enableNextExpectedMsgSeqNum = getSetting(settings, sessionID, Session.SETTING_ENABLE_NEXT_EXPECTED_MSG_SEQ_NUM, false);
             final boolean enableLastMsgSeqNumProcessed = getSetting(settings, sessionID, Session.SETTING_ENABLE_LAST_MSG_SEQ_NUM_PROCESSED, false);
             final int resendRequestChunkSize = getSetting(settings, sessionID, Session.SETTING_RESEND_REQUEST_CHUNK_SIZE, Session.DEFAULT_RESEND_RANGE_CHUNK_SIZE);
+            final boolean allowPossDup = getSetting(settings, sessionID, Session.SETTING_ALLOW_POS_DUP_MESSAGES, false);
 
             final int[] logonIntervals = getLogonIntervalsInSeconds(settings, sessionID);
             final Set<InetAddress> allowedRemoteAddresses = getInetAddresses(settings, sessionID);
 
             final SessionSchedule sessionSchedule = sessionScheduleFactory.create(sessionID, settings);
 
-            final Session session = new Session(application, messageStoreFactory, sessionID,
-                    dataDictionaryProvider, sessionSchedule, logFactory,
+            final List<StringField> logonTags = getLogonTags(settings, sessionID);
+
+            final Session session = new Session(application, messageStoreFactory, messageQueueFactory,
+                    sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
                     messageFactory, heartbeatInterval, checkLatency, maxLatency, timestampPrecision,
-                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshAtLogon, checkCompID,
+                    resetOnLogon, resetOnLogout, resetOnDisconnect, refreshOnLogon, checkCompID,
                     redundantResentRequestAllowed, persistMessages, useClosedIntervalForResend,
                     testRequestDelayMultiplier, senderDefaultApplVerID, validateSequenceNumbers,
                     logonIntervals, resetOnError, disconnectOnError, disableHeartBeatCheck, rejectGarbledMessage,
                     rejectInvalidMessage, rejectMessageOnUnhandledException, requiresOrigSendingTime,
                     forceResendWhenCorruptedStore, allowedRemoteAddresses, validateIncomingMessage,
                     resendRequestChunkSize, enableNextExpectedMsgSeqNum, enableLastMsgSeqNumProcessed,
-                    validateChecksum);
+                    validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPossDup);
 
             session.setLogonTimeout(logonTimeout);
             session.setLogoutTimeout(logoutTimeout);
@@ -425,6 +448,23 @@ public class DefaultSessionFactory implements SessionFactory {
         } else {
             return defaultValue;
         }
+    }
+
+    private List<StringField> getLogonTags(SessionSettings settings, SessionID sessionID) throws ConfigError, FieldConvertError {
+        List<StringField> logonTags = new ArrayList<>();
+        for (int index = 0;; index++) {
+            final String logonTagSetting = Session.SETTING_LOGON_TAG
+                    + (index == 0 ? "" : NumbersCache.get(index));
+            if (settings.isSetting(sessionID, logonTagSetting)) {
+                String tag = settings.getString(sessionID, logonTagSetting);
+                String[] split = tag.split("=", 2);
+                StringField stringField = new StringField(Integer.valueOf(split[0]), split[1]);
+                logonTags.add(stringField);
+            } else {
+                break;
+            }
+        }
+        return logonTags;
     }
 
 }
