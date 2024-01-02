@@ -412,7 +412,14 @@ public class SessionSettings {
     }
     
     /**
-     * Get a settings boolean if present or use default value.
+     * Get a boolean setting from the default section if present or use default value.
+     */
+    public boolean getBoolOrDefault(String key, boolean defaultValue) throws FieldConvertError, ConfigError {
+        return isSetting(key) ? getBool(key) : defaultValue;
+    }
+
+    /**
+     * Get a boolean setting if present or use default value.
      */
     public boolean getBoolOrDefault(SessionID sessionID, String key, boolean defaultValue) throws FieldConvertError, ConfigError {
         return isSetting(sessionID, key) ? getBool(sessionID, key) : defaultValue;
