@@ -21,8 +21,7 @@ package quickfix.mina;
 
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.session.IoSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import quickfix.LogUtil;
 import quickfix.Responder;
 import quickfix.Session;
 
@@ -34,7 +33,6 @@ import java.net.SocketAddress;
  * the MINA networking code.
  */
 public class IoSessionResponder implements Responder {
-    private final Logger log = LoggerFactory.getLogger(getClass());
     private final IoSession ioSession;
     private final boolean synchronousWrites;
     private final long synchronousWriteTimeout;
@@ -50,8 +48,8 @@ public class IoSessionResponder implements Responder {
     @Override
     public boolean send(String data) {
         // Check for and disconnect slow consumers.
+        Session qfjSession = (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
         if (maxScheduledWriteRequests > 0 && ioSession.getScheduledWriteMessages() >= maxScheduledWriteRequests) {
-            Session qfjSession = (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
             try {
                 qfjSession.disconnect("Slow consumer", true);
             } catch (IOException e) {
@@ -64,11 +62,11 @@ public class IoSessionResponder implements Responder {
         if (synchronousWrites) {
             try {
                 if (!future.awaitUninterruptibly(synchronousWriteTimeout)) {
-                    log.error("Synchronous write timed out after {}ms", synchronousWriteTimeout);
+                    qfjSession.getLog().onErrorEvent("Synchronous write timed out after " + synchronousWriteTimeout + "ms.");
                     return false;
                 }
             } catch (RuntimeException e) {
-                log.error("Synchronous write failed: {}", e.getMessage());
+                LogUtil.logThrowable(qfjSession.getSessionID(), "Synchronous write failed.", e);
                 return false;
             }
         }
