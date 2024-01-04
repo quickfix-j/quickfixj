@@ -2011,7 +2011,7 @@ public class Session implements Closeable {
                 disconnect("Timed out waiting for heartbeat", true);
                 stateListener.onHeartBeatTimeout(sessionID);
             } else {
-                LOG.warn("Heartbeat failure detected but deactivated");
+                getLog().onWarnEvent("Heartbeat failure detected but deactivated");
             }
         } else {
             if (state.isTestRequestNeeded()) {
