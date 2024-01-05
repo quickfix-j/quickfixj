@@ -92,6 +92,10 @@ public class IoSessionResponder implements Responder {
         return null;
     }
 
+    IoSession getIoSession() {
+        return ioSession;
+    }
+
     private Session getQFJSession() {
         return (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
     }
