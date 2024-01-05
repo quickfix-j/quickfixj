@@ -48,10 +48,9 @@ public class IoSessionResponder implements Responder {
     @Override
     public boolean send(String data) {
         // Check for and disconnect slow consumers.
-        Session qfjSession = (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
         if (maxScheduledWriteRequests > 0 && ioSession.getScheduledWriteMessages() >= maxScheduledWriteRequests) {
             try {
-                qfjSession.disconnect("Slow consumer", true);
+                getQFJSession().disconnect("Slow consumer", true);
             } catch (IOException e) {
             }
             return false;
@@ -62,11 +61,11 @@ public class IoSessionResponder implements Responder {
         if (synchronousWrites) {
             try {
                 if (!future.awaitUninterruptibly(synchronousWriteTimeout)) {
-                    qfjSession.getLog().onErrorEvent("Synchronous write timed out after " + synchronousWriteTimeout + "ms.");
+                    getQFJSession().getLog().onErrorEvent("Synchronous write timed out after " + synchronousWriteTimeout + "ms.");
                     return false;
                 }
             } catch (RuntimeException e) {
-                LogUtil.logThrowable(qfjSession.getSessionID(), "Synchronous write failed.", e);
+                LogUtil.logThrowable(getQFJSession().getSessionID(), "Synchronous write failed.", e);
                 return false;
             }
         }
@@ -79,7 +78,7 @@ public class IoSessionResponder implements Responder {
         // by the following call. We are using a minimal
         // threading model and calling join will prevent the
         // close event from being processed by this thread (if
-        // this thread is the MINA IO processor thread.
+        // this thread is the MINA IO processor thread).
         ioSession.closeOnFlush();
         ioSession.setAttribute(SessionConnector.QFJ_RESET_IO_CONNECTOR, Boolean.TRUE);
     }
@@ -93,7 +92,8 @@ public class IoSessionResponder implements Responder {
         return null;
     }
 
-    IoSession getIoSession() {
-        return ioSession;
+    private Session getQFJSession() {
+        return (Session) ioSession.getAttribute(SessionConnector.QF_SESSION);
     }
+
 }
