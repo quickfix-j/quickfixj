@@ -53,7 +53,6 @@ public class IoSessionResponderTest {
         boolean result = responder.send("abcd");
 
         assertTrue(result);
-        verify(mockIoSession).getAttribute(SessionConnector.QF_SESSION);
         verify(mockIoSession).write("abcd");
         verifyNoMoreInteractions(mockWriteFuture);
         verifyNoMoreInteractions(mockIoSession);
@@ -71,7 +70,6 @@ public class IoSessionResponderTest {
         boolean result = responder.send("abcd");
 
         assertTrue(result);
-        verify(mockIoSession).getAttribute(SessionConnector.QF_SESSION);
         verify(mockIoSession).write("abcd");
         verify(mockWriteFuture).awaitUninterruptibly(timeout);
         verifyNoMoreInteractions(mockWriteFuture);
