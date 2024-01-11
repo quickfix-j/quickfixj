@@ -79,6 +79,9 @@
                         <plugin>
                                 <artifactId>maven-plugin-plugin</artifactId>
                                 <version>3.11.0</version>
+                                <configuration>
+                                    <goalPrefix>quickfixj-codegenerator</goalPrefix>
+                                </configuration>
                         </plugin>
 		</plugins>
 	</build>
