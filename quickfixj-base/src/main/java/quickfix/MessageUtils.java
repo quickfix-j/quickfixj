@@ -208,10 +208,10 @@ public class MessageUtils {
     };
 
     /**
-     * Convert an ApplVerID to a "begin string"
+     * Convert an ApplVerID to a BeginString.
      *
      * @param applVerID
-     * @return the begin string for the specified ApplVerID.
+     * @return the BeginString for the specified ApplVerID.
      * @throws QFJException if conversion fails.
      * @see ApplVerID
      */
@@ -239,10 +239,10 @@ public class MessageUtils {
     };
 
     /**
-     * Convert a begin string to an ApplVerID
+     * Convert a BeginString to an ApplVerID.
      *
      * @param beginString
-     * @return the ApplVerID for the specified begin string.
+     * @return the ApplVerID for the specified BeginString.
      * @throws QFJException if conversion fails.
      * @see FixVersions
      */

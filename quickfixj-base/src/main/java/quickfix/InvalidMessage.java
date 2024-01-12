@@ -19,8 +19,8 @@
 
 package quickfix;
 
-/*
- * An exception when a message is not valid according to the
+/**
+ * Thrown when a message is not valid according to the
  * basic message validation or the data dictionary.
  */
 public class InvalidMessage extends Exception {
