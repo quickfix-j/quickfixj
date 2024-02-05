@@ -23,19 +23,21 @@ import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quickfix.Acceptor;
 import quickfix.ApplicationAdapter;
 import quickfix.ConfigError;
 import quickfix.DefaultMessageFactory;
 import quickfix.FixVersions;
+import quickfix.Initiator;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.RuntimeError;
 import quickfix.Session;
+import quickfix.SessionFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.ThreadedSocketAcceptor;
@@ -552,6 +554,51 @@ public class SSLCertificateTest {
         }
     }
 
+    @Test
+    public void shouldConnectDifferentTypesOfSessions() throws Exception {
+        int sslPort = AvailablePortFinder.getNextAvailable();
+        int nonSslPort = AvailablePortFinder.getNextAvailable();
+        TestAcceptor acceptor = new TestAcceptor(createMixedSessionAcceptorSettings(sslPort, nonSslPort, "single-session/server.keystore"));
+
+        try {
+            acceptor.start();
+
+            TestInitiator sslInitiator = new TestInitiator(
+                    createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
+                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU_SSL", "ALFA_SSL", Integer.toString(sslPort), "JKS", "JKS"));
+
+            TestInitiator nonSslInitiator = new TestInitiator(createInitiatorSettings("ZULU_NON_SSL", "ALFA_NON_SSL", nonSslPort));
+
+            try {
+                sslInitiator.start();
+                nonSslInitiator.start();
+
+                sslInitiator.assertNoSslExceptionThrown();
+                sslInitiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_SSL", "ALFA_SSL"));
+                sslInitiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_SSL", "ALFA_SSL"),
+                        new BigInteger("1448538842"));
+
+                acceptor.assertNoSslExceptionThrown();
+                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL"));
+
+                nonSslInitiator.assertNoSslExceptionThrown();
+                nonSslInitiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_NON_SSL", "ALFA_NON_SSL"));
+                nonSslInitiator.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU_NON_SSL", "ALFA_NON_SSL"));
+
+                acceptor.assertNoSslExceptionThrown();
+                acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_NON_SSL", "ZULU_NON_SSL"));
+                acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_NON_SSL", "ZULU_NON_SSL"));
+
+            } finally {
+                sslInitiator.stop();
+                nonSslInitiator.stop();
+            }
+        } finally {
+            acceptor.stop();
+        }
+    }
+
     static abstract class TestConnector {
         private static final Logger LOGGER = LoggerFactory.getLogger(TestConnector.class);
         private static final int TIMEOUT_SECONDS = 5;
@@ -744,24 +791,53 @@ public class SSLCertificateTest {
             return new ThreadedSocketInitiator(new ApplicationAdapter(),
                     messageStoreFactory, sessionSettings, messageFactory);
         }
+    }
 
+    /**
+     * Creates acceptor settings that contains two sessions. One with SSL support, one without.
+     */
+    private SessionSettings createMixedSessionAcceptorSettings(int sslPort, int nonSslPort, String keyStoreName) {
+        HashMap<Object, Object> defaults = new HashMap<>();
+        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
+        defaults.put(Session.SETTING_START_TIME, "00:00:00");
+        defaults.put(Session.SETTING_END_TIME, "00:00:00");
+        defaults.put(Session.SETTING_HEARTBTINT, "30");
+
+        SessionSettings sessionSettings = new SessionSettings();
+        sessionSettings.set(defaults);
+
+        SessionID sslSession = new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_SSL", "ZULU_SSL");
+        sessionSettings.setString(sslSession, "BeginString", FixVersions.BEGINSTRING_FIX44);
+        sessionSettings.setString(sslSession, "DataDictionary", "FIX44.xml");
+        sessionSettings.setString(sslSession, "TargetCompID", "ZULU_SSL");
+        sessionSettings.setString(sslSession, "SenderCompID", "ALFA_SSL");
+        sessionSettings.setString(sslSession, SSLSupport.SETTING_USE_SSL, "Y");
+        sessionSettings.setString(sslSession, SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
+        sessionSettings.setString(sslSession, SSLSupport.SETTING_KEY_STORE_PWD, "password");
+        sessionSettings.setString(sslSession, SSLSupport.SETTING_NEED_CLIENT_AUTH, "N");
+        sessionSettings.setString(sslSession, "SocketAcceptPort", Integer.toString(sslPort));
+
+        SessionID nonSslSession = new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA_NON_SSL", "ZULU_NON_SSL");
+        sessionSettings.setString(nonSslSession, "BeginString", FixVersions.BEGINSTRING_FIX44);
+        sessionSettings.setString(nonSslSession, "DataDictionary", "FIX44.xml");
+        sessionSettings.setString(nonSslSession, "TargetCompID", "ZULU_NON_SSL");
+        sessionSettings.setString(nonSslSession, "SenderCompID", "ALFA_NON_SSL");
+        sessionSettings.setString(nonSslSession, "SocketAcceptPort", Integer.toString(nonSslPort));
+
+        return sessionSettings;
     }
 
     private SessionSettings createMultiSessionAcceptorSettings(String keyStoreName, boolean needClientAuth,
             String[] trustStoreNames, String cipherSuites, String protocols) {
         HashMap<Object, Object> defaults = new HashMap<>();
-        defaults.put("ConnectionType", "acceptor");
-        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
         defaults.put(SSLSupport.SETTING_KEY_STORE_PWD, "password");
-
         defaults.put(SSLSupport.SETTING_NEED_CLIENT_AUTH, needClientAuth ? "Y" : "N");
-        defaults.put("SocketAcceptHost", "localhost");
-        defaults.put("StartTime", "00:00:00");
-        defaults.put("EndTime", "00:00:00");
-        defaults.put("HeartBtInt", "30");
-        defaults.put("ReconnectInterval", "2");
+        defaults.put(Session.SETTING_START_TIME, "00:00:00");
+        defaults.put(Session.SETTING_END_TIME, "00:00:00");
+        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -791,8 +867,7 @@ public class SSLCertificateTest {
     private SessionSettings createAcceptorSettings(String keyStoreName, boolean needClientAuth, String trustStoreName,
             String cipherSuites, String protocols, String keyStoreType, String trustStoreType, int port) {
         HashMap<Object, Object> defaults = new HashMap<>();
-        defaults.put("ConnectionType", "acceptor");
-        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "acceptor");
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
         defaults.put(SSLSupport.SETTING_KEY_STORE_PWD, "password");
@@ -811,12 +886,10 @@ public class SSLCertificateTest {
         }
 
         defaults.put(SSLSupport.SETTING_NEED_CLIENT_AUTH, needClientAuth ? "Y" : "N");
-        defaults.put("SocketAcceptHost", "localhost");
-        defaults.put("SocketAcceptPort", Integer.toString(port));
-        defaults.put("StartTime", "00:00:00");
-        defaults.put("EndTime", "00:00:00");
-        defaults.put("HeartBtInt", "30");
-        defaults.put("ReconnectInterval", "2");
+        defaults.put(Acceptor.SETTING_SOCKET_ACCEPT_PORT, Integer.toString(port));
+        defaults.put(Session.SETTING_START_TIME, "00:00:00");
+        defaults.put(Session.SETTING_END_TIME, "00:00:00");
+        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -848,8 +921,8 @@ public class SSLCertificateTest {
                                                     String protocols, String senderId, String targetId, String port, String keyStoreType,
                                                     String trustStoreType, String endpointIdentificationAlgorithm) {
         HashMap<Object, Object> defaults = new HashMap<>();
-        defaults.put("ConnectionType", "initiator");
-        defaults.put("SocketConnectProtocol", ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
         defaults.put(SSLSupport.SETTING_USE_SSL, "Y");
         defaults.put(SSLSupport.SETTING_KEY_STORE_NAME, keyStoreName);
         defaults.put(SSLSupport.SETTING_KEY_STORE_PWD, "password");
@@ -867,12 +940,12 @@ public class SSLCertificateTest {
             }
         }
 
-        defaults.put("SocketConnectHost", "localhost");
-        defaults.put("SocketConnectPort", port);
-        defaults.put("StartTime", "00:00:00");
-        defaults.put("EndTime", "00:00:00");
-        defaults.put("HeartBtInt", "30");
-        defaults.put("ReconnectInterval", "2");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, port);
+        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
+        defaults.put(Session.SETTING_START_TIME, "00:00:00");
+        defaults.put(Session.SETTING_END_TIME, "00:00:00");
+        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         if (cipherSuites != null) {
             defaults.put(SSLSupport.SETTING_CIPHER_SUITES, cipherSuites);
@@ -885,6 +958,29 @@ public class SSLCertificateTest {
         if (endpointIdentificationAlgorithm != null) {
             defaults.put(SSLSupport.SETTING_ENDPOINT_IDENTIFICATION_ALGORITHM, endpointIdentificationAlgorithm);
         }
+
+        SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, senderId, targetId);
+
+        SessionSettings sessionSettings = new SessionSettings();
+        sessionSettings.set(defaults);
+        sessionSettings.setString(sessionID, "BeginString", FixVersions.BEGINSTRING_FIX44);
+        sessionSettings.setString(sessionID, "DataDictionary", "FIX44.xml");
+        sessionSettings.setString(sessionID, "SenderCompID", senderId);
+        sessionSettings.setString(sessionID, "TargetCompID", targetId);
+
+        return sessionSettings;
+    }
+
+    private SessionSettings createInitiatorSettings(String senderId, String targetId, int port) {
+        HashMap<Object, Object> defaults = new HashMap<>();
+        defaults.put(SessionFactory.SETTING_CONNECTION_TYPE, "initiator");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PROTOCOL, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET));
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_HOST, "localhost");
+        defaults.put(Initiator.SETTING_SOCKET_CONNECT_PORT, Integer.toString(port));
+        defaults.put(Initiator.SETTING_RECONNECT_INTERVAL, "2");
+        defaults.put(Session.SETTING_START_TIME, "00:00:00");
+        defaults.put(Session.SETTING_END_TIME, "00:00:00");
+        defaults.put(Session.SETTING_HEARTBTINT, "30");
 
         SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, senderId, targetId);
 
