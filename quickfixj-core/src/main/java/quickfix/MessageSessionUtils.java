@@ -36,6 +36,7 @@ public class MessageSessionUtils {
     public static Message parse(Session session, String messageString) throws InvalidMessage {
         final String beginString = MessageUtils.getStringField(messageString, BeginString.FIELD);
         final String msgType = MessageUtils.getMessageType(messageString);
+        final boolean isLogon = MessageUtils.isLogonMsgType(msgType);
         final MessageFactory messageFactory = session.getMessageFactory();
         final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
         final ApplVerID applVerID;
@@ -44,17 +45,20 @@ public class MessageSessionUtils {
         final quickfix.Message message;
         final DataDictionary payloadDictionary;
 
-        if (!MessageUtils.isAdminMessage(msgType) || MessageUtils.isLogon(messageString)) {
+        if (!MessageUtils.isAdminMessage(msgType) || isLogon) {
             if (FixVersions.BEGINSTRING_FIXT11.equals(beginString)) {
-                applVerID = getApplVerID(session, messageString);
+                applVerID = getApplVerID(session, messageString, isLogon);
             } else {
                 applVerID = MessageUtils.toApplVerID(beginString);
             }
-            final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
-                    .getApplicationDataDictionary(applVerID);
-            payloadDictionary = MessageUtils.isAdminMessage(msgType)
-                    ? sessionDataDictionary
-                    : applicationDataDictionary;
+            
+            if (isLogon) {
+                payloadDictionary = sessionDataDictionary;
+            } else {    // we got an app message
+                final DataDictionary applicationDataDictionary = ddProvider == null ? null : ddProvider
+                        .getApplicationDataDictionary(applVerID);
+                payloadDictionary = applicationDataDictionary;
+            }
         } else {
             applVerID = null;
             payloadDictionary = sessionDataDictionary;
@@ -70,7 +74,7 @@ public class MessageSessionUtils {
         return message;
     }
 
-    private static ApplVerID getApplVerID(Session session, String messageString)
+    private static ApplVerID getApplVerID(Session session, String messageString, boolean isLogon)
             throws InvalidMessage {
         ApplVerID applVerID = null;
 
@@ -83,7 +87,7 @@ public class MessageSessionUtils {
             applVerID = session.getTargetDefaultApplicationVersionID();
         }
 
-        if (applVerID == null && MessageUtils.isLogon(messageString)) {
+        if (applVerID == null && isLogon) {
             final String defaultApplVerIdString = MessageUtils.getStringField(messageString,
                     DefaultApplVerID.FIELD);
             if (defaultApplVerIdString != null) {
