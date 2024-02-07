@@ -101,6 +101,7 @@ public class MessageUtils {
      * @param messageFactory
      * @param dataDictionary
      * @param messageString
+     * @param validateChecksum
      * @return the parsed message
      * @throws InvalidMessage
      */
@@ -127,6 +128,10 @@ public class MessageUtils {
 
     public static boolean isLogon(String message) {
         return isMessageType(message, MsgType.LOGON);
+    }
+
+    public static boolean isLogonMsgType(String msgType) {
+        return MsgType.LOGON.equals(msgType);
     }
 
     private static boolean isMessageType(String message, String msgType) {
