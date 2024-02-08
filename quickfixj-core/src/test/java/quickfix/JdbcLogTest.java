@@ -133,7 +133,6 @@ public class JdbcLogTest {
         if (filterHeartbeats) {
             settings.setBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS, false);
         }
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, "SELECT COUNT(1) FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE 1 = 0;");
         JdbcTestSupport.setHypersonicSettings(settings);
         initializeTableDefinitions(connection);
         logFactory = new JdbcLogFactory(settings);
