@@ -68,10 +68,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>2.0.10</slf4j.version>
+		<slf4j.version>2.0.12</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>2.2</hamcrest.version>
-		<junit.jupiter.version>5.10.1</junit.jupiter.version>
+		<junit.jupiter.version>5.10.2</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
@@ -81,7 +81,7 @@
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.12.1</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
-		<maven-surefire-plugin-version>3.2.3</maven-surefire-plugin-version>
+		<maven-surefire-plugin-version>3.2.5</maven-surefire-plugin-version>
 		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.3.0</maven-source-plugin-version>
 		<maven-javadoc-plugin-version>3.6.3</maven-javadoc-plugin-version>
@@ -94,7 +94,7 @@
 		<build-helper-maven-plugin-version>3.5.0</build-helper-maven-plugin-version>
 		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
 		<file-management.version>3.0.0</file-management.version>
-		<maven-plugin-annotations.version>3.10.2</maven-plugin-annotations.version>
+		<maven-plugin-annotations.version>3.11.0</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
@@ -467,7 +467,7 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.10.2</version>
+					<version>3.11.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-install-plugin</artifactId>
