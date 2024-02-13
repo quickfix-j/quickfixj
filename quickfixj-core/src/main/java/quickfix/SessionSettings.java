@@ -877,4 +877,22 @@ public class SessionSettings {
         return result;
     }
 
+    public void removeSection(final SessionID sessionID) throws ConfigError {
+        Properties properties = getSessionProperties(sessionID);
+
+        if (properties == null) {
+            throw new ConfigError("Session not found");
+        }
+        sections.remove(sessionID);
+    }
+
+    public void removeSection(final String propertyKey, final String propertyValue) throws ConfigError {
+        SessionID sessionIdToRemove = sections.entrySet().stream()
+                .filter(entry -> propertyValue.equals(entry.getValue().get(propertyKey)))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElseThrow(() -> new ConfigError("Session not found"));
+
+        sections.remove(sessionIdToRemove);
+    }
 }
