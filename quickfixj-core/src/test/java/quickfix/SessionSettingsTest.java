@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -608,6 +609,51 @@ public class SessionSettingsTest {
 
         // verify test has passed
         assertTrue(testHasPassed.get());
+    }
+
+    @Test
+    public void testRemoveSectionBySessionID() throws ConfigError {
+        final Map<Object, Object> defaultSettings = createDefaultSettings();
+
+        final Map<Object, Object> pricingSection = createPricingSection();
+        final SessionID pricingSessionID = new SessionID("FIX.4.2:FOOBAR_PRICING->*");
+
+        final Map<Object, Object> tradingSection = createTradingSection();
+        final SessionID tradingSessionID = new SessionID("FIX.4.2:FOOBAR_TRADING->*");
+
+        final SessionSettings sessionSettings = new SessionSettings();
+        sessionSettings.set(new Dictionary(null, defaultSettings));
+        sessionSettings.set(pricingSessionID, new Dictionary("sessions", pricingSection));
+        sessionSettings.set(tradingSessionID, new Dictionary("sessions", tradingSection));
+
+        while (sessionSettings.sectionIterator().hasNext()) {
+            SessionID sessionID = sessionSettings.sectionIterator().next();
+            sessionSettings.removeSection(sessionID);
+        }
+
+        assertFalse(sessionSettings.sectionIterator().hasNext());
+    }
+
+    @Test
+    public void testRemoveSectionByPropertyKey() throws ConfigError {
+        final Map<Object, Object> defaultSettings = createDefaultSettings();
+
+        final Map<Object, Object> tradingSection = createTradingSection();
+        final SessionID tradingSessionID = new SessionID("FIX.4.2:FOOBAR_TRADING->*");
+
+        final SessionSettings sessionSettings = new SessionSettings();
+        sessionSettings.set(new Dictionary(null, defaultSettings));
+        sessionSettings.set(tradingSessionID, new Dictionary("sessions", tradingSection));
+
+        sessionSettings.removeSection("SocketAcceptPort", "7566");
+
+        Set<SessionID> expectedSessionIdSet = new HashSet<>();
+        while (sessionSettings.sectionIterator().hasNext()) {
+            SessionID sessionID = sessionSettings.sectionIterator().next();
+            expectedSessionIdSet.add(sessionID);
+        }
+
+        assertFalse(expectedSessionIdSet.contains(tradingSessionID));
     }
 
     private Map<Object, Object> createTradingSection() {
