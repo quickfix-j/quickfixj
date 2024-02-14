@@ -353,6 +353,7 @@
       <value enum="7" description="FIX50"/>
       <value enum="8" description="FIX50SP1"/>
       <value enum="9" description="FIX50SP2"/>
+      <value enum="10" description="FIXLatest"/>
     </field>
     <field number="1129" name="CstmApplVerID" type="STRING"/>
     <field number="1130" name="RefApplVerID" type="STRING"/>

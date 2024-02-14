@@ -101,6 +101,7 @@ public class MessageUtils {
      * @param messageFactory
      * @param dataDictionary
      * @param messageString
+     * @param validateChecksum
      * @return the parsed message
      * @throws InvalidMessage
      */
@@ -127,6 +128,10 @@ public class MessageUtils {
 
     public static boolean isLogon(String message) {
         return isMessageType(message, MsgType.LOGON);
+    }
+
+    public static boolean isLogonMsgType(String msgType) {
+        return MsgType.LOGON.equals(msgType);
     }
 
     private static boolean isMessageType(String message, String msgType) {
@@ -208,10 +213,10 @@ public class MessageUtils {
     };
 
     /**
-     * Convert an ApplVerID to a "begin string"
+     * Convert an ApplVerID to a BeginString.
      *
      * @param applVerID
-     * @return the begin string for the specified ApplVerID.
+     * @return the BeginString for the specified ApplVerID.
      * @throws QFJException if conversion fails.
      * @see ApplVerID
      */
@@ -239,10 +244,10 @@ public class MessageUtils {
     };
 
     /**
-     * Convert a begin string to an ApplVerID
+     * Convert a BeginString to an ApplVerID.
      *
      * @param beginString
-     * @return the ApplVerID for the specified begin string.
+     * @return the ApplVerID for the specified BeginString.
      * @throws QFJException if conversion fails.
      * @see FixVersions
      */

@@ -30,7 +30,7 @@ public interface FixVersions {
     String BEGINSTRING_FIX44 = "FIX.4.4";
 
     /*
-     * FIX 5.0+ does not have a begin string.
+     * FIX 5.0+ does not have a BeginString.
      */
     String FIX50 = "FIX.5.0";
     String FIX50SP1 = "FIX.5.0SP1";
