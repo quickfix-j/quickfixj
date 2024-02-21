@@ -887,12 +887,13 @@ public class SessionSettings {
     }
 
     public void removeSection(final String propertyKey, final String propertyValue) throws ConfigError {
-        SessionID sessionIdToRemove = sections.entrySet().stream()
+        List<SessionID> sessionIDs = sections.entrySet().stream()
                 .filter(entry -> propertyValue.equals(entry.getValue().get(propertyKey)))
                 .map(Map.Entry::getKey)
-                .findFirst()
-                .orElseThrow(() -> new ConfigError("Session not found"));
+                .collect(Collectors.toList());
 
-        sections.remove(sessionIdToRemove);
+        for (SessionID sessionID : sessionIDs) {
+            this.removeSection(sessionID);
+        }
     }
 }
