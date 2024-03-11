@@ -102,7 +102,7 @@
 		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
 		<fix-orchestra.repository.version>1.7.3</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
-		<jaxb.version>4.0.1</jaxb.version>
+		<jaxb.version>4.0.2</jaxb.version>
 		<apache.mina.version>2.2.3</apache.mina.version>
 		<commons.io.version>2.15.1</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
