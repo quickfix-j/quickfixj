@@ -475,10 +475,10 @@ public class Session implements Closeable {
             DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule, LogFactory logFactory,
             MessageFactory messageFactory, int heartbeatInterval) {
         this(application, messageStoreFactory, sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
-                messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
-                false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
-                false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-                false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+             messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
+             false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
+             false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
+             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
@@ -499,10 +499,10 @@ public class Session implements Closeable {
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
             boolean allowPossDup) {
         this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
-                messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
-                false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
-                false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-                false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, allowPossDup);
+            messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
+            false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
+            false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
+            false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, allowPossDup);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, MessageQueueFactory messageQueueFactory,
@@ -574,7 +574,7 @@ public class Session implements Closeable {
         }
 
         state = new SessionState(this, engineLog, heartbeatInterval, heartbeatInterval != 0,
-                messageStore, messageQueue, testRequestDelayMultiplier, heartBeatTimeoutMultiplier);
+            messageStore, messageQueue, testRequestDelayMultiplier, heartBeatTimeoutMultiplier);
 
         registerSession(this);
 
@@ -720,7 +720,7 @@ public class Session implements Closeable {
      * @throws SessionNotFound if session could not be located
      */
     public static boolean sendToTarget(Message message, String senderCompID, String targetCompID,
-                                       String qualifier) throws SessionNotFound {
+            String qualifier) throws SessionNotFound {
         try {
             return sendToTarget(message,
                     new SessionID(message.getHeader().getString(BeginString.FIELD), senderCompID,
@@ -1705,7 +1705,7 @@ public class Session implements Closeable {
     }
 
     private void setRejectReason(Message reject, int field, String reason,
-                                 boolean includeFieldInReason) {
+            boolean includeFieldInReason) {
         boolean isRejectMessage;
         try {
             isRejectMessage = MsgType.REJECT.equals(reject.getHeader().getString(MsgType.FIELD));
@@ -2373,7 +2373,7 @@ public class Session implements Closeable {
             } catch (final Exception e) {
                 getLog().onErrorEvent(
                         "Error handling ResendRequest: failed to parse message (" + e.getMessage()
-                                + "): " + message);
+                        + "): " + message);
                 // Note: a SequenceReset message will be generated to fill the gap
                 continue;
             }
@@ -2420,7 +2420,7 @@ public class Session implements Closeable {
                  * may not have been realistic to production on the other hand.
                  * Apart from the else
                  */
-                generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
+            generateSequenceResetIfNeeded(receivedMessage, newBegin, endSeqNo, msgSeqNum);
             }
         } else {
             if (begin != 0) {
@@ -2624,13 +2624,13 @@ public class Session implements Closeable {
     }
 
     private void persist(Header header, String messageString, int num) throws IOException, FieldNotFound {
-        if (num == 0) {
-            if (persistMessages) {
-                final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
-                state.set(msgSeqNum, messageString);
-            }
-            state.incrNextSenderMsgSeqNum();
-        }
+      if (num == 0) {
+          if (persistMessages) {
+              final int msgSeqNum = header.getInt(MsgSeqNum.FIELD);
+              state.set(msgSeqNum, messageString);
+          }
+          state.incrNextSenderMsgSeqNum();
+      }
     }
 
     /**
