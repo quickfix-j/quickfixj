@@ -3145,4 +3145,49 @@ public class SessionTest {
         assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
     }
+
+
+    @Test
+    public void testSessionWithResendRequestChunkSizeAndEnableNextExpectedMsgSeqNum() throws Exception {
+        final UnitTestApplication application = new UnitTestApplication();
+
+        final SessionID sessionID = new SessionID(
+                FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        try (Session session = createSession(sessionID, application, true,
+                true, false,10,true)) {
+
+            final UnitTestResponder responder = new UnitTestResponder();
+            session.setResponder(responder);
+
+            session.logon();
+            session.next();
+
+            final Message logonRequest = new Message(responder.sentMessageData);
+            logonRequest.getHeader().setField(new NextExpectedMsgSeqNum(1));
+
+            Message logonResponse = createLogonResponse(sessionID, logonRequest, 1);
+            // config NextExpectedMsgSeqNum=1
+            logonResponse.getHeader().setField(new NextExpectedMsgSeqNum(1));
+            session.next(logonResponse);
+
+            assertEquals(
+                    1,
+                    application.lastToAdminMessage().getHeader()
+                            .getInt(MsgSeqNum.FIELD));
+            assertEquals(2, session.getStore().getNextTargetMsgSeqNum());
+            assertEquals(2, session.getStore().getNextSenderMsgSeqNum());
+
+            session.next(createHeartbeatMessage(1002));
+            assertNotEquals(ResendRequest.MSGTYPE, application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+
+            session.next(createHeartbeatMessage(1003));
+            assertNotEquals(ResendRequest.MSGTYPE, application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+
+            session.next(createHeartbeatMessage(1001));
+            assertNotEquals(ResendRequest.MSGTYPE, application
+                    .lastToAdminMessage().getHeader().getString(MsgType.FIELD));
+        }
+    }
 }
