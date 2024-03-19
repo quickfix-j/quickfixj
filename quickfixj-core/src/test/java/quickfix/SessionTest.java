@@ -3163,11 +3163,9 @@ public class SessionTest {
             session.next();
 
             final Message logonRequest = new Message(responder.sentMessageData);
-            logonRequest.getHeader().setField(new NextExpectedMsgSeqNum(1));
-
             Message logonResponse = createLogonResponse(sessionID, logonRequest, 1);
-            // config NextExpectedMsgSeqNum=1
-            logonResponse.getHeader().setField(new NextExpectedMsgSeqNum(1));
+            // config Field NextExpectedMsgSeqNum=1
+            logonResponse.setField(new NextExpectedMsgSeqNum(1));
             session.next(logonResponse);
 
             assertEquals(
