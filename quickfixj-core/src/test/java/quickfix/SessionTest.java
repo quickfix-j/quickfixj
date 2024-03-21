@@ -1,8 +1,10 @@
 package quickfix;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import quickfix.field.ApplVerID;
 import quickfix.field.BeginSeqNo;
 import quickfix.field.BeginString;
@@ -52,9 +54,11 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -62,9 +66,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -106,7 +112,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
         }
@@ -150,7 +156,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false)) {
             // Simulate socket disconnect
             session.setResponder(null);
             
@@ -2113,7 +2119,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, false, false, false, true, false, true, false, null, true,
-                chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
+                chunkSize, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2162,7 +2168,7 @@ public class SessionTest {
         }
     }
 
-	@Test
+@Test
 	public void correct_sequence_number_for_last_gap_fill_if_next_sender_sequence_number_is_higher_than_the_last_message_resent()
 			throws IOException, InvalidMessage, FieldNotFound, RejectLogon, UnsupportedMessageType,
 			IncorrectTagValue, IncorrectDataFormat, NoSuchFieldException, IllegalAccessException {
@@ -2175,7 +2181,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+				false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2223,7 +2229,7 @@ public class SessionTest {
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+				enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false);
 
 		Responder mockResponder = mock(Responder.class);
 		when(mockResponder.send(anyString())).thenReturn(true);
@@ -2272,7 +2278,7 @@ public class SessionTest {
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2308,7 +2314,7 @@ public class SessionTest {
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
                 false, 1.5, null, validateSequenceNumbers, new int[] { 5 },
                 false, disconnectOnError, false, false, true, false, true, false,
-                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false)) {
+                null, true, 0, false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false)) {
 
             UnitTestResponder responder = new UnitTestResponder();
             session.setResponder(responder);
@@ -2360,7 +2366,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+                false, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false);
 
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
@@ -2476,7 +2482,7 @@ public class SessionTest {
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
-                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+                enableNextExpectedMsgSeqNum, false, true, new ArrayList<>(), Session.DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false, false);
         UnitTestResponder responder = new UnitTestResponder();
         session.setResponder(responder);
 
@@ -2952,6 +2958,21 @@ public class SessionTest {
         final Session session = SessionFactoryTestSupport.createSession(
                 sessionID, application, isInitiator);
         session.setResponder(responder);
+        assertSetupSessionAttributes(isInitiator, session);
+        return session;
+    }
+
+    private Session setUpSessionForPrioritizedResend(Application application, boolean prioritizeResend, Responder responder) throws Exception{
+        final SessionID sessionID = new SessionID(
+           FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        final Session session = SessionFactoryTestSupport.createSessionWithPersistedMessages(
+           sessionID, application, false, prioritizeResend);
+        session.setResponder(responder);
+        assertSetupSessionAttributes(false, session);
+        return session;
+    }
+
+    private void assertSetupSessionAttributes(boolean isInitiator, Session session) throws NoSuchFieldException, IllegalAccessException {
         final SessionState state = getSessionState(session);
         assertEquals(isInitiator, state.isInitiator());
         assertFalse(state.isLogonSent());
@@ -2962,7 +2983,6 @@ public class SessionTest {
         assertFalse(state.isLogoutSent());
         assertFalse(state.isLogoutReceived());
         assertFalse(state.isLogoutTimedOut());
-        return session;
     }
 
     private Session setUpFileStoreSession(Application application,
@@ -2976,16 +2996,7 @@ public class SessionTest {
                 .createFileStoreSession(sessionID, application, isInitiator,
                         settings, sessionSchedule);
         session.setResponder(responder);
-        final SessionState state = getSessionState(session);
-        assertEquals(isInitiator, state.isInitiator());
-        assertFalse(state.isLogonSent());
-        assertFalse(state.isLogonReceived());
-        assertFalse(state.isLogonAlreadySent());
-        assertEquals(isInitiator, state.isLogonSendNeeded());
-        assertFalse(state.isLogonTimedOut());
-        assertFalse(state.isLogoutSent());
-        assertFalse(state.isLogoutReceived());
-        assertFalse(state.isLogoutTimedOut());
+        assertSetupSessionAttributes(isInitiator, session);
         return session;
     }
 
@@ -3144,5 +3155,36 @@ public class SessionTest {
 
         assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    //QFJ-271 Prioritize resend if and only if configured
+    @Test
+    public void testPrioritizedResend() {
+        final UnitTestApplication application = new UnitTestApplication();
+        // todo upgrade to jupiter @ParameterizedTest
+        for (boolean prioritizeResend : asList(true, false)) {
+            final Responder responder = Mockito.mock(Responder.class);
+            Mockito.when(responder.send(Mockito.any(String.class))).thenReturn(true);
+            try (Session session = setUpSessionForPrioritizedResend(application, prioritizeResend, responder)) {
+                SessionState state = getSessionState(session);
+
+                assertEquals(1, state.getNextTargetMsgSeqNum());
+                logonTo(session, 1);
+                processMessage(session, createAppMessage(2));
+                session.send(createAppMessage(2));
+                assertFalse(state.isResendRequested());
+
+                processMessage(session, createHeartbeatMessage(7));
+                assertTrue(state.isResendRequested());
+                processMessage(session, createResendRequest(3, 2));
+                if (prioritizeResend) {
+                    verify(responder, times(1)).prioritySend(anyList());
+                } else {
+                    verify(responder, never()).prioritySend(anyList());
+                }
+            } catch (Exception e){
+                Assert.fail(e.getMessage());
+            }
+        }
     }
 }
