@@ -49,8 +49,19 @@ package <xsl:value-of select="$messagePackage"/>;
 
 import quickfix.*;
 import <xsl:value-of select="$fieldPackage"/>.*;
+import java.util.HashMap;
 
 public class MessageCracker {
+
+	private final HashMap&lt;String, MessageConsumer&gt; methodRegistry = new HashMap&lt;&gt;();
+	private final MessageConsumer defaultFunction = this::onMessage;
+
+	public MessageCracker() {
+	<xsl:for-each select="//fix/messages/message">
+		methodRegistry.put(<xsl:value-of select="@name"/>.MSGTYPE,
+			(message, sessionID) -> onMessage((<xsl:value-of select="@name"/>) message, sessionID));
+	</xsl:for-each>
+	}
 
 	/**
 	 * Callback for quickfix.Message message.
@@ -116,13 +127,13 @@ public class MessageCracker {
 			throws UnsupportedMessageType, FieldNotFound, IncorrectTagValue {
 
 		String type = message.getHeader().getString(MsgType.FIELD);
+		methodRegistry.getOrDefault(type, defaultFunction).accept(message, sessionID);
+	}
 
-		<xsl:for-each select="//fix/messages/message">
-		<xsl:if test="position()!=1">
-		else </xsl:if>if (type.equals(<xsl:value-of select="@name"/>.MSGTYPE))
-			onMessage((<xsl:value-of select="@name"/>)message, sessionID);</xsl:for-each>
-		else
-			onMessage(message, sessionID);
+	@FunctionalInterface
+	private interface MessageConsumer {
+		void accept(Message message, SessionID sessionID)
+			throws UnsupportedMessageType, IncorrectTagValue, FieldNotFound;
 	}
 </xsl:template>
 
