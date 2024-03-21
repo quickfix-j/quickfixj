@@ -51,10 +51,20 @@ public interface Log {
     void onEvent(String text);
 
     /**
-     * Logs an session error event.
+     * Logs a session error event.
      *
      * @param text the event description
      */
     void onErrorEvent(String text);
+
+     /**
+     * Logs a session warning event.
+     * Logs a session error event if not implemented.
+     * 
+     * @param text the event description
+     */
+    default void onWarnEvent(String text) {
+        onErrorEvent(text);
+    }
 
 }

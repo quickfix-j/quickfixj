@@ -119,7 +119,11 @@ public class SessionSettingsTest {
         assertFalse("wrong setting", settings.getBool(sessionID1, "TestBoolFalse"));
         settings.setBool(sessionID3, "TestBool", true);
         assertTrue("wrong settings", settings.getBool(sessionID3, "TestBool"));
-
+        assertFalse(settings.getBoolOrDefault(sessionID3, "unknownSetting", false));
+        assertTrue(settings.getBoolOrDefault(sessionID3, "unknownSetting", true));
+        assertTrue(settings.getBoolOrDefault(sessionID3, "TestBool", false));
+        assertTrue(settings.getBoolOrDefault(sessionID3, "TestBool", true));
+        
         settings.setString(sessionID3, "TestString", "foo");
         assertEquals("wrong setting", "foo", settings.getString(sessionID3, "TestString"));
 

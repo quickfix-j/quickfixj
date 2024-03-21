@@ -464,15 +464,12 @@ public abstract class SessionConnector implements Connector {
     }
 
     protected boolean isContinueInitOnError() {
-        boolean continueInitOnError = false;
-        if (settings.isSetting(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR)) {
-            try {
-                continueInitOnError = settings.getBool(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR);
-            } catch (ConfigError | FieldConvertError ex) {
-                // ignore and return default
-            }
+        try {
+            return settings.getBoolOrDefault(SessionFactory.SETTING_CONTINUE_INIT_ON_ERROR, false);
+        } catch (FieldConvertError | ConfigError ex) {
+            // ignore and return default
         }
-        return continueInitOnError;
+        return false;
     }
 
 }
