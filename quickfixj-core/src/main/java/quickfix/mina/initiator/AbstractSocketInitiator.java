@@ -123,6 +123,9 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             throw new ConfigError("Must specify at least one socket address");
         }
 
+        // 1 minute by default, matches MINA
+        int connectTimeout = getSettings().getIntOrDefault(sessionID, Initiator.SETTING_SOCKET_CONNECT_TIMEOUT, 60);
+
         SocketAddress localAddress = getLocalAddress(settings, sessionID);
 
         final NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
@@ -174,7 +177,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         ScheduledExecutorService scheduledExecutorService = (scheduledReconnectExecutor != null ? scheduledReconnectExecutor : getScheduledExecutorService());
         try {
             final IoSessionInitiator ioSessionInitiator = new IoSessionInitiator(session,
-                    socketAddresses, localAddress, reconnectingIntervals,
+                    socketAddresses, localAddress, connectTimeout, reconnectingIntervals,
                     scheduledExecutorService, settings, networkingOptions,
                     getEventHandlingStrategy(), getIoFilterChainBuilder(), sslEnabled, sslConfig,
                     proxyType, proxyVersion, proxyHost, proxyPort, proxyUser, proxyPassword, proxyDomain, proxyWorkstation);

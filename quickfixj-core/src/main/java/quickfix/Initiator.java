@@ -54,6 +54,14 @@ public interface Initiator extends Connector {
     String SETTING_SOCKET_CONNECT_PORT = "SocketConnectPort";
 
     /**
+     * Initiator setting for connection timeout. Only valid when session connection
+     * type is "initiator".
+     *
+     * @see quickfix.SessionFactory#SETTING_CONNECTION_TYPE
+     */
+    String SETTING_SOCKET_CONNECT_TIMEOUT = "SocketConnectTimeout";
+
+    /**
      * Initiator setting for local/bind host. Only valid when session connection
      * type is "initiator".
      *
