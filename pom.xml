@@ -104,7 +104,7 @@
 		<docgen.version>1.6.8</docgen.version>
 		<jaxb.version>4.0.2</jaxb.version>
 		<apache.mina.version>2.2.3</apache.mina.version>
-		<commons.io.version>2.15.1</commons.io.version>
+		<commons.io.version>2.16.0</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
 		<proxool.version>0.9.1</proxool.version>
