@@ -2333,8 +2333,7 @@ public class Session implements Closeable {
     }
 
     private void resendMessages(Message receivedMessage, int beginSeqNo, int endSeqNo)
-            throws IOException, FieldNotFound {
-        // Prevent a one-time load of data that is too large, resulting in memory OOM。 if config resendRequestChunkSize。
+            throws IOException, InvalidMessage, FieldNotFound {
         int lastEndSeqNoSent = resendRequestChunkSize == 0 ? endSeqNo : beginSeqNo + resendRequestChunkSize - 1;
         if (lastEndSeqNoSent > endSeqNo) {
             lastEndSeqNoSent = endSeqNo;
