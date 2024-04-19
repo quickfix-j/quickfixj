@@ -19,6 +19,7 @@
 
 package quickfix;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.io.IOException;
@@ -72,6 +73,14 @@ public interface MessageStore {
      * @throws IOException IO error
      */
     Date getCreationTime() throws IOException;
+
+    /**
+     * Get the session creation time as a calendar object.
+     *
+     * @return the session creation time.
+     * @throws IOException IO error
+     */
+    Calendar getCreationTimeCalendar() throws IOException;
 
     /**
      * Reset the message store. Sequence numbers are set back to 1 and stored

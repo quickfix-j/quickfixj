@@ -23,6 +23,7 @@ import org.apache.mina.core.session.IoSession;
 import org.junit.Test;
 import quickfix.FixVersions;
 import quickfix.Message;
+import quickfix.MessageUtils;
 import quickfix.Responder;
 import quickfix.Session;
 import quickfix.SessionFactoryTestSupport;
@@ -33,6 +34,7 @@ import quickfix.UnitTestApplication;
 import quickfix.field.ApplVerID;
 import quickfix.field.DefaultApplVerID;
 import quickfix.field.EncryptMethod;
+import quickfix.field.Headline;
 import quickfix.field.HeartBtInt;
 import quickfix.field.MsgSeqNum;
 import quickfix.field.MsgType;
@@ -42,6 +44,7 @@ import quickfix.field.TargetCompID;
 import quickfix.field.Text;
 import quickfix.fix44.Logout;
 import quickfix.fixt11.Logon;
+import quickfix.fix50.News;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.SessionConnector;
@@ -56,6 +59,7 @@ import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -98,6 +102,42 @@ public class AcceptorIoHandlerTest {
             handler.processMessage(mockIoSession, message);
             assertEquals(defaultApplVerID.getValue(), session.getTargetDefaultApplicationVersionID()
                     .getValue());
+        }
+    }
+
+    @Test
+    public void testFIXTLogonAndUnknownApplVerID() throws Exception {
+        EventHandlingStrategy mockEventHandlingStrategy = mock(EventHandlingStrategy.class);
+        IoSession mockIoSession = mock(IoSession.class);
+        SessionSettings settings = mock(SessionSettings.class);
+
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIXT11, "SENDER",
+                "TARGET");
+        final UnitTestApplication unitTestApplication = new UnitTestApplication();
+        try (Session session = SessionFactoryTestSupport.createSession(sessionID, unitTestApplication, false, false, true, true, new DefaultApplVerID(DefaultApplVerID.FIX50SP2))) {
+            when(mockIoSession.getAttribute("QF_SESSION")).thenReturn(null);    // to create a new Session
+
+            final HashMap<SessionID, Session> acceptorSessions = new HashMap<>();
+            acceptorSessions.put(sessionID, session);
+            final StaticAcceptorSessionProvider sessionProvider = createSessionProvider(acceptorSessions);
+
+            final AcceptorIoHandler handler = new AcceptorIoHandler(sessionProvider,
+                    settings, new NetworkingOptions(new Properties()), mockEventHandlingStrategy);
+
+            final DefaultApplVerID defaultApplVerID = new DefaultApplVerID("33");
+            final Logon message = new Logon(new EncryptMethod(EncryptMethod.NONE_OTHER),
+                    new HeartBtInt(30), defaultApplVerID);
+            message.getHeader().setString(TargetCompID.FIELD, sessionID.getSenderCompID());
+            message.getHeader().setString(SenderCompID.FIELD, sessionID.getTargetCompID());
+            message.getHeader().setField(new SendingTime(LocalDateTime.now()));
+            message.getHeader().setInt(MsgSeqNum.FIELD, 1);
+
+            handler.messageReceived(mockIoSession, message.toString());
+            session.next(message);
+
+            Message lastToAdminMessage = unitTestApplication.lastToAdminMessage();
+            assertEquals(MsgType.LOGOUT, MessageUtils.getMessageType(lastToAdminMessage.toString()));
+            assertTrue(lastToAdminMessage.getString(Text.FIELD).contains("Invalid DefaultApplVerID=33"));
         }
     }
 

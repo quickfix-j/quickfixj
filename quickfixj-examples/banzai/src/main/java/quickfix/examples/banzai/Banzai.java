@@ -71,9 +71,9 @@ public class Banzai {
 
         boolean logHeartbeats = Boolean.valueOf(System.getProperty("logHeartbeats", "true"));
 
-        OrderTableModel orderTableModel = new OrderTableModel();
-        ExecutionTableModel executionTableModel = new ExecutionTableModel();
-        BanzaiApplication application = new BanzaiApplication(orderTableModel, executionTableModel);
+        OrderTableModel orderTableModel = orderTableModel();
+        ExecutionTableModel executionTableModel = executionTableModel();
+        BanzaiApplication application = application(orderTableModel, executionTableModel);
         MessageStoreFactory messageStoreFactory = new FileStoreFactory(settings);
         LogFactory logFactory = new ScreenLogFactory(true, true, true, logHeartbeats);
         MessageFactory messageFactory = new DefaultMessageFactory();
@@ -88,6 +88,18 @@ public class Banzai {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    protected OrderTableModel orderTableModel() {
+        return new OrderTableModel();
+    }
+    
+    protected ExecutionTableModel executionTableModel() {
+        return new ExecutionTableModel();
+    }
+    
+    protected BanzaiApplication application(OrderTableModel orderTableModel, ExecutionTableModel executionTableModel) {
+        return new BanzaiApplication(orderTableModel, executionTableModel);
+    }
+    
     public synchronized void logon() {
         if (!initiatorStarted) {
             try {

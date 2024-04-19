@@ -70,6 +70,10 @@ public class MemoryStore implements MessageStore {
         return creationTime.getTime();
     }
 
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return creationTime;
+    }
+
     /* package */void setCreationTime(Calendar creationTime) {
         this.creationTime = creationTime;
     }
