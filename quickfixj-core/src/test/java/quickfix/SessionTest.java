@@ -1137,7 +1137,7 @@ public class SessionTest {
             @Override
             public void fromAdmin(Message message, SessionID sessionId)
                     throws FieldNotFound, IncorrectDataFormat,
-                    IncorrectTagValue, RejectLogon {
+                    IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 throw new RejectLogon("FOR TEST");
             }
@@ -1176,7 +1176,7 @@ public class SessionTest {
             @Override
             public void fromAdmin(Message message, SessionID sessionId)
                     throws FieldNotFound, IncorrectDataFormat,
-                    IncorrectTagValue, RejectLogon {
+                    IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 throw new RejectLogon("FOR TEST", SessionStatus.SESSION_ACTIVE);
             }
@@ -1192,7 +1192,7 @@ public class SessionTest {
             @Override
             public void fromAdmin(Message message, SessionID sessionId)
                     throws FieldNotFound, IncorrectDataFormat,
-                    IncorrectTagValue, RejectLogon {
+                    IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 throw new RejectLogon("FOR TEST", -1);
             }
@@ -1266,7 +1266,7 @@ public class SessionTest {
             @Override
             public void fromAdmin(Message message, SessionID sessionId)
                     throws FieldNotFound, IncorrectDataFormat,
-                    IncorrectTagValue, RejectLogon {
+                    IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 if (message.getHeader().getString(MsgType.FIELD)
                         .equals(MsgType.LOGON)) {
@@ -1757,7 +1757,7 @@ public class SessionTest {
             @Override
             public void fromAdmin(Message message, SessionID sessionId)
                     throws FieldNotFound, IncorrectDataFormat,
-                    IncorrectTagValue, RejectLogon {
+                    IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 final String msgType = message.getHeader().getString(
                         MsgType.FIELD);
@@ -2460,7 +2460,7 @@ public class SessionTest {
 
             @Override
             public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
-                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 if (message.getHeader().getString(MsgType.FIELD).equals(Logon.MSGTYPE)) {
                     logonCount += 1;
@@ -2772,7 +2772,7 @@ public class SessionTest {
             int logonCount = 0;
             @Override
             public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
-                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 if (message.getHeader().getString(MsgType.FIELD).equals(Logon.MSGTYPE)) {
                     logonCount += 1;
@@ -3144,5 +3144,46 @@ public class SessionTest {
 
         assertTrue(sentMessage.getHeader().isSetField(PossDupFlag.FIELD));
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
+    }
+
+    @Test
+    public void testDoNotFulfillResendRequest() throws Exception {
+        // Given an application that does not fulfill ResendRequests
+        final UnitTestApplication application = new UnitTestApplication() {
+            @Override
+            public void fromAdmin(quickfix.Message message, SessionID sessionID) throws FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
+                 if ("2".contentEquals(message.getHeader().getString(35))) {
+                    throw new DoNotFulfillResendRequest("No resend for you!");
+                 }
+            }
+        };
+
+        // And the session is logged on
+        final SessionID sessionID = new SessionID(FixVersions.BEGINSTRING_FIX44, "SENDER", "TARGET");
+        Session session = SessionFactoryTestSupport.createSession(sessionID, application, false, false, true, true, null);
+        UnitTestResponder responder = new UnitTestResponder();
+        session.setResponder(responder);
+        final SessionState state = getSessionState(session);
+        logonTo(session, 1);
+        assertEquals(2, state.getNextTargetMsgSeqNum());
+        assertEquals(true, session.isLoggedOn());
+
+        // And the following app-level messages have been sent
+        session.send(createAppMessage(2));
+        session.send(createAppMessage(3));
+        session.send(createAppMessage(4));
+        assertEquals(3, application.toAppMessages.size());
+
+        // When the counterparty requests resend
+        Message incomingResendRequest = createResendRequest(2, 1);
+        incomingResendRequest.toString(); // calculate length/checksum
+        processMessage(session, incomingResendRequest);
+
+        // Then no messages should be resent
+        assertEquals(3, application.toAppMessages.size());
+
+        // And the session should remain logged on
+        assertEquals(true, session.isLoggedOn());
+        session.close();
     }
 }

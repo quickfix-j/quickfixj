@@ -31,6 +31,7 @@ import quickfix.IncorrectTagValue;
 import quickfix.MemoryStoreFactory;
 import quickfix.Message;
 import quickfix.RejectLogon;
+import quickfix.DoNotFulfillResendRequest;
 import quickfix.Responder;
 import quickfix.SLF4JLogFactory;
 import quickfix.Session;
@@ -116,7 +117,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         final UnitTestApplication application = new UnitTestApplication() {
             @Override
             public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
-                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 latch.countDown();
             }
@@ -185,7 +186,7 @@ public class ThreadPerSessionEventHandlingStrategyTest {
         final UnitTestApplication application = new UnitTestApplication() {
             @Override
             public void fromAdmin(Message message, SessionID sessionId) throws FieldNotFound,
-                    IncorrectDataFormat, IncorrectTagValue, RejectLogon {
+                    IncorrectDataFormat, IncorrectTagValue, RejectLogon, DoNotFulfillResendRequest {
                 super.fromAdmin(message, sessionId);
                 latch.countDown();
             }

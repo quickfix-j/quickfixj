@@ -1858,7 +1858,17 @@ public class Session implements Closeable {
             return false;
         }
 
-        fromCallback(msgType, msg, sessionID);
+        try {
+            fromCallback(msgType, msg, sessionID);
+        }  catch (final DoNotFulfillResendRequest e) {
+            getLog().onErrorEvent(e.getClass().getName() + ": " + e.getMessage());
+            // Only increment seqnum if we are at the expected seqnum
+            if (getExpectedTargetNum() == msg.getHeader().getInt(MsgSeqNum.FIELD)) {
+                state.incrNextTargetMsgSeqNum();
+            }
+            return false;
+        }
+
         return true;
     }
 
@@ -1906,7 +1916,7 @@ public class Session implements Closeable {
 
     private void fromCallback(String msgType, Message msg, SessionID sessionID2)
             throws RejectLogon, FieldNotFound, IncorrectDataFormat, IncorrectTagValue,
-            UnsupportedMessageType {
+            UnsupportedMessageType, DoNotFulfillResendRequest {
         // Application exceptions will prevent the incoming sequence number from being incremented
         // and may result in resend requests and the next startup. This way, a buggy application
         // can be fixed and then reprocess previously sent messages.
