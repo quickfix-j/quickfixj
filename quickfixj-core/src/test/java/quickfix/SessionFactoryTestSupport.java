@@ -45,19 +45,6 @@ public class SessionFactoryTestSupport implements SessionFactory {
     }
 
     public static Session createSession(SessionID sessionID, Application application,
-                                        boolean isInitiator, boolean resetOnLogon,
-                                        boolean validateSequenceNumbers,
-                                        int resendRequestChunkSize, boolean enableNextExpectedMsgSeqNum) {
-        return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
-                .setResetOnLogon(resetOnLogon).setValidateSequenceNumbers(validateSequenceNumbers)
-                .setPersistMessages(true)
-                .setResendRequestChunkSize(resendRequestChunkSize)
-                .setEnableNextExpectedMsgSeqNum(enableNextExpectedMsgSeqNum)
-                .build();
-    }
-
-
-    public static Session createSession(SessionID sessionID, Application application,
                                         boolean isInitiator, boolean resetOnLogon, boolean validateSequenceNumbers,
                                         boolean useDataDictionary, DefaultApplVerID senderDefaultApplVerID) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
@@ -121,7 +108,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final boolean forceResendWhenCorruptedStore = false;
         private final Set<InetAddress> allowedRemoteAddresses = null;
         private final boolean validateIncomingMessage = true;
-        private int resendRequestChunkSize = 0;
+        private final int resendRequestChunkSize = 0;
         private boolean enableNextExpectedMsgSeqNum = false;
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
@@ -250,11 +237,6 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setEnableNextExpectedMsgSeqNum(final boolean enableNextExpectedMsgSeqNum) {
             this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
-            return this;
-        }
-
-        public Builder setResendRequestChunkSize(final int resendRequestChunkSize) {
-            this.resendRequestChunkSize = resendRequestChunkSize;
             return this;
         }
     }
