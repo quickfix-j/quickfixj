@@ -64,6 +64,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -646,7 +647,7 @@ public class Session implements Closeable {
     private boolean isCurrentSession(final long time)
             throws IOException {
         return sessionSchedule == null || sessionSchedule.isSameSession(
-                SystemTime.getUtcCalendar(time), SystemTime.getUtcCalendar(state.getCreationTime()));
+                SystemTime.getUtcCalendar(time), state.getCreationTimeCalendar());
     }
 
     /**
@@ -2160,6 +2161,19 @@ public class Session implements Closeable {
         // immediately followed by a Logout (due to check in Session.next()).
         if (!isSessionTime()) {
             throw new RejectLogon("Logon attempt not within session time");
+        }
+
+        if (sessionID.isFIXT() && dataDictionaryProvider != null) {
+            final DataDictionary dictionary = dataDictionaryProvider
+                    .getSessionDataDictionary(sessionID.getBeginString());
+            if (dictionary != null) {
+                Optional<String> defaultApplVerID = logon.getOptionalString(DefaultApplVerID.FIELD);
+                if (defaultApplVerID.isPresent()) {
+                    if (!dictionary.isFieldValue(ApplVerID.FIELD, defaultApplVerID.get())) {
+                        throw new RejectLogon("Invalid DefaultApplVerID=" + defaultApplVerID.get());
+                    }
+                }
+            }
         }
 
         // QFJ-926 - reset session before accepting Logon
