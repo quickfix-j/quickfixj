@@ -75,9 +75,9 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-		<maven.version>3.8.7</maven.version>
-		<maven-libs-version>3.9.8</maven-libs-version>
-		<maven-plugin-api-version>3.9.8</maven-plugin-api-version>
+		<maven.version>3.9.8</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
+		<maven-libs-version>${maven.version}</maven-libs-version>
+		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.13.0</maven-compiler-plugin-version>
 		<maven-jar-plugin-version>3.4.1</maven-jar-plugin-version>
