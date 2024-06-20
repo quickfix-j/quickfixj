@@ -79,6 +79,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private Supplier<MessageStoreFactory> messageStoreFactorySupplier = MemoryStoreFactory::new;
         private Supplier<MessageQueueFactory> messageQueueFactorySupplier = InMemoryMessageQueueFactory::new;
         private Supplier<DataDictionaryProvider> dataDictionaryProviderSupplier = () -> null;
+        private Supplier<ValidationSettings> validationSettingsSupplier = ValidationSettings::new;
         private Supplier<SessionSchedule> sessionScheduleSupplier = () -> null;
         private Supplier<LogFactory> logFactorySupplier = () -> new ScreenLogFactory(true, true, true);
         private Supplier<MessageFactory> messageFactorySupplier = DefaultMessageFactory::new;
@@ -167,6 +168,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Builder setDataDictionaryProvider(final DataDictionaryProvider dataDictionaryProvider) {
             this.dataDictionaryProviderSupplier = () -> dataDictionaryProvider;
+            return this;
+        }
+
+        public Builder setValidationSettings(final ValidationSettings validationSettings) {
+            this.validationSettingsSupplier = () -> validationSettings;
             return this;
         }
 

@@ -38,6 +38,13 @@ import org.junit.rules.ExpectedException;
 import quickfix.field.MsgType;
 import quickfix.field.NoHops;
 
+/**
+ * NOTE: There are two DataDictionaryTests.
+ * One in quickfixj-base, one in quickfixj-core, which each test
+ * some functionality. This test excludes some test cases that cannot
+ * be tested in this module due to classes that are generated in a 
+ * later step.
+ */
 public class DataDictionaryTest {
 
     @Rule
@@ -203,6 +210,59 @@ public class DataDictionaryTest {
         // now tests for fields that aren't actually in the dictionary - should come back false
         assertFalse("Unknown header field shows up as required", dd.isRequiredHeaderField(666));
         assertFalse("Unknown trailer field shows up as required", dd.isRequiredTrailerField(666));
+    }
+
+    @Test
+    public void testMessageWithTextElement40() throws Exception {
+        String data = "";
+        data += "<fix major=\"4\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
+        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
+        data += "    </message>";
+        data += "  </messages>";
+        data += "</fix>";
+
+        expectedException.expect(ConfigError.class);
+        expectedException.expectMessage("No fields found: msgType=msg");
+
+        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+    }
+
+    @Test
+    public void testMessageWithNoChildren40() throws Exception {
+        String data = "";
+        data += "<fix major=\"4\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
+        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\"/>";
+        data += "  </messages>";
+        data += "</fix>";
+
+        expectedException.expect(ConfigError.class);
+        expectedException.expectMessage("No fields found: msgType=msg");
+
+        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
 
     @Test
@@ -405,6 +465,59 @@ public class DataDictionaryTest {
 
         expectedException.expect(ConfigError.class);
         expectedException.expectMessage("No fields defined");
+
+        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+    }
+
+    @Test
+    public void testMessageWithNoChildren50() throws Exception {
+        String data = "";
+        data += "<fix major=\"5\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
+        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\"/>";
+        data += "  </messages>";
+        data += "</fix>";
+
+        expectedException.expect(ConfigError.class);
+        expectedException.expectMessage("No fields found: msgType=msg");
+
+        new DataDictionary(new ByteArrayInputStream(data.getBytes()));
+    }
+
+    @Test
+    public void testMessageWithTextElement50() throws Exception {
+        String data = "";
+        data += "<fix major=\"5\" minor=\"0\">";
+        data += "  <header>";
+        data += "    <field name=\"BeginString\" required=\"Y\"/>";
+        data += "  </header>";
+        data += "  <trailer>";
+        data += "    <field name=\"CheckSum\" required=\"Y\"/>";
+        data += "  </trailer>";
+        data += "  <fields>";
+        data += "    <field number=\"1\" name=\"Account\" type=\"STRING\"/>";
+        data += "    <field number=\"8\" name=\"BeginString\" type=\"STRING\"/>";
+        data += "    <field number=\"10\" name=\"CheckSum\" type=\"STRING\"/>";
+        data += "  </fields>";
+        data += "  <messages>";
+        data += "    <message name=\"MessageWithNoChildren\" msgtype=\"msg\" msgcat=\"custom\">";
+        data += "    </message>";
+        data += "  </messages>";
+        data += "</fix>";
+
+        expectedException.expect(ConfigError.class);
+        expectedException.expectMessage("No fields found: msgType=msg");
 
         new DataDictionary(new ByteArrayInputStream(data.getBytes()));
     }
@@ -646,20 +759,21 @@ public class DataDictionaryTest {
     @Test
     public void testValidateFieldsOutOfOrderForGroups() throws Exception {
         final DataDictionary dictionary = new DataDictionary(getDictionary());
-        dictionary.setCheckUnorderedGroupFields(false);
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setCheckUnorderedGroupFields(false);
         Message messageWithGroupLevel1 = new Message(
             "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
             "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001736=currency\001661=1\00110=130\001",
-            dictionary);
-        dictionary.validate(messageWithGroupLevel1);
+            dictionary, validationSettings);
+        dictionary.validate(messageWithGroupLevel1, validationSettings);
 
         Message messageWithGroupLevel2 = new Message(
             "8=FIX.4.4\0019=185\00135=D\00134=25\00149=SENDER\00156=TARGET\00152=20110412-13:43:00\001" +
             "60=20110412-13:43:00\0011=testAccount\00111=123\00121=3\00138=42\00140=2\00144=42.37\001" +
             "54=1\00155=QFJ\00159=0\00178=1\00179=allocAccount\001539=1\001524=1\001538=1\001525=a\00110=145\001",
-            dictionary);
-        dictionary.validate(messageWithGroupLevel2);
+            dictionary, validationSettings);
+        dictionary.validate(messageWithGroupLevel2, validationSettings);
     }
 
     @Test

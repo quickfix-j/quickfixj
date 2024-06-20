@@ -39,6 +39,7 @@ public class MessageSessionUtils {
         final boolean isLogon = MessageUtils.isLogonMsgType(msgType);
         final MessageFactory messageFactory = session.getMessageFactory();
         final DataDictionaryProvider ddProvider = session.getDataDictionaryProvider();
+        final ValidationSettings validationSettings = session.getValidationSettings();
         final ApplVerID applVerID;
         final DataDictionary sessionDataDictionary = ddProvider == null ? null : ddProvider
                 .getSessionDataDictionary(beginString);
@@ -68,7 +69,7 @@ public class MessageSessionUtils {
         final boolean validateChecksum = session.isValidateChecksum();
 
         message = messageFactory.create(beginString, applVerID, msgType);
-        message.parse(messageString, sessionDataDictionary, payloadDictionary, doValidation,
+        message.parse(messageString, sessionDataDictionary, payloadDictionary, validationSettings, doValidation,
                 validateChecksum);
 
         return message;

@@ -35,6 +35,13 @@ import quickfix.field.SignatureLength;
 import quickfix.field.TargetCompID;
 import quickfix.field.TargetSubID;
 
+/**
+ * NOTE: There are two MessageTests.
+ * One in quickfixj-base, one in quickfixj-core, which each test
+ * some functionality. This test excludes some test cases that cannot
+ * be tested in this module due to classes that are generated in a 
+ * later step.
+ */
 public class MessageTest {
 	
     @Rule
@@ -84,15 +91,14 @@ public class MessageTest {
 
     @Test
     public void testHeaderFieldWithCustomTransportDictionaryConstructorReadsHeaderField() throws Exception {
+        ValidationSettings validationSettings = new ValidationSettings();
+        validationSettings.setAllowUnknownMessageFields(false);
 
         final DataDictionary customSessionDictionary = new DataDictionary("FIXT11_Custom_Test.xml");
-        customSessionDictionary.setAllowUnknownMessageFields(false);
 
         final DataDictionary standardSessionDictionary = new DataDictionary("FIXT11.xml");
-        standardSessionDictionary.setAllowUnknownMessageFields(false);
 
         final DataDictionary applicationDictionary = new DataDictionary("FIX50.xml");
-        applicationDictionary.setAllowUnknownMessageFields(false);
 
         final String sep = "\001";
         final StringBuilder sb = new StringBuilder();
@@ -126,7 +132,7 @@ public class MessageTest {
         sb.append(sep);
         final String messageData = sb.toString();
 
-        final Message standardMessage = new Message(messageData, standardSessionDictionary, applicationDictionary, true);
+        final Message standardMessage = new Message(messageData, standardSessionDictionary, applicationDictionary, applicationValidationSettings, true);
 
         // Test that field is in body not the header
         assertTrue(standardMessage.toString().contains("12312=foo"));
@@ -135,7 +141,7 @@ public class MessageTest {
         assertEquals("foo", standardMessage.getString(12312));
 
         // Test that field is correctly classified in header with customSessionDictionary
-        final Message customMessage = new Message(messageData, customSessionDictionary, applicationDictionary, true);
+        final Message customMessage = new Message(messageData, customSessionDictionary, applicationDictionary, customSessionValidationSettings, true);
         assertTrue(customMessage.toString().contains("12312=foo"));
         assertTrue(customMessage.getHeader().isSetField(12312));
         assertEquals("foo", customMessage.getHeader().getString(12312));
@@ -483,7 +489,7 @@ public class MessageTest {
 
         // without validation
         try {
-            new Message(data, DataDictionaryTest.getDictionary(), false);
+            new Message(data, DataDictionaryTest.getDictionary(), new ValidationSettings(), false);
         } catch (final InvalidMessage im) {
         } catch (final Throwable e) {
             e.printStackTrace();
@@ -562,9 +568,10 @@ public class MessageTest {
                 "79=AllocACC2\00180=2020.2\001453=2\001448=8\001447=D\001452=4\001448=AAA35354\001447=D\001452=3\00110=079\001";
         final Message message = new Message();
         final DataDictionary dd = DataDictionaryTest.getDictionary();
-        message.fromString(data, dd, true);
+        final ValidationSettings dds = new ValidationSettings();
+        message.fromString(data, dd, dds, true);
         try {
-            dd.validate(message);
+            dd.validate(message, dds);
             fail("No exception thrown");
         } catch (final FieldException e) {
             final String emsg = e.getMessage();
@@ -587,7 +594,7 @@ public class MessageTest {
 
         Message msg = new Message();
         try {
-            msg.fromString(badMessage, DataDictionaryTest.getDictionary(), true);
+            msg.fromString(badMessage, DataDictionaryTest.getDictionary(), new ValidationSettings(), true);
             fail();
         } catch (final InvalidMessage e) {
             final String emsg = e.getMessage();
@@ -602,7 +609,7 @@ public class MessageTest {
             final DataDictionary dd = DataDictionaryTest.getDictionary();
             // duplicated tag 98
             // QFJ-65
-            new Message("8=FIX.4.4\0019=22\00135=A\00198=0\00198=0\001108=30\00110=223\001", dd,
+            new Message("8=FIX.4.4\0019=22\00135=A\00198=0\00198=0\001108=30\00110=223\001", dd, new ValidationSettings(),
                     true);
             // For now, this will not cause an exception if the length and checksum are correct
         } catch (final Exception e) {
@@ -647,7 +654,7 @@ public class MessageTest {
                             "525=D\001538=51\001524=FCM\001525=D\001538=60 524=U\001525=D\001538=54\001600=217927\001" +
                             "602=BRN FMG0010!\00163=8 608-FXXXXX\001624=1\001637=80.09\001687=1.0\001654=41296073\001" +
                             "9019=1\0019023=1\0019020=20100201\001021=20100228\001",
-                    dd, true);
+                    dd, new ValidationSettings(), true);
             // For now, this will not cause an exception if the length and checksum are correct
         } catch (final Exception e) {
             final String text = e.getMessage();
@@ -661,7 +668,7 @@ public class MessageTest {
             final DataDictionary dd = DataDictionaryTest.getDictionary();
             // duplicated raw data length
             // QFJ-121
-            new Message("8=FIX.4.4\0019=22\00135=A\00196=X\001108=30\00110=223\001", dd, true);
+            new Message("8=FIX.4.4\0019=22\00135=A\00196=X\001108=30\00110=223\001", dd,  new ValidationSettings(), true);
         } catch (final Exception e) {
             final String text = e.getMessage();
             assertTrue("Wrong exception message: " + text,
@@ -680,7 +687,7 @@ public class MessageTest {
 
         DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
         Message message = new Message();
-        message.fromString(test.replaceAll("\\|", "\001"), dictionary, true);
+        message.fromString(test.replaceAll("\\|", "\001"), dictionary, new ValidationSettings(), true);
         Group group = message.getGroup(1, 711);
         String underlyingSymbol = group.getString(311);
         assertEquals("780508", underlyingSymbol);
@@ -698,7 +705,7 @@ public class MessageTest {
 
         DataDictionary dictionary = new DataDictionary(DataDictionaryTest.getDictionary());
         Message message = new Message();
-        message.fromString(test.replaceAll("\\|", "\001"), dictionary, true);
+        message.fromString(test.replaceAll("\\|", "\001"), dictionary,  new ValidationSettings(), true);
         assertEquals(test, message.toRawString().replaceAll("\001", "\\|"));
     }
     
@@ -707,7 +714,8 @@ public class MessageTest {
     public void testIfMessageHeaderIsCreatedWithEveryConstructor() throws Exception {
         final String rawMessage = "8=FIX.4.2\0019=12\00135=A\001108=30\00110=026\001";
         final DataDictionary dataDictionary = new DataDictionary(DataDictionaryTest.getDictionary());
-
+        final ValidationSettings dds = new ValidationSettings();
+                
         final Message emptyConstructor = new Message();
         assertNotNull(emptyConstructor.getHeader());
 
@@ -723,10 +731,10 @@ public class MessageTest {
         final Message fifthConstructor = new Message(rawMessage, dataDictionary);
         assertNotNull(fifthConstructor.getHeader());
 
-        final Message sixthConstructor = new Message(rawMessage, dataDictionary, false);
+        final Message sixthConstructor = new Message(rawMessage, dataDictionary, dds, false);
         assertNotNull(sixthConstructor.getHeader());
 
-        final Message seventhConstructor = new Message(rawMessage, dataDictionary, dataDictionary, false);
+        final Message seventhConstructor = new Message(rawMessage, dataDictionary, dataDictionary, dds, false);
         assertNotNull(seventhConstructor.getHeader());
     }
 

@@ -88,11 +88,6 @@ public class DataDictionary {
     }
 
     private boolean hasVersion = false;
-    private boolean checkFieldsOutOfOrder = true;
-    private boolean checkFieldsHaveValues = true;
-    private boolean checkUserDefinedFields = true;
-    private boolean checkUnorderedGroupFields = true;
-    private boolean allowUnknownMessageFields = false;
     private String beginString;
     private String fullVersion;
     private String majorVersion;
@@ -532,86 +527,6 @@ public class DataDictionary {
                fieldType == FieldType.MULTIPLECHARVALUE;
     }
 
-    /**
-     * Controls whether out of order fields are checked.
-     *
-     * @param flag true = checked, false = not checked
-     */
-    public void setCheckFieldsOutOfOrder(boolean flag) {
-        checkFieldsOutOfOrder = flag;
-    }
-
-    public boolean isCheckFieldsOutOfOrder() {
-        return checkFieldsOutOfOrder;
-    }
-
-    public boolean isCheckUnorderedGroupFields() {
-        return checkUnorderedGroupFields;
-    }
-
-    public boolean isCheckFieldsHaveValues() {
-        return checkFieldsHaveValues;
-    }
-
-    public boolean isCheckUserDefinedFields() {
-        return checkUserDefinedFields;
-    }
-
-    public boolean isAllowUnknownMessageFields() {
-        return allowUnknownMessageFields;
-    }
-
-    /**
-     * Controls whether group fields are in the same order
-     *
-     * @param flag true = checked, false = not checked
-     */
-    public void setCheckUnorderedGroupFields(boolean flag) {
-        checkUnorderedGroupFields = flag;
-        for (Map<Integer, GroupInfo> gm : groups.values()) {
-            for (GroupInfo gi : gm.values()) {
-                gi.getDataDictionary().setCheckUnorderedGroupFields(flag);
-            }
-        }
-    }
-
-    /**
-     * Controls whether empty field values are checked.
-     *
-     * @param flag true = checked, false = not checked
-     */
-    public void setCheckFieldsHaveValues(boolean flag) {
-        checkFieldsHaveValues = flag;
-        for (Map<Integer, GroupInfo> gm : groups.values()) {
-            for (GroupInfo gi : gm.values()) {
-                gi.getDataDictionary().setCheckFieldsHaveValues(flag);
-            }
-        }
-    }
-
-    /**
-     * Controls whether user defined fields are checked.
-     *
-     * @param flag true = checked, false = not checked
-     */
-    public void setCheckUserDefinedFields(boolean flag) {
-        checkUserDefinedFields = flag;
-        for (Map<Integer, GroupInfo> gm : groups.values()) {
-            for (GroupInfo gi : gm.values()) {
-                gi.getDataDictionary().setCheckUserDefinedFields(flag);
-            }
-        }
-    }
-
-    public void setAllowUnknownMessageFields(boolean allowUnknownFields) {
-        allowUnknownMessageFields = allowUnknownFields;
-        for (Map<Integer, GroupInfo> gm : groups.values()) {
-            for (GroupInfo gi : gm.values()) {
-                gi.getDataDictionary().setAllowUnknownMessageFields(allowUnknownFields);
-            }
-        }
-    }
-
     private void copyFrom(DataDictionary rhs) {
         hasVersion = rhs.hasVersion;
         beginString = rhs.beginString;
@@ -632,13 +547,6 @@ public class DataDictionary {
         copyMap(valueNames, rhs.valueNames);
         copyGroups(groups, rhs.groups);
         copyMap(components, rhs.components);
-
-        setCheckFieldsOutOfOrder(rhs.checkFieldsOutOfOrder);
-        setCheckFieldsHaveValues(rhs.checkFieldsHaveValues);
-        setCheckUserDefinedFields(rhs.checkUserDefinedFields);
-        setCheckUnorderedGroupFields(rhs.checkUnorderedGroupFields);
-        setAllowUnknownMessageFields(rhs.allowUnknownMessageFields);
-
         calculateOrderedFields();
     }
 
@@ -692,9 +600,9 @@ public class DataDictionary {
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
-    public void validate(Message message) throws IncorrectTagValue, FieldNotFound,
+    public void validate(Message message, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
-        validate(message, false);
+        validate(message, false, settings);
     }
 
     /**
@@ -706,13 +614,13 @@ public class DataDictionary {
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
-    public void validate(Message message, boolean bodyOnly) throws IncorrectTagValue,
+    public void validate(Message message, boolean bodyOnly, ValidationSettings settings) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
-        validate(message, bodyOnly ? null : this, this);
+        validate(message, bodyOnly ? null : this, this, settings);
     }
 
     static void validate(Message message, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary) throws IncorrectTagValue, FieldNotFound,
+            DataDictionary applicationDataDictionary, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
         final boolean bodyOnly = sessionDataDictionary == null;
 
@@ -737,38 +645,38 @@ public class DataDictionary {
         }
 
         if (!bodyOnly) {
-            sessionDataDictionary.iterate(message.getHeader(), HEADER_ID, sessionDataDictionary);
-            sessionDataDictionary.iterate(message.getTrailer(), TRAILER_ID, sessionDataDictionary);
+            sessionDataDictionary.iterate(settings, message.getHeader(), HEADER_ID, sessionDataDictionary);
+            sessionDataDictionary.iterate(settings, message.getTrailer(), TRAILER_ID, sessionDataDictionary);
         }
 
-        applicationDataDictionary.iterate(message, msgType, applicationDataDictionary);
+        applicationDataDictionary.iterate(settings, message, msgType, applicationDataDictionary);
     }
 
     private static boolean isVersionSpecified(DataDictionary dd) {
         return dd != null && dd.hasVersion;
     }
 
-    private void iterate(FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
+    private void iterate(ValidationSettings settings, FieldMap map, String msgType, DataDictionary dd) throws IncorrectTagValue,
             IncorrectDataFormat {
         for (final Field<?> f : map) {
             final StringField field = (StringField) f;
 
-            checkHasValue(field);
+            checkHasValue(settings, field);
 
             if (hasVersion) {
-                checkValidFormat(field);
+                checkValidFormat(settings, field);
                 checkValue(field);
             }
 
             if (beginString != null) {
-                dd.checkField(field, msgType, map instanceof Message);
+                dd.checkField(settings, field, msgType, map instanceof Message);
                 dd.checkGroupCount(field, map, msgType);
             }
         }
 
         for (final List<Group> groups : map.getGroups().values()) {
             for (final Group group : groups) {
-                iterate(group, msgType, dd.getGroup(msgType, group.getFieldTag())
+                iterate(settings, group, msgType, dd.getGroup(msgType, group.getFieldTag())
                         .getDataDictionary());
             }
         }
@@ -789,10 +697,10 @@ public class DataDictionary {
     }
 
     /** Check if field tag is defined for message or group **/
-    void checkField(Field<?> field, String msgType, boolean message) {
+    void checkField(ValidationSettings settings, Field<?> field, String msgType, boolean message) {
         // use different validation for groups and messages
         boolean messageField = message ? isMsgField(msgType, field.getField()) : fields.contains(field.getField());
-        boolean fail = checkFieldFailure(field.getField(), messageField);
+        boolean fail = checkFieldFailure(settings, field.getField(), messageField);
 
         if (fail) {
             if (fields.contains(field.getField())) {
@@ -803,22 +711,22 @@ public class DataDictionary {
         }
     }
 
-    boolean checkFieldFailure(int field, boolean messageField) {
+    boolean checkFieldFailure(ValidationSettings settings, int field, boolean messageField) {
         boolean fail;
         if (field < USER_DEFINED_TAG_MIN) {
-            fail = !messageField && !allowUnknownMessageFields;
+            fail = !messageField && !settings.allowUnknownMessageFields;
         } else {
-            fail = !messageField && checkUserDefinedFields;
+            fail = !messageField && settings.checkUserDefinedFields;
         }
         return fail;
     }
 
-    private void checkValidFormat(StringField field) throws IncorrectDataFormat {
+    private void checkValidFormat(ValidationSettings settings, StringField field) throws IncorrectDataFormat {
         FieldType fieldType = getFieldType(field.getTag());
         if (fieldType == null) {
             return;
         }
-        if (!checkFieldsHaveValues && field.getValue().length() == 0) {
+        if (!settings.checkFieldsHaveValues && field.getValue().length() == 0) {
             return;
         }
         try {
@@ -883,8 +791,8 @@ public class DataDictionary {
     }
 
     /** Check if a field has a value. **/
-    private void checkHasValue(StringField field) {
-        if (checkFieldsHaveValues && field.getValue().length() == 0) {
+    private void checkHasValue(ValidationSettings settings, StringField field) {
+        if (settings.checkFieldsHaveValues && field.getValue().length() == 0) {
             throw new FieldException(SessionRejectReason.TAG_SPECIFIED_WITHOUT_A_VALUE,
                     field.getField());
         }
