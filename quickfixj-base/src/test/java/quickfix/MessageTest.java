@@ -132,7 +132,7 @@ public class MessageTest {
         sb.append(sep);
         final String messageData = sb.toString();
 
-        final Message standardMessage = new Message(messageData, standardSessionDictionary, applicationDictionary, applicationValidationSettings, true);
+        final Message standardMessage = new Message(messageData, standardSessionDictionary, applicationDictionary, validationSettings, true);
 
         // Test that field is in body not the header
         assertTrue(standardMessage.toString().contains("12312=foo"));
@@ -141,7 +141,7 @@ public class MessageTest {
         assertEquals("foo", standardMessage.getString(12312));
 
         // Test that field is correctly classified in header with customSessionDictionary
-        final Message customMessage = new Message(messageData, customSessionDictionary, applicationDictionary, customSessionValidationSettings, true);
+        final Message customMessage = new Message(messageData, customSessionDictionary, applicationDictionary, validationSettings, true);
         assertTrue(customMessage.toString().contains("12312=foo"));
         assertTrue(customMessage.getHeader().isSetField(12312));
         assertEquals("foo", customMessage.getHeader().getString(12312));
