@@ -1046,7 +1046,7 @@ public class Session implements Closeable {
                 }
             }
 
-            if (validateIncomingMessage && dataDictionaryProvider != null) {
+            if (validateIncomingMessage && dataDictionaryProvider != null && validationSettings != null) {
                 final DataDictionary sessionDataDictionary = dataDictionaryProvider
                         .getSessionDataDictionary(beginString);
 
