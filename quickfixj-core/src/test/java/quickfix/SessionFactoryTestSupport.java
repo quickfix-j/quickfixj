@@ -118,7 +118,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
 
         public Session build() {
             return new Session(applicationSupplier.get(), messageStoreFactorySupplier.get(), messageQueueFactorySupplier.get(),
-                    sessionIDSupplier.get(), dataDictionaryProviderSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
+                    sessionIDSupplier.get(), dataDictionaryProviderSupplier.get(), validationSettingsSupplier.get(), sessionScheduleSupplier.get(), logFactorySupplier.get(),
                     messageFactorySupplier.get(), sessionHeartbeatIntervalSupplier.get(), checkLatency, maxLatency,
                     timestampPrecision, resetOnLogon, resetOnLogout, resetOnDisconnect, refreshMessageStoreAtLogon,
                     checkCompID, redundantResentRequestsAllowed, persistMessages, useClosedRangeForResend,

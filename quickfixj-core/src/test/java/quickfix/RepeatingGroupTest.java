@@ -395,7 +395,7 @@ public class RepeatingGroupTest {
         final String sourceFIXString = quoteRequest.toString();
         final DataDictionary fixDataDictionary = new DataDictionary("FIXLatest.xml");
         final quickfix.fixlatest.QuoteRequest validatedMessage = (quickfix.fixlatest.QuoteRequest) messageFactory.create(FixVersions.FIXLATEST, QuoteRequest.MSGTYPE);
-        validatedMessage.fromString(sourceFIXString, fixDataDictionary, true);
+        validatedMessage.fromString(sourceFIXString, fixDataDictionary, new ValidationSettings(), true);
 
         String validateFIXString = validatedMessage.toString();
 

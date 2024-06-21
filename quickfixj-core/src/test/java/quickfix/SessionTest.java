@@ -2107,7 +2107,7 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
         try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2171,7 +2171,7 @@ public class SessionTest {
 		final boolean validateSequenceNumbers = true;
 
 		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-				sessionID, null, null, null,
+				sessionID, null, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
@@ -2472,7 +2472,7 @@ public class SessionTest {
         };
 
         Session session = new Session(unitTestApplication, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-                sessionID, null, null, null,
+                sessionID, null, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
