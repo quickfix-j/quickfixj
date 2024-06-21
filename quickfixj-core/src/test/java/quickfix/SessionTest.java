@@ -2471,7 +2471,7 @@ public class SessionTest {
             }
         };
 
-        Session session = new Session(unitTestApplication, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
+        Session session = new Session(app, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
                 sessionID, null, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
