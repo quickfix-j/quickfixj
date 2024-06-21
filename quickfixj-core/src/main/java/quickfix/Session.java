@@ -2168,7 +2168,7 @@ public class Session implements Closeable {
             throw new RejectLogon("Logon attempt not within session time");
         }
 
-        if (sessionID.isFIXT()) {
+        if (sessionID.isFIXT() && dataDictionaryProvider != null) {
             final DataDictionary dictionary = dataDictionaryProvider
                     .getSessionDataDictionary(sessionID.getBeginString());
             if (dictionary != null) {
