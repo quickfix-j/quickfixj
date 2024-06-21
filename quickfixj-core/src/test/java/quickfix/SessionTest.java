@@ -3146,5 +3146,3 @@ public class SessionTest {
         assertTrue(sentMessage.getHeader().isSetField(OrigSendingTime.FIELD));
     }
 }
-        Session session = new Session(app, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-                sessionID, null, null, null,
