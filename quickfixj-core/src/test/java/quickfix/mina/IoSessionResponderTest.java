@@ -20,16 +20,27 @@
 package quickfix.mina;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.session.IoSession;
 
+import org.apache.mina.core.write.WriteRequest;
+import org.apache.mina.core.write.WriteRequestQueue;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mockito;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
-
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -135,5 +146,44 @@ public class IoSessionResponderTest {
         assertEquals("/1.2.3.4:5432", responder.getRemoteAddress());
         verify(mockProtocolSession).getRemoteAddress();
         verifyNoMoreInteractions(mockProtocolSession);
+    }
+
+    @Test
+    public void testPrioritySend() {
+        IoSession ioSession = mock(IoSession.class);
+        when(ioSession.getRemoteAddress()).thenReturn(new InetSocketAddress("1.2.3.4", 5432));
+        WriteRequestQueue writeRequestQueue = mock(WriteRequestQueue.class);
+        WriteRequest pendingWriteOne = mock(WriteRequest.class);
+        WriteRequest pendingWriteTwo = mock(WriteRequest.class);
+        when(writeRequestQueue.poll(ioSession)).thenReturn(pendingWriteOne, pendingWriteTwo, null);
+        when(ioSession.getWriteRequestQueue()).thenReturn(writeRequestQueue);
+        IoSessionResponder responder = new IoSessionResponder(ioSession, false, 0, 0);
+        responder.prioritySend(Arrays.asList("resend1", "resend2"));
+
+        InOrder inOrder = inOrder(ioSession, writeRequestQueue);
+        inOrder.verify(ioSession).suspendWrite();
+
+          // verify drain first
+          inOrder.verify(writeRequestQueue, times(3 /* 2 + null */)).poll(ioSession);
+
+          // verify prioritized writes in order
+          inOrder.verify(ioSession).write(eq("resend1"));
+          inOrder.verify(ioSession).write(eq("resend2"));
+
+          // reschedule pending writes
+          inOrder.verify(writeRequestQueue).offer(ioSession, pendingWriteOne);
+          inOrder.verify(writeRequestQueue).offer(ioSession, pendingWriteTwo);
+
+        // ensure writes are resumed
+        inOrder.verify(ioSession).resumeWrite();
+
+        // ensure writes resume even if exception
+        Mockito.reset(ioSession);
+        when(ioSession.getWriteRequestQueue()).thenReturn(writeRequestQueue);
+        doAnswer(invocation -> {
+                throw new RuntimeException("Ensure resume writes even if exception");
+        }).when(writeRequestQueue).poll(eq(ioSession));
+        assertThrows(RuntimeException.class, () -> responder.prioritySend(Arrays.asList("will not be scheduled")));
+        verify(ioSession).resumeWrite();
     }
 }

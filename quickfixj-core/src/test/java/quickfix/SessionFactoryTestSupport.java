@@ -27,6 +27,16 @@ public class SessionFactoryTestSupport implements SessionFactory {
                 .build();
     }
 
+    public static Session createSessionWithPersistedMessages(SessionID sessionID, Application application,
+                                                             boolean isInitiator, boolean prioritizeResend) {
+        return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
+           .setCheckLatency(true).setMaxLatency(Session.DEFAULT_MAX_LATENCY)
+           .setCheckCompID(true)
+           .setPersistMessages(true)
+           .setPrioritizeResend(prioritizeResend)
+           .build();
+    }
+
     public static Session createFileStoreSession(SessionID sessionID, Application application,
                                                  boolean isInitiator, SessionSettings settings, SessionSchedule sessionSchedule) {
         return new Builder().setSessionId(sessionID).setApplication(application).setIsInitiator(isInitiator)
@@ -113,6 +123,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
         private final boolean enableLastMsgSeqNumProcessed = false;
         private final boolean validateChecksum = true;
         private final boolean allowPosDup = false;
+        private boolean prioritizeResend = false;
         private List<StringField> logonTags = new ArrayList<>();
 
         public Session build() {
@@ -125,7 +136,7 @@ public class SessionFactoryTestSupport implements SessionFactory {
                     resetOnError, disconnectOnError, disableHeartBeatCheck, false, rejectInvalidMessage,
                     rejectMessageOnUnhandledException, requiresOrigSendingTime, forceResendWhenCorruptedStore,
                     allowedRemoteAddresses, validateIncomingMessage, resendRequestChunkSize, enableNextExpectedMsgSeqNum,
-                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup);
+                    enableLastMsgSeqNumProcessed, validateChecksum, logonTags, heartBeatTimeoutMultiplier, allowPosDup, prioritizeResend);
         }
 
         public Builder setBeginString(final String beginString) {
@@ -239,5 +250,11 @@ public class SessionFactoryTestSupport implements SessionFactory {
             this.enableNextExpectedMsgSeqNum = enableNextExpectedMsgSeqNum;
             return this;
         }
+
+        public Builder setPrioritizeResend(final boolean prioritizeResend) {
+            this.prioritizeResend = prioritizeResend;
+            return this;
+        }
+
     }
 }

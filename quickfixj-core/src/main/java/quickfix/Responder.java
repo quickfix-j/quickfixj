@@ -19,6 +19,10 @@
 
 package quickfix;
 
+import org.apache.mina.core.write.WriteRequestQueue;
+
+import java.util.List;
+
 /**
  * Used by a Session to send raw FIX message data and to disconnect a
  * connection. This interface is used by Acceptor or Initiator implementations.
@@ -36,6 +40,18 @@ public interface Responder {
      * @return true is successful, false if send operation failed
      */
     boolean send(String data);
+
+   /**
+    * Override to prioritize raw FIX {@code messages} over pending messages in the {@link WriteRequestQueue}.
+    * Typical use case is when sending response for resend request to ensure that the counterparty
+    * first catches up before receiving(or being overwhelmed by) latter messages.
+    *
+    * @param messages List of raw FIX messages to be prioritized in that order over all pending sends
+    * @return count of entries in {@code messages} list that were successfully scheduled
+    */
+    default int prioritySend(List<String> messages){
+        throw new UnsupportedOperationException("Priority send not supported");
+    }
 
     /**
      * Disconnect the underlying connection.
