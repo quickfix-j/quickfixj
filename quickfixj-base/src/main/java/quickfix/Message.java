@@ -599,6 +599,9 @@ public class Message extends FieldMap {
         if (sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
             applicationDictionary = sessionDictionary;
         }
+        if (validationSettings == null) {
+            validationSettings = new ValidationSettings();
+        }
         parse(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, validateChecksum);
     }
 

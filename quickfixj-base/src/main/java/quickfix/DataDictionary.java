@@ -596,6 +596,7 @@ public class DataDictionary {
      * Validate a message, including the header and trailer fields.
      *
      * @param message the message
+     * @param settings 
      * @throws IncorrectTagValue if a field value is not valid
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
@@ -610,6 +611,7 @@ public class DataDictionary {
      *
      * @param message the message
      * @param bodyOnly whether to validate just the message body, or to validate the header and trailer sections as well.
+     * @param settings 
      * @throws IncorrectTagValue if a field value is not valid
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
@@ -623,7 +625,10 @@ public class DataDictionary {
             DataDictionary applicationDataDictionary, ValidationSettings settings) throws IncorrectTagValue, FieldNotFound,
             IncorrectDataFormat {
         final boolean bodyOnly = sessionDataDictionary == null;
-
+        if (settings == null) {
+            settings = new ValidationSettings();
+        }
+        
         if (isVersionSpecified(sessionDataDictionary)
                 && !sessionDataDictionary.getVersion().equals(
                         message.getHeader().getString(BeginString.FIELD))
