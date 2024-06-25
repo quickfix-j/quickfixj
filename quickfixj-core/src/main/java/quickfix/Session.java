@@ -1066,23 +1066,23 @@ public class Session implements Closeable {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incoming message with " + e + ": " + getMessageToLog(message));
+                        getLog().onWarnEvent("incoming message with " + e + ": " + getMessageToLog(message));
                     }
                 } catch (final FieldException e) {
                     if (message.isSetField(e.getField())) {
                         if (rejectInvalidMessage) {
                             throw e;
                         } else {
-                            getLog().onErrorEvent(
-                                    "Warn: incoming message with incorrect field: "
+                            getLog().onWarnEvent(
+                                    "incoming message with incorrect field: "
                                             + message.getField(e.getField()) + ": " + getMessageToLog(message));
                         }
                     } else {
                         if (rejectInvalidMessage) {
                             throw e;
                         } else {
-                            getLog().onErrorEvent(
-                                    "Warn: incoming message with missing field: " + e.getField()
+                            getLog().onWarnEvent(
+                                    "incoming message with missing field: " + e.getField()
                                             + ": " + e.getMessage() + ": " + getMessageToLog(message));
                         }
                     }
@@ -1090,7 +1090,7 @@ public class Session implements Closeable {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incoming " + e + ": " + getMessageToLog(message));
+                        getLog().onWarnEvent("incoming " + e + ": " + getMessageToLog(message));
                     }
                 }
             }
@@ -2017,7 +2017,7 @@ public class Session implements Closeable {
                 disconnect("Timed out waiting for heartbeat", true);
                 stateListener.onHeartBeatTimeout(sessionID);
             } else {
-                LOG.warn("Heartbeat failure detected but deactivated");
+                getLog().onWarnEvent("Heartbeat failure detected but deactivated");
             }
         } else {
             if (state.isTestRequestNeeded()) {
