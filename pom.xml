@@ -75,26 +75,26 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-		<maven.version>3.8.7</maven.version>
-		<maven-libs-version>3.9.6</maven-libs-version>
-		<maven-plugin-api-version>3.9.6</maven-plugin-api-version>
+		<maven.version>3.9.8</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
+		<maven-libs-version>${maven.version}</maven-libs-version>
+		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
 		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 		<maven-compiler-plugin-version>3.13.0</maven-compiler-plugin-version>
-		<maven-jar-plugin-version>3.4.0</maven-jar-plugin-version>
-		<maven-surefire-plugin-version>3.2.5</maven-surefire-plugin-version>
-		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
+		<maven-jar-plugin-version>3.4.2</maven-jar-plugin-version>
+		<maven-surefire-plugin-version>3.3.0</maven-surefire-plugin-version>
+		<maven-pmd-plugin-version>3.23.0</maven-pmd-plugin-version>
 		<maven-source-plugin-version>3.3.1</maven-source-plugin-version>
-		<maven-javadoc-plugin-version>3.6.3</maven-javadoc-plugin-version>
-		<maven-shade-plugin-version>3.5.2</maven-shade-plugin-version>
+		<maven-javadoc-plugin-version>3.7.0</maven-javadoc-plugin-version>
+		<maven-shade-plugin-version>3.6.0</maven-shade-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
-		<maven-gpg-plugin-version>3.2.3</maven-gpg-plugin-version>
-		<maven-deploy-plugin-version>3.1.1</maven-deploy-plugin-version>
-		<nexus-staging-maven-plugin-version>1.6.13</nexus-staging-maven-plugin-version>
-		<build-helper-maven-plugin-version>3.5.0</build-helper-maven-plugin-version>
+		<maven-gpg-plugin-version>3.2.4</maven-gpg-plugin-version>
+		<maven-deploy-plugin-version>3.1.2</maven-deploy-plugin-version>
+		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
+		<build-helper-maven-plugin-version>3.6.0</build-helper-maven-plugin-version>
 		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
 		<file-management.version>3.0.0</file-management.version>
-		<maven-plugin-annotations.version>3.12.0</maven-plugin-annotations.version>
+		<maven-plugin-annotations.version>3.13.1</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
@@ -229,7 +229,7 @@
 			<dependency>
 				<groupId>org.codehaus.plexus</groupId>
 				<artifactId>plexus-xml</artifactId>
-				<version>4.0.3</version>
+				<version>4.0.4</version>
 			</dependency>
 			<dependency>
 				<groupId>com.sleepycat</groupId>
@@ -463,19 +463,19 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-invoker-plugin</artifactId>
-					<version>3.6.1</version>
+					<version>3.7.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.12.0</version>
+					<version>3.13.1</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-install-plugin</artifactId>
-					<version>3.1.1</version>
+					<version>3.1.2</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-clean-plugin</artifactId>
-					<version>3.3.2</version>
+					<version>3.4.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.quickfixj.orchestra</groupId>
@@ -490,7 +490,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>3.4.1</version>
+					<version>3.5.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
