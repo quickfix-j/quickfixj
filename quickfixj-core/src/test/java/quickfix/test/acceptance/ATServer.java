@@ -29,7 +29,6 @@ import quickfix.FileStoreFactory;
 import quickfix.FixVersions;
 import quickfix.MemoryStoreFactory;
 import quickfix.MessageStoreFactory;
-import quickfix.RuntimeError;
 import quickfix.SLF4JLogFactory;
 import quickfix.SessionID;
 import quickfix.SessionSettings;
@@ -43,7 +42,6 @@ import quickfix.test.util.StackTraceUtil;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
-import java.net.BindException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -53,6 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ATServer implements Runnable {
     private final Logger log = LoggerFactory.getLogger(ATServer.class);
@@ -72,6 +72,9 @@ public class ATServer implements Runnable {
     private String keyStorePassword;
     private Map<Object, Object> overridenProperties = null;
 
+    //Pattern to get FIX version from test location example :"fixLatest/20_SimultaneousResendRequest.def"
+    protected static final Pattern fixVersionFromTestLocationPattern = Pattern.compile("^(.*?)(?:[\\/,\\\\].*)$");
+
     public ATServer() {
         // defaults
     }
@@ -90,9 +93,13 @@ public class ATServer implements Runnable {
         this.overridenProperties = overridenProperties;
         this.transportType = transportType;
         this.port = port;
+        // determine the FIX versions, by convention the first part of the name (location) of the test.
         Enumeration<junit.framework.Test> e = suite.tests();
         while (e.hasMoreElements()) {
-            fixVersions.add(e.nextElement().toString().substring(0, 5));
+            Matcher matcher = fixVersionFromTestLocationPattern.matcher(e.nextElement().toString());
+            if (matcher.find()) {
+                fixVersions.add(matcher.group(1));
+            }
         }
         resetOnDisconnect = true;
         log.info("creating sessions for {}", fixVersions);
@@ -107,6 +114,7 @@ public class ATServer implements Runnable {
             defaults.put("SocketTcpNoDelay", "Y");
             defaults.put("StartTime", "00:00:00");
             defaults.put("EndTime", "00:00:00");
+            defaults.put("NonStopSession", "Y");
             defaults.put("SenderCompID", "ISLD");
             defaults.put("TargetCompID", "TW");
             defaults.put("JdbcDriver", "com.mysql.jdbc.Driver");
@@ -158,6 +166,10 @@ public class ATServer implements Runnable {
                 acceptFixVersion(FixVersions.BEGINSTRING_FIXT11);
             }
 
+            if (fixVersions.contains("fixLatest")) {
+                acceptFixVersion(FixVersions.BEGINSTRING_FIXT11);
+            }
+
             ATApplication application = new ATApplication();
             MessageStoreFactory factory = usingMemoryStore
                     ? new MemoryStoreFactory()
@@ -176,19 +188,12 @@ public class ATServer implements Runnable {
             assertSessionIds();
 
             acceptor.setIoFilterChainBuilder(ioFilterChainBuilder);
-            try {
-                acceptor.start();
-            } catch (RuntimeError e) {
-                if (e.getCause() instanceof BindException) {
-                    log.warn("Acceptor port {} is still bound! Waiting 60 seconds and trying again...", port);
-                    Thread.sleep(60000);
-                    acceptor.start();
-                }
-            }
+            acceptor.start();
 
             assertSessionIds();
 
             initializationLatch.countDown();
+            
             CountDownLatch shutdownLatch = new CountDownLatch(1);
             try {
                 // running all acceptance tests should hopefully not take longer than 30 mins

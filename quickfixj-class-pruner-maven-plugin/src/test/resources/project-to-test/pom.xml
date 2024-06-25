@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.quickfixj</groupId>
+	<artifactId>project-to-test</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+	<name>Test MyMojo</name>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.quickfixj</groupId>
+				<artifactId>quickfixj-class-pruner-maven-plugin</artifactId>
+				<configuration>
+					<classesDirectory>not-really-classes</classesDirectory>
+					<generatedSourcesDirectory>not-really-generated-sources</generatedSourcesDirectory>
+					<fileset>
+						<directory>target/test-classes/qfj-dictionaries</directory>
+						<includes>
+							<include>**/*.xml</include>
+						</includes>
+						<excludes>
+							<exclude>**/FIX50SP2.modified.xml</exclude>
+							<exclude>**/FIXT11.xml</exclude>
+						</excludes>
+						<followSymlinks>false</followSymlinks>
+					</fileset>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

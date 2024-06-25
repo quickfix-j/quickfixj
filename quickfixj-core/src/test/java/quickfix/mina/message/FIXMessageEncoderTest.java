@@ -19,12 +19,13 @@
 
 package quickfix.mina.message;
 
-import java.io.UnsupportedEncodingException;
-
-import junit.framework.ComparisonFailure;
-import junit.framework.TestCase;
-
 import org.apache.mina.filter.codec.ProtocolCodecException;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ComparisonFailure;
+import org.junit.Test;
+
 import org.quickfixj.CharsetSupport;
 
 import quickfix.Message;
@@ -34,13 +35,25 @@ import quickfix.field.TargetCompID;
 import quickfix.fix40.Logon;
 import quickfix.fix44.News;
 
-public class FIXMessageEncoderTest extends TestCase {
+import java.io.UnsupportedEncodingException;
 
-    public void tearDown() throws UnsupportedEncodingException {
-        // reset charset after every test
-        CharsetSupport.setCharset(CharsetSupport.getDefaultCharset());
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class FIXMessageEncoderTest {
+
+    @Before
+    public void setUp() throws UnsupportedEncodingException {
+        CharsetSupport.setDefaultCharset();
     }
 
+    @After
+    public void tearDown() throws UnsupportedEncodingException {
+        CharsetSupport.setDefaultCharset();
+    }
+
+    @Test
     public void testEncoding() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         Message message = new Logon();
@@ -51,6 +64,7 @@ public class FIXMessageEncoderTest extends TestCase {
         assertTrue(protocolEncoderOutputForTest.buffer.limit() > 0);
     }
 
+    @Test
     public void testWesternEuropeanEncoding() throws Exception {
         String headline = "\u00E4bcf\u00F6d\u00E7\u00E9";
 
@@ -67,6 +81,7 @@ public class FIXMessageEncoderTest extends TestCase {
         }
     }
 
+    @Test
     public void testChineseEncoding() throws Exception {
         String headline = "\u6D4B\u9A8C\u6570\u636E";
 
@@ -96,16 +111,13 @@ public class FIXMessageEncoderTest extends TestCase {
         assertEquals("wrong encoding", new String(bytes, CharsetSupport.getCharset()), news.toString());
     }
 
+    @Test(expected = ProtocolCodecException.class)
     public void testEncodingBadType() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
-        try {
-            encoder.encode(null, new Object(), new ProtocolEncoderOutputForTest());
-            fail("expected exception");
-        } catch (ProtocolCodecException e) {
-            // expected
-        }
+        encoder.encode(null, new Object(), new ProtocolEncoderOutputForTest());
     }
 
+    @Test
     public void testEncodingStringEnglish() throws Exception {
         FIXMessageEncoder encoder = new FIXMessageEncoder();
         ProtocolEncoderOutputForTest protocolEncoderOutputForTest = new ProtocolEncoderOutputForTest();
@@ -113,6 +125,7 @@ public class FIXMessageEncoderTest extends TestCase {
         assertEquals(4, protocolEncoderOutputForTest.buffer.limit());
     }
 
+    @Test
     public void testEncodingStringChinese() throws Exception {
         CharsetSupport.setCharset("UTF-8");
         FIXMessageEncoder encoder = new FIXMessageEncoder();
@@ -120,5 +133,4 @@ public class FIXMessageEncoderTest extends TestCase {
         encoder.encode(null, "\u6D4B\u9A8C\u6570\u636E", protocolEncoderOutputForTest);
         assertEquals(12, protocolEncoderOutputForTest.buffer.limit());
     }
-
 }

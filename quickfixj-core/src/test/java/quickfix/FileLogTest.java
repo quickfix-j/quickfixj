@@ -209,7 +209,7 @@ public class FileLogTest {
         FileLogFactory factory = new FileLogFactory(settings);
 
         try (Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, new DefaultDataDictionaryProvider(), null, factory,
+                sessionID, new DefaultDataDictionaryProvider(), new ValidationSettings(), null, factory,
                 new DefaultMessageFactory(), 0)) {
             Session.registerSession(session);
             

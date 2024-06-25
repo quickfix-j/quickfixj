@@ -62,7 +62,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -102,7 +102,7 @@ public class SessionTest {
         when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
-                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, mockLogFactory,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
@@ -146,7 +146,7 @@ public class SessionTest {
         when(mockLogFactory.create(sessionID)).thenReturn(mockLog);
 
         try (Session session = new Session(application,
-                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, mockLogFactory,
+                mockMessageStoreFactory, mockMessageQueueFactory, sessionID, null, null, null, mockLogFactory,
                 new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, true, false,
                 false, false, false, false, true, false, 1.5, null, true,
                 new int[] { 5 }, false, false, false, false, true, false, true, false,
@@ -1083,7 +1083,7 @@ public class SessionTest {
             assertTrue(logonMessage.getHeader().isSetField(logonTag2));
             assertEquals(logonTagValue1, logonMessage.getString(logonTag1));
             assertEquals(logonTagValue2, logonMessage.getHeader().getString(logonTag2));
-            session.getDataDictionary().validate(logonMessage);
+            session.getDataDictionary().validate(logonMessage, new ValidationSettings());
         }
     }
     
@@ -1123,7 +1123,7 @@ public class SessionTest {
             assertTrue(logonMessage.getHeader().isSetField(logonTag2));
             assertEquals(logonTagValue1, logonMessage.getString(logonTag1));
             assertEquals(logonTagValue2, logonMessage.getHeader().getString(logonTag2));
-            session.getDataDictionary().validate(logonMessage);
+            session.getDataDictionary().validate(logonMessage, new ValidationSettings());
         }
     }
     
@@ -2021,7 +2021,7 @@ public class SessionTest {
                 "8=FIX.4.2\0019=0113\00135=4\00134=223\00143=Y\001122=20100908-17:59:30.642\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\001123=Y\00136=225\00110=110\001",
                 "8=FIX.4.2\0019=0246\00135=8\001115=THEM\00134=225\00143=Y\001122=20100908-17:52:37.920\00149=THEM\00156=US\001369=178\00152=20100908-17:59:30.642\00137=10118506\00111=a00000052.1\00117=17537743\00120=0\001150=4\00139=4\00155=ETFC\00154=1\00138=500000\00144=0.998\00132=0\00131=0\001151=0\00114=0\0016=0\00160=20100908-17:52:37.920\00110=80\001" };
             for (String message : messages)
-                session.next(MessageUtils.parse(session, message));
+                session.next(MessageSessionUtils.parse(session, message));
             
             assertEquals(226, session.getStore().getNextTargetMsgSeqNum());
         }
@@ -2107,7 +2107,7 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
 
         try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2171,7 +2171,7 @@ public class SessionTest {
 		final boolean validateSequenceNumbers = true;
 
 		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-				sessionID, null, null, null,
+				sessionID, null, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
@@ -2219,7 +2219,7 @@ public class SessionTest {
 		final boolean validateSequenceNumbers = true;
 
 		Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-				sessionID, null, null, null,
+				sessionID, null, null, null, null,
 				new DefaultMessageFactory(), 30, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
 				false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
 				new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
@@ -2265,8 +2265,8 @@ public class SessionTest {
 
         final boolean disconnectOnError = true;
 
-        try (Session session = new Session(new UnitTestApplication(),
-                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
+        try (Session session = new Session(new UnitTestApplication(), new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
+				sessionID, null, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.MILLIS, resetOnLogon, false, false, false, false, false, true,
@@ -2302,7 +2302,7 @@ public class SessionTest {
         UnitTestApplication unitTestApplication = new UnitTestApplication();
 
         try (Session session = new Session(unitTestApplication,
-                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null,
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null, null,
                 new SLF4JLogFactory(new SessionSettings()),
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30,
                 UtcTimestampPrecision.NANOS, resetOnLogon, false, false, false, false, false, true,
@@ -2355,8 +2355,8 @@ public class SessionTest {
         boolean isInitiator = true, resetOnLogon = false, validateSequenceNumbers = true;
         final UnitTestApplication unitTestApplication = new UnitTestApplication();
 
-        Session session = new Session(unitTestApplication, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-                sessionID, null, null, null,
+        Session session = new Session(new UnitTestApplication(),
+                new MemoryStoreFactory(), new InMemoryMessageQueueFactory(), sessionID, null, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,
@@ -2472,7 +2472,7 @@ public class SessionTest {
         };
 
         Session session = new Session(app, new MemoryStoreFactory(), new InMemoryMessageQueueFactory(),
-                sessionID, null, null, null,
+                sessionID, null, null, null, null,
                 new DefaultMessageFactory(), isInitiator ? 30 : 0, false, 30, UtcTimestampPrecision.MILLIS, resetOnLogon,
                 false, false, false, false, false, true, false, 1.5, null, validateSequenceNumbers,
                 new int[]{5}, false, false, false, false, true, false, true, false, null, true, 0,

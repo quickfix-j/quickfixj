@@ -1,0 +1,7 @@
+# Send Logout on unknown DefaultApplVerID
+
+iCONNECT
+I8=FIXT.1.135=A34=149=TW52=<TIME>56=ISLD98=0108=301137=33
+# we expect Logout due to 1137=33
+E8=FIXT.1.19=4935=534=149=ISLD52=00000000-00:00:00.00056=TW58=Invalid DefaultApplVerID=3310=0
+eDISCONNECT

@@ -111,7 +111,7 @@ public class SessionSettings {
      *
      * @param filename the path to the file containing the session settings
      * @param variableValues custom source of variable values in the settings
-     * @throws quickfix.ConfigError when file could not be loaded
+     * @throws ConfigError when file could not be loaded
      */
     public SessionSettings(String filename, Properties variableValues) throws ConfigError {
         this(variableValues);
@@ -122,7 +122,7 @@ public class SessionSettings {
      * Loads session settings from a file.
      *
      * @param filename the path to the file containing the session settings
-     * @throws quickfix.ConfigError when file could not be loaded
+     * @throws ConfigError when file could not be loaded
      */
     public SessionSettings(String filename) throws ConfigError {
         this();
@@ -187,6 +187,13 @@ public class SessionSettings {
     }
 
     /**
+     * Gets a string from the default section if present or use default value.
+     */
+    public String getStringOrDefault(String key, String defaultValue) throws ConfigError {
+        return isSetting(key) ? getString(key) : defaultValue;
+    }
+
+    /**
      * Get a settings string.
      *
      * @param sessionID the session ID
@@ -200,6 +207,13 @@ public class SessionSettings {
             throw new ConfigError(key + " not defined");
         }
         return value;
+    }
+
+    /**
+     * Get a settings string if present or use default value.
+     */
+    public String getStringOrDefault(SessionID sessionID, String key, String defaultValue) throws ConfigError {
+        return isSetting(sessionID, key) ? getString(sessionID, key) : defaultValue;
     }
 
     /**
@@ -266,6 +280,13 @@ public class SessionSettings {
     }
 
     /**
+     * Gets a long from the default section of settings if present or use default value.
+     */
+    public long getLongOrDefault(String key, long defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(key) ? getLong(key) : defaultValue;
+    }
+
+    /**
      * Get a settings value as a long integer.
      *
      * @param sessionID the session ID
@@ -283,6 +304,13 @@ public class SessionSettings {
     }
 
     /**
+     * Get an existing settings value as a long if present or use default value.
+     */
+    public long getLongOrDefault(SessionID sessionID, String key, long defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(sessionID, key) ? getLong(sessionID, key) : defaultValue;
+    }
+
+    /**
      * Gets an int from the default section of settings.
      *
      * @param key
@@ -292,6 +320,13 @@ public class SessionSettings {
      */
     public int getInt(String key) throws ConfigError, FieldConvertError {
         return getInt(DEFAULT_SESSION_ID, key);
+    }
+
+    /**
+     * Gets an int from the default section of settings if present or use default value.
+     */
+    public int getIntOrDefault(String key, int defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(key) ? getInt(key) : defaultValue;
     }
 
     /**
@@ -309,6 +344,13 @@ public class SessionSettings {
         } catch (final NumberFormatException e) {
             throw new FieldConvertError(e.getMessage());
         }
+    }
+
+    /**
+     * Get an existing settings value as an integer if present or use default value.
+     */
+    public int getIntOrDefault(SessionID sessionID, String key, int defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(sessionID, key) ? getInt(sessionID, key) : defaultValue;
     }
 
     private Properties getOrCreateSessionProperties(SessionID sessionID) {
@@ -365,12 +407,8 @@ public class SessionSettings {
      * @throws ConfigError configuration error, probably a missing setting.
      * @throws FieldConvertError error during field type conversion.
      */
-    public boolean getBool(SessionID sessionID, String key) throws ConfigError, FieldConvertError {
-        try {
-            return BooleanConverter.convert(getString(sessionID, key));
-        } catch (final FieldConvertError e) {
-            throw new ConfigError(e);
-        }
+    public boolean getBool(SessionID sessionID, String key) throws FieldConvertError, ConfigError {
+        return BooleanConverter.convert(getString(sessionID, key));
     }
 
     /**
@@ -472,8 +510,7 @@ public class SessionSettings {
             }
             storeSection(currentSectionId, currentSection);
         } catch (final IOException e) {
-            final ConfigError configError = new ConfigError(e.getMessage());
-            throw configError;
+            throw new ConfigError(e.getMessage());
         }
     }
 
@@ -840,4 +877,23 @@ public class SessionSettings {
         return result;
     }
 
+    public void removeSection(final SessionID sessionID) throws ConfigError {
+        Properties properties = getSessionProperties(sessionID);
+
+        if (properties == null) {
+            throw new ConfigError("Session not found");
+        }
+        sections.remove(sessionID);
+    }
+
+    public void removeSection(final String propertyKey, final String propertyValue) throws ConfigError {
+        List<SessionID> sessionIDs = sections.entrySet().stream()
+                .filter(entry -> propertyValue.equals(entry.getValue().get(propertyKey)))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        for (SessionID sessionID : sessionIDs) {
+            this.removeSection(sessionID);
+        }
+    }
 }

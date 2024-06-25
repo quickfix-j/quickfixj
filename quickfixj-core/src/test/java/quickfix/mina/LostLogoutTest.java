@@ -1,5 +1,6 @@
 package quickfix.mina;
 
+import org.apache.mina.util.AvailablePortFinder;
 import org.junit.Test;
 import quickfix.Application;
 import quickfix.DefaultMessageFactory;
@@ -51,11 +52,12 @@ public class LostLogoutTest {
 
     @Test
     public void lostLogoutMessageTest() throws Exception {
+        final int port = AvailablePortFinder.getNextAvailable();
         // create server (acceptor)
-        server = new ServerApp();
+        server = new ServerApp(port);
 
         // create client (initiator) and start the FIX session (log on)
-        client = new ClientApp();
+        client = new ClientApp(port);
 
         // wait until until client is logged on
         client.waitUntilLoggedOn();
@@ -89,11 +91,11 @@ public class LostLogoutTest {
         private SocketAcceptor acceptor = null;
 
         private final SessionID sid = new SessionID("FIX.4.4", "SERVER", "CLIENT");
-        public ServerApp() throws Exception {
+        public ServerApp(int port) throws Exception {
             SessionSettings settings = new SessionSettings();
             settings.setString("ConnectionType", "acceptor");
             settings.setString("SocketAcceptAddress", "127.0.0.1");
-            settings.setLong("SocketAcceptPort", 54321);
+            settings.setLong("SocketAcceptPort", port);
             settings.setString("StartTime", "00:00:00");
             settings.setString("EndTime", "00:00:00");
             settings.setString("UseDataDictionary", "N");
@@ -164,12 +166,12 @@ public class LostLogoutTest {
         private SocketInitiator initiator = null;
         private Session session;
 
-        public ClientApp() throws Exception {
+        public ClientApp(int port) throws Exception {
             SessionID sid = new SessionID("FIX.4.4", "CLIENT", "SERVER");
             SessionSettings settings = new SessionSettings();
             settings.setString("ConnectionType", "initiator");
             settings.setString("SocketConnectHost", "127.0.0.1");
-            settings.setLong("SocketConnectPort", 54321);
+            settings.setLong("SocketConnectPort", port);
             settings.setString("StartTime", "00:00:00");
             settings.setString("EndTime", "00:00:00");
             settings.setLong("HeartBtInt", 30);
