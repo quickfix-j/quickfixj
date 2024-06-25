@@ -101,7 +101,7 @@ public class JdbcLogTest {
 
         // need to register the session since we are going to log errors through LogUtil
         Session.registerSession(new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, new DefaultDataDictionaryProvider(), null, logFactory,
+                sessionID, new DefaultDataDictionaryProvider(), new ValidationSettings(), null, logFactory,
                 new DefaultMessageFactory(), 0));
 
         // remove the messages and events tables
@@ -127,6 +127,8 @@ public class JdbcLogTest {
 
     private void setUpJdbcLog(boolean filterHeartbeats, DataSource dataSource) throws ClassNotFoundException, SQLException, ConfigError {
         connection = JdbcTestSupport.getConnection();
+        long now = System.currentTimeMillis();
+        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         SessionSettings settings = new SessionSettings();
         if (filterHeartbeats) {
             settings.setBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS, false);
@@ -135,8 +137,6 @@ public class JdbcLogTest {
         initializeTableDefinitions(connection);
         logFactory = new JdbcLogFactory(settings);
         logFactory.setDataSource(dataSource);
-        long now = System.currentTimeMillis();
-        sessionID = new SessionID("FIX.4.2", "SENDER-" + now, "TARGET-" + now);
         settings.setString(sessionID, "ConnectionType", "acceptor");
         log = (JdbcLog) logFactory.create(sessionID);
         assertEquals(0, getRowCount(connection, log.getIncomingMessagesTableName()));

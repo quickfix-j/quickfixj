@@ -68,43 +68,43 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jdkLevel>1.8</jdkLevel>
-		<slf4j.version>2.0.6</slf4j.version>
+		<slf4j.version>2.0.13</slf4j.version>
 		<mockito-core.version>4.11.0</mockito-core.version>
 		<hamcrest.version>2.2</hamcrest.version>
-		<junit.jupiter.version>5.6.1</junit.jupiter.version>
+		<junit.jupiter.version>5.10.2</junit.jupiter.version>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<mainClass/>
-		<maven.version>3.8.7</maven.version>
-		<maven-plugin-api-version>3.9.5</maven-plugin-api-version>
-		<maven-resources-plugin-version>3.3.0</maven-resources-plugin-version>
-		<maven-compiler-plugin-version>3.10.1</maven-compiler-plugin-version>
-		<maven-jar-plugin-version>3.3.0</maven-jar-plugin-version>
-		<maven-surefire-plugin-version>3.0.0</maven-surefire-plugin-version>
-		<maven-pmd-plugin-version>3.21.2</maven-pmd-plugin-version>
-		<maven-source-plugin-version>3.2.1</maven-source-plugin-version>
-		<maven-javadoc-plugin-version>3.5.0</maven-javadoc-plugin-version>
-		<maven-shade-plugin-version>3.4.1</maven-shade-plugin-version>
-		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
-		<maven-bundle-plugin-version>5.1.8</maven-bundle-plugin-version>
-		<maven-gpg-plugin-version>3.0.1</maven-gpg-plugin-version>
-		<maven-deploy-plugin-version>3.0.0</maven-deploy-plugin-version>
-		<nexus-staging-maven-plugin-version>1.6.13</nexus-staging-maven-plugin-version>
-		<build-helper-maven-plugin-version>3.3.0</build-helper-maven-plugin-version>
-		<maven-shared-utils.version>3.3.4</maven-shared-utils.version>
+		<maven.version>3.9.8</maven.version> <!-- please also change version in .mvn/wrapper/maven-wrapper.properties -->
+		<maven-libs-version>${maven.version}</maven-libs-version>
+		<maven-plugin-api-version>${maven.version}</maven-plugin-api-version>
+		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
+		<maven-compiler-plugin-version>3.13.0</maven-compiler-plugin-version>
+		<maven-jar-plugin-version>3.4.2</maven-jar-plugin-version>
+		<maven-surefire-plugin-version>3.3.0</maven-surefire-plugin-version>
+		<maven-pmd-plugin-version>3.23.0</maven-pmd-plugin-version>
+		<maven-source-plugin-version>3.3.1</maven-source-plugin-version>
+		<maven-javadoc-plugin-version>3.7.0</maven-javadoc-plugin-version>
+		<maven-shade-plugin-version>3.6.0</maven-shade-plugin-version>
+		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
+		<maven-bundle-plugin-version>5.1.9</maven-bundle-plugin-version>
+		<maven-gpg-plugin-version>3.2.4</maven-gpg-plugin-version>
+		<maven-deploy-plugin-version>3.1.2</maven-deploy-plugin-version>
+		<nexus-staging-maven-plugin-version>1.7.0</nexus-staging-maven-plugin-version>
+		<build-helper-maven-plugin-version>3.6.0</build-helper-maven-plugin-version>
+		<maven-shared-utils.version>3.4.2</maven-shared-utils.version>
 		<file-management.version>3.0.0</file-management.version>
-		<maven-plugin-annotations.version>3.7.1</maven-plugin-annotations.version>
+		<maven-plugin-annotations.version>3.13.1</maven-plugin-annotations.version>
 		<maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
 		<plantuml-maven-plugin-version>1.2</plantuml-maven-plugin-version>
 		<plantuml-version>8059</plantuml-version>
-		<xml-maven-plugin-version>1.0.2</xml-maven-plugin-version>
+		<xml-maven-plugin-version>1.1.0</xml-maven-plugin-version>
 		<fix-orchestra.standard.version>1.5.4</fix-orchestra.standard.version>
-		<fix-orchestra.repository.version>1.6.8</fix-orchestra.repository.version>
+		<fix-orchestra.repository.version>1.7.3</fix-orchestra.repository.version>
 		<docgen.version>1.6.8</docgen.version>
-		<jaxb.version>2.3.3</jaxb.version>
+		<jaxb.version>4.0.2</jaxb.version>
 		<apache.mina.version>2.2.3</apache.mina.version>
-		<commons.io.version>2.11.0</commons.io.version>
-		<guava.version>32.0.0-jre</guava.version>
+		<commons.io.version>2.16.1</commons.io.version>
 		<orchestra.file>OrchestraFIXLatest.xml</orchestra.file>
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
 		<proxool.version>0.9.1</proxool.version>
@@ -192,18 +192,18 @@
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-core</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-artifact</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven</groupId>
 				<artifactId>maven-compat</artifactId>
-				<version>${maven.version}</version>
+				<version>${maven-libs-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.maven.plugin-tools</groupId>
@@ -224,15 +224,12 @@
 			<dependency>
 				<groupId>org.codehaus.plexus</groupId>
 				<artifactId>plexus-utils</artifactId>
-				<version>3.3.1</version>
+				<version>4.0.1</version>
 			</dependency>
-			<!-- the version of the guava transitive dependency is managed to resolve security vulnerability 
-			     reported for maven plugin dependencies, it is expected that this will be resolved in a 
-			     subsequent version of maven at which point this dependency management may be removed -->
 			<dependency>
-			  <groupId>com.google.guava</groupId>
-			  <artifactId>guava</artifactId>
-			  <version>${guava.version}</version>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-xml</artifactId>
+				<version>4.0.4</version>
 			</dependency>
 			<dependency>
 				<groupId>com.sleepycat</groupId>
@@ -244,7 +241,7 @@
 				<!-- used by dictgenerator package -->
 				<groupId>org.dom4j</groupId>
 				<artifactId>dom4j</artifactId>
-				<version>2.1.3</version>
+				<version>2.1.4</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -466,19 +463,19 @@
 				</plugin>
 				<plugin>
 					<artifactId>maven-invoker-plugin</artifactId>
-					<version>3.2.2</version>
+					<version>3.7.0</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.10.2</version>
+					<version>3.13.1</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-install-plugin</artifactId>
-					<version>2.5.2</version>
+					<version>3.1.2</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-clean-plugin</artifactId>
-					<version>3.1.0</version>
+					<version>3.4.0</version>
 				</plugin>
 				<plugin>
 					<groupId>org.quickfixj.orchestra</groupId>
@@ -493,7 +490,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-enforcer-plugin</artifactId>
-					<version>3.1.0</version>
+					<version>3.5.0</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>

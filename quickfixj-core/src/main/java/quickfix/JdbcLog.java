@@ -55,7 +55,7 @@ class JdbcLog extends AbstractLog {
     private final Map<String, String> deleteItemsSqlCache = new HashMap<>();
 
     public JdbcLog(SessionSettings settings, SessionID sessionID, DataSource ds)
-            throws SQLException, ClassNotFoundException, ConfigError, FieldConvertError {
+            throws SQLException, ConfigError, FieldConvertError {
         this.sessionID = sessionID;
         dataSource = ds == null
                 ? JdbcUtil.getDataSource(settings, sessionID)
@@ -109,8 +109,8 @@ class JdbcLog extends AbstractLog {
     }
 
     private void createInsertItemSql(String tableName) {
-        insertItemSqlCache.put(tableName, "INSERT INTO " + tableName + " (time, "
-                + getIDColumns(extendedSessionIdSupported) + ", text) " + "VALUES (?,"
+        insertItemSqlCache.put(tableName, "INSERT INTO " + tableName + " (time,"
+                + getIDColumns(extendedSessionIdSupported) + ",text) " + "VALUES (?,"
                 + getIDPlaceholders(extendedSessionIdSupported) + ",?)");
     }
 

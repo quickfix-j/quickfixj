@@ -7,9 +7,6 @@ import junit.framework.TestCase;
 import junit.framework.TestResult;
 import junit.framework.TestSuite;
 import org.apache.mina.util.AvailablePortFinder;
-import org.logicalcobwebs.proxool.ProxoolException;
-import org.logicalcobwebs.proxool.ProxoolFacade;
-import org.logicalcobwebs.proxool.admin.SnapshotIF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import quickfix.Session;
@@ -38,7 +35,7 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final String acceptanceTestBaseDir = AcceptanceTestSuite.class.getClassLoader().getResource(acceptanceTestResourcePath).getPath();
 
     private static int transportType = ProtocolFactory.SOCKET;
-    private static int port = 9887;
+    private static int port = AvailablePortFinder.getNextAvailable();
 
     private final boolean skipSlowTests;
     private final boolean multithreaded;
@@ -94,26 +91,10 @@ public class AcceptanceTestSuite extends TestSuite {
             //printDatabasePoolingStatistics();
         }
 
-        @SuppressWarnings("unused")
-        protected void printDatabasePoolingStatistics() {
-            try {
-                for (String alias : ProxoolFacade.getAliases()) {
-                    SnapshotIF snapshot = ProxoolFacade.getSnapshot(alias, true);
-                    System.out.println("active:" + snapshot.getActiveConnectionCount() + ",max:"
-                            + snapshot.getMaximumConnectionCount() + ",served:"
-                            + snapshot.getServedCount());
-                }
-            } catch (ProxoolException e) {
-                e.printStackTrace();
-            }
-        }
-
         private List<TestStep> load(String filename) throws IOException {
             ArrayList<TestStep> steps = new ArrayList<>();
             log.info("load test: " + filename);
-            BufferedReader in = null;
-            try {
-                in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO8859_1"));
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "ISO8859_1"))) {
                 String line = in.readLine();
                 while (line != null) {
                     if (line.matches("^[ \t]*#.*")) {
@@ -130,14 +111,6 @@ public class AcceptanceTestSuite extends TestSuite {
                         steps.add(new ExpectDisconnectStep(line));
                     }
                     line = in.readLine();
-                }
-            } finally {
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
                 }
             }
             return steps;
@@ -220,7 +193,6 @@ public class AcceptanceTestSuite extends TestSuite {
     private static final class AcceptanceTestServerSetUp extends TestSetup {
         private final boolean threaded;
         private final Map<Object, Object> overridenProperties;
-//        private Thread serverThread;
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
         private ATServer server;
@@ -249,7 +221,6 @@ public class AcceptanceTestSuite extends TestSuite {
 
     public static Test suite() {
         transportType = ProtocolFactory.getTransportType(System.getProperty(ATEST_TRANSPORT_KEY, ProtocolFactory.getTypeString(ProtocolFactory.SOCKET)));
-        port = AvailablePortFinder.getNextAvailable(port);
         TestSuite acceptanceTests = new TestSuite(AcceptanceTestSuite.class.getSimpleName());
         // default server
         acceptanceTests.addTest(new AcceptanceTestServerSetUp(new AcceptanceTestSuite("server", false)));

@@ -7,7 +7,7 @@ QuickFIX/J
 This is the official QuickFIX/J project repository.
 
 ## intro
-QuickFIX/J is a full featured messaging engine for the FIX protocol (FIX versions 4.0 - 5.0SP2/FIXT1.1).
+QuickFIX/J is a full featured messaging engine for the FIX protocol (FIX versions 4.0 - 5.0SP2/FIXT1.1 and FIXLatest).
 It is a 100% Java open source implementation of the popular C++ QuickFIX engine.
 
 The Financial Information eXchange (FIX) protocol is a messaging standard developed
@@ -42,17 +42,17 @@ Pull requests are always welcome! Best is if you added a unit test to show that 
 
 Fastest: clone the repo and issue the following command.
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
+$ mvnw clean package -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
 ```
 
 Slower: if you only want to skip the acceptance test suite:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
+$ mvnw clean package -Dmaven.javadoc.skip=true -DskipAT=true -PskipBundlePlugin,minimal-fix-latest
 ```
 
 Slow: if you want to run all tests:
 ```
-$ mvn clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
+$ mvnw clean package -Dmaven.javadoc.skip=true -PskipBundlePlugin,minimal-fix-latest
 ```
 NB: If you want to use the resulting JARs in an OSGi environment you'll have to omit the `-PskipBundlePlugin` option.
 
@@ -60,9 +60,9 @@ NB: If you want to use the resulting JARs in an OSGi environment you'll have to 
 
 When the project is first created, it will not have the generated message classes and compile errors will occur! Best is to compile once on the command line before importing the project into the IDE.
 
-If the IDE reports some errors after the compilation with `mvn clean package`, try to use `mvn clean install`, like:
+If the IDE reports some errors after the compilation with `mvnw clean package`, try to use `mvnw clean install`, like:
 ```
-$ mvn clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest -Djdk.xml.xpathExprGrpLimit=500 -Djdk.xml.xpathExprOpLimit=500
+$ mvnw clean install -Dmaven.javadoc.skip=true -DskipTests -PskipBundlePlugin,minimal-fix-latest
 ```
 
 ## configuration options

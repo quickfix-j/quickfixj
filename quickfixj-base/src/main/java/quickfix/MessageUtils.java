@@ -89,9 +89,9 @@ public class MessageUtils {
         }
     }
 
-    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary, ValidationSettings validationSettings,
             String messageString) throws InvalidMessage {
-        return parse(messageFactory, dataDictionary, messageString, true);
+        return parse(messageFactory, dataDictionary, validationSettings, messageString, true);
     }
 
     /**
@@ -101,10 +101,11 @@ public class MessageUtils {
      * @param messageFactory
      * @param dataDictionary
      * @param messageString
+     * @param validateChecksum
      * @return the parsed message
      * @throws InvalidMessage
      */
-    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary,
+    public static Message parse(MessageFactory messageFactory, DataDictionary dataDictionary, ValidationSettings validationSettings,
             String messageString, boolean validateChecksum) throws InvalidMessage {
         final int index = messageString.indexOf(FIELD_SEPARATOR);
         if (index < 0) {
@@ -113,7 +114,7 @@ public class MessageUtils {
         final String beginString = messageString.substring(2, index);
         final String messageType = getMessageType(messageString);
         final quickfix.Message message = messageFactory.create(beginString, messageType);
-        message.fromString(messageString, dataDictionary, dataDictionary != null, validateChecksum);
+        message.fromString(messageString, dataDictionary, validationSettings, dataDictionary != null, validateChecksum);
         return message;
     }
 
@@ -127,6 +128,10 @@ public class MessageUtils {
 
     public static boolean isLogon(String message) {
         return isMessageType(message, MsgType.LOGON);
+    }
+
+    public static boolean isLogonMsgType(String msgType) {
+        return MsgType.LOGON.equals(msgType);
     }
 
     private static boolean isMessageType(String message, String msgType) {
@@ -208,10 +213,10 @@ public class MessageUtils {
     };
 
     /**
-     * Convert an ApplVerID to a "begin string"
+     * Convert an ApplVerID to a BeginString.
      *
      * @param applVerID
-     * @return the begin string for the specified ApplVerID.
+     * @return the BeginString for the specified ApplVerID.
      * @throws QFJException if conversion fails.
      * @see ApplVerID
      */
@@ -239,10 +244,10 @@ public class MessageUtils {
     };
 
     /**
-     * Convert a begin string to an ApplVerID
+     * Convert a BeginString to an ApplVerID.
      *
      * @param beginString
-     * @return the ApplVerID for the specified begin string.
+     * @return the ApplVerID for the specified BeginString.
      * @throws QFJException if conversion fails.
      * @see FixVersions
      */

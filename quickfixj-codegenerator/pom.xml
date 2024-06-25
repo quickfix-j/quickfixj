@@ -40,7 +40,7 @@
 		<dependency>
 		    <groupId>net.sf.saxon</groupId>
 		    <artifactId>Saxon-HE</artifactId>
-		    <version>12.3</version>
+		    <version>12.4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.vintage</groupId>
@@ -78,7 +78,10 @@
 			</plugin>
                         <plugin>
                                 <artifactId>maven-plugin-plugin</artifactId>
-                                <version>3.10.2</version>
+                                <version>3.13.1</version>
+                                <configuration>
+                                    <goalPrefix>quickfixj-codegenerator</goalPrefix>
+                                </configuration>
                         </plugin>
 		</plugins>
 	</build>

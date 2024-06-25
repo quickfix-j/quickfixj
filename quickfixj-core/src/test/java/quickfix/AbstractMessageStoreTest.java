@@ -20,11 +20,14 @@
 package quickfix;
 
 import junit.framework.TestCase;
+import org.quickfixj.CharsetSupport;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractMessageStoreTest extends TestCase {
+
     private SessionID sessionID;
     private MessageStore store;
 
@@ -164,6 +167,44 @@ public abstract class AbstractMessageStoreTest extends TestCase {
             } finally {
                 closeMessageStore(failoverStore);
             }
+        }
+    }
+
+    public void testSetAndGetMessageWithAsciiCharacters() throws IOException {
+        MessageStore underTest = getStore();
+
+        if (underTest instanceof SleepycatStore) {
+            return;
+        }
+
+        underTest.set(1, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789");
+
+        List<String> messages = new ArrayList<>();
+        underTest.get(1, 1, messages);
+
+        assertEquals(1, messages.size());
+        assertEquals("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789", messages.get(0));
+    }
+
+    public void testSetAndGetMessageWithUnicodeCharacters() throws IOException {
+        MessageStore underTest = getStore();
+
+        if (underTest instanceof SleepycatStore) {
+            return;
+        }
+
+        CharsetSupport.setCharset("UTF-8");
+
+        try {
+            underTest.set(1, "a \u00A9 \u2603 \uD834\uDF06");
+
+            List<String> messages = new ArrayList<>();
+            underTest.get(1, 1, messages);
+
+            assertEquals(1, messages.size());
+            assertEquals("a \u00A9 \u2603 \uD834\uDF06", messages.get(0));
+        } finally {
+            CharsetSupport.setDefaultCharset();
         }
     }
 

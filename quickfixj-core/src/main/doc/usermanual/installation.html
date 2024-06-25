@@ -119,15 +119,9 @@
 	use Log4J logging.</td>
   </tr>
   <tr>
-    <td nowrap="nowrap">proxool.jar</td>
+    <td nowrap="nowrap">HikariCP.jar</td>
     <td>This JAR provided database connection pooling capabilities. It is required
 		if you are using the JDBC store or log.</td>
-  </tr>
-  <tr>
-    <td nowrap="nowrap">jcl104-over-slf4j.jar</td>
-    <td>Adapts Jakarta Commons Logging to SLF4J. Required if you are using an optional
-		library that depends on Jakarta Commons Logging. Currently, this includes Proxool
-		(needed by JDBC store and log for connection pooling).</td>
   </tr>
   <tr>
     <td nowrap="nowrap">sleepycat-je.jar</td>
@@ -159,7 +153,7 @@ By default, the XML processing in QuickFIX/J uses the XML parser included
       GitHub for more details on cloning the repository.</li>
   <li>Change directory to the top-level directory of the checked out code. You
     should see a pom.xml file.</li>
-  <li>Run <code>mvn package</code> to build the QuickFIX/J and examples jar files.
+  <li>Run <code>mvnw package</code> to build the QuickFIX/J and examples jar files.
     This will also generate all the FIX message-related code for the various
     FIX versions.</li>
   <li>There is an option for the code generator to use BigDecimal instead of double for fields like price and quantity.
@@ -167,7 +161,7 @@ By default, the XML processing in QuickFIX/J uses the XML parser included
       running the <code>generate.code</code> target.</li>
 </ol>
 <h3>Command-line Switches</h3>
-There are various command-line switches you can pass to mvn to modify the produced behavior:
+There are various command-line switches you can pass to mvnw to modify the produced behavior:
 <table cellspacing="0" width="100%">
   <tr>
     <th>Switch</th>
@@ -187,7 +181,7 @@ There are various command-line switches you can pass to mvn to modify the produc
 </table>
 <p>
   For example, in order to generate fields with BigDecimals and skip acceptance tests:<br>
-<code>mvn test -Dgenerator.decimal=true -DskipAT=true</code>
+<code>mvnw test -Dgenerator.decimal=true -DskipAT=true</code>
 </p>
 <p>Find further details in the project <a href="https://github.com/quickfix-j/quickfixj#readme">readme</a></p>
 <h3>IDE support:</h3>
@@ -195,7 +189,7 @@ There are various command-line switches you can pass to mvn to modify the produc
    and compile errors will occur!</em> Best is to compile once on the command line before importing
    the project into the IDE.
 
-    If the IDE reports some errors after the compilation with <code>mvn package</code>, try to use <code>mvn install</code> .
+    If the IDE reports some errors after the compilation with <code>mvnw package</code>, try to use <code>mvnw install</code> .
 
 <h3>Maven Integration:</h3>
 <p>If you are using the <a href="http://maven.apache.org">Maven</a> build system, you can reference

@@ -28,6 +28,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -85,8 +86,6 @@ public class CachedFileStore implements MessageStore {
     private final CachedHashMap messageIndex = new CachedHashMap(100);
 
     private FileOutputStream headerFileOutputStream;
-
-    private final String charsetEncoding = CharsetSupport.getCharset();
 
     CachedFileStore(String path, SessionID sessionID, boolean syncWrites) throws IOException {
         this.syncWrites = syncWrites;
@@ -161,6 +160,14 @@ public class CachedFileStore implements MessageStore {
      */
     public Date getCreationTime() throws IOException {
         return cache.getCreationTime();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#getCreationTimeCalendar()
+     */
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return cache.getCreationTimeCalendar();
     }
 
     private void initializeSequenceNumbers() throws IOException {
@@ -308,16 +315,15 @@ public class CachedFileStore implements MessageStore {
         throw new UnsupportedOperationException("not supported");
     }
 
-    private String read(long offset, long size) throws IOException {
-        final byte[] data = new byte[(int) size];
-
-        messageFileReader.seek(offset);
-        if (messageFileReader.read(data) != size) {
-            throw new IOException("Truncated input while reading message: "
-                    + new String(data, charsetEncoding));
+    private String read(long offset, int size) throws IOException {
+        try {
+            final byte[] data = new byte[size];
+            messageFileReader.seek(offset);
+            messageFileReader.readFully(data);
+            return new String(data, CharsetSupport.getCharset());
+        } catch (EOFException eofe) { // can't read fully
+            throw new IOException("Truncated input while reading message: offset=" + offset + ", expected size=" + size, eofe);
         }
-
-        return new String(data, charsetEncoding);
     }
 
     private Collection<String> getMessage(long startSequence, long endSequence) throws IOException {
@@ -326,7 +332,7 @@ public class CachedFileStore implements MessageStore {
         final List<long[]> offsetAndSizes = messageIndex.get(startSequence, endSequence);
         for (final long[] offsetAndSize : offsetAndSizes) {
             if (offsetAndSize != null) {
-                final String message = read(offsetAndSize[0], offsetAndSize[1]);
+                final String message = read(offsetAndSize[0], (int) offsetAndSize[1]);
                 messages.add(message);
             }
         }
@@ -341,7 +347,8 @@ public class CachedFileStore implements MessageStore {
      */
     public boolean set(int sequence, String message) throws IOException {
         final long offset = messageFileWriter.getFilePointer();
-        final int size = message.length();
+        final byte[] messageBytes = message.getBytes(CharsetSupport.getCharset());
+        final int size = messageBytes.length;
         messageIndex.put((long) sequence, new long[] { offset, size });
         headerDataOutputStream.writeInt(sequence);
         headerDataOutputStream.writeLong(offset);
@@ -350,7 +357,7 @@ public class CachedFileStore implements MessageStore {
         if (syncWrites) {
             headerFileOutputStream.getFD().sync();
         }
-        messageFileWriter.write(message.getBytes(CharsetSupport.getCharset()));
+        messageFileWriter.write(messageBytes);
         return true;
     }
 

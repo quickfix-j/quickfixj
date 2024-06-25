@@ -104,8 +104,8 @@ public class MessageUtilsTest {
             "44=15\00159=1\0016=0\001453=3\001448=AAA35791\001447=D\001452=3\001448=8\001" +
             "447=D\001452=4\001448=FIX11\001447=D\001452=36\00160=20060320-03:34:29\00110=169\001";
 
-        Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), data);
-        assertThat(message, notNullValue());
+        Message message = MessageUtils.parse(new quickfix.fix40.MessageFactory(), DataDictionaryTest.getDictionary(), new ValidationSettings(), data);
+        assertThat(message, is(notNullValue()));
     }
 
     @Test

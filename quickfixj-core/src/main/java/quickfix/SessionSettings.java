@@ -187,6 +187,13 @@ public class SessionSettings {
     }
 
     /**
+     * Gets a string from the default section if present or use default value.
+     */
+    public String getStringOrDefault(String key, String defaultValue) throws ConfigError {
+        return isSetting(key) ? getString(key) : defaultValue;
+    }
+
+    /**
      * Get a settings string.
      *
      * @param sessionID the session ID
@@ -200,6 +207,13 @@ public class SessionSettings {
             throw new ConfigError(key + " not defined");
         }
         return value;
+    }
+
+    /**
+     * Get a settings string if present or use default value.
+     */
+    public String getStringOrDefault(SessionID sessionID, String key, String defaultValue) throws ConfigError {
+        return isSetting(sessionID, key) ? getString(sessionID, key) : defaultValue;
     }
 
     /**
@@ -266,6 +280,13 @@ public class SessionSettings {
     }
 
     /**
+     * Gets a long from the default section of settings if present or use default value.
+     */
+    public long getLongOrDefault(String key, long defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(key) ? getLong(key) : defaultValue;
+    }
+
+    /**
      * Get a settings value as a long integer.
      *
      * @param sessionID the session ID
@@ -283,6 +304,13 @@ public class SessionSettings {
     }
 
     /**
+     * Get an existing settings value as a long if present or use default value.
+     */
+    public long getLongOrDefault(SessionID sessionID, String key, long defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(sessionID, key) ? getLong(sessionID, key) : defaultValue;
+    }
+
+    /**
      * Gets an int from the default section of settings.
      *
      * @param key
@@ -292,6 +320,13 @@ public class SessionSettings {
      */
     public int getInt(String key) throws ConfigError, FieldConvertError {
         return getInt(DEFAULT_SESSION_ID, key);
+    }
+
+    /**
+     * Gets an int from the default section of settings if present or use default value.
+     */
+    public int getIntOrDefault(String key, int defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(key) ? getInt(key) : defaultValue;
     }
 
     /**
@@ -309,6 +344,13 @@ public class SessionSettings {
         } catch (final NumberFormatException e) {
             throw new FieldConvertError(e.getMessage());
         }
+    }
+
+    /**
+     * Get an existing settings value as an integer if present or use default value.
+     */
+    public int getIntOrDefault(SessionID sessionID, String key, int defaultValue) throws ConfigError, FieldConvertError {
+        return isSetting(sessionID, key) ? getInt(sessionID, key) : defaultValue;
     }
 
     private Properties getOrCreateSessionProperties(SessionID sessionID) {
@@ -835,4 +877,23 @@ public class SessionSettings {
         return result;
     }
 
+    public void removeSection(final SessionID sessionID) throws ConfigError {
+        Properties properties = getSessionProperties(sessionID);
+
+        if (properties == null) {
+            throw new ConfigError("Session not found");
+        }
+        sections.remove(sessionID);
+    }
+
+    public void removeSection(final String propertyKey, final String propertyValue) throws ConfigError {
+        List<SessionID> sessionIDs = sections.entrySet().stream()
+                .filter(entry -> propertyValue.equals(entry.getValue().get(propertyKey)))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        for (SessionID sessionID : sessionIDs) {
+            this.removeSection(sessionID);
+        }
+    }
 }

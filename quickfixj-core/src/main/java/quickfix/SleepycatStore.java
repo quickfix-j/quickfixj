@@ -256,8 +256,21 @@ public class SleepycatStore implements MessageStore {
         throw ioe;
     }
 
+
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#getCreationTime()
+     */
     public Date getCreationTime() throws IOException {
         return info.getCreationTime().getTime();
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#getCreationTimeCalendar()
+     */
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return info.getCreationTime();
     }
 
     public int getNextSenderMsgSeqNum() throws IOException {
