@@ -283,7 +283,7 @@ public class FieldTest {
         md.addGroup(value);
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(md);
+        dd.validate(md, new ValidationSettings());
     }
 
     @Test
@@ -298,7 +298,7 @@ public class FieldTest {
         nos.set(new TransactTime(LocalDateTime.of(2020, 3, 10, 12, 23, 44)));
 
         DataDictionary dd = new DataDictionary("FIX50.xml");
-        dd.validate(nos);
+        dd.validate(nos, new ValidationSettings());
     }
 
     private void assertEqualsAndHash(Field<?> field1, Field<?> field2) {
