@@ -54,12 +54,14 @@ import java.math.BigInteger;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import org.apache.mina.util.AvailablePortFinder;
 import org.junit.After;
+import quickfix.mina.SocksProxyServer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -108,6 +110,70 @@ public class SSLCertificateTest {
             }
         } finally {
             acceptor.stop();
+        }
+    }
+
+    @Test
+    public void shouldLoginViaSocks4Proxy() throws Exception {
+        shouldAuthenticateServerCertificateViaSocksProxy("4");
+    }
+
+    @Test
+    public void shouldLoginViaSocks4aProxy() throws Exception {
+        shouldAuthenticateServerCertificateViaSocksProxy("4a");
+    }
+
+    @Test
+    public void shouldLoginViaSocks5Proxy() throws Exception {
+        shouldAuthenticateServerCertificateViaSocksProxy("5");
+    }
+
+    public void shouldAuthenticateServerCertificateViaSocksProxy(String proxyVersion) throws Exception {
+        int proxyPort = AvailablePortFinder.getNextAvailable();
+
+        SocksProxyServer proxyServer = new SocksProxyServer(proxyPort);
+        proxyServer.start();
+
+        try {
+            int port = AvailablePortFinder.getNextAvailable();
+            TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
+                    "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", port));
+
+            try {
+                acceptor.start();
+
+                SessionSettings initiatorSettings = createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
+                        CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(port), "JKS", "JKS");
+
+                Properties defaults = initiatorSettings.getDefaultProperties();
+
+                defaults.put(Initiator.SETTING_PROXY_HOST, "localhost");
+                defaults.put(Initiator.SETTING_PROXY_PORT, Integer.toString(proxyPort));
+                defaults.put(Initiator.SETTING_PROXY_TYPE, "socks");
+                defaults.put(Initiator.SETTING_PROXY_VERSION, proxyVersion);
+                defaults.put(Initiator.SETTING_PROXY_USER, "proxy-user");
+                defaults.put(Initiator.SETTING_PROXY_PASSWORD, "proxy-password");
+
+                TestInitiator initiator = new TestInitiator(initiatorSettings);
+
+                try {
+                    initiator.start();
+
+                    initiator.assertNoSslExceptionThrown();
+                    initiator.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"));
+                    initiator.assertAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ZULU", "ALFA"), new BigInteger("1448538842"));
+
+                    acceptor.assertNoSslExceptionThrown();
+                    acceptor.assertLoggedOn(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                    acceptor.assertNotAuthenticated(new SessionID(FixVersions.BEGINSTRING_FIX44, "ALFA", "ZULU"));
+                } finally {
+                    initiator.stop();
+                }
+            } finally {
+                acceptor.stop();
+            }
+        } finally {
+            proxyServer.stop();
         }
     }
 
