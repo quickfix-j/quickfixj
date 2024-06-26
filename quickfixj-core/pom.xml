@@ -226,6 +226,7 @@
 		</plugins>
 
 	  <extensions>
+		  <!-- required by Netty cross-platform build -->
 		  <extension>
 			  <groupId>kr.motd.maven</groupId>
 			  <artifactId>os-maven-plugin</artifactId>
