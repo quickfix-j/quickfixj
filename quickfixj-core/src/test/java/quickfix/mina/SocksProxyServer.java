@@ -37,7 +37,7 @@ public class SocksProxyServer {
 
     public synchronized void start() {
         if (channel != null) {
-            throw new IllegalStateException("Socks proxy server is running already");
+            throw new IllegalStateException("SOCKS proxy server is running already");
         }
 
         try {
