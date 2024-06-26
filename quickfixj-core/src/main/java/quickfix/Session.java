@@ -413,6 +413,7 @@ public class Session implements Closeable {
     private long lastSessionLogon = 0;
 
     private final DataDictionaryProvider dataDictionaryProvider;
+    private final ValidationSettings validationSettings;
     private final boolean checkLatency;
     private final int maxLatency;
     private int resendRequestChunkSize = 0;
@@ -472,17 +473,20 @@ public class Session implements Closeable {
     protected static final Logger LOG = LoggerFactory.getLogger(Session.class);
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
-            DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule, LogFactory logFactory,
-            MessageFactory messageFactory, int heartbeatInterval) {
-        this(application, messageStoreFactory, sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
-             messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
-             false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
-             false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
-             false, false, new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
+            DataDictionaryProvider dataDictionaryProvider, ValidationSettings validationSettings,
+            SessionSchedule sessionSchedule,
+            LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval) {
+        this(application, messageStoreFactory, sessionID, dataDictionaryProvider, validationSettings, sessionSchedule,
+                logFactory, messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS,
+                false, false, false, false, true, false, true, false,
+                DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] { 5 }, false, false,
+                false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false, false, false,
+                new ArrayList<StringField>(), DEFAULT_HEARTBEAT_TIMEOUT_MULTIPLIER, false);
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, SessionID sessionID,
-            DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule,
+            DataDictionaryProvider dataDictionaryProvider, ValidationSettings validationSettings,
+            SessionSchedule sessionSchedule,
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
             boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
             boolean resetOnLogon, boolean resetOnLogout, boolean resetOnDisconnect,
@@ -498,7 +502,7 @@ public class Session implements Closeable {
             boolean enableNextExpectedMsgSeqNum, boolean enableLastMsgSeqNumProcessed,
             boolean validateChecksum, List<StringField> logonTags, double heartBeatTimeoutMultiplier,
             boolean allowPossDup) {
-        this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), sessionID, dataDictionaryProvider, sessionSchedule, logFactory,
+        this(application, messageStoreFactory, new InMemoryMessageQueueFactory(), sessionID, dataDictionaryProvider, validationSettings, sessionSchedule, logFactory,
             messageFactory, heartbeatInterval, true, DEFAULT_MAX_LATENCY, UtcTimestampPrecision.MILLIS, false, false,
             false, false, true, false, true, false, DEFAULT_TEST_REQUEST_DELAY_MULTIPLIER, null, true, new int[] {5},
             false, false, false, false, true, false, true, false, null, true, DEFAULT_RESEND_RANGE_CHUNK_SIZE, false,
@@ -506,7 +510,7 @@ public class Session implements Closeable {
     }
 
     Session(Application application, MessageStoreFactory messageStoreFactory, MessageQueueFactory messageQueueFactory,
-            SessionID sessionID, DataDictionaryProvider dataDictionaryProvider, SessionSchedule sessionSchedule,
+            SessionID sessionID, DataDictionaryProvider dataDictionaryProvider, ValidationSettings validationSettings, SessionSchedule sessionSchedule,
             LogFactory logFactory, MessageFactory messageFactory, int heartbeatInterval,
             boolean checkLatency, int maxLatency, UtcTimestampPrecision timestampPrecision,
             boolean resetOnLogon, boolean resetOnLogout, boolean resetOnDisconnect,
@@ -533,6 +537,7 @@ public class Session implements Closeable {
         this.timestampPrecision = timestampPrecision;
         this.refreshOnLogon = refreshOnLogon;
         this.dataDictionaryProvider = dataDictionaryProvider;
+        this.validationSettings = validationSettings;
         this.messageFactory = messageFactory;
         this.checkCompID = checkCompID;
         this.redundantResentRequestsAllowed = redundantResentRequestsAllowed;
@@ -1041,7 +1046,7 @@ public class Session implements Closeable {
                 }
             }
 
-            if (validateIncomingMessage && dataDictionaryProvider != null) {
+            if (validateIncomingMessage && dataDictionaryProvider != null && validationSettings != null) {
                 final DataDictionary sessionDataDictionary = dataDictionaryProvider
                         .getSessionDataDictionary(beginString);
 
@@ -1056,28 +1061,28 @@ public class Session implements Closeable {
                 // related to QFJ-367 : just warn invalid incoming field/tags
                 try {
                     DataDictionary.validate(message, sessionDataDictionary,
-                            applicationDataDictionary);
+                            applicationDataDictionary, validationSettings);
                 } catch (final IncorrectTagValue e) {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incoming message with " + e + ": " + getMessageToLog(message));
+                        getLog().onWarnEvent("incoming message with " + e + ": " + getMessageToLog(message));
                     }
                 } catch (final FieldException e) {
                     if (message.isSetField(e.getField())) {
                         if (rejectInvalidMessage) {
                             throw e;
                         } else {
-                            getLog().onErrorEvent(
-                                    "Warn: incoming message with incorrect field: "
+                            getLog().onWarnEvent(
+                                    "incoming message with incorrect field: "
                                             + message.getField(e.getField()) + ": " + getMessageToLog(message));
                         }
                     } else {
                         if (rejectInvalidMessage) {
                             throw e;
                         } else {
-                            getLog().onErrorEvent(
-                                    "Warn: incoming message with missing field: " + e.getField()
+                            getLog().onWarnEvent(
+                                    "incoming message with missing field: " + e.getField()
                                             + ": " + e.getMessage() + ": " + getMessageToLog(message));
                         }
                     }
@@ -1085,7 +1090,7 @@ public class Session implements Closeable {
                     if (rejectInvalidMessage) {
                         throw e;
                     } else {
-                        getLog().onErrorEvent("Warn: incoming " + e + ": " + getMessageToLog(message));
+                        getLog().onWarnEvent("incoming " + e + ": " + getMessageToLog(message));
                     }
                 }
             }
@@ -2012,7 +2017,7 @@ public class Session implements Closeable {
                 disconnect("Timed out waiting for heartbeat", true);
                 stateListener.onHeartBeatTimeout(sessionID);
             } else {
-                LOG.warn("Heartbeat failure detected but deactivated");
+                getLog().onWarnEvent("Heartbeat failure detected but deactivated");
             }
         } else {
             if (state.isTestRequestNeeded()) {
@@ -2163,7 +2168,7 @@ public class Session implements Closeable {
             throw new RejectLogon("Logon attempt not within session time");
         }
 
-        if (sessionID.isFIXT()) {
+        if (sessionID.isFIXT() && dataDictionaryProvider != null) {
             final DataDictionary dictionary = dataDictionaryProvider
                     .getSessionDataDictionary(sessionID.getBeginString());
             if (dictionary != null) {
@@ -2811,6 +2816,10 @@ public class Session implements Closeable {
 
     public DataDictionaryProvider getDataDictionaryProvider() {
         return dataDictionaryProvider;
+    }
+
+    public ValidationSettings getValidationSettings() {
+        return validationSettings;
     }
 
     public SessionID getSessionID() {
