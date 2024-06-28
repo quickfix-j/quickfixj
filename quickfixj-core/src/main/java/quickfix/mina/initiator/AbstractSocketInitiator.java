@@ -29,6 +29,7 @@ import quickfix.DefaultSessionFactory;
 import quickfix.FieldConvertError;
 import quickfix.Initiator;
 import quickfix.LogFactory;
+import quickfix.LogUtil;
 import quickfix.MessageFactory;
 import quickfix.MessageStoreFactory;
 import quickfix.Session;
@@ -126,8 +127,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
         // 1 minute by default, matches MINA
         int connectTimeout = getSettings().getIntOrDefault(sessionID, Initiator.SETTING_SOCKET_CONNECT_TIMEOUT, 60);
 
-        SocketAddress localAddress = getLocalAddress(settings, sessionID);
-
+        SocketAddress localAddress = getLocalAddress(settings, session);
         final NetworkingOptions networkingOptions = new NetworkingOptions(getSettings()
                 .getSessionProperties(sessionID, true));
 
@@ -185,7 +185,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
             initiators.add(ioSessionInitiator);
         } catch (ConfigError e) {
             if (continueInitOnError) {
-                log.warn("error during session initialization for {}, continuing...", sessionID, e);
+                LogUtil.logWarning(sessionID, "error during session initialization, continuing... ", e);
             } else {
                 throw e;
             }
@@ -193,10 +193,11 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
     }
 
     // QFJ-482
-    private SocketAddress getLocalAddress(SessionSettings settings, final SessionID sessionID)
+    private SocketAddress getLocalAddress(SessionSettings settings, final Session session)
             throws ConfigError, FieldConvertError {
         // Check if use of socket local/bind address
         SocketAddress localAddress = null;
+        SessionID sessionID = session.getSessionID();
         if (settings.isSetting(sessionID, Initiator.SETTING_SOCKET_LOCAL_HOST)) {
             String host = settings.getString(sessionID, Initiator.SETTING_SOCKET_LOCAL_HOST);
             if ("localhost".equals(host)) {
@@ -207,7 +208,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                 port = (int) settings.getLong(sessionID, Initiator.SETTING_SOCKET_LOCAL_PORT);
             }
             localAddress = ProtocolFactory.createSocketAddress(ProtocolFactory.SOCKET, host, port);
-            log.info("Using initiator local host: {}", localAddress);
+            session.getLog().onEvent("Using initiator local host: " + localAddress);
         }
         return localAddress;
     }
@@ -225,7 +226,7 @@ public abstract class AbstractSocketInitiator extends SessionConnector implement
                     }
                 } catch (final Throwable e) {
                     if (continueInitOnError) {
-                        log.warn("error during session initialization for {}, continuing...", sessionID, e);
+                        LogUtil.logWarning(sessionID, "error during session initialization, continuing...", e);
                     } else {
                         throw e instanceof ConfigError ? (ConfigError) e : new ConfigError(
                                 "error during session initialization", e);
