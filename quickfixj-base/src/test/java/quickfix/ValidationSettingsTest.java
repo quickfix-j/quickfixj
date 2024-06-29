@@ -14,6 +14,7 @@ public class ValidationSettingsTest {
         validationSettings.setCheckFieldsOutOfOrder(false);
         validationSettings.setCheckUnorderedGroupFields(false);
         validationSettings.setCheckUserDefinedFields(false);
+        validationSettings.setFieldValidationLogging(true);
 
         ValidationSettings validationSettingsCopy = new ValidationSettings(validationSettings);
 
@@ -22,5 +23,6 @@ public class ValidationSettingsTest {
         assertEquals(validationSettingsCopy.isCheckFieldsOutOfOrder(), validationSettings.isCheckFieldsOutOfOrder());
         assertEquals(validationSettingsCopy.isCheckUnorderedGroupFields(), validationSettings.isCheckUnorderedGroupFields());
         assertEquals(validationSettingsCopy.isCheckUserDefinedFields(), validationSettings.isCheckUserDefinedFields());
+        assertEquals(validationSettingsCopy.isFieldValidationLogging(), validationSettings.isFieldValidationLogging());
     }
 }
