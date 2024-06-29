@@ -55,7 +55,12 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
-
+	<dependency>
+            <groupId>io.netty</groupId>
+	    <artifactId>netty-example</artifactId>
+	    <version>4.1.111.Final</version>
+	    <scope>test</scope>
+	</dependency>
         <dependency>
             <groupId>org.apache.mina</groupId>
             <artifactId>mina-core</artifactId>
@@ -403,6 +408,15 @@
                 </configuration>
             </plugin>
         </plugins>
+
+	<extensions>
+		  <!-- required by Netty cross-platform build -->
+		  <extension>
+			  <groupId>kr.motd.maven</groupId>
+			  <artifactId>os-maven-plugin</artifactId>
+			  <version>1.4.0.Final</version>
+		  </extension>
+	  </extensions>
     </build>
 
     <reporting>
@@ -438,3 +452,4 @@
         </profile>
     </profiles>
 </project>
+
