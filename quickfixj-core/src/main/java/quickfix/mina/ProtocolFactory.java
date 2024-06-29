@@ -52,7 +52,6 @@ public class ProtocolFactory {
 
     public final static int SOCKET = 0;
     public final static int VM_PIPE = 1;
-    public final static int PROXY = 2;
 
     public static String getTypeString(int type) {
         switch (type) {
@@ -60,8 +59,6 @@ public class ProtocolFactory {
             return "SOCKET";
         case VM_PIPE:
             return "VM_PIPE";
-        case PROXY:
-            return "PROXY";
         default:
             return "unknown";
         }
@@ -69,7 +66,7 @@ public class ProtocolFactory {
 
     public static SocketAddress createSocketAddress(int transportType, String host,
             int port) throws ConfigError {
-        if (transportType == SOCKET || transportType == PROXY) {
+        if (transportType == SOCKET) {
             return host != null ? new InetSocketAddress(host, port) : new InetSocketAddress(port);
         } else if (transportType == VM_PIPE) {
             return new VmPipeAddress(port);
@@ -94,8 +91,6 @@ public class ProtocolFactory {
             return SOCKET;
         } else if (string.equalsIgnoreCase("VM_PIPE")) {
             return VM_PIPE;
-        } else if (string.equalsIgnoreCase("PROXY")) {
-            return PROXY;
         } else {
             throw new RuntimeError("Unknown Transport Type type: " + string);
         }

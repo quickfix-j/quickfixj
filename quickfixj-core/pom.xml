@@ -118,6 +118,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-example</artifactId>
+			<version>4.1.111.Final</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
 		</dependency>
@@ -132,11 +138,11 @@
 			<version>18.3.12</version>
 			<optional>true</optional>
 		</dependency>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-      <version>4.0.3</version>
-    </dependency>
+		<dependency>
+		  <groupId>com.zaxxer</groupId>
+		  <artifactId>HikariCP</artifactId>
+		  <version>4.0.3</version>
+		</dependency>
   </dependencies>
 
 
@@ -218,6 +224,15 @@
 				</configuration>
 			</plugin>
 		</plugins>
+
+	  <extensions>
+		  <!-- required by Netty cross-platform build -->
+		  <extension>
+			  <groupId>kr.motd.maven</groupId>
+			  <artifactId>os-maven-plugin</artifactId>
+			  <version>1.4.0.Final</version>
+		  </extension>
+	  </extensions>
 	</build>
 
 	<reporting>
