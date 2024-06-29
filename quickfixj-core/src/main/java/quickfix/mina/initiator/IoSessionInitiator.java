@@ -34,6 +34,7 @@ import quickfix.SessionID;
 import quickfix.SessionSettings;
 import quickfix.SystemTime;
 import quickfix.mina.CompositeIoFilterChainBuilder;
+import quickfix.mina.CustomSslFilter;
 import quickfix.mina.EventHandlingStrategy;
 import quickfix.mina.NetworkingOptions;
 import quickfix.mina.ProtocolFactory;
@@ -194,7 +195,7 @@ public class IoSessionInitiator {
         private SslFilter installSslFilter(CompositeIoFilterChainBuilder ioFilterChainBuilder)
                 throws GeneralSecurityException {
             final SSLContext sslContext = SSLContextFactory.getInstance(sslConfig);
-            final SslFilter sslFilter = new SslFilter(sslContext);
+            final SslFilter sslFilter = new CustomSslFilter(sslContext, false);
             sslFilter.setEnabledCipherSuites(sslConfig.getEnabledCipherSuites() != null ? sslConfig.getEnabledCipherSuites()
                     : SSLSupport.getDefaultCipherSuites(sslContext));
             sslFilter.setEnabledProtocols(sslConfig.getEnabledProtocols() != null ? sslConfig.getEnabledProtocols()
