@@ -8,7 +8,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
-import quickfix.DataDictionary;
+import quickfix.ValidationSettings;
 import quickfix.InvalidMessage;
 import quickfix.fix44.ExecutionReport;
 
