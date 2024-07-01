@@ -9,6 +9,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.quickfixj.sample.SampleQuickFixJApplication;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
+import quickfix.ValidationSettings;
 import quickfix.FieldNotFound;
 import quickfix.IncorrectTagValue;
 import quickfix.InvalidMessage;
@@ -37,9 +38,9 @@ public class MessageCrackerPerfTest extends AbstractPerfTest {
         executionReport = new ExecutionReport();
         DataDictionary dataDictionary = new DataDictionary(MessageCrackerPerfTest.class.getClassLoader()
                 .getResourceAsStream("FIX44.xml"));
+        ValidationSettings validationSettings = new ValidationSettings();
 
-        executionReport.fromString(data, dataDictionary, false);
-
+        executionReport.fromString(data, dataDictionary, validationSettings, false);
 
         application = new SampleQuickFixJApplication();
     }
