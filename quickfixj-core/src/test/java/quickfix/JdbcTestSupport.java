@@ -43,6 +43,8 @@ public class JdbcTestSupport {
         settings.setString(JdbcSetting.SETTING_JDBC_CONNECTION_URL, HSQL_CONNECTION_URL);
         settings.setString(JdbcSetting.SETTING_JDBC_USER, HSQL_USER);
         settings.setString(JdbcSetting.SETTING_JDBC_PASSWORD, "");
+        // HSQL doesn't support JDBC4 which means that test query has to be supplied to HikariCP
+        settings.setString(JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, "SELECT COUNT(1) FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE 1 = 0;");
     }
 
     public static Connection getConnection() throws ClassNotFoundException, SQLException {

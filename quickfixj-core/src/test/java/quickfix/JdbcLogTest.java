@@ -101,7 +101,7 @@ public class JdbcLogTest {
 
         // need to register the session since we are going to log errors through LogUtil
         Session.registerSession(new Session(new UnitTestApplication(), new MemoryStoreFactory(),
-                sessionID, new DefaultDataDictionaryProvider(), null, logFactory,
+                sessionID, new DefaultDataDictionaryProvider(), new ValidationSettings(), null, logFactory,
                 new DefaultMessageFactory(), 0));
 
         // remove the messages and events tables
@@ -133,7 +133,6 @@ public class JdbcLogTest {
         if (filterHeartbeats) {
             settings.setBool(JdbcSetting.SETTING_JDBC_LOG_HEARTBEATS, false);
         }
-        settings.setString(sessionID, JdbcSetting.SETTING_JDBC_CONNECTION_TEST_QUERY, "SELECT COUNT(1) FROM INFORMATION_SCHEMA.SYSTEM_USERS WHERE 1 = 0;");
         JdbcTestSupport.setHypersonicSettings(settings);
         initializeTableDefinitions(connection);
         logFactory = new JdbcLogFactory(settings);

@@ -91,27 +91,32 @@ public class Message extends FieldMap {
 
     public Message(String string) throws InvalidMessage {
         initializeHeader();
-        fromString(string, null, true, true);
+        fromString(string, null, null, true, true);
     }
 
     public Message(String string, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, null, validate, true);
+        fromString(string, null, null, validate, true);
     }
 
     public Message(String string, DataDictionary dd) throws InvalidMessage {
         initializeHeader();
-        fromString(string, dd, true, true);
+        fromString(string, dd, new ValidationSettings(), true, true);
     }
 
-    public Message(String string, DataDictionary dd, boolean validate) throws InvalidMessage {
+    public Message(String string, DataDictionary dd, ValidationSettings dds) throws InvalidMessage {
         initializeHeader();
-        fromString(string, dd, validate, true);
+        fromString(string, dd, dds, true, true);
+    }
+
+    public Message(String string, DataDictionary dd, ValidationSettings dds, boolean validate) throws InvalidMessage {
+        initializeHeader();
+        fromString(string, dd, dds, validate, true);
     }
     
-    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, boolean validate) throws InvalidMessage {
+    public Message(String string, DataDictionary sessionDictionary, DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean validate) throws InvalidMessage {
         initializeHeader();
-        fromString(string, sessionDictionary, applicationDictionary, validate, true);
+        fromString(string, sessionDictionary, applicationDictionary, validationSettings, validate, true);
     }
 
     private void initializeHeader() {
@@ -573,38 +578,41 @@ public class Message extends FieldMap {
         }
     }
 
-    public void fromString(String messageData, DataDictionary dd, boolean doValidation)
+    public void fromString(String messageData, DataDictionary dd, ValidationSettings validationSettings, boolean doValidation)
             throws InvalidMessage {
-        parse(messageData, dd, dd, doValidation, true);
+        parse(messageData, dd, dd, validationSettings, doValidation, true);
     }
 
-    public void fromString(String messageData, DataDictionary dd, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
-        parse(messageData, dd, dd, doValidation, validateChecksum);
-    }
-
-    public void fromString(String messageData, DataDictionary sessionDictionary,
-            DataDictionary applicationDictionary, boolean doValidation) throws InvalidMessage {
-        fromString(messageData, sessionDictionary, applicationDictionary, doValidation, true);
+    public void fromString(String messageData, DataDictionary dd, ValidationSettings dds, boolean doValidation,
+                           boolean validateChecksum) throws InvalidMessage {
+        parse(messageData, dd, dd, dds, doValidation, validateChecksum);
     }
 
     public void fromString(String messageData, DataDictionary sessionDictionary,
-            DataDictionary applicationDictionary, boolean doValidation, boolean validateChecksum)
+                           DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean doValidation) throws InvalidMessage {
+        fromString(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, true);
+    }
+
+    public void fromString(String messageData, DataDictionary sessionDictionary,
+                           DataDictionary applicationDictionary, ValidationSettings validationSettings, boolean doValidation, boolean validateChecksum)
             throws InvalidMessage {
         if (sessionDictionary.isAdminMessage(MessageUtils.getMessageType(messageData))) {
             applicationDictionary = sessionDictionary;
         }
-        parse(messageData, sessionDictionary, applicationDictionary, doValidation, validateChecksum);
+        if (validationSettings == null) {
+            validationSettings = new ValidationSettings();
+        }
+        parse(messageData, sessionDictionary, applicationDictionary, validationSettings, doValidation, validateChecksum);
     }
 
     void parse(String messageData, DataDictionary sessionDataDictionary,
-            DataDictionary applicationDataDictionary, boolean doValidation,
-            boolean validateChecksum) throws InvalidMessage {
+               DataDictionary applicationDataDictionary, ValidationSettings validationSettings, boolean doValidation,
+               boolean validateChecksum) throws InvalidMessage {
         this.messageData = messageData;
 
         try {
-            parseHeader(sessionDataDictionary, doValidation);
-            parseBody(sessionDataDictionary, applicationDataDictionary, doValidation);
+            parseHeader(sessionDataDictionary, validationSettings, doValidation);
+            parseBody(sessionDataDictionary, applicationDataDictionary, validationSettings, doValidation);
             parseTrailer(sessionDataDictionary);
             if (doValidation && validateChecksum) {
                 validateCheckSum(messageData);
@@ -628,7 +636,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseHeader(DataDictionary dd, boolean doValidation) throws InvalidMessage {
+    private void parseHeader(DataDictionary dd, ValidationSettings dds, boolean doValidation) throws InvalidMessage {
         if (doValidation) {
             final boolean validHeaderFieldOrder = isNextField(dd, header, BeginString.FIELD)
                     && isNextField(dd, header, BodyLength.FIELD)
@@ -645,7 +653,7 @@ public class Message extends FieldMap {
             header.setField(field);
 
             if (dd != null && dd.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                parseGroup(DataDictionary.HEADER_ID, field, dd, dd, header, doValidation);
+                parseGroup(DataDictionary.HEADER_ID, field, dd, dd, dds, header, doValidation);
             }
 
             field = extractField(dd, header);
@@ -670,7 +678,7 @@ public class Message extends FieldMap {
         }
     }
 
-    private void parseBody(DataDictionary sessionDataDictionary, DataDictionary applicationDataDictionary, boolean doValidation) throws InvalidMessage {
+    private void parseBody(DataDictionary sessionDataDictionary, DataDictionary applicationDataDictionary, ValidationSettings dds, boolean doValidation) throws InvalidMessage {
         StringField field = extractField(applicationDataDictionary, this);
         while (field != null) {
             if (isTrailerField(field.getField())) {
@@ -684,16 +692,17 @@ public class Message extends FieldMap {
                 setField(header, field);
                 // Group case
                 if (sessionDataDictionary != null && sessionDataDictionary.isGroup(DataDictionary.HEADER_ID, field.getField())) {
-                    parseGroup(DataDictionary.HEADER_ID, field, sessionDataDictionary, sessionDataDictionary, header, doValidation);
+                    parseGroup(DataDictionary.HEADER_ID, field, sessionDataDictionary, sessionDataDictionary, dds, header, doValidation);
                 }
-                if (doValidation && sessionDataDictionary != null && sessionDataDictionary.isCheckFieldsOutOfOrder())
+                if (doValidation && sessionDataDictionary != null && dds.isCheckFieldsOutOfOrder()) {
                     throw new FieldException(SessionRejectReason.TAG_SPECIFIED_OUT_OF_REQUIRED_ORDER,
-                        field.getTag());
+                            field.getTag());
+                }
             } else {
                 setField(this, field);
                 // Group case
                 if (applicationDataDictionary != null && applicationDataDictionary.isGroup(getMsgType(), field.getField())) {
-                    parseGroup(getMsgType(), field, applicationDataDictionary, applicationDataDictionary, this, doValidation);
+                    parseGroup(getMsgType(), field, applicationDataDictionary, applicationDataDictionary, dds, this, doValidation);
                 }
             }
 
@@ -708,7 +717,7 @@ public class Message extends FieldMap {
         fields.setField(field);
     }
 
-    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, FieldMap parent, boolean doValidation)
+    private void parseGroup(String msgType, StringField field, DataDictionary dd, DataDictionary parentDD, ValidationSettings dds, FieldMap parent, boolean doValidation)
             throws InvalidMessage {
         final DataDictionary.GroupInfo rg = dd.getGroup(msgType, field.getField());
         final DataDictionary groupDataDictionary = rg.getDataDictionary();
@@ -740,18 +749,18 @@ public class Message extends FieldMap {
                 previousOffset = -1;
                 // QFJ-742
                 if (groupDataDictionary.isGroup(msgType, tag)) {
-                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
+                    parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
                 }
             } else if (groupDataDictionary.isGroup(msgType, tag)) {
                 if (group != null) {
-                    parseGroup(msgType, field, groupDataDictionary, parentDD, group, doValidation);
+                    parseGroup(msgType, field, groupDataDictionary, parentDD, dds, group, doValidation);
                 } else {
                     // QFJ-934: message should be rejected and not ignored when first field not found
                     throw newFieldExceptionMissingDelimiter(groupCountTag, firstField, tag);
                 }
             } else if (groupDataDictionary.isField(tag)) {
                 if (group != null) {
-                    if (fieldOrder != null && dd.isCheckUnorderedGroupFields()) {
+                    if (fieldOrder != null && dds.isCheckUnorderedGroupFields()) {
                         final int offset = indexOf(tag, fieldOrder);
                         if (offset > -1) {
                             if (offset <= previousOffset) {
@@ -771,7 +780,7 @@ public class Message extends FieldMap {
             } else {
                 // QFJ-169/QFJ-791: handle unknown repeating group fields in the body
                 if (!isTrailerField(tag) && !(DataDictionary.HEADER_ID.equals(msgType) || isHeaderField(field, dd))) {
-                    if (checkFieldValidation(parent, parentDD, field, msgType, doValidation, group)) {
+                    if (checkFieldValidation(parent, parentDD, dds, field, msgType, doValidation, group)) {
                         continue;
                     }
                 }
@@ -797,11 +806,11 @@ public class Message extends FieldMap {
                 + " must set the delimiter field " + firstField, tag);
     }
 
-    private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
+    private boolean checkFieldValidation(FieldMap parent, DataDictionary parentDD, ValidationSettings dds, StringField field, String msgType, boolean doValidation, Group group) throws FieldException {
         boolean isField = (parent instanceof Group) ? parentDD.isField(field.getTag()) : parentDD.isMsgField(msgType, field.getTag());
         if (!isField) {
             if (doValidation) {
-                boolean fail = parentDD.checkFieldFailure(field.getTag(), false);
+                boolean fail = parentDD.checkFieldFailure(dds, field.getTag(), false);
                 if (fail) {
                     throw new FieldException(SessionRejectReason.TAG_NOT_DEFINED_FOR_THIS_MESSAGE_TYPE, field.getTag());
                 }

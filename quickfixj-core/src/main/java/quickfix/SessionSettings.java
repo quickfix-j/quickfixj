@@ -410,7 +410,21 @@ public class SessionSettings {
     public boolean getBool(SessionID sessionID, String key) throws FieldConvertError, ConfigError {
         return BooleanConverter.convert(getString(sessionID, key));
     }
+    
+    /**
+     * Get a boolean setting from the default section if present or use default value.
+     */
+    public boolean getBoolOrDefault(String key, boolean defaultValue) throws FieldConvertError, ConfigError {
+        return isSetting(key) ? getBool(key) : defaultValue;
+    }
 
+    /**
+     * Get a boolean setting if present or use default value.
+     */
+    public boolean getBoolOrDefault(SessionID sessionID, String key, boolean defaultValue) throws FieldConvertError, ConfigError {
+        return isSetting(sessionID, key) ? getBool(sessionID, key) : defaultValue;
+    }
+    
     /**
      * Sets a string-valued session setting.
      *
@@ -877,4 +891,23 @@ public class SessionSettings {
         return result;
     }
 
+    public void removeSection(final SessionID sessionID) throws ConfigError {
+        Properties properties = getSessionProperties(sessionID);
+
+        if (properties == null) {
+            throw new ConfigError("Session not found");
+        }
+        sections.remove(sessionID);
+    }
+
+    public void removeSection(final String propertyKey, final String propertyValue) throws ConfigError {
+        List<SessionID> sessionIDs = sections.entrySet().stream()
+                .filter(entry -> propertyValue.equals(entry.getValue().get(propertyKey)))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        for (SessionID sessionID : sessionIDs) {
+            this.removeSection(sessionID);
+        }
+    }
 }

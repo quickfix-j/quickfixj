@@ -162,6 +162,14 @@ public class CachedFileStore implements MessageStore {
         return cache.getCreationTime();
     }
 
+    /*
+     * (non-Javadoc)
+     * @see quickfix.MessageStore#getCreationTimeCalendar()
+     */
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return cache.getCreationTimeCalendar();
+    }
+
     private void initializeSequenceNumbers() throws IOException {
         sequenceNumberFile.seek(0);
         if (sequenceNumberFile.length() > 0) {

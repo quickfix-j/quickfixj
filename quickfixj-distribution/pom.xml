@@ -122,11 +122,11 @@
 			<artifactId>quickfixj-messages-fix40</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.cloudhopper.proxool</groupId>
-			<artifactId>proxool</artifactId>
-			<optional>true</optional>
-		</dependency>
+    <dependency>
+			<groupId>org.quickfixj</groupId>
+			<artifactId>quickfixj-perf-test</artifactId>
+			<version>${project.version}</version>
+    </dependency>
 		<dependency>
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>

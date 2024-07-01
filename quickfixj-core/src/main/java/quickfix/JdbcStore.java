@@ -159,6 +159,10 @@ class JdbcStore implements MessageStore {
         return cache.getCreationTime();
     }
 
+    public Calendar getCreationTimeCalendar() throws IOException {
+        return cache.getCreationTimeCalendar();
+    }
+
     public int getNextSenderMsgSeqNum() throws IOException {
         return cache.getNextSenderMsgSeqNum();
     }
