@@ -8,6 +8,7 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import quickfix.ConfigError;
 import quickfix.DataDictionary;
+import quickfix.DataDictionary;
 import quickfix.InvalidMessage;
 import quickfix.fix44.ExecutionReport;
 
@@ -15,6 +16,7 @@ public class MessageParsePerfTest extends AbstractPerfTest {
 
     private ExecutionReport executionReport;
     private DataDictionary dataDictionary;
+    private ValidationSettings validationSettings;
     private String data;
 
     @Setup
@@ -30,6 +32,7 @@ public class MessageParsePerfTest extends AbstractPerfTest {
         executionReport = new ExecutionReport();
         dataDictionary = new DataDictionary(MessageCrackerPerfTest.class.getClassLoader()
                 .getResourceAsStream("FIX44.xml"));
+        validationSettings = new ValidationSettings();
     }
 
     @Benchmark
@@ -38,7 +41,7 @@ public class MessageParsePerfTest extends AbstractPerfTest {
 
     @Benchmark
     public void parse() throws InvalidMessage {
-        executionReport.fromString(data, dataDictionary, false);
+        executionReport.fromString(data, dataDictionary, validationSettings, false);
     }
 
     public static void main(String[] args) throws RunnerException {
