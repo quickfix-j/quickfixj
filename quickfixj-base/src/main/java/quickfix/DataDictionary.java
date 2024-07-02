@@ -19,6 +19,8 @@
 
 package quickfix;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -72,6 +74,8 @@ public class DataDictionary {
 
     private static final String JDK_DOCUMENT_BUILDER_FACTORY_NAME = "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl";
     private static final Supplier<DocumentBuilderFactory> DEFAULT_DOCUMENT_BUILDER_FACTORY_SUPPLIER = createDocumentBuilderFactorySupplier();
+
+    protected static final Logger LOG = LoggerFactory.getLogger(DataDictionary.class);
 
     private static Supplier<DocumentBuilderFactory> createDocumentBuilderFactorySupplier() {
         return () -> {
@@ -670,7 +674,7 @@ public class DataDictionary {
 
             if (hasVersion) {
                 checkValidFormat(settings, field);
-                checkValue(field);
+                checkValue(settings, field);
             }
 
             if (beginString != null) {
@@ -720,8 +724,15 @@ public class DataDictionary {
         boolean fail;
         if (field < USER_DEFINED_TAG_MIN) {
             fail = !messageField && !settings.allowUnknownMessageFields;
+            if (settings.fieldValidationLogging && !messageField && settings.allowUnknownMessageFields) {
+                LOG.warn("Unknown Message Field {} detected", field);
+            }
         } else {
             fail = !messageField && settings.checkUserDefinedFields;
+            if (settings.fieldValidationLogging && !messageField && settings.checkUserDefinedFields) {
+                LOG.warn("Unknown User Defined Field {} detected", field);
+            }
+
         }
         return fail;
     }
@@ -788,10 +799,14 @@ public class DataDictionary {
         }
     }
 
-    private void checkValue(StringField field) throws IncorrectTagValue {
+    private void checkValue(ValidationSettings settings, StringField field) throws IncorrectTagValue {
         int tag = field.getField();
         if (hasFieldValue(tag) && !isFieldValue(tag, field.getValue())) {
-            throw new IncorrectTagValue(tag);
+            if (settings.fieldValidationLogging) {
+                LOG.warn("Unknown Enum value {} for tag {} is detected", field.getValue(), tag);
+            } else {
+                throw new IncorrectTagValue(tag);
+            }
         }
     }
 

@@ -323,6 +323,8 @@ public class Session implements Closeable {
      */
     public static final String SETTING_ALLOW_UNKNOWN_MSG_FIELDS = "AllowUnknownMsgFields";
 
+    public static final String SETTING_FIELD_VALIDATION_LOGGING = "FieldValidationLogging";
+
     public static final String SETTING_DEFAULT_APPL_VER_ID = "DefaultApplVerID";
 
     /**
