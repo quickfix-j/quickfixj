@@ -803,16 +803,26 @@ public class DataDictionary {
         }
     }
 
-    /** Check if group count matches number of groups in **/
+    /**
+     * Check if group count matches number of groups in message. *
+     */
     private void checkGroupCount(StringField field, FieldMap fieldMap, String msgType) {
         final int fieldNum = field.getField();
         if (isGroup(msgType, fieldNum)) {
-            if (fieldMap.getGroupCount(fieldNum) != Integer.parseInt(field.getValue())) {
-                throw new FieldException(
-                        SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
-                        fieldNum);
+            try {
+                if (fieldMap.getGroupCount(fieldNum) != IntConverter.convert(field.getValue())) {
+                    throwNewFieldException(fieldNum);
+                }
+            } catch (FieldConvertError ex) {
+                throwNewFieldException(fieldNum);
             }
         }
+    }
+
+    private void throwNewFieldException(final int fieldNum) throws FieldException {
+        throw new FieldException(
+                SessionRejectReason.INCORRECT_NUMINGROUP_COUNT_FOR_REPEATING_GROUP,
+                fieldNum);
     }
 
     /** Check if a message has all required fields. **/
@@ -972,7 +982,12 @@ public class DataDictionary {
                     throw new ConfigError("<field> " + name + " does not have a number attribute");
                 }
 
-                final int num = Integer.parseInt(number);
+                int num = 0;
+                try {
+                    num = IntConverter.convert(number);
+                } catch (FieldConvertError ex) {
+                    throw new ConfigError(ex);
+                }
 
                 final String type = getAttribute(fieldNode, "type");
                 if (type == null) {
@@ -1068,8 +1083,8 @@ public class DataDictionary {
     private int getIntegerAttributeIfDefined(final Element documentElement, final String attribute) throws ConfigError {
         try {
             return documentElement.hasAttribute(attribute)
-                    ? Integer.parseInt(documentElement.getAttribute(attribute)) : 0;
-        } catch (NumberFormatException e) {
+                    ? IntConverter.convert(documentElement.getAttribute(attribute)) : 0;
+        } catch (FieldConvertError e) {
             throw new ConfigError("Attribute " + attribute + " could not be parsed as Integer.", e);
         }
     }
