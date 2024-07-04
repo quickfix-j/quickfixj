@@ -57,6 +57,7 @@ import quickfix.field.TargetLocationID;
 import quickfix.field.TargetSubID;
 import quickfix.field.XmlData;
 import quickfix.field.XmlDataLen;
+import quickfix.field.converter.IntConverter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -727,8 +728,8 @@ public class Message extends FieldMap {
         // QFJ-533
         int declaredGroupCount = 0;
         try {
-            declaredGroupCount = Integer.parseInt(field.getValue());
-        } catch (final NumberFormatException e) {
+            declaredGroupCount = IntConverter.convert(field.getValue());
+        } catch (final FieldConvertError e) {
             throw MessageUtils.newInvalidMessageException("Repeating group count requires an Integer but found '" + field.getValue() + "' in " + messageData, this);
         }
         parent.setField(groupCountTag, field);
@@ -927,8 +928,8 @@ public class Message extends FieldMap {
 
         int tag;
         try {
-            tag = Integer.parseInt(messageData.substring(position, equalsOffset));
-        } catch (final NumberFormatException e) {
+            tag = IntConverter.convert(messageData.substring(position, equalsOffset));
+        } catch (final FieldConvertError e) {
             position = messageData.indexOf('\001', position + 1) + 1;
             throw MessageUtils.newInvalidMessageException("Bad tag format: " + e.getMessage() + " in " + messageData, this);
         }
