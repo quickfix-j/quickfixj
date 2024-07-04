@@ -151,6 +151,10 @@ public class UtcTimestampConverter extends AbstractDateTimeConverter {
         int h = parseInt(value, 9, 2);
         int m = parseInt(value, 12, 2);
         int s = parseInt(value, 15, 2);
+        if (s == 60) {  // leap second
+            s = 59;
+            ns = 999999999;
+        }
         try {
             return LocalDateTime.of(yy, mm, dd, h, m, s, ns);
         } catch (DateTimeException e) {
