@@ -173,7 +173,7 @@ public class MessageUtils {
 
     public static String getStringField(String messageString, int tag) {
         String value = null;
-        final String tagString = Integer.toString(tag);
+        final String tagString = NumbersCache.get(tag);
         int start = messageString.indexOf(tagString, 0);
         while (start != -1 && value == null) {
             if ((start == 0 || messageString.charAt(start - 1) == FIELD_SEPARATOR)) {

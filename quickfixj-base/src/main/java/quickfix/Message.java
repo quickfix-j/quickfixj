@@ -410,7 +410,7 @@ public class Message extends FieldMap {
                     fieldElement.setAttribute("enum", enumValue);
                 }
             }
-            fieldElement.setAttribute("tag", Integer.toString(field.getTag()));
+            fieldElement.setAttribute("tag", NumbersCache.get(field.getTag()));
             final CDATASection value = document.createCDATASection(field.getObject().toString());
             fieldElement.appendChild(value);
             fields.appendChild(fieldElement);
@@ -424,7 +424,7 @@ public class Message extends FieldMap {
                     groupsElement.setAttribute("name", name);
                 }
             }
-            groupsElement.setAttribute("tag", Integer.toString(groupKey));
+            groupsElement.setAttribute("tag", NumbersCache.get(groupKey));
             final List<Group> groups = fieldMap.getGroups(groupKey);
             for (Group group : groups) {
                 toXMLFields(groupsElement, "group", group, dataDictionary);
