@@ -39,16 +39,9 @@
 		</developer>
 	</developers>
 
-	<contributors>
-		<contributor>
-			<name>Luca Burgazzoli</name>
-			<url>https://github.com/lburgazzoli</url>
-		</contributor>
-	</contributors>
-
 	<issueManagement>
-		<system>JIRA</system>
-		<url>http://www.quickfixj.org/jira/</url>
+		<system>github issues</system>
+		<url>https://github.com/quickfix-j/quickfixj/issues</url>
 	</issueManagement>
 
 	<modules>
@@ -110,7 +103,7 @@
 		<org.quickfixj.orchestra.tools.version>1.0.2</org.quickfixj.orchestra.tools.version>
 		<proxool.version>0.9.1</proxool.version>
 		<jaxen.version>2.0.0</jaxen.version>
-        <jmh.version>1.37</jmh.version>
+                <jmh.version>1.37</jmh.version>
 	</properties>
 
    <dependencyManagement>
