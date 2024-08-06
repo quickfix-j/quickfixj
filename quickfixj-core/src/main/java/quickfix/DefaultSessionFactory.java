@@ -314,6 +314,11 @@ public class DefaultSessionFactory implements SessionFactory {
                     Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS));
         }
 
+        if (settings.isSetting(sessionID, Session.SETTING_FIELD_VALIDATION_LOGGING)) {
+            validationSettings.setFieldValidationLogging(settings.getBool(sessionID,
+                    Session.SETTING_FIELD_VALIDATION_LOGGING));
+        }
+
         return validationSettings;
     }
 
