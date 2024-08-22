@@ -163,7 +163,7 @@ public class SLF4JLogTest {
         getTestHandler(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY).setLevel(Level.SEVERE);
         log.onErrorEvent(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_EVENT_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         getTestHandler(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY).setLevel(Level.WARNING);
