@@ -61,18 +61,22 @@ public class SLF4JLogTest {
         setUpLoggerForTest(SLF4JLog.DEFAULT_EVENT_CATEGORY);
         log.onEvent(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_EVENT_CATEGORY, sessionID, loggedText);
+        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
         log.onErrorEvent(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, sessionID, loggedText);
-
+        removeLogHandlers(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
+        
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         log.onIncoming(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID, loggedText);
+        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         log.onOutgoing(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID, loggedText);
+        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
 
         settings.setString(sessionID, SLF4JLogFactory.SETTING_EVENT_CATEGORY, "event");
         settings.setString(sessionID, SLF4JLogFactory.SETTING_ERROR_EVENT_CATEGORY, "errorEvent");
@@ -83,18 +87,22 @@ public class SLF4JLogTest {
         setUpLoggerForTest("event");
         log.onEvent(loggedText);
         assertMessageLogged("event", sessionID, loggedText);
+        removeLogHandlers("event");
 
         setUpLoggerForTest("errorEvent");
         log.onErrorEvent(loggedText);
         assertMessageLogged("errorEvent", sessionID, loggedText);
+        removeLogHandlers("errorEvent");
 
         setUpLoggerForTest("in");
         log.onIncoming(loggedText);
         assertMessageLogged("in", sessionID, loggedText);
+        removeLogHandlers("in");
 
         setUpLoggerForTest("out");
         log.onOutgoing(loggedText);
         assertMessageLogged("out", sessionID, loggedText);
+        removeLogHandlers("out");
     }
 
     @Test
@@ -112,10 +120,12 @@ public class SLF4JLogTest {
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         log.onIncoming(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID, loggedText);
+        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         log.onOutgoing(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY, sessionID, loggedText);
+        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
 
         settings.setBool(sessionID, SLF4JLogFactory.SETTING_LOG_HEARTBEATS, false);
         log = (SLF4JLog) factory.create(sessionID);
@@ -123,10 +133,12 @@ public class SLF4JLogTest {
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         log.onIncoming(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
     @Test
@@ -145,21 +157,25 @@ public class SLF4JLogTest {
         getTestHandler(SLF4JLog.DEFAULT_EVENT_CATEGORY).setLevel(Level.WARNING);
         log.onEvent(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
         getTestHandler(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY).setLevel(Level.SEVERE);
         log.onErrorEvent(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         getTestHandler(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY).setLevel(Level.WARNING);
         log.onIncoming(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
 
         setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         getTestHandler(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY).setLevel(Level.WARNING);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
     /**
@@ -215,17 +231,25 @@ public class SLF4JLogTest {
 
     private TestHandler setUpLoggerForTest(String category) {
         final Logger logger = Logger.getLogger(category);
-        logger.setUseParentHandlers(false);
-        final Handler[] handlers = logger.getHandlers();
-        for (final Handler handler : handlers) {
-            //System.err.println("Removing unexpected handler: " + handlers[i]);
-            logger.removeHandler(handler);
-        }
+        removeLogHandlers(logger);
         final TestHandler testHandler = new TestHandler();
         logger.addHandler(testHandler);
         return testHandler;
     }
 
+    private void removeLogHandlers(String category) {
+        final Logger logger = Logger.getLogger(category);
+        removeLogHandlers(logger);
+    }
+    
+    private void removeLogHandlers(Logger logger) {
+        logger.setUseParentHandlers(false);
+        final Handler[] handlers = logger.getHandlers();
+        for (final Handler handler : handlers) {
+            logger.removeHandler(handler);
+        }
+    }
+    
     private class TestHandler extends java.util.logging.Handler {
         public final ArrayList<LogRecord> records = new ArrayList<>();
 
