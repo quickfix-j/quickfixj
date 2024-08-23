@@ -44,6 +44,14 @@ public class SLF4JLogTest {
     @After
     public void tearDown() throws Exception {
         SystemTime.setTimeSource(null);
+        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        removeLogHandlers("event");
+        removeLogHandlers("errorEvent");
+        removeLogHandlers("in");
+        removeLogHandlers("out");
     }
 
     @Test
@@ -65,7 +73,7 @@ public class SLF4JLogTest {
         setUpLoggerForTest(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
         log.onErrorEvent(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY, sessionID, loggedText);
-
+        
         setUpLoggerForTest(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
         log.onIncoming(loggedText);
         assertMessageLogged(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY, sessionID, loggedText);
@@ -215,17 +223,25 @@ public class SLF4JLogTest {
 
     private TestHandler setUpLoggerForTest(String category) {
         final Logger logger = Logger.getLogger(category);
-        logger.setUseParentHandlers(false);
-        final Handler[] handlers = logger.getHandlers();
-        for (final Handler handler : handlers) {
-            //System.err.println("Removing unexpected handler: " + handlers[i]);
-            logger.removeHandler(handler);
-        }
+        removeLogHandlers(logger);
         final TestHandler testHandler = new TestHandler();
         logger.addHandler(testHandler);
         return testHandler;
     }
 
+    private void removeLogHandlers(String category) {
+        final Logger logger = Logger.getLogger(category);
+        removeLogHandlers(logger);
+    }
+    
+    private void removeLogHandlers(Logger logger) {
+        logger.setUseParentHandlers(false);
+        final Handler[] handlers = logger.getHandlers();
+        for (final Handler handler : handlers) {
+            logger.removeHandler(handler);
+        }
+    }
+    
     private class TestHandler extends java.util.logging.Handler {
         public final ArrayList<LogRecord> records = new ArrayList<>();
 
