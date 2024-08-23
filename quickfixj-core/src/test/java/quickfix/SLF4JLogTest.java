@@ -44,6 +44,14 @@ public class SLF4JLogTest {
     @After
     public void tearDown() throws Exception {
         SystemTime.setTimeSource(null);
+        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
+        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
+        removeLogHandlers("event");
+        removeLogHandlers("errorEvent");
+        removeLogHandlers("in");
+        removeLogHandlers("out");
     }
 
     @Test
@@ -95,16 +103,6 @@ public class SLF4JLogTest {
         setUpLoggerForTest("out");
         log.onOutgoing(loggedText);
         assertMessageLogged("out", sessionID, loggedText);
-
-        // cleanup
-        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
-        removeLogHandlers("event");
-        removeLogHandlers("errorEvent");
-        removeLogHandlers("in");
-        removeLogHandlers("out");
     }
 
     @Test
@@ -137,10 +135,6 @@ public class SLF4JLogTest {
         setUpLoggerForTest(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
-
-        // cleanup
-        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
     @Test
@@ -174,12 +168,6 @@ public class SLF4JLogTest {
         getTestHandler(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY).setLevel(Level.WARNING);
         log.onOutgoing(loggedText);
         assertMessageNotLogged(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
-
-        // cleanup
-        removeLogHandlers(SLF4JLog.DEFAULT_EVENT_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_ERROR_EVENT_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_INCOMING_MSG_CATEGORY);
-        removeLogHandlers(SLF4JLog.DEFAULT_OUTGOING_MSG_CATEGORY);
     }
 
     /**
