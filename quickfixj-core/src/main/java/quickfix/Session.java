@@ -1214,13 +1214,13 @@ public class Session implements Closeable {
                 }
                 if (!(MessageUtils.isAdminMessage(msgType))
                         && (sessionBeginString.compareTo(FixVersions.BEGINSTRING_FIX42) >= 0)) {
-                    generateBusinessReject(message, BusinessRejectReason.APPLICATION_NOT_AVAILABLE,
+                    generateBusinessReject(message, t.getMessage(), BusinessRejectReason.APPLICATION_NOT_AVAILABLE,
                             0);
                 } else {
                     if (MsgType.LOGON.equals(msgType)) {
                         disconnect("Problem processing Logon message", true);
                     } else {
-                        generateReject(message, SessionRejectReason.OTHER, 0);
+                        generateReject(message, t.getMessage(), SessionRejectReason.OTHER, 0);
                     }
                 }
             } else {
@@ -1732,6 +1732,11 @@ public class Session implements Closeable {
 
     private void generateBusinessReject(Message message, int err, int field) throws FieldNotFound,
             IOException {
+        generateBusinessReject(message, null, err, field);
+    }
+
+    private void generateBusinessReject(Message message, String text, int err, int field) throws FieldNotFound,
+            IOException {
         final Header header = message.getHeader();
         ApplVerID targetDefaultApplicationVersionID = getTargetDefaultApplicationVersionID();
         final Message reject = messageFactory.create(sessionID.getBeginString(), targetDefaultApplicationVersionID,
@@ -1746,7 +1751,12 @@ public class Session implements Closeable {
         reject.setInt(BusinessRejectReason.FIELD, err);
         state.incrNextTargetMsgSeqNum();
 
-        final String reason = BusinessRejectReasonText.getMessage(err);
+        final String reason;
+        if (text != null) {
+            reason = text;
+        } else {
+            reason = BusinessRejectReasonText.getMessage(err);
+        }
         setRejectReason(reject, field, reason, field != 0);
         getLog().onErrorEvent(
                 "Reject sent for message number " + msgSeqNum + (reason != null ? (": " + reason) : "")
