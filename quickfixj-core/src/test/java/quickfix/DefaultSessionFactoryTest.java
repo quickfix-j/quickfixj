@@ -100,6 +100,7 @@ public class DefaultSessionFactoryTest {
         settings.setString(sessionID, Session.SETTING_APP_DATA_DICTIONARY + "." + FixVersions.BEGINSTRING_FIX40, "FIX40.xml");
         settings.setString(sessionID, Session.SETTING_ALLOW_UNKNOWN_MSG_FIELDS, "Y");
         settings.setString(sessionID, Session.SETTING_VALIDATE_UNORDERED_GROUP_FIELDS, "N");
+        settings.setString(sessionID, Session.SETTING_FIELD_VALIDATION_LOGGING, "Y");
 
         try (Session session = factory.create(sessionID, settings)) {
 
@@ -113,6 +114,7 @@ public class DefaultSessionFactoryTest {
                     is(notNullValue()));
             assertTrue(session.getValidationSettings().isAllowUnknownMessageFields());
             assertFalse(session.getValidationSettings().isCheckUnorderedGroupFields());
+            assertTrue(session.getValidationSettings().isFieldValidationLogging());
         }
     }
 
@@ -142,6 +144,7 @@ public class DefaultSessionFactoryTest {
                     is(notNullValue()));
             assertTrue(session.getValidationSettings().isAllowUnknownMessageFields());
             assertFalse(session.getValidationSettings().isCheckUnorderedGroupFields());
+            assertFalse(session.getValidationSettings().isFieldValidationLogging());
         }
     }
 
