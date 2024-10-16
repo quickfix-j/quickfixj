@@ -69,7 +69,7 @@ import static org.junit.Assert.assertSame;
 public class SSLCertificateTest {
 
     // Note: To diagnose cipher suite errors, run with -Djavax.net.debug=ssl:handshake
-    private static final String CIPHER_SUITES_TLS = "TLS_RSA_WITH_AES_128_CBC_SHA";
+    private static final String CIPHER_SUITES_TLS = "TLS_AES_256_GCM_SHA384";
 
     @After
     public void cleanup() {
