@@ -85,14 +85,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -137,13 +137,13 @@ public class SSLCertificateTest {
         try {
             int port = AvailablePortFinder.getNextAvailable();
             TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                    "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", port));
+                    "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", port));
 
             try {
                 acceptor.start();
 
                 SessionSettings initiatorSettings = createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                        CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(port), "JKS", "JKS");
+                        CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(port), "JKS", "JKS");
 
                 Properties defaults = initiatorSettings.getDefaultProperties();
 
@@ -184,14 +184,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerNameUsingServerCommonName() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-cn.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-cn.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -219,14 +219,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerNameUsingSNIExtension() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-sni.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-sni.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -255,14 +255,14 @@ public class SSLCertificateTest {
         int freePort = AvailablePortFinder.getNextAvailable();
 
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-bad-cn.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client-bad-cn.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS", "HTTPS"));
 
             try {
                 initiator.start();
@@ -286,14 +286,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerAndClientCertificates() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/server.truststore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/server.truststore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -319,14 +319,14 @@ public class SSLCertificateTest {
     public void shouldAuthenticateServerAndClientCertificatesWhenUsingDifferentKeystoreFormats() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server-pkcs12.keystore", true,
-                "single-session/server-jceks.truststore", CIPHER_SUITES_TLS, "TLSv1.2", "PKCS12",
+                "single-session/server-jceks.truststore", CIPHER_SUITES_TLS, "TLSv1.3", "PKCS12",
                 "JCEKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(createInitiatorSettings("single-session/client-jceks.keystore",
-                    "single-session/client-jceks.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA",
+                    "single-session/client-jceks.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA",
                     Integer.toString(freePort), "JCEKS", "JCEKS"));
 
             try {
@@ -354,20 +354,20 @@ public class SSLCertificateTest {
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+                CIPHER_SUITES_TLS, "TLSv1.3"));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -415,20 +415,20 @@ public class SSLCertificateTest {
         TestAcceptor acceptor = new TestAcceptor(createMultiSessionAcceptorSettings(
                 "multi-session/server.keystore", true, new String[] { "multi-session/server1.truststore",
                         "multi-session/server2.truststore", "multi-session/server3.truststore" },
-                CIPHER_SUITES_TLS, "TLSv1.2"));
+                CIPHER_SUITES_TLS, "TLSv1.3"));
 
         try {
             acceptor.start();
 
             TestInitiator initiator1 = new TestInitiator(
                     createInitiatorSettings("multi-session/client2.keystore", "multi-session/client2.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU0", "ALFA0", "12340", "JKS", "JKS"));
             TestInitiator initiator2 = new TestInitiator(
                     createInitiatorSettings("multi-session/client1.keystore", "multi-session/client1.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU1", "ALFA1", "12341", "JKS", "JKS"));
             TestInitiator initiator3 = new TestInitiator(
                     createInitiatorSettings("multi-session/client3.keystore", "multi-session/client3.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU2", "ALFA2", "12342", "JKS", "JKS"));
 
             try {
                 initiator1.start();
@@ -500,14 +500,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyClientTruststore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/empty.keystore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -531,14 +531,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingEmptyServerTrustore() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -562,14 +562,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadClientCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/server.keystore", true,
-                "single-session/server.truststore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/server.truststore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/server.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -593,14 +593,14 @@ public class SSLCertificateTest {
     public void shouldFailWhenUsingBadServerCertificate() throws Exception {
         int freePort = AvailablePortFinder.getNextAvailable();
         TestAcceptor acceptor = new TestAcceptor(createAcceptorSettings("single-session/client.keystore", false,
-                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.2", "JKS", "JKS", freePort));
+                "single-session/empty.keystore", CIPHER_SUITES_TLS, "TLSv1.3", "JKS", "JKS", freePort));
 
         try {
             acceptor.start();
 
             TestInitiator initiator = new TestInitiator(
                     createInitiatorSettings("single-session/empty.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU", "ALFA", Integer.toString(freePort), "JKS", "JKS"));
 
             try {
                 initiator.start();
@@ -631,7 +631,7 @@ public class SSLCertificateTest {
 
             TestInitiator sslInitiator = new TestInitiator(
                     createInitiatorSettings("single-session/client.keystore", "single-session/client.truststore",
-                            CIPHER_SUITES_TLS, "TLSv1.2", "ZULU_SSL", "ALFA_SSL", Integer.toString(sslPort), "JKS", "JKS"));
+                            CIPHER_SUITES_TLS, "TLSv1.3", "ZULU_SSL", "ALFA_SSL", Integer.toString(sslPort), "JKS", "JKS"));
 
             TestInitiator nonSslInitiator = new TestInitiator(createInitiatorSettings("ZULU_NON_SSL", "ALFA_NON_SSL", nonSslPort));
 
