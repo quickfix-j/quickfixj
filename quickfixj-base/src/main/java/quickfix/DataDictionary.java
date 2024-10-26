@@ -49,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.xml.XMLConstants;
 
@@ -112,6 +113,7 @@ public class DataDictionary {
     private final StringIntegerMap<GroupInfo> groups = new StringIntegerMap<>();
     private final Map<String, Node> components = new HashMap<>();
     private int[] orderedFieldsArray;
+    private static Consumer<String> callback = LOG::warn;
 
     private DataDictionary() {
     }
@@ -620,9 +622,21 @@ public class DataDictionary {
      * @throws FieldNotFound if a field cannot be found
      * @throws IncorrectDataFormat if a field value has a wrong data type
      */
+    public void validate(Message message, boolean bodyOnly, ValidationSettings settings, Consumer<String> customCallback) throws IncorrectTagValue,
+            FieldNotFound, IncorrectDataFormat {
+        validate(message, bodyOnly ? null : this, this, settings, customCallback);
+    }
+
     public void validate(Message message, boolean bodyOnly, ValidationSettings settings) throws IncorrectTagValue,
             FieldNotFound, IncorrectDataFormat {
         validate(message, bodyOnly ? null : this, this, settings);
+    }
+
+    static void validate(Message message, DataDictionary sessionDataDictionary,
+                         DataDictionary applicationDataDictionary, ValidationSettings settings, Consumer<String> sessionCallback) throws IncorrectTagValue, FieldNotFound,
+            IncorrectDataFormat {
+        callback = sessionCallback;
+        validate(message, sessionDataDictionary, applicationDataDictionary, settings);
     }
 
     static void validate(Message message, DataDictionary sessionDataDictionary,
@@ -724,13 +738,14 @@ public class DataDictionary {
         boolean fail;
         if (field < USER_DEFINED_TAG_MIN) {
             fail = !messageField && !settings.allowUnknownMessageFields;
+
             if (settings.fieldValidationLogging && !messageField && settings.allowUnknownMessageFields) {
-                LOG.warn("Unknown Message Field {} detected", field);
+                callback.accept("Unknown Message Field " + field + " detected");
             }
         } else {
             fail = !messageField && settings.checkUserDefinedFields;
             if (settings.fieldValidationLogging && !messageField && settings.checkUserDefinedFields) {
-                LOG.warn("Unknown User Defined Field {} detected", field);
+                callback.accept("Unknown User Defined Field " + field + " detected");
             }
 
         }
